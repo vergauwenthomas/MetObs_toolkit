@@ -1,0 +1,8 @@
+#Exclude private information 
+deploy_info
+
+#Exclude deploy scripts
+deploy_to*
+
+#Exclude builds
+dist/*
