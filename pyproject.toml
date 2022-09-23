@@ -5,15 +5,18 @@ build-backend = "hatchling.build"
 [project]
 name = "vlinder_toolkit"
 description = "A VLINDER and MOCCA toolkit for scientists"
-version = "0.0.3"
+version = "0.2.3"
 authors = [
     { name = "Thomas Vergauwen", email = "thomas.vergauwen@meteo.be" }
 ]
 
 dependencies = [
     "pandas",
-    "numpy"
 ]
+
+
+exclude = ["tests", "examples"]
+
 
 readme = "README.md"
 license = { file="LICENSE" }

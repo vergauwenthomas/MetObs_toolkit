@@ -5,13 +5,13 @@ All needed setting are combined in a settings class.
 
 @author: thoverga
 """
-import os
+# import os
 
 class Settings:
-    _user = os.getlogin()
-    _output_data_folder = os.getenv('VLINDER_OUTPUT_DATA_FOLDER')
+    _user = None
+    _output_data_folder = None
     
-    _input_file = os.getenv('VLINDER_INPUT_DATA')
+    _input_file = None
     
     
     def __init__(self, user = _user, output_folder = _output_data_folder, input_file= _input_file):
@@ -47,5 +47,12 @@ class Settings:
         for setting_attr in self.__dict__.keys():
             if isinstance(getattr(self,setting_attr), type(None)):
                 print('Setting: ', setting_attr, ' is not known! Please specify this.')
+                
+            
         
     
+    def show(self):
+        print('User: ', self.user)
+        print('Output data folder: ', self.output_data_folder)
+        print('Input observations file: ', self.input_file)
+        
