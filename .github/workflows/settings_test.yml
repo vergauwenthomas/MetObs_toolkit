@@ -15,4 +15,5 @@ jobs:
         run: |
           ls ${{ github.workspace }}
       - run: echo " This job's status is ${{ job.status }}."
-      - run: pwd
+      - run: echo " Start executing test scripts!"
+      - run: python3 /home/runner/work/vlinder_toolkit/vlinder_toolkit/tests/Setup_test.py
