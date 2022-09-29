@@ -155,6 +155,20 @@ class Dataset:
             
             
     def update_dataset_by_df(self, dataframe):
+        """
+        Update the dataset object and all it attributes by a dataframe.
+
+        Parameters
+        ----------
+        dataframe : pandas.DataFrame
+        A dataframe that has an datetimeindex and following columns: 'name, temp, radiation_temp, humidity, ...'
+            
+
+        Returns
+        -------
+        None.
+
+        """
         #reset dataset attributes
         self.df = dataframe
         self._stationlist = [] 

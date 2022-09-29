@@ -19,6 +19,7 @@ class Settings:
         self.output_data_folder = output_folder #where outputfiles are saved
         self.user = user
         self.input_file = input_file
+        self.input_template = None
     
        
         

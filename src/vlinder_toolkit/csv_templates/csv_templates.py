@@ -31,7 +31,8 @@ vlinder_brian_csv_template = {
                    'dtype': 'object' },
          'Tijd (UTC)': {'varname':'_time',
                         'fmt': '%H:%M:%S',
-                        'dtype': 'object'},
+                        'dtype': 'object',
+                        'timezone': 'UTC'},
          'Temperatuur': {'varname':'temp',
                         'units': r'$^o$C',
                         'dtype': 'float64',
@@ -87,13 +88,12 @@ def template_to_package_space(template):
         
         returndict[new_name] = item
         returndict[new_name].pop('varname')
-        returndict[new_nam]['orig_name'] = orig_fieldname #maybe needed for fruther developm.?_
+        returndict[new_name]['orig_name'] = orig_fieldname #maybe needed for fruther developm.?_
         
         
     return returndict
 
 
-test = template_to_package_space(vlinder_brian_csv_template)
 
 
     
@@ -125,13 +125,19 @@ def compress_dict(nested_dict, valuesname):
     return returndict    
     
 
+
+
+
+
+
 def get_template_from_df_columns(columns, csv_templates_list=csv_templates_list):
-    template_found= False
-    for csv_template in csv_templates_list:
-        columnnames = compress_dict(csv_template, 'varname')
-        template_found = [col_name_csv in columnnames for col_name_csv in columns].all()
-        if template_found:
-            return csv_template
+    for test_template in csv_templates_list:
+        columnnames = compress_dict(test_template, 'varname').keys()
+        
+        boollist = [col_name_csv in columnnames for col_name_csv in columns]
+       
+        if not (False in list(set(boollist))): #all columnnames are found in template
+            return test_template
         
     
     
