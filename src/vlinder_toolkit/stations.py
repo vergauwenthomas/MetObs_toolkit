@@ -9,8 +9,8 @@ import pandas as pd
 # import matplotlib.pyplot as plt
 from datetime import datetime
 
-from .IO import import_data_from_csv 
-from .physical_info import datetime_settings, description_dict, unit_dict
+from .settings import Settings
+from .data_import import import_data_from_csv, import_data_from_database , template_to_package_space
 
 
 # =============================================================================
@@ -22,10 +22,10 @@ class Station:
         self.name = station_name
         
         #Meta data without processing
-        self.lat = []
-        self.lon = []
-        self.location = None #ex. Boerenkreek
-        
+        self.lat = pd.Series()
+        self.lon = pd.Series()
+        self.call_name = None #ex. Antwerpen Zoo
+        self.location = None #ex. Antwerpen 
         
         #Observations
         self.temp = pd.Series()
@@ -43,6 +43,27 @@ class Station:
         self.pressure = pd.Series()
         self.pressure_at_sea_level = pd.Series()
         
+        #Units and descriptions
+        self.units = {'temp': None,
+                      'radiation_temp': None,
+                      'humidity': None,
+                      'precip': None,
+                      'precip_sum': None,
+                      'wind_speed': None,
+                      'wind_gust': None,
+                      'wind_direction': None,
+                      'pressure': None,
+                      'pressure_at_sea_level': None}
+        self.obs_description = {'temp': None,
+                          'radiation_temp': None,
+                          'humidity': None,
+                          'precip': None,
+                          'precip_sum': None,
+                          'wind_speed': None,
+                          'wind_gust': None,
+                          'wind_direction': None,
+                          'pressure': None,
+                          'pressure_at_sea_level': None}
         
     def df(self):
         """
@@ -66,7 +87,7 @@ class Station:
                             self.pressure_at_sea_level]).transpose()
 
 
-    def plot(self, variable='temp', **kwargs):
+    def make_plot(self, variable='temp', **kwargs):
         """
         Make a timeseries plot of one attribute.
 
@@ -90,10 +111,10 @@ class Station:
         ax=data.plot(**kwargs)
         
         #Add text labels
-        ax.set_title(self.name + ': ' + description_dict[variable])
+        ax.set_title(self.name + ': ' + self.obs_description[variable])
         
         ax.set_xlabel('')
-        ax.set_ylabel(unit_dict[variable])
+        ax.set_ylabel(self.units[variable])
         
         return ax
         
@@ -106,6 +127,8 @@ class Dataset:
     def __init__(self):
         self._stationlist = []
         self.df = pd.DataFrame()
+        
+        self.data_template = {}
         
     
     def get_station(self, stationname):
@@ -132,9 +155,9 @@ class Dataset:
     def show(self):
         if self.df.empty:
             print("This dataset is empty!")
-        else:
-            starttimestr = datetime.strftime(min(self.df.index), datetime_settings['string_representation_format'])
-            endtimestr = datetime.strftime(max(self.df.index), datetime_settings['string_representation_format'])
+        else: 
+            starttimestr = datetime.strftime(min(self.df.index), Settings.print_fmt_datetime)
+            endtimestr = datetime.strftime(max(self.df.index), Settings.print_fmt_datetime)
             
             stations_available = list(self.df.name.unique())
             
@@ -142,16 +165,37 @@ class Dataset:
             print('Following stations are in dataset: ', stations_available)
             
             
+    # =============================================================================
+    #     importing data        
+    # =============================================================================
             
-            
-    def import_data_from_file(self, Settings, network='vlinder'):
-        
+    def import_data_from_file(self, network='vlinder'):
+        print('Settings input file: ', Settings.input_file)
         # Read observations into pandas dataframe
-        df = import_data_from_csv(Settings)
+        df, template = import_data_from_csv(input_file = Settings.input_file,
+                                  file_csv_template=Settings.input_csv_template)
         
         #update dataset object
+        self.data_template = template
         self.update_dataset_by_df(df)
-            
+        
+    
+    def import_data_from_database(self,
+                              start_datetime=None,
+                              end_datetime=None):
+        if isinstance(start_datetime, type(None)):
+            start_datetime=datetime.date.today() - datetime.timedelta(days=1)
+        if isinstance(end_datetime, type(None)):
+            end_datetime=datetime.date.today()
+        # Read observations into pandas dataframe
+        df = import_data_from_database(Settings,
+                                       start_datetime=start_datetime,
+                                       end_datetime=end_datetime)
+        
+        
+        #Make data template
+        self.data_template = template_to_package_space(Settings.vlinder_db_obs_template)
+        self.update_dataset_by_df(df)
             
             
     def update_dataset_by_df(self, dataframe):
@@ -169,12 +213,20 @@ class Dataset:
         None.
 
         """
+        print(dataframe.columns)
+        
         #reset dataset attributes
         self.df = dataframe
         self._stationlist = [] 
         
         # Create a list of station objects
         for stationname in dataframe.name.unique():
+            #extract observations
+            station_obs = dataframe[dataframe['name'] == stationname].sort_index()
+            
+            if station_obs.empty:
+                print('skip stationname: ', stationname)
+                continue
             
             #find network
             if 'linder' in stationname:
@@ -188,8 +240,7 @@ class Dataset:
             #initialise station object
             station_obj = Station(station_name=stationname, 
                                   network_name=network)
-            #extract observations
-            station_obs = dataframe[dataframe['name'] == stationname].sort_index()
+            
             
             #fill attributes of station object
             station_obj.temp = station_obs['temp']
@@ -207,9 +258,32 @@ class Dataset:
             station_obj.pressure = station_obs['pressure']
             station_obj.pressure_at_sea_level = station_obs['pressure_at_sea_level']
             
+            
+            #check if meta data is available
+            if 'lat' in station_obs.columns:
+                station_obj.lat = station_obs['lat']
+            if 'lon' in station_obs.columns:
+                station_obj.lon = station_obs['lon']
+            if 'call_name' in station_obs.columns:
+                station_obj.call_name = station_obs['call_name'].iloc[0]
+            if 'location' in station_obs.columns:
+                station_obj.location = station_obs['location'].iloc[0]
+            
+            #Update units and description dicts of the station using the used template
+            for obs_field in station_obj.units.keys():
+                try:
+                    station_obj.units[obs_field] = self.data_template[obs_field]['units']
+                    station_obj.obs_description[obs_field] = self.data_template[obs_field]['description']
+                except:
+                   continue 
+            
+            
             #update stationlist
             self._stationlist.append(station_obj)
-        
+            
+            
+          
+            
         
         
     

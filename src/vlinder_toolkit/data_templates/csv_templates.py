@@ -78,66 +78,7 @@ vlinder_brian_csv_template = {
 
 csv_templates_list.append(vlinder_brian_csv_template)
 
-def template_to_package_space(template):
-    returndict = {}
-    
-    for orig_fieldname, item in template.items():
-        # print(item)
-        new_name = item['varname']
-        
-        
-        returndict[new_name] = item
-        returndict[new_name].pop('varname')
-        returndict[new_name]['orig_name'] = orig_fieldname #maybe needed for fruther developm.?_
-        
-        
-    return returndict
 
-
-
-
-    
-def compress_dict(nested_dict, valuesname):
-    """
-    This function unnests a nested dictionary for a specific valuename that is a key in the nested dict. 
-
-    Parameters
-    ----------
-    
-    nested_dict : dict 
-        Nested dictionary
-    
-    valuesname : str 
-        Nested dict Key-name of nested dict.
-
-    Returns
-    -------
-    returndict : DICT
-        A dictionarry where the keys are kept that have the valuesname as a nesteddict key, 
-        and values are the values of the values of the valuesname. 
-        {[key-nested_dict-if-exists]: nested_dict[key-nested_dict-if-exists][valuesname]}
-
-    """
-    returndict = {}
-    for key, item in nested_dict.items():
-        if valuesname in item:
-            returndict[key] = item[valuesname]
-    return returndict    
-    
-
-
-
-
-
-
-def get_template_from_df_columns(columns, csv_templates_list=csv_templates_list):
-    for test_template in csv_templates_list:
-        columnnames = compress_dict(test_template, 'varname').keys()
-        
-        boollist = [col_name_csv in columnnames for col_name_csv in columns]
-       
-        if not (False in list(set(boollist))): #all columnnames are found in template
-            return test_template
         
     
     

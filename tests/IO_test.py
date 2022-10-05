@@ -17,32 +17,48 @@ from src import vlinder_toolkit
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata.csv')
 
 
+
 #%% Define setting 
 
 settings = vlinder_toolkit.Settings()
-settings.update_settings(input_file=testdatafile)
+settings.show()
 
+
+settings.update_settings(input_file=testdatafile)
+settings.check_settings()
 
 #%% import data from file
 
-dataset = vlinder_toolkit.Dataset()
+# dataset = vlinder_toolkit.Dataset()
 
-dataset.import_data_from_file(Settings=settings)
+# dataset.import_data_from_file()
 
+
+# station = dataset.get_station('vlinder02')
+# stationdf = station.df()
+# print(stationdf.head())
+
+#%% import data from DB
+from datetime import datetime
+
+dataset2 = vlinder_toolkit.Dataset()
+dataset2.import_data_from_database(start_datetime=datetime(2022, 6,12),
+                                    end_datetime=datetime(2022,6,19,12,45)) #2022/7/19 12:45:00
+
+
+station = dataset2.get_station('vlinder02')
+stationdf = station.df()
+# print(stationdf.head())
+
+print('Description: ',station.obs_description)
+print('units: ',station.units)
 
 
 #%%
-station = dataset.get_station('vlinder02').df()
-print(station.head())
 
+# sta = dataset.get_station('vlinder02')
 
-
-
-#%%
-
-sta = dataset.get_station('vlinder02')
-
-ax =sta.plot()
+# ax =sta.make_plot()
 
 
 

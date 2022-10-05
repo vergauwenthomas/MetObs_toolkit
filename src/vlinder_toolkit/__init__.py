@@ -5,8 +5,13 @@
 
 
 #Import classes
-from .Stations import Station, Dataset
-from .Settings import Settings
+from .stations import Station, Dataset
+from .settings import Settings
+
+
+#import templates and settingsfiles
+# from .data_templates import csv_templates, db_templates
+# from .settings_files import server_login.json
 
 
 __version__ = "version debug"
