@@ -29,14 +29,14 @@ settings.check_settings()
 
 #%% import data from file
 
-# dataset = vlinder_toolkit.Dataset()
+dataset = vlinder_toolkit.Dataset()
 
-# dataset.import_data_from_file()
+dataset.import_data_from_file()
 
 
-# station = dataset.get_station('vlinder02')
-# stationdf = station.df()
-# print(stationdf.head())
+station = dataset.get_station('vlinder02')
+stationdf = station.df()
+print(stationdf.head())
 
 #%% import data from DB
 from datetime import datetime
@@ -48,17 +48,14 @@ dataset2.import_data_from_database(start_datetime=datetime(2022, 6,12),
 
 station = dataset2.get_station('vlinder02')
 stationdf = station.df()
-# print(stationdf.head())
 
-print('Description: ',station.obs_description)
-print('units: ',station.units)
+
 
 
 #%%
 
-# sta = dataset.get_station('vlinder02')
 
-# ax =sta.make_plot()
+ax =station.make_plot()
 
 
 
