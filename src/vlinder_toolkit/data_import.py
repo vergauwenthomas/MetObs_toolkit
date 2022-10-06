@@ -13,14 +13,6 @@ import pandas as pd
 import mysql.connector
 from mysql.connector import errorcode
 
-# from .data_templates.csv_templates import csv_templates_list
-# from .data_templates.db_templates import vlinder_metadata_db_template, vlinder_observations_db_template
-
-
-
-
-
-
 
 def template_to_package_space(specific_template):
     
@@ -30,11 +22,6 @@ def template_to_package_space(specific_template):
        orig_dict.pop('varname')
        returndict[key].update(orig_dict)
    return returndict
-
-
-
-
-
 
 
     

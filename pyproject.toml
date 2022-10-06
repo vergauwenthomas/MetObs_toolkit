@@ -5,13 +5,17 @@ build-backend = "hatchling.build"
 [project]
 name = "vlinder_toolkit"
 description = "A VLINDER and MOCCA toolkit for scientists"
-version = "0.2.4"
+version = "0.3.2"
 authors = [
     { name = "Thomas Vergauwen", email = "thomas.vergauwen@meteo.be" }
 ]
 
+
 dependencies = [
-    "pandas",
+  'python >= 3.7.0',
+  'pandas >= 1.3.0',
+  'matplotlib >= 3.0.0',
+  'mysql-connector-python >= 8.0.0',
 ]
 
 
