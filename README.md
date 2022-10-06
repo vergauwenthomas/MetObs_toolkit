@@ -41,3 +41,14 @@ Some examples with comments can be found in [here](https://github.com/vergauwent
  
  These are attributes of a stationobject and can be extracted by `station_name.location`
  
+### Using the database
+In order to use the database for importing data, you need to have an active VPN connection with the UGent network or working from within the UGent network. 
+In addition you need a specific **USER** and **PASSWORD** to connect with the database. (Contact thomas.vergauwen@meteo.be for this account).
+
+To give the user and password to the vlinder toolkit, you need to set them as envrionment variables:
+(on linux execute in terminal (or better add them in  `.bashrc`:)
+
+ `     export VLINDER_DB_USER_NAME="...."` (no spaces, fill in the username for the Database)
+ 
+ 
+ `     export VLINDER_DB_USER_PASW="...."` (no spaces, fill in the password for the Database)
