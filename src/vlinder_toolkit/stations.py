@@ -65,6 +65,20 @@ class Station:
                           'pressure': None,
                           'pressure_at_sea_level': None}
         
+        #attributes that can be filled with info from other functions
+        self.qc_labels_df =  {'temp': pd.DataFrame(),
+                              'radiation_temp': pd.DataFrame(),
+                              'humidity': pd.DataFrame(),
+                              'precip': pd.DataFrame(),
+                              'precip_sum': pd.DataFrame(),
+                              'wind_speed': pd.DataFrame(),
+                              'wind_gust': pd.DataFrame(),
+                              'wind_direction': pd.DataFrame(),
+                              'pressure': pd.DataFrame(),
+                              'pressure_at_sea_level': pd.DataFrame()}
+        
+        self.qc_info = {} #will be filled by qc checks
+        
     def df(self):
         """
         Convert all observations of the station to a pandas dataframe.
@@ -219,6 +233,12 @@ class Dataset:
         self.df = dataframe
         self._stationlist = [] 
         
+        
+        
+        observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
+                             'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
+                             'pressure', 'pressure_at_sea_level']
+        
         # Create a list of station objects
         for stationname in dataframe.name.unique():
             #extract observations
@@ -242,21 +262,15 @@ class Dataset:
                                   network_name=network)
             
             
-            #fill attributes of station object
-            station_obj.temp = station_obs['temp']
-            station_obj.radiation_temp = station_obs['radiation_temp']
             
-            station_obj.humidity = station_obs['humidity']
+            for obstype in observation_types:
+                #fill attributes of station object
+                setattr(station_obj, obstype, station_obs[obstype])
             
-            station_obj.precip = station_obs['precip']
-            station_obj.precip_sum = station_obs['precip_sum']
-            
-            station_obj.wind_speed = station_obs['wind_speed']
-            station_obj.wind_gust = station_obs['wind_gust']
-            station_obj.wind_direction = station_obs['wind_direction']
-            
-            station_obj.pressure = station_obs['pressure']
-            station_obj.pressure_at_sea_level = station_obs['pressure_at_sea_level']
+                #Fill QC dataframes with observations
+                station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': station_obs[obstype]})
+                station_obj.qc_labels_df[obstype]['status'] = 'ok'
+
             
             
             #check if meta data is available

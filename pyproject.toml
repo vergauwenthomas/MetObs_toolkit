@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 
-exclude = ["tests", "examples"]
+exclude = ["tests", "examples", "development"]
 
 
 readme = "README.md"
