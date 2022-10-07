@@ -8,13 +8,14 @@ Created on Fri Sep 23 12:01:35 2022
 import os
 from pathlib import Path
 main_folder = Path(__file__).resolve().parents[1]
-testdata_file = os.path.join(str(main_folder), 'test', 'test_data',  'vlinderdata.csv' )
+testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata.csv' )
 
 
 import vlinder_toolkit
 
 
 
+#%%
 
 # =============================================================================
 # Settings

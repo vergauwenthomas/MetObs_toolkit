@@ -1,0 +1,4 @@
+{
+    "target_time_resolution": "H",
+    "method": "bfill"
+}
