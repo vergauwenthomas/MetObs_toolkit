@@ -6,12 +6,14 @@ The class object for a Vlinder/mocca station
 """
 
 import pandas as pd
-# import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.pyplot as plt
 from datetime import datetime
 
 from .settings import Settings
-from .data_import import import_data_from_csv, import_data_from_database , template_to_package_space
-
+from .data_import import import_data_from_csv, import_data_from_database, template_to_package_space
+from .data_import import coarsen_time_resolution
+# from .qc_checks import duplicate_timestamp, gross_value_check
 
 # =============================================================================
 # station class
@@ -77,7 +79,10 @@ class Station:
                               'pressure': pd.DataFrame(),
                               'pressure_at_sea_level': pd.DataFrame()}
         
+        #TODO: remove the qc_info and combine all info in the qc_labels_df
         self.qc_info = {} #will be filled by qc checks
+
+    
         
     def df(self):
         """
@@ -100,8 +105,18 @@ class Station:
                             self.pressure,
                             self.pressure_at_sea_level]).transpose()
 
+    # def apply_qc(self, obstype='temp', ignore_val=np.nan):
+        
+    #     self = duplicate_timestamp(self, obstype)
+        
+    #     self = gross_value_check(self, obstype, ignore_val)
+        
+        
+        
+        
 
-    def make_plot(self, variable='temp', **kwargs):
+
+    def make_plot(self, variable='temp', ax=None, **kwargs):
         """
         Make a timeseries plot of one attribute.
 
@@ -122,7 +137,13 @@ class Station:
         
         data = getattr(self, variable)
         
-        ax=data.plot(**kwargs)
+        if isinstance(ax, type(None)):
+            fig, ax = plt.subplots() 
+        
+        
+        
+        
+        ax=data.plot(ax=ax, **kwargs)
         
         #Add text labels
         ax.set_title(self.name + ': ' + self.obs_description[variable])
@@ -183,7 +204,7 @@ class Dataset:
     #     importing data        
     # =============================================================================
             
-    def import_data_from_file(self, network='vlinder'):
+    def import_data_from_file(self, network='vlinder', coarsen_timeres=False):
         print('Settings input file: ', Settings.input_file)
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(input_file = Settings.input_file,
@@ -191,16 +212,26 @@ class Dataset:
         
         #update dataset object
         self.data_template = template
+        
+        if coarsen_timeres:
+            df = coarsen_time_resolution(df=df,
+                                         freq=Settings.target_time_res,
+                                         method=Settings.resample_method)
+            
+        
         self.update_dataset_by_df(df)
         
     
     def import_data_from_database(self,
                               start_datetime=None,
-                              end_datetime=None):
+                              end_datetime=None,
+                              coarsen_timeres=False):
         if isinstance(start_datetime, type(None)):
             start_datetime=datetime.date.today() - datetime.timedelta(days=1)
         if isinstance(end_datetime, type(None)):
             end_datetime=datetime.date.today()
+        print('Importing data from ', Settings.input_file)
+            
         # Read observations into pandas dataframe
         df = import_data_from_database(Settings,
                                        start_datetime=start_datetime,
@@ -209,8 +240,16 @@ class Dataset:
         
         #Make data template
         self.data_template = template_to_package_space(Settings.vlinder_db_obs_template)
+        
+        if coarsen_timeres:
+            df = coarsen_time_resolution(df=df,
+                                         freq=Settings.target_time_res,
+                                         method=Settings.resample_method)
+        
         self.update_dataset_by_df(df)
-            
+    
+    
+    
             
     def update_dataset_by_df(self, dataframe):
         """
@@ -227,13 +266,13 @@ class Dataset:
         None.
 
         """
-        print(dataframe.columns)
+       
         
         #reset dataset attributes
         self.df = dataframe
         self._stationlist = [] 
         
-        
+        print(dataframe.columns)
         
         observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
                              'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',

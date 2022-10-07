@@ -23,6 +23,9 @@ class Settings:
     input_file = None
     input_csv_template = None
    
+    #time resolution settings
+    target_time_res = None # "H"
+    resample_method = None #"bfill"
     
     #Database settings (these will be updated in init)
     db_host = None
@@ -46,12 +49,13 @@ class Settings:
      
         #Update (instance and class variables) what can be updated by setingsfiles
         self.update_db_settings() 
+        self.update_time_res_settings()
         self.update_app_settings()
         self.update_templates()
         
 
     # =============================================================================
-    #     Update settings
+    #     Update settings from files
     # =============================================================================
     @classmethod
     def update_db_settings(self):
@@ -69,7 +73,17 @@ class Settings:
         
         Settings.db_user = os.getenv('VLINDER_DB_USER_NAME')
         Settings.db_passw = os.getenv('VLINDER_DB_USER_PASW')
-    
+        
+    @classmethod
+    def update_time_res_settings(self):
+        f = open(os.path.join(Settings._settings_files_path, "dataset_resolution_settings.json"))
+        res_settings = json.load(f)
+        f.close()
+        
+        Settings.target_time_res = res_settings['target_time_resolution']
+        Settings.resample_method = res_settings['method']
+       
+        
     @classmethod
     def update_app_settings(self):
         

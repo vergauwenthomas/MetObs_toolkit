@@ -22,36 +22,39 @@ from src import vlinder_toolkit
 
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata.csv')
 
-#%% Setup dataset
+#% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_file=testdatafile)
 
 dataset = vlinder_toolkit.Dataset()
-dataset.import_data_from_file()
+dataset.import_data_from_file(coarsen_timeres=True)
+
+
+# sta = dataset.get_station('vlinder05')
 
 #%%
 # =============================================================================
-# developments
+# checks
 # =============================================================================
 
 sta = dataset.get_station('vlinder05')
 
-stachecked = vlinder_toolkit.qc_checks.duplicate_timestamp(sta)
+df_init = sta.df()
+sta.make_plot(title='init temp')
 
 
-temp = sta.temp.append(pd.Series(index=[sta.temp.index[2]], data=[sta.temp.iloc[2]]))
+sta = vlinder_toolkit.qc_checks.duplicate_timestamp(sta)
+sta.make_plot(title='after timstamp dub qc')
+sta = vlinder_toolkit.qc_checks.gross_value_check(sta)
+sta.make_plot(title='after gross value qc')
+sta = vlinder_toolkit.qc_checks.persistance(sta)
+sta.make_plot(title='after persistance qc')
+
+# df = sta.df()
+# sta.make_plot()
 
 
+# sta.make_plot()
 
-
-
-
-sta.temp = temp
-sta= vlinder_toolkit.qc_checks.duplicate_timestamp(sta)
-sta= vlinder_toolkit.qc_checks.gross_value_check(sta)
-
-
-
-print(sta.qc_labels_df['temp'])
 
 

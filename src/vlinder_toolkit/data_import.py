@@ -68,6 +68,33 @@ def compress_dict(nested_dict, valuesname):
 #         if not (False in list(set(boollist))): #all columnnames are found in template
 #             return test_template
 
+def coarsen_time_resolution(df, freq='H', method='bfill'):
+    
+    #TODO: implement buffer method
+    
+    if method=='bfill':
+        #apply per station
+        resample_df = pd.DataFrame()
+        for stationname in df['name'].unique():
+            subdf = df[df['name'] == stationname]
+            
+            
+            #  Check if index is unique
+            if not subdf.index.is_unique:
+                print('Duplicate timestamp found !!, this will be removed')
+                dup_mask = subdf.index.duplicated(keep='first')
+                subdf = subdf[~dup_mask]
+            
+            
+            resample_subdf = subdf.resample(rule=freq,
+                                            axis='index').bfill()
+                             
+            resample_df = resample_df.append(resample_subdf)
+            
+        print('in returen')
+        return resample_df
+    
+
 
 
 def import_data_from_csv(input_file, file_csv_template ):
