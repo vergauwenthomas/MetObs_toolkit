@@ -30,7 +30,9 @@ jobs:
         pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade        
     - name: Test Settings module with pytest
       run: |
-        python3 vlinder_toolkit/tests/basic_import_test.py
+        ls
+        pwd
+        python3 tests/basic_import_test.py
     
         
         
