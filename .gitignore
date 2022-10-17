@@ -7,6 +7,10 @@ deploy_to*
 #Exclude builds
 dist/*
 
+#Exclude development scripts for testing
+development/*
+
+
 # pychache
 src/vlinder_toolkit/__pycache__/*
 
