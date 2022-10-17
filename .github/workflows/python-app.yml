@@ -27,10 +27,12 @@ jobs:
       run: |
         python3 -m pip install --upgrade pip
         python3 -m pip install pandas
-        echo "installed pandas i think"
+        pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade        
     - name: Test Settings module with pytest
       run: |
-        tests/Setup_test.py
+        ls
+        pwd
+        python3 tests/basic_import_test.py
     
         
         
