@@ -272,7 +272,7 @@ class Dataset:
         self.df = dataframe
         self._stationlist = [] 
         
-        print(dataframe.columns)
+      
         
         observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
                              'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
@@ -310,6 +310,21 @@ class Dataset:
                 station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': station_obs[obstype]})
                 station_obj.qc_labels_df[obstype]['status'] = 'ok'
 
+            #Apply IO checks
+            
+            #check for missing timestamps
+            checked_df, missing_dt_list = missing_timestamp_check(station_obj)
+            if bool(missing_dt_list):
+                for obstype in checked_df.columns:
+                    #update observations with missing obs as nan's
+                    setattr(station_obj, obstype, checked_df[obstype]) 
+                    #update QC dataframes
+                    station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': checked_df[obstype]})
+                    station_obj.qc_labels_df[obstype]['status'] = ['ok' if dt not in missing_dt_list else 'missing timestamp' for dt in checked_df.index ]
+                    
+                    
+                    
+            
             
             
             #check if meta data is available
@@ -338,6 +353,46 @@ class Dataset:
           
             
         
-        
+def missing_timestamp_check(station):
+    """
+    Looking for missing timestaps by assuming an observation frequency. The assumed frequency is the most occuring frequency.
+    If missing observations are detected, the observations dataframe is extended by these missing timestamps with Nan's as filling values.
+
+    Parameters
+    ----------
+    station : Station object
+        The station you whant to apply this check on.
+
+    Returns
+    -------
+    df : pandas.DataFrame()
+        The observations dataframe (same as Station.df()).
+    missing_datetimes : list of datetimes
+        The list of the missing timestamps.
+
+    """     
+   
+    
+    df = station.df()
+    
+    #extrac observed frequencies
+    likely_freq = df.index.to_series().diff().value_counts().idxmax()
+    
+    
+    missing_datetimeindices = pd.date_range(start = df.index.min(),
+                         end = df.index.max(),
+                         freq=likely_freq).difference(df.index)
+    
+    missing_df = pd.DataFrame(data=np.nan,
+                              index=missing_datetimeindices,
+                              columns=df.columns)
+    
+    df = df.append(missing_df)
+    
+    
+    df = df.sort_index()
+    
+    
+    return df, missing_datetimeindices.to_list()
     
     

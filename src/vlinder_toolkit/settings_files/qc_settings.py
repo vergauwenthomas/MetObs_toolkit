@@ -9,8 +9,16 @@ from numpy import nan
 
 
 
+
+
+
 check_settings = {
-    "duplicate_timestamp": {'temp': {}}, #No numeric settings
+    
+    #checks on all observation types
+    "duplicate_timestamp": {}, #No numeric settings
+    
+    
+    #checks on specific observation types
     "gross_value": {'temp': {'min_value': 8.0,
                              'max_value': 24.0},
                     },

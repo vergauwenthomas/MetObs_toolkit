@@ -14,7 +14,6 @@ from .settings_files.qc_settings import check_settings, outlier_values, observat
 
 
 
-
 def duplicate_timestamp(station, obstype='temp'):
     """
     This check looks for duplicate timestamps. If a duplicate timestamp is found, it will be handled as specified in the outlier_values.
@@ -71,6 +70,15 @@ def duplicate_timestamp(station, obstype='temp'):
     setattr(station, obstype, obs)
     return station
     
+
+
+    
+    
+    
+# =============================================================================
+# Quality assesment checks
+# =============================================================================
+
     
 
 

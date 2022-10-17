@@ -91,7 +91,6 @@ def coarsen_time_resolution(df, freq='H', method='bfill'):
                              
             resample_df = resample_df.append(resample_subdf)
             
-        print('in returen')
         return resample_df
     
 
@@ -105,6 +104,7 @@ def import_data_from_csv(input_file, file_csv_template ):
     
     assert not df.empty, "Dataset is empty!"
     
+    assert len(df.columns) > 1, 'Only one column detected from import. See if csv template is correct.'
     
     
 
@@ -118,7 +118,7 @@ def import_data_from_csv(input_file, file_csv_template ):
 
 
 
-
+   
     # rename columns to toolkit attriute names
     df = df.rename(columns=compress_dict(templ, 'varname'))
     

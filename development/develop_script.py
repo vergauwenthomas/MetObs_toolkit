@@ -20,7 +20,7 @@ from src import vlinder_toolkit
 
 #%% Import
 
-testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata.csv')
+testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt.csv')
 
 #% Setup dataset
 settings = vlinder_toolkit.Settings()
@@ -31,13 +31,58 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 
 # sta = dataset.get_station('vlinder05')
+#%%
+
+import numpy as np
+
+
+dataset = vlinder_toolkit.Dataset()
+dataset.import_data_from_file(coarsen_timeres=False)
+sta = dataset.get_station('vlinder02')
+
+
+
+
+
+
+df = sta.df()
+
+
+
+dropdt = df.index[5:11]
+
+dropdt2 = df.index[16]
+
+df = df.drop(index=dropdt)
+df = df.drop(index=dropdt2)
+
+
+#extrac observed frequencies
+likely_freq = df.index.to_series().diff().value_counts().idxmax()
+
+
+missing_datetimeindices = pd.date_range(start = df.index.min(),
+                     end = df.index.max(),
+                     freq=likely_freq).difference(df.index)
+
+missing_df = pd.DataFrame(data=np.nan,
+                          index=missing_datetimeindices,
+                          columns=df.columns)
+
+df = df.append(missing_df)
+
+
+df = df.sort_index()
+
+
+
 
 #%%
 # =============================================================================
 # checks
 # =============================================================================
 
-sta = dataset.get_station('vlinder05')
+sta = dataset.get_station('vlinder02')
 
 df_init = sta.df()
 sta.make_plot(title='init temp')

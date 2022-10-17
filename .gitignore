@@ -15,3 +15,6 @@ development/*
 src/vlinder_toolkit/__pycache__/*
 
 *__pycache__*
+
+
+*.pyc
