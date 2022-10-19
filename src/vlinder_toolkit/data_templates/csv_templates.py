@@ -79,6 +79,25 @@ vlinder_brian_csv_template = {
 csv_templates_list.append(vlinder_brian_csv_template)
 
 
+vlinder_static_meta_data = {
+    'ID': {'varname': '_ID',
+                'dtype': 'object'},
+    'VLINDER': {'varname': 'name',
+                'dtype': 'object'},
+    'lat': {'varname': 'lat',
+                'dtype': 'float64'},
+    'lon': {'varname': 'lon',
+                'dtype': 'float64'},
+    'stad': {'varname': 'location',
+                'dtype': 'object'},
+    'benaming': {'varname': 'call_name',
+                'dtype': 'object'},
+    'Network': {'varname': 'network',
+                'dtype': 'object'},
+    }
+
+csv_templates_list.append(vlinder_static_meta_data)
+
         
     
     

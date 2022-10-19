@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 from .settings import Settings
-from .data_import import import_data_from_csv, import_data_from_database, template_to_package_space
+from .data_import import import_data_from_csv, import_data_from_database, template_to_package_space, import_metadata_from_csv
 from .data_import import coarsen_time_resolution
 # from .qc_checks import duplicate_timestamp, gross_value_check
 
@@ -205,10 +205,31 @@ class Dataset:
     # =============================================================================
             
     def import_data_from_file(self, network='vlinder', coarsen_timeres=False):
-        print('Settings input file: ', Settings.input_file)
+        print('Settings input data file: ', Settings.input_data_file)
+        
+        
         # Read observations into pandas dataframe
-        df, template = import_data_from_csv(input_file = Settings.input_file,
+        df, template = import_data_from_csv(input_file = Settings.input_data_file,
                                   file_csv_template=Settings.input_csv_template)
+        
+        
+        if isinstance(Settings.input_metadata_file, type(None)):
+            print('WARNING: No metadata file is defined. Add your settings object.')
+        else:
+            meta_df = import_metadata_from_csv(input_file=Settings.input_metadata_file,
+                                               file_csv_template=Settings.input_metadata_template)
+            
+            #merge additional metadata to observations
+            meta_cols = [colname for colname in meta_df.columns if not colname.startswith('_')]
+            additional_meta_cols = list(set(meta_cols).difference(df.columns))
+            if bool(additional_meta_cols):
+                additional_meta_cols.append('name') #merging on name
+                df_index = df.index #merge deletes datetime index somehow? so add it back on the merged df
+                df = df.merge(right=meta_df[additional_meta_cols],
+                              how='left', 
+                              on='name')
+                df.index = df_index
+        
         
         #update dataset object
         self.data_template = template
@@ -230,7 +251,7 @@ class Dataset:
             start_datetime=datetime.date.today() - datetime.timedelta(days=1)
         if isinstance(end_datetime, type(None)):
             end_datetime=datetime.date.today()
-        print('Importing data from ', Settings.input_file)
+       
             
         # Read observations into pandas dataframe
         df = import_data_from_database(Settings,
@@ -288,12 +309,16 @@ class Dataset:
                 continue
             
             #find network
-            if 'linder' in stationname:
-                network='vlinder'
-            elif 'occa' in stationname:
-                network='mocca'
+            if 'network' in station_obs.columns:
+                network = station_obs['network'].iloc[0]
             else:
-                network='Unknonw'
+                if 'linder' in stationname:
+                    network='vlinder'
+                elif 'occa' in stationname:
+                    network='mocca'
+                else:
+                    network='Unknown'
+            
             
             
             #initialise station object

@@ -19,10 +19,15 @@ class Settings:
     #Output 
     output_data_folder = None
    
-    #CSV input settings
-    input_file = None
+    #input data settings
+    input_data_file = None
     input_csv_template = None
    
+    input_metadata_file = None
+    input_metadata_template = None
+    
+   
+    
     #time resolution settings
     target_time_res = None # "H"
     resample_method = None #"bfill"
@@ -97,30 +102,35 @@ class Settings:
     
     @classmethod
     def update_templates(self):
-       from .data_templates.csv_templates import vlinder_brian_csv_template, csv_templates_list
+       from .data_templates.csv_templates import vlinder_brian_csv_template, csv_templates_list, vlinder_static_meta_data
        from .data_templates.db_templates import vlinder_metadata_db_template, vlinder_observations_db_template
        
        Settings.template_list = csv_templates_list
        Settings.vlinder_csv_template = vlinder_brian_csv_template
+      
+       
        Settings.vlinder_db_meta_template = vlinder_metadata_db_template
        Settings.vlinder_db_obs_template = vlinder_observations_db_template
        
        
        Settings.input_csv_template = Settings.vlinder_csv_template #set vlindertemplate as standard
-    
+       Settings.input_metadata_template = vlinder_static_meta_data #set vlindertemplate as standard
     
     
     @classmethod
-    def update_settings(self, output_data_folder=None, input_file=None):
+    def update_settings(self, output_data_folder=None, input_data_file=None,
+                        input_metadata_file=None):
         if not isinstance(output_data_folder, type(None)):    
             print('Update output_data_folder: ', self.output_data_folder, ' --> ', output_data_folder)
             Settings.output_data_folder = output_data_folder
             
-        if not isinstance(input_file, type(None)):    
-            print('Update input_file: ', self.input_file, ' --> ', input_file)
-            Settings.input_file = input_file
+        if not isinstance(input_data_file, type(None)):    
+            print('Update input_data_file: ', self.input_data_file, ' --> ', input_data_file)
+            Settings.input_data_file = input_data_file
         
-        print('settings inputfile: ', Settings.input_file)
+        if not isinstance(input_metadata_file, type(None)):    
+            print('Update input_metadata_file: ', self.input_metadata_file, ' --> ', input_metadata_file)
+            Settings.input_metadata_file = input_metadata_file
         
       
 

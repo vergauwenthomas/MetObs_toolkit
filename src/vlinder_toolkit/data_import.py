@@ -94,7 +94,30 @@ def coarsen_time_resolution(df, freq='H', method='bfill'):
         return resample_df
     
 
+def import_metadata_from_csv(input_file, file_csv_template):
+    assert not isinstance(input_file, type(None)), "Specify input file in the settings!"    
+    
+    df = pd.read_csv(input_file, sep=';')
+    
+    
+    assert not df.empty, "Dataset is empty!"
+    
+    assert len(df.columns) > 1, 'Only one column detected from import. See if csv template is correct.'
+    
+    
+    # import template
+    if isinstance(file_csv_template, type(None)):
+        # templ =get_template_from_df_columns(df.columns)
+        sys.exit("No template given for the input data.Not implemented yet !!!")
+    else:
+        templ = file_csv_template
 
+    # rename columns to toolkit attriute names
+    df = df.rename(columns=compress_dict(templ, 'varname'))
+
+    return df
+    
+    
 
 def import_data_from_csv(input_file, file_csv_template ):
     
@@ -111,7 +134,7 @@ def import_data_from_csv(input_file, file_csv_template ):
     # import template
     if isinstance(file_csv_template, type(None)):
         # templ =get_template_from_df_columns(df.columns)
-        sys.exit("Not implemented yet !!!")
+        sys.exit("No template given for the input data.Not implemented yet !!!")
     else:
         templ = file_csv_template
 

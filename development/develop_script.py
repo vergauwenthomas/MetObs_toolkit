@@ -18,19 +18,31 @@ print(str(lib_folder))
 
 from src import vlinder_toolkit
 
-#%% Import
+#% Import
 
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt.csv')
 
+static_data =  os.path.join(str(lib_folder), 'static_data', 'vlinder_metadata.csv')
+
+
+
 #% Setup dataset
 settings = vlinder_toolkit.Settings()
-settings.update_settings(input_file=testdatafile)
+settings.update_settings(input_data_file=testdatafile,
+                          input_metadata_file=static_data,
+                         )
+
 
 dataset = vlinder_toolkit.Dataset()
-dataset.import_data_from_file(coarsen_timeres=True)
+dataset.import_data_from_file(coarsen_timeres=False)
 
 
-# sta = dataset.get_station('vlinder05')
+
+
+
+
+
+sta = dataset.get_station('vlinder05')
 #%%
 
 import numpy as np
