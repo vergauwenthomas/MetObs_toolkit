@@ -10,6 +10,8 @@ dist/*
 #Exclude development scripts for testing
 development/*
 
+#Exclude physiographic data
+physiography/*
 
 # pychache
 src/vlinder_toolkit/__pycache__/*
