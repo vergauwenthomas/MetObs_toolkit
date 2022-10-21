@@ -319,3 +319,23 @@ def import_data_from_database(Settings,
     
     return combdata
 
+
+
+#%%
+# =============================================================================
+# Unit conversions
+# =============================================================================
+
+# def conversion_temp_units(observations, obs_units, target_unit):
+#     known_units = ['Celcius', 'Kelvin']
+#     if obs_units == target_unit:
+#         return observations
+    
+#     assert (obs_units in known_units), f"Temperature units ({obs_units}) not known, known units: {known_units}"
+    
+#     if (obs_units == 'Celcius') & (target_unit == 'Kelvin'):
+#         return observations + 273.15
+#     elif (obs_units == 'Kelvin') & (target_unit == 'Celcius'):
+#         return observations - 273.15 
+        
+

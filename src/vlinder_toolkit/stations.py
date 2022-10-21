@@ -4,16 +4,41 @@
 The class object for a Vlinder/mocca station
 @author: thoverga
 """
+from collections.abc import Iterable
 
 import pandas as pd
+import geopandas as gpd
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+# import geoplot as gplt
+# import mapclassify as mc
 from datetime import datetime
 
 from .settings import Settings
 from .data_import import import_data_from_csv, import_data_from_database, template_to_package_space, import_metadata_from_csv
 from .data_import import coarsen_time_resolution
+from .landcover_functions import geotiff_point_extraction
+from .geometry_functions import find_largest_extent
+from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot
 # from .qc_checks import duplicate_timestamp, gross_value_check
+
+
+# =============================================================================
+# field classifiers
+# =============================================================================
+
+#Static fields are fields (attributes and observations) that do not change in time
+static_fields = ['network', 'name', 
+                'lat', 'lon', #TODO make these dynamic, now used as static 
+                'call_name', 'location',
+                'lcz']
+
+#Categorical fields are fields with values that are assumed to be categorical.
+#Note: (there are static and dynamic fields that are categorical)
+categorical_fields = ['wind_direction', 'lcz']
+
+
+
 
 # =============================================================================
 # station class
@@ -44,6 +69,9 @@ class Station:
         
         self.pressure = pd.Series()
         self.pressure_at_sea_level = pd.Series()
+        
+        #physiographic data
+        self.lcz = None
         
         #Units and descriptions
         self.units = {'temp': None,
@@ -82,7 +110,26 @@ class Station:
         #TODO: remove the qc_info and combine all info in the qc_labels_df
         self.qc_info = {} #will be filled by qc checks
 
+    def show(self):
+        starttimestr = datetime.strftime(min(self.df().index), Settings.print_fmt_datetime)
+        endtimestr = datetime.strftime(max(self.df().index), Settings.print_fmt_datetime)
+        
+        
+        print(' ------- Static info -------')
+        print('Stationname: ', self.name)
+        print('Network: ', self.network)
+        print('Call name: ', self.call_name)
+        print('Location: ', self.location)
+        print('latitude: ', self.lat)
+        print('longtitude: ',self.lon)
+       
+        print(' ------- Physiography info -------')
+        print('LCZ: ', self.lcz)
+        print(' ')
+        print(' ------- Observations info -------')
     
+        print('Observations found for period: ', starttimestr, ' --> ', endtimestr)
+
         
     def df(self):
         """
@@ -105,18 +152,46 @@ class Station:
                             self.pressure,
                             self.pressure_at_sea_level]).transpose()
 
-    # def apply_qc(self, obstype='temp', ignore_val=np.nan):
-        
-    #     self = duplicate_timestamp(self, obstype)
-        
-    #     self = gross_value_check(self, obstype, ignore_val)
+
         
         
+    def get_lcz(self):
         
+        geo_templates = Settings.geo_datasets_templates
+        lcz_file = Settings.geo_lcz_file
+        
+        if isinstance(lcz_file, type(None)):
+            print('No lcz tif location in the settings. Update settings: ')
+            print('settings_obj.update_settings(geotiff_lcz_file="...."')
+            return
+        
+        lcz_templates = [geo_templ for geo_templ in geo_templates if geo_templ['usage']=='LCZ']
+        
+        assert len(lcz_templates)==1, 'More (or no) lcz template found!'
+        
+        lcz_template = lcz_templates[0]
+        
+        human_mapper = {num: lcz_template['covers'][num]['cover_name'] 
+                        for num in lcz_template['covers'].keys()}
         
 
+        #Check if coordinates are available
+        if np.isnan(self.lat.iloc[0]) | np.isnan(self.lon.iloc[0]):
+            self.lcz = 'Location unknown'
+            return 'Location unknown'
+        
+        #TODO: lat and lons are time depending, now use first lat, lon
 
-    def make_plot(self, variable='temp', ax=None, **kwargs):
+        lcz = geotiff_point_extraction(lat=self.lat.iloc[0],
+                                       lon=self.lon.iloc[0],
+                                       geotiff_location=lcz_file,
+                                       geotiff_crs=lcz_template['epsg'],
+                                       class_to_human_mapper=human_mapper)
+
+        self.lcz = lcz
+        return lcz
+
+    def make_plot(self, variable='temp', title=None):
         """
         Make a timeseries plot of one attribute.
 
@@ -135,21 +210,24 @@ class Station:
 
         """
         
-        data = getattr(self, variable)
+        #Load default plot settings
+        default_settings=Settings.plot_settings['time_series']
+      
         
-        if isinstance(ax, type(None)):
-            fig, ax = plt.subplots() 
+        #Make title
+        if isinstance(title, type(None)):
+            title = self.name + ': ' + self.obs_description[variable]
+    
         
+        #make figure
+        ax = timeseries_plot(dtseries=getattr(self, variable),
+                             title=title,
+                             xlabel='',
+                             ylabel=self.units[variable],
+                             figsize=default_settings['figsize'],
+                             )
+                        
         
-        
-        
-        ax=data.plot(ax=ax, **kwargs)
-        
-        #Add text labels
-        ax.set_title(self.name + ': ' + self.obs_description[variable])
-        
-        ax.set_xlabel('')
-        ax.set_ylabel(self.units[variable])
         
         return ax
         
@@ -186,7 +264,13 @@ class Dataset:
                 return station_obj
         
         print(stationname, ' not found in the dataset!')
-        
+    
+    def get_geodataframe(self):
+        gdf = gpd.GeoDataFrame(self.df,
+                               geometry=gpd.points_from_xy(self.df['lon'],
+                                                           self.df['lat']))
+        return gdf
+    
     def show(self):
         if self.df.empty:
             print("This dataset is empty!")
@@ -195,10 +279,111 @@ class Dataset:
             endtimestr = datetime.strftime(max(self.df.index), Settings.print_fmt_datetime)
             
             stations_available = list(self.df.name.unique())
-            
+        
             print('Observations found for period: ', starttimestr, ' --> ', endtimestr)
             print('Following stations are in dataset: ', stations_available)
-            
+        
+        
+    def make_plot(self, stationnames, variable='temp',
+                                   starttime=None, endtime=None,
+                                   title=None, legend=True):
+        
+        default_settings=Settings.plot_settings['time_series']
+        
+        plotdf = self.df[self.df['name'].isin(stationnames)]
+        
+        if not isinstance(starttime, type(None)):
+            plotdf = plotdf.loc[(plotdf >= starttime)]
+        if not isinstance(endtime, type(None)):
+            plotdf = plotdf.loc[(plotdf <= endtime)]
+        
+        
+        relevant_columns = ['name']
+        relevant_columns.append(variable)
+        plotdf = plotdf[relevant_columns]
+        
+        plotdf = pd.pivot(plotdf,
+                          columns='name',
+                          values=variable)
+        
+        
+        if isinstance(title, type(None)):
+            title=Settings.display_name_mapper[variable] + ' for stations: ' + str(stationnames)
+        
+        ax = timeseries_comp_plot(plotdf=plotdf,
+                                  title=title,
+                                  xlabel='',
+                                  ylabel=Settings.display_name_mapper[variable],
+                                  figsize=default_settings['figsize'])
+        
+        return ax
+        
+        
+        
+        
+        
+    def make_geo_plot(self, variable='temp', title=None, timeinstance=None, legend=True,
+                      vmin=None, vmax=None):
+        
+        #Load default plot settings
+        default_settings=Settings.plot_settings['spatial_geo']
+        
+        #get first timeinstance of the dataset if not given
+        if isinstance(timeinstance, type(None)):
+            timeinstance=self.df.index.min()
+        
+        #subset to timeinstance
+        subdf = self.df.loc[timeinstance]
+        #create geodf
+        gdf = gpd.GeoDataFrame(subdf,
+                               geometry=gpd.points_from_xy(subdf['lon'], subdf['lat']))
+        
+        gdf = gdf[[variable, 'geometry']]
+        
+    
+        
+
+        #make color scheme for field
+        if variable in categorical_fields:
+            if variable == 'lcz':
+                #use all available LCZ categories
+                use_quantiles=False
+            else:
+                use_quantiles=True
+        else:
+            use_quantiles=False
+     
+        
+        #if observations extend is contained by default exten, use default else use obs extend
+        use_extent=find_largest_extent(geodf=gdf,
+                                       extentlist=default_settings['extent'])
+        
+        
+        #Style attributes
+        if isinstance(title, type(None)):
+            if variable in static_fields:
+                title = Settings.display_name_mapper[variable]
+            else:
+                dtstring = datetime.strftime(timeinstance, default_settings['fmt'])
+                title = Settings.display_name_mapper[variable] + ' at ' + dtstring
+        
+        ax = spatial_plot(gdf=gdf,
+                          variable=variable,
+                          legend=legend,
+                          proj_type=default_settings['proj'],
+                          use_quantiles=use_quantiles,
+                          k_quantiles=default_settings['n_for_categorical'],
+                          cmap = default_settings['cmap'],
+                          world_boundaries_map=Settings.world_boundary_map,
+                          figsize=default_settings['figsize'],
+                          extent=use_extent,
+                          title=title,
+                          vmin=vmin,
+                          vmax=vmax
+                          )
+        
+
+        return ax
             
     # =============================================================================
     #     importing data        
@@ -355,12 +540,21 @@ class Dataset:
             #check if meta data is available
             if 'lat' in station_obs.columns:
                 station_obj.lat = station_obs['lat']
+                check_for_nan(station_obj.lat, 'latitude', stationname)
             if 'lon' in station_obs.columns:
                 station_obj.lon = station_obs['lon']
+                check_for_nan(station_obj.lon, 'longtitude', stationname)
             if 'call_name' in station_obs.columns:
                 station_obj.call_name = station_obs['call_name'].iloc[0]
+                check_for_nan(station_obj.call_name, 'call_name', stationname)
             if 'location' in station_obs.columns:
                 station_obj.location = station_obs['location'].iloc[0]
+                check_for_nan(station_obj.location, 'location', stationname)
+                
+            # Get physiography data if possible
+            if not isinstance(Settings.geo_lcz_file, type(None)):
+                _ = station_obj.get_lcz()
+                
             
             #Update units and description dicts of the station using the used template
             for obs_field in station_obj.units.keys():
@@ -374,9 +568,26 @@ class Dataset:
             #update stationlist
             self._stationlist.append(station_obj)
             
+        
+        #Update dataset df with information created on station level
+        
+        #add LCZ to dataset df
+        if not isinstance(Settings.geo_lcz_file, type(None)):
+            lcz_dict = {station.name: station.lcz for station in self._stationlist}
+            self.df['lcz'] = self.df['name'].map(lcz_dict)
+            
             
           
-            
+def check_for_nan(value, fieldname, stationname):
+    if isinstance(value, float):
+        if np.isnan(value):
+            print('Nan found for ', fieldname, ' in ', stationname, '!!')
+    elif isinstance(value, type(pd.Series())):
+        if value.isnull().sum() > 0:
+            n_nans = value.isnull().sum()
+            print(n_nans, "Nan's found in ", fieldname, '-iterable in ', stationname, '!!')
+        
+
         
 def missing_timestamp_check(station):
     """

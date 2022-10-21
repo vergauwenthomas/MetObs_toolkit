@@ -24,12 +24,14 @@ testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_ok
 
 static_data =  os.path.join(str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
+lcz_map = os.path.join(str(lib_folder), 'physiograpy', 'lcz_filter_v1.tif')
 
 
 #% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
                           input_metadata_file=static_data,
+                          geotiff_lcz_file=lcz_map
                          )
 
 
@@ -42,52 +44,24 @@ dataset.import_data_from_file(coarsen_timeres=False)
 
 
 
-sta = dataset.get_station('vlinder05')
+sta1 = dataset.get_station('vlinder02')
+sta1.make_plot()
+
+
+#%%
+dataset.make_plot(['vlinder02', 'vlinder05'])
+
+
+
+
+
 #%%
 
-import numpy as np
+dataset.make_geo_plot(variable='temp')
 
+#%%
 
-dataset = vlinder_toolkit.Dataset()
-dataset.import_data_from_file(coarsen_timeres=False)
-sta = dataset.get_station('vlinder02')
-
-
-
-
-
-
-df = sta.df()
-
-
-
-dropdt = df.index[5:11]
-
-dropdt2 = df.index[16]
-
-df = df.drop(index=dropdt)
-df = df.drop(index=dropdt2)
-
-
-#extrac observed frequencies
-likely_freq = df.index.to_series().diff().value_counts().idxmax()
-
-
-missing_datetimeindices = pd.date_range(start = df.index.min(),
-                     end = df.index.max(),
-                     freq=likely_freq).difference(df.index)
-
-missing_df = pd.DataFrame(data=np.nan,
-                          index=missing_datetimeindices,
-                          columns=df.columns)
-
-df = df.append(missing_df)
-
-
-df = df.sort_index()
-
-
-
+dataset.make_geo_plot(variable='temp', vmin=10, vmax=13)
 
 #%%
 # =============================================================================

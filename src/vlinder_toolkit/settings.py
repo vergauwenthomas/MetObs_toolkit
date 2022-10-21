@@ -26,7 +26,17 @@ class Settings:
     input_metadata_file = None
     input_metadata_template = None
     
-   
+    #Geo datasets templates and info
+    geo_datasets_templates = None
+    geo_lcz_file = None
+    
+    #String mappers for display
+    display_name_mapper = None
+    
+    
+    #plot settings
+    plot_settings = None
+    world_boundary_map = None
     
     #time resolution settings
     target_time_res = None # "H"
@@ -57,6 +67,7 @@ class Settings:
         self.update_time_res_settings()
         self.update_app_settings()
         self.update_templates()
+        
         
 
     # =============================================================================
@@ -91,35 +102,47 @@ class Settings:
         
     @classmethod
     def update_app_settings(self):
-        
+        from .settings_files.default_formats_settings import plot_settings, print_settings, vars_display
         #1. Print settings
-        f = open(os.path.join(Settings._settings_files_path, "app_print_settings.json"))
-        print_settings = json.load(f)
-        f.close()
         Settings.print_fmt_datetime = print_settings['fmt_datetime']
         Settings.print_max_n = int(print_settings["max_print_per_line"])
         #2. Plot settings
+        
+        Settings.plot_settings = plot_settings
+        Settings.world_boundary_map = os.path.join(Settings._settings_files_path,
+                                                   "world_boundaries",
+                                                   "WB_countries_Admin0_10m.shp")
+    
+        # 3. display name mappers
+        Settings.display_name_mapper = vars_display
     
     @classmethod
     def update_templates(self):
        from .data_templates.csv_templates import vlinder_brian_csv_template, csv_templates_list, vlinder_static_meta_data
        from .data_templates.db_templates import vlinder_metadata_db_template, vlinder_observations_db_template
+       from .data_templates.geo_datasets_templates import geo_datasets
        
+       #import csv templates
        Settings.template_list = csv_templates_list
        Settings.vlinder_csv_template = vlinder_brian_csv_template
       
-       
+       #import db templates
        Settings.vlinder_db_meta_template = vlinder_metadata_db_template
        Settings.vlinder_db_obs_template = vlinder_observations_db_template
        
+       #import geo datasets templates
+       Settings.geo_datasets_templates = geo_datasets
        
+       
+       #Set standard templates
        Settings.input_csv_template = Settings.vlinder_csv_template #set vlindertemplate as standard
        Settings.input_metadata_template = vlinder_static_meta_data #set vlindertemplate as standard
     
     
     @classmethod
     def update_settings(self, output_data_folder=None, input_data_file=None,
-                        input_metadata_file=None):
+                        input_metadata_file=None, geotiff_lcz_file=None):
+        
         if not isinstance(output_data_folder, type(None)):    
             print('Update output_data_folder: ', self.output_data_folder, ' --> ', output_data_folder)
             Settings.output_data_folder = output_data_folder
@@ -131,6 +154,10 @@ class Settings:
         if not isinstance(input_metadata_file, type(None)):    
             print('Update input_metadata_file: ', self.input_metadata_file, ' --> ', input_metadata_file)
             Settings.input_metadata_file = input_metadata_file
+        
+        if not isinstance(geotiff_lcz_file, type(None)):    
+            print('Update input_metadata_file: ', self.geo_lcz_file, ' --> ', geotiff_lcz_file)
+            Settings.geo_lcz_file = geotiff_lcz_file
         
       
 
