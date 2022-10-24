@@ -28,11 +28,17 @@ jobs:
         python3 -m pip install --upgrade pip
         python3 -m pip install pandas
         pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade        
-    - name: Test Settings module with pytest
+    - name: Test importing the module
       run: |
-        ls
-        pwd
+        pip3 show vlinder_toolkit
         python3 tests/basic_import_test.py
+    - name: Running examples as tests
+      run: |
+        python3 examples/introduction_example.py
+        #python3 examples/lcz_example.py
+        python3 examples/plotting_example.py
+        
+        
     
         
         
