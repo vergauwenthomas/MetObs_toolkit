@@ -18,15 +18,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: install python
     - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
+    - uses: actions/setup-python@v4
       with:
-        python-version: "3.7"
+        python-version: '3.10'
+    
     - name: Install dependencies
       run: |
         python3 -m pip install --upgrade pip
-        python3 -m pip install pandas
         pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade        
     - name: Test importing the module
       run: |
