@@ -18,35 +18,3 @@ import vlinder_toolkit
 print('Succesfull imported!')
 
 
-#%% Test
-import os
-testdatafile = os.path.join('/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/tests/test_data',  'vlinderdata.csv')
-
-
-settings = vlinder_toolkit.Settings()
-settings.show()
-
-
-settings.update_settings(input_file=testdatafile)
-settings.check_settings()
-
-
-et = vlinder_toolkit.Dataset()
-
-dataset.import_data_from_file()
-
-
-station = dataset.get_station('vlinder02')
-stationdf = station.df()
-print(stationdf.head())
-
-
-
-
-try:
-    ax =station.make_plot()
-except:
-    print('coulnd not make plot ...')
-    
-    
-print("FINISH")
