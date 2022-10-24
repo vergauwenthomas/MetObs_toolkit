@@ -22,23 +22,11 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-<<<<<<< HEAD
         python-version: '3.10'
     
     - name: Install dependencies
       run: |
         python3 -m pip install --upgrade pip
-=======
-        python-version: "3.7"
-    - name: upgrade pip
-      run: |
-        python3 -m pip install --upgrade pip
-    - name: remove previous version of vlinder_toolkit
-      run: |
-        yes | python3 -m pip uninstall vlinder_toolkit
-    - name: install vlinder_toolkit
-      run: |
->>>>>>> 41e6d6736714ea89669c8eeafd868f0f2bfd26ee
         pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade        
     - name: Test importing the module
       run: |
