@@ -22,7 +22,7 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: install geo software
-        run: sudo apt-get install libproj-dev proj-data proj-bin libgeos-dev
+        run: source install_geo_software_backend_for_linux.sh
       - name: Update pip
         run: python3 -m pip install --upgrade pip
       - name: install vlinder_toolkit

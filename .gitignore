@@ -8,7 +8,7 @@ deploy_to*
 dist/*
 
 #exclude proj build (only tar remaining)
-proj/proj-9.0.0
+proj/proj-9.0.0/*
 
 
 #Exclude development scripts for testing
