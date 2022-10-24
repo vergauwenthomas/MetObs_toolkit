@@ -23,10 +23,14 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.7"
-    - name: Install dependencies
+    - name: upgrade pip
       run: |
         python3 -m pip install --upgrade pip
-        python3 -m pip install pandas
+    - name: remove previous version of vlinder_toolkit
+      run: |
+        yes | python3 -m pip uninstall vlinder_toolkit
+    - name: install vlinder_toolkit
+      run: |
         pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade        
     - name: Test importing the module
       run: |
