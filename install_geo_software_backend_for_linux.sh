@@ -1,15 +1,15 @@
 #!/bin/sh
 
 #step 0 update apt
-apt update
+sudo apt update
 
 #step 1 install GEOS
-apt-get install libgeos-dev
+sudo apt-get install libgeos-dev
 
 #step 2 install proj dependencies
-apt install cmake
-apt install sqlite3
-apt install curl && apt-get install libcurl4-openssl-dev
+sudo apt install cmake
+sudo apt install sqlite3
+sudo apt install curl && sudo apt-get install libcurl4-openssl-dev
 
 #step 3 install Proj
 #Unfortunately, cartopy requires proj v8.0.0 as a minimum, but if you install proj using apt you can only install proj v6.3.1
