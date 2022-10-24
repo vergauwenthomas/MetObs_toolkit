@@ -21,3 +21,12 @@ jobs:
       # You can test your matrix by printing the current Python version
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
+      - name: Update pip
+        run: python3 -m pip install --upgrade pip
+      - name: install vlinder_toolkit
+        run: pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade
+    
+      - name: check toolkit version
+        run: pip3 show vlinder_toolkit
+      - name: run import test
+        run: python3 tests/basic_import_test.py
