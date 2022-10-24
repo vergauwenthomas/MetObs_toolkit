@@ -34,7 +34,7 @@ vlinder_brian_csv_template = {
                         'dtype': 'object',
                         'timezone': 'UTC'},
          'Temperatuur': {'varname':'temp',
-                        'units': r'$^o$C',
+                        'units': 'Celcius', #'Celcius' or 'Kelvin'
                         'dtype': 'float64',
                         'description': 'temperature' },
          'Vochtigheid': {'varname':'humidity',

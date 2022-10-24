@@ -287,6 +287,32 @@ class Dataset:
     def make_plot(self, stationnames, variable='temp',
                                    starttime=None, endtime=None,
                                    title=None, legend=True):
+        """
+        This function create a timeseries plot for the dataset. The variable observation type
+        is plotted for all stationnames from a starttime to an endtime.
+
+        Parameters
+        ----------
+        stationnames : List, Iterable
+            Iterable of stationnames to plot.
+        variable : String, optional
+            The name of the observation type to plot. The default is 'temp'.
+        starttime : datetime, optional
+            The starttime of the timeseries to plot. The default is None and all observations 
+            are used.
+        endtime : datetime, optional
+            The endtime of the timeseries to plot. The default is None and all observations 
+            are used..
+        title : String, optional
+            Title of the figure, if None a default title is generated. The default is None.
+        legend : Bool, optional
+           Add legend to the figure. The default is True.
+        Returns
+        -------
+        ax : matplotlib.axes
+            The plot axes is returned.
+
+        """
         
         default_settings=Settings.plot_settings['time_series']
         
@@ -324,6 +350,39 @@ class Dataset:
         
     def make_geo_plot(self, variable='temp', title=None, timeinstance=None, legend=True,
                       vmin=None, vmax=None):
+        """
+        This functions creates a geospatial plot for a field (observations or attributes) of all stations.
+        
+        If the field is timedepending, than the timeinstance is used to plot the field status at that datetime.
+        If the field is categorical than the leged will have categorical values, else a colorbar is used. 
+        
+        All styling attributes are extracted from the Settings.
+        
+
+        Parameters
+        ----------
+        variable : String, optional
+            Fieldname to visualise. This can be an observation or station attribute. The default is 'temp'.
+        title : String, optional
+            Title of the figure, if None a default title is generated. The default is None.
+        timeinstance : datetime, optional
+            Datetime moment of the geospatial plot. The default is None and the first datetime available
+            is used.
+        legend : Bool, optional
+            Add legend to the figure. The default is True.
+        vmin : float, optional
+            The minimum value corresponding to the minimum color. The default is None and 
+            the minimum of the variable is used.
+        vmax : float, optional
+           The maximum value corresponding to the minimum color. The default is None and 
+           the maximum of the variable is used.
+
+        Returns
+        -------
+        ax : Geoaxes
+            The geoaxes is returned.
+
+        """
         
         #Load default plot settings
         default_settings=Settings.plot_settings['spatial_geo']
@@ -390,6 +449,24 @@ class Dataset:
     # =============================================================================
             
     def import_data_from_file(self, network='vlinder', coarsen_timeres=False):
+        """
+        Read observations from a csv file as defined in the Settings.input_file. 
+        The network and stations objects are updated. It is possible to apply a 
+        resampling (downsampling) of the observations as defined in the settings.
+
+        Parameters
+        ----------
+        network : String, optional
+            The name of the network for these observationsThe default is 'vlinder'.
+        coarsen_timeres : Bool, optional
+            If True, the observations will be interpolated to a coarser time resolution
+            as is defined in the Settings. The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
         print('Settings input data file: ', Settings.input_data_file)
         
         
@@ -432,6 +509,28 @@ class Dataset:
                               start_datetime=None,
                               end_datetime=None,
                               coarsen_timeres=False):
+        """
+        Function to import data directly from the framboos database and updating the 
+        network and station objects. 
+        
+
+        Parameters
+        ----------
+        start_datetime : datetime, optional
+            Start datetime of the observations. The default is None and using 
+            yesterday's midnight.
+        end_datetime : datetime, optional
+            End datetime of the observations. The default is None and using todays
+            midnight.
+        coarsen_timeres : Bool, optional
+            If True, the observations will be interpolated to a coarser time resolution
+            as is defined in the Settings. The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
         if isinstance(start_datetime, type(None)):
             start_datetime=datetime.date.today() - datetime.timedelta(days=1)
         if isinstance(end_datetime, type(None)):
@@ -459,7 +558,13 @@ class Dataset:
             
     def update_dataset_by_df(self, dataframe):
         """
-        Update the dataset object and all it attributes by a dataframe.
+        Update the dataset object and creation of station objects and all it attributes by a dataframe.
+        This is done by initialising stations and filling them with observations and meta
+        data if available. 
+        
+        When filling the observations, there is an automatic check for missing timestamps. 
+        If a missing timestamp is detected, the timestamp is created with Nan values for all observation types.
+        
 
         Parameters
         ----------
@@ -579,6 +684,22 @@ class Dataset:
             
           
 def check_for_nan(value, fieldname, stationname):
+    """
+    Check for nan values in a input value that has a fieldname. Nothing is done to 
+    the input value, only print statements
+    Parameters
+    ----------
+    value : float or pd.Series
+        value(s) to test.
+    fieldname : string
+        the name of the variable    
+    stationname : string
+        name of the station
+    Returns
+    -------
+    None.
+
+    """
     if isinstance(value, float):
         if np.isnan(value):
             print('Nan found for ', fieldname, ' in ', stationname, '!!')
