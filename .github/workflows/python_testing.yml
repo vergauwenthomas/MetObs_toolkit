@@ -21,6 +21,8 @@ jobs:
       # You can test your matrix by printing the current Python version
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
+      - name: install geo software
+        run: sudo apt-get install libproj-dev proj-data proj-bin libgeos-dev
       - name: Update pip
         run: python3 -m pip install --upgrade pip
       - name: install vlinder_toolkit
