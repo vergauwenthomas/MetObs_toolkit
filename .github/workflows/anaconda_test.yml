@@ -1,3 +1,14 @@
+name: Python application
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+  
 jobs:
   example-1:
     name: Ex1 (${{ matrix.python-version }}, ${{ matrix.os }})
