@@ -51,7 +51,42 @@ sta1.make_plot()
 #%%
 dataset.make_plot(['vlinder02', 'vlinder05'])
 
+#%%
+import geopandas as gpd
+import matplotlib.pyplot as plt
+df = dataset.df
 
+
+time = df.index.min()
+
+
+plotdf = df.loc[time]
+plotdf = plotdf[['temp', 'lat', 'lon']]
+
+plotdf = gpd.GeoDataFrame(plotdf, geometry=gpd.points_from_xy(plotdf['lon'], plotdf['lat'])) #to geopandas df
+plotdf = plotdf.set_crs(epsg = 4326) #inpunt are gps coordinates
+
+boundariesfile = '/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/src/vlinder_toolkit/settings_files/world_boundaries/WB_countries_Admin0_10m.shp'
+world = gpd.read_file(boundariesfile)
+
+
+
+
+fig, ax = plt.subplots()
+
+ax = world.plot(ax=ax)
+
+ax = plotdf.plot(ax=ax, color='red')
+
+
+extent = [ 2.260609, 49.25,  6.118359, 52.350618]
+
+
+xlim = ([extent[0], extent[2]])
+ylim = ([extent[1], extent[3]])
+
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
 
 
 
