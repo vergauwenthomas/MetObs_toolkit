@@ -10,7 +10,6 @@ jobs:
   #     # For example, pypy-2.7 and pypy-3.8
   #     matrix:
   #       python-version: ["3.7", "3.8", "3.9", "3.10"]
-    name: Test scripts (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
