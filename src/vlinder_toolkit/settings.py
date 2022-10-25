@@ -175,7 +175,6 @@ class Settings:
                 print('Setting: ', setting_attr, ' is not known! Please specify this.')
             
         
-        
     
     def show(self):
         
