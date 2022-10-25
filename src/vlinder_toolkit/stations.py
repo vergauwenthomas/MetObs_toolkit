@@ -658,7 +658,10 @@ class Dataset:
                 
             # Get physiography data if possible
             if not isinstance(Settings.geo_lcz_file, type(None)):
-                _ = station_obj.get_lcz()
+                try:
+                    _ = station_obj.get_lcz()
+                except:
+                    _=None
                 
             
             #Update units and description dicts of the station using the used template
