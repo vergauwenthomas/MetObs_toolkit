@@ -21,7 +21,6 @@ def coordinate_to_point_geometry(lat, lon, crs):
     point_geo = gpd.GeoDataFrame(pd.DataFrame(data={'lat': [lat], 'lon': [lon]}), geometry=gpd.points_from_xy([lon], [lat])) #to geopandas df
     point_geo = point_geo.set_crs(epsg = 4326) #inpunt are gps coordinates
     point_geo = point_geo.to_crs(crs) #coordinate transform
-    
     point_geo = point_geo.iloc[0]['geometry']
 
     return point_geo
