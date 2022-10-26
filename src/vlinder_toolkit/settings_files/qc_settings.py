@@ -8,10 +8,6 @@ from numpy import nan
 
 
 
-
-
-
-
 check_settings = {
     
     #checks on all observation types
