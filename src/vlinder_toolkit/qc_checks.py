@@ -8,68 +8,55 @@ Created on Thu Oct  6 13:44:54 2022
 import pandas as pd
 import numpy as np
 
-from .stations import Station, Dataset
+# from .stations import Station, Dataset
 from .settings import Settings
 from .settings_files.qc_settings import check_settings, outlier_values, observation_labels
 
 
+def make_checked_obs_and_labels_series(checked_obs_series,
+                      ignored_obs_series, 
+                      outlier_dt_list,
+                      checkname,
+                      outlier_label,
+                      outlier_value,
+                      obstype,
+                      not_checked_label='not checked',
+                      ok_label='ok'):
+    
+    
+    
+    #create labels for the checked observations
+    df_checked = checked_obs_series.to_frame()
+    df_checked['label'] = [outlier_label if dt in outlier_dt_list else 
+                           ok_label for dt in df_checked.index]
+    
+    #create labels for ignored observations
+    df_ignored = ignored_obs_series.to_frame()
+    df_ignored['label'] = not_checked_label
+    
+    #merge labels df together
+    df = pd.concat([df_checked, df_ignored])
+    df = df.sort_index()
+    
+    #convert outl observations to outlier values
+    df.loc[df['label'] == outlier_label, obstype] = outlier_value
+    
 
-def duplicate_timestamp(station, obstype='temp'):
-    """
-    This check looks for duplicate timestamps. If a duplicate timestamp is found, it will be handled as specified in the outlier_values.
-    Either is will be removed or replaced by a value.
+    return df[obstype], df['label']
 
-    Parameters
-    ----------
-    station : Station object
-        The Station on which to apply this check.
-    obstype : string, optional
-        The observationtype on which to apply this check. The default is 'temp'.
+def split_to_check_to_ignore(input_series, ignore_val=np.nan):
+    if np.isnan(ignore_val):
+         #better handling for nan values
+         ignore_input_series = input_series[input_series.isna()]
+         to_check_input_series = input_series[input_series.notna()]
+    else:  
+         ignore_input_series = input_series[input_series == ignore_val]
+         to_check_input_series = input_series[input_series != ignore_val]
     
-    Returns
-    -------
-    station : Station object
-        The observations of the station object are filtered by this check. The duplicate timestamps are added in the qc_info attribute of the station.
+    return to_check_input_series, ignore_input_series
+    
 
-    """
-    
-    try:
-        specific_settings = check_settings['duplicate_timestamp'][obstype]
-    except:
-       print('No duplicate_timestamp settings found for obstype=', obstype, '. Check is skipped!') 
-       return station
-    
-    
-    #extract observations
-    obs = getattr(station, obstype)
-    #sort observations
-    obs = obs.sort_index()
-    
-   #Locate duplicates
-    dub_mask = obs.index.duplicated(keep='first')
-    dub_timestamps = obs.index[dub_mask]
-    
-    
-    #update qc_info
-    station.qc_info['duplicate_timestamp'] = {'Original duplicate timestamps': dub_timestamps.to_list()}
-    
-    
-    
-    
-    #Update observations
-    if outlier_values['duplicate_timestamp'] == 'drop':
-        obs = obs.loc[~dub_mask] #drop duplicated timestamps
-    else:
-        obs.loc[dub_mask] = outlier_values['duplicate_timestamp']
-    
-    #Update labels
-    
-    
-    #Update station object
-    obs.name = obstype
-    setattr(station, obstype, obs)
-    return station
-    
+  
 
 
     
@@ -81,130 +68,84 @@ def duplicate_timestamp(station, obstype='temp'):
 
     
 
-
-def gross_value_check(station, obstype='temp', ignore_val=np.nan):
+def gross_value(input_series, obstype, ignore_val=np.nan):
    
     try:
         specific_settings = check_settings['gross_value'][obstype]
     except:
         print('No gross_value settings found for obstype=', obstype, '. Check is skipped!') 
-        return station
+        qc_flags = pd.Series('not checked', index=input_series.index)
+        qc_flags.name = 'gross_value'
+        return input_series, qc_flags.name
     
-    #extract observations into dataframe
-    obs = getattr(station, obstype)
-    obs = pd.DataFrame({'obs': obs})
-
-
+    #Split into two sets
+    to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
+                                                                 ignore_val)
     
-        
-     #get observations to ignore
-    if np.isnan(ignore_val):
-         #better handling for nan values
-         ignore_obs = obs[obs['obs'].isna()]
-         to_check_obs = obs[obs['obs'].notna()]
-    else:  
-         ignore_obs = obs[obs['obs'] == ignore_val]
-         to_check_obs = obs[obs['obs'] != ignore_val]
 
 
 
-                             
-    #create labels
-    to_check_obs['labels'] = [observation_labels['ok'] if (specific_settings['min_value'] <= obs_value <=specific_settings['max_value'])
-                                  else observation_labels['gross_value'] for obs_value in to_check_obs['obs']]
-    
-    ignore_obs['labels'] = 'not_checked'
-    
-    
-    
-    #Merge together
-    checked_obs = to_check_obs.append(ignore_obs).sort_index()
-    
-    
-    #Update station qc labels
-    station.qc_labels_df[obstype]['gross_value'] = checked_obs['labels']
-    
-     #TODO dit kan cleaner door obs aan te passen wanneer labels worden gemaakt
-    #update observations
-    def new_obs(row):
-        if row['labels'] != observation_labels['gross_value']:
-            return row['obs']
-        else:
-            return outlier_values['gross_value']
-    
-    new_obs = checked_obs.apply(lambda row: new_obs(row), axis=1)
-    new_obs.name = obstype
-    setattr(station, obstype, new_obs)
-    
-    return station
+    #find outlier datetimes
+    outl_datetimes = to_check_series.loc[(to_check_series <= specific_settings['min_value']) | 
+                                         (to_check_series >= specific_settings['max_value'])
+                                         ].index.to_list()
+         
+    #Update observations and quality flags
+    updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
+                                                               ignored_obs_series=to_ignore_series, 
+                                                               outlier_dt_list=outl_datetimes,
+                                                               checkname='gross_value',
+                                                               outlier_label=observation_labels['gross_value'],
+                                                               outlier_value=outlier_values['gross_value'],
+                                                               obstype=obstype)
+
+    return updated_obs, qc_flags
 
 
 
 
-def persistance(station, obstype='temp', ignore_val=np.nan):
+
+def persistance(input_series, obstype='temp', ignore_val=np.nan):
    
     
     try:
          specific_settings = check_settings['persistance'][obstype]
     except:
-        print('No gross_value settings found for obstype=', obstype, '. Check is skipped!') 
+        print('No persistance settings found for obstype=', obstype, '. Check is skipped!') 
          # return station
+        qc_flags = pd.Series('not checked', index=input_series.index)
+        qc_flags.name = 'gross_value'
+        return input_series, qc_flags.name
     
     
+
     
-     #extract observations into dataframe
-    obs = getattr(station, obstype)
-    obs = pd.DataFrame({'obs': obs})
+    #Split into two sets
+    to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
+                                                                 ignore_val)
 
 
-
-    #get observations to ignore
-    if np.isnan(ignore_val):
-        #better handling for nan values
-        ignore_obs = obs[obs['obs'].isna()]
-        to_check_obs = obs[obs['obs'].notna()]
-        
-    else:  
-        ignore_obs = obs[obs['obs'] == ignore_val]
-        to_check_obs = obs[obs['obs'] != ignore_val]
-    
-    
-    #add init labels
-    ignore_obs['labels'] = 'not_checked'
-    to_check_obs['labels'] = observation_labels['ok']
-    
+    #find outlier datetimes
     
     #make consec groups
-    grouped = to_check_obs['obs'].groupby((to_check_obs['obs'].shift() != to_check_obs['obs']).cumsum()) 
+    grouped = to_check_series.groupby((to_check_series.shift() != to_check_series).cumsum()) 
     #the above line groups the observations which have the same value and consecutive datetimes.
-    
-    
     group_sizes = grouped.size()
     outlier_groups = group_sizes[group_sizes > specific_settings['max_valid_repetitions']]
     
-        
-    
-    #itereate over outlier groups
+    #add datetimes of outlier groups to outl_datetime
+    outl_datetimes = []
     for group_idx in outlier_groups.index:
-       outl_datetimes = grouped.get_group(group_idx).index
-       
-       #update labels
-       to_check_obs.loc[outl_datetimes, 'labels'] = observation_labels['persistance'] #label outl observations
-       
-       #update observations
-       to_check_obs.loc[outl_datetimes, 'obs'] = outlier_values['persistance']
-           
-    
-    #Merge together
-    checked_obs = to_check_obs.append(ignore_obs).sort_index()
-    
-    #Update the label - df
-    station.qc_labels_df[obstype]['persistance'] = checked_obs['labels']
-    
-    #update the observations
-    new_obs = checked_obs['obs']
-    new_obs.name = obstype
-    setattr(station, obstype, new_obs)
+        outl_datetimes.extend(grouped.get_group(group_idx).index.to_list())
     
     
-    return station
+    #Update observations and quality flags
+    updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
+                                                               ignored_obs_series=to_ignore_series, 
+                                                               outlier_dt_list=outl_datetimes,
+                                                               checkname='persistance',
+                                                               outlier_label=observation_labels['persistance'],
+                                                               outlier_value=outlier_values['persistance'],
+                                                               obstype=obstype)
+    
+    return updated_obs, qc_flags

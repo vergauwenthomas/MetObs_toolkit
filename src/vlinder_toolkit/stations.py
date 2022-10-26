@@ -9,9 +9,7 @@ from collections.abc import Iterable
 import pandas as pd
 import geopandas as gpd
 import numpy as np
-# import matplotlib.pyplot as plt
-# import geoplot as gplt
-# import mapclassify as mc
+
 from datetime import datetime
 
 from .settings import Settings
@@ -20,7 +18,7 @@ from .data_import import coarsen_time_resolution
 from .landcover_functions import geotiff_point_extraction
 from .geometry_functions import find_largest_extent
 from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot
-# from .qc_checks import duplicate_timestamp, gross_value_check
+from .qc_checks import gross_value, persistance
 
 
 # =============================================================================
@@ -38,6 +36,9 @@ static_fields = ['network', 'name',
 categorical_fields = ['wind_direction', 'lcz']
 
 
+observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
+                     'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
+                     'pressure', 'pressure_at_sea_level']
 
 
 # =============================================================================
@@ -107,8 +108,6 @@ class Station:
                               'pressure': pd.DataFrame(),
                               'pressure_at_sea_level': pd.DataFrame()}
         
-        #TODO: remove the qc_info and combine all info in the qc_labels_df
-        self.qc_info = {} #will be filled by qc checks
 
     def show(self):
         starttimestr = datetime.strftime(min(self.df().index), Settings.print_fmt_datetime)
@@ -230,7 +229,48 @@ class Station:
         
         
         return ax
+    
+    def drop_duplicate_timestamp(self):
         
+        df = pd.DataFrame()
+        for obstype in observation_types:
+            df[obstype] = getattr(self, obstype)
+            
+        
+        #check if all datetimes are unique
+        if df.index.is_unique:
+            return
+        
+        else:
+            print("DUPLICATE TIMESTAMPS FOUND FOR ",self.name)
+            df = df.reset_index()
+            df = df.rename(columns={'index': 'datetime'})
+            df = df.drop_duplicates(subset='datetime')
+            df = df.set_index('datetime', drop=True)
+        
+            #update attributes
+            for obstype in observation_types:
+                setattr(self, obstype, df[obstype])
+                
+    def apply_gross_value_check(self, obstype='temp', ignore_val=np.nan):
+        updated_obs, qc_flags = gross_value(input_series=getattr(self, obstype),
+                                                  obstype=obstype,
+                                                  ignore_val=ignore_val)
+        
+        #update obs attributes
+        setattr(self, obstype, updated_obs)
+        #update qc flags df
+        self.qc_labels_df[obstype]['gross_value'] = qc_flags
+        
+    def apply_persistance_check(self, obstype='temp', ignore_val=np.nan):
+        updated_obs, qc_flags = persistance(input_series=getattr(self, obstype),
+                                                  obstype=obstype,
+                                                  ignore_val=ignore_val)
+        
+        #update obs attributes
+        setattr(self, obstype, updated_obs)
+        #update qc flags df
+        self.qc_labels_df[obstype]['gross_value'] = qc_flags
 
 # =============================================================================
 # Dataset class
@@ -443,7 +483,86 @@ class Dataset:
         
 
         return ax
+    
+    # =============================================================================
+    # Update dataset by station objects
+    # =============================================================================
+    
+    def _update_dataset_df_with_stations(self):
+    
+        present_df_columns = list(self.df.columns)    
+        updatedf = pd.DataFrame()
+        for station in self._stationlist:
+            stationdf = station.df() #start with observations
             
+            #add meta data
+            for attr in present_df_columns:
+                if attr in stationdf.columns:
+                    continue #skip observations because they are already in the df
+                try:
+                    stationdf[attr] = getattr(station,attr)
+                except:
+                    stationdf[attr] = 'not updated'
+            
+            updatedf = updatedf.append(stationdf)
+        
+        
+        updatedf = updatedf[present_df_columns] #reorder columns
+        self.df = updatedf
+        return
+                
+            
+            
+
+
+    
+    # =============================================================================
+    #     Quality control
+    # =============================================================================
+    
+    def apply_quality_control(self, obstype='temp',
+                              gross_value=True, persistance=True, ignore_val=np.nan):
+        """
+        Apply quality control methods to the dataset. The default settings are used, and can be changed
+        in the settings_files/qc_settings.py
+        
+        The checks are performed in a sequence: gross_vallue --> persistance --> ...,
+        Outliers by a previous check are ignored in the following checks!
+        
+        The dataset and all it stations are updated inline.
+
+        Parameters
+        ----------
+        obstype : String, optional
+            Name of the observationtype you want to apply the checks on. The default is 'temp'.
+        gross_value : Bool, optional
+            If True the gross_value check is applied if False not. The default is True.
+        persistance : Bool, optional
+           If True the persistance check is applied if False not. The default is True.. The default is True.
+        ignore_val : numeric, optional
+            Values to ignore in the quality checks. The default is np.nan.
+
+        Returns
+        -------
+        None.
+
+        """
+        if gross_value:
+            print('Applying the gross value check on all stations.')
+            for stationobj in self._stationlist:
+                stationobj.apply_gross_value_check(obstype=obstype,
+                                                   ignore_val=ignore_val)
+                
+        if persistance:
+            print('Applying the persistance check on all stations.')
+            for stationobj in self._stationlist:
+                stationobj.apply_persistance_check(obstype=obstype,
+                                                   ignore_val=ignore_val)
+
+        #update the dataframe with stations values
+        self._update_dataset_df_with_stations()
+
+
     # =============================================================================
     #     importing data        
     # =============================================================================
@@ -585,9 +704,7 @@ class Dataset:
         
       
         
-        observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
-                             'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
-                             'pressure', 'pressure_at_sea_level']
+        
         
         # Create a list of station objects
         for stationname in dataframe.name.unique():
@@ -616,11 +733,15 @@ class Dataset:
                                   network_name=network)
             
             
-            
+            #add observations to the attributes
             for obstype in observation_types:
                 #fill attributes of station object
                 setattr(station_obj, obstype, station_obs[obstype])
+                
+            #drop duplicate timestamps    
+            station_obj.drop_duplicate_timestamp()
             
+            for obstype in observation_types:
                 #Fill QC dataframes with observations
                 station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': station_obs[obstype]})
                 station_obj.qc_labels_df[obstype]['status'] = 'ok'

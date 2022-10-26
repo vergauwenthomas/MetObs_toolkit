@@ -28,7 +28,7 @@ check_settings = {
 
 
 outlier_values = {
-    "duplicate_timestamp": 'drop', 
+    "duplicate_timestamp": nan, 
     "gross_value": nan,
     "persistance": nan    
     }
@@ -37,6 +37,7 @@ outlier_values = {
 
 observation_labels={
     'ok': 'ok',
+    'duplicated_timestamp': 'duplicated timestamp outlier',
     'gross_value': 'gross value outlier',
     'persistance': 'percistance outlier'
     }
