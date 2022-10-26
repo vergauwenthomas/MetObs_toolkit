@@ -25,4 +25,8 @@ jobs:
         run: pip install --upgrade pip
       - name: donwload deployed version of toolkit
         run: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade
-  
+      - name: toolkit import test
+        run: |
+            pip show vlinder_toolkit
+            python /tests/basic_import_test.py
+        
