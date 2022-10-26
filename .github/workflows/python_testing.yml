@@ -1,6 +1,6 @@
-      name: Python package testing
+name: Python package testing
 
-on: [push]
+on: push
 
 jobs:
   build:
