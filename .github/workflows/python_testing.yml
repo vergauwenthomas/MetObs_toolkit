@@ -23,6 +23,6 @@ jobs:
         run: python -c "import sys; print(sys.version)"
       - name: upgrade pip
         run: pip install --upgrade pip
-        
-        
-        
+      - name: donwload deployed version of toolkit
+        run: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade
+  
