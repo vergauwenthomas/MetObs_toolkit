@@ -1,4 +1,4 @@
-name: Python package
+name: Test deployed version
 
 on: [push]
 
@@ -29,4 +29,9 @@ jobs:
         run: |
             pip show vlinder_toolkit
             python tests/basic_import_test.py
+      - name: examples as tests
+        run: |
+           python examples/introduction_example.py
+           python examples/plotting_example.py
+            
         
