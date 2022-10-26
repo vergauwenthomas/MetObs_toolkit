@@ -50,26 +50,26 @@ class Station:
         self.name = station_name
         
         #Meta data without processing
-        self.lat = pd.Series()
-        self.lon = pd.Series()
+        self.lat = pd.Series(dtype='float64', name='lat')
+        self.lon = pd.Series(dtype='float64', name='lon')
         self.call_name = None #ex. Antwerpen Zoo
         self.location = None #ex. Antwerpen 
         
         #Observations
-        self.temp = pd.Series()
-        self.radiation_temp = pd.Series() 
+        self.temp = pd.Series(dtype='float64', name='temp')
+        self.radiation_temp = pd.Series(dtype='float64', name='radiation_temp') 
         
-        self.humidity = pd.Series()
+        self.humidity = pd.Series(dtype='float64', name='humidity')
         
-        self.precip = pd.Series()
-        self.precip_sum = pd.Series()
+        self.precip = pd.Series(dtype='float64', name='precip')
+        self.precip_sum = pd.Series(dtype='float64', name='precip_sum')
         
-        self.wind_speed = pd.Series()
-        self.wind_gust = pd.Series()
-        self.wind_direction = pd.Series()
+        self.wind_speed = pd.Series(dtype='float64', name='wind_speed')
+        self.wind_gust = pd.Series(dtype='float64', name='wind_gust')
+        self.wind_direction = pd.Series(dtype='float64', name='wind_direction')
         
-        self.pressure = pd.Series()
-        self.pressure_at_sea_level = pd.Series()
+        self.pressure = pd.Series(dtype='float64', name='pressure')
+        self.pressure_at_sea_level = pd.Series(dtype='float64', name='pressure_at_sea_level')
         
         #physiographic data
         self.lcz = None
@@ -591,8 +591,10 @@ class Dataset:
         
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(input_file = Settings.input_data_file,
-                                  file_csv_template=Settings.input_csv_template)
-        
+                                  file_csv_template=Settings.input_csv_template,
+                                  template_list = Settings.template_list)
+        #drop Nat datetimes if present
+        df = df.loc[pd.notnull(df.index)]
         
         if isinstance(Settings.input_metadata_file, type(None)):
             print('WARNING: No metadata file is defined. Add your settings object.')
@@ -615,10 +617,12 @@ class Dataset:
         #update dataset object
         self.data_template = template
         
+        
+        
         if coarsen_timeres:
             df = coarsen_time_resolution(df=df,
-                                         freq=Settings.target_time_res,
-                                         method=Settings.resample_method)
+                                          freq=Settings.target_time_res,
+                                          method=Settings.resample_method)
             
         
         self.update_dataset_by_df(df)
@@ -667,8 +671,8 @@ class Dataset:
         
         if coarsen_timeres:
             df = coarsen_time_resolution(df=df,
-                                         freq=Settings.target_time_res,
-                                         method=Settings.resample_method)
+                                          freq=Settings.target_time_res,
+                                          method=Settings.resample_method)
         
         self.update_dataset_by_df(df)
     
@@ -736,15 +740,23 @@ class Dataset:
             #add observations to the attributes
             for obstype in observation_types:
                 #fill attributes of station object
-                setattr(station_obj, obstype, station_obs[obstype])
+                try:
+                    setattr(station_obj, obstype, station_obs[obstype])
+                except KeyError:
+                    # example: in the mocca network there is no column of radiation temp
+                    continue
                 
             #drop duplicate timestamps    
             station_obj.drop_duplicate_timestamp()
             
+         
             for obstype in observation_types:
-                #Fill QC dataframes with observations
-                station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': station_obs[obstype]})
-                station_obj.qc_labels_df[obstype]['status'] = 'ok'
+                try:
+                    #Fill QC dataframes with observations
+                    station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': station_obs[obstype]})
+                    station_obj.qc_labels_df[obstype]['status'] = 'ok'
+                except KeyError:
+                    continue
 
             #Apply IO checks
             
@@ -753,10 +765,13 @@ class Dataset:
             if bool(missing_dt_list):
                 for obstype in checked_df.columns:
                     #update observations with missing obs as nan's
-                    setattr(station_obj, obstype, checked_df[obstype]) 
-                    #update QC dataframes
-                    station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': checked_df[obstype]})
-                    station_obj.qc_labels_df[obstype]['status'] = ['ok' if dt not in missing_dt_list else 'missing timestamp' for dt in checked_df.index ]
+                    try:
+                        setattr(station_obj, obstype, checked_df[obstype]) 
+                        #update QC dataframes
+                        station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': checked_df[obstype]})
+                        station_obj.qc_labels_df[obstype]['status'] = ['ok' if dt not in missing_dt_list else 'missing timestamp' for dt in checked_df.index ]
+                    except KeyError:
+                        continue
                     
                     
                     
@@ -789,7 +804,7 @@ class Dataset:
                 try:
                     station_obj.units[obs_field] = self.data_template[obs_field]['units']
                     station_obj.obs_description[obs_field] = self.data_template[obs_field]['description']
-                except:
+                except KeyError:
                    continue 
             
             

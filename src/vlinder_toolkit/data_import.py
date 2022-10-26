@@ -23,6 +23,14 @@ def template_to_package_space(specific_template):
        returndict[key].update(orig_dict)
    return returndict
 
+def find_compatible_templatefor(df_columns, template_list):
+   for templ in template_list:
+       found =  all(keys in list(df_columns) for keys in templ.keys())
+       if found:
+           print('Compatible template found. ')
+           return templ
+   sys.exit("No compatible teplate found!")
+    
 
     
 def compress_dict(nested_dict, valuesname):
@@ -84,6 +92,8 @@ def coarsen_time_resolution(df, freq='H', method='bfill'):
                 print('Duplicate timestamp found !!, this will be removed')
                 dup_mask = subdf.index.duplicated(keep='first')
                 subdf = subdf[~dup_mask]
+                subdf = subdf.sort_index()
+
             
             
             resample_subdf = subdf.resample(rule=freq,
@@ -94,7 +104,7 @@ def coarsen_time_resolution(df, freq='H', method='bfill'):
         return resample_df
     
 
-def import_metadata_from_csv(input_file, file_csv_template):
+def import_metadata_from_csv(input_file, file_csv_template, template_list):
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"    
     
     df = pd.read_csv(input_file, sep=';')
@@ -111,6 +121,12 @@ def import_metadata_from_csv(input_file, file_csv_template):
         sys.exit("No template given for the input data.Not implemented yet !!!")
     else:
         templ = file_csv_template
+        
+    #Check if template is compatible with the data, and try other templates if not
+    if not all(keys in list(df.columns) for keys in templ.keys()):
+        print("Default template not compatible, scanning other templates ...")
+        
+    
 
     # rename columns to toolkit attriute names
     df = df.rename(columns=compress_dict(templ, 'varname'))
@@ -119,7 +135,7 @@ def import_metadata_from_csv(input_file, file_csv_template):
     
     
 
-def import_data_from_csv(input_file, file_csv_template ):
+def import_data_from_csv(input_file, file_csv_template, template_list ):
     
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"    
     df = pd.read_csv(input_file, sep=';')
@@ -132,13 +148,14 @@ def import_data_from_csv(input_file, file_csv_template ):
     
 
     # import template
-    if isinstance(file_csv_template, type(None)):
-        # templ =get_template_from_df_columns(df.columns)
-        sys.exit("No template given for the input data.Not implemented yet !!!")
-    else:
-        templ = file_csv_template
 
+    templ = file_csv_template
 
+    #Check if template is compatible and find other if needed
+    if not all(keys in list(df.columns) for keys in templ.keys()):
+        print('Default template is not compatible, scanning for other templates ...')
+        templ = find_compatible_templatefor(df_columns=df.columns,
+                                            template_list=template_list)
 
 
    
