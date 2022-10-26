@@ -34,7 +34,7 @@ settings = vlinder_toolkit.Settings()
 settings.show()
 
 # 2. If the output data folder and input file are not exported as system variables, you need to update them:
-settings.update_settings(input_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
+settings.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
                          output_data_folder='/home/$USER/output/')
 
 

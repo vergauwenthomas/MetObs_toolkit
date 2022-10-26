@@ -28,7 +28,7 @@ plot_settings['time_series'] = {
 
 plot_settings['spatial_geo'] = {
     #projection
-    'proj' : 'Orthographic', #Orthographic or AlbersEqualArea
+    # 'proj' : 'Orthographic', #Orthographic or AlbersEqualArea
     'extent' : [ 2.260609, 49.25,  6.118359, 52.350618], #used if observatioons are within
     
     #colors

@@ -75,8 +75,29 @@ vlinder_brian_csv_template = {
                                'description': 'Radiative temperature'},
          
         }
-
 csv_templates_list.append(vlinder_brian_csv_template)
+
+mocca_csv_template =  {
+        'name': {'varname': 'name',
+                    'dtype': 'object'},
+        
+         'Datum': {'varname': '_date',
+                   'fmt':'%Y-%m-%d',
+                   'dtype': 'object' },
+         'Tijd (UTC)': {'varname':'_time',
+                        'fmt': '%H:%M:%S',
+                        'dtype': 'object',
+                        'timezone': 'UTC'},
+         'Temp Act': {'varname':'temp',
+                        'units': 'Celcius', #'Celcius' or 'Kelvin'
+                        'dtype': 'float64',
+                        'description': 'Active temperature' },
+         
+         
+        }
+
+csv_templates_list.append(mocca_csv_template)
+
 
 
 vlinder_static_meta_data = {

@@ -19,8 +19,8 @@ check_settings = {
     
     
     #checks on specific observation types
-    "gross_value": {'temp': {'min_value': 8.0,
-                             'max_value': 24.0},
+    "gross_value": {'temp': {'min_value': -15.0,
+                             'max_value': 39.0},
                     },
     "persistance": {'temp': {'max_valid_repetitions': 5}}
     
@@ -28,7 +28,7 @@ check_settings = {
 
 
 outlier_values = {
-    "duplicate_timestamp": 'drop', 
+    "duplicate_timestamp": nan, 
     "gross_value": nan,
     "persistance": nan    
     }
@@ -37,6 +37,7 @@ outlier_values = {
 
 observation_labels={
     'ok': 'ok',
+    'duplicated_timestamp': 'duplicated timestamp outlier',
     'gross_value': 'gross value outlier',
     'persistance': 'percistance outlier'
     }

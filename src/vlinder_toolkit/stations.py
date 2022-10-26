@@ -9,9 +9,7 @@ from collections.abc import Iterable
 import pandas as pd
 import geopandas as gpd
 import numpy as np
-# import matplotlib.pyplot as plt
-# import geoplot as gplt
-# import mapclassify as mc
+
 from datetime import datetime
 
 from .settings import Settings
@@ -20,7 +18,7 @@ from .data_import import coarsen_time_resolution
 from .landcover_functions import geotiff_point_extraction
 from .geometry_functions import find_largest_extent
 from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot
-# from .qc_checks import duplicate_timestamp, gross_value_check
+from .qc_checks import gross_value, persistance
 
 
 # =============================================================================
@@ -38,6 +36,9 @@ static_fields = ['network', 'name',
 categorical_fields = ['wind_direction', 'lcz']
 
 
+observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
+                     'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
+                     'pressure', 'pressure_at_sea_level']
 
 
 # =============================================================================
@@ -49,26 +50,26 @@ class Station:
         self.name = station_name
         
         #Meta data without processing
-        self.lat = pd.Series()
-        self.lon = pd.Series()
+        self.lat = pd.Series(dtype='float64', name='lat')
+        self.lon = pd.Series(dtype='float64', name='lon')
         self.call_name = None #ex. Antwerpen Zoo
         self.location = None #ex. Antwerpen 
         
         #Observations
-        self.temp = pd.Series()
-        self.radiation_temp = pd.Series() 
+        self.temp = pd.Series(dtype='float64', name='temp')
+        self.radiation_temp = pd.Series(dtype='float64', name='radiation_temp') 
         
-        self.humidity = pd.Series()
+        self.humidity = pd.Series(dtype='float64', name='humidity')
         
-        self.precip = pd.Series()
-        self.precip_sum = pd.Series()
+        self.precip = pd.Series(dtype='float64', name='precip')
+        self.precip_sum = pd.Series(dtype='float64', name='precip_sum')
         
-        self.wind_speed = pd.Series()
-        self.wind_gust = pd.Series()
-        self.wind_direction = pd.Series()
+        self.wind_speed = pd.Series(dtype='float64', name='wind_speed')
+        self.wind_gust = pd.Series(dtype='float64', name='wind_gust')
+        self.wind_direction = pd.Series(dtype='float64', name='wind_direction')
         
-        self.pressure = pd.Series()
-        self.pressure_at_sea_level = pd.Series()
+        self.pressure = pd.Series(dtype='float64', name='pressure')
+        self.pressure_at_sea_level = pd.Series(dtype='float64', name='pressure_at_sea_level')
         
         #physiographic data
         self.lcz = None
@@ -107,8 +108,6 @@ class Station:
                               'pressure': pd.DataFrame(),
                               'pressure_at_sea_level': pd.DataFrame()}
         
-        #TODO: remove the qc_info and combine all info in the qc_labels_df
-        self.qc_info = {} #will be filled by qc checks
 
     def show(self):
         starttimestr = datetime.strftime(min(self.df().index), Settings.print_fmt_datetime)
@@ -230,7 +229,48 @@ class Station:
         
         
         return ax
+    
+    def drop_duplicate_timestamp(self):
         
+        df = pd.DataFrame()
+        for obstype in observation_types:
+            df[obstype] = getattr(self, obstype)
+            
+        
+        #check if all datetimes are unique
+        if df.index.is_unique:
+            return
+        
+        else:
+            print("DUPLICATE TIMESTAMPS FOUND FOR ",self.name)
+            df = df.reset_index()
+            df = df.rename(columns={'index': 'datetime'})
+            df = df.drop_duplicates(subset='datetime')
+            df = df.set_index('datetime', drop=True)
+        
+            #update attributes
+            for obstype in observation_types:
+                setattr(self, obstype, df[obstype])
+                
+    def apply_gross_value_check(self, obstype='temp', ignore_val=np.nan):
+        updated_obs, qc_flags = gross_value(input_series=getattr(self, obstype),
+                                                  obstype=obstype,
+                                                  ignore_val=ignore_val)
+        
+        #update obs attributes
+        setattr(self, obstype, updated_obs)
+        #update qc flags df
+        self.qc_labels_df[obstype]['gross_value'] = qc_flags
+        
+    def apply_persistance_check(self, obstype='temp', ignore_val=np.nan):
+        updated_obs, qc_flags = persistance(input_series=getattr(self, obstype),
+                                                  obstype=obstype,
+                                                  ignore_val=ignore_val)
+        
+        #update obs attributes
+        setattr(self, obstype, updated_obs)
+        #update qc flags df
+        self.qc_labels_df[obstype]['gross_value'] = qc_flags
 
 # =============================================================================
 # Dataset class
@@ -404,12 +444,14 @@ class Dataset:
 
         #make color scheme for field
         if variable in categorical_fields:
+            is_categorical=True
             if variable == 'lcz':
                 #use all available LCZ categories
                 use_quantiles=False
             else:
                 use_quantiles=True
         else:
+            is_categorical=False
             use_quantiles=False
      
         
@@ -429,8 +471,8 @@ class Dataset:
         ax = spatial_plot(gdf=gdf,
                           variable=variable,
                           legend=legend,
-                          proj_type=default_settings['proj'],
                           use_quantiles=use_quantiles,
+                          is_categorical=is_categorical,
                           k_quantiles=default_settings['n_for_categorical'],
                           cmap = default_settings['cmap'],
                           world_boundaries_map=Settings.world_boundary_map,
@@ -443,7 +485,86 @@ class Dataset:
         
 
         return ax
+    
+    # =============================================================================
+    # Update dataset by station objects
+    # =============================================================================
+    
+    def _update_dataset_df_with_stations(self):
+    
+        present_df_columns = list(self.df.columns)    
+        updatedf = pd.DataFrame()
+        for station in self._stationlist:
+            stationdf = station.df() #start with observations
             
+            #add meta data
+            for attr in present_df_columns:
+                if attr in stationdf.columns:
+                    continue #skip observations because they are already in the df
+                try:
+                    stationdf[attr] = getattr(station,attr)
+                except:
+                    stationdf[attr] = 'not updated'
+            
+            updatedf = updatedf.append(stationdf)
+        
+        
+        updatedf = updatedf[present_df_columns] #reorder columns
+        self.df = updatedf
+        return
+                
+            
+            
+
+
+    
+    # =============================================================================
+    #     Quality control
+    # =============================================================================
+    
+    def apply_quality_control(self, obstype='temp',
+                              gross_value=True, persistance=True, ignore_val=np.nan):
+        """
+        Apply quality control methods to the dataset. The default settings are used, and can be changed
+        in the settings_files/qc_settings.py
+        
+        The checks are performed in a sequence: gross_vallue --> persistance --> ...,
+        Outliers by a previous check are ignored in the following checks!
+        
+        The dataset and all it stations are updated inline.
+
+        Parameters
+        ----------
+        obstype : String, optional
+            Name of the observationtype you want to apply the checks on. The default is 'temp'.
+        gross_value : Bool, optional
+            If True the gross_value check is applied if False not. The default is True.
+        persistance : Bool, optional
+           If True the persistance check is applied if False not. The default is True.. The default is True.
+        ignore_val : numeric, optional
+            Values to ignore in the quality checks. The default is np.nan.
+
+        Returns
+        -------
+        None.
+
+        """
+        if gross_value:
+            print('Applying the gross value check on all stations.')
+            for stationobj in self._stationlist:
+                stationobj.apply_gross_value_check(obstype=obstype,
+                                                   ignore_val=ignore_val)
+                
+        if persistance:
+            print('Applying the persistance check on all stations.')
+            for stationobj in self._stationlist:
+                stationobj.apply_persistance_check(obstype=obstype,
+                                                   ignore_val=ignore_val)
+
+        #update the dataframe with stations values
+        self._update_dataset_df_with_stations()
+
+
     # =============================================================================
     #     importing data        
     # =============================================================================
@@ -472,14 +593,17 @@ class Dataset:
         
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(input_file = Settings.input_data_file,
-                                  file_csv_template=Settings.input_csv_template)
-        
+                                  file_csv_template=Settings.input_csv_template,
+                                  template_list = Settings.template_list)
+        #drop Nat datetimes if present
+        df = df.loc[pd.notnull(df.index)]
         
         if isinstance(Settings.input_metadata_file, type(None)):
             print('WARNING: No metadata file is defined. Add your settings object.')
         else:
             meta_df = import_metadata_from_csv(input_file=Settings.input_metadata_file,
-                                               file_csv_template=Settings.input_metadata_template)
+                                               file_csv_template=Settings.input_metadata_template,
+                                               template_list = Settings.template_list)
             
             #merge additional metadata to observations
             meta_cols = [colname for colname in meta_df.columns if not colname.startswith('_')]
@@ -496,10 +620,12 @@ class Dataset:
         #update dataset object
         self.data_template = template
         
+        
+        
         if coarsen_timeres:
             df = coarsen_time_resolution(df=df,
-                                         freq=Settings.target_time_res,
-                                         method=Settings.resample_method)
+                                          freq=Settings.target_time_res,
+                                          method=Settings.resample_method)
             
         
         self.update_dataset_by_df(df)
@@ -548,8 +674,8 @@ class Dataset:
         
         if coarsen_timeres:
             df = coarsen_time_resolution(df=df,
-                                         freq=Settings.target_time_res,
-                                         method=Settings.resample_method)
+                                          freq=Settings.target_time_res,
+                                          method=Settings.resample_method)
         
         self.update_dataset_by_df(df)
     
@@ -585,9 +711,7 @@ class Dataset:
         
       
         
-        observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
-                             'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
-                             'pressure', 'pressure_at_sea_level']
+        
         
         # Create a list of station objects
         for stationname in dataframe.name.unique():
@@ -616,14 +740,26 @@ class Dataset:
                                   network_name=network)
             
             
-            
+            #add observations to the attributes
             for obstype in observation_types:
                 #fill attributes of station object
-                setattr(station_obj, obstype, station_obs[obstype])
+                try:
+                    setattr(station_obj, obstype, station_obs[obstype])
+                except KeyError:
+                    # example: in the mocca network there is no column of radiation temp
+                    continue
+                
+            #drop duplicate timestamps    
+            station_obj.drop_duplicate_timestamp()
             
-                #Fill QC dataframes with observations
-                station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': station_obs[obstype]})
-                station_obj.qc_labels_df[obstype]['status'] = 'ok'
+         
+            for obstype in observation_types:
+                try:
+                    #Fill QC dataframes with observations
+                    station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': station_obs[obstype]})
+                    station_obj.qc_labels_df[obstype]['status'] = 'ok'
+                except KeyError:
+                    continue
 
             #Apply IO checks
             
@@ -632,10 +768,13 @@ class Dataset:
             if bool(missing_dt_list):
                 for obstype in checked_df.columns:
                     #update observations with missing obs as nan's
-                    setattr(station_obj, obstype, checked_df[obstype]) 
-                    #update QC dataframes
-                    station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': checked_df[obstype]})
-                    station_obj.qc_labels_df[obstype]['status'] = ['ok' if dt not in missing_dt_list else 'missing timestamp' for dt in checked_df.index ]
+                    try:
+                        setattr(station_obj, obstype, checked_df[obstype]) 
+                        #update QC dataframes
+                        station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': checked_df[obstype]})
+                        station_obj.qc_labels_df[obstype]['status'] = ['ok' if dt not in missing_dt_list else 'missing timestamp' for dt in checked_df.index ]
+                    except KeyError:
+                        continue
                     
                     
                     
@@ -668,7 +807,7 @@ class Dataset:
                 try:
                     station_obj.units[obs_field] = self.data_template[obs_field]['units']
                     station_obj.obs_description[obs_field] = self.data_template[obs_field]['description']
-                except:
+                except KeyError:
                    continue 
             
             
