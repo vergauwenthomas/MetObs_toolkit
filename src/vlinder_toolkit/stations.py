@@ -844,7 +844,7 @@ def check_for_nan(value, fieldname, stationname):
     if isinstance(value, float):
         if np.isnan(value):
             print('Nan found for ', fieldname, ' in ', stationname, '!!')
-    elif isinstance(value, type(pd.Series())):
+    elif isinstance(value, pd.Series):
         if value.isnull().sum() > 0:
             n_nans = value.isnull().sum()
             print(n_nans, "Nan's found in ", fieldname, '-iterable in ', stationname, '!!')
@@ -885,7 +885,7 @@ def missing_timestamp_check(station):
                               index=missing_datetimeindices,
                               columns=df.columns)
     
-    df = df.append(missing_df)
+    df = pd.concat([df, missing_df])
     
     
     df = df.sort_index()
