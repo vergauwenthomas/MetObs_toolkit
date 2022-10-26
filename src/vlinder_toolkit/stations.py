@@ -444,12 +444,14 @@ class Dataset:
 
         #make color scheme for field
         if variable in categorical_fields:
+            is_categorical=True
             if variable == 'lcz':
                 #use all available LCZ categories
                 use_quantiles=False
             else:
                 use_quantiles=True
         else:
+            is_categorical=False
             use_quantiles=False
      
         
@@ -469,8 +471,8 @@ class Dataset:
         ax = spatial_plot(gdf=gdf,
                           variable=variable,
                           legend=legend,
-                          proj_type=default_settings['proj'],
                           use_quantiles=use_quantiles,
+                          is_categorical=is_categorical,
                           k_quantiles=default_settings['n_for_categorical'],
                           cmap = default_settings['cmap'],
                           world_boundaries_map=Settings.world_boundary_map,
@@ -600,7 +602,8 @@ class Dataset:
             print('WARNING: No metadata file is defined. Add your settings object.')
         else:
             meta_df = import_metadata_from_csv(input_file=Settings.input_metadata_file,
-                                               file_csv_template=Settings.input_metadata_template)
+                                               file_csv_template=Settings.input_metadata_template,
+                                               template_list = Settings.template_list)
             
             #merge additional metadata to observations
             meta_cols = [colname for colname in meta_df.columns if not colname.startswith('_')]

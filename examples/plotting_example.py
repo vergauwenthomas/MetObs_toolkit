@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 main_folder = Path(__file__).resolve().parents[1]
 testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata.csv' )
-
+vlinders_metadatafile = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv' )
 
 import vlinder_toolkit
 
@@ -30,7 +30,8 @@ settings = vlinder_toolkit.Settings()
 
 # 3. If the output data folder and input file are not exported as system variables, you need to update them:
 settings.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
-                         output_data_folder='/home/$USER/output/')
+                         output_data_folder='/home/$USER/output/',
+                         input_metadata_file=vlinders_metadatafile)
 
 
 
@@ -111,7 +112,7 @@ aug_2020_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder
 # applying the make_geo_plot() on a dataset object:
     
 aug_2020_all_vlinders.make_geo_plot(variable='temp',
-                                    timeinstance=datetime(2020, 8,4), # 2020/08/04 00:00:00
+                                    timeinstance=datetime(2022, 9,6), # 2022/09/06 00:00:00
                                     title=None,
                                     legend=True,
                                     vmin=None, #value corresponding to the minimum of the colorscheme
