@@ -94,8 +94,6 @@ from datetime import datetime
 
 aug_2020_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder07'],
                                 variable='humidity',
-                                starttime=datetime(2020, 8,4), # 2020/08/04 00:00:00
-                                endtime=datetime(2020,8,10,12,45), #2020/08/10 12:45:00
                                 title=None,
                                 legend=True
                                 )
