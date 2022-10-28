@@ -19,7 +19,7 @@ from src import vlinder_toolkit
 
 #%% IO testdata
 
-testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata.csv')
+testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata_small.csv')
 
 
 

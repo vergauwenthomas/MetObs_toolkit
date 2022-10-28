@@ -30,7 +30,7 @@ lcz_map = os.path.join(str(lib_folder), 'physiograpy', 'lcz_filter_v1.tif')
 #% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
-                           input_metadata_file=static_data,
+                           # input_metadata_file=static_data,
                           geotiff_lcz_file=lcz_map,
                           output_folder=os.path.join(str(lib_folder), 'temp_output')
                           )
@@ -41,11 +41,26 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 dataset.apply_quality_control(obstype='temp')
 
-station = dataset.get_station('vlinder05')
-test = station.qc_labels_df['temp']
 
-dataset.write_to_csv()
+dataset.make_geo_plot()
+
 
 #%%
 
+vlinderlist = []
+for i in range(28):
+    # print(i+1)
+    vlindername = 'vlinder' + str(i+1).zfill(2)
+    
+    vlinderlist.append(vlindername)
 
+print(vlinderlist)
+testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata.csv')
+
+df= pd.read_csv(testdatafile, sep=';')
+
+df =df[df['Vlinder'].isin(vlinderlist)]
+
+outputfile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata_small.csv')
+
+df.to_csv(outputfile, sep=';', index=False)

@@ -439,6 +439,12 @@ class Dataset:
         
         #subset to timeinstance
         subdf = self.df.loc[timeinstance]
+        
+        #check if coordinates are defined
+        if (all(subdf['lat'].isnull()) | (all(subdf['lon'].isnull()))):
+            print('No coordinates available, add metadata file!')
+            return
+        
         #create geodf
         gdf = gpd.GeoDataFrame(subdf,
                                geometry=gpd.points_from_xy(subdf['lon'], subdf['lat']))
