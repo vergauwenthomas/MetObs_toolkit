@@ -44,6 +44,8 @@ dataset.apply_quality_control(obstype='temp')
 station = dataset.get_station('vlinder05')
 test = station.qc_labels_df['temp']
 
+dataset.write_to_csv()
+
 #%%
 import numpy as np
 dataframe = dataset.df[0:250]

@@ -1,4 +1,4 @@
-name: Test deployed version
+name: Test pushed version
 
 on: [push]
 

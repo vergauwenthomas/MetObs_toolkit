@@ -516,6 +516,7 @@ class Dataset:
         #write to csv in output folder
         writedf.to_csv(path_or_buf=os.path.join(Settings.output_folder, filename + '.csv'),
                                                 sep=';',
+                                                na_rep='NaN',
                                                 index=True)        
         
     
