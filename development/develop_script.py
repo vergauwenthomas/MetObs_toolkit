@@ -37,7 +37,7 @@ settings.update_settings(input_data_file=testdatafile,
 
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
-
+subset = dataset.get_stations(["vlinder00", "vlinder03", "vlinder05"])
 
 #%%
 from datetime import datetime

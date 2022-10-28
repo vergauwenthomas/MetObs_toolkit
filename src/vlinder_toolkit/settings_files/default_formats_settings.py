@@ -37,7 +37,7 @@ plot_settings['spatial_geo'] = {
     'n_for_categorical' : 5, #number of quantiles for cat data (not for LCZ) 
     
     #shape
-    'figsize': (10,5),
+    'figsize': (10,15),
     
     #datetime
     'fmt': "%d/%m/%Y %H:%M:%S UTC" 

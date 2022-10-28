@@ -289,7 +289,7 @@ class Dataset:
         self.data_template = {}
         
     
-    def get_station(self, stationname):
+    def get_stations(self, stationnames):
         """
         Extract a station object from the dataset.
 
@@ -304,11 +304,24 @@ class Dataset:
             
 
         """
-        for station_obj in self._stationlist:
-            if stationname == station_obj.name:
-                return station_obj
         
-        print(stationname, ' not found in the dataset!')
+        stationdict = {}
+                
+        for name in stationnames:
+            if name in self.df["name"].unique():
+                for station_obj in self._stationlist:
+                    if station_obj.name == name:
+                        stationdict[name] = station_obj
+                        break
+            else:
+                print(name, ' not found in the dataset!')
+            
+            
+        #for name in stationnames:
+            #if not name in self._stationlist.name:
+               # print(name, ' not found in the dataset!')
+        
+        return(stationdict)
     
     def get_geodataframe(self):
         gdf = gpd.GeoDataFrame(self.df,
