@@ -63,19 +63,6 @@ def compress_dict(nested_dict, valuesname):
 
 
 
-
-
-
-# def get_template_from_df_columns(columns, Settings):
-    
-#     for test_template in Settings.template_list:
-#         columnnames = compress_dict(test_template, 'varname').keys()
-        
-#         boollist = [col_name_csv in columnnames for col_name_csv in columns]
-       
-#         if not (False in list(set(boollist))): #all columnnames are found in template
-#             return test_template
-
 def coarsen_time_resolution(df, freq='H', method='bfill'):
     
     #TODO: implement buffer method
