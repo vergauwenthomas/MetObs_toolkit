@@ -28,7 +28,7 @@ jobs:
       - name: toolkit import test
         run: |
             pip show vlinder_toolkit
-            python tests/basic_import_test.py
+            python tests/deployed_test/basic_import_test.py
       - name: examples as tests
         run: |
            python examples/introduction_example.py
