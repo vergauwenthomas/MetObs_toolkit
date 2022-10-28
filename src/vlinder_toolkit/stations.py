@@ -113,7 +113,7 @@ class Station:
         starttimestr = datetime.strftime(min(self.df().index), Settings.print_fmt_datetime)
         endtimestr = datetime.strftime(max(self.df().index), Settings.print_fmt_datetime)
         
-        
+        print('hoi')
         print(' ------- Static info -------')
         print('Stationname: ', self.name)
         print('Network: ', self.network)
@@ -128,7 +128,6 @@ class Station:
         print(' ------- Observations info -------')
     
         print('Observations found for period: ', starttimestr, ' --> ', endtimestr)
-
         
     def df(self):
         """
