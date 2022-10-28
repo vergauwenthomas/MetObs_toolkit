@@ -27,7 +27,7 @@ jobs:
             pip install pandas geopandas matplotlib mysql-connector-python rasterstats mapclassify
       - name: repo to path
         run: |
-            cd src
-            src_path=pwd
-            echo ${src_path}
+            python tests/push_test/basic_import_test.py
+            python tests/push_test/IO_test.py
+            python tests/push_test/qc_test.py
      
