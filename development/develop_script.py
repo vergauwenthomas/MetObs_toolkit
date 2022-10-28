@@ -39,7 +39,47 @@ dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
 
 
+#%%
+from datetime import datetime
 
+starttime=datetime(2022, 10,4) # 2022/09/04 00:00:00
+endtime=datetime(2022,10,7,12,45)
+
+stationnames = ['vlinder04', 'vlinder05']
+plotdf = dataset.df[dataset.df['name'].isin(stationnames)]
+
+
+# test = plotdf.loc['20221004':'20221005']
+
+def datetime_subsetting(df, starttime, endtime):
+    
+    stand_format = '%Y-%m-%d %H:%M:%S'
+    
+    if isinstance(starttime, type(None)):
+        startstring = None #will select from the beginning of the df
+    else:
+        startstring = starttime.strftime(stand_format)
+    if isinstance(endtime, type(None)):
+        endstring = None
+    else: 
+        endstring = endtime.strftime(stand_format)
+
+    return df[startstring: endstring]
+
+
+plotdf = datetime_subsetting(plotdf, None, None)
+
+
+print(plotdf.index.min())
+print(plotdf.index.max())
+
+
+
+# plotdf = plotdf.loc[(plotdf >= starttime)]
+# plotdf = plotdf.loc[(plotdf <= endtime)]
+
+
+#%%
 
 dataset.apply_quality_control(obstype='temp')
 

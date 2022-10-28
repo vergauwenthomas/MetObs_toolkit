@@ -358,10 +358,8 @@ class Dataset:
         
         plotdf = self.df[self.df['name'].isin(stationnames)]
         
-        if not isinstance(starttime, type(None)):
-            plotdf = plotdf.loc[(plotdf >= starttime)]
-        if not isinstance(endtime, type(None)):
-            plotdf = plotdf.loc[(plotdf <= endtime)]
+        #Time subsetting
+        plotdf = datetime_subsetting(plotdf, starttime, endtime)
         
         
         relevant_columns = ['name']
@@ -506,7 +504,7 @@ class Dataset:
                 except:
                     stationdf[attr] = 'not updated'
             
-            updatedf = updatedf.append(stationdf)
+            updatedf = pd.concat([updatedf, stationdf])
         
         
         updatedf = updatedf[present_df_columns] #reorder columns
@@ -893,4 +891,19 @@ def missing_timestamp_check(station):
     
     return df, missing_datetimeindices.to_list()
     
+
+def datetime_subsetting(df, starttime, endtime):
+    
+    stand_format = '%Y-%m-%d %H:%M:%S'
+    
+    if isinstance(starttime, type(None)):
+        startstring = None #will select from the beginning of the df
+    else:
+        startstring = starttime.strftime(stand_format)
+    if isinstance(endtime, type(None)):
+        endstring = None
+    else: 
+        endstring = endtime.strftime(stand_format)
+
+    return df[startstring: endstring]
     
