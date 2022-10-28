@@ -8,8 +8,8 @@ Created on Fri Sep 23 12:01:35 2022
 import os
 from pathlib import Path
 main_folder = Path(__file__).resolve().parents[1]
-testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata.csv' )
-
+testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
+metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
 import vlinder_toolkit
 
@@ -35,6 +35,7 @@ settings.show()
 
 # 2. If the output data folder and input file are not exported as system variables, you need to update them:
 settings.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
+                         input_metadata_file=metadata,
                          output_folder='/home/$USER/output/')
 
 

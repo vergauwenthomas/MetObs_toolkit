@@ -8,7 +8,8 @@ Created on Fri Sep 23 12:01:35 2022
 import os
 from pathlib import Path
 main_folder = Path(__file__).resolve().parents[1]
-testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata.csv' )
+testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
+metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
 
 import vlinder_toolkit
@@ -39,6 +40,7 @@ lcz_map_location = os.path.join(str(main_folder), 'physiograpy', 'lcz_filter_v1.
 
 # 3. If the output data folder and input file are not exported as system variables, you need to update them:
 settings.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
+                         input_metadata_file=metadata,
                          geotiff_lcz_file=lcz_map_location) #add lcz location to Settings.
 
 
@@ -94,7 +96,7 @@ print(lcz)
 
 
 # To make a geospatial map of the LCZ of all stations:
-aug_2020_all_vlinders.make_geo_plot(varible='lcz')
+aug_2020_all_vlinders.make_geo_plot(variable='lcz')
 
 
 
