@@ -30,7 +30,7 @@ lcz_map = os.path.join(str(lib_folder), 'physiograpy', 'lcz_filter_v1.tif')
 #% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
-                           # input_metadata_file=static_data,
+                            input_metadata_file=static_data,
                           geotiff_lcz_file=lcz_map,
                           output_folder=os.path.join(str(lib_folder), 'temp_output')
                           )
