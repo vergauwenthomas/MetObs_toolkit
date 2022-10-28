@@ -51,7 +51,7 @@ settings.show()
 
 #1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
 
-aug_2020_all_vlinders = vlinder_toolkit.Dataset()
+sept_2022_all_vlinders = vlinder_toolkit.Dataset()
 
 
 # ---------------- Importing from CSV file -------------------------------
@@ -59,7 +59,7 @@ aug_2020_all_vlinders = vlinder_toolkit.Dataset()
 
 #The dataset is initiated but still empty. Filling it with the data from a csv file is simply done by:
     
-aug_2020_all_vlinders.import_data_from_file(settings) #Rember that you added the input file in the settings object, this file will be used.
+sept_2022_all_vlinders.import_data_from_file(settings) #Rember that you added the input file in the settings object, this file will be used.
 
 
 # =============================================================================
@@ -115,7 +115,7 @@ aug_2020_all_vlinders.import_data_from_file(settings) #Rember that you added the
         
 # performing a quality control check on a station
 
-station = aug_2020_all_vlinders.get_station('vlinder05')
+station = sept_2022_all_vlinders.get_station('vlinder05')
 
 station.apply_gross_value_check(obstype='temp')
 station.apply_persistance_check(obstype='temp')
@@ -135,7 +135,7 @@ print(qc_overview['temp'])
 
 #To apply quality control checks on the whole dataset you can do this:
     
-aug_2020_all_vlinders.apply_quality_control(obstype='temp',
+sept_2022_all_vlinders.apply_quality_control(obstype='temp',
                                             gross_value=True, #apply this check 
                                             persistance=True, #apply this check
                                             )
@@ -151,7 +151,7 @@ aug_2020_all_vlinders.apply_quality_control(obstype='temp',
 
 
 #To plot timeseries for one station you can use the make_plot function on the station object:
-favorite_station = aug_2020_all_vlinders.get_station(stationname='vlinder02')
+favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder02')
 
 
 #Possible obstypes to plot:
@@ -171,10 +171,10 @@ favorite_station.make_plot(variable='temp',
 
 from datetime import datetime    
 
-aug_2020_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder07'],
+sept_2022_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder07'],
                                 variable='humidity',
-                                starttime=datetime(2020, 8,4), # 2020/08/04 00:00:00
-                                endtime=datetime(2020,8,10,12,45), #2020/08/10 12:45:00
+                                starttime=datetime(2022, 9,4), # 2022/09/04 00:00:00
+                                endtime=datetime(2022,9,12,12,45), #2022/09/12 12:45:00
                                 title=None,
                                 legend=True
                                 )
@@ -191,8 +191,8 @@ aug_2020_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder
 # geospatial plots can be made for a given moment (datetimeinstance) by 
 # applying the make_geo_plot() on a dataset object:
     
-aug_2020_all_vlinders.make_geo_plot(variable='temp',
-                                    timeinstance=datetime(2020, 8,4), # 2020/08/04 00:00:00
+sept_2022_all_vlinders.make_geo_plot(variable='temp',
+                                    timeinstance=datetime(2022, 9,4), # 2020/09/04 00:00:00
                                     title=None,
                                     legend=True,
                                     vmin=None, #value corresponding to the minimum of the colorscheme
