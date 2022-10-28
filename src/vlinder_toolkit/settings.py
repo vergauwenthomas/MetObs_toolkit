@@ -17,7 +17,7 @@ class Settings:
     _settings_files_path = os.path.join(str(Path(__file__).parent), 'settings_files') 
     
     #Output 
-    output_data_folder = None
+    output_folder = None
    
     #input data settings
     input_data_file = None
@@ -140,12 +140,12 @@ class Settings:
     
     
     @classmethod
-    def update_settings(self, output_data_folder=None, input_data_file=None,
+    def update_settings(self, output_folder=None, input_data_file=None,
                         input_metadata_file=None, geotiff_lcz_file=None):
         
-        if not isinstance(output_data_folder, type(None)):    
-            print('Update output_data_folder: ', self.output_data_folder, ' --> ', output_data_folder)
-            Settings.output_data_folder = output_data_folder
+        if not isinstance(output_folder, type(None)):    
+            print('Update output_folder: ', self.output_folder, ' --> ', output_folder)
+            Settings.output_folder = output_folder
             
         if not isinstance(input_data_file, type(None)):    
             print('Update input_data_file: ', self.input_data_file, ' --> ', input_data_file)

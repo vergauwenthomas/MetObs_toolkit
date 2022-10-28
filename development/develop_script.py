@@ -18,7 +18,7 @@ print(str(lib_folder))
 
 from src import vlinder_toolkit
 
-# % Import
+# %Import
 
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt.csv')
 
@@ -30,13 +30,37 @@ lcz_map = os.path.join(str(lib_folder), 'physiograpy', 'lcz_filter_v1.tif')
 #% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
-                          input_metadata_file=static_data,
-                          geotiff_lcz_file=lcz_map
+                           input_metadata_file=static_data,
+                          geotiff_lcz_file=lcz_map,
+                          output_folder=os.path.join(str(lib_folder), 'temp_output')
                           )
 
 
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
+
+dataset.apply_quality_control(obstype='temp')
+
+station = dataset.get_station('vlinder05')
+test = station.qc_labels_df['temp']
+
+#%%
+import numpy as np
+dataframe = dataset.df[0:250]
+observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
+                     'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
+                     'pressure', 'pressure_at_sea_level']
+
+location_info = ['name', 'network', 'lat', 'lon', 'call_name', 'location', 'lcz']
+
+df_columns = observation_types
+df_columns.extend(location_info)
+
+# print(list(set(df_columns).difference(set(dataframe.columns))))
+
+missing_columns = list(set(df_columns).difference(set(dataframe.columns)))
+for missing_col in missing_columns:
+    dataframe[missing_col] = np.nan
 
 
 #%%

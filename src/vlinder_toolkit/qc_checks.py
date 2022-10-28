@@ -114,7 +114,7 @@ def persistance(input_series, obstype='temp', ignore_val=np.nan):
         print('No persistance settings found for obstype=', obstype, '. Check is skipped!') 
          # return station
         qc_flags = pd.Series('not checked', index=input_series.index)
-        qc_flags.name = 'gross_value'
+        qc_flags.name = 'persistance'
         return input_series, qc_flags.name
     
     

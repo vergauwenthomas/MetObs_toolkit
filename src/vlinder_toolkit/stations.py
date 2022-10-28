@@ -4,12 +4,12 @@
 The class object for a Vlinder/mocca station
 @author: thoverga
 """
-from collections.abc import Iterable
+# from collections.abc import Iterable
 
 import pandas as pd
 import geopandas as gpd
 import numpy as np
-
+import os
 from datetime import datetime
 
 from .settings import Settings
@@ -40,6 +40,7 @@ observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
                      'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
                      'pressure', 'pressure_at_sea_level']
 
+location_info = ['name', 'network', 'lat', 'lon', 'call_name', 'location', 'lcz']
 
 # =============================================================================
 # station class
@@ -110,7 +111,7 @@ class Station:
         
 
     def show(self):
-        
+
         print(' ------- Static info -------')
         print('Stationname: ', self.name)
         print('Network: ', self.network)
@@ -123,6 +124,7 @@ class Station:
         print('LCZ: ', self.lcz)
         print(' ')
         print(' ------- Observations info -------')
+
         
         if self.df().empty:
             print("No data in station.")
@@ -134,6 +136,7 @@ class Station:
             
         
             print('Observations found for period: ', starttimestr, ' --> ', endtimestr)
+
         
     def df(self):
         """
@@ -275,7 +278,7 @@ class Station:
         #update obs attributes
         setattr(self, obstype, updated_obs)
         #update qc flags df
-        self.qc_labels_df[obstype]['gross_value'] = qc_flags
+        self.qc_labels_df[obstype]['persistance'] = qc_flags
 
 # =============================================================================
 # Dataset class
@@ -488,6 +491,33 @@ class Dataset:
         
 
         return ax
+    
+    
+    def write_to_csv(self, filename=None):
+        
+        #update observations with QC labels etc        
+        self._update_dataset_df_with_stations()
+        
+        #Get observations and metadata columns in the right order
+        df_columns = observation_types.copy()
+        df_columns.extend(location_info)
+        writedf = self.df[df_columns]
+        
+        #make filename
+        if isinstance(filename, type(None)):
+            startstr = self.df.index.min().strftime('%Y%m%d') 
+            endstr = self.df.index.max().strftime('%Y%m%d') 
+            filename= 'dataset_' + startstr + '_' + endstr
+        else:
+            if filename.endswith('.csv'):
+                filename = filename[:-4] #to avoid two times .csv.csv
+            
+        
+        #write to csv in output folder
+        writedf.to_csv(path_or_buf=os.path.join(Settings.output_folder, filename + '.csv'),
+                                                sep=';',
+                                                index=True)        
+        
     
     # =============================================================================
     # Update dataset by station objects
@@ -709,6 +739,15 @@ class Dataset:
        
         
         #reset dataset attributes
+        
+        #make shure all columns are present (nan's if no data) and always the same structure
+        df_columns = observation_types.copy()
+        df_columns.extend(location_info)
+        
+        missing_columns = list(set(df_columns).difference(set(dataframe.columns)))
+        for missing_col in missing_columns:
+            dataframe[missing_col] = np.nan
+
         self.df = dataframe
         self._stationlist = [] 
         
@@ -821,10 +860,10 @@ class Dataset:
         #Update dataset df with information created on station level
         
         #add LCZ to dataset df
-        if not isinstance(Settings.geo_lcz_file, type(None)):
+        if not isinstance(Settings.geo_lcz_file, type(None)): 
             lcz_dict = {station.name: station.lcz for station in self._stationlist}
             self.df['lcz'] = self.df['name'].map(lcz_dict)
-            
+        
             
           
 def check_for_nan(value, fieldname, stationname):

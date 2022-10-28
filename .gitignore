@@ -1,6 +1,9 @@
 #Exclude private information 
 deploy_info
 
+#Exclude temp output
+temp_output/*
+
 #Exclude deploy scripts
 deploy_to*
 
