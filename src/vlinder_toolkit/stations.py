@@ -110,9 +110,6 @@ class Station:
         
 
     def show(self):
-        starttimestr = datetime.strftime(min(self.df().index), Settings.print_fmt_datetime)
-        endtimestr = datetime.strftime(max(self.df().index), Settings.print_fmt_datetime)
-        
         
         print(' ------- Static info -------')
         print('Stationname: ', self.name)
@@ -126,9 +123,17 @@ class Station:
         print('LCZ: ', self.lcz)
         print(' ')
         print(' ------- Observations info -------')
-    
-        print('Observations found for period: ', starttimestr, ' --> ', endtimestr)
-
+        
+        if self.df().empty:
+            print("No data in station.")
+            
+            
+        else:
+            starttimestr = datetime.strftime(min(self.df().index), Settings.print_fmt_datetime)
+            endtimestr = datetime.strftime(max(self.df().index), Settings.print_fmt_datetime)
+            
+        
+            print('Observations found for period: ', starttimestr, ' --> ', endtimestr)
         
     def df(self):
         """
