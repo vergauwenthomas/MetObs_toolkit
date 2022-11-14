@@ -33,5 +33,4 @@ jobs:
         run: |
             python examples/introduction_example.py
             python examples/plotting_example.py
-            python examples/qualitycontrol_example.py
-            python examples/templates_example.py        
+            python examples/qualitycontrol_example.py       
