@@ -118,13 +118,14 @@ class Settings:
     
     @classmethod
     def update_templates(self):
-       from .data_templates.csv_templates import vlinder_brian_csv_template, csv_templates_list, vlinder_static_meta_data
+       # from .data_templates.csv_templates import vlinder_brian_csv_template, csv_templates_list, vlinder_static_meta_data
+       from .data_templates.import_templates import csv_templates_list
        from .data_templates.db_templates import vlinder_metadata_db_template, vlinder_observations_db_template
        from .data_templates.geo_datasets_templates import geo_datasets
        
        #import csv templates
        Settings.template_list = csv_templates_list
-       Settings.vlinder_csv_template = vlinder_brian_csv_template
+       # Settings.vlinder_csv_template = vlinder_brian_csv_template
       
        #import db templates
        Settings.vlinder_db_meta_template = vlinder_metadata_db_template
@@ -135,13 +136,15 @@ class Settings:
        
        
        #Set standard templates
-       Settings.input_csv_template = Settings.vlinder_csv_template #set vlindertemplate as standard
-       Settings.input_metadata_template = vlinder_static_meta_data #set vlindertemplate as standard
+       
+       # Settings.input_csv_template = Settings.vlinder_csv_template #set vlindertemplate as standard
+       # Settings.input_metadata_template = vlinder_static_meta_data #set vlindertemplate as standard
     
     
     @classmethod
     def update_settings(self, output_folder=None, input_data_file=None,
                         input_metadata_file=None, geotiff_lcz_file=None):
+        #TODO: posibility to add a default data template + metadata template
         
         if not isinstance(output_folder, type(None)):    
             print('Update output_folder: ', self.output_folder, ' --> ', output_folder)
@@ -159,8 +162,41 @@ class Settings:
             print('Update input_metadata_file: ', self.geo_lcz_file, ' --> ', geotiff_lcz_file)
             Settings.geo_lcz_file = geotiff_lcz_file
         
-      
+        
+    def add_excel_template(self, excel_file):
+        """
+        Add a template-excel to the templates. The excel file can have multiple tabs.
+        The Settings class will be updated.
 
+        Parameters
+        ----------
+        excel_file : String
+            Excel-template file path.
+
+        Returns
+        -------
+        None. 
+
+        """
+        from .data_templates.import_templates import read_templates, check_if_templates_are_unique_defined
+        
+        template = read_templates(excel_file)
+        Settings.template_list.extend(template)
+        
+        #Check if all templates are still unique
+        check_if_templates_are_unique_defined(Settings.template_list)
+        
+    def copy_template_excel_file(self, target_folder):
+        import shutil
+        from .data_templates.import_templates import csv_templates_file
+        
+        target_file = os.path.join(target_folder, 'default_templates.xlsx')
+        
+        shutil.copy2(csv_templates_file, target_file)
+    
+        print("Templatates copied to : ", target_file)
+       
+    
     # =============================================================================
     #     Check settings
     # =============================================================================

@@ -18,6 +18,14 @@ print(str(lib_folder))
 
 from src import vlinder_toolkit
 
+
+#%%
+
+
+
+
+#%%
+
 # %Import
 
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt.csv')
@@ -35,6 +43,8 @@ settings.update_settings(input_data_file=testdatafile,
                           output_folder=os.path.join(str(lib_folder), 'temp_output')
                           )
 
+settings.copy_template_excel_file(target_folder='/home/%s/Desktop' % os.getenv('USER'))
+
 
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
@@ -45,7 +55,9 @@ dataset.apply_quality_control(obstype='temp')
 dataset.make_geo_plot()
 
 
+
 #%%
+
 
 vlinderlist = []
 for i in range(28):

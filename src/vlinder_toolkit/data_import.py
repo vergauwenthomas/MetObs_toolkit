@@ -103,16 +103,18 @@ def import_metadata_from_csv(input_file, file_csv_template, template_list):
     
     
     # import template
-    if isinstance(file_csv_template, type(None)):
-        # templ =get_template_from_df_columns(df.columns)
-        sys.exit("No template given for the input data.Not implemented yet !!!")
+    if isinstance(file_csv_template, type(None)): #if no default is given
+        templ = find_compatible_templatefor(df_columns=df.columns,
+                                            template_list=template_list)
+        
     else:
         templ = file_csv_template
         
     #Check if template is compatible with the data, and try other templates if not
     if not all(keys in list(df.columns) for keys in templ.keys()):
         print("Default template not compatible, scanning other templates ...")
-        
+        templ = find_compatible_templatefor(df_columns=df.columns,
+                                            template_list=template_list)
     
 
     # rename columns to toolkit attriute names
@@ -137,6 +139,9 @@ def import_data_from_csv(input_file, file_csv_template, template_list ):
     # import template
 
     templ = file_csv_template
+    if isinstance(templ, type(None)): #No default template is given
+        templ = find_compatible_templatefor(df_columns=df.columns,
+                                            template_list=template_list)
 
     #Check if template is compatible and find other if needed
     if not all(keys in list(df.columns) for keys in templ.keys()):
@@ -153,12 +158,11 @@ def import_data_from_csv(input_file, file_csv_template, template_list ):
     #COnvert template to package-space
     template =template_to_package_space(templ)
     
-    
     #format columns
     df = df.astype(dtype=compress_dict(template, 'dtype'))
     
     #create datetime column
-    datetime_fmt = template['_date']['fmt'] + ' ' + template['_time']['fmt']
+    datetime_fmt = template['_date']['format'] + ' ' + template['_time']['format']
     df['datetime'] =pd.to_datetime(df['_date'] +' ' + df['_time'],
                                     format=datetime_fmt) 
     #TODO implement timezone settings

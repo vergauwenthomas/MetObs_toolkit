@@ -5,7 +5,8 @@ build-backend = "hatchling.build"
 [project]
 name = "vlinder_toolkit"
 description = "A VLINDER and MOCCA toolkit for scientists"
-version = "0.4.14"
+
+version = "0.4.15"
 authors = [
     { name = "Thomas Vergauwen", email = "thomas.vergauwen@meteo.be" }
 ]
@@ -17,7 +18,8 @@ dependencies = [
   'mysql-connector-python >= 8.0.0',
   'geopandas >= 0.9.0',
   'rasterstats >= 0.17.0',
-  'mapclassify >= 2.4.0'
+  'mapclassify >= 2.4.0',
+  'openpyxl >= 3.0.0'
 ]
 
 
