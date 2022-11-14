@@ -18,6 +18,14 @@ print(str(lib_folder))
 
 from src import vlinder_toolkit
 
+
+#%%
+
+
+
+
+#%%
+
 # %Import
 
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt.csv')
