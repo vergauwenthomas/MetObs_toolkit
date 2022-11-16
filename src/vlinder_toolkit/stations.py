@@ -943,7 +943,7 @@ def check_for_nan(value, fieldname, stationname):
         if value.isnull().sum() > 0:
             n_nans = value.isnull().sum()
             print(n_nans, "Nan's found in ", fieldname, '-iterable in ', stationname, '!!')
-            logger.Warning(f'{n_nans} Missing {fieldname} foud for {stationname}.')
+            logger.warning(f'{n_nans} Missing {fieldname} foud for {stationname}.')
         
 
         
