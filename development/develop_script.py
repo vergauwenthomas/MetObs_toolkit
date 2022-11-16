@@ -19,7 +19,6 @@ print(str(lib_folder))
 from src import vlinder_toolkit
 
 
-#%%
 
 
 
@@ -42,6 +41,8 @@ settings.update_settings(input_data_file=testdatafile,
                           geotiff_lcz_file=lcz_map,
                           output_folder=os.path.join(str(lib_folder), 'temp_output')
                           )
+settings.check_settings()
+settings.show()
 
 settings.copy_template_excel_file(target_folder='/home/%s/Desktop' % os.getenv('USER'))
 
@@ -49,10 +50,10 @@ settings.copy_template_excel_file(target_folder='/home/%s/Desktop' % os.getenv('
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
 
-dataset.apply_quality_control(obstype='temp')
+# dataset.apply_quality_control(obstype='temp')
 
 
-dataset.make_geo_plot()
+# dataset.make_geo_plot()
 
 
 
