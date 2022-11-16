@@ -11,6 +11,7 @@ import geopandas as gpd
 import numpy as np
 import os
 from datetime import datetime
+import logging
 
 from .settings import Settings
 from .data_import import import_data_from_csv, import_data_from_database, template_to_package_space, import_metadata_from_csv
@@ -20,6 +21,7 @@ from .geometry_functions import find_largest_extent
 from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot
 from .qc_checks import gross_value, persistance
 
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # field classifiers
@@ -47,6 +49,7 @@ location_info = ['name', 'network', 'lat', 'lon', 'call_name', 'location', 'lcz'
 # =============================================================================
 class Station:
     def __init__(self, station_name, network_name):
+        logger.debug(f'Station {station_name} initialisation.')
         self.network = network_name
         self.name = station_name
         
@@ -111,7 +114,7 @@ class Station:
         
 
     def show(self):
-
+        logger.debug(f'Show {self.name} info.')
         print(' ------- Static info -------')
         print('Stationname: ', self.name)
         print('Network: ', self.network)
@@ -128,6 +131,7 @@ class Station:
         
         if self.df().empty:
             print("No data in station.")
+            logger.warning(f'Station {self.name} has no data.')
             
             
         else:
@@ -163,6 +167,7 @@ class Station:
         
         
     def get_lcz(self):
+        logger.debug(f'Extract LCZ for {self.name}.')
         
         geo_templates = Settings.geo_datasets_templates
         lcz_file = Settings.geo_lcz_file
@@ -170,6 +175,7 @@ class Station:
         if isinstance(lcz_file, type(None)):
             print('No lcz tif location in the settings. Update settings: ')
             print('settings_obj.update_settings(geotiff_lcz_file="...."')
+            logger.error('Extracting LCZ but no geotiff file specified!')
             return
         
         lcz_templates = [geo_templ for geo_templ in geo_templates if geo_templ['usage']=='LCZ']
@@ -185,6 +191,7 @@ class Station:
         #Check if coordinates are available
         if np.isnan(self.lat.iloc[0]) | np.isnan(self.lon.iloc[0]):
             self.lcz = 'Location unknown'
+            logger.error(f'Extracting LCZ but coordiates ({self.lat.iloc[0]}, {self.lon.iloc[0]}) of Station {self.name} not known!')
             return 'Location unknown'
         
         #TODO: lat and lons are time depending, now use first lat, lon
@@ -199,6 +206,7 @@ class Station:
         return lcz
 
     def make_plot(self, variable='temp', title=None):
+        
         """
         Make a timeseries plot of one attribute.
 
@@ -216,7 +224,7 @@ class Station:
             AxesSubplot is returned so layer can be added to it.
 
         """
-        
+        logger.info(f'Make {variable} plot for Station {self.name}.')
         #Load default plot settings
         default_settings=Settings.plot_settings['time_series']
       
@@ -239,7 +247,7 @@ class Station:
         return ax
     
     def drop_duplicate_timestamp(self):
-        
+        logger.debug(f'Drop duplicate timestamps for {self.name}')
         df = pd.DataFrame()
         for obstype in observation_types:
             df[obstype] = getattr(self, obstype)
@@ -250,6 +258,7 @@ class Station:
             return
         
         else:
+            logger.warning(f'Duplicate timestamps found for station {self.name}. These first occurances will be kept.')
             print("DUPLICATE TIMESTAMPS FOUND FOR ",self.name)
             df = df.reset_index()
             df = df.rename(columns={'index': 'datetime'})
@@ -261,6 +270,8 @@ class Station:
                 setattr(self, obstype, df[obstype])
                 
     def apply_gross_value_check(self, obstype='temp', ignore_val=np.nan):
+        
+        logger.info(f'Apply gross value check on {obstype} of {self.name}.')
         updated_obs, qc_flags = gross_value(input_series=getattr(self, obstype),
                                                   obstype=obstype,
                                                   ignore_val=ignore_val)
@@ -271,6 +282,7 @@ class Station:
         self.qc_labels_df[obstype]['gross_value'] = qc_flags
         
     def apply_persistance_check(self, obstype='temp', ignore_val=np.nan):
+        logger.info(f'Apply persistance check on {obstype} of {self.name}.')
         updated_obs, qc_flags = persistance(input_series=getattr(self, obstype),
                                                   obstype=obstype,
                                                   ignore_val=ignore_val)
@@ -286,6 +298,7 @@ class Station:
 
 class Dataset:
     def __init__(self):
+        logger.info('Initialise dataset')
         self._stationlist = []
         self.df = pd.DataFrame()
         
@@ -293,6 +306,7 @@ class Dataset:
         
     
     def get_station(self, stationname):
+        
         """
         Extract a station object from the dataset.
 
@@ -307,30 +321,37 @@ class Dataset:
             
 
         """
+        logger.info(f'Extract {stationname} from dataset.')
+        
         for station_obj in self._stationlist:
             if stationname == station_obj.name:
                 return station_obj
-        
+            
+        logger.warning(f'{stationname} not found in the dataset.')
         print(stationname, ' not found in the dataset!')
     
     def get_geodataframe(self):
+        logger.debug('Converting dataset to a geopandas dataframe.')
         gdf = gpd.GeoDataFrame(self.df,
                                geometry=gpd.points_from_xy(self.df['lon'],
                                                            self.df['lat']))
         return gdf
     
     def show(self):
+        logger.info('Show basic info of dataset.')
         if self.df.empty:
             print("This dataset is empty!")
+            logger.error('The dataset is empty!')
         else: 
             starttimestr = datetime.strftime(min(self.df.index), Settings.print_fmt_datetime)
             endtimestr = datetime.strftime(max(self.df.index), Settings.print_fmt_datetime)
             
             stations_available = list(self.df.name.unique())
         
-            print('Observations found for period: ', starttimestr, ' --> ', endtimestr)
-            print('Following stations are in dataset: ', stations_available)
-        
+            print(f'Observations found for period: {starttimestr} --> {endtimestr}')
+            logger.debug(f'Observations found for period: {starttimestr} --> {endtimestr}')
+            print(f'Following stations are in dataset: {stations_available}')
+            logger.debug(f'Following stations are in dataset: {stations_available}')
         
     def make_plot(self, stationnames, variable='temp',
                                    starttime=None, endtime=None,
@@ -361,6 +382,7 @@ class Dataset:
             The plot axes is returned.
 
         """
+        logger.info(f'Make {variable}-timeseries plot for {stationnames}')
         
         default_settings=Settings.plot_settings['time_series']
         
@@ -430,12 +452,16 @@ class Dataset:
 
         """
         
+        
+        
         #Load default plot settings
         default_settings=Settings.plot_settings['spatial_geo']
         
         #get first timeinstance of the dataset if not given
         if isinstance(timeinstance, type(None)):
             timeinstance=self.df.index.min()
+            
+        logger.info(f'Make {variable}-geo plot at {timeinstance}')
         
         #subset to timeinstance
         subdf = self.df.loc[timeinstance]
@@ -501,6 +527,7 @@ class Dataset:
     
     def write_to_csv(self, filename=None):
         
+        
         #update observations with QC labels etc        
         self._update_dataset_df_with_stations()
         
@@ -518,12 +545,14 @@ class Dataset:
             if filename.endswith('.csv'):
                 filename = filename[:-4] #to avoid two times .csv.csv
             
+        filepath = os.path.join(Settings.output_folder, filename + '.csv')
         
         #write to csv in output folder
-        writedf.to_csv(path_or_buf=os.path.join(Settings.output_folder, filename + '.csv'),
-                                                sep=';',
-                                                na_rep='NaN',
-                                                index=True)        
+        logger.info(f'write dataset to file: {filepath}')
+        writedf.to_csv(path_or_buf=filepath,
+                       sep=';',
+                       na_rep='NaN',
+                       index=True)        
         
     
     # =============================================================================
@@ -531,6 +560,7 @@ class Dataset:
     # =============================================================================
     
     def _update_dataset_df_with_stations(self):
+        logger.debug('Updating dataset.df from stationlist')
     
         present_df_columns = list(self.df.columns)    
         updatedf = pd.DataFrame()
@@ -589,14 +619,18 @@ class Dataset:
         None.
 
         """
+        
+        
         if gross_value:
             print('Applying the gross value check on all stations.')
+            logger.info('Applying gross value check on the full dataset')
             for stationobj in self._stationlist:
                 stationobj.apply_gross_value_check(obstype=obstype,
                                                    ignore_val=ignore_val)
                 
         if persistance:
             print('Applying the persistance check on all stations.')
+            logger.info('Applying persistance check on the full dataset')
             for stationobj in self._stationlist:
                 stationobj.apply_persistance_check(obstype=obstype,
                                                    ignore_val=ignore_val)
@@ -629,18 +663,22 @@ class Dataset:
 
         """
         print('Settings input data file: ', Settings.input_data_file)
-        
+        logger.info(f'Importing data from file: {Settings.input_data_file}')
         
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(input_file = Settings.input_data_file,
                                   file_csv_template=Settings.input_csv_template,
                                   template_list = Settings.template_list)
+        logger.debug(f'Data from {Settings.input_data_file} imported to dataframe.')
         #drop Nat datetimes if present
         df = df.loc[pd.notnull(df.index)]
         
+        
         if isinstance(Settings.input_metadata_file, type(None)):
             print('WARNING: No metadata file is defined. Add your settings object.')
+            logger.warning('No metadata file is defined, no metadata attributes can be set!')
         else:
+            logger.info(f'Importing metadata from file: {Settings.input_metadata_file}')
             meta_df = import_metadata_from_csv(input_file=Settings.input_metadata_file,
                                                file_csv_template=Settings.input_metadata_template,
                                                template_list = Settings.template_list)
@@ -649,6 +687,7 @@ class Dataset:
             meta_cols = [colname for colname in meta_df.columns if not colname.startswith('_')]
             additional_meta_cols = list(set(meta_cols).difference(df.columns))
             if bool(additional_meta_cols):
+                logger.debug(f'Merging metadata ({additional_meta_cols}) to dataset data by name.')
                 additional_meta_cols.append('name') #merging on name
                 df_index = df.index #merge deletes datetime index somehow? so add it back on the merged df
                 df = df.merge(right=meta_df[additional_meta_cols],
@@ -663,6 +702,7 @@ class Dataset:
         
         
         if coarsen_timeres:
+            logger.info(f'Coarsen timeresolution to {Settings.target_time_res} using the {Settings.resample_method}-method.')
             df = coarsen_time_resolution(df=df,
                                           freq=Settings.target_time_res,
                                           method=Settings.resample_method)
@@ -744,7 +784,7 @@ class Dataset:
 
         """
        
-        
+        logger.info(f'Updating dataset by dataframe with shape: {dataframe.shape}.')
         #reset dataset attributes
         
         #make shure all columns are present (nan's if no data) and always the same structure
@@ -764,10 +804,12 @@ class Dataset:
         
         # Create a list of station objects
         for stationname in dataframe.name.unique():
+            logger.debug(f'Extract data of {stationname}.')
             #extract observations
             station_obs = dataframe[dataframe['name'] == stationname].sort_index()
             
             if station_obs.empty:
+                logger.warning(f'{stationname} has no data. This station will be ignored.')
                 print('skip stationname: ', stationname)
                 continue
             
@@ -781,6 +823,7 @@ class Dataset:
                     network='mocca'
                 else:
                     network='Unknown'
+            logger.debug(f'Network of {stationname} is {network}.')
             
             
             
@@ -788,7 +831,7 @@ class Dataset:
             station_obj = Station(station_name=stationname, 
                                   network_name=network)
             
-            
+            logger.debug(f'fill data attributes for {stationname}')
             #add observations to the attributes
             for obstype in observation_types:
                 #fill attributes of station object
@@ -801,7 +844,7 @@ class Dataset:
             #drop duplicate timestamps    
             station_obj.drop_duplicate_timestamp()
             
-         
+            logger.debug(f'Create quality control labels df, with label OK for {stationname}.')
             for obstype in observation_types:
                 try:
                     #Fill QC dataframes with observations
@@ -813,8 +856,10 @@ class Dataset:
             #Apply IO checks
             
             #check for missing timestamps
+            logger.debug(f'Check for missing timestamps in the inputfile for {stationname}.')
             checked_df, missing_dt_list = missing_timestamp_check(station_obj)
             if bool(missing_dt_list):
+                logger.warning(f'Missing timestamps ({missing_dt_list}) found in data of {stationname}.')
                 for obstype in checked_df.columns:
                     #update observations with missing obs as nan's
                     try:
@@ -825,11 +870,8 @@ class Dataset:
                     except KeyError:
                         continue
                     
-                    
-                    
-            
-            
-            
+     
+            logger.debug(f'add metadata to {stationname} station.')
             #check if meta data is available
             if 'lat' in station_obs.columns:
                 station_obj.lat = station_obs['lat']
@@ -848,8 +890,10 @@ class Dataset:
             if not isinstance(Settings.geo_lcz_file, type(None)):
                 try:
                     _ = station_obj.get_lcz()
+                    logger.debug(f'Extracting LCZ for {stationname}: {_}.')
                 except:
                     _=None
+                    logger.warning(f' LCZ could not be extracted for {stationname}.')
             
             #Update units and description dicts of the station using the used template
             for obs_field in station_obj.units.keys():
@@ -867,6 +911,7 @@ class Dataset:
         #Update dataset df with information created on station level
         
         #add LCZ to dataset df
+        logger.debug('Add LCZ info to the dataset dataframe.')
         if not isinstance(Settings.geo_lcz_file, type(None)): 
             lcz_dict = {station.name: station.lcz for station in self._stationlist}
             self.df['lcz'] = self.df['name'].map(lcz_dict)
@@ -893,10 +938,12 @@ def check_for_nan(value, fieldname, stationname):
     if isinstance(value, float):
         if np.isnan(value):
             print('Nan found for ', fieldname, ' in ', stationname, '!!')
+            logger.warning(f'Missing {fieldname} for {stationname}: {value}.')
     elif isinstance(value, pd.Series):
         if value.isnull().sum() > 0:
             n_nans = value.isnull().sum()
             print(n_nans, "Nan's found in ", fieldname, '-iterable in ', stationname, '!!')
+            logger.warning(f'{n_nans} Missing {fieldname} foud for {stationname}.')
         
 
         
