@@ -938,7 +938,7 @@ def check_for_nan(value, fieldname, stationname):
     if isinstance(value, float):
         if np.isnan(value):
             print('Nan found for ', fieldname, ' in ', stationname, '!!')
-            logger.Warning(f'Missing {fieldname} for {stationname}: {value}.')
+            logger.warning(f'Missing {fieldname} for {stationname}: {value}.')
     elif isinstance(value, pd.Series):
         if value.isnull().sum() > 0:
             n_nans = value.isnull().sum()
