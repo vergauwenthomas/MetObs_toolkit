@@ -19,19 +19,38 @@ print(str(lib_folder))
 from src import vlinder_toolkit
 
 
+
+
+
+
+
+#%%
+
+# %Import
+
 #%%
 
 datafile = '/home/thoverga/Documents/Thesis studenten/Amber/data/formatted_Turku.csv'
 
 settings = vlinder_toolkit.Settings()
+
 settings.update_settings(input_data_file=datafile,
                            )
                           
 
+settings.update_settings(input_data_file=testdatafile,
+                            input_metadata_file=static_data,
+                          geotiff_lcz_file=lcz_map,
+                          output_folder=os.path.join(str(lib_folder), 'temp_output')
+                          )
+settings.check_settings()
+settings.show()
+
+settings.copy_template_excel_file(target_folder='/home/%s/Desktop' % os.getenv('USER'))
+
 
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
-
 
 
 
@@ -65,8 +84,6 @@ dataset.import_data_from_file(coarsen_timeres=False)
 
 # dataset.make_geo_plot()
 
-<<<<<<< Updated upstream
-=======
 # #%%
 
 
@@ -103,24 +120,16 @@ dataset.import_data_from_file(coarsen_timeres=False)
 
 
 
->>>>>>> Stashed changes
+
+# dataset.apply_quality_control(obstype='temp')
 
 
-# #%%
+# dataset.make_geo_plot()
 
-<<<<<<< Updated upstream
 
-vlinderlist = []
-for i in range(28):
-    # print(i+1)
-    vlindername = 'vlinder' + str(i+1).zfill(2)
-=======
-# vlinderlist = []
-# for i in range(28):
-#     # print(i+1)
-#     vlindername = 'vlinder' + str(i+1).zfill(2)
->>>>>>> Stashed changes
-    
+
+#%%
+
 #     vlinderlist.append(vlindername)
 
 # print(vlinderlist)

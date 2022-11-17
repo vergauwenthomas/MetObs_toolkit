@@ -162,6 +162,7 @@ def import_data_from_csv(input_file, file_csv_template, template_list ):
     df = df.astype(dtype=compress_dict(template, 'dtype'))
     
     #create datetime column
+
     if 'datetime' in df.columns:
         df['datetime'] =pd.to_datetime(df['datetime'],
                                         format=template['datetime']['format'])
@@ -172,6 +173,7 @@ def import_data_from_csv(input_file, file_csv_template, template_list ):
                                         format=datetime_fmt) 
         #drop 'date' and 'time' columns
         df = df.drop(columns=['_date', '_time'])
+
     #TODO implement timezone settings
     
     
