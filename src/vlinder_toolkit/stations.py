@@ -635,6 +635,7 @@ class Dataset:
         df, template = import_data_from_csv(input_file = Settings.input_data_file,
                                   file_csv_template=Settings.input_csv_template,
                                   template_list = Settings.template_list)
+        
         #drop Nat datetimes if present
         df = df.loc[pd.notnull(df.index)]
         
