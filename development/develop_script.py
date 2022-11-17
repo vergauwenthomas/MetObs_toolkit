@@ -38,15 +38,15 @@ settings.update_settings(input_data_file=datafile,
                            )
                           
 
-settings.update_settings(input_data_file=testdatafile,
-                            input_metadata_file=static_data,
-                          geotiff_lcz_file=lcz_map,
-                          output_folder=os.path.join(str(lib_folder), 'temp_output')
+settings.update_settings(input_data_file=datafile,
+                          #   input_metadata_file=static_data,
+                          # geotiff_lcz_file=lcz_map,
+                          # output_folder=os.path.join(str(lib_folder), 'temp_output')
                           )
 settings.check_settings()
 settings.show()
 
-settings.copy_template_excel_file(target_folder='/home/%s/Desktop' % os.getenv('USER'))
+# settings.copy_template_excel_file(target_folder='/home/%s/Desktop' % os.getenv('USER'))
 
 
 dataset = vlinder_toolkit.Dataset()

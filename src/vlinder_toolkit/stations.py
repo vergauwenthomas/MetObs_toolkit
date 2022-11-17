@@ -861,7 +861,7 @@ class Dataset:
             logger.debug(f'Check for missing timestamps in the inputfile for {stationname}.')
             checked_df, missing_dt_list = missing_timestamp_check(station_obj)
             if bool(missing_dt_list):
-                logger.warning(f'Missing timestamps ({missing_dt_list}) found in data of {stationname}.')
+                logger.warning(f'{len(missing_dt_list)} Missing timestamps ({missing_dt_list[:10]} ...) found in data of {stationname}.')
                 for obstype in checked_df.columns:
                     #update observations with missing obs as nan's
                     try:
