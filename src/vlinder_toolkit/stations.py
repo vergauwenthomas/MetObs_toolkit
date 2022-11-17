@@ -789,6 +789,9 @@ class Dataset:
         logger.info(f'Updating dataset by dataframe with shape: {dataframe.shape}.')
         #reset dataset attributes
         
+        
+        present_observation_types = [obstype for obstype in dataframe.columns if obstype in observation_types]
+       
         #make shure all columns are present (nan's if no data) and always the same structure
         df_columns = observation_types.copy()
         df_columns.extend(location_info)
@@ -846,32 +849,34 @@ class Dataset:
             #drop duplicate timestamps    
             station_obj.drop_duplicate_timestamp()
             
-            logger.debug(f'Create quality control labels df, with label OK for {stationname}.')
-            for obstype in observation_types:
-                try:
-                    #Fill QC dataframes with observations
-                    station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': station_obs[obstype]})
-                    station_obj.qc_labels_df[obstype]['status'] = 'ok'
-                except KeyError:
-                    continue
+            
+            
 
             #Apply IO checks
             
             #check for missing timestamps
             logger.debug(f'Check for missing timestamps in the inputfile for {stationname}.')
-            checked_df, missing_dt_list = missing_timestamp_check(station_obj)
-            if bool(missing_dt_list):
-                logger.warning(f'{len(missing_dt_list)} Missing timestamps ({missing_dt_list[:10]} ...) found in data of {stationname}.')
-                for obstype in checked_df.columns:
-                    #update observations with missing obs as nan's
-                    try:
-                        setattr(station_obj, obstype, checked_df[obstype]) 
-                        #update QC dataframes
-                        station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': checked_df[obstype]})
-                        station_obj.qc_labels_df[obstype]['status'] = ['ok' if dt not in missing_dt_list else 'missing timestamp' for dt in checked_df.index ]
-                    except KeyError:
-                        continue
-                    
+            checked_df, statusdf = missing_timestamp_check(station_obj)
+            for obstype in checked_df.columns:
+                #update observations with missing obs as nan's
+                try:
+                    setattr(station_obj, obstype, checked_df[obstype])
+                    #update QC dataframes
+                    station_obj.qc_labels_df[obstype] = pd.DataFrame(data = {'observations': checked_df[obstype]})
+                    #the next line is to slow!
+                    station_obj.qc_labels_df[obstype]['status'] = statusdf['status']
+                except KeyError:
+                    continue
+            
+            logger.debug(f'Create no-observations labels df for {stationname}.')
+            for obstype in observation_types:
+                try:
+                    if not (obstype in present_observation_types):
+                        station_obj.qc_labels_df[obstype]['status'] = 'no observations'
+                except KeyError:
+                    continue
+            
+            
      
             logger.debug(f'add metadata to {stationname} station.')
             #check if meta data is available
@@ -970,7 +975,7 @@ def missing_timestamp_check(station):
    
     
     df = station.df()
-    
+   
     #extrac observed frequencies
     likely_freq = df.index.to_series().diff().value_counts().idxmax()
     
@@ -978,6 +983,14 @@ def missing_timestamp_check(station):
     missing_datetimeindices = pd.date_range(start = df.index.min(),
                          end = df.index.max(),
                          freq=likely_freq).difference(df.index)
+    
+    if not missing_datetimeindices.empty:
+        logging.warning(f'{len(missing_datetimeindices)} missing records ({missing_datetimeindices[:10]} ...) found for {station.name}. These will be filled with Nans.')
+    
+    
+    
+    statusdf = pd.concat([pd.DataFrame(data='ok', index=df.index, columns=['status']),
+                          pd.DataFrame(data='missing timestamp', index=missing_datetimeindices, columns=['status'])])
     
     missing_df = pd.DataFrame(data=np.nan,
                               index=missing_datetimeindices,
@@ -989,7 +1002,7 @@ def missing_timestamp_check(station):
     df = df.sort_index()
     
     
-    return df, missing_datetimeindices.to_list()
+    return df, statusdf
     
 
 def datetime_subsetting(df, starttime, endtime):
