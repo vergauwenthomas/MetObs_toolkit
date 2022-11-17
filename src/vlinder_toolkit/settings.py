@@ -128,7 +128,9 @@ class Settings:
     
     @classmethod
     def update_templates(self):
+
        logger.debug('Updating data templates settings.')
+
        # from .data_templates.csv_templates import vlinder_brian_csv_template, csv_templates_list, vlinder_static_meta_data
        from .data_templates.import_templates import csv_templates_list
        from .data_templates.db_templates import vlinder_metadata_db_template, vlinder_observations_db_template
@@ -155,7 +157,9 @@ class Settings:
     @classmethod
     def update_settings(self, output_folder=None, input_data_file=None,
                         input_metadata_file=None, geotiff_lcz_file=None):
+
         logger.info('Updating settings with input: ')
+
         #TODO: posibility to add a default data template + metadata template
         
         if not isinstance(output_folder, type(None)):    
@@ -194,12 +198,14 @@ class Settings:
         None. 
 
         """
+
         logger.info(f'Adding template from excel file: {excel_file}')
         
         from .data_templates.import_templates import read_templates, check_if_templates_are_unique_defined
         
         template = read_templates(excel_file)
         logger.debug(f'Added teplate: {template}')
+
         Settings.template_list.extend(template)
         
         #Check if all templates are still unique
@@ -212,8 +218,9 @@ class Settings:
         target_file = os.path.join(target_folder, 'default_templates.xlsx')
         
         shutil.copy2(csv_templates_file, target_file)
-        
+
         logger.info(f'Templatates copied to: {target_file}')
+
         print("Templatates copied to : ", target_file)
        
     
