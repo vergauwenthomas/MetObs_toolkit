@@ -35,10 +35,23 @@ observation_labels={
     'ok': 'ok',
     'duplicated_timestamp': 'duplicated timestamp outlier',
     'gross_value': 'gross value outlier',
-    'persistance': 'percistance outlier'
+    'persistance': 'persistance outlier'
     }
 
 
-
+#Labels are converted to numeric to compute a final quality label.
+# Numeric values are arbitrary for outliers (not for ok and not checked), but
+# should be invertible.
+#This is done for speeding up 
+numeric_label_mapper={
+    'ok': 0,
+    'not checked': nan,
+    # 'missing timest': 1
+    'missing timestamp': 1,
+    'duplicated timestamp outlier': 2,
+    'gross value outlier': 3,
+    'persistance outlier': 4 
+    
+    }
 
 

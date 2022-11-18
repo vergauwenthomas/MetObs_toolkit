@@ -353,7 +353,7 @@ class Dataset:
             print(f'Following stations are in dataset: {stations_available}')
             logger.debug(f'Following stations are in dataset: {stations_available}')
         
-    def make_plot(self, stationnames, variable='temp',
+    def make_plot(self, stationnames=None, variable='temp',
                                    starttime=None, endtime=None,
                                    title=None, legend=True):
         """
@@ -386,7 +386,10 @@ class Dataset:
         
         default_settings=Settings.plot_settings['time_series']
         
-        plotdf = self.df[self.df['name'].isin(stationnames)]
+        if isinstance(stationnames, type(None)):
+            plotdf = self.df
+        else:
+            plotdf = self.df[self.df['name'].isin(stationnames)]
         
         #Time subsetting
         plotdf = datetime_subsetting(plotdf, starttime, endtime)
@@ -526,15 +529,46 @@ class Dataset:
     
     
     def write_to_csv(self, filename=None):
-        
+        logger.info('Writing the dataset to a csv file')
+        assert not isinstance(Settings.output_folder, type(None)), 'Specify Settings.output_folder in order to export a csv.'
         
         #update observations with QC labels etc        
         self._update_dataset_df_with_stations()
         
         #Get observations and metadata columns in the right order
+        logger.debug('Merging data and metadata')
         df_columns = observation_types.copy()
         df_columns.extend(location_info)
         writedf = self.df[df_columns]
+        
+                
+        #find observation type that are not present
+        ignore_obstypes = [col for col in observation_types if writedf[col].isnull().all()]
+        
+        writedf = writedf.drop(columns=ignore_obstypes)
+        
+        logger.debug(f'Skip quality labels for obstypes: {ignore_obstypes}.')
+        
+        writedf.index.name = 'datetime'
+        
+        #add final quality labels
+        
+        final_labels = pd.DataFrame()
+        for station in self._stationlist:
+            logger.debug(f'Computing a final quality label for {station.name} observations')
+            station_final_labels = pd.DataFrame()
+            for obstype in observation_types:
+                if obstype in ignore_obstypes:
+                    continue
+                station_final_labels[obstype + '_QC_label'] = final_qc_label_maker(station.qc_labels_df[obstype],
+                                                      Settings.qc_numeric_label_mapper)
+              
+            station_final_labels['name'] = station.name
+            final_labels = pd.concat([final_labels, station_final_labels])    
+        final_labels.index.name = 'datetime'
+        writedf = writedf.merge(right=final_labels,
+                                    how='left',
+                                    on=['datetime', 'name'])
         
         #make filename
         if isinstance(filename, type(None)):
@@ -796,6 +830,7 @@ class Dataset:
         df_columns = observation_types.copy()
         df_columns.extend(location_info)
         
+        # Needed for sorting of columns
         missing_columns = list(set(df_columns).difference(set(dataframe.columns)))
         for missing_col in missing_columns:
             dataframe[missing_col] = np.nan
@@ -1006,6 +1041,25 @@ def missing_timestamp_check(station):
     
 
 def datetime_subsetting(df, starttime, endtime):
+    """
+    Wrapper function for subsetting a dataframe with datetimeindex with a start- and 
+    endtime. 
+
+    Parameters
+    ----------
+    df : pandas.DataFrame with datetimeindex
+        The dataframe to apply the subsetting to.
+    starttime : datetime.Datetime
+        Starttime for the subsetting period (included).
+    endtime : datetime.Datetime
+        Endtime for the subsetting period (included).
+
+    Returns
+    -------
+    pandas.DataFrame
+        Subset of the df.
+
+    """
     
     stand_format = '%Y-%m-%d %H:%M:%S'
     
@@ -1019,4 +1073,36 @@ def datetime_subsetting(df, starttime, endtime):
         endstring = endtime.strftime(stand_format)
 
     return df[startstring: endstring]
+
+def final_qc_label_maker(qc_df, label_to_numeric_mapper):
+    """
+    This function creates a final label based on de individual qc labels. If all labels
+    are ok, the final label is ok. Else the final label will be that of the individual qc-label
+    which rejected the obseration.
+
+    Parameters
+    ----------
+    qc_df : pandas.DataFrame 
+        the specific qc_label_df with the datetimeindex, the first column the observations,
+        and labels for each QC check per column.
+    label_to_numeric_mapper : dict
+        The dictionary that maps qc-labels to numeric values (for speedup).
+
+    Returns
+    -------
+    final_labels : pd.Series
+        A series with the final labels and the same index as the qc_df.
+
+    """ 
+    qc_labels_columns = qc_df.columns.to_list()[1:] #ignore the observations
     
+    #map columns to numeric
+    num_label_df = pd.DataFrame()
+    for qc_column in qc_labels_columns:
+        num_label_df[qc_column] = qc_df[qc_column].map(label_to_numeric_mapper)
+
+    #invert numeric mapper
+    inv_label_to_num = {v: k for k, v in label_to_numeric_mapper.items()}
+    
+    final_labels = num_label_df.sum(axis=1, skipna=True).map(inv_label_to_num)
+    return final_labels
