@@ -18,15 +18,20 @@ check_settings = {
     "gross_value": {'temp': {'min_value': -15.0,
                              'max_value': 39.0},
                     },
-    "persistance": {'temp': {'max_valid_repetitions': 5}}
+    "persistance": {'temp': {'max_valid_repetitions': 5}},
     
+    "step": {'temp': {'max_value': 4}},
+    
+    "internal_consistency": {} #No numeric settings
     }
 
 
 outlier_values = {
     "duplicate_timestamp": nan, 
     "gross_value": nan,
-    "persistance": nan    
+    "persistance": nan,   
+    "step": nan,
+    "internal_consistency": nan
     }
 
 
@@ -35,7 +40,9 @@ observation_labels={
     'ok': 'ok',
     'duplicated_timestamp': 'duplicated timestamp outlier',
     'gross_value': 'gross value outlier',
-    'persistance': 'percistance outlier'
+    'persistance': 'persistance outlier',
+    'step': 'step outlier',
+    'internal_consistency': 'internal consistency outlier'
     }
 
 

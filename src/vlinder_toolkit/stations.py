@@ -18,7 +18,7 @@ from .data_import import coarsen_time_resolution
 from .landcover_functions import geotiff_point_extraction
 from .geometry_functions import find_largest_extent
 from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot
-from .qc_checks import gross_value, persistance
+from .qc_checks import gross_value, persistance, step, internal_consistency
 
 
 # =============================================================================
@@ -276,7 +276,28 @@ class Station:
         setattr(self, obstype, updated_obs)
         #update qc flags df
         self.qc_labels_df[obstype]['persistance'] = qc_flags
+        
+    def apply_step_check(self, obstype='temp', ignore_val=np.nan):
+        updated_obs, qc_flags = step(input_series=getattr(self, obstype),
+                                                  obstype=obstype,
+                                                  ignore_val=ignore_val)
+        
+        #update obs attributes
+        setattr(self, obstype, updated_obs)
+        #update qc flags df
+        self.qc_labels_df[obstype]['step'] = qc_flags
 
+    def apply_internal_consistency_check(self, obstype='temp', ignore_val=np.nan):
+        print(self.name)
+        updated_obs, qc_flags = internal_consistency(input_series=getattr(self, obstype),
+                                                  humidity_series = getattr(self, 'humidity'),
+                                                  obstype=obstype,
+                                                  ignore_val=ignore_val)
+        
+        #update obs attributes
+        setattr(self, obstype, updated_obs)
+        #update qc flags df
+        self.qc_labels_df[obstype]['internal_consistency'] = qc_flags
 # =============================================================================
 # Dataset class
 # =============================================================================
@@ -295,8 +316,8 @@ class Dataset:
 
         Parameters
         ----------
-        stationname : String
-            Name of the station, example 'vlinder16'
+        stationname : List
+            List of station names, example ['vlinder05','vlinder16']
 
         Returns
         -------
@@ -539,7 +560,8 @@ class Dataset:
     # =============================================================================
     
     def apply_quality_control(self, obstype='temp',
-                              gross_value=True, persistance=True, ignore_val=np.nan):
+                              gross_value=True, persistance=True, step=True, internal_consistency=True, 
+                              ignore_val=np.nan):
         """
         Apply quality control methods to the dataset. The default settings are used, and can be changed
         in the settings_files/qc_settings.py
@@ -557,6 +579,10 @@ class Dataset:
             If True the gross_value check is applied if False not. The default is True.
         persistance : Bool, optional
            If True the persistance check is applied if False not. The default is True.. The default is True.
+        step : Bool, optional
+           If True the step check is applied if False not. The default is True.. The default is True.
+        internal_consistency : Bool, optional
+            If True the internal consistency check is applied if False not. The default is True.. The default is True.
         ignore_val : numeric, optional
             Values to ignore in the quality checks. The default is np.nan.
 
@@ -575,6 +601,18 @@ class Dataset:
             print('Applying the persistance check on all stations.')
             for stationobj in self._stationlist:
                 stationobj.apply_persistance_check(obstype=obstype,
+                                                   ignore_val=ignore_val)
+                
+        if step:
+            print('Applying the step check on all stations.')
+            for stationobj in self._stationlist:
+                stationobj.apply_step_check(obstype=obstype,
+                                                   ignore_val=ignore_val)
+        
+        if internal_consistency:
+            print('Applying the internal consistency check on all stations.')
+            for stationobj in self._stationlist:
+                stationobj.apply_internal_consistency_check(obstype=obstype,
                                                    ignore_val=ignore_val)
 
         #update the dataframe with stations values

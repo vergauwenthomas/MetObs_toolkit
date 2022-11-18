@@ -35,8 +35,15 @@ settings.update_settings(input_data_file=testdatafile,
                           )
 
 
-dataset = vlinder_toolkit.Dataset()
-dataset.import_data_from_file(coarsen_timeres=True)
+
+dataset_hourly = vlinder_toolkit.Dataset()
+dataset_5min = vlinder_toolkit.Dataset()
+dataset_hourly.import_data_from_file(coarsen_timeres=True)
+dataset_5min.import_data_from_file()
+dataset_5min.apply_quality_control(obstype='temp')
+vlinder5_5min = dataset_5min.get_stations(['vlinder08'])
+vlinder5_5min_qc = vlinder5_5min['vlinder08'].qc_labels_df['temp']
+#dataset_hourly.apply_quality_control(obstype='temp')
 subset = dataset.get_stations(["vlinder00", "vlinder03", "vlinder05"])
 
 #%%
@@ -84,7 +91,9 @@ print(plotdf.index.max())
 dataset.apply_quality_control(obstype='temp')
 
 
-sta1 = dataset.get_station('vlinder05')
+sta1 = dataset.get_stations(['vlinder09'])
+data_sta1 = sta1['vlinder09'].df()
+data_sta1_qc = sta1['vlinder09'].qc_labels_df['temp']
 sta1.make_plot()
 
 

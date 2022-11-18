@@ -11,7 +11,7 @@ import numpy as np
 # from .stations import Station, Dataset
 from .settings import Settings
 from .settings_files.qc_settings import check_settings, outlier_values, observation_labels
-
+from datetime import timedelta
 
 def make_checked_obs_and_labels_series(checked_obs_series,
                       ignored_obs_series, 
@@ -149,3 +149,81 @@ def persistance(input_series, obstype='temp', ignore_val=np.nan):
                                                                obstype=obstype)
     
     return updated_obs, qc_flags
+
+
+
+def step(input_series, obstype='temp', ignore_val=np.nan):
+    
+    try:
+         specific_settings = check_settings['step'][obstype]
+    except:
+        print('No step settings found for obstype=', obstype, '. Check is skipped!') 
+         # return station
+        qc_flags = pd.Series('not checked', index=input_series.index)
+        qc_flags.name = 'step'
+        return input_series, qc_flags.name
+    
+    
+
+    
+    #Split into two sets
+    to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
+                                                                 ignore_val)
+    
+    
+    outl_datetimes = []
+    for i in range(len(to_check_series)-1):
+        if (abs(to_check_series[i] - to_check_series[i+1]) > specific_settings['max_value']):
+            outl_datetimes.extend((to_check_series.index[i], to_check_series.index[i+1]))
+    
+    updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
+                                                               ignored_obs_series=to_ignore_series, 
+                                                               outlier_dt_list=outl_datetimes,
+                                                               checkname='step',
+                                                               outlier_label=observation_labels['step'],
+                                                               outlier_value=outlier_values['step'],
+                                                               obstype=obstype)
+    
+    return updated_obs, qc_flags
+
+
+
+def internal_consistency(input_series, humidity_series, obstype='temp', ignore_val=np.nan):
+    
+    
+    #Split into two sets
+    to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
+                                                                 ignore_val)
+    
+    outl_datetimes = []
+    if len(to_check_series) > 0:
+        for i in range(len(to_check_series)):
+            start_date = to_check_series.index[i].replace(microsecond=0, second=0, minute=0)
+            end_date = to_check_series.index[i].replace(microsecond=0, second=0, minute=0) + timedelta(hours=1)
+            subdata = to_check_series.loc[start_date:end_date]
+            min_value = min(subdata)
+            max_value = max(subdata)
+            
+            rel_hum = humidity_series.loc[to_check_series.index[i]]
+            if rel_hum == 0:    # PROBLEM WITH 0 VALUES IN REL. HUMIDITY
+                rel_hum = 0.01
+            temp = to_check_series[i]
+            b = 18.678
+            c = 257.14
+            d = 234.5
+            dew_temp = c*np.log(rel_hum/100 *np.exp((b - temp/d) * (temp/(c + temp))))/(b - np.log(rel_hum/100 *np.exp((b - temp/d) * (temp/(c + temp)))))
+            
+            if not (min_value <= temp <= max_value) or temp < dew_temp:
+                outl_datetimes.append(to_check_series.index[i])
+                
+                
+    updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
+                                                                   ignored_obs_series=to_ignore_series, 
+                                                                   outlier_dt_list=outl_datetimes,
+                                                                   checkname='internal_consistency',
+                                                                   outlier_label=observation_labels['internal_consistency'],
+                                                                   outlier_value=outlier_values['internal_consistency'],
+                                                                   obstype=obstype)
+        
+    return updated_obs, qc_flags
+                
