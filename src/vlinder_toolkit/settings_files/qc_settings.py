@@ -22,7 +22,8 @@ check_settings = {
     
     "step": {'temp': {'max_value': 4}},
     
-    "internal_consistency": {} #No numeric settings
+    "internal_consistency": {'temp': {'b': 18.678,
+                             'c': 257.14, 'd': 234.5}} 
     }
 
 

@@ -190,12 +190,21 @@ def step(input_series, obstype='temp', ignore_val=np.nan):
 
 def internal_consistency(input_series, humidity_series, obstype='temp', ignore_val=np.nan):
     
+    try:
+         specific_settings = check_settings['internal_consistency'][obstype]
+    except:
+        print('No internal_consistency settings found for obstype=', obstype, '. Check is skipped!') 
+         # return station
+        qc_flags = pd.Series('not checked', index=input_series.index)
+        qc_flags.name = 'internal_consistency'
+        return input_series, qc_flags.name
     
     #Split into two sets
     to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
                                                                  ignore_val)
     
     outl_datetimes = []
+    datetimes_no_hum = []
     if len(to_check_series) > 0:
         for i in range(len(to_check_series)):
             start_date = to_check_series.index[i].replace(microsecond=0, second=0, minute=0)
@@ -206,12 +215,10 @@ def internal_consistency(input_series, humidity_series, obstype='temp', ignore_v
             
             rel_hum = humidity_series.loc[to_check_series.index[i]]
             if rel_hum == 0:    # PROBLEM WITH 0 VALUES IN REL. HUMIDITY
-                rel_hum = 0.01
+                datetimes_no_hum.append(to_check_series.index[i])
+                continue
             temp = to_check_series[i]
-            b = 18.678
-            c = 257.14
-            d = 234.5
-            dew_temp = c*np.log(rel_hum/100 *np.exp((b - temp/d) * (temp/(c + temp))))/(b - np.log(rel_hum/100 *np.exp((b - temp/d) * (temp/(c + temp)))))
+            dew_temp = specific_settings['c']*np.log(rel_hum/100 *np.exp((specific_settings['b'] - temp/specific_settings['d']) * (temp/(specific_settings['c'] + temp))))/(specific_settings['b'] - np.log(rel_hum/100 *np.exp((specific_settings['b'] - temp/specific_settings['d']) * (temp/(specific_settings['c'] + temp)))))
             
             if not (min_value <= temp <= max_value) or temp < dew_temp:
                 outl_datetimes.append(to_check_series.index[i])
@@ -224,6 +231,52 @@ def internal_consistency(input_series, humidity_series, obstype='temp', ignore_v
                                                                    outlier_label=observation_labels['internal_consistency'],
                                                                    outlier_value=outlier_values['internal_consistency'],
                                                                    obstype=obstype)
+    
+    updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
+                                                                   ignored_obs_series=to_ignore_series, 
+                                                                   outlier_dt_list=datetimes_no_hum,
+                                                                   checkname='internal_consistency',
+                                                                   outlier_label='humidity 0',
+                                                                   outlier_value=outlier_values['internal_consistency'],
+                                                                   obstype=obstype)
         
     return updated_obs, qc_flags
+
+
+def qc_info(qc_dataframe):
+    
+    number_gross_error_outliers = qc_dataframe.persistance.str.contains('gross value outlier').sum()
+    number_persistance_outliers = qc_dataframe.persistance.str.contains('persistance outlier').sum()
+    number_step_outliers = qc_dataframe.persistance.str.contains('step outlier').sum()
+    number_int_consistency_outliers = qc_dataframe.persistance.str.contains('internal consistency outlier').sum()
+    
+    fraction_gross_outliers = number_gross_error_outliers/(number_gross_error_outliers+number_persistance_outliers+number_step_outliers+number_int_consistency_outliers)
+    fraction_persistance_outliers = number_persistance_outliers/(number_gross_error_outliers+number_persistance_outliers+number_step_outliers+number_int_consistency_outliers)
+    fraction_step_outliers = number_step_outliers/(number_gross_error_outliers+number_persistance_outliers+number_step_outliers+number_int_consistency_outliers)
+    fraction_int_consistency_outliers = number_int_consistency_outliers/(number_gross_error_outliers+number_persistance_outliers+number_step_outliers+number_int_consistency_outliers)
+    
+    percentage_of_data_gross_outlier = number_gross_error_outliers/len(qc_dataframe)
+    percentage_of_data_persistance_outlier = number_persistance_outliers/len(qc_dataframe)
+    percentage_of_data_step_outlier = number_step_outliers/len(qc_dataframe)
+    percentage_of_data_consistency_outlier = number_int_consistency_outliers/len(qc_dataframe)
+    
+    print("Number of gross error outliers: ", number_gross_error_outliers)
+    print("Number of persistance outliers: ", number_persistance_outliers)
+    print("Number of step outliers: ", number_step_outliers)
+    print("Number of internal consistency outliers: ", number_int_consistency_outliers)
+    
+    print("Fraction of gross error outliers: ", fraction_gross_outliers)
+    print("Fraction of persistance outliers: ", fraction_persistance_outliers)
+    print("Fraction of step outliers: ", fraction_step_outliers)
+    print("Fraction of internal consistency outliers: ", fraction_int_consistency_outliers)
+    
+    print("Percentage of data gross outlier: ", percentage_of_data_gross_outlier)
+    print("Percentage of data persistance outlier: ", percentage_of_data_persistance_outlier)
+    print("Percentage of data step outlier: ", percentage_of_data_step_outlier)
+    print("Percentage of data internal consistency outlier: ", percentage_of_data_consistency_outlier)
+    
+    print("Gross error outliers at: ", qc_dataframe[qc_dataframe['gross_value'] == 'gross value outlier'].index)
+    print("Persistance outliers at: ", qc_dataframe[qc_dataframe['persistance'] == 'persistance outlier'].index)
+    print("Step outliers at: ", qc_dataframe[qc_dataframe['step'] == 'step outlier'].index)
+    print("Internal consistency outliers at: ", qc_dataframe[qc_dataframe['internal_consistency'] == 'internal consistency outlier'].index)
                 

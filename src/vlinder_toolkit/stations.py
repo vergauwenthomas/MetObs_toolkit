@@ -18,7 +18,7 @@ from .data_import import coarsen_time_resolution
 from .landcover_functions import geotiff_point_extraction
 from .geometry_functions import find_largest_extent
 from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot
-from .qc_checks import gross_value, persistance, step, internal_consistency
+from .qc_checks import gross_value, persistance, step, internal_consistency, qc_info
 
 
 # =============================================================================
@@ -328,19 +328,15 @@ class Dataset:
         
         stationdict = {}
                 
-        for name in stationnames:
-            if name in self.df["name"].unique():
-                for station_obj in self._stationlist:
-                    if station_obj.name == name:
-                        stationdict[name] = station_obj
-                        break
-            else:
+        for station_obj in self._stationlist:
+            if np.isin(station_obj.name, stationnames):
+                stationdict[station_obj.name] = station_obj
+                stationnames.remove(station_obj.name)
+    
+        if stationnames:
+            for name in stationnames:
                 print(name, ' not found in the dataset!')
             
-            
-        #for name in stationnames:
-            #if not name in self._stationlist.name:
-               # print(name, ' not found in the dataset!')
         
         return(stationdict)
     
@@ -561,7 +557,7 @@ class Dataset:
     
     def apply_quality_control(self, obstype='temp',
                               gross_value=True, persistance=True, step=True, internal_consistency=True, 
-                              ignore_val=np.nan):
+                              show_qc_info=True, ignore_val=np.nan):
         """
         Apply quality control methods to the dataset. The default settings are used, and can be changed
         in the settings_files/qc_settings.py
@@ -583,6 +579,8 @@ class Dataset:
            If True the step check is applied if False not. The default is True.. The default is True.
         internal_consistency : Bool, optional
             If True the internal consistency check is applied if False not. The default is True.. The default is True.
+        qc_info: Bool, optional
+            If True info about the quality control is printed if False not. The default is True.. The default is True.
         ignore_val : numeric, optional
             Values to ignore in the quality checks. The default is np.nan.
 
@@ -610,13 +608,18 @@ class Dataset:
                                                    ignore_val=ignore_val)
         
         if internal_consistency:
-            print('Applying the internal consistency check on all stations.')
+            print('Applying the internal consistency check on stations with relative humidity.')
             for stationobj in self._stationlist:
-                stationobj.apply_internal_consistency_check(obstype=obstype,
-                                                   ignore_val=ignore_val)
+                if not stationobj.humidity.empty:
+                    stationobj.apply_internal_consistency_check(obstype=obstype,
+                                                       ignore_val=ignore_val)
 
         #update the dataframe with stations values
         self._update_dataset_df_with_stations()
+        
+        if show_qc_info:
+            for stationobj in self._stationlist:
+                qc_info(stationobj.qc_labels_df['temp'])
 
 
     # =============================================================================

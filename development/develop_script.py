@@ -41,10 +41,8 @@ dataset_5min = vlinder_toolkit.Dataset()
 dataset_hourly.import_data_from_file(coarsen_timeres=True)
 dataset_5min.import_data_from_file()
 dataset_5min.apply_quality_control(obstype='temp')
-vlinder5_5min = dataset_5min.get_stations(['vlinder08'])
-vlinder5_5min_qc = vlinder5_5min['vlinder08'].qc_labels_df['temp']
+
 #dataset_hourly.apply_quality_control(obstype='temp')
-subset = dataset.get_stations(["vlinder00", "vlinder03", "vlinder05"])
 
 #%%
 from datetime import datetime
