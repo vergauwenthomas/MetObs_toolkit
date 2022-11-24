@@ -5,7 +5,7 @@ The vlinder_toolt is a package for scientists who make use of the VLINDER and MO
 
 
 ## Installing the package
-First make shure [GDAL](https://gdal.org/) is installed on your machine. Than install the package by:
+Install the package by:
 
 `pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade`
 

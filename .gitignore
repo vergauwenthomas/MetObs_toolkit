@@ -1,6 +1,9 @@
 #Exclude private information 
 deploy_info
 
+#Exclude temp output
+temp_output/*
+
 #Exclude deploy scripts
 deploy_to*
 
@@ -10,7 +13,8 @@ dist/*
 #exclude proj build (only tar remaining)
 proj/proj-9.0.0/*
 
-
+#logs
+logfile.log
 #Exclude development scripts for testing
 development/*
 

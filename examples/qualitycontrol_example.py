@@ -8,7 +8,8 @@ Created on Fri Sep 23 12:01:35 2022
 import os
 from pathlib import Path
 main_folder = Path(__file__).resolve().parents[1]
-testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata.csv' )
+testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
+# metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
 
 import vlinder_toolkit
@@ -30,7 +31,7 @@ settings = vlinder_toolkit.Settings()
 
 # 3. If the output data folder and input file are not exported as system variables, you need to update them:
 settings.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
-                         output_data_folder='/home/$USER/output/')
+                         output_folder='/home/$USER/output/')
 
 
 
@@ -183,26 +184,6 @@ sept_2022_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinde
 
 
 
-
-# =============================================================================
-# Geospatial plots
-# =============================================================================
-
-# geospatial plots can be made for a given moment (datetimeinstance) by 
-# applying the make_geo_plot() on a dataset object:
-    
-sept_2022_all_vlinders.make_geo_plot(variable='temp',
-                                    timeinstance=datetime(2022, 9,4), # 2020/09/04 00:00:00
-                                    title=None,
-                                    legend=True,
-                                    vmin=None, #value corresponding to the minimum of the colorscheme
-                                    vmax=None) #value corresponding to the maximum of the colorscheme
-
-# Notes:
-    # * If no timeinstance is given, the first timestamp of the network is used
-    # * vmin and vmax are default (None) set to the minimum and maximum of the observations. 
-    #   You can change this if you whant to compair geoplots using the same color scheme
-    
 
 
 

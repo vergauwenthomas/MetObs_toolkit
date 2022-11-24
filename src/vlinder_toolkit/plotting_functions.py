@@ -30,12 +30,20 @@ def timeseries_comp_plot(plotdf, title, xlabel, ylabel, figsize):
     fig, ax = plt.subplots(figsize=figsize) 
     
     
-    plotdf.plot(ax=ax)
+    plotdf.plot(ax=ax, title=title)
     
-    
+    #titles and axis
+    # ax.set_title=title
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    
+    
+    #legend
     ax.legend().set_title('')
+    handles, labels = ax.get_legend_handles_labels()
+
+
+    ax.legend(bbox_to_anchor=(1.0, -0.05), ncol=7)
     return ax
 
 # def spatial_plot(gdf, variable, legend, proj_type, use_quantiles, k_quantiles,
@@ -102,6 +110,7 @@ def timeseries_comp_plot(plotdf, title, xlabel, ylabel, figsize):
 def spatial_plot(gdf, variable, legend, use_quantiles, is_categorical, k_quantiles,
                  cmap, world_boundaries_map, figsize, extent, title, vmin, vmax):
     
+    gdf = gpd.GeoDataFrame(gdf)
     #create figure object
     # ax = plt.subplot(111)
     fig, ax = plt.subplots(1, 1, figsize=figsize)
