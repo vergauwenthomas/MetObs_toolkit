@@ -368,42 +368,6 @@ class Dataset:
                        index=True)        
         
     
-    # =============================================================================
-    # Update dataset by station objects
-    # =============================================================================
-    
-    # def _update_dataset_df_with_stations(self):
-    #     """ Update the dataset using the stationlist. If functions change the 
-    #     staion objects directly, the dataset is not changed. To see the changes in the 
-    #     dataset, apply this function firs. """
-        
-        
-    #     logger.debug('Updating dataset.df from stationlist')
-    
-    #     present_df_columns = list(self.df.columns)    
-    #     updatedf = pd.DataFrame()
-    #     for station in self._stationlist:
-    #         stationdf = station.df() #start with observations
-            
-    #         #add meta data
-    #         for attr in present_df_columns:
-    #             if attr in stationdf.columns:
-    #                 continue #skip observations because they are already in the df
-    #             try:
-    #                 stationdf[attr] = getattr(station,attr)
-    #             except:
-    #                 stationdf[attr] = 'not updated'
-            
-    #         updatedf = pd.concat([updatedf, stationdf])
-        
-        
-    #     updatedf = updatedf[present_df_columns] #reorder columns
-    #     self.df = updatedf
-    #     return
-                
-            
-            
-
 
     
     # =============================================================================
@@ -599,7 +563,7 @@ class Dataset:
         
         
         #Make data template
-        self.data_template = template_to_package_space(Settings.vlinder_db_obs_template)
+        self.data_template =  pd.DataFrame().from_dict(template_to_package_space(Settings.vlinder_db_obs_template))
         
         if coarsen_timeres:
             df = coarsen_time_resolution(df=df,
@@ -688,7 +652,7 @@ def metadf_to_gdf(df, crs=4326):
 
 def get_lcz(metadf):
     """
-    V2
+
 
     Parameters
     ----------
@@ -714,10 +678,7 @@ def get_lcz(metadf):
         metadf['lcz'] = 'Location unknown'
         return metadf
     
-    
-    
-    
-    
+
     
     geo_templates = Settings.geo_datasets_templates
     lcz_file = Settings.geo_lcz_file
@@ -766,73 +727,6 @@ def loggin_nan_warnings(df):
                 logger.warning(f'No values for stations: {outliers.index.to_list()}, for {column}, they are initiated as Nan.')
         
 
-        
-# def missing_timestamp_check(df, stationnames):
-#     """
-#     V2
-#     Looking for missing timestaps by assuming an observation frequency. The assumed frequency is the most occuring frequency.
-#     If missing observations are detected, the observations dataframe is extended by these missing timestamps with Nan's as filling values.
-
-#     Parameters
-#     ----------
-#     station : Station object
-#         The station you whant to apply this check on.
-
-#     Returns
-#     -------
-#     df : pandas.DataFrame()
-#         The observations dataframe (same as Station.df()).
-#     missing_datetimes : list of datetimes
-#         The list of the missing timestamps.
-
-#     """     
-#     df['status_missing_record'] = 'ok'
-#     #missing timestamp per station (because some stations can have other frequencies!)
-#     for station in stationnames:
-#         timestamps = df.xs(station).index
-        
-        
-#         likely_freq =timestamps.to_series().diff().value_counts().idxmax()
-        
-#         missing_datetimeindices = pd.date_range(start = timestamps.min(),
-#                                                 end = timestamps.max(),
-#                                                 freq=likely_freq).difference(timestamps)
-        
-#         if not missing_datetimeindices.empty:
-#             logging.warning(f'{len(missing_datetimeindices)} missing records ({missing_datetimeindices[:10]} ...) found for {station}. These will be filled with Nans.')
-#             missing_records_df = pd.DataFrame(columns=df.columns,
-#                                               index=pd.MultiIndex.from_arrays([[station]*len(missing_datetimeindices),
-#                                                                               missing_datetimeindices.to_list()]))
-#             missing_records_df['status_missing_record'] = 'missing timestamp'
-            
-            
-#             df = pd.concat([df, missing_records_df])
-    
-            
-#     df = df.sort_index()
-#     return df
-
-
-        
-# def duplicate_timestamp_check(df):
-#     """
-#     V2
-   
-#     """     
-#     #TODO: print statments?
-    
-#     duplicates = pd.Series(data=df.index.duplicated(keep='first'),
-#                            index=df.index)
-    
-#     if not duplicates.empty:
-#         logging.warning(f' Following records are labeld as duplicates: {duplicates}, and are removed')
-  
-#     df = df.drop_duplicates(keep='first')
-    
-#     return df
-    
-   
-    
 
 def datetime_subsetting(df, starttime, endtime):
     """
@@ -931,36 +825,3 @@ def final_qc_label_maker(df, label_to_numeric_mapper):
     return df[[obstype + '_final_label' for obstype in checked_obstypes]]
 
 
-
-# def final_qc_label_maker(qc_df, label_to_numeric_mapper):
-#     """
-#     This function creates a final label based on de individual qc labels. If all labels
-#     are ok, the final label is ok. Else the final label will be that of the individual qc-label
-#     which rejected the obseration.
-
-#     Parameters
-#     ----------
-#     qc_df : pandas.DataFrame 
-#         the specific qc_label_df with the datetimeindex, the first column the observations,
-#         and labels for each QC check per column.
-#     label_to_numeric_mapper : dict
-#         The dictionary that maps qc-labels to numeric values (for speedup).
-
-#     Returns
-#     -------
-#     final_labels : pd.Series
-#         A series with the final labels and the same index as the qc_df.
-
-#     """ 
-#     qc_labels_columns = qc_df.columns.to_list()[1:] #ignore the observations
-    
-#     #map columns to numeric
-#     num_label_df = pd.DataFrame()
-#     for qc_column in qc_labels_columns:
-#         num_label_df[qc_column] = qc_df[qc_column].map(label_to_numeric_mapper)
-
-#     #invert numeric mapper
-#     inv_label_to_num = {v: k for k, v in label_to_numeric_mapper.items()}
-    
-#     final_labels = num_label_df.sum(axis=1, skipna=True).map(inv_label_to_num)
-#     return final_labels

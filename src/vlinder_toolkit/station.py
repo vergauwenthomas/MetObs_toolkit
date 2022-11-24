@@ -23,7 +23,7 @@ class Station:
         self.data_template = data_template
         
         
-    def plot(self, variable='temp', title=None):
+    def make_plot(self, variable='temp', title=None):
          
         """
         Make a timeseries plot of one attribute.
