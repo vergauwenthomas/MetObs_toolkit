@@ -64,6 +64,12 @@ class Settings:
     vlinder_db_meta_template = None
     vlinder_db_obs_template = None
     
+    #Quality control settings
+    qc_check_settings = None
+    qc_outlier_values = None
+    qc_observation_labels = None
+    qc_numeric_label_mapper = None
+    
     
     def __init__(self):
         logger.info('Initialising settings')
@@ -71,6 +77,7 @@ class Settings:
         self.update_db_settings() 
         self.update_time_res_settings()
         self.update_app_settings()
+        self.update_qc_settings()
         self.update_templates()
         
        
@@ -125,6 +132,16 @@ class Settings:
     
         # 3. display name mappers
         Settings.display_name_mapper = vars_display
+    
+    @classmethod
+    def update_qc_settings(self):
+        logger.debug('Updating QC settings.')
+        from .settings_files.qc_settings import check_settings, outlier_values, observation_labels, numeric_label_mapper
+        Settings.qc_check_settings = check_settings
+        Settings.qc_outlier_values = outlier_values
+        Settings.qc_observation_labels = observation_labels
+        Settings.qc_numeric_label_mapper = numeric_label_mapper
+        
     
     @classmethod
     def update_templates(self):

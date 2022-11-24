@@ -38,12 +38,21 @@ dataset = vlinder_toolkit.Dataset()
 
 dataset.import_data_from_file()
 
+dataset.show()
+
+print(dataset.df.head())
+print(dataset.metadf.head())
+print(dataset.data_template.head())
 
 station = dataset.get_station('vlinder02')
-stationdf = station.df()
-print(stationdf.head())
+
+
 
 ax =station.make_plot()
+
+ax = dataset.make_plot()
+
+
 
 
 
