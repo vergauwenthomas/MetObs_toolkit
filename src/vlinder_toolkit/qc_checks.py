@@ -7,11 +7,11 @@ Created on Thu Oct  6 13:44:54 2022
 """
 import pandas as pd
 import numpy as np
-
+from datetime import timedelta
 # from .stations import Station, Dataset
 from .settings import Settings
 from .settings_files.qc_settings import check_settings, outlier_values, observation_labels
-from datetime import timedelta
+
 
 def make_checked_obs_and_labels_series(checked_obs_series,
                       ignored_obs_series, 
@@ -114,7 +114,7 @@ def persistance(input_series, obstype='temp', ignore_val=np.nan):
         print('No persistance settings found for obstype=', obstype, '. Check is skipped!') 
          # return station
         qc_flags = pd.Series('not checked', index=input_series.index)
-        qc_flags.name = 'gross_value'
+        qc_flags.name = 'persistance'
         return input_series, qc_flags.name
     
     
@@ -172,9 +172,9 @@ def step(input_series, obstype='temp', ignore_val=np.nan):
     
     
     outl_datetimes = []
-    for i in range(len(to_check_series)-1):
-        if (abs(to_check_series[i] - to_check_series[i+1]) > specific_settings['max_value']):
-            outl_datetimes.extend((to_check_series.index[i], to_check_series.index[i+1]))
+    increaments = to_check_series.shift(1) - to_check_series
+    outl_datetimes = increaments[abs(increaments) > specific_settings['max_value']].index.to_list()
+   
     
     updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
                                                                ignored_obs_series=to_ignore_series, 
@@ -183,10 +183,25 @@ def step(input_series, obstype='temp', ignore_val=np.nan):
                                                                outlier_label=observation_labels['step'],
                                                                outlier_value=outlier_values['step'],
                                                                obstype=obstype)
+    if not to_check_series.empty:
+        updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
+                                                                   ignored_obs_series=to_ignore_series, 
+                                                                   outlier_dt_list=[to_check_series.index[0]],
+                                                                   checkname='step',
+                                                                   outlier_label='not checked',
+                                                                   outlier_value=outlier_values['step'],
+                                                                   obstype=obstype)
     
     return updated_obs, qc_flags
 
 
+
+def dew_point(temp_hum_dataframe, spec_settings):
+    if not (temp_hum_dataframe['humidity'] == 0):
+        dew_temp = spec_settings['c']*np.log(temp_hum_dataframe['humidity']/100 *np.exp((spec_settings['b'] - temp_hum_dataframe['temp']/spec_settings['d']) * (temp_hum_dataframe['temp']/(spec_settings['c'] + temp_hum_dataframe['temp']))))/(spec_settings['b'] - np.log(temp_hum_dataframe['humidity']/100 *np.exp((spec_settings['b'] - temp_hum_dataframe['temp']/spec_settings['d']) * (temp_hum_dataframe['temp']/(spec_settings['c'] + temp_hum_dataframe['temp'])))))
+        return dew_temp
+    else:
+        return -999
 
 def internal_consistency(input_series, humidity_series, obstype='temp', ignore_val=np.nan):
     
@@ -202,26 +217,20 @@ def internal_consistency(input_series, humidity_series, obstype='temp', ignore_v
     #Split into two sets
     to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
                                                                  ignore_val)
-    
-    outl_datetimes = []
-    datetimes_no_hum = []
-    if len(to_check_series) > 0:
-        for i in range(len(to_check_series)):
-            start_date = to_check_series.index[i].replace(microsecond=0, second=0, minute=0)
-            end_date = to_check_series.index[i].replace(microsecond=0, second=0, minute=0) + timedelta(hours=1)
-            subdata = to_check_series.loc[start_date:end_date]
-            min_value = min(subdata)
-            max_value = max(subdata)
-            
-            rel_hum = humidity_series.loc[to_check_series.index[i]]
-            if rel_hum == 0:    # PROBLEM WITH 0 VALUES IN REL. HUMIDITY
-                datetimes_no_hum.append(to_check_series.index[i])
-                continue
-            temp = to_check_series[i]
-            dew_temp = specific_settings['c']*np.log(rel_hum/100 *np.exp((specific_settings['b'] - temp/specific_settings['d']) * (temp/(specific_settings['c'] + temp))))/(specific_settings['b'] - np.log(rel_hum/100 *np.exp((specific_settings['b'] - temp/specific_settings['d']) * (temp/(specific_settings['c'] + temp)))))
-            
-            if not (min_value <= temp <= max_value) or temp < dew_temp:
-                outl_datetimes.append(to_check_series.index[i])
+
+    if not to_check_series.empty:
+        max_value = to_check_series.rolling("H", center=True).max().rename('max')
+        min_value = to_check_series.rolling("H", center=True).min().rename('min')
+        
+        temp_hum_data = pd.concat([to_check_series, humidity_series, max_value, min_value], axis=1)
+        temp_hum_data['dew_temp'] = temp_hum_data.apply(dew_point, spec_settings=specific_settings, axis=1)
+        datetimes_no_hum = temp_hum_data[temp_hum_data['humidity'] == 0].index.to_list()
+        outl_datetimes = temp_hum_data[(temp_hum_data['min'] > temp_hum_data['temp']) | (temp_hum_data['max'] < temp_hum_data['temp']) | (temp_hum_data['temp'] < temp_hum_data['dew_temp'])].index.to_list()
+
+    if to_check_series.empty:
+         datetimes_no_hum = []
+         outl_datetimes = []
+         
                 
                 
     updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
@@ -279,4 +288,7 @@ def qc_info(qc_dataframe):
     print("Persistance outliers at: ", qc_dataframe[qc_dataframe['persistance'] == 'persistance outlier'].index)
     print("Step outliers at: ", qc_dataframe[qc_dataframe['step'] == 'step outlier'].index)
     print("Internal consistency outliers at: ", qc_dataframe[qc_dataframe['internal_consistency'] == 'internal consistency outlier'].index)
-                
+    print("Humidity 0 at: ", qc_dataframe[qc_dataframe['internal_consistency'] == 'humidity 0'].index)
+    
+    
+    

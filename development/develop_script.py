@@ -40,7 +40,9 @@ dataset_hourly = vlinder_toolkit.Dataset()
 dataset_5min = vlinder_toolkit.Dataset()
 dataset_hourly.import_data_from_file(coarsen_timeres=True)
 dataset_5min.import_data_from_file()
-dataset_5min.apply_quality_control(obstype='temp')
+dataset_5min.apply_quality_control(obstype='temp', show_qc_info=False)
+vlinder75 = dataset_5min.get_stations(['vlinder75'])
+vlinder75_data = vlinder75['vlinder75'].temp
 
 #dataset_hourly.apply_quality_control(obstype='temp')
 
