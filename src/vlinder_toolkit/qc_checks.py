@@ -340,104 +340,183 @@ def persistance_check(input_series, obstype, ignore_val=np.nan):
 
 
 
-def step(input_series, obstype='temp', ignore_val=np.nan):
+def step_check(input_series, obstype='temp', ignore_val=np.nan):   
+    """
+    @MICHIEL
+
+    Parameters
+    ----------
+    input_series : TYPE
+        DESCRIPTION.
+    obstype : TYPE, optional
+        DESCRIPTION. The default is 'temp'.
+    ignore_val : TYPE, optional
+        DESCRIPTION. The default is np.nan.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+
+    """
+    checkname='step'
     
     try:
-         specific_settings = check_settings['step'][obstype]
+        specific_settings = check_settings[checkname][obstype]
     except:
-        print('No step settings found for obstype=', obstype, '. Check is skipped!') 
-         # return station
-        qc_flags = pd.Series('not checked', index=input_series.index)
-        qc_flags.name = 'step'
-        return input_series, qc_flags.name
+        print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        # logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        flag_series = flag_series_when_no_settings_found(input_series, obstype, checkname)
+        return input_series, flag_series
     
     
-
-    
-    #Split into two sets
-    to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
-                                                                 ignore_val)
     
     
-    outl_datetimes = []
-    increaments = to_check_series.shift(1) - to_check_series
-    outl_datetimes = increaments[abs(increaments) > specific_settings['max_value']].index.to_list()
-   
+    #Do not split in advace, so no gabs appear in the dataset!! Split afterwards for labeling consistency
     
-    updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
-                                                               ignored_obs_series=to_ignore_series, 
-                                                               outlier_dt_list=outl_datetimes,
-                                                               checkname='step',
-                                                               outlier_label=observation_labels['step'],
-                                                               outlier_value=outlier_values['step'],
-                                                               obstype=obstype)
-    if not to_check_series.empty:
-        updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
-                                                                   ignored_obs_series=to_ignore_series, 
-                                                                   outlier_dt_list=[to_check_series.index[0]],
-                                                                   checkname='step',
-                                                                   outlier_label='not checked',
-                                                                   outlier_value=outlier_values['step'],
-                                                                   obstype=obstype)
-    
-    return updated_obs, qc_flags
-
-
-
-def dew_point(temp_hum_dataframe, spec_settings):
-    if not (temp_hum_dataframe['humidity'] == 0):
-        dew_temp = spec_settings['c']*np.log(temp_hum_dataframe['humidity']/100 *np.exp((spec_settings['b'] - temp_hum_dataframe['temp']/spec_settings['d']) * (temp_hum_dataframe['temp']/(spec_settings['c'] + temp_hum_dataframe['temp']))))/(spec_settings['b'] - np.log(temp_hum_dataframe['humidity']/100 *np.exp((spec_settings['b'] - temp_hum_dataframe['temp']/spec_settings['d']) * (temp_hum_dataframe['temp']/(spec_settings['c'] + temp_hum_dataframe['temp'])))))
-        return dew_temp
-    else:
-        return -999
-
-def internal_consistency(input_series, humidity_series, obstype='temp', ignore_val=np.nan):
-    
-    try:
-         specific_settings = check_settings['internal_consistency'][obstype]
-    except:
-        print('No internal_consistency settings found for obstype=', obstype, '. Check is skipped!') 
-         # return station
-        qc_flags = pd.Series('not checked', index=input_series.index)
-        qc_flags.name = 'internal_consistency'
-        return input_series, qc_flags.name
-    
-    #Split into two sets
-    to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
-                                                                 ignore_val)
-
-    if not to_check_series.empty:
-        max_value = to_check_series.rolling("H", center=True).max().rename('max')
-        min_value = to_check_series.rolling("H", center=True).min().rename('min')
+    outl_obs = []
+    for _station, obs in input_series.groupby(level='name'):
+        increaments = input_series.shift(1) - input_series
+        outl_obs.extend(increaments[abs(increaments) > specific_settings['max_value']].index.to_list())
         
-        temp_hum_data = pd.concat([to_check_series, humidity_series, max_value, min_value], axis=1)
-        temp_hum_data['dew_temp'] = temp_hum_data.apply(dew_point, spec_settings=specific_settings, axis=1)
-        datetimes_no_hum = temp_hum_data[temp_hum_data['humidity'] == 0].index.to_list()
-        outl_datetimes = temp_hum_data[(temp_hum_data['min'] > temp_hum_data['temp']) | (temp_hum_data['max'] < temp_hum_data['temp']) | (temp_hum_data['temp'] < temp_hum_data['dew_temp'])].index.to_list()
+    # Split into two sets
+    to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
+                                                                  ignore_val)
+    
+    # #Update observations and quality flags
+    updated_obs_series, qc_flags_series = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
+                                                                ignored_obs_series=to_ignore_series, 
+                                                                outlier_obs=outl_obs,
+                                                                checkname=checkname,
+                                                                outlier_label=observation_labels[checkname],
+                                                                outlier_value=outlier_values[checkname],
+                                                                obstype=obstype)
+    return updated_obs_series, qc_flags_series
 
-    if to_check_series.empty:
-         datetimes_no_hum = []
-         outl_datetimes = []
+
+
+
+def compute_dew_point(df, spec_settings):
+    dew_temp = spec_settings['c']*np.log(df['humidity']/100 *np.exp((spec_settings['b'] - df['temp']/spec_settings['d']) * (df['temp']/(spec_settings['c'] + df['temp']))))/(spec_settings['b'] - np.log(df['humidity']/100 *np.exp((spec_settings['b'] - df['temp']/spec_settings['d']) * (df['temp']/(spec_settings['c'] + df['temp'])))))
+    return dew_temp
+  
+
+
+
+
+def internal_consistency_check(input_series, humidity_series, obstype='temp', ignore_val=np.nan):
+    checkname = 'internal_consistency'
+    try:
+        specific_settings = check_settings[checkname][obstype]
+    except:
+        print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        flag_series = flag_series_when_no_settings_found(input_series, obstype, checkname)
+        return input_series, flag_series
+    
+    #Check if humidity is available
+    if humidity_series.isnull().all():
+        print(f'{checkname} could not be performed, no humidity observations found.')
+        logger.warning(f'{checkname} could not be performed, no humidity observations found.')
+        flag_series = flag_series_when_no_settings_found(input_series, obstype, checkname)
+        return input_series, flag_series
+    
+    #Split series when humidity is not zero and when observatiosn are not Nan
+    comb_df = input_series.to_frame()
+    comb_df['humidity'] = humidity_series
+    
+    if np.isnan(ignore_val):
+         #better handling for nan values
+         ignore_mask = comb_df[(comb_df[obstype].isna()) | (comb_df['humidity']==0)].index
+         check_mask =  comb_df[(~comb_df[obstype].isna()) & (comb_df['humidity']!=0)].index
+    else:  
+         ignore_mask = comb_df[(comb_df[obstype]==ignore_val) | (comb_df['humidity']==0)].index
+         check_mask = comb_df[(comb_df[obstype]!=ignore_val) & (comb_df['humidity']!=0)].index
+    
+    
+    to_check_df= comb_df.loc[check_mask]
+    to_ignore_df = comb_df.loc[ignore_mask]
+    
+    #compute dewpoint temperature
+    to_check_df['dew_temp'] = compute_dew_point(to_check_df, specific_settings)
+    
+    #compute hourly rolling max and min temp for groupby station (to avoid overlap between stations)
+    rolling_agg= to_check_df.reset_index(level=0).groupby('name')[obstype].rolling('H', center=True).agg([np.max, np.min])
+    to_check_df['rolling_max'], to_check_df['rolling_min'] = rolling_agg['amax'], rolling_agg['amin']
+    
+    #get outliers
+    #TODO @Michiel : Zeker dat deze defenitie klopt? 
+    outl_obs = to_check_df[(to_check_df['rolling_min'] > to_check_df[obstype]) |
+                                 (to_check_df['rolling_max'] < to_check_df[obstype]) |
+                                 (to_check_df[obstype] < to_check_df['dew_temp'])].index.to_list()
+    
+         
+    updated_obs_series, qc_flags_series = make_checked_obs_and_labels_series(checked_obs_series=to_check_df[obstype],
+                                                                    ignored_obs_series=to_ignore_df[obstype], 
+                                                                    outlier_obs=outl_obs,
+                                                                    checkname=checkname,
+                                                                    outlier_label=observation_labels[checkname],
+                                                                    outlier_value=outlier_values[checkname],
+                                                                    obstype=obstype)
+    
+    return updated_obs_series, qc_flags_series
+
+# def dew_point(temp_hum_dataframe, spec_settings):
+#     if not (temp_hum_dataframe['humidity'] == 0):
+#         dew_temp = spec_settings['c']*np.log(temp_hum_dataframe['humidity']/100 *np.exp((spec_settings['b'] - temp_hum_dataframe['temp']/spec_settings['d']) * (temp_hum_dataframe['temp']/(spec_settings['c'] + temp_hum_dataframe['temp']))))/(spec_settings['b'] - np.log(temp_hum_dataframe['humidity']/100 *np.exp((spec_settings['b'] - temp_hum_dataframe['temp']/spec_settings['d']) * (temp_hum_dataframe['temp']/(spec_settings['c'] + temp_hum_dataframe['temp'])))))
+#         return dew_temp
+#     else:
+#         return -999
+
+# def internal_consistency(input_series, humidity_series, obstype='temp', ignore_val=np.nan):
+    
+#     try:
+#          specific_settings = check_settings['internal_consistency'][obstype]
+#     except:
+#         print('No internal_consistency settings found for obstype=', obstype, '. Check is skipped!') 
+#          # return station
+#         qc_flags = pd.Series('not checked', index=input_series.index)
+#         qc_flags.name = 'internal_consistency'
+#         return input_series, qc_flags.name
+    
+#     #Split into two sets
+#     to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
+#                                                                  ignore_val)
+
+#     if not to_check_series.empty:
+#         max_value = to_check_series.rolling("H", center=True).max().rename('max')
+#         min_value = to_check_series.rolling("H", center=True).min().rename('min')
+        
+#         temp_hum_data = pd.concat([to_check_series, humidity_series, max_value, min_value], axis=1)
+#         temp_hum_data['dew_temp'] = temp_hum_data.apply(dew_point, spec_settings=specific_settings, axis=1)
+#         datetimes_no_hum = temp_hum_data[temp_hum_data['humidity'] == 0].index.to_list()
+#         outl_datetimes = temp_hum_data[(temp_hum_data['min'] > temp_hum_data['temp']) | (temp_hum_data['max'] < temp_hum_data['temp']) | (temp_hum_data['temp'] < temp_hum_data['dew_temp'])].index.to_list()
+
+#     if to_check_series.empty:
+#          datetimes_no_hum = []
+#          outl_datetimes = []
          
                 
                 
-    updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
-                                                                   ignored_obs_series=to_ignore_series, 
-                                                                   outlier_dt_list=outl_datetimes,
-                                                                   checkname='internal_consistency',
-                                                                   outlier_label=observation_labels['internal_consistency'],
-                                                                   outlier_value=outlier_values['internal_consistency'],
-                                                                   obstype=obstype)
+#     updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
+#                                                                    ignored_obs_series=to_ignore_series, 
+#                                                                    outlier_dt_list=outl_datetimes,
+#                                                                    checkname='internal_consistency',
+#                                                                    outlier_label=observation_labels['internal_consistency'],
+#                                                                    outlier_value=outlier_values['internal_consistency'],
+#                                                                    obstype=obstype)
     
-    updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
-                                                                   ignored_obs_series=to_ignore_series, 
-                                                                   outlier_dt_list=datetimes_no_hum,
-                                                                   checkname='internal_consistency',
-                                                                   outlier_label='humidity 0',
-                                                                   outlier_value=outlier_values['internal_consistency'],
-                                                                   obstype=obstype)
+#     updated_obs, qc_flags = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
+#                                                                    ignored_obs_series=to_ignore_series, 
+#                                                                    outlier_dt_list=datetimes_no_hum,
+#                                                                    checkname='internal_consistency',
+#                                                                    outlier_label='humidity 0',
+#                                                                    outlier_value=outlier_values['internal_consistency'],
+#                                                                    obstype=obstype)
         
-    return updated_obs, qc_flags
+#     return updated_obs, qc_flags
 
 
 def qc_info(qc_dataframe):

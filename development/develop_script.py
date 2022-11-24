@@ -9,6 +9,7 @@ Created on Thu Oct  6 13:25:02 2022
 # import vlinder_toolkit
 import os, sys
 import pandas as pd
+import numpy as np
 from pathlib import Path
 
 
@@ -35,15 +36,28 @@ settings.update_settings(input_data_file=testdatafile,
                           )
 
 
+dataset = vlinder_toolkit.Dataset()
+dataset.import_data_from_file(coarsen_timeres=False)
 
-dataset_hourly = vlinder_toolkit.Dataset()
-dataset_5min = vlinder_toolkit.Dataset()
-dataset_hourly.import_data_from_file(coarsen_timeres=True)
-dataset_5min.import_data_from_file()
-dataset_5min.apply_quality_control(obstype='temp', show_qc_info=False)
-vlinder75 = dataset_5min.get_stations(['vlinder75'])
-vlinder75_data = vlinder75['vlinder75'].temp
+dataset.apply_quality_control()
 
-#dataset_hourly.apply_quality_control(obstype='temp')
 
 #%%
+
+
+df = dataset.df
+
+
+observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
+                     'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
+                     'pressure', 'pressure_at_sea_level']
+
+
+
+#extract label columns
+qc_labels_columns = [col for col in df.columns if not col in observation_types]
+#Extra savety
+qc_labels_columns = [col for col in qc_labels_columns if col.endswith('_label')]
+
+
+df_qc = df[qc_labels_columns]

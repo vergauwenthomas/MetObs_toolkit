@@ -20,6 +20,7 @@ from .landcover_functions import geotiff_point_extraction
 from .geometry_functions import find_largest_extent
 from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot
 from .qc_checks import gross_value_check, persistance_check, missing_timestamp_check, duplicate_timestamp_check
+from .qc_checks import step_check, internal_consistency_check
 
 from .station import Station
  
@@ -399,7 +400,8 @@ class Dataset:
     # =============================================================================
     
     def apply_quality_control(self, obstype='temp',
-                              gross_value=True, persistance=True, ignore_val=np.nan):
+                              gross_value=True, persistance=True,
+                              step=True, internal_consistency=True, ignore_val=np.nan):
         """
         Apply quality control methods to the dataset. The default settings are used, and can be changed
         in the settings_files/qc_settings.py
@@ -417,6 +419,12 @@ class Dataset:
             If True the gross_value check is applied if False not. The default is True.
         persistance : Bool, optional
            If True the persistance check is applied if False not. The default is True.. The default is True.
+        step : Bool, optional
+           If True the step check is applied if False not. The default is True.
+       internal_consistency : Bool, optional	        
+           If True the internal consistency check is applied if False not. The default is True.	          
+       qc_info: Bool, optional
+           If True info about the quality control is printed if False not. The default is True.
         ignore_val : numeric, optional
             Values to ignore in the quality checks. The default is np.nan.
 
@@ -430,7 +438,7 @@ class Dataset:
        
         
         if gross_value:
-            print('Applying the gross value check on all stations.')
+            print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
             
        
@@ -443,12 +451,40 @@ class Dataset:
             self.df[label_column_name] = qc_flags
             
         if persistance:
-            print('Applying the persistance check on all stations.')
+            print('Applying the persistance-check on all stations.')
             logger.info('Applying persistance check on the full dataset')
            
             checked_obs, qc_flags = persistance_check(input_series=self.df[obstype],
                                                       obstype=obstype,
                                                       ignore_val=ignore_val)
+
+            #update the dataset
+            self.df[obstype] = checked_obs
+            label_column_name = qc_flags.name
+            self.df[label_column_name] = qc_flags
+            
+            
+        if step:
+            print('Applying the step-check on all stations.')
+            logger.info('Applying step-check on the full dataset')
+           
+            checked_obs, qc_flags = step_check(input_series=self.df[obstype],
+                                                      obstype=obstype,
+                                                      ignore_val=ignore_val)
+
+            #update the dataset
+            self.df[obstype] = checked_obs
+            label_column_name = qc_flags.name
+            self.df[label_column_name] = qc_flags
+            
+        if internal_consistency:
+            print('Applying the internal-concsistency-check on all stations.')
+            logger.info('Applying step-check on the full dataset')
+           
+            checked_obs, qc_flags = internal_consistency_check(input_series=self.df[obstype],
+                                                               humidity_series=self.df['humidity'],
+                                                               obstype=obstype,
+                                                               ignore_val=ignore_val)
 
             #update the dataset
             self.df[obstype] = checked_obs
