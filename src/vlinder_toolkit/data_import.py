@@ -86,7 +86,7 @@ def coarsen_time_resolution(df, freq='H', method='bfill'):
             resample_subdf = subdf.resample(rule=freq,
                                             axis='index').bfill()
                              
-            resample_df = resample_df.append(resample_subdf)
+            resample_df = pd.concat([resample_df, resample_subdf])
             
         return resample_df
     

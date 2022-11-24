@@ -117,10 +117,19 @@ def make_checked_obs_and_labels_series(checked_obs_series,ignored_obs_series,
     df_checked[flag_column_name] = ok_label #Set all checked labels as ok to start
     
     
+    #The at gives problems when running in python >= 3.8  
+    # #update flags of outlier observations
+    # df_checked.at[df_checked.index.isin(outlier_obs), flag_column_name] = outlier_label
+    # #convert observations of outliers
+    # df_checked.at[df_checked.index.isin(outlier_obs), obstype] = outlier_value
+    
     #update flags of outlier observations
-    df_checked.at[df_checked.index.isin(outlier_obs), flag_column_name] = outlier_label
+    df_checked.loc[df_checked.index.isin(outlier_obs), flag_column_name] = outlier_label
     #convert observations of outliers
-    df_checked.at[df_checked.index.isin(outlier_obs), obstype] = outlier_value
+    df_checked.loc[df_checked.index.isin(outlier_obs), obstype] = outlier_value
+    
+    
+    
     
     
     #create labels for ignored observations
