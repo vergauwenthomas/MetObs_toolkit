@@ -75,7 +75,7 @@ class Dataset:
 
         Returns
         -------
-        station_obj : vlinder_toolkit.Station
+        station_obj : vlinder_toolkit.station.Station
             
 
         """
@@ -94,14 +94,15 @@ class Dataset:
         
         
     
-    def get_geodataframe(self):
-        logger.debug('Converting dataset to a geopandas dataframe.')
-        gdf = gpd.GeoDataFrame(self.df,
-                               geometry=gpd.points_from_xy(self.df['lon'],
-                                                           self.df['lat']))
-        return gdf
-    
     def show(self):
+        """
+        Print basic information about the dataset.
+
+        Returns
+        -------
+        None.
+
+        """
         logger.info('Show basic info of dataset.')
         if self.df.empty:
             print("This dataset is empty!")
@@ -122,14 +123,13 @@ class Dataset:
                                    starttime=None, endtime=None,
                                    title=None, legend=True):
         """
-        V2
         This function create a timeseries plot for the dataset. The variable observation type
         is plotted for all stationnames from a starttime to an endtime.
 
         Parameters
         ----------
         stationnames : List, Iterable
-            Iterable of stationnames to plot.
+            Iterable of stationnames to plot. If None, all available stations ar plotted. The default is None.
         variable : String, optional
             The name of the observation type to plot. The default is 'temp'.
         starttime : datetime, optional
@@ -174,7 +174,10 @@ class Dataset:
        
         #Get plot styling attributes
         if isinstance(title, type(None)):
-            title=Settings.display_name_mapper[variable] + ' for stations: ' + str(stationnames)
+            if isinstance(stationnames, type(None)):
+                title=Settings.display_name_mapper[variable] + ' for all stations. '
+            else:
+                title=Settings.display_name_mapper[variable] + ' for stations: ' + str(stationnames)
         
         
         #make plot
@@ -194,7 +197,6 @@ class Dataset:
     def make_geo_plot(self, variable='temp', title=None, timeinstance=None, legend=True,
                       vmin=None, vmax=None):
         """
-        V2
         This functions creates a geospatial plot for a field (observations or attributes) of all stations.
         
         If the field is timedepending, than the timeinstance is used to plot the field status at that datetime.
@@ -309,7 +311,29 @@ class Dataset:
     
     
     def write_to_csv(self, filename=None, add_final_labels=True):
-        """ Nog final labeler maken"""
+        """
+            Write the dataset to a file where the observations, metadata and (if available)
+            the quality labels per observation type are merged together. 
+            
+            A final qualty controll label for each quality-controlled-observation type
+            can be added in the outputfile.
+            
+            The file will be writen to the Settings.outputfolder.
+    
+            Parameters
+            ----------
+            filename : string, optional
+                The name of the output csv file. If none, a standard-filename is generated
+                based on the period of data. The default is None.
+            add_final_labels : Bool, optional
+                If True, a final qualty control label per observation type
+                is added as a column. The default is True.
+    
+            Returns
+            -------
+            None
+    
+            """
         
         logger.info('Writing the dataset to a csv file')
         assert not isinstance(Settings.output_folder, type(None)), 'Specify Settings.output_folder in order to export a csv.'
@@ -383,7 +407,7 @@ class Dataset:
         The checks are performed in a sequence: gross_vallue --> persistance --> ...,
         Outliers by a previous check are ignored in the following checks!
         
-        The dataset and all it stations are updated inline.
+        The dataset is updated inline.
 
         Parameters
         ----------
@@ -432,6 +456,15 @@ class Dataset:
             self.df[label_column_name] = qc_flags
             
     def add_final_qc_labels(self):
+        """
+        Add a final qualty label per quality-checked observation type to
+        the dataset.df.
+
+        Returns
+        -------
+        None.
+
+        """
         #add final quality labels
     
         final_labels = final_qc_label_maker(df = self.df,
@@ -451,9 +484,18 @@ class Dataset:
     def import_data_from_file(self, network='vlinder', coarsen_timeres=False):
         """
         Read observations from a csv file as defined in the Settings.input_file. 
-        The network and stations objects are updated. It is possible to apply a 
+        The input file columns should have a template that is stored in Settings.template_list.
+        
+        If the metadata is stored in a seperate file, and the Settings.input_metadata_file is correct,
+        than this metadata is also imported (if a suitable template is in the Settings.template_list.)
+        
+        
+        It is possible to apply a 
         resampling (downsampling) of the observations as defined in the settings.
-
+        
+        After the import there is always a call to Dataset.update_dataset_by_df, that 
+        sets up the dataset with the observations and applies some sanity checks.
+        
         Parameters
         ----------
         network : String, optional
@@ -586,13 +628,13 @@ class Dataset:
     
     def update_dataset_by_df(self, dataframe):
         """
-        Update the dataset object and creation of station objects and all it attributes by a dataframe.
-        This is done by initialising stations and filling them with observations and meta
-        data if available. 
+        Update the dataset object by a dataframe.
         
-        When filling the observations, there is an automatic check for missing timestamps. 
+        
+        When filling the observations, there is an automatic check for missing timestamps and duplicating timestamps. 
         If a missing timestamp is detected, the timestamp is created with Nan values for all observation types.
         
+        If metadata is present and a LCZ-tiff file availible, than the LCZ's of the stations are computed.
 
         Parameters
         ----------
@@ -635,6 +677,25 @@ class Dataset:
 
 
 def metadf_to_gdf(df, crs=4326):
+    """
+    Function to convert a dataframe with 'lat' en 'lon' columnst to a geopandas 
+    dataframe with a geometry column containing points.
+    
+    Special care for stations with missing coordinates.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe with a 'lat' en 'lon' column.
+    crs : Integer, optional
+        The epsg number of the coordinates. The default is 4326.
+
+    Returns
+    -------
+    geodf : geopandas.GeaDataFrame
+        The geodataframe equivalent of the df.
+
+    """
     
     # only conver to points if coordinates are present
     coordsdf = df[(~df['lat'].isnull()) & (~df['lon'].isnull())]
@@ -652,17 +713,18 @@ def metadf_to_gdf(df, crs=4326):
 
 def get_lcz(metadf):
     """
-
-
-    Parameters
+    Function to extract the LCZ's for all locations in the metadf.
+    A column 'lcz' is added tot the metadf.
+    
+    All information on the LCZ is extracted from the Setting object (class mapper, location)
     ----------
-    metadf : TYPE
-        DESCRIPTION.
+    metadf : geopandas.GeoDataFrame
+        Geodataframe with the coordinates present as geometry.
 
     Returns
     -------
-    metadf : TYPE
-        DESCRIPTION.
+    metadf : geopandas.GeoDataFrame
+        The metadf with the added 'lcz'-column.
 
     """
     logger.debug('Extract LCZs')
@@ -713,8 +775,8 @@ def get_lcz(metadf):
           
 def loggin_nan_warnings(df):
     """
-    V2
-
+    Function to feed the logger if Nan values are found in the df
+    
     """
     for column in df.columns:
         bool_series = df[column].isnull()

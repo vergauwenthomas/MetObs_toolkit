@@ -38,6 +38,8 @@ dataset = vlinder_toolkit.Dataset()
 
 dataset.import_data_from_file()
 
+dataset.show()
+
 print(dataset.df.head())
 print(dataset.metadf.head())
 print(dataset.data_template.head())

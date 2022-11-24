@@ -42,6 +42,25 @@ def flag_series_when_no_settings_found(inputseries, obstype, checkname):
 
 
 def split_to_check_to_ignore(input_series, ignore_val=np.nan):
+    """
+    This functions splits an input_series in two sets based on if the value is
+    equal or not equal to the ignore_val.
+
+    Parameters
+    ----------
+    input_series : pd.Series
+        The series to be splits in two sets.
+    ignore_val : Value, optional
+        The value used to split the input series on. The default is np.nan.
+
+    Returns
+    -------
+    to_check_input_series : pandas.Series
+        Subset of the input_series for which the value != ignore_val.
+    ignore_input_series : pandas.Series
+        Subset of the input_series for which the value != ignore_val.
+
+    """
     if np.isnan(ignore_val):
          #better handling for nan values
          ignore_input_series = input_series[input_series.isna()]
@@ -53,16 +72,44 @@ def split_to_check_to_ignore(input_series, ignore_val=np.nan):
     return to_check_input_series, ignore_input_series
 
 
-def make_checked_obs_and_labels_series(checked_obs_series,
-                                          ignored_obs_series, 
-                                          outlier_obs,
-                                          checkname,
-                                          outlier_label,
-                                          outlier_value,
-                                          obstype,
-                                          not_checked_label='not checked',
-                                          ok_label='ok'):
-    
+def make_checked_obs_and_labels_series(checked_obs_series,ignored_obs_series, 
+                                       outlier_obs, checkname, outlier_label,
+                                       outlier_value, obstype,
+                                       not_checked_label='not checked', ok_label='ok'):
+    """
+    This function combines all the input series to :
+        * updated observation series
+        * series containing the quality flags
+
+    Parameters
+    ----------
+    checked_obs_series : pandas.Series
+        Series with observations that are checked.
+    ignored_obs_series : pandas.Series
+        Series with observations that are not checked.
+    outlier_obs : list
+        List of indices of the observation series that are flagged as outliers.
+    checkname : str
+        Default name of the check.
+    outlier_label : str
+        Default name of the label series.
+    outlier_value : str
+        Observation value of an outlier.
+    obstype : str
+        Default name of the observationtype.
+    not_checked_label : str, optional
+        Label for observations that ar not checked. The default is 'not checked'.
+    ok_label : str, optional
+        Label for the observations that are not flagged as outliers. The default is 'ok'.
+
+    Returns
+    -------
+    pandas.Series
+        The updated observation values.
+    pandas.Series
+        The quality labels for the observations.
+
+    """
     flag_column_name = obstype + '_' + checkname + '_' + 'label'
     
     #create labels for the checked observations
@@ -98,21 +145,18 @@ def make_checked_obs_and_labels_series(checked_obs_series,
 # =============================================================================
 def missing_timestamp_check(df):
     """
-    V2
-    Looking for missing timestaps by assuming an observation frequency. The assumed frequency is the most occuring frequency.
+    Looking for missing timestaps by assuming an observation frequency. The assumed frequency is the most occuring frequency PER STATION.
     If missing observations are detected, the observations dataframe is extended by these missing timestamps with Nan's as filling values.
 
     Parameters
     ----------
-    station : Station object
-        The station you whant to apply this check on.
+    df : pandas.DataFrame
+        The observations dataframe of the dataset object (Dataset.df)
 
     Returns
     -------
     df : pandas.DataFrame()
-        The observations dataframe (same as Station.df()).
-    missing_datetimes : list of datetimes
-        The list of the missing timestamps.
+        The observations dataframe updated for missing timestamps (values updated + quality flag column added).
 
     """     
     
@@ -151,6 +195,21 @@ def missing_timestamp_check(df):
 
         
 def duplicate_timestamp_check(df):
+    """
+    Looking for duplcate timestaps per station. Duplicated records are removed by the method specified in the qc_settings. 
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The observations dataframe of the dataset object (Dataset.df)
+
+    Returns
+    -------
+    df : pandas.DataFrame()
+        The observations dataframe updated for missing timestamps (values updated + quality flag column added).
+
+    """     
+    
 
     checkname = 'duplicate_timestamp'
     
