@@ -30,7 +30,7 @@ loggers.info('Logger initiated')
 
 
 #Import classes
-from .stations import Station, Dataset
+from .dataset import Dataset
 from .settings import Settings
 
 

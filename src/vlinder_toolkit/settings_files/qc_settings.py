@@ -10,9 +10,11 @@ from numpy import nan
 
 check_settings = {
     
-    #checks on all observation types
-    "duplicate_timestamp": {}, #No numeric settings
     
+    
+    #checks on all observation types
+    "duplicate_timestamp": {'keep': 'first'}, #No numeric settings
+    "missing_timestamp": {},
     
     #checks on specific observation types
     "gross_value": {'temp': {'min_value': -15.0,
@@ -24,6 +26,7 @@ check_settings = {
 
 
 outlier_values = {
+    "missing_timestamp": nan,
     "duplicate_timestamp": nan, 
     "gross_value": nan,
     "persistance": nan    
@@ -33,6 +36,7 @@ outlier_values = {
 
 observation_labels={
     'ok': 'ok',
+    'missing_timestamp': 'missing timestamp',
     'duplicated_timestamp': 'duplicated timestamp outlier',
     'gross_value': 'gross value outlier',
     'persistance': 'persistance outlier'
@@ -46,7 +50,6 @@ observation_labels={
 numeric_label_mapper={
     'ok': 0,
     'not checked': nan,
-    # 'missing timest': 1
     'missing timestamp': 1,
     'duplicated timestamp outlier': 2,
     'gross value outlier': 3,
