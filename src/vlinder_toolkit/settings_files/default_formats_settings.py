@@ -43,12 +43,25 @@ plot_settings['spatial_geo'] = {
     'fmt': "%d/%m/%Y %H:%M:%S UTC" 
     }
 
+# =============================================================================
+# Stats plot settings
+# =============================================================================
+
+plot_settings['qc_stats'] = {
+    #shape
+    'figsize': (10,10),
+    
+    
+    }
+
+
 
 
 print_settings = {
     "fmt_datetime":"%d/%m/%Y %H:%M:%S",
     "max_print_per_line":"40"
     }
+
 
 # =============================================================================
 # variables display strings

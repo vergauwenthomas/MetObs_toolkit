@@ -18,9 +18,10 @@ from .data_import import import_data_from_csv, import_data_from_database, templa
 from .data_import import coarsen_time_resolution
 from .landcover_functions import geotiff_point_extraction
 from .geometry_functions import find_largest_extent
-from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot
+from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot, qc_stats_pie
 from .qc_checks import gross_value_check, persistance_check, missing_timestamp_check, duplicate_timestamp_check
 from .qc_checks import step_check, internal_consistency_check
+from .statistics import get_qc_effectiveness_stats
 
 from .station import Station
  
@@ -490,7 +491,57 @@ class Dataset:
             self.df[obstype] = checked_obs
             label_column_name = qc_flags.name
             self.df[label_column_name] = qc_flags
-            
+    
+    def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):
+        """
+        Compute frequency statistics on the qc labels for an observationtype.
+        The output is a dataframe containing the frequency statistics presented
+        as percentages. 
+        
+        These frequencies can also be presented as a collection of piecharts per check.
+        
+        With stationnames you can subset the data to one ore multiple stations.
+
+        Parameters
+        ----------
+        obstype : Str, optional
+            Observation type to analyse the QC labels on. The default is 'temp'.
+        stationnames : List, Str, optional
+            Stationname(s) to subset the quality labels on. If None, all stations are used. The default is None.
+        make_plot : Bool, optional
+            If True, a plot with piecharts is generated. The default is True.
+
+        Returns
+        -------
+        dataset_qc_stats : pandas.DataFrame
+            A table containing the label frequencies per check presented as percentages0.
+
+        """
+        
+        
+        if isinstance(stationnames, type(None)):
+            df = self.df
+            title=f'Frequency for {obstype}-qc-checks on all stations.'
+        else: 
+            title=f'Frequency for {obstype}-qc-checks on {stationnames}.'
+            if isinstance(stationnames, str):
+                stationnames = [stationnames]
+                
+            df = self.df.loc[self.df.index.get_level_values(level='name').isin(stationnames)]
+        #stats on datset level
+        dataset_qc_stats = get_qc_effectiveness_stats(df =df,
+                                                      obstype=obstype,
+                                                      observation_types = observation_types,
+                                                      qc_labels=Settings.qc_observation_labels)
+    
+        if make_plot:
+            qc_stats_pie(qc_stats=dataset_qc_stats,
+                         figsize=Settings.plot_settings['qc_stats']['figsize'],
+                         title=title)
+               
+        
+        return dataset_qc_stats
+    
     def add_final_qc_labels(self):
         """
         Add a final qualty label per quality-checked observation type to

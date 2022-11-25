@@ -42,22 +42,11 @@ dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
 
 
+test = dataset.get_qc_stats(stationnames = 'vlinder02')
+
+test2 = dataset.get_qc_stats()
+
+
 #%%
 
 
-df = dataset.df
-
-
-observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
-                     'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
-                     'pressure', 'pressure_at_sea_level']
-
-
-
-#extract label columns
-qc_labels_columns = [col for col in df.columns if not col in observation_types]
-#Extra savety
-qc_labels_columns = [col for col in qc_labels_columns if col.endswith('_label')]
-
-
-df_qc = df[qc_labels_columns]
