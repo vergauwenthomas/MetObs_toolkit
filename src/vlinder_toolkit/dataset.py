@@ -18,8 +18,10 @@ from .data_import import import_data_from_csv, import_data_from_database, templa
 from .data_import import coarsen_time_resolution
 from .landcover_functions import geotiff_point_extraction
 from .geometry_functions import find_largest_extent
-from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot
+from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot, qc_stats_pie
 from .qc_checks import gross_value_check, persistance_check, missing_timestamp_check, duplicate_timestamp_check
+from .qc_checks import step_check, internal_consistency_check
+from .statistics import get_qc_effectiveness_stats
 
 from .station import Station
  
@@ -399,7 +401,8 @@ class Dataset:
     # =============================================================================
     
     def apply_quality_control(self, obstype='temp',
-                              gross_value=True, persistance=True, ignore_val=np.nan):
+                              gross_value=True, persistance=True,
+                              step=True, internal_consistency=True, ignore_val=np.nan):
         """
         Apply quality control methods to the dataset. The default settings are used, and can be changed
         in the settings_files/qc_settings.py
@@ -417,6 +420,12 @@ class Dataset:
             If True the gross_value check is applied if False not. The default is True.
         persistance : Bool, optional
            If True the persistance check is applied if False not. The default is True.. The default is True.
+        step : Bool, optional
+           If True the step check is applied if False not. The default is True.
+       internal_consistency : Bool, optional	        
+           If True the internal consistency check is applied if False not. The default is True.	          
+       qc_info: Bool, optional
+           If True info about the quality control is printed if False not. The default is True.
         ignore_val : numeric, optional
             Values to ignore in the quality checks. The default is np.nan.
 
@@ -430,7 +439,7 @@ class Dataset:
        
         
         if gross_value:
-            print('Applying the gross value check on all stations.')
+            print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
             
        
@@ -443,7 +452,7 @@ class Dataset:
             self.df[label_column_name] = qc_flags
             
         if persistance:
-            print('Applying the persistance check on all stations.')
+            print('Applying the persistance-check on all stations.')
             logger.info('Applying persistance check on the full dataset')
            
             checked_obs, qc_flags = persistance_check(input_series=self.df[obstype],
@@ -455,6 +464,84 @@ class Dataset:
             label_column_name = qc_flags.name
             self.df[label_column_name] = qc_flags
             
+            
+        if step:
+            print('Applying the step-check on all stations.')
+            logger.info('Applying step-check on the full dataset')
+           
+            checked_obs, qc_flags = step_check(input_series=self.df[obstype],
+                                                      obstype=obstype,
+                                                      ignore_val=ignore_val)
+
+            #update the dataset
+            self.df[obstype] = checked_obs
+            label_column_name = qc_flags.name
+            self.df[label_column_name] = qc_flags
+            
+        if internal_consistency:
+            print('Applying the internal-concsistency-check on all stations.')
+            logger.info('Applying step-check on the full dataset')
+           
+            checked_obs, qc_flags = internal_consistency_check(input_series=self.df[obstype],
+                                                               humidity_series=self.df['humidity'],
+                                                               obstype=obstype,
+                                                               ignore_val=ignore_val)
+
+            #update the dataset
+            self.df[obstype] = checked_obs
+            label_column_name = qc_flags.name
+            self.df[label_column_name] = qc_flags
+    
+    def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):
+        """
+        Compute frequency statistics on the qc labels for an observationtype.
+        The output is a dataframe containing the frequency statistics presented
+        as percentages. 
+        
+        These frequencies can also be presented as a collection of piecharts per check.
+        
+        With stationnames you can subset the data to one ore multiple stations.
+
+        Parameters
+        ----------
+        obstype : Str, optional
+            Observation type to analyse the QC labels on. The default is 'temp'.
+        stationnames : List, Str, optional
+            Stationname(s) to subset the quality labels on. If None, all stations are used. The default is None.
+        make_plot : Bool, optional
+            If True, a plot with piecharts is generated. The default is True.
+
+        Returns
+        -------
+        dataset_qc_stats : pandas.DataFrame
+            A table containing the label frequencies per check presented as percentages0.
+
+        """
+        
+        
+        if isinstance(stationnames, type(None)):
+            df = self.df
+            title=f'Frequency for {obstype}-qc-checks on all stations.'
+        else: 
+            title=f'Frequency for {obstype}-qc-checks on {stationnames}.'
+            if isinstance(stationnames, str):
+                stationnames = [stationnames]
+                
+            df = self.df.loc[self.df.index.get_level_values(level='name').isin(stationnames)]
+        #stats on datset level
+        dataset_qc_stats = get_qc_effectiveness_stats(df =df,
+                                                      obstype=obstype,
+                                                      observation_types = observation_types,
+                                                      qc_labels=Settings.qc_observation_labels)
+    
+        if make_plot:
+            qc_stats_pie(qc_stats=dataset_qc_stats,
+                         figsize=Settings.plot_settings['qc_stats']['figsize'],
+                         title=title)
+               
+        
+        return dataset_qc_stats
+    
     def add_final_qc_labels(self):
         """
         Add a final qualty label per quality-checked observation type to
