@@ -41,10 +41,12 @@ dataset.import_data_from_file(coarsen_timeres=False)
 
 dataset.apply_quality_control()
 
+dataset.add_final_qc_labels()
+
 
 test = dataset.get_qc_stats(stationnames = 'vlinder02')
 
-test2 = dataset.get_qc_stats()
+# test2 = dataset.get_qc_stats()
 
 
 #%%

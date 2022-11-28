@@ -528,6 +528,12 @@ class Dataset:
                 stationnames = [stationnames]
                 
             df = self.df.loc[self.df.index.get_level_values(level='name').isin(stationnames)]
+            
+        #Do not include the 'final_qc_label' in the statis
+        if obstype + '_final_label' in df.columns:
+            logger.debug(f'The {obstype}_final_label, is ingored for the QC-stats. ')
+            df = df.loc[:, df.columns != obstype+'_final_label']
+            
         #stats on datset level
         dataset_qc_stats = get_qc_effectiveness_stats(df =df,
                                                       obstype=obstype,

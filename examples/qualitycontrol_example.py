@@ -79,69 +79,89 @@ sept_2022_all_vlinders.import_data_from_file(settings) #Rember that you added th
         # The following checks are available:
             # Gross value check: a threshold check that observations should be between the thresholds
             # Persistance check: a check that looks for repetitive observation values (indicating a connection error.)
+            # Spike check: Check if an observation does not change between two timestamps by more than a threshold.
+            # Internal consistency check: Check if the temperature observations are physically valid based on relative humidity observations.
             
-        #All settings, labels, replacement values are defind in the default settings 
-        # in /settings_files/qc_settings.py
+#All settings, labels, replacement values are defind in the default settings in /settings_files/qc_settings.py
+#To inspect (and change) these quality control settings, you can extract them out of the Settings:
+
+qc_settings = settings.qc_check_settings #Settings are stored in nested dictionary
+print(qc_settings)
+
+#Changing a setting example:
+settings.qc_check_settings['persistance']['temp']['max_valid_repetitions'] = 6
+
+
         
-        # Here a copy:
-                    
-        # check_settings = {
-            
-        #     #checks on all observation types
-        #     "duplicate_timestamp": {}, #No numeric settings
-            
-            
-        #     #checks on specific observation types
-        #     "gross_value": {'temp': {'min_value': 8.0,
-        #                              'max_value': 18.0},
-        #                     },
-        #     "persistance": {'temp': {'max_valid_repetitions': 5}}
-            
-        #     }
-        
-        
-        # outlier_values = {
-        #     "duplicate_timestamp": nan, 
-        #     "gross_value": nan,
-        #     "persistance": nan    
-        #     }
-        
-        # observation_labels={
-        #     'ok': 'ok',
-        #     'duplicated_timestamp': 'duplicated timestamp outlier',
-        #     'gross_value': 'gross value outlier',
-        #     'persistance': 'percistance outlier'
-        #     }
-        
-        
-# performing a quality control check on a station
+# Quality control checks are always applied on the full dataset Using the apply_quality_control method on the dataset.
 
-station = sept_2022_all_vlinders.get_station('vlinder05')
+sept_2022_all_vlinders.apply_quality_control(obstype='temp', #which observations to check
+                                             gross_value=True, #apply gross_value check?
+                                             persistance=True, #apply persistance check?
+                                             step=True, #apply the step chec?
+                                             internal_consistency=True # apply internal consistency check?
+                                             )
 
-station.apply_gross_value_check(obstype='temp')
-station.apply_persistance_check(obstype='temp')
-#Now the temperature observations are checked by the gross_value_check and persistance check.
- # You can maybe see this in station.temp or by plotting (gaps in the observations)
+# =============================================================================
+# Quality control values
+# =============================================================================
+
+# If an observation is flagged as an outlier by a check, the observational value is replaced.
+# By default the outliers are replaced by Nan-values. You can see or change the default replacement values:
+
+print(settings.qc_outlier_values)
 
 
-# You can also see an overvieuw of all performed checks on a station
+# =============================================================================
+# Quality control labels
+# =============================================================================
 
-qc_overview = station.qc_labels_df
+# Each check makes a label for each observation. These labels are stored in the dataset.df:
 
-#This is a dictionary where each observation type is a key and an overview dataframe as values
+print(sept_2022_all_vlinders.df.head())
 
-print(qc_overview['temp'])
+# You can see that there is a specific coloumn for each check-label (and for each observationtype that is checked):
+print(sept_2022_all_vlinders.df.columns)
+
+# The labels:
+#   ok: Observation is not flagged as an outlier    
+#   not checked: observation could not be checked (mostly because the observations is already flagged as outlier by a previous check)
+#   **** outlier: labeld as outlier by the **** check
 
 
+# After applying the Quality control each observations (that is checked) has a set of qc-labels. 
+# To create One column with the final label (based on the labels for each check), you can call the 
+# add_final_qc_labels, which will add a final-qc-label column in the dataset.df:
 
-#To apply quality control checks on the whole dataset you can do this:
+sept_2022_all_vlinders.add_final_qc_labels()
+
+print(sept_2022_all_vlinders.df['temp_final_label'].head())
+
+# (When writing a dataset to file, there is an attribute 'add_final_labels'. When 
+#  True, the final labels are computed and added to the file.)
+
+
+# =============================================================================
+# Quality control stats
+# =============================================================================
+
+#  Some basic overview statistics are implemented for the quality controll labels. 
+#  You can extract the frequency statistics by calling:
     
-sept_2022_all_vlinders.apply_quality_control(obstype='temp',
-                                            gross_value=True, #apply this check 
-                                            persistance=True, #apply this check
-                                            )
+    # obstype: Get statistics of the QC applied on which observationtype
+    # stationnames: Which subset of the dataset to use? If None, statistics are computed over all the stations,
+    #               if one stationname is given the stats are computed for that station. You can also give a list of stationnames. 
+    # make_plot:  If True, an overview of pie-charts per check are made.
+    
+    #The output is a dataframe with frequency statistics per check PRESENTED IN PERSETNTAGES.
+    
+qc_statistics = sept_2022_all_vlinders.get_qc_stats(obstype='temp',
+                                                    stationnames=None, #or 'station_A' or list of stationnames ['station_A', 'station_B']
+                                                    make_plot=True)    
 
+print(qc_statistics)
 
+        
 
 
 # =============================================================================
@@ -152,7 +172,7 @@ sept_2022_all_vlinders.apply_quality_control(obstype='temp',
 
 
 #To plot timeseries for one station you can use the make_plot function on the station object:
-favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder02')
+favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder05')
 
 
 #Possible obstypes to plot:
@@ -160,10 +180,11 @@ favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder02')
     # 'wind_gust','wind_direction','pressure','pressure_at_sea_level'
     
 favorite_station.make_plot(variable='temp', 
-                           title=None) #if title=None, a title will be generated
+                            title=None) #if title=None, a title will be generated
 
+# You can see the effect of the quality control where the values are replaced when the observation was flagged as outlier.
+# Since Nan values are not shown in the plotting, the effect of the QC can be seen by missing observations and gaps.
 
-#Nan values will be not shown in the plot
 
 
 
