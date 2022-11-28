@@ -51,8 +51,8 @@ __version__ = "version debug"
 
 
 # =============================================================================
-# 
+# import non-class functions that can be used by users
 # =============================================================================
 
-
+from .dataset import get_lcz
 

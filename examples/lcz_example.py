@@ -15,7 +15,6 @@ metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 import vlinder_toolkit
 
 
-
 #%%
 
 # =============================================================================
@@ -82,13 +81,21 @@ aug_2020_all_vlinders.show()
 # Analysing LCZ
 # =============================================================================
 
+# When the metadata (i.g. the coordinates) and a geotiff lcz file (in the settings) are
+# available, the LCZ for each station is computed when the data is imported. 
 
-#To get the lcz from a station you can use the get_lcz function on a station:
-favorite_station = aug_2020_all_vlinders.get_station(stationname='vlinder02')
+#To LCZ information is stored in the meta-dataframe of the network:
+    
+print(aug_2020_all_vlinders.metadf['lcz'].head())
+    
+    
 
-lcz = favorite_station.get_lcz()
+#You can recompute the lcz for all stations by calling the get_lcz function on the metadata.
+# The updated metadata is returned.
 
-print(lcz)
+updated_metadf = vlinder_toolkit.get_lcz(aug_2020_all_vlinders.metadf)
+
+print(updated_metadf.head())
 
 
 
