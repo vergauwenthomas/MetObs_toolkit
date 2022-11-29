@@ -5,7 +5,7 @@ The vlinder_toolt is a package for scientists who make use of the VLINDER and MO
 
 
 ## Installing the package
-First make shure [GDAL](https://gdal.org/) is installed on your machine. Than install the package by:
+Install the package by:
 
 `pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade`
 
@@ -13,35 +13,29 @@ First make shure [GDAL](https://gdal.org/) is installed on your machine. Than in
 ## Exaples
 Some examples with comments can be found in [here](https://github.com/vergauwenthomas/vlinder_toolkit/tree/master/exaples)
 
+Start with the [introduction_example.py](https://github.com/vergauwenthomas/vlinder_toolkit/tree/master/exaples/introduction_example.py).
+
 ## Using the package
 * Importing the package: `import vlinder_toolkit`
 * Create Settings object: `settings_name = vlinder_toolkit.Settings()`
-    * (you can see what is in the settings with `settings_name.show()`
-    * (you can update the settings by: `settings_name.update_settings(input_file=..., output_data_folder=...)`
-    * (You can look for missing settings by: `settings_name.check_settings()`
+   * Make shure to update the templates (see [templates_example](https://github.com/vergauwenthomas/vlinder_toolkit/tree/master/exaples/templates_example.py)) if you use a new datset.
 * Create a Dataset object: `dataset_name = vlinder_toolkit.Dataset()`
-    * There are two ways to import data in the dataset: by .csv file (download using the [brian-tool](https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php) or directly from database (user and password needed).
-        *csv-import: `dataset_name.import_data_from_file()` (make sure `input_file` is provided to the settings, see above)
-        *database-import: (nesesary to import datetime: `from datetime import datetime` 
-            * `dataset_name.import_data_from_database(start_datetime=datetime(2022, 6,12), #2022/6/12 00:00:00
-                                    end_datetime=datetime(2022,6,19,12,45)) #2022/7/19 12:45:00`
-                                   
-    * (To get the dataset in a pandas.Dataframe: `dataset_name.df()`)
-    * (To extract one station from the dataset: `station_name = dataset_name.get_station('vlinder05')`)
-    * (To make a timeseries plot of a station: `station_name.make_plot(args**)`)
+* Use the analysing/visualisation tools available in the vlinder_toolkit package.
     
  ## Extra info:
+ The templates are used to map the data from the input-file (or sql table) to the vlinder_toolkit-space. Here a short overview on the names used in the vlinder_toolkit-space.
+ 
  ### Observation names
  Here a list of all possible observationtypes (these names are used):
  `['temp','radiation_temp','humidity','precip','precip_sum','wind_speed','wind_gust','wind_direction','pressure','pressure_at_sea_level']`
  
- These are attributes of a stationobject and can be extracted by `station_name.precip`
+ These are attributes of a Dataset and are stored in the `Dataset.df` attribute.
  
  ### Metadata names
  Here a list of all metadata per  (these names are used):
  `['network', 'name', 'lat', 'lon', 'call_name', 'location', 'units', 'obs_description']`
  
- These are attributes of a stationobject and can be extracted by `station_name.location`
+ These are attributes of a Dataset and are stored in the `Dataset.metadf` attribute.
  
 ### Using the database
 In order to use the database for importing data, you need to have an active VPN connection with the UGent network or working from within the UGent network. 

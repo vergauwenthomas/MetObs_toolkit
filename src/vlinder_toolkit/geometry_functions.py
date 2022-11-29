@@ -6,7 +6,7 @@ Created on Fri Oct 21 09:13:01 2022
 @author: thoverga
 """
 # import geopandas as gpd
-from shapely.geometry import Point, Polygon, box
+from shapely.geometry import box
 
 def gpd_to_extent_box(geodf):
     return box(*geodf.total_bounds)
