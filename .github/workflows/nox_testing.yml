@@ -9,11 +9,13 @@ jobs:
     steps:
       - uses:  wntrblm/nox@2022.8.7
       - run: |
-            ls
+            ls -l
             pwd
             cd ..
             pwd
-            ls
+            ls -l
+            cd .. 
+            ls -l
       - run: nox
 
 # name: Nox testing pushed version
