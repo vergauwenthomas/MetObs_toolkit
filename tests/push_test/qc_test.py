@@ -13,7 +13,7 @@ from pathlib import Path
 
 lib_folder = Path(__file__).resolve().parents[2]
 sys.path.append(str(lib_folder))
-print(str(lib_folder))
+
 
 from src import vlinder_toolkit
 
@@ -41,7 +41,6 @@ dataset.apply_quality_control(obstype='temp',
 
 dataset.add_final_qc_labels()
 
-print(dataset.df['temp_final_label'][0:10])
 
 
 #%% Apply Qc on obstype not specified in settings

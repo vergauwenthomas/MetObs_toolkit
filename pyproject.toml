@@ -14,12 +14,14 @@ authors = [
 
 dependencies = [
   'pandas >= 1.3.0',
+  'numpy >= 1.17.3',
   'matplotlib >= 3.0.0',
-  'mysql-connector-python >= 8.0.0',
+  'mysql-connector-python >= 8.0.6',
   'geopandas >= 0.9.0',
-  'rasterstats >= 0.17.0',
+  'rasterstats >= 0.14.0',
   'mapclassify >= 2.4.0',
-  'openpyxl >= 3.0.0'
+  'openpyxl >= 3.0.0',
+  'xlrd >= 1.0.0'
 ]
 
 
