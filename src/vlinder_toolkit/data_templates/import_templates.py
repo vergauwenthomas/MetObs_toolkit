@@ -12,7 +12,7 @@ import pandas as pd
 #%%
 
 
-csv_templates_file = os.path.join(str(Path(__file__).parent), 'csv_templates.xlsx')
+csv_templates_file = os.path.join(str(Path(__file__).parent), 'csv_templates.xls')
 
 # %%
 # All templates or combined in a list, so if the template is not specified, the corresponding template can be found by iteration.
