@@ -1,20 +1,35 @@
-
-
-
-name: Nox testing pushed version
+name: Test pushed version with nox
 
 on: [push]
 
 jobs:
- - uses: wntrblm/nox@2022.8.7
   build:
-    # setup nox with all active CPython and PyPY versions provided by
-    # the GitHub Actions environment i.e.
-    # python-versions: "3.7, 3.8, 3.9, 3.10, pypy-3.7, pypy-3.8, pypy-3.9"
-    # this uses version 2022.8.7 but any Nox tag will work here
+
+    runs-on: ubuntu-latest
+    strategy:
+      # You can use PyPy versions in python-version.
+      # For example, pypy-2.7 and pypy-3.8
+      # matrix:
+      #   python-version: ["3.7", "3.8", "3.9", "3.10"]
+
+    steps:
+      - uses:  wntrblm/nox@2022.8.7
+        run: nox
+
+# name: Nox testing pushed version
+
+# on: [push]
+
+# jobs:
+#  - uses:
+#   build:
+#     # setup nox with all active CPython and PyPY versions provided by
+#     # the GitHub Actions environment i.e.
+#     # python-versions: "3.7, 3.8, 3.9, 3.10, pypy-3.7, pypy-3.8, pypy-3.9"
+#     # this uses version 2022.8.7 but any Nox tag will work here
    
-    - name: run Nox tests
-    - run: nox
+#     - name: run Nox tests
+#     - run: nox
 
 # setup nox only for a given list of python versions
 # Limitations:
