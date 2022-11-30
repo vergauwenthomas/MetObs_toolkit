@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses:  wntrblm/nox@2022.8.7
+      - run: nox
 
 # name: Nox testing pushed version
 
