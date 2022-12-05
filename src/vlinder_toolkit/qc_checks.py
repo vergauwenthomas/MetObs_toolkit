@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 
 from datetime import timedelta
+from itertools import groupby
 
 import logging
 
@@ -116,7 +117,10 @@ def make_checked_obs_and_labels_series(checked_obs_series,ignored_obs_series,
     flag_column_name = obstype + '_' + checkname + '_' + 'label'
     
     #create labels for the checked observations
-    df_checked = checked_obs_series.to_frame()
+    if (isinstance(checked_obs_series, pd.Series)):
+        df_checked = checked_obs_series.to_frame()
+    else:
+        df_checked = checked_obs_series
     df_checked[flag_column_name] = ok_label #Set all checked labels as ok to start
     
     
@@ -136,7 +140,10 @@ def make_checked_obs_and_labels_series(checked_obs_series,ignored_obs_series,
     
     
     #create labels for ignored observations
-    df_ignored = ignored_obs_series.to_frame()
+    if (isinstance(ignored_obs_series, pd.Series)):
+        df_ignored = ignored_obs_series.to_frame()
+    else:
+        df_ignored = ignored_obs_series
     df_ignored[flag_column_name] = not_checked_label #Set all checked labels as ok to start
     
     
@@ -179,28 +186,57 @@ def missing_timestamp_check(df):
     df[flag_column] = observation_labels['ok']
     
     
-    #missing timestamp per station (because some stations can have other frequencies!)
-    stationnames = df.index.get_level_values(level='name').unique()
-    for station in stationnames:
-        timestamps = df.xs(station, level='name').index
-        likely_freq =timestamps.to_series().diff().value_counts().idxmax()
-        
-        
-        missing_datetimeindices = pd.date_range(start = timestamps.min(),
-                                                end = timestamps.max(),
-                                                freq=likely_freq).difference(timestamps)
-        
-        if not missing_datetimeindices.empty:
-            logging.warning(f'{len(missing_datetimeindices)} missing records ({missing_datetimeindices[:10]} ...) found for {station}. These will be filled with Nans.')
-            missing_records_df = pd.DataFrame(columns=df.columns,
-                                              index=pd.MultiIndex.from_arrays([[station]*len(missing_datetimeindices),
-                                                                              missing_datetimeindices.to_list()]))
-            missing_records_df[flag_column] = observation_labels[checkname]
+    # LABEL MISSING TIMESTAMPS WHEN MULTIPLE FREQUENCIES
+    name_list = ['name', 'Name', 'network', 'Network', 'naam', 'Naam', 'netwerk', 'Netwerk', 'station', 'Station']
+    if (set(name_list) & set (df.index.names)):
+        stationnames = df.index.get_level_values(level=list(set(name_list) & set (df.index.names))[0]).unique()
+        for station in stationnames:
+            timestamps = df.xs(station, level=list(set(name_list) & set (df.index.names))[0]).index
+            likely_freq =timestamps.to_series().diff().value_counts().idxmax()
+            print(type(likely_freq))
+            timestamps = timestamps.to_series()
             
+            increaments = list(map(str, list(timestamps - timestamps.shift(1))))
             
-            df = pd.concat([df, missing_records_df])
-    
-            
+           
+            info = []
+            for element in timestamps.diff().value_counts().index:
+                lijst = [(x[0], len(list(x[1]))) for x in groupby(increaments)]
+                if (max(list(filter(lambda x:str(element) in x, lijst)), key=lambda x:x[1])[1] > 5):
+                    start_index = increaments.index(str(element)) - 1
+                    info.append([start_index, str(element)])
+                    
+            info = sorted(info, key=lambda x: x[0])
+            for i in range(len(info)):
+                if (i != (len(info)-1)): 
+                    info[i].append(info[i+1][0])
+                else:
+                    info[i].append(len(increaments))
+                    
+           
+            for block in info:
+                subdata = df.iloc[block[0]:block[2],:]
+                print(subdata)
+                timestamps_subdata = subdata.xs(station, level=list(set(name_list) & set (subdata.index.names))[0]).index
+                
+                print(timestamps_subdata)
+                missing_datetimeindices = pd.date_range(start = timestamps_subdata.min(),
+                                                    end = timestamps_subdata.max(),
+                                                    freq=pd.to_timedelta(block[1])).difference(timestamps_subdata)
+                
+                
+                print(missing_datetimeindices)
+                if not missing_datetimeindices.empty:
+                    logging.warning(f'{len(missing_datetimeindices)} missing records ({missing_datetimeindices[:10]} ...) found for {station}. These will be filled with Nans.')
+                    missing_records_df = pd.DataFrame(columns=subdata.columns,
+                                                      index=pd.MultiIndex.from_arrays([[station]*len(missing_datetimeindices),
+                                                                                      missing_datetimeindices.to_list()]))
+                    missing_records_df[flag_column] = observation_labels[checkname]
+                    print(missing_records_df.to_string())
+                
+                df = pd.concat([df, missing_records_df])
+        
+       
     df = df.sort_index()
     return df
     
@@ -222,17 +258,30 @@ def duplicate_timestamp_check(df):
 
     """     
     
-
     checkname = 'duplicate_timestamp'
     
-   
-    duplicates = pd.Series(data=df.index.duplicated(keep=check_settings[checkname]['keep']),
-                           index=df.index)
     
-    if not df.loc[duplicates].empty:
-        logging.warning(f' Following records are labeld as duplicates: {df.loc[duplicates]}, and are removed')
+    # LABEL CONSECUTIVE TIMESTAMPS AS DUPLICATES
+    name_list = ['name', 'Name', 'network', 'Network', 'naam', 'Naam', 'netwerk', 'Netwerk', 'station', 'Station']
+    if (set(name_list) & set (df.index.names)):
+        stationnames = df.index.get_level_values(level=list(set(name_list) & set (df.index.names))[0]).unique()
+        for station in stationnames:
+            timestamps = df.xs(station, level=list(set(name_list) & set (df.index.names))[0]).index
+            timestamps = timestamps.to_series()
+            increaments = list(map(str, list(timestamps - timestamps.shift(1))))
+            index_names = df.index.names
+            df.reset_index(inplace=True)
+            df = df.drop(list(np.where(np.array(increaments) == '0 days 00:00:00')[0]))
+            df = df.set_index(index_names)
+        
+    #duplicates = pd.Series(data=df.index.duplicated(keep=check_settings[checkname]['keep']),
+     #                      index=df.index)
     
-    df = df[~df.index.duplicated(keep=check_settings[checkname]['keep'])]
+    #if not df.loc[duplicates].empty:
+     #   logging.warning(f' Following records are labeld as duplicates: {df.loc[duplicates]}, and are removed')
+    
+    #df = df[~df.index.duplicated(keep=check_settings[checkname]['keep'])]
+    
 
     return df
 # =============================================================================

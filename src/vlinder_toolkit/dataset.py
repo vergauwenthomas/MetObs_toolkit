@@ -610,8 +610,6 @@ class Dataset:
                                   file_csv_template=Settings.input_csv_template,
                                   template_list = Settings.template_list)
         
-    
-        
         logger.debug(f'Data from {Settings.input_data_file} imported to dataframe.')
 
         #drop Nat datetimes if present
@@ -644,7 +642,6 @@ class Dataset:
         self.data_template = pd.DataFrame().from_dict(template)
         
         
-        
         if coarsen_timeres:
             logger.info(f'Coarsen timeresolution to {Settings.target_time_res} using the {Settings.resample_method}-method.')
             df = coarsen_time_resolution(df=df,
@@ -653,7 +650,10 @@ class Dataset:
             
         
         #convert dataframe to multiindex (datetime - name)
-        df = df.set_index(['name', df.index])
+        
+        name_list = ['name', 'Name', 'network', 'Network', 'naam', 'Naam', 'netwerk', 'Netwerk', 'station', 'Station']
+        if (list(set(name_list) & set(df.columns))[0]):
+            df = df.set_index([list(set(name_list) & set(df.columns))[0], df.index])
         
         
         self.update_dataset_by_df(df)
@@ -742,21 +742,18 @@ class Dataset:
         """
        
         logger.info(f'Updating dataset by dataframe with shape: {dataframe.shape}.')
-       
+        
         #Create dataframe with fixed number and order of observational columns
-        df = dataframe.reindex(columns = observation_types)
+        df = dataframe.reindex(columns = dataframe.columns)
         self.df = df
         
         #create metadataframe with fixed number and order of columns
-        
         metadf = dataframe.reindex(columns = location_info)
         metadf.index = metadf.index.droplevel('datetime') #drop datetimeindex
         metadf = metadf[~metadf.index.duplicated(keep='first')]#drop dubplicates due to datetime
-
-       
+    
         self.metadf = metadf_to_gdf(metadf)
-        
-
+       
         #Check import
         self.df = duplicate_timestamp_check(df=self.df)
         self.df = missing_timestamp_check(df=self.df)
@@ -764,7 +761,6 @@ class Dataset:
         
         #get LCZ values (if coords are availible)
         self.metadf =  get_lcz(self.metadf)
-        
         
        
 
