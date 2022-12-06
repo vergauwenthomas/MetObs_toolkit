@@ -9,7 +9,6 @@ import pandas as pd
 import numpy as np
 
 from datetime import timedelta
-from itertools import groupby
 
 import logging
 
@@ -117,10 +116,7 @@ def make_checked_obs_and_labels_series(checked_obs_series,ignored_obs_series,
     flag_column_name = obstype + '_' + checkname + '_' + 'label'
     
     #create labels for the checked observations
-    if (isinstance(checked_obs_series, pd.Series)):
-        df_checked = checked_obs_series.to_frame()
-    else:
-        df_checked = checked_obs_series
+    df_checked = checked_obs_series.to_frame()
     df_checked[flag_column_name] = ok_label #Set all checked labels as ok to start
     
     
@@ -140,10 +136,7 @@ def make_checked_obs_and_labels_series(checked_obs_series,ignored_obs_series,
     
     
     #create labels for ignored observations
-    if (isinstance(ignored_obs_series, pd.Series)):
-        df_ignored = ignored_obs_series.to_frame()
-    else:
-        df_ignored = ignored_obs_series
+    df_ignored = ignored_obs_series.to_frame()
     df_ignored[flag_column_name] = not_checked_label #Set all checked labels as ok to start
     
     

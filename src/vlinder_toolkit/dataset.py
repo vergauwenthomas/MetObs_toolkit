@@ -651,11 +651,9 @@ class Dataset:
         
         #convert dataframe to multiindex (datetime - name)
         
-        name_list = ['name', 'Name', 'network', 'Network', 'naam', 'Naam', 'netwerk', 'Netwerk', 'station', 'Station']
-        if (list(set(name_list) & set(df.columns))[0]):
-            df = df.set_index([list(set(name_list) & set(df.columns))[0], df.index])
+        df = df.set_index(['name', df.index])
         
-        
+        print(df)
         self.update_dataset_by_df(df)
         
     
@@ -744,7 +742,7 @@ class Dataset:
         logger.info(f'Updating dataset by dataframe with shape: {dataframe.shape}.')
         
         #Create dataframe with fixed number and order of observational columns
-        df = dataframe.reindex(columns = dataframe.columns)
+        df = dataframe.reindex(columns = observation_types)
         self.df = df
         
         #create metadataframe with fixed number and order of columns

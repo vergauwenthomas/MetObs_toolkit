@@ -65,7 +65,6 @@ csv_templates_list = excel_templates
 
 
 
-
         
 # =============================================================================
 # Check if templates column names are unique

@@ -9,11 +9,9 @@ import sys
 # import json
 # import datetime
 import pandas as pd
-import numpy as np
 
 import mysql.connector
 from mysql.connector import errorcode
-from .qc_checks import make_checked_obs_and_labels_series
 
 
 def template_to_package_space(specific_template):
@@ -121,70 +119,22 @@ def import_metadata_from_csv(input_file, file_csv_template, template_list):
     # rename columns to toolkit attriute names
     df = df.rename(columns=compress_dict(templ, 'varname'))
 
-    return df
-
-# FUNCTION TO CREATE TEMPLATE FROM COLUMN NAMES
-def columns_to_template(df):
-    template = dict()
-    variable_names = list(df.columns)
-    
-    temp_list = ['T', 'Temperature', 't', 'temperature', 'Temp', 'temp', 'temperatuur', 'Temperatuur']
-    date_list = ['Date', 'Datum', 'date', 'datum']
-    time_list = ['Time', 'time', 'tijd', 'Tijd']
-    datetime_list = ['Datetime', 'datetime', 'DateTime', 'fulldate', 'Date', 'date', 'Datum', 'datum']
-    if (set(temp_list) & set(df.columns)):
-        name_temp = list(set(temp_list) & set(df.columns))[0]
-        template[name_temp] = {'varname': name_temp, 'dtype': 'float64'}
-        variable_names.remove(name_temp)
-        
-    if ((set(date_list) & set(df.columns)) and (len(df.iloc[0,list(df.columns).index(list(set(date_list) & set(df.columns))[0])]) < 11)):
-        index_date = list(df.columns).index(list(set(date_list) & set(df.columns))[0])
-        name_date = list(set(date_list) & set(df.columns))[0]
-        if ('-' in df.iloc[0,index_date]):
-            format_date = '%Y-%m-%d'
-        if ('/' in df.iloc[0,index_date]):
-            format_date = '%d/%m/%Y'
-        template[name_date] = {'varname': name_date, 'dtype': 'object', 'format': format_date}
-        variable_names.remove(name_date)
-        
-    if (set(time_list) & set(df.columns)):
-        name_time = list(set(time_list) & set(df.columns))[0]
-        format_time = '%H:%M:%S'
-        template[name_time] = {'varname': name_time, 'dtype': 'object', 'format': format_time}
-        variable_names.remove(name_time)
-        
-    if ((set(datetime_list) & set(df.columns)) and (len(df.iloc[0,list(df.columns).index(list(set(datetime_list) & set(df.columns))[0])]) >= 11)):
-        index_datetime = list(df.columns).index(list(set(datetime_list) & set(df.columns))[0])
-        name_datetime = list(set(datetime_list) & set(df.columns))[0]
-        if ('-' in df.iloc[0,index_datetime]):
-            format_datetime = '%Y-%m-%d %H:%M:%S'
-        if ('/' in df.iloc[0,index_datetime]):
-            format_datetime = '%d/%m/%Y %H:%M:%S'
-        template[name_datetime] = {'varname': name_datetime, 'dtype': 'object', 'format': format_datetime}
-        variable_names.remove(name_datetime)
-    
-    for element in variable_names:
-        try:
-            x = float(df.iloc[0,list(df.columns).index(element)])
-            template[element] = {'varname': element, 'dtype': 'float64'}
-        except:
-            template[element] = {'varname': element, 'dtype': 'object'}
-    
-    return(template)    
+    return df 
     
 
-def import_data_from_csv(input_file, file_csv_template, template_list ):
+def import_data_from_csv(input_file, file_csv_template, template_list):
     
-    assert not isinstance(input_file, type(None)), "Specify input file in the settings!"    
+    common_seperators = [';',',','    ']
+    assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
+    for sep in common_seperators:
+        print(sep)
+        df = pd.read_csv(input_file, sep=sep)
+        assert not df.empty, "Dataset is empty!"
+        
+        if len(df.columns) > 1:
+            break
     
-    
-    # LINES TO DEAL WITH EITHER ',' SEPARATED VALUES OR ';' SEPARATED VALUES (SOLUTION TO ISSUE #43)
-    df = pd.read_csv(input_file, sep=';')
-    
-    assert not df.empty, "Dataset is empty!"
-    
-    if (',' in str(df.iloc[0:1,0:1])):
-        df = pd.read_csv(input_file, sep=',')
+    assert len(df.columns) > 1, f'Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct.'
         
         
     # LINES TO DEAL WITH RANDOM PIECES OF TEXT BEFORE ACTUAL MEASUREMENTS
@@ -201,16 +151,12 @@ def import_data_from_csv(input_file, file_csv_template, template_list ):
     df.index = range(len(df))
     
     
-    assert len(df.columns) > 1, 'Only one column detected from import. See if csv template is correct.'
-    
 
     # import template
-
     templ = file_csv_template
     if isinstance(templ, type(None)): #No default template is given
-        templ = columns_to_template(df) 
-        #templ = find_compatible_templatefor(df_columns=df.columns,
-                                            #template_list=template_list)
+        templ = find_compatible_templatefor(df_columns=df.columns,
+                                            template_list=template_list)
 
     #Check if template is compatible and find other if needed
     if not all(keys in list(df.columns) for keys in templ.keys()):
@@ -218,13 +164,11 @@ def import_data_from_csv(input_file, file_csv_template, template_list ):
         templ = find_compatible_templatefor(df_columns=df.columns,
                                             template_list=template_list)
     
-
-    # REMOVE TEXT IN TEMP COLUMN
-    temp_list = ['T', 'Temperature', 't', 'temperature', 'Temp', 'temp', 'temperatuur', 'Temperatuur']
-    index_list = df[df[list(set(temp_list) & set(df.columns))[0]].str.contains('a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|A|B|C|D|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|%|&|à|/|#|@|!|é|{|}|=|~|:', na=False)].index.to_list()
-    if index_list:
-        updated_df, flags_series = make_checked_obs_and_labels_series(df, pd.DataFrame(), index_list, 'text', 'text', 'nan', list(set(temp_list) & set(df.columns))[0])
-        templ[list(set(temp_list) & set(df.columns))[0] + '_text_label'] = {'varname': list(set(temp_list) & set(df.columns))[0] + '_text_label', 'dtype': 'object'}
+    
+    for key, value in templ.items():
+        if value['dtype'] == 'float64':
+            df[key] = pd.to_numeric(df[key], errors='coerce')
+        
     
     # rename columns to toolkit attriute names
     df = df.rename(columns=compress_dict(templ, 'varname'))
@@ -232,30 +176,21 @@ def import_data_from_csv(input_file, file_csv_template, template_list ):
     #COnvert template to package-space
     template =template_to_package_space(templ)
    
-    #make_checked_obs_and_labels_series(checked_obs_series, ignored_obs_series, outlier_obs, checkname, outlier_label, outlier_value, obstype)
     #format columns
     df = df.astype(dtype=compress_dict(template, 'dtype'))
-
-    # CREATE DATETIME COLUMN
-    datetime_list = ['Datetime', 'datetime', 'DateTime', 'fulldate', 'Date', 'date', 'Datum', 'datum']
-    date_list = ['Date', 'Datum', 'date', 'datum']
-    time_list = ['Time', 'time', 'tijd', 'Tijd']
-    if ((set(datetime_list) & set(df.columns)) and (len(df.iloc[0,list(df.columns).index(list(set(datetime_list) & set(df.columns))[0])]) >= 11)):
-        df['datetime'] =pd.to_datetime(df[list(set(datetime_list) & set(df.columns))[0]],
-                                        format=template[list(set(datetime_list) & set(df.columns))[0]]['format'])
-        
-        #Set datetime index
-        df = df.set_index('datetime', drop=True, verify_integrity=False)    
+    
+    
+    if 'datetime' in df.columns:
+        df['datetime'] =pd.to_datetime(df['datetime'],
+                                        format=template['datetime']['format'])
     
     else:
-        datetime_fmt = template[list(set(date_list) & set(df.columns))[0]]['format'] + ' ' + template[list(set(time_list) & set(df.columns))[0]]['format']
-        df['datetime'] =pd.to_datetime(df[list(set(date_list) & set(df.columns))[0]] +' ' + df[list(set(time_list) & set(df.columns))[0]],
-                                        format=datetime_fmt) 
-        #drop 'date' and 'time' columns
-        df = df.drop(columns=[list(set(date_list) & set(df.columns))[0], list(set(time_list) & set(df.columns))[0]])
-        
-        #Set datetime index
-        df = df.set_index('datetime', drop=True, verify_integrity=False)
+        datetime_fmt = template['_date']['format'] + ' ' + template['_time']['format']
+        df['datetime'] =pd.to_datetime(df['_date'] +' ' + df['_time'])
+    
+    df = df.drop(columns=['_date', '_time'])
+    #Set datetime index
+    df = df.set_index('datetime', drop=True, verify_integrity=False)
     #TODO implement timezone settings
     
     
