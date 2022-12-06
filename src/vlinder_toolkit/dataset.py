@@ -650,10 +650,10 @@ class Dataset:
             
         
         #convert dataframe to multiindex (datetime - name)
-        
         df = df.set_index(['name', df.index])
         
-        print(df)
+        
+       
         self.update_dataset_by_df(df)
         
     
@@ -744,18 +744,18 @@ class Dataset:
         #Create dataframe with fixed number and order of observational columns
         df = dataframe.reindex(columns = observation_types)
         self.df = df
-        
+   
         #create metadataframe with fixed number and order of columns
         metadf = dataframe.reindex(columns = location_info)
         metadf.index = metadf.index.droplevel('datetime') #drop datetimeindex
         metadf = metadf[~metadf.index.duplicated(keep='first')]#drop dubplicates due to datetime
-    
+        
         self.metadf = metadf_to_gdf(metadf)
        
         #Check import
         self.df = duplicate_timestamp_check(df=self.df)
         self.df = missing_timestamp_check(df=self.df)
-       
+        print(self.df)
         
         #get LCZ values (if coords are availible)
         self.metadf =  get_lcz(self.metadf)

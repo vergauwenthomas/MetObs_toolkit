@@ -13,7 +13,7 @@ check_settings = {
     
     
     #checks on all observation types
-    "duplicate_timestamp": {'keep': 'first'}, #No numeric settings
+    "duplicate_timestamp": {'keep': False}, #No numeric settings
     "missing_timestamp": {},
     
     #checks on specific observation types

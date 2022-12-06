@@ -127,7 +127,7 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
     common_seperators = [';',',','    ']
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
     for sep in common_seperators:
-        print(sep)
+        
         df = pd.read_csv(input_file, sep=sep)
         assert not df.empty, "Dataset is empty!"
         
@@ -139,7 +139,8 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
         
     # LINES TO DEAL WITH RANDOM PIECES OF TEXT BEFORE ACTUAL MEASUREMENTS
     if (True in df.columns.str.contains(pat = 'Unnamed')):
-        num_columns = df.iloc[-1:].count().sum()
+        num_columns = df.iloc[-3].count().sum()
+        
         rows_to_skip = 0
         for row in range(len(df)):
             if df.iloc[row:(row+1),:].count().sum() != num_columns:
@@ -177,7 +178,7 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
     template =template_to_package_space(templ)
    
     #format columns
-    df = df.astype(dtype=compress_dict(template, 'dtype'))
+    #df = df.astype(dtype=compress_dict(template, 'dtype'))
     
     
     if 'datetime' in df.columns:
@@ -186,9 +187,9 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
     
     else:
         datetime_fmt = template['_date']['format'] + ' ' + template['_time']['format']
-        df['datetime'] =pd.to_datetime(df['_date'] +' ' + df['_time'])
+        df['datetime'] =pd.to_datetime(df['_date'] +' ' + df['_time'], format=datetime_fmt)
+        df = df.drop(columns=['_date', '_time'])
     
-    df = df.drop(columns=['_date', '_time'])
     #Set datetime index
     df = df.set_index('datetime', drop=True, verify_integrity=False)
     #TODO implement timezone settings
