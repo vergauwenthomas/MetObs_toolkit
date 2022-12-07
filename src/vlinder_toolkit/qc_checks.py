@@ -7,6 +7,7 @@ Created on Thu Oct  6 13:44:54 2022
 """
 import pandas as pd
 import numpy as np
+import math
 
 from datetime import timedelta
 
@@ -68,6 +69,7 @@ def split_to_check_to_ignore(input_series, ignore_val=np.nan):
          #better handling for nan values
          ignore_input_series = input_series[input_series.isna()]
          to_check_input_series = input_series[input_series.notna()]
+    
     else:  
          ignore_input_series = input_series[input_series == ignore_val]
          to_check_input_series = input_series[input_series != ignore_val]
@@ -136,6 +138,7 @@ def make_checked_obs_and_labels_series(checked_obs_series,ignored_obs_series,
     
     
     #create labels for ignored observations
+    
     df_ignored = ignored_obs_series.to_frame()
     df_ignored[flag_column_name] = not_checked_label #Set all checked labels as ok to start
     
@@ -150,7 +153,7 @@ def make_checked_obs_and_labels_series(checked_obs_series,ignored_obs_series,
 
 
     
-    
+
     
 # =============================================================================
 # Quality assesment checks on data import
@@ -237,7 +240,7 @@ def duplicate_timestamp_check(df):
 # =============================================================================
 
 
-def gross_value_check(input_series, obstype, ignore_val):
+def gross_value_check(input_series, obstype, ignore_val=np.nan):
     checkname = 'gross_value'
     
     try:
@@ -276,10 +279,49 @@ def gross_value_check(input_series, obstype, ignore_val):
 
 
 
-
-
 def persistance_check(input_series, obstype, ignore_val=np.nan):
     checkname = 'persistance'
+    
+    try:
+        specific_settings = check_settings[checkname][obstype]
+    except:
+        print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        flag_series = flag_series_when_no_settings_found(input_series, obstype, checkname)
+        return input_series, flag_series
+    
+    
+    stationnames = input_series.index.get_level_values(level='name').unique()
+    list_of_dates = []
+    for station in stationnames:
+        timestamps = input_series.xs(station, level='name').index
+        num_elements_per_window = math.ceil(check_settings[checkname][obstype]['max_num_of_seconds']/((timestamps[1]-timestamps[0]).total_seconds())) + 1
+        
+        if (num_elements_per_window < 5):
+            print(f'The time resolution is too low for performing the persistance check on station {station}')
+            break
+        
+        
+        for window in input_series[obstype].rolling(int(num_elements_per_window), center=True):
+            if (window.isna().sum() < math.ceil(int(num_elements_per_window)/2)) & (len(window.dropna().unique()) == 1):
+                list_of_dates.extend(window.index)
+        
+    updated_obs_series, qc_flags_series = make_checked_obs_and_labels_series(checked_obs_series=input_series[obstype],
+                                                                    ignored_obs_series=pd.Series(), 
+                                                                    outlier_obs=list_of_dates,
+                                                                    checkname=checkname,
+                                                                    outlier_label=observation_labels[checkname],
+                                                                    outlier_value=outlier_values[checkname],
+                                                                    obstype=obstype)
+    
+    qc_flags_series.loc[input_series['missing_timestamp_label'][input_series['missing_timestamp_label'] == 'missing timestamp'].index] = 'not checked'
+    
+    return updated_obs_series, qc_flags_series
+      
+
+
+def repetitions_check(input_series, obstype, ignore_val=np.nan):
+    checkname = 'repetitions'
     
     try:
         specific_settings = check_settings[checkname][obstype]
@@ -302,7 +344,7 @@ def persistance_check(input_series, obstype, ignore_val=np.nan):
     
     
     #find outlier datetimes
-    
+    print('a')
     #make consec groups
     grouped = input_series.groupby(['name', (input_series.shift() != input_series).cumsum()]) 
     #the above line groups the observations which have the same value and consecutive datetimes.

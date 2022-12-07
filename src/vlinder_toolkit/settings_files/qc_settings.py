@@ -16,11 +16,13 @@ check_settings = {
     "duplicate_timestamp": {'keep': False}, #No numeric settings
     "missing_timestamp": {},
     
+    "persistance": {'temp': {'max_num_of_seconds': 5400}},
+    
     #checks on specific observation types
     "gross_value": {'temp': {'min_value': -15.0,
                              'max_value': 39.0},
                     },
-    "persistance": {'temp': {'max_valid_repetitions': 5}},
+    "repetitions": {'temp': {'max_valid_repetitions': 5}},
     
     "step": {'temp': {'max_value': 4}},
     
@@ -33,7 +35,8 @@ outlier_values = {
     "missing_timestamp": nan,
     "duplicate_timestamp": nan, 
     "gross_value": nan,
-    "persistance": nan,   
+    "persistance": nan, 
+    "repetitions": nan,
     "step": nan,
     "internal_consistency": nan
     }
@@ -46,6 +49,7 @@ observation_labels={
     'duplicated_timestamp': 'duplicated timestamp outlier',
     'gross_value': 'gross value outlier',
     'persistance': 'persistance outlier',
+    'repetitions': 'repetitions outlier',
     'step': 'step outlier',
     'internal_consistency': 'internal consistency outlier'
 
@@ -62,7 +66,8 @@ numeric_label_mapper={
     'missing timestamp': 1,
     'duplicated timestamp outlier': 2,
     'gross value outlier': 3,
-    'persistance outlier': 4 
+    'persistance outlier': 4,
+    'repetitions outlier': 5
     
     }
 

@@ -19,7 +19,7 @@ from .data_import import coarsen_time_resolution
 from .landcover_functions import geotiff_point_extraction
 from .geometry_functions import find_largest_extent
 from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot, qc_stats_pie
-from .qc_checks import gross_value_check, persistance_check, missing_timestamp_check, duplicate_timestamp_check
+from .qc_checks import gross_value_check, persistance_check, repetitions_check, missing_timestamp_check, duplicate_timestamp_check
 from .qc_checks import step_check, internal_consistency_check
 from .statistics import get_qc_effectiveness_stats
 
@@ -446,6 +446,7 @@ class Dataset:
             checked_obs, qc_flags = gross_value_check(input_series = self.df[obstype],
                                                 obstype=obstype,
                                                 ignore_val=ignore_val)
+            
             #update the dataset
             self.df[obstype] = checked_obs
             label_column_name = qc_flags.name
@@ -751,11 +752,21 @@ class Dataset:
         metadf = metadf[~metadf.index.duplicated(keep='first')]#drop dubplicates due to datetime
         
         self.metadf = metadf_to_gdf(metadf)
-       
+        
         #Check import
         self.df = duplicate_timestamp_check(df=self.df)
         self.df = missing_timestamp_check(df=self.df)
-        print(self.df)
+        checked_obs_persistance, qc_flags_persistance = persistance_check(self.df, 'temp')
+        self.df['temp'] = checked_obs_persistance
+        label_column_name = qc_flags_persistance.name
+        self.df[label_column_name] = qc_flags_persistance
+        
+        checked_obs_repetitions, qc_flags_repetitions = repetitions_check(self.df['temp'], 'temp')
+        self.df['temp'] = checked_obs_repetitions
+        label_column_name = qc_flags_repetitions.name
+        self.df[label_column_name] = qc_flags_repetitions
+       
+        print(self.df.iloc[:50,])
         
         #get LCZ values (if coords are availible)
         self.metadf =  get_lcz(self.metadf)
