@@ -39,7 +39,7 @@ dataset.apply_quality_control(obstype='temp',
                                             )
 
 
-dataset.add_final_qc_labels()
+dataset.get_final_qc_labels()
 
 
 

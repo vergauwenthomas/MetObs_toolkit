@@ -620,26 +620,17 @@ class Dataset:
         self.outliersdf[previous_performed_checks_columns] = self.outliersdf[previous_performed_checks_columns].fillna(value='ok')
         self.outliersdf[new_performed_checks_columns] = self.outliersdf[new_performed_checks_columns].fillna(value='not checked')
     
-    # def add_final_qc_labels(self):
-    #     """
-    #     Add a final qualty label per quality-checked observation type to
-    #     the dataset.df.
-
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-    #     #add final quality labels
+    def get_final_qc_labels(self):
+        """
+       
+        """
+        #add final quality labels
     
-    #     final_labels = final_qc_label_maker(df = self.df,
-    #                                         label_to_numeric_mapper = Settings.qc_numeric_label_mapper)
-    #     if isinstance(final_labels, type(pd.Series())):
-    #         final_labels = final_labels.to_frame()
-            
-    #     for final_label_column in final_labels.columns:
-    #         self.df[final_label_column] = final_labels[final_label_column]
-            
+        outldf = add_final_label_to_outliersdf(outliersdf=self.outliersdf,
+                                               gapsdf=self.gapsdf,
+                                               data_res_series=self.metadf['dataset_resolution'])
+        
+        return outldf
         
         
     # =============================================================================
@@ -744,7 +735,8 @@ class Dataset:
         df = df.set_index(['name', df.index])
         
         
-        self.update_dataset_by_df(df, coarsen_timeres)
+        self.update_dataset_by_df(dataframe = df, 
+                                  coarsen_timeres=coarsen_timeres)
         
     
     def import_data_from_database(self,
@@ -804,7 +796,7 @@ class Dataset:
             logger.warning('There is an unknown station in the dataset (probaply due to an ID that is not present in the metadata file). This will be removed.')
             df = df[~df.index.get_level_values('name').isnull()]
         
-        self.update_dataset_by_df(df, coarsen_timeres)
+        self.update_dataset_by_df(dataframe=df, coarsen_timeres=coarsen_timeres)
         
         
    
@@ -863,8 +855,7 @@ class Dataset:
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df, missing_outl_df])
        
         if coarsen_timeres:
-            self.coarsen_time_resolution(df=self.df,
-                                          freq=Settings.target_time_res,
+            self.coarsen_time_resolution(freq=Settings.target_time_res,
                                           method=Settings.resample_method,
                                           limit=Settings.resample_limit)
             
@@ -1060,8 +1051,9 @@ def add_final_label_to_outliersdf(outliersdf, gapsdf, data_res_series):
     gaps_exploded = gaps_to_outlier_format(gapsdf, data_res_series)
     outliersdf = pd.concat([outliersdf, gaps_exploded])
     #fill Nan's by 'ok'
-    outliersdf[Settings.qc_checks_info['gaps_finder']['label_columnname']].fillna(value='ok',
-                                                                      inplace=True)
+    if Settings.qc_checks_info['gaps_finder']['label_columnname'] in outliersdf.columns:
+        outliersdf[Settings.qc_checks_info['gaps_finder']['label_columnname']].fillna(value='ok',
+                                                                                      inplace=True)
     
     # order columns
     labels_columns = [column for column in outliersdf.columns if not column in observation_types]
