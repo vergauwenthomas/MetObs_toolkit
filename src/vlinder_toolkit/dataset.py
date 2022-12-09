@@ -401,8 +401,8 @@ class Dataset:
     # =============================================================================
     
     def apply_quality_control(self, obstype='temp',
-                              gross_value=True, persistance=True,
-                              step=True, internal_consistency=True, ignore_val=np.nan):
+                              gross_value=True, persistance=False, repetitions=False,
+                              step=True, internal_consistency=False, ignore_val=np.nan):
         """
         Apply quality control methods to the dataset. The default settings are used, and can be changed
         in the settings_files/qc_settings.py
@@ -436,8 +436,34 @@ class Dataset:
         """
         #TODO save init observations
         
+        if persistance:
+            print('Applying the persistance-check on all stations.')
+            logger.info('Applying persistance check on the full dataset')
+           
+            checked_obs, qc_flags = persistance_check(input_series=self.df[obstype],
+                                                      obstype=obstype,
+                                                      ignore_val=ignore_val)
+
+            #update the dataset
+            self.df[obstype] = checked_obs
+            label_column_name = qc_flags.name
+            self.df[label_column_name] = qc_flags
        
         
+        if repetitions:
+           print('Applying the repetitions-check on all stations.')
+           logger.info('Applying repetitions check on the full dataset')
+          
+           checked_obs, qc_flags = repetitions_check(input_series=self.df[obstype],
+                                                     obstype=obstype,
+                                                     ignore_val=ignore_val)
+           
+           #update the dataset
+           self.df[obstype] = checked_obs
+           label_column_name = qc_flags.name
+           self.df[label_column_name] = qc_flags
+           
+            
         if gross_value:
             print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
@@ -452,18 +478,6 @@ class Dataset:
             label_column_name = qc_flags.name
             self.df[label_column_name] = qc_flags
             
-        if persistance:
-            print('Applying the persistance-check on all stations.')
-            logger.info('Applying persistance check on the full dataset')
-           
-            checked_obs, qc_flags = persistance_check(input_series=self.df[obstype],
-                                                      obstype=obstype,
-                                                      ignore_val=ignore_val)
-
-            #update the dataset
-            self.df[obstype] = checked_obs
-            label_column_name = qc_flags.name
-            self.df[label_column_name] = qc_flags
             
             
         if step:
@@ -478,6 +492,7 @@ class Dataset:
             self.df[obstype] = checked_obs
             label_column_name = qc_flags.name
             self.df[label_column_name] = qc_flags
+            
             
         if internal_consistency:
             print('Applying the internal-concsistency-check on all stations.')
@@ -756,17 +771,18 @@ class Dataset:
         #Check import
         self.df = duplicate_timestamp_check(df=self.df)
         self.df = missing_timestamp_check(df=self.df)
-        checked_obs_persistance, qc_flags_persistance = persistance_check(self.df, 'temp')
+        
+        checked_obs_persistance, qc_flags_persistance = persistance_check(self.df['temp'], 'temp')
         self.df['temp'] = checked_obs_persistance
         label_column_name = qc_flags_persistance.name
         self.df[label_column_name] = qc_flags_persistance
+        
         
         checked_obs_repetitions, qc_flags_repetitions = repetitions_check(self.df['temp'], 'temp')
         self.df['temp'] = checked_obs_repetitions
         label_column_name = qc_flags_repetitions.name
         self.df[label_column_name] = qc_flags_repetitions
        
-        print(self.df.iloc[:50,])
         
         #get LCZ values (if coords are availible)
         self.metadf =  get_lcz(self.metadf)

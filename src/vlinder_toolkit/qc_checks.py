@@ -160,7 +160,7 @@ def make_checked_obs_and_labels_series(checked_obs_series,ignored_obs_series,
 # =============================================================================
 def missing_timestamp_check(df):
     """
-    Looking for missing timestaps by assuming an observation frequency. The assumed frequency is the most occuring frequency PER STATION.
+    Looking for missing timestaps by assuming an observation frequency. The assumed frequency is the highest frequency PER STATION.
     If missing observations are detected, the observations dataframe is extended by these missing timestamps with Nan's as filling values.
 
     Parameters
@@ -170,8 +170,8 @@ def missing_timestamp_check(df):
 
     Returns
     -------
-    df : pandas.DataFrame()
-        The observations dataframe updated for missing timestamps (values updated + quality flag column added).
+    df : pandas.DataFrame
+        The observations dataframe updated for missing timestamps. Missing timestamps are added and labeled.
 
     """     
     
@@ -201,13 +201,14 @@ def missing_timestamp_check(df):
         
        
     df = df.sort_index()
+    
     return df
     
 
         
 def duplicate_timestamp_check(df):
     """
-    Looking for duplcate timestaps per station. Duplicated records are removed by the method specified in the qc_settings. 
+    Looking for duplicate timestaps per station. Duplicated records are removed by the method specified in the qc_settings. 
 
     Parameters
     ----------
@@ -217,7 +218,7 @@ def duplicate_timestamp_check(df):
     Returns
     -------
     df : pandas.DataFrame()
-        The observations dataframe updated for missing timestamps (values updated + quality flag column added).
+        The observations dataframe updated for duplicate timestamps. Duplicated timestamps are removed.
 
     """     
     
@@ -226,7 +227,7 @@ def duplicate_timestamp_check(df):
     
     duplicates = pd.Series(data=df.index.duplicated(keep=check_settings[checkname]['keep']),
                            index=df.index)
-
+    
     if not df.loc[duplicates].empty:
         logging.warning(f' Following records are labeld as duplicates: {df.loc[duplicates]}, and are removed')
     
@@ -240,7 +241,31 @@ def duplicate_timestamp_check(df):
 # =============================================================================
 
 
-def gross_value_check(input_series, obstype, ignore_val=np.nan):
+def gross_value_check(input_series, obstype='temp', ignore_val=np.nan):
+    """
+    Looking for values of an observation type that are not physical. These values are labeled and the physical limits are specified in the qc_settings. 
+
+    Parameters
+    ----------
+    input_series : pandas.Series
+        The observations series of the dataset object
+        
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
+        
+    ignore_val: String, optional
+        The value of the elements that should be ignored when applying this check. The default is np.nan.
+
+    Returns
+    -------
+    updated_obs_series : pandas.Series
+        The observations series updated for this check. Observations that didn't pass the check are labeled as nan.
+        
+    qc_flags_series : pandas.Series
+        Series that indicates which observations are flagged by this check.
+
+    """  
+    
     checkname = 'gross_value'
     
     try:
@@ -279,7 +304,31 @@ def gross_value_check(input_series, obstype, ignore_val=np.nan):
 
 
 
-def persistance_check(input_series, obstype, ignore_val=np.nan):
+def persistance_check(input_series, obstype='temp', ignore_val=np.nan):
+    """
+    Looking for values of an observation type that are repeated at least for the time interval specified in the qc_settings. These values are labeled.
+
+    Parameters
+    ----------
+    input_series : pandas.Series
+        The observations series of the dataset object
+        
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
+        
+    ignore_val: String, optional
+        The value of the elements that should be ignored when applying this check. The default is np.nan.
+
+    Returns
+    -------
+    updated_obs_series : pandas.Series
+        The observations series updated for this check. Observations that didn't pass the check are labeled as nan.
+        
+    qc_flags_series : pandas.Series
+        Series that indicates which observations are flagged by this check.
+
+    """  
+    
     checkname = 'persistance'
     
     try:
@@ -292,35 +341,60 @@ def persistance_check(input_series, obstype, ignore_val=np.nan):
     
     
     stationnames = input_series.index.get_level_values(level='name').unique()
-    list_of_dates = []
+    list_of_indices = []
     for station in stationnames:
         timestamps = input_series.xs(station, level='name').index
-        num_elements_per_window = math.ceil(check_settings[checkname][obstype]['max_num_of_seconds']/((timestamps[1]-timestamps[0]).total_seconds())) + 1
+        num_elements_per_window = math.ceil(specific_settings['max_num_of_seconds']/((timestamps[1]-timestamps[0]).total_seconds())) + 1
         
         if (num_elements_per_window < 5):
             print(f'The time resolution is too low for performing the persistance check on station {station}')
             break
         
         
-        for window in input_series[obstype].rolling(int(num_elements_per_window), center=True):
+        for window in input_series.rolling(int(num_elements_per_window), center=True):
             if (window.isna().sum() < math.ceil(int(num_elements_per_window)/2)) & (len(window.dropna().unique()) == 1):
-                list_of_dates.extend(window.index)
-        
-    updated_obs_series, qc_flags_series = make_checked_obs_and_labels_series(checked_obs_series=input_series[obstype],
+                list_of_indices.extend(window.dropna().index)
+   
+    updated_obs_series, qc_flags_series = make_checked_obs_and_labels_series(checked_obs_series=input_series,
                                                                     ignored_obs_series=pd.Series(), 
-                                                                    outlier_obs=list_of_dates,
+                                                                    outlier_obs=list(set(list_of_indices)),
                                                                     checkname=checkname,
                                                                     outlier_label=observation_labels[checkname],
                                                                     outlier_value=outlier_values[checkname],
                                                                     obstype=obstype)
     
-    qc_flags_series.loc[input_series['missing_timestamp_label'][input_series['missing_timestamp_label'] == 'missing timestamp'].index] = 'not checked'
+    qc_flags_series.loc[input_series[input_series.isna()].index] = 'not checked'
+    
     
     return updated_obs_series, qc_flags_series
       
 
 
-def repetitions_check(input_series, obstype, ignore_val=np.nan):
+def repetitions_check(input_series, obstype='temp', ignore_val=np.nan):
+    """
+    Looking for values of an observation type that are repeated at least with the frequency specified in the qc_settings. These values are labeled.
+
+    Parameters
+    ----------
+    input_series : pandas.Series
+        The observations series of the dataset object
+        
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
+        
+    ignore_val: String, optional
+        The value of the elements that should be ignored when applying this check. The default is np.nan.
+
+    Returns
+    -------
+    updated_obs_series : pandas.Series
+        The observations series updated for this check. Observations that didn't pass the check are labeled as nan.
+        
+    qc_flags_series : pandas.Series
+        Series that indicates which observations are flagged by this check.
+
+    """  
+    
     checkname = 'repetitions'
     
     try:
@@ -337,14 +411,14 @@ def repetitions_check(input_series, obstype, ignore_val=np.nan):
     #Split into two sets
     # to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
     #                                                              ignore_val)
-    #  Because np.nan != np.nan, the nan's have always an persistance counter of 1
+    #  Because np.nan != np.nan, the nan's have always a repetitions counter of 1
     #  To make shure that the shift() is one hour late, it is thus easier to apply this
     #  check on all input observations, and split the dataset later to be consistent
     #  for the labels.
     
     
     #find outlier datetimes
-    print('a')
+  
     #make consec groups
     grouped = input_series.groupby(['name', (input_series.shift() != input_series).cumsum()]) 
     #the above line groups the observations which have the same value and consecutive datetimes.
@@ -381,25 +455,28 @@ def repetitions_check(input_series, obstype, ignore_val=np.nan):
 
 def step_check(input_series, obstype='temp', ignore_val=np.nan):   
     """
-    @MICHIEL
+    Looking for jumps of the values of an observation type that are larger than the limit specified in the qc_settings. These values are labeled.
 
     Parameters
     ----------
-    input_series : TYPE
-        DESCRIPTION.
-    obstype : TYPE, optional
-        DESCRIPTION. The default is 'temp'.
-    ignore_val : TYPE, optional
-        DESCRIPTION. The default is np.nan.
+    input_series : pandas.Series
+        The observations series of the dataset object
+        
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
+        
+    ignore_val: String, optional
+        The value of the elements that should be ignored when applying this check. The default is np.nan.
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
+    updated_obs_series : pandas.Series
+        The observations series updated for this check. Observations that didn't pass the check are labeled as nan.
+        
+    qc_flags_series : pandas.Series
+        Series that indicates which observations are flagged by this check.
 
-    """
+    """ 
     checkname='step'
     
     try:
@@ -414,11 +491,11 @@ def step_check(input_series, obstype='temp', ignore_val=np.nan):
     
     
     #Do not split in advace, so no gabs appear in the dataset!! Split afterwards for labeling consistency
-    
+   
     outl_obs = []
     for _station, obs in input_series.groupby(level='name'):
         increaments = input_series.shift(1) - input_series
-        outl_obs.extend(increaments[abs(increaments) > specific_settings['max_value']].index.to_list())
+        outl_obs.append(increaments[abs(increaments) > (specific_settings['max_change_per_second']*(input_series.index.droplevel('name')[1]-input_series.index.droplevel('name')[0]).total_seconds())].index.to_list()[0])
         
     # Split into two sets
     to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,

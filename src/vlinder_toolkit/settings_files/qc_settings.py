@@ -24,7 +24,7 @@ check_settings = {
                     },
     "repetitions": {'temp': {'max_valid_repetitions': 5}},
     
-    "step": {'temp': {'max_value': 4}},
+    "step": {'temp': {'max_change_per_second': 0.01}},
     
     "internal_consistency": {'temp': {'b': 18.678,
                              'c': 257.14, 'd': 234.5}} 
