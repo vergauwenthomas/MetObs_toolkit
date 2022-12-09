@@ -15,11 +15,9 @@ from datetime import timedelta
 import logging
 
 # from .stations import Station, Dataset
-from .settings import Settings
-# from .settings_files.qc_settings import check_settings, checks_info
+# from .settings import Settings
+from .settings_files.qc_settings import check_settings, checks_info
 
-check_settings = Settings.qc_check_settings
-checks_info = Settings.qc_checks_info
 
 
 logger = logging.getLogger(__name__)
