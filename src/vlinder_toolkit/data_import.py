@@ -63,32 +63,32 @@ def compress_dict(nested_dict, valuesname):
 
 
 
-def coarsen_time_resolution(df, freq='H', method='bfill'):
+# def coarsen_time_resolution(df, freq='H', method='bfill'):
     
-    #TODO: implement buffer method
+#     #TODO: implement buffer method
     
-    if method=='bfill':
-        #apply per station
-        resample_df = pd.DataFrame()
-        for stationname in df['name'].unique():
-            subdf = df[df['name'] == stationname]
+#     if method=='bfill':
+#         #apply per station
+#         resample_df = pd.DataFrame()
+#         for stationname in df['name'].unique():
+#             subdf = df[df['name'] == stationname]
             
             
-            #  Check if index is unique
-            if not subdf.index.is_unique:
-                print('Duplicate timestamp found !!, this will be removed')
-                dup_mask = subdf.index.duplicated(keep='first')
-                subdf = subdf[~dup_mask]
-                subdf = subdf.sort_index()
+#             #  Check if index is unique
+#             if not subdf.index.is_unique:
+#                 print('Duplicate timestamp found !!, this will be removed')
+#                 dup_mask = subdf.index.duplicated(keep='first')
+#                 subdf = subdf[~dup_mask]
+#                 subdf = subdf.sort_index()
 
             
             
-            resample_subdf = subdf.resample(rule=freq,
-                                            axis='index').bfill()
+#             resample_subdf = subdf.resample(rule=freq,
+#                                             axis='index').bfill()
                              
-            resample_df = pd.concat([resample_df, resample_subdf])
+#             resample_df = pd.concat([resample_df, resample_subdf])
             
-        return resample_df
+#         return resample_df
     
 
 def import_metadata_from_csv(input_file, file_csv_template, template_list):
@@ -126,13 +126,18 @@ def import_metadata_from_csv(input_file, file_csv_template, template_list):
 
 def import_data_from_csv(input_file, file_csv_template, template_list ):
     
-    assert not isinstance(input_file, type(None)), "Specify input file in the settings!"    
-    df = pd.read_csv(input_file, sep=';')
     
+    commum_seperators = [';',',','    ']
+    assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
+    for sep in commum_seperators:
+        print(sep)
+        df = pd.read_csv(input_file, sep=sep)
+        assert not df.empty, "Dataset is empty!"
+        
+        if len(df.columns) > 1:
+            break
     
-    assert not df.empty, "Dataset is empty!"
-    
-    assert len(df.columns) > 1, 'Only one column detected from import. See if csv template is correct.'
+    assert len(df.columns) > 1, f'Only one column detected from import using these seperators: {commum_seperators}. See if csv template is correct.'
     
     
 

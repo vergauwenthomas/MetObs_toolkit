@@ -1,4 +1,5 @@
 {
-    "target_time_resolution": "H",
-    "method": "bfill"
+    "target_time_resolution": "1H",
+    "method": "nearest",
+    "limit": 1
 }

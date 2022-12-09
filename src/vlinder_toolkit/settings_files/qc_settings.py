@@ -7,18 +7,18 @@
 from numpy import nan
 
 
-
+#Numeric settings on how the checks performs
 check_settings = {
     
-    
+    "gaps_finder": {'gapsize_n': 40}, #gaps defined as n times the highest frequency on IO. 
     
     #checks on all observation types
-    "duplicate_timestamp": {'keep': 'first'}, #No numeric settings
+    "duplicated_timestamp": {'keep': False}, #No numeric settings (False: drop all duplicates)
     "missing_timestamp": {},
     
     #checks on specific observation types
     "gross_value": {'temp': {'min_value': -15.0,
-                             'max_value': 39.0},
+                             'max_value': 19.0},
                     },
     "persistance": {'temp': {'max_valid_repetitions': 5}},
     
@@ -29,41 +29,84 @@ check_settings = {
     }
 
 
-outlier_values = {
-    "missing_timestamp": nan,
-    "duplicate_timestamp": nan, 
-    "gross_value": nan,
-    "persistance": nan,   
-    "step": nan,
-    "internal_consistency": nan
+#Information on the sequence of checks and if they are applied on all observations seperatly.
+
+#Labels are converted to numeric to compute a final quality label.
+# Numeric values are arbitrary for outliers (not for ok and not checked), but
+# should be invertible.
+#This is done for speeding up 
+checks_info={
+    # 1. --> on data import
+    'duplicated_timestamp':{'label_columnname': 'duplicated_timestamp_label',
+                            'outlier_flag': 'duplicated timestamp outlier',
+                            'numeric_flag': 1,
+                            'apply_on': 'record'
+                            },
+    # 2(A). --> on data import
+    'gaps_finder':{'label_columnname': 'gap_timestamp_label',
+                            'outlier_flag': 'missing timestamp (gap)',
+                            'numeric_flag': 2,
+                            'apply_on': 'record'
+                            },
+    # 2(B). --> on data import
+    'missing_timestamp':{'label_columnname': 'missing_timestamp_label',
+                            'outlier_flag': 'missing timestamp',
+                            'numeric_flag': 3,
+                            'apply_on': 'record'
+                            },
+    # 3. --> on observed values
+    'gross_value':{'label_columnname': 'gross_value_label', #Obstype_ is prefix
+                            'outlier_flag': 'gross value outlier',
+                            'numeric_flag': 4,
+                            'apply_on': 'obstype'
+                            },
+    # 4. --> on observed values
+    'persistance':{'label_columnname': 'persistance_label', #Obstype_ is prefix
+                            'outlier_flag': 'persistance outlier',
+                            'numeric_flag': 5,
+                            'apply_on': 'obstype'
+                            },
+    # 5. --> on observed values
+    'step':{'label_columnname': 'step_label', #Obstype_ is prefix
+                            'outlier_flag': 'step outlier',
+                            'numeric_flag': 6,
+                            'apply_on': 'obstype'
+                            },
+    
+    
+    
+    
+    
     }
 
 
 
-observation_labels={
-    'ok': 'ok',
-    'missing_timestamp': 'missing timestamp',
-    'duplicated_timestamp': 'duplicated timestamp outlier',
-    'gross_value': 'gross value outlier',
-    'persistance': 'persistance outlier',
-    'step': 'step outlier',
-    'internal_consistency': 'internal consistency outlier'
 
-    }
+# observation_labels={
+#     'missing_timestamp': 'missing timestamp',
+#     'gap_timestamp': 'missing timestamp (gap)',
+#     'duplicated_timestamp': 'duplicated timestamp outlier',
+#     'gross_value': 'gross value outlier',
+#     'persistance': 'persistance outlier',
+#     'step': 'step outlier',
+#     'internal_consistency': 'internal consistency outlier'
+
+    # }
 
 
 #Labels are converted to numeric to compute a final quality label.
 # Numeric values are arbitrary for outliers (not for ok and not checked), but
 # should be invertible.
 #This is done for speeding up 
-numeric_label_mapper={
-    'ok': 0,
-    'not checked': nan,
-    'missing timestamp': 1,
-    'duplicated timestamp outlier': 2,
-    'gross value outlier': 3,
-    'persistance outlier': 4 
-    
-    }
+# numeric_label_mapper={
+#     'ok': 0,
+#     'not checked': nan,
+#     'missing timestamp': 1,
+#     'missing timestamp (gap)': 2,
+#     'duplicated timestamp outlier': 3,
+#     'gross value outlier': 4,
+#     'persistance outlier': 5,
+#     'step outlier':6,
+#     }
 
 
