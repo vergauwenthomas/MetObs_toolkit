@@ -18,7 +18,7 @@ check_settings = {
     
     #checks on specific observation types
     "gross_value": {'temp': {'min_value': -15.0,
-                             'max_value': 19.0},
+                             'max_value': 39.0},
                     },
     "persistance": {'temp': {'max_valid_repetitions': 5}},
     

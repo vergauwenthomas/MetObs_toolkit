@@ -130,7 +130,6 @@ def import_data_from_csv(input_file, file_csv_template, template_list ):
     commum_seperators = [';',',','    ']
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
     for sep in commum_seperators:
-        print(sep)
         df = pd.read_csv(input_file, sep=sep)
         assert not df.empty, "Dataset is empty!"
         
