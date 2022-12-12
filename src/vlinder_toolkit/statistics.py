@@ -64,7 +64,7 @@ def get_qc_effectiveness_stats(outliersdf, df, obstype, observation_types, qc_la
         obs_labels_mappers['gap_timestamp_label'] = {
                         'ok': 'ok',
                         'not checked': 'not checked',
-                        'outlier': qc_labels['gap_timestamp'],
+                        'outlier': qc_labels['gaps_finder'],
                         'checkname': 'gap_timestamp'}
         
     
