@@ -188,6 +188,7 @@ def missing_timestamp_and_gap_check(df):
         #find missing timestamps
         timestamps = df.xs(station, level='name').index
         likely_freq = get_likely_frequency(timestamps)
+       
         assert not likely_freq.seconds == 0, f'The highest records frequency is {likely_freq}, probably due to duplicates. Apply duplicate check first!' 
         
         station_freqs[station] = likely_freq
@@ -195,6 +196,7 @@ def missing_timestamp_and_gap_check(df):
         missing_datetimeseries = pd.date_range(start = timestamps.min(),
                                                 end = timestamps.max(),
                                                 freq=likely_freq).difference(timestamps).to_series().diff()
+        
         
         # print(f'station: {station} has {missing_datetimeseries.shape[0]} missing records')
         #add missing datetimes to the df
@@ -208,11 +210,11 @@ def missing_timestamp_and_gap_check(df):
         df = pd.concat([df, outlier_sub_df])
         
         
-        
         #Check for gaps
         gap_defenition = ((missing_datetimeseries != missing_datetimeseries.shift()) | (missing_datetimeseries != likely_freq)).cumsum()
         consec_missing_groups = missing_datetimeseries.groupby(gap_defenition)
         group_sizes = consec_missing_groups.size()
+        
         gap_groups = group_sizes[group_sizes > check_settings['gaps_finder']['gapsize_n']]
         
         #iterate over the gabs and fill the gapsdf
@@ -225,6 +227,7 @@ def missing_timestamp_and_gap_check(df):
                                                   datetime_of_gap_records.max()]],
                                             index=[station],
                                             columns=['start_gap', 'end_gap'])])
+            
             logger.debug(f'Data gap from {datetime_of_gap_records.min()} --> {datetime_of_gap_records.max()} found for {station}.')
             gap_indices.extend(list(zip([station]*datetime_of_gap_records.shape[0],
                                         datetime_of_gap_records)))
@@ -243,6 +246,7 @@ def missing_timestamp_and_gap_check(df):
                                            values_in_dict={column: np.nan for column in df.columns},
                                            flagcolumnname=checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
+    
     #remove missing timestamps from observations
     df = df.drop(missing_timestamp_indices)
         
@@ -294,8 +298,6 @@ def duplicate_timestamp_check(df):
                                           values_in_dict = outliers.to_dict(orient='series'),
                                           flagcolumnname=checks_info[checkname]['label_columnname'],
                                           flag=checks_info[checkname]['outlier_flag'])
-    
-    
     
     #Remove duplicates from the observations
     df = df[~df.index.duplicated(keep=check_settings[checkname]['keep'])]
@@ -357,7 +359,8 @@ def gross_value_check(input_series, obstype):
                                            values_in_dict={obstype:input_series.loc[outl_obs]},
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
-         
+    
+    
     #drop outliers from input series
     input_series = input_series.drop(outl_obs)
     
@@ -414,8 +417,8 @@ def persistance_check(input_series, obstype):
                                                                             center=True,
                                                                             min_periods=specific_settings['min_num_obs']).apply(is_unique)
 
-    
     outl_obs = step_output.loc[step_output[obstype] == True].index
+    print(outl_obs)
 
     
     #Create outlier df

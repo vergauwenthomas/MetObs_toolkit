@@ -866,7 +866,8 @@ class Dataset:
         
 
         #TODO: How to implement the choise to apply QC on import freq or on coarsened frequency
-       
+        self.df = df.sort_index()
+        
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
         self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
        
