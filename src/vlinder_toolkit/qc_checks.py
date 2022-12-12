@@ -473,16 +473,15 @@ def repetitions_check(input_series, obstype):
    
     time_diff = input_series.index.get_level_values('datetime').to_series().diff()
     time_diff.index = input_series.index #back to multiindex
-   
     
-    persistance_filter = ((input_series.shift() != input_series) & 
-                          (time_diff.shift() == time_diff)).cumsum()
+    persistance_filter = ((input_series.shift() != input_series)).cumsum()
     
 
     grouped = input_series.groupby(['name', persistance_filter]) 
     #the above line groups the observations which have the same value and consecutive datetimes.
     group_sizes = grouped.size()
     outlier_groups = group_sizes[group_sizes > specific_settings['max_valid_repetitions']]
+    
 
     
     #add to outl_obs.
