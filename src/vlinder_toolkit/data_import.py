@@ -5,13 +5,15 @@ Created on Thu Sep 22 16:24:06 2022
 
 @author: thoverga
 """
-import sys
+import sys, os
 # import json
 # import datetime
 import pandas as pd
 
 import mysql.connector
 from mysql.connector import errorcode
+from pathlib import Path
+from .data_templates.import_templates import read_templates
 
 
 def template_to_package_space(specific_template):
@@ -155,20 +157,28 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
 
     # import template
     templ = file_csv_template
+    template_file = '/home/mivieijra/Documents/CLIMPACTH/toolkit/vlinder_toolkit/tests/test_data/template_breaking.xls'
+    templ = read_templates(template_file)[0]
     if isinstance(templ, type(None)): #No default template is given
+        
         templ = find_compatible_templatefor(df_columns=df.columns,
                                             template_list=template_list)
+       
 
     #Check if template is compatible and find other if needed
     if not all(keys in list(df.columns) for keys in templ.keys()):
         print('Default template is not compatible, scanning for other templates ...')
+        
+        
         templ = find_compatible_templatefor(df_columns=df.columns,
                                             template_list=template_list)
     
     
     for key, value in templ.items():
         if value['dtype'] == 'float64':
+            
             df[key] = pd.to_numeric(df[key], errors='coerce')
+            
         
     
     # rename columns to toolkit attriute names
