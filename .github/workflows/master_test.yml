@@ -30,4 +30,5 @@ jobs:
             python tests/push_test/basic_import_test.py
             python tests/push_test/IO_test.py
             python tests/push_test/qc_test.py
+            python tests/push_test/breaking_test.py
      
