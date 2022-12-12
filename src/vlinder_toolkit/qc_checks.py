@@ -200,18 +200,18 @@ def missing_timestamp_and_gap_check(df):
         
         # print(f'station: {station} has {missing_datetimeseries.shape[0]} missing records')
         #add missing datetimes to the df
-        multi_idx = pd.MultiIndex.from_arrays(arrays=[[station]*missing_datetimeseries.shape[0], missing_datetimeseries.index.to_list()],
-                                              sortorder=1,
-                                              names=['name', 'datetime'])
-        outlier_sub_df = pd.DataFrame(data=None,
-                                             index=multi_idx, 
-                                             columns=None)
+        #multi_idx = pd.MultiIndex.from_arrays(arrays=[[station]*missing_datetimeseries.shape[0], missing_datetimeseries.index.to_list()],
+                                              #sortorder=1,
+                                              #names=['name', 'datetime'])
+        #outlier_sub_df = pd.DataFrame(data=None,
+                                             #index=multi_idx, 
+                                             #columns=None)
        
-        df = pd.concat([df, outlier_sub_df])
+        #df = pd.concat([df, outlier_sub_df])
         
         
         #Check for gaps
-        gap_defenition = ((missing_datetimeseries != missing_datetimeseries.shift()) | (missing_datetimeseries != likely_freq)).cumsum()
+        gap_defenition = ((missing_datetimeseries != likely_freq)).cumsum()
         consec_missing_groups = missing_datetimeseries.groupby(gap_defenition)
         group_sizes = consec_missing_groups.size()
         
@@ -238,9 +238,9 @@ def missing_timestamp_and_gap_check(df):
             datetime_of_missing_records=consec_missing_groups.get_group(missing_idx).index
             missing_timestamp_indices.extend(list(zip([station]*datetime_of_missing_records.shape[0],
                                         datetime_of_missing_records)))
-        
+    
     # remove gaps from the observations
-    df = df.drop(gap_indices)
+    #df = df.drop(gap_indices)
     # convert missing datetimes to outliers
     outlier_df = make_outlier_df_for_check(station_dt_list=missing_timestamp_indices,
                                            values_in_dict={column: np.nan for column in df.columns},
@@ -248,7 +248,7 @@ def missing_timestamp_and_gap_check(df):
                                            flag=checks_info[checkname]['outlier_flag'])
     
     #remove missing timestamps from observations
-    df = df.drop(missing_timestamp_indices)
+    #df = df.drop(missing_timestamp_indices)
         
         
     #Sort dataframes
@@ -418,7 +418,7 @@ def persistance_check(input_series, obstype):
                                                                             min_periods=specific_settings['min_num_obs']).apply(is_unique)
 
     outl_obs = step_output.loc[step_output[obstype] == True].index
-    print(outl_obs)
+
 
     
     #Create outlier df
@@ -491,7 +491,6 @@ def repetitions_check(input_series, obstype):
         groupseries = grouped.get_group(group_idx)
         if len(set(groupseries)) == 1: #Check if all observations are equal in group
             outl_obs.extend(groupseries.index.to_list())
-    
     
     #Create outlier df
     outlier_df = make_outlier_df_for_check(station_dt_list=outl_obs,
