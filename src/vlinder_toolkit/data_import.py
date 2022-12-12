@@ -157,7 +157,8 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
 
     # import template
     templ = file_csv_template
-    template_file = '/home/mivieijra/Documents/CLIMPACTH/toolkit/vlinder_toolkit/tests/test_data/template_breaking.xls'
+    lib_folder = Path(__file__).resolve().parents[2]
+    template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.xls')
     templ = read_templates(template_file)[0]
     if isinstance(templ, type(None)): #No default template is given
         
