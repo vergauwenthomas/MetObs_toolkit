@@ -17,8 +17,8 @@ check_settings = {
 
     "missing_timestamp": {},
     
-    "persistance": {'temp': {'time_window_of_assumed_change': 5400,#in seconds
-                             'minimum_numer': 5}}, #Minimum numer of records in window to perform check
+    "persistance": {'temp': {'time_window_of_assumed_change': "1h30min",# Use this format as example: "1h20min50s"
+                             'min_num_obs': 5}}, #Minimum numer of records in window to perform check
     
     "repetitions": {'temp': {'max_valid_repetitions': 5}},
     
@@ -28,10 +28,11 @@ check_settings = {
                     },
    
     
-    "step": {'temp': {'max_increase_per_second': 8.0/3600.0, #== max 8° change in one hour
-                      'max_decrease_per_second': 10.0/3600.0,
-                      'min_window_members': 3,
-                      'max_window_members': 5}
+    "step": {'temp': {'max_increase_per_second': 8.0/3600.0, #== max 8° (increase) change in 3600 seconds (==one hour)
+                      'max_decrease_per_second': 10.0/3600.0, #== max 10° (decrease) change in 3600 seconds (==one hour)
+                      'time_window_to_check': "1h", #Use this format as example: "1h20min50s" 
+                      'min_window_members': 3, #Minimum numer of records in window to perform check
+                     }
              },
     
     "internal_consistency": {'temp': {'b': 18.678,

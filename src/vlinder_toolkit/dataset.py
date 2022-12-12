@@ -522,7 +522,7 @@ class Dataset:
             logger.info('Applying persistance check on the full dataset')
            
             checked_series, outl_df = persistance_check(input_series=self.df[obstype],
-                                                      obstype=obstype)
+                                                       obstype=obstype)
 
             #update the dataset and outliers
             self.df[obstype] = checked_series
@@ -533,7 +533,6 @@ class Dataset:
             logger.info('Applying step-check on the full dataset')
            
             checked_series, outl_df = step_check(input_series=self.df[obstype],
-                                                 dataset_resolution = self.metadf['dataset_resolution'],
                                                  obstype=obstype)
                                                       
 
@@ -614,11 +613,12 @@ class Dataset:
        
             
         #stats on datset level
+        qc_labels = {key: val['outlier_flag'] for key, val in Settings.qc_checks_info.items()}
         dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf,
                                                       df =df,
                                                       obstype=obstype,
                                                       observation_types = observation_types,
-                                                      qc_labels=Settings.qc_observation_labels)
+                                                      qc_labels=qc_labels)
     
         if make_plot:
             qc_stats_pie(qc_stats=dataset_qc_stats,

@@ -364,80 +364,73 @@ def gross_value_check(input_series, obstype):
     return input_series, outlier_df
 
 
+
 def persistance_check(input_series, obstype):
-    return input_series
-#     """
-#     V3
-#     Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
+
+    """
+    V3
+    Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
     
-#     In order to perform this check, at least N observations chould be in that time window.
+    In order to perform this check, at least N observations chould be in that time window.
     
 
-#     Parameters
-#     ----------
-#     input_series : pandas.Series
-#         The observations series of the dataset object
+    Parameters
+    ----------
+    input_series : pandas.Series
+        The observations series of the dataset object
         
-#     obstype: String, optional
-#         The observation type that has to be checked. The default is 'temp'.
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
         
 
-#         Returns
-#         -------
-#         updated_obs_series : pandas.Series
-#             The observations series updated for this check. Observations that didn't pass are removed.
+        Returns
+        -------
+        updated_obs_series : pandas.Series
+            The observations series updated for this check. Observations that didn't pass are removed.
             
-#         outlier_df : pandas.DataFrame
-#             The collection of records flagged as outliers by this check.
+        outlier_df : pandas.DataFrame
+            The collection of records flagged as outliers by this check.
 
-#     """  
+    """  
     
-#     checkname = 'persistance'
+    checkname = 'persistance'
     
-#     try:
-#         specific_settings = check_settings[checkname][obstype]
-#     except:
-#         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-#         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+    try:
+        specific_settings = check_settings[checkname][obstype]
+    except:
+        print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         
-#         return input_series, init_outlier_multiindexdf()
+        return input_series, init_outlier_multiindexdf()
     
+    #apply persistance
+    def is_unique(window):   #comp order of N (while using the 'unique' function is Nlog(N))
+        a = window.values
+        return (a[0] == a).all()
 
-#     stationnames = input_series.index.get_level_values(level='name').unique()
-#     list_of_indices = []
-#     for station in stationnames:
-#         timestamps = input_series.xs(station, level='name').index
-        # HIER BEZIG
-#         df.rolling('2s', min_periods=1).sum()
-        
-        
-#         num_elements_per_window = math.ceil(specific_settings['max_num_of_seconds']/((timestamps[1]-timestamps[0]).total_seconds())) + 1
-        
-#         if (num_elements_per_window < 5):
-#             print(f'The time resolution is too low for performing the persistance check on station {station}')
-#             break
-        
-        
-#         for window in input_series.rolling(int(num_elements_per_window), center=True):
-#             if (window.isna().sum() < math.ceil(int(num_elements_per_window)/2)) & (len(window.dropna().unique()) == 1):
-#                 list_of_indices.extend(window.dropna().index)
-   
-#     updated_obs_series, qc_flags_series = make_checked_obs_and_labels_series(checked_obs_series=input_series,
-#                                                                     ignored_obs_series=pd.Series(), 
-#                                                                     outlier_obs=list(set(list_of_indices)),
-#                                                                     checkname=checkname,
-#                                                                     outlier_label=observation_labels[checkname],
-#                                                                     outlier_value=outlier_values[checkname],
-#                                                                     obstype=obstype)
+ 
+    step_output = input_series.reset_index(level=0).groupby('name').rolling(window= specific_settings['time_window_of_assumed_change'],
+                                                                            closed='both',
+                                                                            center=True,
+                                                                            min_periods=specific_settings['min_num_obs']).apply(is_unique)
+
     
-#     qc_flags_series.loc[input_series[input_series.isna()].index] = 'not checked'
+    outl_obs = step_output.loc[step_output[obstype] == True].index
+
     
+    #Create outlier df
+    outlier_df = make_outlier_df_for_check(station_dt_list=outl_obs,
+                                           values_in_dict={obstype:input_series.loc[outl_obs]},
+                                           flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
+                                           flag=checks_info[checkname]['outlier_flag'])
     
-#     return updated_obs_series, qc_flags_series
+    #drop outliers from input series
+    input_series = input_series.drop(outl_obs)
+    return input_series, outlier_df
       
 
 
-def repetitions_check(input_series, obstype='temp'):
+def repetitions_check(input_series, obstype):
     """
     Looking for values of an observation type that are repeated at least with the frequency specified in the qc_settings. These values are labeled.
 
@@ -448,9 +441,7 @@ def repetitions_check(input_series, obstype='temp'):
         
     obstype: String, optional
         The observation type that has to be checked. The default is 'temp'.
-        
-    ignore_val: String, optional
-        The value of the elements that should be ignored when applying this check. The default is np.nan.
+    
 
     Returns
     -------
@@ -514,18 +505,27 @@ def repetitions_check(input_series, obstype='temp'):
 
 
 
-def step_check(input_series, dataset_resolution, obstype='temp'):   
+
+def step_check(input_series, obstype):   
     """
 
     V3
     Looking for jumps of the values of an observation type that are larger than the limit specified in the qc_settings. These values are removed from 
     the input series and combined in the outlier df.
+    
+    There is a increament threshold (that is if there is a max value difference and the maximum value occured later than the minimum value occured.) 
+    And vice versa is there a decreament threshold.
+    
+    The check is only applied if there are at leas N observations in the time window.
 
 
     Parameters
     ----------
     input_series : pandas.Series
         The observations series of the dataset object
+        
+    dataset_resolution: pandas.Series
+        The series containing the dataset time-resolution for all stations (as index).
         
     obstype: String, optional
         The observation type that has to be checked. The default is 'temp'.
@@ -547,18 +547,18 @@ def step_check(input_series, dataset_resolution, obstype='temp'):
         specific_settings = check_settings[checkname][obstype]
     except:
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-        # logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         return input_series, init_outlier_multiindexdf()
 
     
     
-    # Define window settings
-    highest_res = min(dataset_resolution)
-    windowsize = specific_settings['max_window_members'] * highest_res
-    
-    max_window_increase = specific_settings['max_increase_per_second'] * windowsize.total_seconds()
-    max_window_decrease = specific_settings['max_decrease_per_second'] * windowsize.total_seconds()
+    # Calculate window thresholds (by linear extarpolation)
+    windowsize_seconds = pd.Timedelta(specific_settings['time_window_to_check']).total_seconds()
+    max_window_increase = specific_settings['max_increase_per_second'] * windowsize_seconds
+    max_window_decrease = specific_settings['max_decrease_per_second'] * windowsize_seconds
 
+
+    #apply steptest
     def steptest(window):
         if ((max(window) - min(window) > max_window_increase) & 
             (window.idxmax() > window.idxmin())):
@@ -570,9 +570,7 @@ def step_check(input_series, dataset_resolution, obstype='temp'):
         else:
             return 0
 
-    
-    #apply steptest
-    step_output = input_series.reset_index(level=0).groupby('name').rolling(windowsize,
+    step_output = input_series.reset_index(level=0).groupby('name').rolling(window=specific_settings['time_window_to_check'],
                                                                             closed='both',
                                                                             center=True,
                                                                             min_periods=specific_settings['min_window_members']).apply(steptest)
