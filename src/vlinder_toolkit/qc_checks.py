@@ -206,9 +206,9 @@ def missing_timestamp_and_gap_check(df):
         #outlier_sub_df = pd.DataFrame(data=None,
                                              #index=multi_idx, 
                                              #columns=None)
-       
-        #df = pd.concat([df, outlier_sub_df])
         
+        #df = pd.concat([df, outlier_sub_df])
+       
         
         #Check for gaps
         gap_defenition = ((missing_datetimeseries != likely_freq)).cumsum()
@@ -247,6 +247,7 @@ def missing_timestamp_and_gap_check(df):
                                            flagcolumnname=checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
     
+    
     #remove missing timestamps from observations
     #df = df.drop(missing_timestamp_indices)
         
@@ -255,7 +256,8 @@ def missing_timestamp_and_gap_check(df):
     df = df.sort_index()
     outlier_df = outlier_df.sort_index()
     gap_df = gap_df.sort_index()
-
+    #df = pd.concat([df, outlier_df])
+    #print(df.sort_index())
     
     return df, outlier_df, gap_df, station_freqs
 
@@ -299,6 +301,7 @@ def duplicate_timestamp_check(df):
                                           flagcolumnname=checks_info[checkname]['label_columnname'],
                                           flag=checks_info[checkname]['outlier_flag'])
     
+    print(outlierdf)
     #Remove duplicates from the observations
     df = df[~df.index.duplicated(keep=check_settings[checkname]['keep'])]
     
@@ -353,14 +356,13 @@ def gross_value_check(input_series, obstype):
                                 (input_series >= specific_settings['max_value'])
                                 ].index.to_list()
     
-    
     #make outlierdf
     outlier_df = make_outlier_df_for_check(station_dt_list=outl_obs,
                                            values_in_dict={obstype:input_series.loc[outl_obs]},
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
     
-    
+    print(outlier_df)
     #drop outliers from input series
     input_series = input_series.drop(outl_obs)
     
@@ -408,17 +410,33 @@ def persistance_check(input_series, obstype):
     
     #apply persistance
     def is_unique(window):   #comp order of N (while using the 'unique' function is Nlog(N))
+        
+        if (window.isna().sum() < math.ceil(specific_settings['min_num_obs']/2)) & (len(window.dropna().unique()) == 1):
+            outl_obs.extend(window.index) 
+            print(window)
+    
         a = window.values
         return (a[0] == a).all()
-
- 
-    step_output = input_series.reset_index(level=0).groupby('name').rolling(window= specific_settings['time_window_of_assumed_change'],
-                                                                            closed='both',
-                                                                            center=True,
-                                                                            min_periods=specific_settings['min_num_obs']).apply(is_unique)
-
-    outl_obs = step_output.loc[step_output[obstype] == True].index
-
+        
+        
+    outl_obs = []
+    output = input_series.groupby('name', group_keys=False).rolling(window= specific_settings['time_window_of_assumed_change'],
+                                                                           closed='both',
+                                                                           center=True, on=input_series.index.levels[1],
+                                                                           min_periods=specific_settings['min_num_obs']).apply(is_unique)
+    outl_obs = list(set(outl_obs))
+        #if ((window.isna().sum() < math.ceil(specific_settings['min_num_obs']/2)) & (len(window[obstype].dropna().unique()) == 1)).bool():
+          #  outl_obs.extend(window.index)
+            
+    
+    #step_output = input_series.reset_index(level=0).groupby('name').rolling(window= specific_settings['time_window_of_assumed_change'],
+                                                                            #closed='both',
+                                                                            #center=True,
+                                                                            #min_periods=specific_settings['min_num_obs']).apply(is_unique)
+    
+    #print(step_output.iloc[:100,].to_string())
+    # = step_output.loc[step_output[obstype] == True].index
+   
 
     
     #Create outlier df
@@ -427,6 +445,7 @@ def persistance_check(input_series, obstype):
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
     
+    print(outlier_df)
     #drop outliers from input series
     input_series = input_series.drop(outl_obs)
     return input_series, outlier_df
@@ -497,6 +516,7 @@ def repetitions_check(input_series, obstype):
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
     
+    print(outlier_df)
     #drop outliers from input series
     input_series = input_series.drop(outl_obs)
     

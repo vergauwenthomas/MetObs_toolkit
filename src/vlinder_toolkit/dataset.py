@@ -870,6 +870,7 @@ class Dataset:
         
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
         self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
+        #print(self.df.iloc[:100,].to_string())
        
         #update outliersdf
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df, missing_outl_df])
