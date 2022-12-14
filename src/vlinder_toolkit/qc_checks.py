@@ -131,10 +131,12 @@ def get_freqency_series(df):
 
 
 def get_likely_frequency(timestamps):
-    assume_freq = timestamps.to_series().diff().value_counts().index.min()
+    assume_freq = abs(timestamps.to_series().diff().value_counts().index).sort_values(ascending=True)[0]
+    
     if assume_freq == pd.to_timedelta(0): #highly likely due to a duplicated record
         # select the second highest frequency
-        assume_freq = timestamps.to_series().diff().value_counts().sort_index(ascending=True).index[1]
+        assume_freq = abs(timestamps.to_series().diff().value_counts().index).sort_values(ascending=True)[1]
+    
     return assume_freq
     
 # =============================================================================
@@ -189,7 +191,7 @@ def missing_timestamp_and_gap_check(df):
         timestamps = df.xs(station, level='name').index
         likely_freq = get_likely_frequency(timestamps)
        
-        assert not likely_freq.seconds == 0, f'The highest records frequency is {likely_freq}, probably due to duplicates. Apply duplicate check first!' 
+        assert likely_freq.seconds > 0, f'The frequency is not positive!' 
         
         station_freqs[station] = likely_freq
         
@@ -301,7 +303,7 @@ def duplicate_timestamp_check(df):
                                           flagcolumnname=checks_info[checkname]['label_columnname'],
                                           flag=checks_info[checkname]['outlier_flag'])
     
-    print(outlierdf)
+   
     #Remove duplicates from the observations
     df = df[~df.index.duplicated(keep=check_settings[checkname]['keep'])]
     
@@ -436,8 +438,10 @@ def persistance_check(station_frequencies, input_series, obstype):
         outlier_sub_df = pd.DataFrame(data=None,
                                              index=multi_idx, 
                                              columns=None)
+        
+       
         intersection = outlier_sub_df.index.intersection(input_series.dropna().index).values
- 
+        
         list_of_outliers.extend(intersection)
         
     list_of_outliers = list(set(list_of_outliers))
@@ -447,7 +451,7 @@ def persistance_check(station_frequencies, input_series, obstype):
                                            values_in_dict={obstype:input_series.loc[list_of_outliers]},
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
-    
+    print(outlier_df)
   
     #drop outliers from input series
     input_series = input_series.drop(list_of_outliers)
@@ -580,7 +584,7 @@ def step_check(input_series, obstype):
     windowsize_seconds = pd.Timedelta(specific_settings['time_window_to_check']).total_seconds()
     max_window_increase = specific_settings['max_increase_per_second'] * windowsize_seconds
     max_window_decrease = specific_settings['max_decrease_per_second'] * windowsize_seconds
-
+    
 
     #apply steptest
     def steptest(window):

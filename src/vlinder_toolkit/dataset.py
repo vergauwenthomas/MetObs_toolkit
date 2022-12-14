@@ -521,8 +521,8 @@ class Dataset:
         if persistance:
             print('Applying the persistance-check on all stations.')
             logger.info('Applying persistance check on the full dataset')
-            
-            checked_series, outl_df = persistance_check(self.station_freqs, input_series=self.df[obstype],
+           
+            checked_series, outl_df = persistance_check(self.metadf['dataset_resolution'], input_series=self.df[obstype],
                                                         obstype=obstype)
 
             #update the dataset and outliers
@@ -870,7 +870,7 @@ class Dataset:
         self.df = df.sort_index()
         
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
-        self.df, missing_outl_df, self.gapsdf, self.station_freqs= missing_timestamp_and_gap_check(df=self.df)
+        self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
         #print(self.df.iloc[:100,].to_string())
        
         #update outliersdf
