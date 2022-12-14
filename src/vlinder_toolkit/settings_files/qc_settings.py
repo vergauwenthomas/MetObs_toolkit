@@ -17,7 +17,7 @@ check_settings = {
 
     "missing_timestamp": {},
     
-    "persistance": {'temp': {'time_window_of_assumed_change': "0h30min",# Use this format as example: "1h20min50s"
+    "persistance": {'temp': {'time_window_of_assumed_change': "30min",# Use this format as example: "1h20min50s"
                              'min_num_obs': 5}}, #Minimum numer of records in window to perform check
     
     "repetitions": {'temp': {'max_valid_repetitions': 5}},

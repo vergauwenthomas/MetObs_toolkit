@@ -30,3 +30,4 @@ dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control(persistance = True, repetitions=False)
 station = dataset.get_station('Fictional')
+

@@ -11,9 +11,9 @@ Fictional,2020-09-14,01:15:00,12.6,ok
 Fictional,2020-09-14,01:20:00,12.4,ok
 Fictional,2020-09-14,01:25:00,12.3,ok
 Fictional,2020-09-15,00:00:00,15,ok
-Fictional,2020-09-15,00:05:00,15.3,ok
-Fictional,2020-09-15,00:10:00,15.2,ok
-Fictional,2020-09-15,00:15:00,15.1,persistance
+Fictional,2020-09-15,00:05:00,15.1,ok
+Fictional,2020-09-15,00:10:00,15.1,ok
+Fictional,2020-09-15,00:15:00,15.2,persistance
 Fictional,2020-09-15,00:20:00,15.1,persistance
 Fictional,2020-09-15,00:25:00,15.1,persistance
 Fictional,2020-09-15,00:30:00,15.1,persistance
@@ -43,19 +43,19 @@ Fictional,2020-09-15,02:05:00,11.8,ok
 Fictional,2020-09-15,02:10:00,11.7,ok
 Fictional,2020-09-15,02:15:00,11.7,ok
 Fictional,2020-09-15,02:20:00,-55,gross error
-Fictional,2020-09-15,02:25:00,11.5,ok
-Fictional,2020-09-15,02:30:00,11.4,ok
+Fictional,2020-09-15,02:25:00,,ok
+Fictional,2020-09-15,02:30:00,11.3,ok
 Fictional,2020-09-15,02:35:00,11.3,ok
 Fictional,2020-09-15,02:40:00,11.3,ok
 Fictional,2020-09-15,02:45:00,11.3,ok
-Fictional,2020-09-15,02:50:00,11.3,ok
+Fictional,2020-09-15,02:50:00,,ok
 Fictional,2020-09-15,02:55:00,11.3,ok
 Fictional,2020-09-15,03:25:00,11.3,persistance
 Fictional,2020-09-15,03:30:00,11.3,persistance
 Fictional,2020-09-15,03:35:00,11.3,persistance
 Fictional,2020-09-15,03:40:00,11.3,persistance
-Fictional,2020-09-15,03:45:00,11.3,persistance
-Fictional,2020-09-15,03:50:00,11.3,persistance
+Fictional,2020-09-15,03:45:00,11.5,persistance
+Fictional,2020-09-15,03:50:00,11.4,persistance
 Fictional,2020-09-15,03:55:00,6.1,step error
 Fictional,2020-09-15,04:00:00,6.2,ok
 Fictional,2020-09-15,04:05:00,6.2,ok
@@ -83,7 +83,7 @@ Fictional,2020-09-15,05:40:00,7.4,duplicated timestamp
 Fictional,2020-09-15,05:45:00,7.5,ok
 Fictional,2020-09-15,05:50:00,7.7,ok
 Fictional,2020-09-15,05:55:00,7.9,ok
-Fictional,2020-09-15,06:00:00,8,ok
+Fictional,2020-09-15,06:00:00,,ok
 Fictional,2020-09-15,06:05:00,8,ok
 Fictional,2020-09-15,06:10:00,,ok
 Fictional,2020-09-15,06:10:00,8.2,duplicated timestamp
