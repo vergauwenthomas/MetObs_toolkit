@@ -28,12 +28,14 @@ check_settings = {
                     },
    
     
-    "step": {'temp': {'max_increase_per_second': 8.0/3600.0, #== max 8° (increase) change in 3600 seconds (==one hour)
+    "window_variation": {'temp': {'max_increase_per_second': 8.0/3600.0, #== max 8° (increase) change in 3600 seconds (==one hour)
                       'max_decrease_per_second': 10.0/3600.0, #== max 10° (decrease) change in 3600 seconds (==one hour)
                       'time_window_to_check': "1h", #Use this format as example: "1h20min50s" 
                       'min_window_members': 3, #Minimum numer of records in window to perform check
                      }
              },
+    
+    "step": {'temp': {'max_change_per_second': 8.0/3600.0}},
     
     "internal_consistency": {'temp': {'b': 18.678,
                              'c': 257.14, 'd': 234.5}} 
@@ -88,6 +90,12 @@ checks_info={
     'step':{'label_columnname': 'step_label', #Obstype_ is prefix
                             'outlier_flag': 'in step outlier group',
                             'numeric_flag': 7,
+                            'apply_on': 'obstype'
+                            },
+    
+    'window_variation':{'label_columnname': 'window_variation_label', #Obstype_ is prefix
+                            'outlier_flag': 'in window variation outlier group',
+                            'numeric_flag': 8,
                             'apply_on': 'obstype'
                             },
     

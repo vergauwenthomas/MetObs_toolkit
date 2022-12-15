@@ -22,7 +22,7 @@ from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_p
 
 from .qc_checks import gross_value_check, persistance_check, repetitions_check, duplicate_timestamp_check
 from .qc_checks import step_check, missing_timestamp_and_gap_check, get_freqency_series
-from .qc_checks import init_outlier_multiindexdf, gaps_to_outlier_format
+from .qc_checks import init_outlier_multiindexdf, gaps_to_outlier_format, window_variation_check
 
 from .statistics import get_qc_effectiveness_stats
 
@@ -456,6 +456,7 @@ class Dataset:
                               persistance=True, 
                               repetitions=False,
                               step=True, 
+                              window_variation=True,
                               # internal_consistency=True,
                               ):
 
@@ -536,7 +537,19 @@ class Dataset:
             checked_series, outl_df = step_check(input_series=self.df[obstype],
                                                  obstype=obstype)
                                                       
-
+            
+            #update the dataset and outliers
+            self.df[obstype] = checked_series
+            self.update_outliersdf(outl_df)
+            
+        if window_variation:
+            print('Applying the window variation-check on all stations.')
+            logger.info('Applying window variation-check on the full dataset')
+           
+            checked_series, outl_df = window_variation_check(self.metadf['dataset_resolution'], input_series=self.df[obstype],
+                                                 obstype=obstype)
+                                                      
+            
             #update the dataset and outliers
             self.df[obstype] = checked_series
             self.update_outliersdf(outl_df)
