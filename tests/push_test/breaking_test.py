@@ -28,6 +28,6 @@ settings.update_settings(input_data_file=testdata)
 settings.check_settings()
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
-dataset.apply_quality_control(persistance = False, repetitions=False)
+dataset.apply_quality_control()
 station = dataset.get_station('Fictional')
 

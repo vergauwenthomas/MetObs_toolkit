@@ -537,7 +537,7 @@ def step_check(input_series, obstype):
     Looking for jumps of the values of an observation type that are larger than the limit specified in the qc_settings. These values are removed from 
     the input series and combined in the outlier df.
     
-    The purpose of this check is to flag observations with a value that is too much different compared to the previous recorded value.
+    The purpose of this check is to flag observations with a value that is too much different compared to the previous (not flagged) recorded value.
 
     Parameters
     ----------
@@ -571,13 +571,12 @@ def step_check(input_series, obstype):
     list_of_outliers = []
     
     for name in input_series.index.droplevel('datetime').unique():
-        subdata = input_series.loc[[name]]
-      
+        subdata = input_series.xs(name, level='name', drop_level=False)
+        
         time_diff = subdata.index.get_level_values('datetime').to_series().diff()
         time_diff.index = subdata.index #back to multiindex
-       
         #define filter
-        step_filter = (abs(subdata.shift(1) - subdata) > specific_settings['max_change_per_second']*time_diff.dt.total_seconds()) #& 
+        step_filter = (((subdata - subdata.shift(1)) > (specific_settings['max_increase_per_second']*time_diff.dt.total_seconds())) | ((subdata - subdata.shift(1)) < (specific_settings['max_decrease_per_second']*time_diff.dt.total_seconds()))) #& 
                        #(time_diff == station_frequencies[name]))
         outl_obs = step_filter[step_filter==True].index
         
@@ -645,7 +644,7 @@ def window_variation_check(station_frequencies, input_series, obstype):
     
 
     #apply steptest
-    def steptest(window):
+    def variation_test(window):
         if ((max(window) - min(window) > max_window_increase) & 
             (window.idxmax() > window.idxmin())):
             return 1
@@ -656,20 +655,21 @@ def window_variation_check(station_frequencies, input_series, obstype):
         else:
             return 0
 
-    step_output = input_series.reset_index(level=0).groupby('name').rolling(window=specific_settings['time_window_to_check'],
+    window_output = input_series.reset_index(level=0).groupby('name').rolling(window=specific_settings['time_window_to_check'],
                                                                             closed='both',
                                                                             center=True,
-                                                                            min_periods=specific_settings['min_window_members']).apply(steptest)
+                                                                            min_periods=specific_settings['min_window_members']).apply(variation_test)
 
     list_of_outliers = []
-    outl_obs = step_output.loc[step_output[obstype] == 1].index
+    outl_obs = window_output.loc[window_output[obstype] == 1].index
 
     for outlier in outl_obs:
         date = outlier[1]
-        end_date = date + (pd.Timedelta(specific_settings['time_window_to_check'])/2).round(station_frequencies[outlier[0]])
-        start_date = date - (pd.Timedelta(specific_settings['time_window_to_check'])/2).round(station_frequencies[outlier[0]])
+        end_date = date + (pd.Timedelta(specific_settings['time_window_to_check'])/2).floor(station_frequencies[outlier[0]])
+        start_date = date - (pd.Timedelta(specific_settings['time_window_to_check'])/2).floor(station_frequencies[outlier[0]])
         
         daterange = pd.date_range(start=start_date, end = end_date, freq=station_frequencies[outlier[0]])
+        
         multi_idx = pd.MultiIndex.from_arrays(arrays=[[outlier[0]]*len(daterange), daterange.to_list()],
                                               sortorder=1,
                                               names=['name', 'datetime'])

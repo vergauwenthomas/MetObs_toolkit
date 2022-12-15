@@ -454,7 +454,7 @@ class Dataset:
     def apply_quality_control(self, obstype='temp',
                               gross_value=True, 
                               persistance=True, 
-                              repetitions=False,
+                              repetitions=True,
                               step=True, 
                               window_variation=True,
                               # internal_consistency=True,
