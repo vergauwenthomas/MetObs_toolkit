@@ -155,16 +155,14 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
     df.index = range(len(df))
 
 
+        
     # import template
-    templ = file_csv_template
-    lib_folder = Path(__file__).resolve().parents[2]
-    template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.xls')
-    templ = read_templates(template_file)[0]
-    if isinstance(templ, type(None)): #No default template is given
+    if isinstance(file_csv_template, type(None)): #No default template is given
         
         templ = find_compatible_templatefor(df_columns=df.columns,
                                             template_list=template_list)
-       
+    else:
+        templ=file_csv_template
 
     #Check if template is compatible and find other if needed
     if not all(keys in list(df.columns) for keys in templ.keys()):

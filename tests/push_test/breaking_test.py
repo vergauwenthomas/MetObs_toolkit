@@ -25,8 +25,17 @@ testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaki
 
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdata)
+
+#% add template
+template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.xls')
+settings.add_excel_template(template_file)
+
+
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
+
+
+#%%
 dataset.apply_quality_control()
 outliersdf = dataset.get_final_qc_labels()
 df = dataset.input_df
