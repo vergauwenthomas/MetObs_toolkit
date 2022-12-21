@@ -290,7 +290,7 @@ def duplicate_timestamp_check(df):
     
     duplicates = pd.Series(data=df.index.duplicated(keep=check_settings[checkname]['keep']),
                            index=df.index)
-   
+    
     if not df.loc[duplicates].empty:
         logging.warning(f' Following records are labeld as duplicates: {df.loc[duplicates]}, and are removed')
     
@@ -412,37 +412,24 @@ def persistance_check(station_frequencies, input_series, obstype):
     
     #apply persistance
     def is_unique(window):   #comp order of N (while using the 'unique' function is Nlog(N))
-    
+     
         a = window.values
         a = a[~np.isnan(a)]
         return (a[0] == a).all()
     
             
-    step_output = input_series.reset_index(level=0).groupby('name').rolling(window= specific_settings['time_window_of_assumed_change'],
+    window_output = input_series.reset_index(level=0).groupby('name').rolling(window= specific_settings['time_window_to_check'],
                                                                             closed='both',
                                                                             center=True,
                                                                             min_periods=specific_settings['min_num_obs']).apply(is_unique)
     
     
     list_of_outliers = []
-    outl_obs = step_output.loc[step_output[obstype] == True].index
+    outl_obs = window_output.loc[window_output[obstype] == True].index
     for outlier in outl_obs:
-        date = outlier[1]
-        end_date = date + (pd.Timedelta(specific_settings['time_window_of_assumed_change'])/2).round(station_frequencies[outlier[0]])
-        start_date = date - (pd.Timedelta(specific_settings['time_window_of_assumed_change'])/2).round(station_frequencies[outlier[0]])
-        
-        daterange = pd.date_range(start=start_date, end = end_date, freq=station_frequencies[outlier[0]])
-        multi_idx = pd.MultiIndex.from_arrays(arrays=[[outlier[0]]*len(daterange), daterange.to_list()],
-                                              sortorder=1,
-                                              names=['name', 'datetime'])
-        outlier_sub_df = pd.DataFrame(data=None,
-                                             index=multi_idx, 
-                                             columns=None)
-        
-       
-        intersection = outlier_sub_df.index.intersection(input_series.dropna().index).values
-        
-        list_of_outliers.extend(intersection)
+        outliers_list = get_outliers_in_daterange(input_series, outlier[1], outlier[0], specific_settings['time_window_to_check'], station_frequencies)
+      
+        list_of_outliers.extend(outliers_list)
         
     list_of_outliers = list(set(list_of_outliers))
     
@@ -451,7 +438,7 @@ def persistance_check(station_frequencies, input_series, obstype):
                                            values_in_dict={obstype:input_series.loc[list_of_outliers]},
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
-    print(outlier_df)
+    
   
     #drop outliers from input series
     input_series = input_series.drop(list_of_outliers)
@@ -523,7 +510,7 @@ def repetitions_check(input_series, obstype):
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
     
-    print(outlier_df)
+   
     #drop outliers from input series
     input_series = input_series.drop(outl_obs)
     
@@ -664,23 +651,9 @@ def window_variation_check(station_frequencies, input_series, obstype):
     outl_obs = window_output.loc[window_output[obstype] == 1].index
 
     for outlier in outl_obs:
-        date = outlier[1]
-        end_date = date + (pd.Timedelta(specific_settings['time_window_to_check'])/2).floor(station_frequencies[outlier[0]])
-        start_date = date - (pd.Timedelta(specific_settings['time_window_to_check'])/2).floor(station_frequencies[outlier[0]])
-        
-        daterange = pd.date_range(start=start_date, end = end_date, freq=station_frequencies[outlier[0]])
-        
-        multi_idx = pd.MultiIndex.from_arrays(arrays=[[outlier[0]]*len(daterange), daterange.to_list()],
-                                              sortorder=1,
-                                              names=['name', 'datetime'])
-        outlier_sub_df = pd.DataFrame(data=None,
-                                             index=multi_idx, 
-                                             columns=None)
-        
-        
-        intersection = outlier_sub_df.index.intersection(input_series.dropna().index).values
+        outliers_list = get_outliers_in_daterange(input_series, outlier[1], outlier[0], specific_settings['time_window_to_check'], station_frequencies)
       
-        list_of_outliers.extend(intersection)
+        list_of_outliers.extend(outliers_list)
         
     list_of_outliers = list(set(list_of_outliers))
     
@@ -696,8 +669,23 @@ def window_variation_check(station_frequencies, input_series, obstype):
     
     return input_series, outlier_df
 
-
-
+def get_outliers_in_daterange(input_data, date, name, time_window, station_freq):
+    end_date = date + (pd.Timedelta(time_window)/2).floor(station_freq[name])
+    start_date = date - (pd.Timedelta(time_window)/2).floor(station_freq[name])
+    
+    daterange = pd.date_range(start=start_date, end = end_date, freq=station_freq[name])
+    
+    multi_idx = pd.MultiIndex.from_arrays(arrays=[[name]*len(daterange), daterange.to_list()],
+                                          sortorder=1,
+                                          names=['name', 'datetime'])
+    outlier_sub_df = pd.DataFrame(data=None,
+                                         index=multi_idx, 
+                                         columns=None)
+    
+    
+    intersection = outlier_sub_df.index.intersection(input_data.dropna().index).values
+    
+    return intersection
 
 # def compute_dew_point(df, spec_settings):
 #     dew_temp = spec_settings['c']*np.log(df['humidity']/100 *np.exp((spec_settings['b'] - df['temp']/spec_settings['d']) * (df['temp']/(spec_settings['c'] + df['temp']))))/(spec_settings['b'] - np.log(df['humidity']/100 *np.exp((spec_settings['b'] - df['temp']/spec_settings['d']) * (df['temp']/(spec_settings['c'] + df['temp'])))))

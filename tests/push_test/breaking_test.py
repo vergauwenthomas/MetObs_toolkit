@@ -25,9 +25,22 @@ testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaki
 
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdata)
-settings.check_settings()
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
-station = dataset.get_station('Fictional')
+outliersdf = dataset.get_final_qc_labels()
+df = dataset.input_df
+df = df.merge(outliersdf['temp_final_label'], how='outer', left_index=True, right_index=True)
+df['temp_final_label'] = df['temp_final_label'].fillna(value='ok')
+
+indices_missing_timestamp = df[df['temp_final_label'] == 'missing timestamp'].index
+df.loc[indices_missing_timestamp,'flags'] = 'missing timestamp'
+
+indices_gap_timestamp = df[df['temp_final_label'] == 'missing timestamp (gap)'].index
+df.loc[indices_gap_timestamp,'flags'] = 'missing timestamp (gap)'
+
+if not df['flags'].equals(df['temp_final_label']):
+    print('Timestamps with wrong label are: ', list(df.index[df['flags'] != df['temp_final_label']]))
+
+dataset.get_qc_stats()
 

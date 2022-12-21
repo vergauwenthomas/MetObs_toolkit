@@ -27,7 +27,8 @@ from .qc_checks import init_outlier_multiindexdf, gaps_to_outlier_format, window
 from .statistics import get_qc_effectiveness_stats
 
 from .station import Station
- 
+from matplotlib import pyplot as plt
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================
@@ -497,7 +498,7 @@ class Dataset:
         if repetitions:
            print('Applying the repetitions-check on all stations.')
            logger.info('Applying repetitions check on the full dataset')
-          
+           
            checked_series, outl_df = repetitions_check(input_series=self.df[obstype],
                                                      obstype=obstype)
            
@@ -509,7 +510,6 @@ class Dataset:
         if gross_value:
             print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
-            
     
             checked_series, outl_df = gross_value_check(input_series = self.df[obstype],
                                                         obstype=obstype)
@@ -522,7 +522,7 @@ class Dataset:
         if persistance:
             print('Applying the persistance-check on all stations.')
             logger.info('Applying persistance check on the full dataset')
-           
+          
             checked_series, outl_df = persistance_check(self.metadf['dataset_resolution'], input_series=self.df[obstype],
                                                         obstype=obstype)
 
@@ -555,7 +555,7 @@ class Dataset:
             self.update_outliersdf(outl_df)
         
         self.outliersdf = self.outliersdf.sort_index()
-            
+        
 
 
         # if internal_consistency:
@@ -572,7 +572,7 @@ class Dataset:
         #     label_column_name = qc_flags.name
         #     self.df[label_column_name] = qc_flags
         
-        
+    
     
     def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):
         """
@@ -601,31 +601,34 @@ class Dataset:
         """
         
         outliersdf = self.outliersdf
+   
         #Add gaps to the outliers for comuting scores
         outliersdf = pd.concat([outliersdf,
                                 gaps_to_outlier_format(gapsdf=self.gapsdf,
                                                        dataset_res_series=self.metadf['dataset_resolution'])])
+
         outliersdf = outliersdf.fillna(value='ok')
         
         if isinstance(stationnames, type(None)):
             df = self.df
-            
+            qc_labels_df = self.get_final_qc_labels()
             title=f'Frequency for {obstype}-qc-checks on all stations.'
         else: 
             title=f'Frequency for {obstype}-qc-checks on {stationnames}.'
             if isinstance(stationnames, str):
                 stationnames = [stationnames]
-                
+            
+            qc_labels_df = self.get_final_qc_labels().loc[self.get_final_qc_labels().index.get_level_values(level='name').isin(stationnames)]
             df = self.df.loc[self.df.index.get_level_values(level='name').isin(stationnames)]
             outliersdf = outliersdf.loc[outliersdf.index.get_level_values(level='name').isin(stationnames)]
-            
+   
         #Do not include the 'final_qc_label' in the statis
         if obstype + '_final_label' in outliersdf.columns:
             logger.debug(f'The {obstype}_final_label, is ingored for the QC-stats. ')
             outliersdf = outliersdf.loc[:, outliersdf.columns != obstype+'_final_label']
             
        
-            
+   
         #stats on datset level
         qc_labels = {key: val['outlier_flag'] for key, val in Settings.qc_checks_info.items()}
         dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf,
@@ -633,9 +636,12 @@ class Dataset:
                                                       obstype=obstype,
                                                       observation_types = observation_types,
                                                       qc_labels=qc_labels)
-    
+       
+        valid_records_df = df.drop(qc_labels_df.index.intersection(df.index).dropna())
+        
+        
         if make_plot:
-            qc_stats_pie(qc_stats=dataset_qc_stats,
+            qc_stats_pie(valid_records_df, qc_labels_df, qc_stats=dataset_qc_stats,
                          figsize=Settings.plot_settings['qc_stats']['figsize'],
                          title=title)
                
@@ -767,7 +773,11 @@ class Dataset:
 
         #convert dataframe to multiindex (datetime - name)
         df = df.set_index(['name', df.index])
-
+        
+        #dataframe with all data of input file
+        self.input_df = df
+        self.input_df = self.input_df[~self.input_df.index.duplicated(keep='first')]
+        
         self.update_dataset_by_df(dataframe = df, 
                                   coarsen_timeres=coarsen_timeres)
 
@@ -866,7 +876,7 @@ class Dataset:
         #Create dataframe with fixed number and order of observational columns
         df = dataframe.reindex(columns = observation_types)
         self.df = df
-   
+        
         #create metadataframe with fixed number and order of columns
         metadf = dataframe.reindex(columns = location_info)
         metadf.index = metadf.index.droplevel('datetime') #drop datetimeindex
@@ -878,16 +888,16 @@ class Dataset:
         #add import frequencies to metadf
         self.metadf['assumed_import_frequency'] = get_freqency_series(self.df)
         
-
+        
         #TODO: How to implement the choise to apply QC on import freq or on coarsened frequency
         self.df = df.sort_index()
-        
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
         self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
         #print(self.df.iloc[:100,].to_string())
-       
+        
         #update outliersdf
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df, missing_outl_df])
+        self.outliersdf = self.outliersdf[~self.outliersdf.index.duplicated(keep='first')]
        
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
@@ -900,7 +910,7 @@ class Dataset:
         
         #get LCZ values (if coords are availible)
         self.metadf =  get_lcz(self.metadf)
-        
+       
 
 
 def metadf_to_gdf(df, crs=4326):
@@ -1124,7 +1134,7 @@ def add_final_label_to_outliersdf(outliersdf, gapsdf, data_res_series):
        
     
         outliersdf[obstype+'_final_label'] = num_qc_df.sum(axis=1, skipna=True).map(inv_label_to_num)
-
+       
    
     return outliersdf
 # def final_qc_label_maker(df, label_to_numeric_mapper):
