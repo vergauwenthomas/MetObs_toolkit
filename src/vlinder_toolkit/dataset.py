@@ -27,7 +27,6 @@ from .qc_checks import init_outlier_multiindexdf, gaps_to_outlier_format, window
 from .statistics import get_qc_effectiveness_stats
 
 from .station import Station
-from matplotlib import pyplot as plt
 
 logger = logging.getLogger(__name__)
 
@@ -523,7 +522,7 @@ class Dataset:
             print('Applying the persistance-check on all stations.')
             logger.info('Applying persistance check on the full dataset')
           
-            checked_series, outl_df = persistance_check(self.metadf['dataset_resolution'], input_series=self.df[obstype],
+            checked_series, outl_df = persistance_check(station_frequencies=self.metadf['dataset_resolution'], input_series=self.df[obstype],
                                                         obstype=obstype)
 
             #update the dataset and outliers
@@ -546,7 +545,7 @@ class Dataset:
             print('Applying the window variation-check on all stations.')
             logger.info('Applying window variation-check on the full dataset')
            
-            checked_series, outl_df = window_variation_check(self.metadf['dataset_resolution'], input_series=self.df[obstype],
+            checked_series, outl_df = window_variation_check(station_frequencies=self.metadf['dataset_resolution'], input_series=self.df[obstype],
                                                  obstype=obstype)
                                                       
             
@@ -621,7 +620,8 @@ class Dataset:
             qc_labels_df = self.get_final_qc_labels().loc[self.get_final_qc_labels().index.get_level_values(level='name').isin(stationnames)]
             df = self.df.loc[self.df.index.get_level_values(level='name').isin(stationnames)]
             outliersdf = outliersdf.loc[outliersdf.index.get_level_values(level='name').isin(stationnames)]
-   
+        
+        
         #Do not include the 'final_qc_label' in the statis
         if obstype + '_final_label' in outliersdf.columns:
             logger.debug(f'The {obstype}_final_label, is ingored for the QC-stats. ')
@@ -891,14 +891,14 @@ class Dataset:
         
         #TODO: How to implement the choise to apply QC on import freq or on coarsened frequency
         self.df = df.sort_index()
-        self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
+        
         self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
+        self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
         #print(self.df.iloc[:100,].to_string())
         
         #update outliersdf
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df, missing_outl_df])
-        self.outliersdf = self.outliersdf[~self.outliersdf.index.duplicated(keep='first')]
-       
+        
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
                                           method=Settings.resample_method,
@@ -906,11 +906,9 @@ class Dataset:
             
         else:
             self.metadf['dataset_resolution'] = self.metadf['assumed_import_frequency']
-       
-        
+            
         #get LCZ values (if coords are availible)
         self.metadf =  get_lcz(self.metadf)
-       
 
 
 def metadf_to_gdf(df, crs=4326):

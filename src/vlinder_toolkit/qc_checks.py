@@ -303,7 +303,7 @@ def duplicate_timestamp_check(df):
                                           flagcolumnname=checks_info[checkname]['label_columnname'],
                                           flag=checks_info[checkname]['outlier_flag'])
     
-   
+    outlierdf = outlierdf[~outlierdf.index.duplicated(keep='first')]
     #Remove duplicates from the observations
     df = df[~df.index.duplicated(keep=check_settings[checkname]['keep'])]
     
