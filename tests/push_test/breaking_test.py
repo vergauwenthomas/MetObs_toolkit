@@ -30,13 +30,13 @@ settings.update_settings(input_data_file=testdata)
 template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.xls')
 settings.add_excel_template(template_file)
 
-#dataset_coarsened = vlinder_toolkit.Dataset()
-#dataset_coarsened.import_data_from_file(coarsen_timeres=True)
+dataset_coarsened = vlinder_toolkit.Dataset()
+dataset_coarsened.import_data_from_file(coarsen_timeres=True)
 
-#try:
-#    dataset_coarsened.apply_quality_control()
-#except:
-#    print("The quality control doesn't work when coarsening the dataset")
+try:
+    dataset_coarsened.apply_quality_control()
+except:
+    print("The quality control doesn't work when coarsening the dataset")
 
 #%%
 dataset = vlinder_toolkit.Dataset()

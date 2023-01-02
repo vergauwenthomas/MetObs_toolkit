@@ -887,7 +887,6 @@ class Dataset:
 
         #add import frequencies to metadf
         self.metadf['assumed_import_frequency'] = get_freqency_series(self.df)
-        print(self.metadf.columns)
         
         #TODO: How to implement the choise to apply QC on import freq or on coarsened frequency
         self.df = df.sort_index()
