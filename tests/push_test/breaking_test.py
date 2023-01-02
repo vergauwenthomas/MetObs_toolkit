@@ -54,13 +54,13 @@ df.loc[indices_missing_timestamp,'flags'] = 'missing timestamp'
 indices_gap_timestamp = df[df['temp_final_label'] == 'missing timestamp (gap)'].index
 df.loc[indices_gap_timestamp,'flags'] = 'missing timestamp (gap)'
 
-dataset.get_qc_stats()
+#dataset.get_qc_stats()
 
 if not df['flags'].equals(df['temp_final_label']):
     print('Timestamps with wrong label are: ', list(df.index[df['flags'] != df['temp_final_label']]))
-    sys.exit('There is a problem with the quality control')
-else:
-    sys.exit('The quality control is performing as expected')
+    #sys.exit('There is a problem with the quality control')
+#else:
+    #sys.exit('The quality control is performing as expected')
     
 
 

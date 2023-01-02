@@ -13,7 +13,7 @@ check_settings = {
     "gaps_finder": {'gapsize_n': 40}, #gaps defined as n times the highest frequency on IO. 
     
     #checks on all observation types
-    "duplicated_timestamp": {'keep': False}, #No numeric settings (False: drop all duplicates)
+    "duplicated_timestamp": {'keep': 'first'}, #No numeric settings (False: drop all duplicates)
 
     "missing_timestamp": {},
     

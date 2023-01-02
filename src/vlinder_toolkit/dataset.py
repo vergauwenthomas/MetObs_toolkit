@@ -887,7 +887,7 @@ class Dataset:
 
         #add import frequencies to metadf
         self.metadf['assumed_import_frequency'] = get_freqency_series(self.df)
-        
+        print(self.metadf.columns)
         
         #TODO: How to implement the choise to apply QC on import freq or on coarsened frequency
         self.df = df.sort_index()
@@ -898,7 +898,7 @@ class Dataset:
         
         #update outliersdf
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df, missing_outl_df])
-        
+       
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
                                           method=Settings.resample_method,
@@ -909,7 +909,7 @@ class Dataset:
             
         #get LCZ values (if coords are availible)
         self.metadf =  get_lcz(self.metadf)
-
+        
 
 def metadf_to_gdf(df, crs=4326):
     """

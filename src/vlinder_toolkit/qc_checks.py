@@ -190,7 +190,7 @@ def missing_timestamp_and_gap_check(df):
         #find missing timestamps
         timestamps = df.xs(station, level='name').index
         likely_freq = get_likely_frequency(timestamps)
-       
+        print(likely_freq)
         assert likely_freq.seconds > 0, f'The frequency is not positive!' 
         
         station_freqs[station] = likely_freq
@@ -303,7 +303,7 @@ def duplicate_timestamp_check(df):
                                           flagcolumnname=checks_info[checkname]['label_columnname'],
                                           flag=checks_info[checkname]['outlier_flag'])
     
-    outlierdf = outlierdf[~outlierdf.index.duplicated(keep='first')]
+    #outlierdf = outlierdf[~outlierdf.index.duplicated(keep='first')]
     #Remove duplicates from the observations
     df = df[~df.index.duplicated(keep=check_settings[checkname]['keep'])]
     
