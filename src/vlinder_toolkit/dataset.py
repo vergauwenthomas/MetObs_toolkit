@@ -14,7 +14,6 @@ from datetime import datetime
 import logging
 
 from .settings import Settings
-from .settings_files.qc_settings import check_settings
 from .data_import import import_data_from_csv, import_data_from_database, template_to_package_space, import_metadata_from_csv
 # from .data_import import coarsen_time_resolution
 from .landcover_functions import geotiff_point_extraction
