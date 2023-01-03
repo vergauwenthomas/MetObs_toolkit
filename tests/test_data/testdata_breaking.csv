@@ -288,7 +288,7 @@ Fictional,2020-09-16,20:15:00,,duplicated timestamp outlier
 Fictional,2020-09-16,20:30:00,,ok
 Fictional,2020-09-16,20:45:00,18.7,ok
 Fictional,2020-09-16,21:00:00,18.5,ok
-Fictional,2020-09-16,21:15:00,18.4,duplicated timestamp outlier
+Fictional,2020-09-16,21:15:00,18.3,duplicated timestamp outlier
 Fictional,2020-09-16,21:15:00,18.4,duplicated timestamp outlier
 Fictional,2020-09-16,21:30:00,18.2,ok
 Fictional,2020-09-16,21:45:00,18.1,ok

@@ -190,7 +190,7 @@ def missing_timestamp_and_gap_check(df):
         #find missing timestamps
         timestamps = df.xs(station, level='name').index
         likely_freq = get_likely_frequency(timestamps)
-        print(likely_freq)
+     
         assert likely_freq.seconds > 0, f'The frequency is not positive!' 
         
         station_freqs[station] = likely_freq

@@ -66,7 +66,7 @@ class Settings:
     
     #Quality control settings
     qc_check_settings = None
-    qc_check_info = None
+    qc_checks_info = None
    
     
     

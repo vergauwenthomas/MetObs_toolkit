@@ -14,6 +14,7 @@ from datetime import datetime
 import logging
 
 from .settings import Settings
+from .settings_files.qc_settings import check_settings
 from .data_import import import_data_from_csv, import_data_from_database, template_to_package_space, import_metadata_from_csv
 # from .data_import import coarsen_time_resolution
 from .landcover_functions import geotiff_point_extraction
@@ -611,6 +612,7 @@ class Dataset:
         if isinstance(stationnames, type(None)):
             df = self.df
             qc_labels_df = self.get_final_qc_labels()
+  
             title=f'Frequency for {obstype}-qc-checks on all stations.'
         else: 
             title=f'Frequency for {obstype}-qc-checks on {stationnames}.'
@@ -638,7 +640,6 @@ class Dataset:
                                                       qc_labels=qc_labels)
        
         valid_records_df = df.drop(qc_labels_df.index.intersection(df.index).dropna())
-        
         
         if make_plot:
             qc_stats_pie(valid_records_df, qc_labels_df, qc_stats=dataset_qc_stats,
@@ -776,7 +777,6 @@ class Dataset:
         
         #dataframe with all data of input file
         self.input_df = df
-        self.input_df = self.input_df[~self.input_df.index.duplicated(keep='first')]
         
         self.update_dataset_by_df(dataframe = df, 
                                   coarsen_timeres=coarsen_timeres)

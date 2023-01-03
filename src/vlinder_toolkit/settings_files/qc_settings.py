@@ -13,12 +13,12 @@ check_settings = {
     "gaps_finder": {'gapsize_n': 40}, #gaps defined as n times the highest frequency on IO. 
     
     #checks on all observation types
-    "duplicated_timestamp": {'keep': 'first'}, #No numeric settings (False: drop all duplicates)
+    "duplicated_timestamp": {'keep': False}, #No numeric settings (False: drop all duplicates)
 
     "missing_timestamp": {},
     
     "persistance": {'temp': {'time_window_to_check': "1h",# Use this format as example: "1h20min50s"
-                             'min_num_obs': 5}}, #Minimum numer of records in window to perform check
+                             'min_num_obs': 5}}, #Minimum number of records in window to perform check
     
     "repetitions": {'temp': {'max_valid_repetitions': 5}},
     
