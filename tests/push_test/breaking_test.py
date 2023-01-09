@@ -109,8 +109,9 @@ df.loc[indices_missing_timestamp,'flags'] = 'missing timestamp'
 indices_gap_timestamp = df[df['temp_final_label'] == 'missing timestamp (gap)'].index
 df.loc[indices_gap_timestamp,'flags'] = 'missing timestamp (gap)'
 
+dataset_coarsened.get_qc_stats(coarsen_timeres=True)
 dataset.get_qc_stats()
-dataset_coarsened.get_qc_stats()
+
 
 if not df['flags'].equals(df['temp_final_label']):
     print('Timestamps with wrong label are: ', list(df.index[df['flags'] != df['temp_final_label']]))

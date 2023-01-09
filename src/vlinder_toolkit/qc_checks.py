@@ -109,12 +109,14 @@ def gaps_to_outlier_format(gapsdf, dataset_res_series):
         gap_timestamps=pd.date_range(start=gapinfo['start_gap'],
                                      end=gapinfo['end_gap'],
                                      freq=dataset_res_series.loc[station])
+        
         multi_idx = pd.MultiIndex.from_tuples(list(zip([station] * len(gap_timestamps),
                                                        gap_timestamps)),
                                               names=['name', 'datetime'])
         exploded_gaps_df = pd.concat([exploded_gaps_df,
                                       pd.DataFrame(data=checks_info[checkname]['outlier_flag'],
                                                    index=multi_idx,
+    
                                                    columns=[checks_info[checkname]['label_columnname']])])
     return exploded_gaps_df
 

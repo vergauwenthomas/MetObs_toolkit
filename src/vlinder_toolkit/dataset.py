@@ -572,8 +572,7 @@ class Dataset:
         #     self.df[label_column_name] = qc_flags
         
     
-    
-    def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):
+    def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True, coarsen_timeres=False):
         """
         Compute frequency statistics on the qc labels for an observationtype.
         The output is a dataframe containing the frequency statistics presented
@@ -600,12 +599,17 @@ class Dataset:
         """
         
         outliersdf = self.outliersdf
-   
         #Add gaps to the outliers for comuting scores
         outliersdf = pd.concat([outliersdf,
                                 gaps_to_outlier_format(gapsdf=self.gapsdf,
                                                        dataset_res_series=self.metadf['dataset_resolution'])])
-
+        
+        if coarsen_timeres:
+            gaps_1 = outliersdf[outliersdf["gap_timestamp_label"] == "missing timestamp (gap)"]
+            outliersdf.drop(gaps_1.index, inplace=True)
+            outliersdf = outliersdf.loc[outliersdf.index.intersection(self.df.index)]
+            outliersdf = pd.concat([outliersdf, gaps_1], sort=True)
+            
         outliersdf = outliersdf.fillna(value='ok')
         
         if isinstance(stationnames, type(None)):
@@ -629,16 +633,33 @@ class Dataset:
             outliersdf = outliersdf.loc[:, outliersdf.columns != obstype+'_final_label']
             
        
-   
+        
         #stats on datset level
         qc_labels = {key: val['outlier_flag'] for key, val in Settings.qc_checks_info.items()}
+     
+        if coarsen_timeres:
+            for i in range(len(self.gapsdf)):
+                df = df.iloc[df.index.get_level_values('name') == self.gapsdf.index[i]]
+                df.reset_index(level='name', inplace=True)
+                indices_to_remove = df.loc[(df.index <= self.gapsdf['end_gap'][i]) & (df.index >= self.gapsdf['start_gap'][i])].index
+                df.drop(indices_to_remove, inplace=True)
+                df.set_index(['name', df.index], inplace=True)
+        
         dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf,
                                                       df =df,
                                                       obstype=obstype,
                                                       observation_types = observation_types,
                                                       qc_labels=qc_labels)
+        
        
-        valid_records_df = df.drop(qc_labels_df.index.intersection(df.index).dropna())
+        if coarsen_timeres:
+            gaps_2 = qc_labels_df[qc_labels_df["gap_timestamp_label"] == "missing timestamp (gap)"]
+            qc_labels_df.drop(gaps_2.index, inplace=True)
+            qc_labels_df = qc_labels_df.loc[qc_labels_df.index.intersection(self.df.index)]
+            qc_labels_df = pd.concat([qc_labels_df, gaps_2], sort=True)
+        
+        valid_records_df = df.drop(qc_labels_df.index.intersection(df.index).dropna())           
+        
         
         if make_plot:
             qc_stats_pie(valid_records_df, qc_labels_df, qc_stats=dataset_qc_stats,
@@ -678,7 +699,7 @@ class Dataset:
     # =============================================================================
     #     importing data        
     # =============================================================================
-        
+      
     def coarsen_time_resolution(self, freq='1H', method='nearest', limit=1):
         logger.info(f'Coarsening the timeresolution to {freq} using the {method}-method (with limit={limit}).')
         #TODO: implement buffer method
@@ -702,6 +723,7 @@ class Dataset:
         self.metadf['dataset_resolution'] = pd.to_timedelta(freq)
         #update df
         self.df = df
+        
     
     def import_data_from_file(self, network='vlinder', coarsen_timeres=False):
         """
