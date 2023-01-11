@@ -9,6 +9,7 @@ Created on Thu Oct  6 13:44:54 2022
 import sys
 import pandas as pd
 import numpy as np
+import math
 
 from datetime import timedelta
 
@@ -27,7 +28,6 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Helper functions
 # =============================================================================
-
 def init_outlier_multiindexdf():
     my_index = pd.MultiIndex(levels=[['name'],['datetime']],
                              codes=[[],[]],
@@ -45,7 +45,6 @@ def make_outlier_df_for_check(station_dt_list, values_in_dict, flagcolumnname, f
     Multiple commum inputstructures can be handles
     
     A multiindex dataframe with the relevant observationtypes i.e. the values_in_dict and a specific quality flag column (i.g. the labels) is returned.
-
     Parameters
     ----------
     station_dt_list : MultiIndex or list of tuples: (name, datetime)
@@ -60,13 +59,11 @@ def make_outlier_df_for_check(station_dt_list, values_in_dict, flagcolumnname, f
         It is possible to give the name of one station. The default is None.
     datetimelist : DatetimeIndex or List, optional
         The outlier timestamps for the stationname. The default is None.
-
     Returns
     -------
     check_outliers : pd.Dataframe
         A multiindex (name -- datetime) datatframe with one column (columname) and all
         values are the flag.
-
     """
 
         
@@ -112,12 +109,14 @@ def gaps_to_outlier_format(gapsdf, dataset_res_series):
         gap_timestamps=pd.date_range(start=gapinfo['start_gap'],
                                      end=gapinfo['end_gap'],
                                      freq=dataset_res_series.loc[station])
+        
         multi_idx = pd.MultiIndex.from_tuples(list(zip([station] * len(gap_timestamps),
                                                        gap_timestamps)),
                                               names=['name', 'datetime'])
         exploded_gaps_df = pd.concat([exploded_gaps_df,
                                       pd.DataFrame(data=checks_info[checkname]['outlier_flag'],
                                                    index=multi_idx,
+    
                                                    columns=[checks_info[checkname]['label_columnname']])])
     return exploded_gaps_df
 
@@ -134,12 +133,13 @@ def get_freqency_series(df):
 
 
 def get_likely_frequency(timestamps):
-    assume_freq = timestamps.to_series().diff().value_counts().index.min()
+    assume_freq = abs(timestamps.to_series().diff().value_counts().index).sort_values(ascending=True)[0]
+    
     if assume_freq == pd.to_timedelta(0): #highly likely due to a duplicated record
         # select the second highest frequency
-        assume_freq = timestamps.to_series().diff().value_counts().sort_index(ascending=True).index[1]
-    return assume_freq
+        assume_freq = abs(timestamps.to_series().diff().value_counts().index).sort_values(ascending=True)[1]
     
+    return assume_freq
     
 # =============================================================================
 # Quality assesment checks on data import
@@ -149,12 +149,14 @@ def get_likely_frequency(timestamps):
 
 def missing_timestamp_and_gap_check(df):
     """
+
     V3
     Looking for missing timestaps by assuming an observation frequency. The assumed frequency is the highest occuring frequency PER STATION.
     If missing observations are detected, they can be catogirized as a missing timestamp or as gap.
     
     A gap is define as a sequence of missing values with more than N repetitive missing values. N is define in the QC settings.
     
+
 
     Parameters
     ----------
@@ -163,6 +165,7 @@ def missing_timestamp_and_gap_check(df):
 
     Returns
     -------
+
     df : pandas.DataFrame()
         The observations dataframe.
     outlier_df : pandas.DataFrame()
@@ -175,7 +178,6 @@ def missing_timestamp_and_gap_check(df):
     checkname = 'missing_timestamp'
     
     
-    
 
     gap_df = pd.DataFrame()
     gap_indices = []
@@ -183,13 +185,15 @@ def missing_timestamp_and_gap_check(df):
     station_freqs = {}
     
     #missing timestamp per station (because some stations can have other frequencies!)
+
     stationnames = df.index.get_level_values(level='name').unique()
     for station in stationnames:
         
         #find missing timestamps
         timestamps = df.xs(station, level='name').index
         likely_freq = get_likely_frequency(timestamps)
-        assert not likely_freq.seconds == 0, f'The highest records frequency is {likely_freq}, probably due to duplicates. Apply duplicate check first!' 
+     
+        assert likely_freq.seconds > 0, f'The frequency is not positive!' 
         
         station_freqs[station] = likely_freq
         
@@ -197,23 +201,24 @@ def missing_timestamp_and_gap_check(df):
                                                 end = timestamps.max(),
                                                 freq=likely_freq).difference(timestamps).to_series().diff()
         
+        
         # print(f'station: {station} has {missing_datetimeseries.shape[0]} missing records')
         #add missing datetimes to the df
-        multi_idx = pd.MultiIndex.from_arrays(arrays=[[station]*missing_datetimeseries.shape[0], missing_datetimeseries.index.to_list()],
-                                              sortorder=1,
-                                              names=['name', 'datetime'])
-        outlier_sub_df = pd.DataFrame(data=None,
-                                             index=multi_idx, 
-                                             columns=None)
+        #multi_idx = pd.MultiIndex.from_arrays(arrays=[[station]*missing_datetimeseries.shape[0], missing_datetimeseries.index.to_list()],
+                                              #sortorder=1,
+                                              #names=['name', 'datetime'])
+        #outlier_sub_df = pd.DataFrame(data=None,
+                                             #index=multi_idx, 
+                                             #columns=None)
+        
+        #df = pd.concat([df, outlier_sub_df])
        
-        df = pd.concat([df, outlier_sub_df])
-        
-        
         
         #Check for gaps
-        gap_defenition = ((missing_datetimeseries != missing_datetimeseries.shift()) | (missing_datetimeseries != likely_freq)).cumsum()
+        gap_defenition = ((missing_datetimeseries != likely_freq)).cumsum()
         consec_missing_groups = missing_datetimeseries.groupby(gap_defenition)
         group_sizes = consec_missing_groups.size()
+        
         gap_groups = group_sizes[group_sizes > check_settings['gaps_finder']['gapsize_n']]
         
         #iterate over the gabs and fill the gapsdf
@@ -226,6 +231,7 @@ def missing_timestamp_and_gap_check(df):
                                                   datetime_of_gap_records.max()]],
                                             index=[station],
                                             columns=['start_gap', 'end_gap'])])
+            
             logger.debug(f'Data gap from {datetime_of_gap_records.min()} --> {datetime_of_gap_records.max()} found for {station}.')
             gap_indices.extend(list(zip([station]*datetime_of_gap_records.shape[0],
                                         datetime_of_gap_records)))
@@ -236,22 +242,26 @@ def missing_timestamp_and_gap_check(df):
             datetime_of_missing_records=consec_missing_groups.get_group(missing_idx).index
             missing_timestamp_indices.extend(list(zip([station]*datetime_of_missing_records.shape[0],
                                         datetime_of_missing_records)))
-        
+    
     # remove gaps from the observations
-    df = df.drop(gap_indices)
+    #df = df.drop(gap_indices)
     # convert missing datetimes to outliers
     outlier_df = make_outlier_df_for_check(station_dt_list=missing_timestamp_indices,
                                            values_in_dict={column: np.nan for column in df.columns},
                                            flagcolumnname=checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
+    
+    
     #remove missing timestamps from observations
-    df = df.drop(missing_timestamp_indices)
+    #df = df.drop(missing_timestamp_indices)
         
         
     #Sort dataframes
     df = df.sort_index()
     outlier_df = outlier_df.sort_index()
     gap_df = gap_df.sort_index()
+    #df = pd.concat([df, outlier_df])
+    #print(df.sort_index())
     
     return df, outlier_df, gap_df, station_freqs
 
@@ -272,21 +282,21 @@ def duplicate_timestamp_check(df):
     Returns
     -------
     df : pandas.DataFrame()
-        The observations dataframe updated for missing timestamps (values updated + quality flag column added).
+        The observations dataframe updated for duplicate timestamps. Duplicated timestamps are removed.
 
     """     
     
-
     checkname = 'duplicated_timestamp'
+
     
-   
+    
     duplicates = pd.Series(data=df.index.duplicated(keep=check_settings[checkname]['keep']),
                            index=df.index)
-   
+    
     if not df.loc[duplicates].empty:
         logging.warning(f' Following records are labeld as duplicates: {df.loc[duplicates]}, and are removed')
     
-    
+
     #Fill the outlierdf with the duplicates
     outliers = df[df.index.duplicated(keep=check_settings[checkname]['keep'])]
     
@@ -295,38 +305,43 @@ def duplicate_timestamp_check(df):
                                           flagcolumnname=checks_info[checkname]['label_columnname'],
                                           flag=checks_info[checkname]['outlier_flag'])
     
-    
-    
+    #outlierdf = outlierdf[~outlierdf.index.duplicated(keep='first')]
     #Remove duplicates from the observations
     df = df[~df.index.duplicated(keep=check_settings[checkname]['keep'])]
     
     
     
     return df, outlierdf
+
 # =============================================================================
 # Quality assesment checks on dataset
 # =============================================================================
 
 
+
 def gross_value_check(input_series, obstype):
     """
-    V3
+    Looking for values of an observation type that are not physical. These values are labeled and the physical limits are specified in the qc_settings. 
 
     Parameters
     ----------
-    input_series : TYPE
-        DESCRIPTION.
-    obstype : TYPE
-        DESCRIPTION.
+    input_series : pandas.Series
+        The observations series of the dataset object
+        
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
+        
 
     Returns
     -------
-    input_series : TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
+    updated_obs_series : pandas.Series
+        The observations series updated for this check. Observations that didn't pass are removed.
+        
+    outlier_df : pandas.DataFrame
+        The collection of records flagged as outliers by this check.
 
-    """
+    """  
+    
     checkname = 'gross_value'
     
     try:
@@ -345,38 +360,119 @@ def gross_value_check(input_series, obstype):
                                 (input_series >= specific_settings['max_value'])
                                 ].index.to_list()
     
-    
     #make outlierdf
     outlier_df = make_outlier_df_for_check(station_dt_list=outl_obs,
                                            values_in_dict={obstype:input_series.loc[outl_obs]},
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
-         
+    
+    
     #drop outliers from input series
     input_series = input_series.drop(outl_obs)
     
     return input_series, outlier_df
 
-def persistance_check(input_series, obstype):
+
+
+def persistance_check(station_frequencies, input_series, obstype):
+
     """
     V3
+    Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
+    
+    In order to perform this check, at least N observations chould be in that time window.
+    
 
     Parameters
     ----------
-    input_series : TYPE
-        DESCRIPTION.
-    obstype : TYPE
-        DESCRIPTION.
+    input_series : pandas.Series
+        The observations series of the dataset object
+        
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
+        
+
+        Returns
+        -------
+        updated_obs_series : pandas.Series
+            The observations series updated for this check. Observations that didn't pass are removed.
+            
+        outlier_df : pandas.DataFrame
+            The collection of records flagged as outliers by this check.
+
+    """  
+    
+    checkname = 'persistance'
+    
+    try:
+        specific_settings = check_settings[checkname][obstype]
+    except:
+        print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        
+        return input_series, init_outlier_multiindexdf()
+    
+    #apply persistance
+    def is_unique(window):   #comp order of N (while using the 'unique' function is Nlog(N))
+     
+        a = window.values
+        a = a[~np.isnan(a)]
+        return (a[0] == a).all()
+    
+            
+    window_output = input_series.reset_index(level=0).groupby('name').rolling(window= specific_settings['time_window_to_check'],
+                                                                            closed='both',
+                                                                            center=True,
+                                                                            min_periods=specific_settings['min_num_obs']).apply(is_unique)
+    
+    
+    list_of_outliers = []
+    outl_obs = window_output.loc[window_output[obstype] == True].index
+    for outlier in outl_obs:
+        outliers_list = get_outliers_in_daterange(input_series, outlier[1], outlier[0], specific_settings['time_window_to_check'], station_frequencies)
+      
+        list_of_outliers.extend(outliers_list)
+        
+    list_of_outliers = list(set(list_of_outliers))
+    
+    #Create outlier df
+    outlier_df = make_outlier_df_for_check(station_dt_list=list_of_outliers,
+                                           values_in_dict={obstype:input_series.loc[list_of_outliers]},
+                                           flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
+                                           flag=checks_info[checkname]['outlier_flag'])
+    
+  
+    #drop outliers from input series
+    input_series = input_series.drop(list_of_outliers)
+    return input_series, outlier_df
+      
+
+
+def repetitions_check(input_series, obstype):
+    """
+    Looking for values of an observation type that are repeated at least with the frequency specified in the qc_settings. These values are labeled.
+
+    Parameters
+    ----------
+    input_series : pandas.Series
+        The observations series of the dataset object
+        
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
+    
 
     Returns
     -------
-    input_series : TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
+    updated_obs_series : pandas.Series
+        The observations series updated for this check. Observations that didn't pass are removed.
+        
+    outlier_df : pandas.DataFrame
+        The collection of records flagged as outliers by this check.
 
-    """
-    checkname = 'persistance'
+
+    """  
+    
+    checkname = 'repetitions'
     
     try:
         specific_settings = check_settings[checkname][obstype]
@@ -392,16 +488,15 @@ def persistance_check(input_series, obstype):
    
     time_diff = input_series.index.get_level_values('datetime').to_series().diff()
     time_diff.index = input_series.index #back to multiindex
-   
     
-    persistance_filter = ((input_series.shift() != input_series) & 
-                          (time_diff.shift() == time_diff)).cumsum()
+    persistance_filter = ((input_series.shift() != input_series)).cumsum()
     
 
     grouped = input_series.groupby(['name', persistance_filter]) 
     #the above line groups the observations which have the same value and consecutive datetimes.
     group_sizes = grouped.size()
     outlier_groups = group_sizes[group_sizes > specific_settings['max_valid_repetitions']]
+    
 
     
     #add to outl_obs.
@@ -411,43 +506,48 @@ def persistance_check(input_series, obstype):
         if len(set(groupseries)) == 1: #Check if all observations are equal in group
             outl_obs.extend(groupseries.index.to_list())
     
-    
     #Create outlier df
     outlier_df = make_outlier_df_for_check(station_dt_list=outl_obs,
                                            values_in_dict={obstype:input_series.loc[outl_obs]},
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
     
+   
     #drop outliers from input series
     input_series = input_series.drop(outl_obs)
     
     return input_series, outlier_df
 
 
-
-
-def step_check(input_series, obstype='temp'):   
+def step_check(input_series, obstype):
     """
+
     V3
-    @MICHIEL
+    Looking for jumps of the values of an observation type that are larger than the limit specified in the qc_settings. These values are removed from 
+    the input series and combined in the outlier df.
+    
+    The purpose of this check is to flag observations with a value that is too much different compared to the previous (not flagged) recorded value.
 
     Parameters
     ----------
-    input_series : TYPE
-        DESCRIPTION.
-    obstype : TYPE, optional
-        DESCRIPTION. The default is 'temp'.
-    ignore_val : TYPE, optional
-        DESCRIPTION. The default is np.nan.
+    input_series : pandas.Series
+        The observations series of the dataset object
+        
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
+        
+  
 
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
+     Returns
+     -------
+     updated_obs_series : pandas.Series
+         The observations series updated for this check. Observations that didn't pass are removed.
+         
+     outlier_df : pandas.DataFrame
+         The collection of records flagged as outliers by this check.
 
-    """
+    """ 
+    
     checkname='step'
     
     try:
@@ -456,84 +556,138 @@ def step_check(input_series, obstype='temp'):
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         return input_series, init_outlier_multiindexdf()
-
-    #make shure to avoid computing steps over missing intervals
-    time_diff = input_series.index.get_level_values('datetime').to_series().diff()
-    time_diff.index = input_series.index #back to multiindex
     
-    #define filter
-    step_filter = ((abs(input_series.shift(1) - input_series) > specific_settings['max_value']) & 
-                   (time_diff.shift() == time_diff))
+    list_of_outliers = []
     
-    outl_obs = step_filter[step_filter==True].index
-    
-    #Create outlier df
-    outlier_df = make_outlier_df_for_check(station_dt_list=outl_obs,
-                                           values_in_dict={obstype:input_series.loc[outl_obs]},
+    for name in input_series.index.droplevel('datetime').unique():
+        subdata = input_series.xs(name, level='name', drop_level=False)
+        
+        time_diff = subdata.index.get_level_values('datetime').to_series().diff()
+        time_diff.index = subdata.index #back to multiindex
+        #define filter
+        step_filter = (((subdata - subdata.shift(1)) > (specific_settings['max_increase_per_second']*time_diff.dt.total_seconds())) | ((subdata - subdata.shift(1)) < (specific_settings['max_decrease_per_second']*time_diff.dt.total_seconds()))) #& 
+                       #(time_diff == station_frequencies[name]))
+        outl_obs = step_filter[step_filter==True].index
+        
+     
+        list_of_outliers.extend(outl_obs)
+        
+    outlier_df = make_outlier_df_for_check(station_dt_list=list_of_outliers,
+                                           values_in_dict={obstype:input_series.loc[list_of_outliers]},
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
     
-    #drop outliers from input series
-    input_series = input_series.drop(outl_obs)
+    
+    input_series = input_series.drop(list_of_outliers)
+    
     return input_series, outlier_df
 
-# def step_check(input_series, obstype='temp', ignore_val=np.nan):   
-#     """
-#     @MICHIEL
+def window_variation_check(station_frequencies, input_series, obstype):   
+    """
 
-#     Parameters
-#     ----------
-#     input_series : TYPE
-#         DESCRIPTION.
-#     obstype : TYPE, optional
-#         DESCRIPTION. The default is 'temp'.
-#     ignore_val : TYPE, optional
-#         DESCRIPTION. The default is np.nan.
+    V3
+    Looking for jumps of the values of an observation type that are larger than the limit specified in the qc_settings. These values are removed from 
+    the input series and combined in the outlier df.
+    
+    There is a increament threshold (that is if there is a max value difference and the maximum value occured later than the minimum value occured.) 
+    And vice versa is there a decreament threshold.
+    
+    The check is only applied if there are at leas N observations in the time window.
 
-#     Returns
-#     -------
-#     TYPE
-#         DESCRIPTION.
-#     TYPE
-#         DESCRIPTION.
 
-#     """
-#     checkname='step'
+    Parameters
+    ----------
+    station_frequencies: pandas.Series
+        The series containing the dataset time-resolution for all stations (as index).
     
-#     try:
-#         specific_settings = check_settings[checkname][obstype]
-#     except:
-#         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-#         # logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-#         flag_series = flag_series_when_no_settings_found(input_series, obstype, checkname)
-#         return input_series, flag_series
-    
-    
-    
-    
-#     #Do not split in advace, so no gabs appear in the dataset!! Split afterwards for labeling consistency
-    
-#     outl_obs = []
-#     for _station, obs in input_series.groupby(level='name'):
-#         increaments = input_series.shift(1) - input_series
-#         outl_obs.extend(increaments[abs(increaments) > specific_settings['max_value']].index.to_list())
+    input_series : pandas.Series
+        The observations series of the dataset object
         
-#     # Split into two sets
-#     to_check_series, to_ignore_series = split_to_check_to_ignore(input_series,
-#                                                                   ignore_val)
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'.
+        
+  
+
+     Returns
+     -------
+     updated_obs_series : pandas.Series
+         The observations series updated for this check. Observations that didn't pass are removed.
+         
+     outlier_df : pandas.DataFrame
+         The collection of records flagged as outliers by this check.
+
+    """ 
+    checkname='window_variation'
     
-#     # #Update observations and quality flags
-#     updated_obs_series, qc_flags_series = make_checked_obs_and_labels_series(checked_obs_series=to_check_series,
-#                                                                 ignored_obs_series=to_ignore_series, 
-#                                                                 outlier_obs=outl_obs,
-#                                                                 checkname=checkname,
-#                                                                 outlier_label=observation_labels[checkname],
-#                                                                 outlier_value=outlier_values[checkname],
-#                                                                 obstype=obstype)
-#     return updated_obs_series, qc_flags_series
+    try:
+        specific_settings = check_settings[checkname][obstype]
+    except:
+        print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
+        return input_series, init_outlier_multiindexdf()
 
+    # Calculate window thresholds (by linear extarpolation)
+    windowsize_seconds = pd.Timedelta(specific_settings['time_window_to_check']).total_seconds()
+    max_window_increase = specific_settings['max_increase_per_second'] * windowsize_seconds
+    max_window_decrease = specific_settings['max_decrease_per_second'] * windowsize_seconds
+    
 
+    #apply steptest
+    def variation_test(window):
+        if ((max(window) - min(window) > max_window_increase) & 
+            (window.idxmax() > window.idxmin())):
+            return 1
 
+        if ((max(window) - min(window) > max_window_decrease) & 
+            (window.idxmax() < window.idxmin())):
+            return 1
+        else:
+            return 0
+
+    window_output = input_series.reset_index(level=0).groupby('name').rolling(window=specific_settings['time_window_to_check'],
+                                                                            closed='both',
+                                                                            center=True,
+                                                                            min_periods=specific_settings['min_window_members']).apply(variation_test)
+
+    list_of_outliers = []
+    outl_obs = window_output.loc[window_output[obstype] == 1].index
+
+    for outlier in outl_obs:
+        outliers_list = get_outliers_in_daterange(input_series, outlier[1], outlier[0], specific_settings['time_window_to_check'], station_frequencies)
+      
+        list_of_outliers.extend(outliers_list)
+        
+    list_of_outliers = list(set(list_of_outliers))
+    
+    #Create outlier df
+    outlier_df = make_outlier_df_for_check(station_dt_list=list_of_outliers,
+                                           values_in_dict={obstype:input_series.loc[list_of_outliers]},
+                                           flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
+                                           flag=checks_info[checkname]['outlier_flag'])
+   
+   
+    #drop outliers from input series
+    input_series = input_series.drop(list_of_outliers)
+    
+    return input_series, outlier_df
+
+def get_outliers_in_daterange(input_data, date, name, time_window, station_freq):
+    end_date = date + (pd.Timedelta(time_window)/2).floor(station_freq[name])
+    start_date = date - (pd.Timedelta(time_window)/2).floor(station_freq[name])
+    
+    daterange = pd.date_range(start=start_date, end = end_date, freq=station_freq[name])
+    
+    multi_idx = pd.MultiIndex.from_arrays(arrays=[[name]*len(daterange), daterange.to_list()],
+                                          sortorder=1,
+                                          names=['name', 'datetime'])
+    outlier_sub_df = pd.DataFrame(data=None,
+                                         index=multi_idx, 
+                                         columns=None)
+    
+    
+    intersection = outlier_sub_df.index.intersection(input_data.dropna().index).values
+    
+    return intersection
 
 # def compute_dew_point(df, spec_settings):
 #     dew_temp = spec_settings['c']*np.log(df['humidity']/100 *np.exp((spec_settings['b'] - df['temp']/spec_settings['d']) * (df['temp']/(spec_settings['c'] + df['temp']))))/(spec_settings['b'] - np.log(df['humidity']/100 *np.exp((spec_settings['b'] - df['temp']/spec_settings['d']) * (df['temp']/(spec_settings['c'] + df['temp'])))))

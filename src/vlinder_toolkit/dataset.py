@@ -19,12 +19,15 @@ from .data_import import import_data_from_csv, import_data_from_database, templa
 from .landcover_functions import geotiff_point_extraction
 from .geometry_functions import find_largest_extent
 from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot, qc_stats_pie
-from .qc_checks import gross_value_check, persistance_check, missing_timestamp_and_gap_check, duplicate_timestamp_check
-from .qc_checks import step_check, init_outlier_multiindexdf, get_freqency_series, gaps_to_outlier_format
+
+from .qc_checks import gross_value_check, persistance_check, repetitions_check, duplicate_timestamp_check
+from .qc_checks import step_check, missing_timestamp_and_gap_check, get_freqency_series
+from .qc_checks import init_outlier_multiindexdf, gaps_to_outlier_format, window_variation_check
+
 from .statistics import get_qc_effectiveness_stats
 
 from .station import Station
- 
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================
@@ -449,10 +452,14 @@ class Dataset:
     # =============================================================================
     
     def apply_quality_control(self, obstype='temp',
-                              gross_value=True, persistance=True,
+                              gross_value=True, 
+                              persistance=True, 
+                              repetitions=True,
                               step=True, 
+                              window_variation=True,
                               # internal_consistency=True,
                               ):
+
         """
         V3
         Apply quality control methods to the dataset. The default settings are used, and can be changed
@@ -486,43 +493,70 @@ class Dataset:
 
         """
         
-        
+
+        if repetitions:
+           print('Applying the repetitions-check on all stations.')
+           logger.info('Applying repetitions check on the full dataset')
+           
+           checked_series, outl_df = repetitions_check(input_series=self.df[obstype],
+                                                     obstype=obstype)
+           
+           #update the dataset and outliers
+           self.df[obstype] = checked_series
+           self.update_outliersdf(outl_df)
+         
+            
         if gross_value:
             print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
-            
-       
+    
             checked_series, outl_df = gross_value_check(input_series = self.df[obstype],
                                                         obstype=obstype)
+            
             #update the dataset and outliers
             self.df[obstype] = checked_series
             self.update_outliersdf(outl_df)
-        
+            
             
         if persistance:
             print('Applying the persistance-check on all stations.')
             logger.info('Applying persistance check on the full dataset')
-           
-            checked_series, outl_df = persistance_check(input_series=self.df[obstype],
-                                                      obstype=obstype)
+          
+            checked_series, outl_df = persistance_check(station_frequencies=self.metadf['dataset_resolution'], input_series=self.df[obstype],
+                                                        obstype=obstype)
 
             #update the dataset and outliers
             self.df[obstype] = checked_series
             self.update_outliersdf(outl_df)
-            
             
         if step:
             print('Applying the step-check on all stations.')
             logger.info('Applying step-check on the full dataset')
            
             checked_series, outl_df = step_check(input_series=self.df[obstype],
-                                                      obstype=obstype)
+                                                 obstype=obstype)
                                                       
-
+            
             #update the dataset and outliers
             self.df[obstype] = checked_series
             self.update_outliersdf(outl_df)
             
+        if window_variation:
+            print('Applying the window variation-check on all stations.')
+            logger.info('Applying window variation-check on the full dataset')
+           
+            checked_series, outl_df = window_variation_check(station_frequencies=self.metadf['dataset_resolution'], input_series=self.df[obstype],
+                                                 obstype=obstype)
+                                                      
+            
+            #update the dataset and outliers
+            self.df[obstype] = checked_series
+            self.update_outliersdf(outl_df)
+        
+        self.outliersdf = self.outliersdf.sort_index()
+        
+
+
         # if internal_consistency:
         #     print('Applying the internal-concsistency-check on all stations.')
         #     logger.info('Applying step-check on the full dataset')
@@ -537,9 +571,8 @@ class Dataset:
         #     label_column_name = qc_flags.name
         #     self.df[label_column_name] = qc_flags
         
-        
     
-    def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):
+    def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True, coarsen_timeres=False):
         """
         Compute frequency statistics on the qc labels for an observationtype.
         The output is a dataframe containing the frequency statistics presented
@@ -570,36 +603,66 @@ class Dataset:
         outliersdf = pd.concat([outliersdf,
                                 gaps_to_outlier_format(gapsdf=self.gapsdf,
                                                        dataset_res_series=self.metadf['dataset_resolution'])])
+        
+        if coarsen_timeres:
+            gaps_1 = outliersdf[outliersdf["gap_timestamp_label"] == "missing timestamp (gap)"]
+            outliersdf.drop(gaps_1.index, inplace=True)
+            outliersdf = outliersdf.loc[outliersdf.index.intersection(self.df.index)]
+            outliersdf = pd.concat([outliersdf, gaps_1], sort=True)
+            
         outliersdf = outliersdf.fillna(value='ok')
         
         if isinstance(stationnames, type(None)):
             df = self.df
-            
+            qc_labels_df = self.get_final_qc_labels()
+  
             title=f'Frequency for {obstype}-qc-checks on all stations.'
         else: 
             title=f'Frequency for {obstype}-qc-checks on {stationnames}.'
             if isinstance(stationnames, str):
                 stationnames = [stationnames]
-                
+            
+            qc_labels_df = self.get_final_qc_labels().loc[self.get_final_qc_labels().index.get_level_values(level='name').isin(stationnames)]
             df = self.df.loc[self.df.index.get_level_values(level='name').isin(stationnames)]
             outliersdf = outliersdf.loc[outliersdf.index.get_level_values(level='name').isin(stationnames)]
-            
+        
+        
         #Do not include the 'final_qc_label' in the statis
         if obstype + '_final_label' in outliersdf.columns:
             logger.debug(f'The {obstype}_final_label, is ingored for the QC-stats. ')
             outliersdf = outliersdf.loc[:, outliersdf.columns != obstype+'_final_label']
             
        
-            
+        
         #stats on datset level
+        qc_labels = {key: val['outlier_flag'] for key, val in Settings.qc_checks_info.items()}
+     
+        if coarsen_timeres:
+            for row in self.gapsdf.iterrows():
+                df = df.iloc[df.index.get_level_values('name') == row[0]]
+                df.reset_index(level='name', inplace=True)
+                indices_to_remove = df.loc[(df.index <= row[1]['end_gap']) & (df.index >= row[1]['start_gap'])].index
+                df.drop(indices_to_remove, inplace=True)
+                df.set_index(['name', df.index], inplace=True)
+        
         dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf,
                                                       df =df,
                                                       obstype=obstype,
                                                       observation_types = observation_types,
-                                                      qc_labels=Settings.qc_observation_labels)
-    
+                                                      qc_labels=qc_labels)
+        
+       
+        if coarsen_timeres:
+            gaps_2 = qc_labels_df[qc_labels_df["gap_timestamp_label"] == "missing timestamp (gap)"]
+            qc_labels_df.drop(gaps_2.index, inplace=True)
+            qc_labels_df = qc_labels_df.loc[qc_labels_df.index.intersection(self.df.index)]
+            qc_labels_df = pd.concat([qc_labels_df, gaps_2], sort=True)
+        
+        valid_records_df = df.drop(qc_labels_df.index.intersection(df.index).dropna())           
+        
+        
         if make_plot:
-            qc_stats_pie(qc_stats=dataset_qc_stats,
+            qc_stats_pie(valid_records_df, qc_labels_df, qc_stats=dataset_qc_stats,
                          figsize=Settings.plot_settings['qc_stats']['figsize'],
                          title=title)
                
@@ -636,7 +699,7 @@ class Dataset:
     # =============================================================================
     #     importing data        
     # =============================================================================
-        
+      
     def coarsen_time_resolution(self, freq='1H', method='nearest', limit=1):
         logger.info(f'Coarsening the timeresolution to {freq} using the {method}-method (with limit={limit}).')
         #TODO: implement buffer method
@@ -660,6 +723,7 @@ class Dataset:
         self.metadf['dataset_resolution'] = pd.to_timedelta(freq)
         #update df
         self.df = df
+        
     
     def import_data_from_file(self, network='vlinder', coarsen_timeres=False):
         """
@@ -697,8 +761,6 @@ class Dataset:
                                   file_csv_template=Settings.input_csv_template,
                                   template_list = Settings.template_list)
         
-    
-        
         logger.debug(f'Data from {Settings.input_data_file} imported to dataframe.')
 
         #drop Nat datetimes if present
@@ -730,13 +792,16 @@ class Dataset:
         #update dataset object
         self.data_template = pd.DataFrame().from_dict(template)
         
-        
+
         #convert dataframe to multiindex (datetime - name)
         df = df.set_index(['name', df.index])
         
+        #dataframe with all data of input file
+        self.input_df = df
         
         self.update_dataset_by_df(dataframe = df, 
                                   coarsen_timeres=coarsen_timeres)
+
         
     
     def import_data_from_database(self,
@@ -828,29 +893,29 @@ class Dataset:
         """
        
         logger.info(f'Updating dataset by dataframe with shape: {dataframe.shape}.')
-       
+        
         #Create dataframe with fixed number and order of observational columns
         df = dataframe.reindex(columns = observation_types)
         self.df = df
         
         #create metadataframe with fixed number and order of columns
-        
         metadf = dataframe.reindex(columns = location_info)
         metadf.index = metadf.index.droplevel('datetime') #drop datetimeindex
         metadf = metadf[~metadf.index.duplicated(keep='first')]#drop dubplicates due to datetime
-
-       
+        
         self.metadf = metadf_to_gdf(metadf)
         
+
         #add import frequencies to metadf
         self.metadf['assumed_import_frequency'] = get_freqency_series(self.df)
         
-        
         #TODO: How to implement the choise to apply QC on import freq or on coarsened frequency
-       
-        self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
+        self.df = df.sort_index()
+        
         self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
-       
+        self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
+        #print(self.df.iloc[:100,].to_string())
+        
         #update outliersdf
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df, missing_outl_df])
        
@@ -861,13 +926,10 @@ class Dataset:
             
         else:
             self.metadf['dataset_resolution'] = self.metadf['assumed_import_frequency']
-       
+            
         #get LCZ values (if coords are availible)
         self.metadf =  get_lcz(self.metadf)
         
-        
-
-
 
 def metadf_to_gdf(df, crs=4326):
     """
@@ -1090,7 +1152,7 @@ def add_final_label_to_outliersdf(outliersdf, gapsdf, data_res_series):
        
     
         outliersdf[obstype+'_final_label'] = num_qc_df.sum(axis=1, skipna=True).map(inv_label_to_num)
-
+       
    
     return outliersdf
 # def final_qc_label_maker(df, label_to_numeric_mapper):
