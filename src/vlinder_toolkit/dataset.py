@@ -638,10 +638,10 @@ class Dataset:
         qc_labels = {key: val['outlier_flag'] for key, val in Settings.qc_checks_info.items()}
      
         if coarsen_timeres:
-            for i in range(len(self.gapsdf)):
-                df = df.iloc[df.index.get_level_values('name') == self.gapsdf.index[i]]
+            for row in self.gapsdf.iterrows():
+                df = df.iloc[df.index.get_level_values('name') == row[0]]
                 df.reset_index(level='name', inplace=True)
-                indices_to_remove = df.loc[(df.index <= self.gapsdf['end_gap'][i]) & (df.index >= self.gapsdf['start_gap'][i])].index
+                indices_to_remove = df.loc[(df.index <= row[1]['end_gap']) & (df.index >= row[1]['start_gap'])].index
                 df.drop(indices_to_remove, inplace=True)
                 df.set_index(['name', df.index], inplace=True)
         
