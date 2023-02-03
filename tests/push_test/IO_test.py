@@ -13,7 +13,7 @@ from pathlib import Path
 
 lib_folder = Path(__file__).resolve().parents[2]
 sys.path.append(str(lib_folder))
-print(str(lib_folder))
+
 
 from src import vlinder_toolkit
 
@@ -40,9 +40,6 @@ dataset.import_data_from_file()
 
 dataset.show()
 
-print(dataset.df.head())
-print(dataset.metadf.head())
-print(dataset.data_template.head())
 
 station = dataset.get_station('vlinder02')
 

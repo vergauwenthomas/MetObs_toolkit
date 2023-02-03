@@ -20,6 +20,8 @@ development/*
 
 #Exclude physiographic data
 physiography/*
+#Exclude virtual environments
+.nox/
 
 # pychache
 src/vlinder_toolkit/__pycache__/*

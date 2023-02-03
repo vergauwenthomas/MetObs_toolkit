@@ -6,10 +6,12 @@ Created on Fri Oct 21 11:26:52 2022
 @author: thoverga
 """
 import pandas as pd
+import math
 import geopandas as gpd
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
+import matplotlib.gridspec as gridspec
 
 
 # import geoplot as gplt
@@ -125,26 +127,69 @@ def spatial_plot(gdf, variable, legend, use_quantiles, is_categorical, k_quantil
 
 
 
-def qc_stats_pie(qc_stats, figsize, title):
+def qc_stats_pie(valid_records, final_labels_df, qc_stats, figsize, title, obstype='temp'):
+     
+    valid_records_without_na = valid_records[valid_records[obstype].notna()]
+    num_valid_records_without_na = len(valid_records_without_na)
+    num_not_valid_observations = len(valid_records) - len(valid_records_without_na)
     
-    
+    num_gaps = final_labels_df[obstype+'_final_label'].value_counts()['missing timestamp (gap)']
+    num_outliers = len(final_labels_df) - num_gaps
+   
     colors = {'ok': 'green', 'not checked': 'orange', 'outlier': 'red'}
-    ax = qc_stats.plot(kind='pie', subplots=True,
-                    colors = list(colors.values()), 
-                    autopct='%1.f%%', startangle=270, fontsize=10,
-                    layout=(3,2), figsize=(10,10),
-                    title = qc_stats.columns.to_list(),
-                    legend=False, ylabel='')
     
+    fig = plt.figure(figsize=(10,10))
+    fig.tight_layout()
+    
+    spec = fig.add_gridspec(3, 4, wspace=10)
+    
+    ax_1 = fig.add_subplot(spec[0,:2])
+    ax_2 = fig.add_subplot(spec[0,2:])
+    
+    names_1 = ['ok', 'outliers', 'gaps', 'not valid observations']
+    colors_1 = ["green", "orange", "blue", "red"]
+    values_1 = [num_valid_records_without_na, num_outliers, num_gaps, num_not_valid_observations]
+    patches1, texts1 = ax_1.pie(values_1, radius=1.5, colors = colors_1)
+    percents_1 = [item * 100 for item in values_1]/ sum(values_1)
+    ax_1.legend(patches1, labels = [f'{l}, {s:0.1f}%' for l, s in zip(names_1, percents_1)], loc = (-0.25, 0.75))
+    
+    for i in range(len(qc_stats.columns)):
+        data = list(qc_stats.iloc[:,i].values)
+        names = list(qc_stats.index)
+        ax = fig.add_subplot(spec[math.floor(i/4)+1,i%4])
+        patches, texts = ax.pie(data, colors=list(colors.values()), radius = 8)
+        ax.set_title(qc_stats.columns[i], pad=60, fontweight ="bold")
+        ax.legend(patches, labels = [f'{l}, {s:0.1f}%' for l, s in zip(names, data)], loc = (0.25, 1))
+       
+    
+    names_2 = list(final_labels_df[obstype+'_final_label'].value_counts().index)
+    values_2 = list(final_labels_df[obstype+'_final_label'].value_counts().values)
+
+    percents_2 = [item * 100 for item in values_2]/ sum(values_2)
+    patches2, texts2 = ax_2.pie(values_2, radius=1.5)
+    ax_2.legend(patches2, labels = [f'{l}, {s:0.1f}%' for l, s in zip(names_2, percents_2)], loc = (-1, 0.5))
+    plt.show()
+    
+    #colors = {'ok': 'green', 'not checked': 'orange', 'outlier': 'red'}
+    #fig, ax = plt.subplots(2)
+    
+    #ax[0] = qc_stats.plot(kind='pie', subplots=True,
+     #               colors = list(colors.values()), 
+      #              autopct='%1.f%%', startangle=270, fontsize=10,
+       #             layout=(3,3), figsize=(10,10),
+        #            title = qc_stats.columns.to_list(),
+         #           legend=False, ylabel='')
+    
+    #names = list(final_labels_df[obstype+'_final_label'].value_counts().index)
+    #values = list(final_labels_df[obstype+'_final_label'].value_counts().values)
+    #print(final_labels_df[obstype+'_final_label'].value_counts())
+    # Creating plot
+    #ax[1].pie(values, labels = names)
+    #plt.show()
     #Set title
-    fig = ax[0][0].get_figure()
-    fig.suptitle(title)
+    #fig = ax[0][0][0][0].get_figure()
+    #fig.suptitle(title)
     
     #Set legend
-    legend_lines = [Line2D([0], [0], color=col, lw=4) for col in colors.values()]
-    legend_labels = [label for label in colors.keys()]
     
-    # fig.legend(handles, labels, loc='upper center')
-    fig.legend(legend_lines, legend_labels, loc = (0, 0.5), ncol=1)
-    
-    return ax
+    return fig

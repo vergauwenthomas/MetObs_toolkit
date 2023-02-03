@@ -16,9 +16,11 @@ logger = logging.getLogger(__name__)
 
 #%%
 class Station:
-    def __init__(self, name, df, meta_series, data_template):
+    def __init__(self, name, df, outliersdf, gapsdf, meta_series, data_template):
         self.name = name
         self.df = df
+        self.outliersdf = outliersdf
+        self.gapsdf = gapsdf
         self.meta_series = meta_series
         self.data_template = data_template
         

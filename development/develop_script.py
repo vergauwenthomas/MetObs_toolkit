@@ -21,38 +21,38 @@ from src import vlinder_toolkit
 
 # % Import
 
-testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt.csv')
+testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
 
 static_data =  os.path.join(str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
-lcz_map = os.path.join(str(lib_folder), 'physiograpy', 'lcz_filter_v1.tif')
+# lcz_map = os.path.join(str(lib_folder), 'physiograpy', 'lcz_filter_v1.tif')
 
 
 #% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
                           input_metadata_file=static_data,
-                          geotiff_lcz_file=lcz_map
+                          # geotiff_lcz_file=lcz_map
+                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                           )
 
 
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 
+
+
 dataset.apply_quality_control()
 
-dataset.add_final_qc_labels()
+test = dataset.get_qc_stats()
+
+# dataset.write_to_csv(filename='remove_me', add_final_labels=True)
 
 
-test = dataset.get_qc_stats(stationnames = 'vlinder02')
 
-# test2 = dataset.get_qc_stats()
 
 
 
 
 #%%
-
-
-
 

@@ -66,9 +66,8 @@ class Settings:
     
     #Quality control settings
     qc_check_settings = None
-    qc_outlier_values = None
-    qc_observation_labels = None
-    qc_numeric_label_mapper = None
+    qc_checks_info = None
+   
     
     
     def __init__(self):
@@ -114,6 +113,7 @@ class Settings:
         
         Settings.target_time_res = res_settings['target_time_resolution']
         Settings.resample_method = res_settings['method']
+        Settings.resample_limit = res_settings['limit']
        
         
     @classmethod
@@ -136,11 +136,9 @@ class Settings:
     @classmethod
     def update_qc_settings(self):
         logger.debug('Updating QC settings.')
-        from .settings_files.qc_settings import check_settings, outlier_values, observation_labels, numeric_label_mapper
+        from .settings_files.qc_settings import check_settings, checks_info
         Settings.qc_check_settings = check_settings
-        Settings.qc_outlier_values = outlier_values
-        Settings.qc_observation_labels = observation_labels
-        Settings.qc_numeric_label_mapper = numeric_label_mapper
+        Settings.qc_checks_info = checks_info
         
     
     @classmethod
