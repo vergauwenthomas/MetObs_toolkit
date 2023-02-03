@@ -127,7 +127,7 @@ def import_metadata_from_csv(input_file, file_csv_template, template_list):
 
 def import_data_from_csv(input_file, file_csv_template, template_list):
     
-    common_seperators = [';',',','    ']
+    common_seperators = [';',',','    ','.']
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
     for sep in common_seperators:
         
