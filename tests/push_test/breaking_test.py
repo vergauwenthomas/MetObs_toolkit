@@ -19,7 +19,8 @@ lib_folder = Path(__file__).resolve().parents[2]
 sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-from src import vlinder_toolkit
+import vlinder_toolkit
+
 
 testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
 
