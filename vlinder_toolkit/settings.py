@@ -249,7 +249,7 @@ class Settings:
          template = read_csv_template(csv_file)
          logger.debug(f'Added teplate: {template}')
 
-         Settings.template_list.extend(template)
+         Settings.template_list.append(template)
          
          #Check if all templates are still unique
          check_if_templates_are_unique_defined(Settings.template_list)

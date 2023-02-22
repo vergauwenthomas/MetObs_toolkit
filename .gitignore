@@ -4,6 +4,7 @@ deploy_info
 #Exclude temp output
 temp_output/*
 *~lock*
+*.swp
 #Exclude deploy scripts
 *deploy*
 
@@ -14,7 +15,8 @@ dist/*
 proj/proj-9.0.0/*
 
 #logs
-logfile.log
+*log*
+
 #Exclude development scripts for testing
 development/*
 

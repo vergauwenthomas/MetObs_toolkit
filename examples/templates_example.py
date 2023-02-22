@@ -81,7 +81,7 @@ print(settings.template_list)
 #This list is created from an csv file, where these templates are defined as different tabs in the csv file. To see the templates,
 # you can make a copy to a folder of your choise using this function:
     
-settings.copy_template_csv_file(target_folder='/home/%s/Desktop' % os.getenv('USER'))
+settings.copy_template_csv_files(target_folder='/home/%s/Desktop' % os.getenv('USER'))
 
 
 #If you compair the template with the columnnames of the data file than you will see how this mapping is done. 
@@ -112,7 +112,9 @@ settings.copy_template_csv_file(target_folder='/home/%s/Desktop' % os.getenv('US
 
 
 #save the file, and add the template to the settings object by specifying the path of the template you created.
-settings.add_csv_template(csv_file='/home/%s/Desktop/default_templates.csv' % os.getenv('USER'))
+settings.add_csv_template(csv_file='/home/%s/Desktop/default_templates2.csv' % os.getenv('USER'))
+
+
 
 #Now you can import your data from csv file, and when importing, the package will test your template if it can be applied.
 
@@ -124,8 +126,6 @@ settings.add_csv_template(csv_file='/home/%s/Desktop/default_templates.csv' % os
 
 # your_dataset = vlinder_toolkit.Dataset()
 # your_dataset.import_data_from_file(settings) #Rember that you added the input file in the settings object, this file will be used.
-
-
 
 
 
