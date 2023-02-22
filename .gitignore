@@ -26,8 +26,6 @@ physiography/*
 .nox/
 
 # pychache
-src/vlinder_toolkit/__pycache__/*
-
 *__pycache__*
 
 
