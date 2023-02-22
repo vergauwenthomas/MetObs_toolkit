@@ -13,7 +13,7 @@ from pathlib import Path
 lib_folder = Path(__file__).resolve().parents[2]
 sys.path.append(str(lib_folder))
 
-from src import vlinder_toolkit
+from vlinder_toolkit import *
 
 
 

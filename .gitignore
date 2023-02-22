@@ -4,8 +4,9 @@ deploy_info
 #Exclude temp output
 temp_output/*
 *~lock*
+*.swp
 #Exclude deploy scripts
-deploy_to*
+*deploy*
 
 #Exclude builds
 dist/*
@@ -14,7 +15,8 @@ dist/*
 proj/proj-9.0.0/*
 
 #logs
-logfile.log
+*log*
+
 #Exclude development scripts for testing
 development/*
 
@@ -24,8 +26,6 @@ physiography/*
 .nox/
 
 # pychache
-src/vlinder_toolkit/__pycache__/*
-
 *__pycache__*
 
 

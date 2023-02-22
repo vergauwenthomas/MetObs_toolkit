@@ -78,10 +78,10 @@ print(settings.template_list)
 
 #This is a list with templates (stored in a dictionary.)
 
-#This list is created from an excel file, where these templates are defined as different tabs in the excel file. To see the templates,
+#This list is created from an csv file, where these templates are defined as different tabs in the csv file. To see the templates,
 # you can make a copy to a folder of your choise using this function:
     
-settings.copy_template_excel_file(target_folder='/home/%s/Desktop' % os.getenv('USER'))
+settings.copy_template_csv_files(target_folder='/home/%s/Desktop' % os.getenv('USER'))
 
 
 #If you compair the template with the columnnames of the data file than you will see how this mapping is done. 
@@ -93,7 +93,7 @@ settings.copy_template_excel_file(target_folder='/home/%s/Desktop' % os.getenv('
 # =============================================================================
 
 # If you want to analyse a new dataset by another network, than you need to add a template yourself. 
-# Start by making a copy of the default templates (see above). Do  change the column names of this excel file, but only the cell values.
+# Start by making a copy of the default templates (see above). Do  change the column names of this csv file, but only the cell values.
 
 # If you dataset is one file (observations and meta data in one csv file), like in this example, than you can add the metadata to the end of the template:
     
@@ -112,7 +112,9 @@ settings.copy_template_excel_file(target_folder='/home/%s/Desktop' % os.getenv('
 
 
 #save the file, and add the template to the settings object by specifying the path of the template you created.
-settings.add_excel_template(excel_file='/home/%s/Desktop/default_templates.xlsx' % os.getenv('USER'))
+settings.add_csv_template(csv_file='/home/%s/Desktop/default_templates2.csv' % os.getenv('USER'))
+
+
 
 #Now you can import your data from csv file, and when importing, the package will test your template if it can be applied.
 
@@ -124,8 +126,6 @@ settings.add_excel_template(excel_file='/home/%s/Desktop/default_templates.xlsx'
 
 # your_dataset = vlinder_toolkit.Dataset()
 # your_dataset.import_data_from_file(settings) #Rember that you added the input file in the settings object, this file will be used.
-
-
 
 
 

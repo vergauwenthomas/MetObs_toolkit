@@ -19,7 +19,8 @@ lib_folder = Path(__file__).resolve().parents[2]
 sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-from src import vlinder_toolkit
+import vlinder_toolkit
+
 
 testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
 
@@ -71,8 +72,8 @@ settings.qc_check_settings['step']['temp']['max_decrease_per_second'] = max_decr
 
 
 #% add template
-template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.xls')
-settings.add_excel_template(template_file)
+template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.csv')
+settings.add_csv_template(template_file)
 
 dataset_coarsened = vlinder_toolkit.Dataset()
 dataset_coarsened.import_data_from_file(coarsen_timeres=True)
