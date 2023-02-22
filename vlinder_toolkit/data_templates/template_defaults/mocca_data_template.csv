@@ -1,0 +1,17 @@
+varname,template column name,units,description,dtype,format
+name,name,,,object,
+,,,,,
+datetime,,,,object,%Y-%m-%d %H:%M:%S
+_date,Datum,,,object,%Y-%m-%d
+_time,Tijd (UTC),,,object,%H:%M:%S
+,,,,,
+temp,Temp Act,Celcius,active 2m-temperature,float64,
+humidity,,,,,
+pressure,,,,,
+precip,,,,,
+precip_sum,,,,,
+wind_direction,,,,,
+wind_speed,,,,,
+wind_gust,,,,,
+pressure_at_sea_level,,,,,
+radiation_temp,,,,,

@@ -5,15 +5,14 @@ Created on Thu Sep 22 16:24:06 2022
 
 @author: thoverga
 """
-import sys, os
+import sys
 # import json
 # import datetime
 import pandas as pd
 
 import mysql.connector
 from mysql.connector import errorcode
-from pathlib import Path
-from .data_templates.import_templates import read_templates
+# from pathlib import Path
 
 
 def template_to_package_space(specific_template):

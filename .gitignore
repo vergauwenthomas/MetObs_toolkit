@@ -5,7 +5,7 @@ deploy_info
 temp_output/*
 *~lock*
 #Exclude deploy scripts
-deploy_to*
+*deploy*
 
 #Exclude builds
 dist/*
