@@ -532,13 +532,12 @@ class Dataset:
         if step:
             print('Applying the step-check on all stations.')
             logger.info('Applying step-check on the full dataset')
-            print(self.df[obstype].iloc[0:30])
+      
             checked_series, outl_df = step_check(input_series=self.df[obstype],
                                                  obstype=obstype)
                                                      
             #update the dataset and outliers
             self.df[obstype] = checked_series
-            print(self.df[obstype].iloc[0:30]) 
             self.update_outliersdf(outl_df)
             
         if window_variation:
