@@ -16,7 +16,7 @@ import logging
 from .settings import Settings
 from .data_import import import_data_from_csv, import_data_from_database, template_to_package_space, import_metadata_from_csv
 # from .data_import import coarsen_time_resolution
-from .landcover_functions import geotiff_point_extraction
+from .landcover_functions import connect_to_gee, extract_pointvalues
 from .geometry_functions import find_largest_extent
 from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot, qc_stats_pie
 
@@ -927,9 +927,49 @@ class Dataset:
         else:
             self.metadf['dataset_resolution'] = self.metadf['assumed_import_frequency']
             
-        #get LCZ values (if coords are availible)
-        self.metadf =  get_lcz(self.metadf)
         
+        
+        
+    def get_lcz(self):
+        """
+        Function to extract the LCZ's for all locations in the metadf.
+        A column 'lcz' is added tot the metadf.
+        
+        All information on the LCZ is extracted from the global lcz map using gee-api
+        ----------
+    
+        """
+        logger.debug('Extract LCZs')
+        
+        
+        
+        if self.metadf['geometry'].x.isnull().values.all():
+            logger.info('Extract LCZs is not possible because no longtitude information is found.')
+            self.metadf['lcz'] = 'Location unknown'
+            return self.metadf
+        if self.metadf['geometry'].y.isnull().values.all():
+            logger.info('Extract LCZs is not possible because no latitude information is found.')
+            self.metadf['lcz'] = 'Location unknown'
+            return self.metadf
+        
+        
+        # connect to gee
+        connect_to_gee()
+        
+        
+        # extract LCZ from gee
+        lons = self.metadf['geometry'].x.to_list()
+        lats = self.metadf['geometry'].y.to_list()
+        lczs, extra_info = extract_pointvalues(mapinfo=Settings.gee_dataset_info['global_lcz_map'],
+                                               lat=lats,
+                                               lon=lons)
+        #TODO: for now the extra information is not used or stored somewhere
+
+        # Add column to metadf
+        self.metadf['lcz'] = lczs
+            
+        
+          
 
 def metadf_to_gdf(df, crs=4326):
     """
@@ -966,67 +1006,51 @@ def metadf_to_gdf(df, crs=4326):
     return geodf
 
 
-def get_lcz(metadf):
-    """
-    Function to extract the LCZ's for all locations in the metadf.
-    A column 'lcz' is added tot the metadf.
+# def get_lcz(metadf):
+#     """
+#     Function to extract the LCZ's for all locations in the metadf.
+#     A column 'lcz' is added tot the metadf.
     
-    All information on the LCZ is extracted from the Setting object (class mapper, location)
-    ----------
-    metadf : geopandas.GeoDataFrame
-        Geodataframe with the coordinates present as geometry.
+#     All information on the LCZ is extracted from the Setting object (class mapper, location)
+#     ----------
+#     metadf : geopandas.GeoDataFrame
+#         Geodataframe with the coordinates present as geometry.
 
-    Returns
-    -------
-    metadf : geopandas.GeoDataFrame
-        The metadf with the added 'lcz'-column.
+#     Returns
+#     -------
+#     metadf : geopandas.GeoDataFrame
+#         The metadf with the added 'lcz'-column.
 
-    """
-    logger.debug('Extract LCZs')
-
+#     """
+#     logger.debug('Extract LCZs')
     
     
-    if metadf['geometry'].x.isnull().values.all():
-        logger.info('Extract LCZs is not possible because no longtitude information is found.')
-        metadf['lcz'] = 'Location unknown'
-        return metadf
-    if metadf['geometry'].y.isnull().values.all():
-        logger.info('Extract LCZs is not possible because no latitude information is found.')
-        metadf['lcz'] = 'Location unknown'
-        return metadf
     
-
+#     if metadf['geometry'].x.isnull().values.all():
+#         logger.info('Extract LCZs is not possible because no longtitude information is found.')
+#         metadf['lcz'] = 'Location unknown'
+#         return metadf
+#     if metadf['geometry'].y.isnull().values.all():
+#         logger.info('Extract LCZs is not possible because no latitude information is found.')
+#         metadf['lcz'] = 'Location unknown'
+#         return metadf
     
-    geo_templates = Settings.geo_datasets_templates
-    lcz_file = Settings.geo_lcz_file
     
-    if isinstance(lcz_file, type(None)):
-        print('No lcz tif location in the settings. Update settings: ')
-        print('settings_obj.update_settings(geotiff_lcz_file="...."')
-        logger.error('Extracting LCZ but no geotiff file specified!')
-        metadf['lcz'] = 'Unkown lcz file'
-        return metadf
+#     # connect to gee
+#     connect_to_gee()
     
-    lcz_templates = [geo_templ for geo_templ in geo_templates if geo_templ['usage']=='LCZ']
     
-    assert len(lcz_templates)==1, 'More (or no) lcz template found!'
+#     # extract LCZ from gee
+#     lons = metadf['geometry'].x.to_list()
+#     lats = metadf['geometry'].y.to_list()
+#     lczs, extra_info = extract_pointvalues(map_id_key='global_lcz_map',
+#                                            lat=lats,
+#                                            lon=lons)
     
-    lcz_template = lcz_templates[0]
-    
-    human_mapper = {num: lcz_template['covers'][num]['cover_name'] 
-                    for num in lcz_template['covers'].keys()}
-    
-
-   
-
-    lcz = geotiff_point_extraction(geodf=metadf,
-                                   geotiff_location=lcz_file,
-                                   geotiff_crs=lcz_template['epsg'],
-                                   class_to_human_mapper=human_mapper)
-    metadf['lcz'] = lcz
+#     metadf['lcz'] = lczs
         
     
-    return metadf
+#     return metadf
           
 def loggin_nan_warnings(df):
     """

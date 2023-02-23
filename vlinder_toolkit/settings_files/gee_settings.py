@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Google earth engine dataset settings
+
+@author: thoverga
+"""
+
+
+
+
+gee_datasets = {
+    'global_lcz_map':{'location': "RUB/RUBCLIM/LCZ/global_lcz_map/v1", #GEE location
+                      'usage': 'LCZ', #Human readable application domain
+                      'band_of_use': 'LCZ_Filter', #band to use for imagecollections (or None if no band available)
+                      'value_type': 'categorical', #categorical or numeric
+                      'dynamical': False, #time evolution? To be used for timeseries
+                      'scale': 100, 
+                      'is_image': False,
+                      'is_imagecollection': True,
+                      'categorical_mapper': {
+                         1: 'Compact highrise', #mapvalue: (color, human class)
+                         2: 'Compact midrise',
+                         3:'Compact lowrise',
+                         4:	'Open highrise',
+                         5:	'Open midrise',
+                         6:'Open lowrise',
+                         7:	'Lightweight lowrise',
+                         8:	'Large lowrise',
+                         9:	'Sparsely built',
+                         10: 'Heavy industry',
+                         11: 'Dense Trees (LCZ A)',
+                         12: 'Scattered Trees (LCZ B)',
+                         13:'Bush, scrub (LCZ C)',
+                         14:'Low plants (LCZ D)',
+                         15:'Bare rock or paved (LCZ E)',
+                         16:'Bare soil or sand (LCZ F)',
+                         17:'Water (LCZ G)',                          
+                          },
+                      'credentials': 'Demuzere M.; Kittner J.; Martilli A.; Mills, G.; Moede, C.; Stewart, I.D.; van Vliet, J.; Bechtel, B. A global map of local climate zones to support earth system modelling and urban-scale environmental science. Earth System Science Data 2022, 14 Volume 8: 3835-3873. doi:10.5194/essd-14-3835-2022'
+    },
+    
+}
