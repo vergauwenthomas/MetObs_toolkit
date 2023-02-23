@@ -1006,51 +1006,6 @@ def metadf_to_gdf(df, crs=4326):
     return geodf
 
 
-# def get_lcz(metadf):
-#     """
-#     Function to extract the LCZ's for all locations in the metadf.
-#     A column 'lcz' is added tot the metadf.
-    
-#     All information on the LCZ is extracted from the Setting object (class mapper, location)
-#     ----------
-#     metadf : geopandas.GeoDataFrame
-#         Geodataframe with the coordinates present as geometry.
-
-#     Returns
-#     -------
-#     metadf : geopandas.GeoDataFrame
-#         The metadf with the added 'lcz'-column.
-
-#     """
-#     logger.debug('Extract LCZs')
-    
-    
-    
-#     if metadf['geometry'].x.isnull().values.all():
-#         logger.info('Extract LCZs is not possible because no longtitude information is found.')
-#         metadf['lcz'] = 'Location unknown'
-#         return metadf
-#     if metadf['geometry'].y.isnull().values.all():
-#         logger.info('Extract LCZs is not possible because no latitude information is found.')
-#         metadf['lcz'] = 'Location unknown'
-#         return metadf
-    
-    
-#     # connect to gee
-#     connect_to_gee()
-    
-    
-#     # extract LCZ from gee
-#     lons = metadf['geometry'].x.to_list()
-#     lats = metadf['geometry'].y.to_list()
-#     lczs, extra_info = extract_pointvalues(map_id_key='global_lcz_map',
-#                                            lat=lats,
-#                                            lon=lons)
-    
-#     metadf['lcz'] = lczs
-        
-    
-#     return metadf
           
 def loggin_nan_warnings(df):
     """

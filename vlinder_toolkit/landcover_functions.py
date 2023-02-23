@@ -11,39 +11,22 @@ import sys
 import pandas as pd
 import ee
 
-    
 
-# gee_datasets = {
-#     'global_lcz_map':{'location': "RUB/RUBCLIM/LCZ/global_lcz_map/v1", #GEE location
-#                       'usage': 'LCZ', #Human readable application domain
-#                       'band_of_use': 'LCZ_Filter', #band to use for imagecollections (or None if no band available)
-#                       'value_type': 'categorical', #categorical or numeric
-#                       'dynamical': False, #time evolution? To be used for timeseries
-#                       'scale': 1000, 
-#                       'is_image': False,
-#                       'is_imagecollection': True,
-#                       'categorical_mapper': {
-#                          1: 'Compact highrise', #mapvalue: (color, human class)
-#                          2: 'Compact midrise',
-#                          3:'Compact lowrise',
-#                          4:	'Open highrise',
-#                          5:	'Open midrise',
-#                          6:'Open lowrise',
-#                          7:	'Lightweight lowrise',
-#                          8:	'Large lowrise',
-#                          9:	'Sparsely built',
-#                          10: 'Heavy industry',
-#                          11: 'Dense Trees (LCZ A)',
-#                          12: 'Scattered Trees (LCZ B)',
-#                          13:'Bush, scrub (LCZ C)',
-#                          14:'Low plants (LCZ D)',
-#                          15:'Bare rock or paved (LCZ E)',
-#                          16:'Bare soil or sand (LCZ F)',
-#                          17:'Water (LCZ G)',                          
-#                           }
-#                       },
-    
-#     }
+# =============================================================================
+#  Connection functions
+# =============================================================================
+
+def connect_to_gee():
+    if not ee.data._credentials: #check if ee connection is initialized
+        ee.Authenticate()
+        ee.Initialize()
+    return
+
+
+
+# =============================================================================
+# Object convertors
+# =============================================================================
 
 
 
@@ -69,29 +52,11 @@ def coords_to_geometry(lat=[], lon=[]):
     else:
         return ee.Geometry.MultiPoint(list(zip(lon, lat)))
 
-# =============================================================================
-# geodataset functions
-# =============================================================================
-
-
-
-def geotiff_point_extraction():
-    print("not yet implemented")
-  
-
 
 
 # =============================================================================
-#  Connection functions
+# Data extractors
 # =============================================================================
-
-def connect_to_gee():
-    if not ee.data._credentials: #check if ee connection is initialized
-        ee.Authenticate()
-        ee.Initialize()
-    return
-
-
 
 
 
