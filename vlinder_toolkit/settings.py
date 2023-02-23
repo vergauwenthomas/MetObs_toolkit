@@ -198,46 +198,91 @@ class Settings:
             Settings.geo_lcz_file = geotiff_lcz_file
         
         
-    def add_excel_template(self, excel_file):
-        """
-        Add a template-excel to the templates. The excel file can have multiple tabs.
-        The Settings class will be updated.
+    # def add_excel_template(self, excel_file):
+    #     """
+    #     Add a template-excel to the templates. The excel file can have multiple tabs.
+    #     The Settings class will be updated.
 
-        Parameters
-        ----------
-        excel_file : String
-            Excel-template file path.
+    #     Parameters
+    #     ----------
+    #     excel_file : String
+    #         Excel-template file path.
 
-        Returns
-        -------
-        None. 
+    #     Returns
+    #     -------
+    #     None. 
 
-        """
+    #     """
 
-        logger.info(f'Adding template from excel file: {excel_file}')
+    #     logger.info(f'Adding template from excel file: {excel_file}')
         
-        from .data_templates.import_templates import read_templates, check_if_templates_are_unique_defined
+    #     from .data_templates.import_templates import read_templates, check_if_templates_are_unique_defined
         
-        template = read_templates(excel_file)
-        logger.debug(f'Added teplate: {template}')
+    #     template = read_templates(excel_file)
+    #     logger.debug(f'Added teplate: {template}')
 
-        Settings.template_list.extend(template)
+    #     Settings.template_list.extend(template)
         
-        #Check if all templates are still unique
-        check_if_templates_are_unique_defined(Settings.template_list)
+    #     #Check if all templates are still unique
+    #     check_if_templates_are_unique_defined(Settings.template_list)
         
-    def copy_template_excel_file(self, target_folder):
-        import shutil
-        from .data_templates.import_templates import csv_templates_file
-        
-        target_file = os.path.join(target_folder, 'default_templates.xlsx')
-        
-        shutil.copy2(csv_templates_file, target_file)
+    def add_csv_template(self, csv_file):
+         """
+         Add a template-csv to the templates. 
+         The Settings class will be updated.
 
-        logger.info(f'Templatates copied to: {target_file}')
+         Parameters
+         ----------
+         csv_file : String
+             csv-template file path.
 
-        print("Templatates copied to : ", target_file)
-       
+         Returns
+         -------
+         None. 
+
+         """
+
+         logger.info(f'Adding template from csv file: {csv_file}')
+         
+         from .data_templates.import_templates import read_csv_template, check_if_templates_are_unique_defined
+         
+         template = read_csv_template(csv_file)
+         logger.debug(f'Added teplate: {template}')
+
+         Settings.template_list.append(template)
+         
+         #Check if all templates are still unique
+         check_if_templates_are_unique_defined(Settings.template_list)
+        
+    # def copy_template_excel_file(self, target_folder):
+    #     import shutil
+    #     from .data_templates.import_templates import csv_templates_file
+        
+    #     target_file = os.path.join(target_folder, 'default_templates.xlsx')
+        
+    #     shutil.copy2(csv_templates_file, target_file)
+
+    #     logger.info(f'Templatates copied to: {target_file}')
+
+    #     print("Templatates copied to : ", target_file)
+    
+    
+    def copy_template_csv_files(self, target_folder):
+         import shutil
+         from .data_templates.import_templates import csv_templates_dir, find_csv_filenames
+         
+         default_files = find_csv_filenames(csv_templates_dir) #list all default templ files
+
+         #copy all defaults to target folder with dummy index
+         _idx = 1
+         for templ_file in default_files:
+             target_file = os.path.join(target_folder, 'default_templates' + str(_idx) + '.csv')
+         
+             shutil.copy2(templ_file, target_file)
+             _idx += 1
+             logger.info(f'Templatates copied to: {target_file}')
+
+         print("Templates copied to : ", target_file)
     
     # =============================================================================
     #     Check settings

@@ -1,0 +1,8 @@
+varname,template column name,units,description,dtype,format
+_ID,ID,,,object,
+name,VLINDER,,,object,
+lat,lat,,,object,
+lon,lon,,,object,
+location,stad,,,object,
+call_name,benaming,,,object,
+network,Network,,,object,

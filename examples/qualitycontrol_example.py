@@ -99,7 +99,7 @@ sept_2022_all_vlinders.apply_quality_control(obstype='temp', #which observations
                                              gross_value=True, #apply gross_value check?
                                              persistance=True, #apply persistance check?
                                              step=True, #apply the step chec?
-                                             internal_consistency=True # apply internal consistency check?
+                                             window_variation=True # apply internal consistency check?
                                              )
 
 # =============================================================================

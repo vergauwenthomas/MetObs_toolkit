@@ -12,7 +12,9 @@ import pandas as pd
 #%%
 
 
-csv_templates_file = os.path.join(str(Path(__file__).parent), 'csv_templates.xls')
+csv_templates_dir = os.path.join(str(Path(__file__).parent), 'template_defaults')
+
+
 
 # %%
 # All templates or combined in a list, so if the template is not specified, the corresponding template can be found by iteration.
@@ -34,33 +36,77 @@ csv_templates_file = os.path.join(str(Path(__file__).parent), 'csv_templates.xls
 
 
 
-def read_templates(excel_file):
-    templ_dict = pd.read_excel(excel_file, sheet_name=None)
+# def read_templates(excel_file):
+#     templ_dict = pd.read_excel(excel_file, sheet_name=None)
+    
+#     template_list = []
+#     for templ_name in templ_dict.keys():
+#         data = templ_dict[templ_name]
+#         #Drop emty rows 
+#         data = data.dropna(axis='index', how='all')
+        
+#         #Drop variables that are not present in data
+#         data = data[data['template column name'].notna()]
+        
+#         #create dictionary from dataframe
+#         data = data.set_index('template column name')
+        
+        
+        
+#         #create a dict from the dataframe, remove Nan value row wise
+#         template = {}
+#         for idx, row in data.iterrows():
+#             template[idx] = row[~row.isnull()].to_dict()
+        
+#         template_list.append(template)
+#     return template_list
+
+
+def find_csv_filenames(path_to_dir, suffix=".csv" ):
+    filenames = os.listdir(path_to_dir)
+    return [ os.path.join(path_to_dir, filename) for filename in filenames
+            if filename.endswith( suffix ) ]
+
+
+def read_csv_template(file):
+    templ = pd.read_csv(file)
+    
+    #Drop emty rows 
+    templ = templ.dropna(axis='index', how='all')
+    
+    #Drop variables that are not present in templ
+    templ = templ[templ['template column name'].notna()]
+    
+    #create dictionary from templframe
+    templ = templ.set_index('template column name')
+
+    #create a dict from the dataframe, remove Nan value row wise
+    template = {}
+    for idx, row in templ.iterrows():
+        template[idx] = row[~row.isnull()].to_dict()    
+    
+    return template
+
+
+def read_all_templates(template_dir):
+    templ_files = find_csv_filenames(path_to_dir = template_dir)
     
     template_list = []
-    for templ_name in templ_dict.keys():
-        data = templ_dict[templ_name]
-        #Drop emty rows 
-        data = data.dropna(axis='index', how='all')
-        
-        #Drop variables that are not present in data
-        data = data[data['template column name'].notna()]
-        
-        #create dictionary from dataframe
-        data = data.set_index('template column name')
-        
-        
-        
-        #create a dict from the dataframe, remove Nan value row wise
-        template = {}
-        for idx, row in data.iterrows():
-            template[idx] = row[~row.isnull()].to_dict()
-        
+    for templ_file in templ_files:
+        template = read_csv_template(templ_file)
         template_list.append(template)
     return template_list
 
-excel_templates = read_templates(csv_templates_file) #read the default templates 
-csv_templates_list = excel_templates
+
+# templates = read_templates(csv_templates_dir)
+
+# excel_templates = read_templates(csv_templates_dir) #read the default templates 
+csv_templates_list = read_all_templates(csv_templates_dir) #read the default templates combined in list of dicts
+
+
+
+
+
 
 
 

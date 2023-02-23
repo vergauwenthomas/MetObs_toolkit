@@ -1,0 +1,8 @@
+varname,template column name,units,description,dtype,format
+name,station,,,object,
+,,,,,
+datetime,DateTime,,,object,%Y-%m-%d %H:%M:%S
+_date,,,,,
+_time,,,,,
+,,,,,
+temp,value,Celcius,2m-temperature,float64,
