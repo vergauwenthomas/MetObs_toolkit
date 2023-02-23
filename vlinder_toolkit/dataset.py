@@ -603,18 +603,14 @@ class Dataset:
                                 gaps_to_outlier_format(gapsdf=self.gapsdf,
                                                        dataset_res_series=self.metadf['dataset_resolution'])])
         
-        qc_labels_df = self.get_final_qc_labels()
-        
+        outliersdf['temp_final_label'] = self.get_final_qc_labels()['temp_final_label']
+       
         if coarsen_timeres:
-            gaps_1 = outliersdf[outliersdf["gap_timestamp_label"] == "missing timestamp (gap)"]
-            outliersdf.drop(gaps_1.index, inplace=True)
+            gaps = outliersdf[outliersdf["gap_timestamp_label"] == "missing timestamp (gap)"]
+            outliersdf.drop(gaps.index, inplace=True)
             outliersdf = outliersdf.loc[outliersdf.index.intersection(self.df.index)]
-            outliersdf = pd.concat([outliersdf, gaps_1], sort=True)
+            outliersdf = pd.concat([outliersdf, gaps], sort=True)
             
-            gaps_2 = qc_labels_df[qc_labels_df["gap_timestamp_label"] == "missing timestamp (gap)"]
-            qc_labels_df.drop(gaps_2.index, inplace=True)
-            qc_labels_df = qc_labels_df.loc[qc_labels_df.index.intersection(self.df.index)]
-            qc_labels_df = pd.concat([qc_labels_df, gaps_2], sort=True)
             
         outliersdf = outliersdf.fillna(value='ok')
         
@@ -627,7 +623,7 @@ class Dataset:
             if isinstance(stationnames, str):
                 stationnames = [stationnames]
             
-            qc_labels_df = qc_labels_df.loc[qc_labels_df.index.get_level_values(level='name').isin(stationnames)]
+            #qc_labels_df = qc_labels_df.loc[qc_labels_df.index.get_level_values(level='name').isin(stationnames)]
             df = self.df.loc[self.df.index.get_level_values(level='name').isin(stationnames)]
             outliersdf = outliersdf.loc[outliersdf.index.get_level_values(level='name').isin(stationnames)]
             
@@ -635,7 +631,7 @@ class Dataset:
         #Do not include the 'final_qc_label' in the statis
         if obstype + '_final_label' in outliersdf.columns:
             logger.debug(f'The {obstype}_final_label, is ingored for the QC-stats. ')
-            outliersdf = outliersdf.loc[:, outliersdf.columns != obstype+'_final_label']
+            outliersdf_without_final_label = outliersdf.loc[:, outliersdf.columns != obstype+'_final_label']
             
        
         
@@ -652,17 +648,17 @@ class Dataset:
                     df.set_index(['name', df.index], inplace=True)
         
         
-        dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf,
+        dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf_without_final_label,
                                                       df =df,
                                                       obstype=obstype,
                                                       observation_types = observation_types,
                                                       qc_labels=qc_labels)
             
             
-        valid_records_df = df.drop(qc_labels_df.index.intersection(df.index).dropna())           
+        valid_records_df = df.drop(outliersdf.index.intersection(df.index).dropna())           
         
         if make_plot:
-            qc_stats_pie(valid_records_df, qc_labels_df, qc_stats=dataset_qc_stats,
+            qc_stats_pie(valid_records_df, outliersdf, qc_stats=dataset_qc_stats,
                          figsize=Settings.plot_settings['qc_stats']['figsize'],
                          title=title)
                
