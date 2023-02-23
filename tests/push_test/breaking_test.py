@@ -21,6 +21,8 @@ print(str(lib_folder))
 
 from src import vlinder_toolkit
 
+#x = all(keys in ['a', 'b', 'c'] for keys in ['c', 'b', 'a'])
+
 testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
 
 settings = vlinder_toolkit.Settings()
@@ -109,7 +111,7 @@ df.loc[indices_missing_timestamp,'flags'] = 'missing timestamp'
 indices_gap_timestamp = df[df['temp_final_label'] == 'missing timestamp (gap)'].index
 df.loc[indices_gap_timestamp,'flags'] = 'missing timestamp (gap)'
 
-dataset_coarsened.get_qc_stats(coarsen_timeres=True)
+dataset_coarsened.get_qc_stats(coarsen_timeres=True, stationnames=('1'))
 dataset.get_qc_stats()
 
 

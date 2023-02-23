@@ -21,9 +21,9 @@ from src import vlinder_toolkit
 
 # % Import
 
-testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
+testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
 
-static_data =  os.path.join(str(lib_folder), 'static_data', 'vlinder_metadata.csv')
+##tatic_data =  os.path.join(str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
 # lcz_map = os.path.join(str(lib_folder), 'physiograpy', 'lcz_filter_v1.tif')
 
@@ -31,20 +31,23 @@ static_data =  os.path.join(str(lib_folder), 'static_data', 'vlinder_metadata.cs
 #% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
-                          input_metadata_file=static_data,
+                          input_metadata_file=None,
                           # geotiff_lcz_file=lcz_map
                           output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                           )
 
+template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.xls')
+settings.add_excel_template(template_file)
 
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 
+dataset_coarsened = vlinder_toolkit.Dataset()
+dataset_coarsened.import_data_from_file(coarsen_timeres=True)
+dataset_coarsened.apply_quality_control()
+dataset_coarsened.get_qc_stats(coarsen_timeres=True)
 
-
-dataset.apply_quality_control()
-
-test = dataset.get_qc_stats()
+#test = dataset.get_qc_stats()
 
 # dataset.write_to_csv(filename='remove_me', add_final_labels=True)
 

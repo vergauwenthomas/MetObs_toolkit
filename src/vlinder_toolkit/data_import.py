@@ -27,10 +27,10 @@ def template_to_package_space(specific_template):
 
 def find_compatible_templatefor(df_columns, template_list):
    for templ in template_list:
-       found =  all(keys in list(df_columns) for keys in templ.keys())
-       if found:
-           print('Compatible template found. ')
-           return templ
+     found = all(keys in list(df_columns) for keys in templ.keys())
+     if found:
+         print('Compatible template found. ')
+         return templ
    sys.exit("No compatible teplate found!")
     
 
@@ -207,6 +207,7 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
     
     #Keep only columns as defined in the template
     for column in df.columns:
+     
         if not (column in template.keys()):
             df = df.drop(columns=[column])
     

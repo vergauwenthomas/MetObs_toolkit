@@ -12,7 +12,7 @@ testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderda
 # metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
 
-import vlinder_toolkit
+from src import vlinder_toolkit
 
 
 

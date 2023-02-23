@@ -2,7 +2,7 @@
 ,skkdcncnfenva,,dacnfcnc,
 sdhhnfznvv,,,,
 ,,xshxDCND,,
-station,date,time,temp,flags
+station,date,time,temperature,qc_flags
 Fictional,2020-09-14,00:55:00,13,ok
 Fictional,2020-09-14,01:00:00,12.8,ok
 Fictional,2020-09-14,01:05:00,12.7,ok
