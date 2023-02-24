@@ -788,7 +788,6 @@ class Dataset:
                               on='name')
                 df.index = df_index
         
-        
         #update dataset object
         self.data_template = pd.DataFrame().from_dict(template)
         
@@ -864,11 +863,6 @@ class Dataset:
         self.update_dataset_by_df(dataframe=df, coarsen_timeres=coarsen_timeres)
         
         
-   
-
-
-    
-        
     
     def update_dataset_by_df(self, dataframe, coarsen_timeres=False):
         """
@@ -904,7 +898,6 @@ class Dataset:
         metadf = metadf[~metadf.index.duplicated(keep='first')]#drop dubplicates due to datetime
         
         self.metadf = metadf_to_gdf(metadf)
-        
 
         #add import frequencies to metadf
         self.metadf['assumed_import_frequency'] = get_freqency_series(self.df)
@@ -930,7 +923,7 @@ class Dataset:
         
         
         
-    def get_lcz(self):
+    def get_physiography_data(self, types=['lcz', 'elevation']):
         """
         Function to extract the LCZ's for all locations in the metadf.
         A column 'lcz' is added tot the metadf.
@@ -939,7 +932,6 @@ class Dataset:
         ----------
     
         """
-        logger.debug('Extract LCZs')
         
         
         
@@ -956,17 +948,40 @@ class Dataset:
         # connect to gee
         connect_to_gee()
         
+        relevant_metadf = self.metadf.reset_index()[['name', 'lat', 'lon']]
         
-        # extract LCZ from gee
-        lons = self.metadf['geometry'].x.to_list()
-        lats = self.metadf['geometry'].y.to_list()
-        lczs, extra_info = extract_pointvalues(mapinfo=Settings.gee_dataset_info['global_lcz_map'],
-                                               lat=lats,
-                                               lon=lons)
-        #TODO: for now the extra information is not used or stored somewhere
-
-        # Add column to metadf
-        self.metadf['lcz'] = lczs
+        if 'lcz' in types:
+            logger.debug('Extract LCZs')
+            # extract LCZ from gee     
+            lcz_df = extract_pointvalues(metadf=relevant_metadf,
+                                         mapinfo=Settings.gee_dataset_info['global_lcz_map'],
+                                         output_column_name='lcz')
+            # Merge lcz column in metadf
+            if 'lcz' in self.metadf.columns:
+                metadf = self.metadf.drop(columns=['lcz'])
+            else:
+                metadf = self.metadf
+                
+            lcz_df = lcz_df[['lcz']]
+            
+            self.metadf = metadf.merge(lcz_df, how='left', left_index=True, right_index=True)
+        # if 'elevation' in types:
+        #     logger.debug('Extract elevation')
+        #     # extract elevation from gee     
+        #     elev_df = extract_pointvalues(metadf=relevant_metadf,
+        #                                  mapinfo=Settings.gee_dataset_info['DEM'],
+        #                                  output_column_name='elevation')
+        #     # Merge elevation column in metadf
+        #     if 'elevation' in self.metadf.columns:
+        #         metadf = self.metadf.drop(columns=['elevation'])
+        #     else:
+        #         metadf = self.metadf
+                
+        #     elev_df = elev_df[['elevation']]
+            
+        #     self.metadf = metadf.merge(elev_df, how='left', left_index=True, right_index=True)
+            
+    
             
         
           

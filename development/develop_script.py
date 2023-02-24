@@ -25,7 +25,7 @@ testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_ok
 
 static_data =  os.path.join(str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
-# # lcz_map = os.path.join(str(lib_folder), 'physiograpy', 'lcz_filter_v1.tif')
+
 
 
 # #% Setup dataset
@@ -40,20 +40,12 @@ dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
 
 
-dataset.get_lcz()
 
-
-#%%
-
+dataset.get_physiography_data(types=['elevation'])
 
 
 
 
 
+print(dataset.metadf.head())
 
-# dataset.apply_quality_control()
-
-# test = dataset.get_qc_stats()
-
-# # dataset.write_to_csv(filename='remove_me', add_final_labels=True)
-#%%
