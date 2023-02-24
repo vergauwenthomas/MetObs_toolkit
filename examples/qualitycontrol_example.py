@@ -11,7 +11,8 @@ main_folder = Path(__file__).resolve().parents[1]
 testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
 # metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
-
+import sys
+sys.path.append(str(main_folder))
 import vlinder_toolkit
 
 
@@ -107,9 +108,7 @@ sept_2022_all_vlinders.apply_quality_control(obstype='temp', #which observations
 # =============================================================================
 
 # If an observation is flagged as an outlier by a check, the observational value is replaced.
-# By default the outliers are replaced by Nan-values. You can see or change the default replacement values:
-
-print(settings.qc_outlier_values)
+# By default the outliers are replaced by Nan-values. 
 
 
 # =============================================================================
@@ -133,9 +132,9 @@ print(sept_2022_all_vlinders.df.columns)
 # To create One column with the final label (based on the labels for each check), you can call the 
 # add_final_qc_labels, which will add a final-qc-label column in the dataset.df:
 
-sept_2022_all_vlinders.add_final_qc_labels()
+outliers_sept_2022_all_vlinders = sept_2022_all_vlinders.get_final_qc_labels()
 
-print(sept_2022_all_vlinders.df['temp_final_label'].head())
+print(outliers_sept_2022_all_vlinders['temp_final_label'].head())
 
 # (When writing a dataset to file, there is an attribute 'add_final_labels'. When 
 #  True, the final labels are computed and added to the file.)

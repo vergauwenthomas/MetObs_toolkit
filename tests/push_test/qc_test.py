@@ -39,7 +39,7 @@ dataset.apply_quality_control(obstype='temp',
                                             )
 
 
-dataset.get_final_qc_labels()
+outliersdf = dataset.get_final_qc_labels()
 
 
 

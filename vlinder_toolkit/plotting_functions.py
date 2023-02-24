@@ -132,11 +132,16 @@ def qc_stats_pie(valid_records, final_labels_df, qc_stats, figsize, title, obsty
     valid_records_without_na = valid_records[valid_records[obstype].notna()]
     num_valid_records_without_na = len(valid_records_without_na)
     num_not_valid_observations = len(valid_records) - len(valid_records_without_na)
-    
-    num_gaps = final_labels_df[obstype+'_final_label'].value_counts()['missing timestamp (gap)']
+    if ((final_labels_df[obstype+'_final_label'] == 'missing timestamp (gap)').any()):
+        num_gaps = final_labels_df[obstype+'_final_label'].value_counts()['missing timestamp (gap)']
+    else:
+        num_gaps = 0
     num_outliers = len(final_labels_df) - num_gaps
-   
+    
     colors = {'ok': 'green', 'not checked': 'orange', 'outlier': 'red'}
+    names_1 = ['ok', 'outliers', 'gaps', 'not valid observations']
+    colors_1 = ["green", "orange", "blue", "red"]
+    values_1 = [num_valid_records_without_na, num_outliers, num_gaps, num_not_valid_observations]
     
     fig = plt.figure(figsize=(10,10))
     fig.tight_layout()
@@ -146,13 +151,10 @@ def qc_stats_pie(valid_records, final_labels_df, qc_stats, figsize, title, obsty
     ax_1 = fig.add_subplot(spec[0,:2])
     ax_2 = fig.add_subplot(spec[0,2:])
     
-    names_1 = ['ok', 'outliers', 'gaps', 'not valid observations']
-    colors_1 = ["green", "orange", "blue", "red"]
-    values_1 = [num_valid_records_without_na, num_outliers, num_gaps, num_not_valid_observations]
     patches1, texts1 = ax_1.pie(values_1, radius=1.5, colors = colors_1)
-    percents_1 = [item * 100 for item in values_1]/ sum(values_1)
+    percents_1 = [item/sum(values_1) * 100 for item in values_1]
     ax_1.legend(patches1, labels = [f'{l}, {s:0.1f}%' for l, s in zip(names_1, percents_1)], loc = (-0.25, 0.75))
-    
+
     for i in range(len(qc_stats.columns)):
         data = list(qc_stats.iloc[:,i].values)
         names = list(qc_stats.index)
@@ -161,11 +163,10 @@ def qc_stats_pie(valid_records, final_labels_df, qc_stats, figsize, title, obsty
         ax.set_title(qc_stats.columns[i], pad=60, fontweight ="bold")
         ax.legend(patches, labels = [f'{l}, {s:0.1f}%' for l, s in zip(names, data)], loc = (0.25, 1))
        
-    
     names_2 = list(final_labels_df[obstype+'_final_label'].value_counts().index)
     values_2 = list(final_labels_df[obstype+'_final_label'].value_counts().values)
-
-    percents_2 = [item * 100 for item in values_2]/ sum(values_2)
+    
+    percents_2 = [item/sum(values_2) * 100 for item in values_2]
     patches2, texts2 = ax_2.pie(values_2, radius=1.5)
     ax_2.legend(patches2, labels = [f'{l}, {s:0.1f}%' for l, s in zip(names_2, percents_2)], loc = (-1, 0.5))
     plt.show()

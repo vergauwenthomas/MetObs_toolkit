@@ -22,6 +22,8 @@ print(str(lib_folder))
 import vlinder_toolkit
 
 
+#x = all(keys in ['a', 'b', 'c'] for keys in ['c', 'b', 'a'])
+
 testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
 
 settings = vlinder_toolkit.Settings()

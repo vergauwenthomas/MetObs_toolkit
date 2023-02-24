@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct  6 13:25:02 2022
-
 @author: thoverga
 """
 
@@ -47,8 +46,6 @@ dataset.apply_quality_control()
 test = dataset.get_qc_stats()
 
 # dataset.write_to_csv(filename='remove_me', add_final_labels=True)
-
-
 
 
 

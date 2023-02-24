@@ -509,7 +509,7 @@ class Dataset:
         if gross_value:
             print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
-    
+
             checked_series, outl_df = gross_value_check(input_series = self.df[obstype],
                                                         obstype=obstype)
             
@@ -532,11 +532,10 @@ class Dataset:
         if step:
             print('Applying the step-check on all stations.')
             logger.info('Applying step-check on the full dataset')
-           
+      
             checked_series, outl_df = step_check(input_series=self.df[obstype],
                                                  obstype=obstype)
-                                                      
-            
+                                                     
             #update the dataset and outliers
             self.df[obstype] = checked_series
             self.update_outliersdf(outl_df)
@@ -604,65 +603,62 @@ class Dataset:
                                 gaps_to_outlier_format(gapsdf=self.gapsdf,
                                                        dataset_res_series=self.metadf['dataset_resolution'])])
         
+        outliersdf['temp_final_label'] = self.get_final_qc_labels()['temp_final_label']
+       
         if coarsen_timeres:
-            gaps_1 = outliersdf[outliersdf["gap_timestamp_label"] == "missing timestamp (gap)"]
-            outliersdf.drop(gaps_1.index, inplace=True)
+            gaps = outliersdf[outliersdf["gap_timestamp_label"] == "missing timestamp (gap)"]
+            outliersdf.drop(gaps.index, inplace=True)
             outliersdf = outliersdf.loc[outliersdf.index.intersection(self.df.index)]
-            outliersdf = pd.concat([outliersdf, gaps_1], sort=True)
+            outliersdf = pd.concat([outliersdf, gaps], sort=True)
+            
             
         outliersdf = outliersdf.fillna(value='ok')
         
         if isinstance(stationnames, type(None)):
             df = self.df
-            qc_labels_df = self.get_final_qc_labels()
-  
+            
             title=f'Frequency for {obstype}-qc-checks on all stations.'
         else: 
             title=f'Frequency for {obstype}-qc-checks on {stationnames}.'
             if isinstance(stationnames, str):
                 stationnames = [stationnames]
             
-            qc_labels_df = self.get_final_qc_labels().loc[self.get_final_qc_labels().index.get_level_values(level='name').isin(stationnames)]
+            #qc_labels_df = qc_labels_df.loc[qc_labels_df.index.get_level_values(level='name').isin(stationnames)]
             df = self.df.loc[self.df.index.get_level_values(level='name').isin(stationnames)]
             outliersdf = outliersdf.loc[outliersdf.index.get_level_values(level='name').isin(stationnames)]
-        
+            
         
         #Do not include the 'final_qc_label' in the statis
         if obstype + '_final_label' in outliersdf.columns:
             logger.debug(f'The {obstype}_final_label, is ingored for the QC-stats. ')
-            outliersdf = outliersdf.loc[:, outliersdf.columns != obstype+'_final_label']
+            outliersdf_without_final_label = outliersdf.loc[:, outliersdf.columns != obstype+'_final_label']
             
        
         
         #stats on datset level
         qc_labels = {key: val['outlier_flag'] for key, val in Settings.qc_checks_info.items()}
-     
+        
         if coarsen_timeres:
             for row in self.gapsdf.iterrows():
-                df = df.iloc[df.index.get_level_values('name') == row[0]]
-                df.reset_index(level='name', inplace=True)
-                indices_to_remove = df.loc[(df.index <= row[1]['end_gap']) & (df.index >= row[1]['start_gap'])].index
-                df.drop(indices_to_remove, inplace=True)
-                df.set_index(['name', df.index], inplace=True)
+                if (row[0] in df.index.get_level_values('name')):
+                    df = df.iloc[df.index.get_level_values('name') == row[0]]
+                    df.reset_index(level='name', inplace=True)
+                    indices_to_remove = df.loc[(df.index <= row[1]['end_gap']) & (df.index >= row[1]['start_gap'])].index
+                    df.drop(indices_to_remove, inplace=True)
+                    df.set_index(['name', df.index], inplace=True)
         
-        dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf,
+        
+        dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf_without_final_label,
                                                       df =df,
                                                       obstype=obstype,
                                                       observation_types = observation_types,
                                                       qc_labels=qc_labels)
-        
-       
-        if coarsen_timeres:
-            gaps_2 = qc_labels_df[qc_labels_df["gap_timestamp_label"] == "missing timestamp (gap)"]
-            qc_labels_df.drop(gaps_2.index, inplace=True)
-            qc_labels_df = qc_labels_df.loc[qc_labels_df.index.intersection(self.df.index)]
-            qc_labels_df = pd.concat([qc_labels_df, gaps_2], sort=True)
-        
-        valid_records_df = df.drop(qc_labels_df.index.intersection(df.index).dropna())           
-        
+            
+            
+        valid_records_df = df.drop(outliersdf.index.intersection(df.index).dropna())           
         
         if make_plot:
-            qc_stats_pie(valid_records_df, qc_labels_df, qc_stats=dataset_qc_stats,
+            qc_stats_pie(valid_records_df, outliersdf, qc_stats=dataset_qc_stats,
                          figsize=Settings.plot_settings['qc_stats']['figsize'],
                          title=title)
                
@@ -760,7 +756,7 @@ class Dataset:
         df, template = import_data_from_csv(input_file = Settings.input_data_file,
                                   file_csv_template=Settings.input_csv_template,
                                   template_list = Settings.template_list)
-        
+
         logger.debug(f'Data from {Settings.input_data_file} imported to dataframe.')
 
         #drop Nat datetimes if present
@@ -779,6 +775,7 @@ class Dataset:
             #merge additional metadata to observations
             meta_cols = [colname for colname in meta_df.columns if not colname.startswith('_')]
             additional_meta_cols = list(set(meta_cols).difference(df.columns))
+   
             if bool(additional_meta_cols):
                 logger.debug(f'Merging metadata ({additional_meta_cols}) to dataset data by name.')
                 additional_meta_cols.append('name') #merging on name
@@ -792,7 +789,6 @@ class Dataset:
         #update dataset object
         self.data_template = pd.DataFrame().from_dict(template)
         
-
         #convert dataframe to multiindex (datetime - name)
         df = df.set_index(['name', df.index])
         
