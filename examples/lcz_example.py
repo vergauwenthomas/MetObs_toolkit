@@ -48,7 +48,7 @@ print(aug_2020_all_vlinders.metadf.head())
 # 2. To use the LCZ functions, you need a google develeopers account to make use of google earth engine (gee).
 # Creating first such an account, thans simply use this function to extract the LCZ for all stations in your metadata
 
-aug_2020_all_vlinders.get_lcz()
+aug_2020_all_vlinders.get_physiography_data(types=['lcz'])
 
 #Now the metadata is updated with lcz information for each station in the 'lcz' column:
 print(aug_2020_all_vlinders.metadf.head())
