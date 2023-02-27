@@ -163,7 +163,7 @@ class Dataset:
         
     def make_plot(self, stationnames=None, variable='temp',
                                    starttime=None, endtime=None,
-                                   title=None, legend=True):
+                                   title=None, legend=True, show_qc=True):
         """
         This function create a timeseries plot for the dataset. The variable observation type
         is plotted for all stationnames from a starttime to an endtime.
@@ -194,20 +194,33 @@ class Dataset:
         
         default_settings=Settings.plot_settings['time_series']
         
-        
         #Subset on obseravtion type
-        plotdf = self.df[variable]
+        #plotdf = self.df[variable]
+        #Unstack dataframe on names
+        if show_qc:
+            dataframe = self.original_df['temp']
+        if not show_qc:
+            dataframe = self.df['temp']
+        dataframe = dataframe[~dataframe.index.duplicated(keep='first')]
+        dataframe = dataframe.unstack('name')
         
-        #Unstack dataframe on name
-        plotdf = plotdf.unstack('name')
+        if show_qc:
+            qc_labels_df = self.get_final_qc_labels()
+            qc_labels_df = qc_labels_df['temp_final_label']
+            qc_labels_df = qc_labels_df[(qc_labels_df != 'missing timestamp') & (qc_labels_df != 'missing timestamp (gap)')]
+            qc_labels_df = qc_labels_df[~qc_labels_df.index.duplicated(keep='first')]
+            qc_labels_df = qc_labels_df.unstack('name')
         
         #Subset on stationnames
         if not isinstance(stationnames, type(None)):
-            plotdf = plotdf[stationnames]
-       
-        #Subset on start and endtime
-        plotdf = datetime_subsetting(plotdf, starttime, endtime)
+            dataframe = dataframe[stationnames]
+            if show_qc:
+                qc_labels_df = qc_labels_df[stationnames]
         
+        #Subset on start and endtime
+        dataframe = datetime_subsetting(dataframe, starttime, endtime)
+        if show_qc:
+            qc_labels_df = datetime_subsetting(qc_labels_df, starttime, endtime)
         
         #plotdf is a dataframe with this structure:
             #datatime --> stationnameA, stationnameB, stationnameC
@@ -221,14 +234,19 @@ class Dataset:
             else:
                 title=Settings.display_name_mapper[variable] + ' for stations: ' + str(stationnames)
         
-        
         #make plot
-        ax = timeseries_comp_plot(plotdf=plotdf,
+        if show_qc:
+            ax = timeseries_comp_plot(show_qc, dataframe, qc_labels_df,
                                   title=title,
                                   xlabel='',
                                   ylabel=Settings.display_name_mapper[variable],
                                   figsize=default_settings['figsize'])
-        
+        if not show_qc:
+            ax = timeseries_comp_plot(show_qc, dataframe, labels_df=None,
+                                  title=title,
+                                  xlabel='',
+                                  ylabel=Settings.display_name_mapper[variable],
+                                  figsize=default_settings['figsize'])
 
         return ax
         
@@ -907,6 +925,7 @@ class Dataset:
         
         #TODO: How to implement the choise to apply QC on import freq or on coarsened frequency
         self.df = df.sort_index()
+        self.original_df = df.sort_index()
         
         self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)

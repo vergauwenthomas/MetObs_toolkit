@@ -155,8 +155,8 @@ print(outliers_sept_2022_all_vlinders['temp_final_label'].head())
     #The output is a dataframe with frequency statistics per check PRESENTED IN PERSETNTAGES.
     
 qc_statistics = sept_2022_all_vlinders.get_qc_stats(obstype='temp',
-                                                    stationnames=None, #or 'station_A' or list of stationnames ['station_A', 'station_B']
-                                                    make_plot=True)    
+                                                    #stationnames=None, #or 'station_A' or list of stationnames ['station_A', 'station_B']
+                                                    #make_plot=True)    
 
 print(qc_statistics)
 
@@ -171,8 +171,7 @@ print(qc_statistics)
 
 
 #To plot timeseries for one station you can use the make_plot function on the station object:
-favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder05')
-
+favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder10')
 
 #Possible obstypes to plot:
     # 'temp','radiation_temp','humidity','precip','precip_sum','wind_speed',
