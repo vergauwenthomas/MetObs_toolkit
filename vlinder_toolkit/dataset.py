@@ -198,17 +198,15 @@ class Dataset:
         #plotdf = self.df[variable]
         #Unstack dataframe on names
         if show_qc:
-            dataframe = self.original_df['temp']
+            dataframe = self.original_df[variable]
         if not show_qc:
-            dataframe = self.df['temp']
+            dataframe = self.df[variable]
         dataframe = dataframe[~dataframe.index.duplicated(keep='first')]
         dataframe = dataframe.unstack('name')
         
         if show_qc:
-            qc_labels_data = self.get_final_qc_labels()
-            print(qc_labels_data)
-            qc_labels_df = qc_labels_data['temp_final_label']
-            print(qc_labels_df)
+            qc_labels_df = self.get_final_qc_labels()
+            qc_labels_df = qc_labels_df[variable+'_final_label']
             qc_labels_df = qc_labels_df[(qc_labels_df != 'missing timestamp') & (qc_labels_df != 'missing timestamp (gap)')]
             qc_labels_df = qc_labels_df[~qc_labels_df.index.duplicated(keep='first')]
             qc_labels_df = qc_labels_df.unstack('name')
@@ -238,13 +236,13 @@ class Dataset:
         
         #make plot
         if show_qc:
-            ax = timeseries_comp_plot(show_qc, dataframe, qc_labels_df,
+            ax = timeseries_comp_plot(show_qc, variable, dataframe, qc_labels_df,
                                   title=title,
                                   xlabel='',
                                   ylabel=Settings.display_name_mapper[variable],
                                   figsize=default_settings['figsize'])
         if not show_qc:
-            ax = timeseries_comp_plot(show_qc, dataframe, labels_df=None,
+            ax = timeseries_comp_plot(show_qc, variable, dataframe, labels_df=None, 
                                   title=title,
                                   xlabel='',
                                   ylabel=Settings.display_name_mapper[variable],
@@ -928,7 +926,7 @@ class Dataset:
         #TODO: How to implement the choise to apply QC on import freq or on coarsened frequency
         self.df = df.sort_index()
         self.original_df = df.sort_index()
-        
+  
         self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
         #print(self.df.iloc[:100,].to_string())

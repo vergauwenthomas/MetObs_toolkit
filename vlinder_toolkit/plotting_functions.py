@@ -31,7 +31,7 @@ def timeseries_plot(dtseries, title, xlabel, ylabel,figsize):
     return ax
 
 
-def timeseries_comp_plot(show_qc, data_df, labels_df, title, xlabel, ylabel, figsize):
+def timeseries_comp_plot(show_qc, variable_name, data_df, labels_df, title, xlabel, ylabel, figsize):
 
     fig, ax = plt.subplots(figsize=figsize) 
     
@@ -56,8 +56,8 @@ def timeseries_comp_plot(show_qc, data_df, labels_df, title, xlabel, ylabel, fig
                     label_indices = subdata_labels[subdata_labels[station] == label]
 
                     data_with_label = subdata_df.merge(label_indices, how='outer', left_index=True, right_index=True)
-                    data_with_label.columns = ['temp', 'qc_label']
-                    
+                    data_with_label.columns = [variable_name, 'qc_label']
+                   
                     data_with_label = data_with_label.mask(data_with_label.isna().any(axis=1))
                     data_with_label.plot(ax=ax, title=title, color=colormap[label])
                     if label not in labels_for_qc_legend:
