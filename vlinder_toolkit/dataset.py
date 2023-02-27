@@ -163,7 +163,7 @@ class Dataset:
         
     def make_plot(self, stationnames=None, variable='temp',
                                    starttime=None, endtime=None,
-                                   title=None, legend=True, show_qc=True):
+                                   title=None, legend=True, show_qc=False):
         """
         This function create a timeseries plot for the dataset. The variable observation type
         is plotted for all stationnames from a starttime to an endtime.
@@ -190,6 +190,10 @@ class Dataset:
             The plot axes is returned.
 
         """
+        outliers = self.outliersdf
+        subset = outliers[(outliers['missing_timestamp_label'] != 'missing timestamp') & (outliers['duplicated_timestamp_label'] != 'duplicated timestamp outlier')]
+        assert (not subset.empty) | (show_qc == False), "Quality control outliers cannot be visualised becuase quality control is not performed on the dataset."
+        
         logger.info(f'Make {variable}-timeseries plot for {stationnames}')
         
         default_settings=Settings.plot_settings['time_series']

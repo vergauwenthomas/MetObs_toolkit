@@ -45,7 +45,7 @@ station = dataset.get_station('vlinder02')
 
 
 
-ax =station.make_plot()
+ax = station.make_plot()
 
 ax = dataset.make_plot()
 

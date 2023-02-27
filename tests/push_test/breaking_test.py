@@ -120,7 +120,6 @@ dataset.get_qc_stats()
 
 
 
-
 if not df['flags'].equals(df['temp_final_label']):
     print('Timestamps with wrong label are: ', list(df.index[df['flags'] != df['temp_final_label']]))
     sys.exit('There is a problem with the quality control')

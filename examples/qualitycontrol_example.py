@@ -155,8 +155,8 @@ print(outliers_sept_2022_all_vlinders['temp_final_label'].head())
     #The output is a dataframe with frequency statistics per check PRESENTED IN PERSETNTAGES.
     
 qc_statistics = sept_2022_all_vlinders.get_qc_stats(obstype='temp',
-                                                    #stationnames=None, #or 'station_A' or list of stationnames ['station_A', 'station_B']
-                                                    #make_plot=True)    
+                                                    stationnames=None, #or 'station_A' or list of stationnames ['station_A', 'station_B']
+                                                    make_plot=True)    
 
 print(qc_statistics)
 
