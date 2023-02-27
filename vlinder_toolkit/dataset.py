@@ -205,8 +205,10 @@ class Dataset:
         dataframe = dataframe.unstack('name')
         
         if show_qc:
-            qc_labels_df = self.get_final_qc_labels()
-            qc_labels_df = qc_labels_df['temp_final_label']
+            qc_labels_data = self.get_final_qc_labels()
+            print(qc_labels_data)
+            qc_labels_df = qc_labels_data['temp_final_label']
+            print(qc_labels_df)
             qc_labels_df = qc_labels_df[(qc_labels_df != 'missing timestamp') & (qc_labels_df != 'missing timestamp (gap)')]
             qc_labels_df = qc_labels_df[~qc_labels_df.index.duplicated(keep='first')]
             qc_labels_df = qc_labels_df.unstack('name')
