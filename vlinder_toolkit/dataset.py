@@ -23,7 +23,7 @@ from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_p
 from .qc_checks import gross_value_check, persistance_check, repetitions_check, duplicate_timestamp_check
 from .qc_checks import step_check, missing_timestamp_and_gap_check, get_freqency_series
 from .qc_checks import init_outlier_multiindexdf, gaps_to_outlier_format, window_variation_check
-
+from .gap_filling import interp_gaps
 from .statistics import get_qc_effectiveness_stats
 
 from .station import Station
@@ -444,7 +444,22 @@ class Dataset:
                        na_rep='NaN',
                        index=True)        
         
-    
+    # =============================================================================
+    #   Gap Filling  
+    # =============================================================================
+
+    def fill_gaps(self, obstype='temp', method='linear'):
+        #TODO logging
+        if method=='linear':
+            self.interp_gaps = interp_gaps(obsdf = self.df,
+                                           gapsdf=self.gapsdf,
+                                           obstype=obstype, 
+                                           method='time',
+                                           max_consec_fill=1000)
+            
+                        
+        
+
 
     
     # =============================================================================

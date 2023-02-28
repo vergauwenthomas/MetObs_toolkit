@@ -40,13 +40,18 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 
 
-dataset.get_physiography_data(types=['elevation'])
+# dataset.get_physiography_data(types=['elevation'])
+
+dataset.apply_quality_control()
 
 
-
-
+dataset.fill_gaps()
 
 
 print(dataset.metadf.head())
+
+
+#%%
+
 
 
