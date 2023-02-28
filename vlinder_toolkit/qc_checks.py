@@ -577,7 +577,6 @@ def step_check(input_series, obstype):
                                            flagcolumnname=obstype+'_'+ checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
     
-    
     input_series = input_series.drop(list_of_outliers)
     
     return input_series, outlier_df
