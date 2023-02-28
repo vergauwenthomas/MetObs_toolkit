@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Feb 24 14:46:14 2023
+
+@author: thoverga
+"""
+
+
+
+def text_increase(string, num):
+    formatstring ='<font size="+'+str(int(num))+'">' + string + '</font>'
+    return formatstring
