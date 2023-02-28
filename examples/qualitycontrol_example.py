@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep 23 12:01:35 2022
-
 @author: thoverga
 """
 import os
@@ -200,19 +199,3 @@ sept_2022_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinde
                                 legend=True
                                 )
 #If you do not specify a start and endtime, all available timestamps are used.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -15,7 +15,7 @@ import matplotlib.gridspec as gridspec
 
 
 # import geoplot as gplt
-import mapclassify as mc
+# import mapclassify as mc
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def timeseries_plot(dtseries, title, xlabel, ylabel,figsize):

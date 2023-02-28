@@ -38,21 +38,9 @@ from .settings import Settings
 from . import qc_checks
 
 
-#import templates and settingsfiles
-# from .data_templates import csv_templates, db_templates
-# from .settings_files import server_login.json
 
 
 __version__ = "version debug"
 
 
-#import functions
-# from .IO import import_data 
-
-
-# =============================================================================
-# import non-class functions that can be used by users
-# =============================================================================
-
-from .dataset import get_lcz
 
