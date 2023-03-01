@@ -19,6 +19,7 @@ from bokeh.models import ColumnDataSource, DataTable, DateFormatter, TableColumn
 import gui_settings
 
 from gui_modules.set_widget_values import *
+from gui_modules.data_handlers import read_csv, init_datatable_with_default
 
 #%%
 import os, sys
@@ -50,14 +51,11 @@ class App_layout:
         
         # init datatable
 
-        source = ColumnDataSource(pd.DataFrame())
-        columns = [
-                TableColumn(field="format", title="data format"),
-                TableColumn(field="dtype", title="data type"),
-                TableColumn(field="units", title="Units"),
-                TableColumn(field="template_column_name", title="mapped"),
-            ]
-        
+        source = init_datatable_with_default(settingslist=[gui_settings.dt_names,
+                                                           gui_settings.meta_names,
+                                                           gui_settings.obs_names])
+        columns = [TableColumn(field=col, title=col) for col in gui_settings.data_table_column_order]
+   
         self.data_table = DataTable(source=source, columns=columns, width=1400, height=400)
         
         table_column = column(self.data_table)
@@ -140,7 +138,7 @@ class App_layout:
         self.IO_page = self.build_io_page(app.widg['io']) #build page IO
         
         
-        self.set_root()
+        # self.set_root()
 
     
 
@@ -181,10 +179,10 @@ class App:
             # convert to pandas dataframe
             cat_df = pd.DataFrame(mapper).transpose()
             df = pd.concat([df, cat_df])
-        # convert 'no Mapping' to Nan
-        # df['template_column_name'] = df['template_column_name'].map({'No Mapping': np.nan})        
-        # self.mapperdf = df
-
+       
+        df = df.reset_index()
+        df = df.rename(columns={'index': 'toolkit_name'})
+        print('df: ', df)
         # update table
         self.layout.data_table.source.data = df
         print(self.layout.data_table.source.data)
@@ -232,7 +230,7 @@ class App:
                                                                                         tlk_dt_names = gui_settings.dt_names,
                                                                                         tlk_obs_names = gui_settings.obs_names)
         
-        self.layout.add_extra_row_io_page(widget_grid)
+        # self.layout.add_extra_row_io_page(widget_grid)
         
         
         #add button to bottom
@@ -317,19 +315,6 @@ class App:
 
     
 
-def read_csv(filepath):
-    common_seperators = [';',',','    ','.']
-    
-    for sep in common_seperators:
-        
-        df = pd.read_csv(filepath, sep=sep)
-        assert not df.empty, "Dataset is empty!"
-        
-        if len(df.columns) > 1:
-            break
-    
-    assert len(df.columns) > 1, f'Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct.'
-    return df
         
 dummy = App()
 

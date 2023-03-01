@@ -7,13 +7,13 @@ Created on Fri Feb 24 15:59:40 2023
 """
 
 
-import os, sys
-from pathlib import Path
-toolkit_folder = Path(__file__).resolve().parents[2]
-sys.path.append(str(toolkit_folder)) #turn of in operation mode
+# import os, sys
+# from pathlib import Path
+# toolkit_folder = Path(__file__).resolve().parents[2]
+# sys.path.append(str(toolkit_folder)) #turn of in operation mode
 
 
-import vlinder_toolkit
+# import vlinder_toolkit
 
 # =============================================================================
 # General settings
@@ -46,3 +46,14 @@ obs_names = {'temp':{'dtype':'float64', 'description': '2m-temperature', 'units'
              'precip':{'dtype':'float64', 'description': 'Precipitation intensity', 'units':['l/m²']},
              #TODO aanvullen
              }
+
+
+
+# =============================================================================
+# Graphical settings
+# =============================================================================
+
+data_table_column_order=['toolkit_name', 'format', 'description',
+                         'dtype', 'units', 'template_column_name']
+
+

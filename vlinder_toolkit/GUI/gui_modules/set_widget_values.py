@@ -88,8 +88,6 @@ def make_data_template_spinners(data_file_columns, tlk_meta_names, tlk_dt_names,
 
     return widget_grid, spinners_dict
 
-
-
         
         
         
