@@ -21,14 +21,29 @@ jobs:
       # You can test your matrix by printing the current Python version
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
-      - name: install packages
+      - name: Install poetry
         run: |
-            pip install --upgrade pip
-            pip install pandas geopandas matplotlib mysql-connector-python rasterstats mapclassify openpyxl xlrd earthengine-api
-      - name: repo to path
+            python -m pip install poetry==1.1.11
+
+      - name: Configure poetry
         run: |
-            python tests/push_test/basic_import_test.py
-            python tests/push_test/IO_test.py
-            python tests/push_test/qc_test.py
-            python tests/push_test/breaking_test.py
+            python -m poetry config virtualenvs.in-project true
+
+      - name: Cache the virtualenv
+        uses: actions/cache@v2
+        with:
+          path: ./.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies and build
+        run: |
+            python -m poetry update
+            python -m poetry install
+            python -m poetry build
+      - name: Run tests
+        run: |
+            python -m poetry run tests/push_test/basic_import_test.py
+            python -m poetry run tests/push_test/IO_test.py
+            python -m poetry run tests/push_test/qc_test.py
+            python -m poetry run tests/push_test/breaking_test.py
      
