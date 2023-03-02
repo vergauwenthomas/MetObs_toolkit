@@ -31,7 +31,7 @@ static_data =  os.path.join(str(lib_folder), 'static_data', 'vlinder_metadata.cs
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
                           input_metadata_file=static_data,
-#                           output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
+                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                           )
 
 
@@ -40,13 +40,12 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 
 
-dataset.get_physiography_data(types=['elevation'])
+# dataset.get_physiography_data(types=['elevation'])
 
 
 
+dataset.write_to_csv('testfile')
 
-
-
-print(dataset.metadf.head())
+# print(dataset.metadf.head())
 
 

@@ -8,15 +8,82 @@ Created on Fri Oct 21 11:26:52 2022
 import pandas as pd
 import math
 import geopandas as gpd
+from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 import matplotlib.gridspec as gridspec
 
-
-# import geoplot as gplt
-# import mapclassify as mc
+from .geometry_functions import find_largest_extent
+from .settings import Settings
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
+def geospatial_plot(plotdf, variable, timeinstance, static_fields, categorical_fields, title, legend, vmin, vmax):
+    
+    #Load default plot settings
+    default_settings=Settings.plot_settings['spatial_geo']
+    
+    #subset to obstype
+    plotdf = plotdf[[variable, 'geometry']]
+    
+    #Subset to the stations that have coordinates
+    ignored_stations = plotdf[plotdf['geometry'].isnull()]
+    plotdf = plotdf[~plotdf['geometry'].isnull()]
+    if plotdf.empty:
+        # logger.error(f'No coordinate data found, geoplot can not be made. Plotdf: {plotdf}')
+        print(f'No coordinate data found, geoplot can not be made. Plotdf: {plotdf}')
+        return
+    
+    if not ignored_stations.empty:
+        # logger.error(f'No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!')
+        print(f'No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!')
+    
+
+
+    #make color scheme for field
+    if variable in categorical_fields:
+        is_categorical=True
+        if variable == 'lcz':
+            #use all available LCZ categories
+            use_quantiles=False
+        else:
+            use_quantiles=True
+    else:
+        is_categorical=False
+        use_quantiles=False
+ 
+    
+    #if observations extend is contained by default exten, use default else use obs extend
+    use_extent=find_largest_extent(geodf=gpd.GeoDataFrame(plotdf),
+                                   extentlist=default_settings['extent'])
+    
+    
+    #Style attributes
+    if isinstance(title, type(None)):
+        if variable in static_fields:
+            title = Settings.display_name_mapper[variable]
+        else:
+            dtstring = datetime.strftime(timeinstance, default_settings['fmt'])
+            title = Settings.display_name_mapper[variable] + ' at ' + dtstring
+    
+    ax = spatial_plot(gdf=plotdf,
+                      variable=variable,
+                      legend=legend,
+                      use_quantiles=use_quantiles,
+                      is_categorical=is_categorical,
+                      k_quantiles=default_settings['n_for_categorical'],
+                      cmap = default_settings['cmap'],
+                      world_boundaries_map=Settings.world_boundary_map,
+                      figsize=default_settings['figsize'],
+                      extent=use_extent,
+                      title=title,
+                      vmin=vmin,
+                      vmax=vmax
+                      )
+    return ax
+
+
 
 def timeseries_plot(dtseries, title, xlabel, ylabel,figsize):
     fig, ax = plt.subplots(figsize=figsize) 
