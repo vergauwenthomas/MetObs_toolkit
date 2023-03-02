@@ -60,7 +60,7 @@ sept_2022_all_vlinders = vlinder_toolkit.Dataset()
 
 #The dataset is initiated but still empty. Filling it with the data from a csv file is simply done by:
     
-sept_2022_all_vlinders.import_data_from_file(settings) #Rember that you added the input file in the settings object, this file will be used.
+sept_2022_all_vlinders.import_data_from_file(settings, coarsen_timeres=True) #Rember that you added the input file in the settings object, this file will be used.
 
 
 # =============================================================================
@@ -170,8 +170,7 @@ print(qc_statistics)
 
 
 #To plot timeseries for one station you can use the make_plot function on the station object:
-favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder05')
-
+favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder10')
 
 #Possible obstypes to plot:
     # 'temp','radiation_temp','humidity','precip','precip_sum','wind_speed',

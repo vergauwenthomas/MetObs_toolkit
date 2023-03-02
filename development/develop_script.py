@@ -46,6 +46,6 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 dataset.write_to_csv('testfile')
 
-# print(dataset.metadf.head())
+
 
 
