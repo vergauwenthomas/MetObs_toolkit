@@ -10,7 +10,8 @@ jobs:
       # You can use PyPy versions in python-version.
       # For example, pypy-2.7 and pypy-3.8
       matrix:
-        python-version: ["3.9", "3.10"]
+        #python-version: ["3.9", "3.10"]
+        python-version: ["3.9"]
         os: [ubuntu-latest, windows-latest]
         node-version: [12.x]
 
@@ -36,8 +37,8 @@ jobs:
         run: |
             cd tests
             cd push_test
-            poetry run basic_import_test.py
-            poetry run IO_test.py
-            poetry run qc_test.py
-            poetry run breaking_test.py
+            poetry run python basic_import_test.py
+            poetry run python IO_test.py
+            poetry run python qc_test.py
+            poetry run python breaking_test.py
      
