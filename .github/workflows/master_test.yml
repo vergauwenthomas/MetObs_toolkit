@@ -24,7 +24,7 @@ jobs:
       - name: install packages
         run: |
             pip install --upgrade pip
-            pip install pandas geopandas matplotlib mysql-connector-python rasterstats mapclassify openpyxl xlrd
+            pip install pandas geopandas matplotlib mysql-connector-python rasterstats mapclassify openpyxl xlrd earthengine-api
       - name: repo to path
         run: |
             python tests/push_test/basic_import_test.py

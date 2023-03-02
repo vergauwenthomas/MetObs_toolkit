@@ -16,7 +16,7 @@ import matplotlib.gridspec as gridspec
 
 
 # import geoplot as gplt
-import mapclassify as mc
+# import mapclassify as mc
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 colormap = {'in step outlier group':'green', 'persistance outlier':'yellow', 'gross value outlier':'purple', 'duplicated timestamp outlier':'black', 'repetitions outlier':'red', 'in window variation outlier group':'orange'}
