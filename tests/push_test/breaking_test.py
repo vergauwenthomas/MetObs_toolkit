@@ -87,7 +87,7 @@ dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
 
-dataset.make_plot(show_qc=True)
+dataset.make_plot(stationnames=('Fictional'), show_qc=True)
 
 outliersdf = dataset.get_final_qc_labels()
 df = dataset.input_df
@@ -106,7 +106,6 @@ if not indices_dupl_df.equals(indices_dupl_outliers):
     sys.exit('There is a problem with the duplicates')
 
 df = df.merge(outliersdf['temp_final_label'], how='outer', left_index=True, right_index=True)
-print(df.iloc[0:100])
 df['temp_final_label'] = df['temp_final_label'].fillna(value='ok')
 
 indices_missing_timestamp = df[df['temp_final_label'] == 'missing timestamp'].index

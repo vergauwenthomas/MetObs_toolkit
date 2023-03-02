@@ -72,9 +72,7 @@ class Dataset:
         self.data_template = pd.DataFrame() #dataframe containing all information on the description and mapping
         
         self._freqs = pd.Series()
-        
     
-        
     def get_station(self, stationname):
         
         """
@@ -165,7 +163,7 @@ class Dataset:
                                    starttime=None, endtime=None,
                                    title=None, legend=True, show_qc=False):
         """
-        This function create a timeseries plot for the dataset. The variable observation type
+        This function creates a timeseries plot for the dataset. The variable observation type
         is plotted for all stationnames from a starttime to an endtime.
 
         Parameters
@@ -183,7 +181,9 @@ class Dataset:
         title : String, optional
             Title of the figure, if None a default title is generated. The default is None.
         legend : Bool, optional
-           Add legend to the figure. The default is True.
+            Add legend to the figure. The default is True.
+        show_qc : Bool, optional
+            Add quality control outliers to the figure. The default is False.
         Returns
         -------
         ax : matplotlib.axes
@@ -205,6 +205,7 @@ class Dataset:
             dataframe = self.original_df[variable]
         if not show_qc:
             dataframe = self.df[variable]
+     
         dataframe = dataframe[~dataframe.index.duplicated(keep='first')]
         dataframe = dataframe.unstack('name')
         
@@ -245,7 +246,7 @@ class Dataset:
                                   xlabel='',
                                   ylabel=Settings.display_name_mapper[variable],
                                   figsize=default_settings['figsize'])
-        if not show_qc:
+        else:
             ax = timeseries_comp_plot(show_qc, variable, dataframe, labels_df=None, 
                                   title=title,
                                   xlabel='',
@@ -618,14 +619,13 @@ class Dataset:
             A table containing the label frequencies per check presented as percentages0.
 
         """
-        
         outliersdf = self.outliersdf
         #Add gaps to the outliers for comuting scores
         outliersdf = pd.concat([outliersdf,
                                 gaps_to_outlier_format(gapsdf=self.gapsdf,
                                                        dataset_res_series=self.metadf['dataset_resolution'])])
         
-        outliersdf['temp_final_label'] = self.get_final_qc_labels()['temp_final_label']
+        outliersdf[obstype+'_final_label'] = self.get_final_qc_labels()[obstype+'_final_label']
        
         if coarsen_timeres:
             gaps = outliersdf[outliersdf["gap_timestamp_label"] == "missing timestamp (gap)"]
@@ -635,7 +635,6 @@ class Dataset:
             
             
         outliersdf = outliersdf.fillna(value='ok')
-        
         if isinstance(stationnames, type(None)):
             df = self.df
             
@@ -659,16 +658,18 @@ class Dataset:
         
         #stats on datset level
         qc_labels = {key: val['outlier_flag'] for key, val in Settings.qc_checks_info.items()}
-        
+
         if coarsen_timeres:
-            for row in self.gapsdf.iterrows():
-                if (row[0] in df.index.get_level_values('name')):
-                    df = df.iloc[df.index.get_level_values('name') == row[0]]
-                    df.reset_index(level='name', inplace=True)
-                    indices_to_remove = df.loc[(df.index <= row[1]['end_gap']) & (df.index >= row[1]['start_gap'])].index
-                    df.drop(indices_to_remove, inplace=True)
-                    df.set_index(['name', df.index], inplace=True)
-        
+            for idx, row in self.gapsdf.iterrows():
+                if (idx in df.index.get_level_values('name')):
+                    df_idx = df.loc[df.index.get_level_values('name') == idx]
+                    df_not_idx = df[~df.index.isin(df_idx.index)]
+                    df_idx.reset_index(level='name', inplace=True)
+                    indices_to_remove = df_idx.loc[(df_idx.index <= row['end_gap']) & (df_idx.index >= row['start_gap'])].index
+                    df_idx.drop(indices_to_remove, inplace=True)
+                    df_idx.set_index(['name', df_idx.index], inplace=True)
+                    df = pd.concat([df_not_idx, df_idx], sort=True)
+                    
         
         dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf_without_final_label,
                                                       df =df,
@@ -881,12 +882,7 @@ class Dataset:
         
         self.update_dataset_by_df(dataframe=df, coarsen_timeres=coarsen_timeres)
         
-        
-   
-
-
     
-        
     
     def update_dataset_by_df(self, dataframe, coarsen_timeres=False):
         """
@@ -930,11 +926,10 @@ class Dataset:
         #TODO: How to implement the choise to apply QC on import freq or on coarsened frequency
         self.df = df.sort_index()
         self.original_df = df.sort_index()
-  
+        
         self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
-        #print(self.df.iloc[:100,].to_string())
-        
+       
         #update outliersdf
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df, missing_outl_df])
        

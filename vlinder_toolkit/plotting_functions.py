@@ -19,6 +19,8 @@ import matplotlib.gridspec as gridspec
 import mapclassify as mc
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+colormap = {'in step outlier group':'green', 'persistance outlier':'yellow', 'gross value outlier':'purple', 'duplicated timestamp outlier':'black', 'repetitions outlier':'red', 'in window variation outlier group':'orange'}
+
 def timeseries_plot(dtseries, title, xlabel, ylabel,figsize):
     fig, ax = plt.subplots(figsize=figsize) 
     
@@ -48,22 +50,19 @@ def timeseries_comp_plot(show_qc, variable_name, data_df, labels_df, title, xlab
             subdata_df = data_df[station].to_frame()
             subdata_labels = labels_df[station].to_frame()
             data_df[station] = data_df[station].mask(data_df[station].index.isin(subdata_labels.index))
-         
-            colormap = {'in step outlier group':'green', 'persistance outlier':'yellow', 'gross value outlier':'purple', 'duplicated timestamp outlier':'black', 'repetitions outlier':'red', 'in window variation outlier group':'orange'}
-            labels = ['in step outlier group', 'persistance outlier', 'gross value outlier', 'duplicated timestamp outlier', 'repetitions outlier', 'in window variation outlier group']
-            for label in labels:
-                if (label in subdata_labels.values):
-                    label_indices = subdata_labels[subdata_labels[station] == label]
+            
+            for label in subdata_labels[station].dropna().unique():
+                label_indices = subdata_labels[subdata_labels[station] == label]
 
-                    data_with_label = subdata_df.merge(label_indices, how='outer', left_index=True, right_index=True)
-                    data_with_label.columns = [variable_name, 'qc_label']
+                data_with_label = subdata_df.merge(label_indices, how='outer', left_index=True, right_index=True)
+                data_with_label.columns = [variable_name, 'qc_label']
                    
-                    data_with_label = data_with_label.mask(data_with_label.isna().any(axis=1))
-                    data_with_label.plot(ax=ax, title=title, color=colormap[label])
-                    if label not in labels_for_qc_legend:
-                        labels_for_qc_legend.append(label)
-                        handles_for_qc_legend.append(number)
-                    number = number + 1
+                data_with_label = data_with_label.mask(data_with_label.isna().any(axis=1))
+                data_with_label.plot(ax=ax, title=title, color=colormap[label])
+                if label not in labels_for_qc_legend:
+                    labels_for_qc_legend.append(label)
+                    handles_for_qc_legend.append(number)
+                number = number + 1
                     
     data_df.plot(ax=ax, title=title)
     #titles and axis
@@ -81,7 +80,7 @@ def timeseries_comp_plot(show_qc, variable_name, data_df, labels_df, title, xlab
         ax.legend(handles[-len(data_df.columns):], labels[-len(data_df.columns):], loc='lower left', ncol=7)
         ax.add_artist(l1)
     
-    if not show_qc:
+    else:
         ax.legend(loc='lower left', ncol=7)
     
     return ax

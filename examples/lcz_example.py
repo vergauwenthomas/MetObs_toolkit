@@ -11,8 +11,8 @@ main_folder = Path(__file__).resolve().parents[1]
 testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
 metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
-import sys
-sys.path.append(str(main_folder))
+#import sys
+#sys.path.append(str(main_folder))
 
 import vlinder_toolkit
 
