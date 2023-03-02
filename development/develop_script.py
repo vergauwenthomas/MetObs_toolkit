@@ -47,6 +47,4 @@ dataset.get_physiography_data(types=['elevation'])
 
 
 
-print(dataset.metadf.head())
-
 

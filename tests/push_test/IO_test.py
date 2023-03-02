@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 lib_folder = Path(__file__).resolve().parents[2]
-sys.path.append(str(lib_folder))
+#sys.path.append(str(lib_folder))
 
 
 import vlinder_toolkit
@@ -45,7 +45,7 @@ station = dataset.get_station('vlinder02')
 
 
 
-ax =station.make_plot()
+ax = station.make_plot()
 
 ax = dataset.make_plot()
 

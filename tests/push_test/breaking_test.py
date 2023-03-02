@@ -87,6 +87,8 @@ dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
 
+dataset.make_plot(stationnames=('Fictional'), show_qc=True)
+
 outliersdf = dataset.get_final_qc_labels()
 df = dataset.input_df
 
@@ -114,6 +116,7 @@ df.loc[indices_gap_timestamp,'flags'] = 'missing timestamp (gap)'
 
 dataset_coarsened.get_qc_stats(coarsen_timeres=True)
 dataset.get_qc_stats()
+
 
 
 if not df['flags'].equals(df['temp_final_label']):
