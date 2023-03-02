@@ -35,7 +35,7 @@ jobs:
       - name: Run tests
         run: |
             cd tests
-            cd push_tests
+            cd push_test
             poetry run basic_import_test.py
             poetry run IO_test.py
             poetry run qc_test.py
