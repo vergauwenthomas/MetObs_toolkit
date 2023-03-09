@@ -10,7 +10,7 @@ temp_output/*
 
 #Exclude builds
 dist/*
-
+docs/_*
 #exclude proj build (only tar remaining)
 proj/proj-9.0.0/*
 
