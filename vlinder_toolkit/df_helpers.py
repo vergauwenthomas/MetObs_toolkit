@@ -8,55 +8,89 @@ Created on Thu Mar  2 16:00:59 2023
 @author: thoverga
 """
 import pandas as pd
+import numpy as np
 import geopandas as gpd
 
+from .settings import Settings
 
 
-
-
-def expand_gabs_to_multiind(df, gapsdf, obstype='temp'):
+def add_final_label_to_outliersdf(outliersdf, data_res_series):
     """
-    Expand the gaps to timestamps, that are missing in the observations. 
+    V3
+        This function creates a final label based on de individual qc labels. The final label will be that of the individual qc-label
+        which rejected the obseration.
+       
+        This functions converts labels to numeric values, algebra to get final label, and inversly 
+        convert to labels. This is faster than looping over the rows.
+
+        Parameters
+        ----------
+        outliersdf : pandas.DataFrame 
+            The dataset outliers dataframe containing the observations and QC labels. 
+       
+        data_res_series : Pandas.Series
+            The series that contain the dataset resolution (values) per station (index). This 
+            is stored in the dataset.metadf as column 'dataset_resolution'. These are used to explode the gaps.
+
+        Returns
+        -------
+        outliersdf : pd.DataFrame
+            The outliersdf with extra columns indicated by example 'temp_final_label' and 'humid_final_label'.
+
+        """ 
+       
+
+      
     
-    Parameters
-    ----------
-    df : dataset.df
-        The observations where gaps are present as Nan values.
-    gapsdf : dataset.gapsdf
-        The dataframe with detaild information on the start and end of a gap.
-    obstype : String, optional
-        Observation type. The default is 'temp'.
-    Returns
-    -------
-    expanded_gabsidx : pd.MultiIndex
-        A Station-datetime multiindex of missing gap-records.
-    """
+    # order columns
+    labels_columns = [column for column in outliersdf.columns if not column in Settings.observation_types]
+    #drop final columns if they are in the outliersdf
+    labels_columns = [column for column in labels_columns if not column.endswith('_final_label')]
     
-    expanded_gabsidx = pd.MultiIndex(levels=[['name'],['datetime']],
-                             codes=[[],[]],
-                             names=[u'name', u'datetime'])
+    checked_obstypes = [obstype for obstype in Settings.observation_types if any([qc_column.startswith(obstype+'_') for qc_column in labels_columns])]
+    columns_on_record_lvl = [info['label_columnname'] for checkname, info in Settings.qc_checks_info.items() if info['apply_on'] == 'record']
+   
+    
+    # Construct numeric mapper
+    labels_to_numeric_mapper = {info['outlier_flag']:info['numeric_flag'] for info in Settings.qc_checks_info.values()}
+    # add 'ok' and 'not checked' labels
+    labels_to_numeric_mapper['ok'] = 0
+    labels_to_numeric_mapper['not checked'] = np.nan
+    #invert numeric mapper
+    inv_label_to_num = {v: k for k, v in labels_to_numeric_mapper.items()}
     
     
-    for sta, row in gapsdf.iterrows():
-    
-        sta_df = df.xs(sta, level='name') #filter by name 
-        posible_gaps_dt = sta_df[sta_df[obstype].isnull()].index #filter by missing observations
-        gaps_dt = posible_gaps_dt[(posible_gaps_dt >= row['start_gap']) & #filter if the observations are within a gap
-                                  (posible_gaps_dt <= row['end_gap'])]
+    #generete final label per obstype
+    for obstype in checked_obstypes:
+        # logger.debug(f'Generating final QC labels for {obstype}.')
+        #Get qc column namse specific for this obstype
+        specific_columns = [col for col in labels_columns if col.startswith(obstype+'_')]
+        #add qc labels that are applicable on all obstypes
+        specific_columns.extend(columns_on_record_lvl)
         
-        gaps_multiidx = pd.MultiIndex.from_arrays(arrays=[[sta]*len(gaps_dt),
-                                                          gaps_dt],
-                                                  names=[u'name', u'datetime'])
+        #Drop columns that are not present
+        specific_columns = [colmn for colmn in specific_columns if colmn in outliersdf.columns]
         
-        expanded_gabsidx = expanded_gabsidx.append(gaps_multiidx)
+        
+        
+        #get labels dataframe
+        qc_df = outliersdf[specific_columns]
+        num_qc_df = pd.DataFrame()
+        num_qc_df = qc_df.applymap(labels_to_numeric_mapper.get )
+       
     
-    return expanded_gabsidx
+        outliersdf[obstype+'_final_label'] = num_qc_df.sum(axis=1, skipna=True).map(inv_label_to_num)
+       
+   
+    return outliersdf
 
+
+
+def remove_outliers_from_obs(obsdf, outliersdf):
+    return obsdf.loc[~obsdf.index.isin(outliersdf.index)]
 
     
-    
-
-
+  
 
 
 
@@ -98,6 +132,21 @@ def metadf_to_gdf(df, crs=4326):
 
 
 
+def multiindexdf_datetime_subsetting(df, starttime, endtime):
+    " The multiindex equivalent of datetime_subsetting"
+    dt_df = df.reset_index().set_index('datetime')
+    subset_dt_df = datetime_subsetting(dt_df, starttime, endtime)
+    
+    # back to multiindex name-datetime
+    subset_dt_df = subset_dt_df.reset_index()
+    idx = pd.MultiIndex.from_frame(subset_dt_df[['name', 'datetime']])
+    returndf = subset_dt_df.set_index(idx).drop(columns=['name', 'datetime'], errors='ignore')
+
+    if returndf.empty:
+        print(f'Warning: No observations left after subsetting datetime {starttime} -- {endtime} ')
+    
+    return returndf
+    
 def datetime_subsetting(df, starttime, endtime):
     """
     Wrapper function for subsetting a dataframe with datetimeindex with a start- and 
