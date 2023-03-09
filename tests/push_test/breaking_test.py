@@ -19,12 +19,6 @@ lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-
-
-<<<<<<< HEAD
-=======
-
->>>>>>> a8f3eac485cc30ef46a3a0b07aa6aed1f941e946
 #x = all(keys in ['a', 'b', 'c'] for keys in ['c', 'b', 'a'])
 
 testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
@@ -84,11 +78,13 @@ dataset_coarsened = vlinder_toolkit.Dataset()
 dataset_coarsened.import_data_from_file(coarsen_timeres=True)
 dataset_coarsened.apply_quality_control()
 
-_ = dataset_coarsened.get_qc_stats()
+#_ = dataset_coarsened.get_qc_stats()
 #%%
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
+
+_ = dataset.get_qc_stats()
 
 dataset.make_plot(stationnames=['Fictional'],colorby='label', show_outliers=True)
 
@@ -157,13 +153,12 @@ print('Testing the gaps')
 man_gapsdf = pd.DataFrame().from_records(manual_missing_gaps)
 man_gapsdf = man_gapsdf.set_index('name')
 
-<<<<<<< HEAD
 dataset_coarsened.get_qc_stats(coarsen_timeres=True, stationnames=('1'))
 dataset.get_qc_stats()
-=======
+
 tlk_gapsdf = dataset.gaps.df
 tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
->>>>>>> a8f3eac485cc30ef46a3a0b07aa6aed1f941e946
+
 
 
 

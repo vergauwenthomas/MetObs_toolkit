@@ -84,6 +84,7 @@ plot_settings['qc_stats'] = {
 plot_settings['color_mapper']={
     #QC specific labels
     'duplicated_timestamp': '#a32a1f',
+    'invalid_input': '#900357',
     'gross_value': '#f1ff2b',
     'persistance':'#f0051c',
     'repetitions':'#056ff0',
