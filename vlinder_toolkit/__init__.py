@@ -33,8 +33,8 @@ sys.path.append(BASE_PATH)
 
 
 
-from .settings import Settings
-from .dataset import Dataset
+from vlinder_toolkit.settings import Settings
+from vlinder_toolkit.dataset import Dataset
 
 __version__ = "version debug"
 
