@@ -9,11 +9,13 @@ Welcome to vlinder-toolkit's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
    
    dataset
    station
    settings
    gaps
+
 
 
 Indices and tables
