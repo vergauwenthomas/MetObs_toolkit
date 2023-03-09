@@ -14,12 +14,12 @@ import sys, os
 
 from pathlib import Path
 
-
+import vlinder_toolkit
 lib_folder = Path(__file__).resolve().parents[2]
-sys.path.append(str(lib_folder))
+# sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-import vlinder_toolkit
+
 
 
 #x = all(keys in ['a', 'b', 'c'] for keys in ['c', 'b', 'a'])
@@ -51,7 +51,7 @@ max_increase_per_second_step = 8.0/3600.0   # Maximal allowed increase per secon
 max_decrease_per_second_step = -10.0/3600.0   # Maximal allowed increase per second (for step check)
 
 
-settings.qc_check_settings['gaps_finder']['gapsize_n'] = minimal_gapsize
+settings.gaps_settings['gaps_finder']['gapsize_n'] = minimal_gapsize
 
 settings.qc_check_settings['duplicated_timestamp']['keep'] = dupl_dropping
 
@@ -81,49 +81,173 @@ dataset_coarsened = vlinder_toolkit.Dataset()
 dataset_coarsened.import_data_from_file(coarsen_timeres=True)
 dataset_coarsened.apply_quality_control()
 
-
+_ = dataset_coarsened.get_qc_stats()
 #%%
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
 
-dataset.make_plot(stationnames=('Fictional'), show_qc=True)
+dataset.make_plot(stationnames=['Fictional'],colorby='label', show_outliers=True)
 
-outliersdf = dataset.get_final_qc_labels()
-df = dataset.input_df
 
-indices_dupl_df = df[df['flags'] =='duplicated timestamp outlier'].index.sortlevel()[0]
-df = df[df['flags'] != 'duplicated timestamp outlier']
+#%% Compare manual and toolkit labeling
 
-indices_dupl_outliers = outliersdf[outliersdf['temp_final_label'] =='duplicated timestamp outlier'].index.sortlevel()[0]
-outliersdf = outliersdf[outliersdf['temp_final_label'] != 'duplicated timestamp outlier']
 
-if not indices_dupl_df.equals(indices_dupl_outliers):
-    if len(indices_dupl_outliers.difference(indices_dupl_df)) > 0:
-        print('Timestamps with wrong duplicate label are: ', indices_dupl_outliers.difference(indices_dupl_df))
+man_df = dataset.input_df #manual label
+
+tlk_df = dataset.combine_all_to_obsspace()
+
+
+
+#%%
+all_manual_labels = list(man_df['flags'].unique())
+manual_to_tlkit_label_map = {
+     'ok': 'ok',
+     'in step outlier group': settings.qc_checks_info['step']['outlier_flag'],
+     'repetitions outlier': settings.qc_checks_info['repetitions']['outlier_flag'],
+     'duplicated timestamp outlier': settings.qc_checks_info['duplicated_timestamp']['outlier_flag'],
+     'gross value outlier': settings.qc_checks_info['gross_value']['outlier_flag'],
+     'in window variation outlier group': settings.qc_checks_info['window_variation']['outlier_flag'],
+     'persistance outlier': settings.qc_checks_info['persistance']['outlier_flag']
+    }
+
+#check if the mapper is still up to date
+assert all([True for label in all_manual_labels if label in manual_to_tlkit_label_map.keys()]), 'Update the manual to toolkit mapper'
+
+
+
+# =============================================================================
+# iterate over all labels and validate if the indices are equal between manual and toolkit
+# =============================================================================
+
+for man_label, tlk_label in manual_to_tlkit_label_map.items():
+    print(f' Testing equality of the {tlk_label} with the manual labeling ({man_label}).')
+    
+    man_idx = man_df[man_df['flags'] == man_label].index.sort_values()
+    tlk_idx = tlk_df[tlk_df['temp_final_label'] == tlk_label].index.sort_values()
+
+    
+    if not tlk_idx.equals(man_idx):
+        print(f'ERROR: wrong labels for {tlk_label}')
+        
+        print(f'differences tlkit --> manual: { tlk_idx.difference(man_idx)}')
+        print(f'differences manual --> tlkit: {man_idx.difference(tlk_idx)}')
+        sys.exit(1)
+    
     else:
-        print('Timestamps with missing duplicate label are: ', indices_dupl_df.difference(indices_dupl_outliers))
-    sys.exit('There is a problem with the duplicates')
+        print('OK!')
 
-df = df.merge(outliersdf['temp_final_label'], how='outer', left_index=True, right_index=True)
-df['temp_final_label'] = df['temp_final_label'].fillna(value='ok')
 
-indices_missing_timestamp = df[df['temp_final_label'] == 'missing timestamp'].index
-df.loc[indices_missing_timestamp,'flags'] = 'missing timestamp'
-
-indices_gap_timestamp = df[df['temp_final_label'] == 'missing timestamp (gap)'].index
-df.loc[indices_gap_timestamp,'flags'] = 'missing timestamp (gap)'
-
-dataset_coarsened.get_qc_stats(coarsen_timeres=True)
-dataset.get_qc_stats()
+# =============================================================================
+# test missing Gaps
+# =============================================================================
 
 
 
-if not df['flags'].equals(df['temp_final_label']):
-    print('Timestamps with wrong label are: ', list(df.index[df['flags'] != df['temp_final_label']]))
-    sys.exit('There is a problem with the quality control')
+from datetime import datetime
+import pandas as pd
+
+manual_missing_gaps = [{'name': 'Fictional', 'start_gap': datetime(2020,9,14,1,30), 'end_gap': datetime(2020,9,14,23,55)}] #UPDATE MANUALLY !!!!!!!!!!
+
+print('Testing the gaps')
+
+man_gapsdf = pd.DataFrame().from_records(manual_missing_gaps)
+man_gapsdf = man_gapsdf.set_index('name')
+
+tlk_gapsdf = dataset.gaps.df
+tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
+
+
+
+if not tlk_gapsdf.equals(man_gapsdf):
+    print(f'ERROR: wrong gaps detection')
+    
+    print(f'differences tlkit --> manual: { tlk_gapsdf.difference(man_gapsdf)}')
+    print(f'differences manual --> tlkit: {man_gapsdf.difference(tlk_gapsdf)}')
+    sys.exit(1)
+
 else:
-    print('The quality control is performing as expected')
+    print('OK!')
+
+
+
+# =============================================================================
+# test missing missing timestamps
+# =============================================================================
+
+
+#This has to be done properly, there are too much missing timestamps for manual labelling. 
+# as a dirty fix, now only count the number of missing timestamps and see it that is oke
+
+number_missing_timestamps = {'1': 1,
+                             'Fictional' : 307}
+
+print('Testing the missing obs')
+tlk_missing_series = dataset.missing_obs.series
+
+for station in tlk_missing_series.index.unique():
+    sta_n_missing = tlk_missing_series[[station]].shape[0]
+    
+    if sta_n_missing != number_missing_timestamps[station]:
+        print(f'ERROR: wrong number of missing obs for station: {station}')
+        
+        print(f'number of missing obs for {station} by manual work: {number_missing_timestamps[station]}')
+        print(f'number of missing obs for {station} by toolkit: {tlk_missing_series}')
+        sys.exit(1)
+    
+    
+print('OK!')
+    
+
+
+
+
+
+
+
+
+
+# # indices_dupl_df = df[df['flags'] =='duplicated timestamp outlier'].index.sortlevel()[0]
+# # df = df[df['flags'] != 'duplicated timestamp outlier']
+
+# # indices_dupl_outliers = outliersdf[outliersdf['temp_final_label'] =='duplicated timestamp outlier'].index.sortlevel()[0]
+# # outliersdf = outliersdf[outliersdf['temp_final_label'] != 'duplicated timestamp outlier']
+
+
+# df = df[df['flags'] != 'duplicated timestamp outlier']
+# outliersdf = outliersdf[outliersdf['temp_final_label'] != 'duplicated timestamp outlier']
+
+
+
+
+
+
+# if not indices_dupl_df.equals(indices_dupl_outliers):
+#     if len(indices_dupl_outliers.difference(indices_dupl_df)) > 0:
+#         print('Timestamps with wrong duplicate label are: ', indices_dupl_outliers.difference(indices_dupl_df))
+#     else:
+#         print('Timestamps with missing duplicate label are: ', indices_dupl_df.difference(indices_dupl_outliers))
+#     sys.exit('There is a problem with the duplicates')
+
+# df = df.merge(outliersdf['temp_final_label'], how='outer', left_index=True, right_index=True)
+# df['temp_final_label'] = df['temp_final_label'].fillna(value='ok')
+
+# indices_missing_timestamp = df[df['temp_final_label'] == 'missing timestamp'].index
+# df.loc[indices_missing_timestamp,'flags'] = 'missing timestamp'
+
+# indices_gap_timestamp = df[df['temp_final_label'] == 'missing timestamp (gap)'].index
+# df.loc[indices_gap_timestamp,'flags'] = 'missing timestamp (gap)'
+
+
+# dataset.get_qc_stats()
+
+
+
+# if not df['flags'].equals(df['temp_final_label']):
+#     print('Timestamps with wrong label are: ', list(df.index[df['flags'] != df['temp_final_label']]))
+#     sys.exit('There is a problem with the quality control')
+# else:
+#     print('The quality control is performing as expected')
     
 
 

@@ -18,38 +18,22 @@ from .data_import import import_data_from_csv, import_data_from_database, templa
 # from .data_import import coarsen_time_resolution
 from .landcover_functions import connect_to_gee, extract_pointvalues
 from .geometry_functions import find_largest_extent
-from .plotting_functions import spatial_plot, timeseries_plot, timeseries_comp_plot, qc_stats_pie
+from .plotting_functions import geospatial_plot, timeseries_plot, qc_stats_pie
 
 from .qc_checks import gross_value_check, persistance_check, repetitions_check, duplicate_timestamp_check
-from .qc_checks import step_check, missing_timestamp_and_gap_check, get_freqency_series
-from .qc_checks import init_outlier_multiindexdf, gaps_to_outlier_format, window_variation_check
+from .qc_checks import step_check
+from .qc_checks import init_outlier_multiindexdf, window_variation_check
 
-from .statistics import get_qc_effectiveness_stats
+from .statistics import get_freq_statistics
 
-from .station import Station
+# from .station import Station
+from .gap import Gap_collection, Missingob_collection
+from .gap import missing_timestamp_and_gap_check, get_freqency_series
+
+from .df_helpers import add_final_label_to_outliersdf
+
 
 logger = logging.getLogger(__name__)
-
-# =============================================================================
-# field classifiers
-# =============================================================================
-
-#Static fields are fields (attributes and observations) that do not change in time
-static_fields = ['network', 'name', 
-                'lat', 'lon', #TODO make these dynamic, now used as static 
-                'call_name', 'location',
-                'lcz']
-
-#Categorical fields are fields with values that are assumed to be categorical.
-#Note: (there are static and dynamic fields that are categorical)
-categorical_fields = ['wind_direction', 'lcz']
-
-
-observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
-                     'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
-                     'pressure', 'pressure_at_sea_level']
-
-location_info = ['network', 'lat', 'lon', 'lcz', 'call_name', 'location' ]
 
 
 
@@ -65,14 +49,17 @@ class Dataset:
            
         self.outliersdf = init_outlier_multiindexdf() #Dataset with outlier observations
         
-        
-        self.gapsdf = pd.DataFrame(columns=['start_gap', 'end_gap']) #Dataframe containig the gaps per station
+        self.missing_obs = None #becomes a Missingob_collection after import
+        self.gaps = None #becomes a gap_collection after import
+        # self.gapsdf = pd.DataFrame(columns=['start_gap', 'end_gap']) #Dataframe containig the gaps per station
         #TODO: a static metadf excludes moving observations :s
         self.metadf = pd.DataFrame() #Dataset with metadata (static)
         self.data_template = pd.DataFrame() #dataframe containing all information on the description and mapping
         
+        self._istype='Dataset'
         self._freqs = pd.Series()
     
+
     def get_station(self, stationname):
         
         """
@@ -91,35 +78,37 @@ class Dataset:
         """
         logger.info(f'Extract {stationname} from dataset.')
         
+        #important: make shure all station attributes are of the same time as dataset.
+        # so that all methods can be inherited.
+        
         try:
-            sta_df = self.df.xs(stationname, level='name')
-            sta_meta_series = self.metadf.loc[stationname]
+            sta_df = self.df.xs(stationname, level='name', drop_level=False)
+            sta_metadf = self.metadf.loc[stationname].to_frame().transpose()
         except KeyError:
             logger.warning(f'{stationname} not found in the dataset.')
             print(f'{stationname} not found in the dataset.')
             return None
         
         try:
-            sta_outliers = self.outliersdf.xs(stationname, level='name')
+            sta_outliers = self.outliersdf.xs(stationname, level='name', drop_level=False)
         except KeyError:
             sta_outliers = init_outlier_multiindexdf()
         
-        try:
-            sta_gaps = self.gapsdf.loc[stationname]
-        except KeyError:
-            sta_gaps = pd.DataFrame()
         
-
+        
+        sta_gaps = self.gaps.get_station_gaps(stationname)
+        sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
             
-        return Station(name=stationname, df=sta_df,
+        return Station(name=stationname,
+                       df=sta_df,
                        outliersdf=sta_outliers,
-                       gapsdf = sta_gaps,
-                       meta_series=sta_meta_series,
+                       gaps = sta_gaps,
+                       missing_obs = sta_missingobs,
+                       metadf=sta_metadf,
                        data_template=self.data_template)
        
         
-        
-    
+
     def show(self):
         """
         Print basic information about the dataset.
@@ -130,48 +119,31 @@ class Dataset:
 
         """
         logger.info('Show basic info of dataset.')
-        if self.df.empty:
-            print("This dataset is empty!")
-            # logger.error('The dataset is empty!')
-        else: 
-            print('\n','--------  General ---------', '\n')
-            print(f' .... ')
-            
-            
-            
-            print('\n','--------  Observations ---------', '\n')
-            starttimestr = datetime.strftime(min(self.df.index.get_level_values(level='datetime')),
-                                             Settings.print_fmt_datetime)
-            endtimestr = datetime.strftime(max(self.df.index.get_level_values(level='datetime')), Settings.print_fmt_datetime)
-            
-            stations_available = list(self.df.index.get_level_values(level='name').unique())
-            print(f'Observations found for period: {starttimestr} --> {endtimestr}')
-            # logger.debug(f'Observations found for period: {starttimestr} --> {endtimestr}')
-            print(f'Following stations are in dataset: {stations_available}')
-            # logger.debug(f'Following stations are in dataset: {stations_available}')
-            
-            print('\n', '--------  Outliers ---------', '\n')
-            print(f'There are {self.outliersdf.shape[0]} flagged observations found in total. They occure in these stations: {list(self.outliersdf.index.get_level_values("name").unique())}')
-            
-            print('\n', '--------  Gaps ---------', '\n')
-            print(f'There are {self.gapsdf.shape[0]} gaps found in total. They occure in these stations: {list(self.gapsdf.index.unique())}')
-            
-            
+        from .printing import print_dataset_info
+
+        print_dataset_info(self.df, self.outliersdf, self.gaps.df)
+        
+    
             
         
-    def make_plot(self, stationnames=None, variable='temp',
+  
+        
+    def make_plot(self, stationnames=None, variable='temp', colorby='name',
                                    starttime=None, endtime=None,
-                                   title=None, legend=True, show_qc=False):
+                                   title=None, legend=True, show_outliers=True):
         """
         This function creates a timeseries plot for the dataset. The variable observation type
         is plotted for all stationnames from a starttime to an endtime.
 
         Parameters
         ----------
-        stationnames : List, Iterable
-            Iterable of stationnames to plot. If None, all available stations ar plotted. The default is None.
+        stationnames : List
+            List of stationnames to plot. If None, all available stations ar plotted. The default is None.
         variable : String, optional
             The name of the observation type to plot. The default is 'temp'.
+        colorby: 'name' or 'label'
+            Indicate how to color the timeseries. 'name' will use seperate colors for each stations, 
+            'label' will color by the observation label from the quality control. The default is 'name'.
         starttime : datetime, optional
             The starttime of the timeseries to plot. The default is None and all observations 
             are used.
@@ -182,80 +154,63 @@ class Dataset:
             Title of the figure, if None a default title is generated. The default is None.
         legend : Bool, optional
             Add legend to the figure. The default is True.
-        show_qc : Bool, optional
-            Add quality control outliers to the figure. The default is False.
+        show_outliers : Bool, optional
+            If true, the outlier values will be plotted else they are removed from the plot. The default is True.
         Returns
         -------
         ax : matplotlib.axes
             The plot axes is returned.
 
         """
-        outliers = self.outliersdf
-        subset = outliers[(outliers['missing_timestamp_label'] != 'missing timestamp') & (outliers['duplicated_timestamp_label'] != 'duplicated timestamp outlier')]
-        assert (not subset.empty) | (show_qc == False), "Quality control outliers cannot be visualised becuase quality control is not performed on the dataset."
+
+        from .df_helpers import multiindexdf_datetime_subsetting
+     
         
         logger.info(f'Make {variable}-timeseries plot for {stationnames}')
         
-        default_settings=Settings.plot_settings['time_series']
-        
-        #Subset on obseravtion type
-        #plotdf = self.df[variable]
-        #Unstack dataframe on names
-        if show_qc:
-            dataframe = self.original_df[variable]
-        if not show_qc:
-            dataframe = self.df[variable]
-     
-        dataframe = dataframe[~dataframe.index.duplicated(keep='first')]
-        dataframe = dataframe.unstack('name')
-        
-        if show_qc:
-            qc_labels_df = self.get_final_qc_labels()
-            qc_labels_df = qc_labels_df[variable+'_final_label']
-            qc_labels_df = qc_labels_df[(qc_labels_df != 'missing timestamp') & (qc_labels_df != 'missing timestamp (gap)')]
-            qc_labels_df = qc_labels_df[~qc_labels_df.index.duplicated(keep='first')]
-            qc_labels_df = qc_labels_df.unstack('name')
-        
+        # combine all dataframes
+        mergedf = self.combine_all_to_obsspace()
+      
+
         #Subset on stationnames
         if not isinstance(stationnames, type(None)):
-            dataframe = dataframe[stationnames]
-            if show_qc:
-                qc_labels_df = qc_labels_df[stationnames]
-        
+            mergedf = mergedf.loc[mergedf.index.get_level_values('name').isin(stationnames)]
+            
         #Subset on start and endtime
-        dataframe = datetime_subsetting(dataframe, starttime, endtime)
-        if show_qc:
-            qc_labels_df = datetime_subsetting(qc_labels_df, starttime, endtime)
-        
-        #plotdf is a dataframe with this structure:
-            #datatime --> stationnameA, stationnameB, stationnameC
-          # 2022-09-15 ...    valueA        valueB       valueC
+        mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
         
        
         #Get plot styling attributes
         if isinstance(title, type(None)):
             if isinstance(stationnames, type(None)):
-                title=Settings.display_name_mapper[variable] + ' for all stations. '
+                if self._istype=='Dataset':
+                    title=Settings.display_name_mapper[variable] + ' for all stations. '
+                elif self._istype=='Station':
+                    title=Settings.display_name_mapper[variable] + ' of ' + self.name
+                    
             else:
                 title=Settings.display_name_mapper[variable] + ' for stations: ' + str(stationnames)
         
-        #make plot
-        if show_qc:
-            ax = timeseries_comp_plot(show_qc, variable, dataframe, qc_labels_df,
-                                  title=title,
-                                  xlabel='',
-                                  ylabel=Settings.display_name_mapper[variable],
-                                  figsize=default_settings['figsize'])
-        else:
-            ax = timeseries_comp_plot(show_qc, variable, dataframe, labels_df=None, 
-                                  title=title,
-                                  xlabel='',
-                                  ylabel=Settings.display_name_mapper[variable],
-                                  figsize=default_settings['figsize'])
+        
+        if (variable+'_final_label' not in mergedf.columns) & ((colorby=='label') | (show_outliers)):
+            # user whant outier information but no QC is applied on this variable
+            print(f' No quality control is applied on {variable}! No outlier information is available.')
+            print( 'Colorby is set to "name" and show_outliers is set to False.')
+            colorby='name'
+            show_outliers = False
+        
+        # Make plot
+        ax = timeseries_plot(mergedf = mergedf,
+                             obstype = variable,
+                             title = title,
+                             xlabel = 'Timestamp',
+                             ylabel = self.data_template[variable]['orig_name'],
+                             colorby = colorby,
+                             show_legend=legend,
+                             show_outliers = show_outliers)
+    
 
         return ax
-        
-        
         
         
         
@@ -296,9 +251,8 @@ class Dataset:
         """
         
         
-        
         #Load default plot settings
-        default_settings=Settings.plot_settings['spatial_geo']
+        # default_settings=Settings.plot_settings['spatial_geo']
         
         #get first timeinstance of the dataset if not given
         if isinstance(timeinstance, type(None)):
@@ -313,69 +267,26 @@ class Dataset:
         plotdf = plotdf.merge(self.metadf, how='left',
                               left_index=True, right_index=True )
         
-        #subset to obstype
-        plotdf = plotdf[[variable, 'geometry']]
         
-        #Subset to the stations that have coordinates
-        ignored_stations = plotdf[plotdf['geometry'].isnull()]
-        plotdf = plotdf[~plotdf['geometry'].isnull()]
-        if plotdf.empty:
-            logger.error(f'No coordinate data found, geoplot can not be made. Plotdf: {plotdf}')
-            print(f'No coordinate data found, geoplot can not be made. Plotdf: {plotdf}')
-            return
         
-        if not ignored_stations.empty:
-            logger.error(f'No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!')
-            print(f'No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!')
+        ax=geospatial_plot(plotdf=plotdf,
+                           variable=variable,
+                           timeinstance=timeinstance,
+                           title=title,
+                           legend=legend,
+                           vmin=vmin,
+                           vmax=vmax)
         
-
-
-        #make color scheme for field
-        if variable in categorical_fields:
-            is_categorical=True
-            if variable == 'lcz':
-                #use all available LCZ categories
-                use_quantiles=False
-            else:
-                use_quantiles=True
-        else:
-            is_categorical=False
-            use_quantiles=False
      
-        
-        #if observations extend is contained by default exten, use default else use obs extend
-        use_extent=find_largest_extent(geodf=gpd.GeoDataFrame(plotdf),
-                                       extentlist=default_settings['extent'])
-        
-        
-        #Style attributes
-        if isinstance(title, type(None)):
-            if variable in static_fields:
-                title = Settings.display_name_mapper[variable]
-            else:
-                dtstring = datetime.strftime(timeinstance, default_settings['fmt'])
-                title = Settings.display_name_mapper[variable] + ' at ' + dtstring
-        
-        ax = spatial_plot(gdf=plotdf,
-                          variable=variable,
-                          legend=legend,
-                          use_quantiles=use_quantiles,
-                          is_categorical=is_categorical,
-                          k_quantiles=default_settings['n_for_categorical'],
-                          cmap = default_settings['cmap'],
-                          world_boundaries_map=Settings.world_boundary_map,
-                          figsize=default_settings['figsize'],
-                          extent=use_extent,
-                          title=title,
-                          vmin=vmin,
-                          vmax=vmax
-                          )
-        
-
         return ax
     
     
-    def write_to_csv(self, filename=None, include_outliers=True, add_final_labels=True):
+    
+    
+    
+    
+    
+    def write_to_csv(self, filename=None, include_outliers=True, add_final_labels=True, use_tlk_obsnames=True):
         """
             Write the dataset to a file where the observations, metadata and (if available)
             the quality labels per observation type are merged together. 
@@ -399,75 +310,44 @@ class Dataset:
             None
     
             """
+        from .writing_files import write_dataset_to_csv
+        
         
         logger.info('Writing the dataset to a csv file')
         assert not isinstance(Settings.output_folder, type(None)), 'Specify Settings.output_folder in order to export a csv.'
-        
-        #add final quality control labels per observation type
-        if add_final_labels:
-            outliersdf = add_final_label_to_outliersdf(outliersdf=self.outliersdf,
-                                              gapsdf= self.gapsdf,
-                                              data_res_series = self.metadf['dataset_resolution'])
-        else:
-            outliersdf = self.outliersdf
-         
-       
-        #Get observations and metadata columns in the right order
-        logger.debug('Merging data and metadata')
-        
-        
-        #make column ordering
-        df_columns = observation_types.copy() #observations
-        df_columns.extend(location_info) #metadata
-        qc_columns = [col for col in outliersdf if col.endswith('_label')] #add qc labels
-        df_columns.extend(qc_columns)
-        df_columns.insert(0, 'datetime') # timestamp as first column
-        df_columns.insert(1, 'name') #station name as second column
-        
+        assert os.path.isdir(Settings.output_folder), f'The outputfolder: {Settings.output_folder} is not found. '
         
     
+    
+        # combine all dataframes
+        mergedf = self.combine_all_to_obsspace() #with outliers
         
-        #unstack observations and merge with metadf
-        df = self.df 
-        df[qc_columns] = 'ok'
-        df = pd.concat([df, outliersdf])
-        df = df.reset_index()
-        
-        metadf = self.metadf.reset_index()
-        df = df.merge(metadf, how='left', on='name')
-        
-        #sort and subset columns
-        df = df[df_columns]
-        
-                
-        #find observation type that are not present
-        ignore_obstypes = [col for col in observation_types if df[col].isnull().all()]
-        
-        df = df.drop(columns=ignore_obstypes)
-        
-        logger.debug(f'Skip quality labels for obstypes: {ignore_obstypes}.')
-        
-        df = df.sort_values(['name', 'datetime'])
-       
-        #make filename
-        if isinstance(filename, type(None)):
-            startstr = self.df.index.min().strftime('%Y%m%d') 
-            endstr = self.df.index.max().strftime('%Y%m%d') 
-            filename= 'dataset_' + startstr + '_' + endstr
-        else:
-            if filename.endswith('.csv'):
-                filename = filename[:-4] #to avoid two times .csv.csv
+        #select which columns to keep
+        if include_outliers:
+            if not add_final_labels:
+                _fin_cols = [col for col in mergedf.columns if col.endswith('_final_label')]
+                mergedf = mergedf.drop(columns=_fin_cols)
             
-        filepath = os.path.join(Settings.output_folder, filename + '.csv')
+        else: #exclude outliers
+            if add_final_labels:
+                cols_to_keep=[col for col in mergedf.columns if col in Settings.observation_types]
+                cols_to_keep.extend([col for col in mergedf.columns if col.endswith('_final_label')])
+                mergedf = mergedf[cols_to_keep]
         
-        #write to csv in output folder
-        logger.info(f'write dataset to file: {filepath}')
-        df.to_csv(path_or_buf=filepath,
-                       sep=';',
-                       na_rep='NaN',
-                       index=True)        
+        # Map obstypes columns 
+        if not use_tlk_obsnames:
+            # TODO
+            print('not implemented yet')
+            
+        # TODO Convert units if needed.
         
-    
+        #columns to write
+        write_dataset_to_csv(df=mergedf,
+                             metadf=self.metadf,
+                             filename=filename,
+                             )
+        
+       
 
     
     # =============================================================================
@@ -577,24 +457,84 @@ class Dataset:
         
         self.outliersdf = self.outliersdf.sort_index()
         
-
-
-        # if internal_consistency:
-        #     print('Applying the internal-concsistency-check on all stations.')
-        #     logger.info('Applying step-check on the full dataset')
-           
-        #     checked_obs, qc_flags = internal_consistency_check(input_series=self.df[obstype],
-        #                                                        humidity_series=self.df['humidity'],
-        #                                                        obstype=obstype,
-        #                                                        ignore_val=ignore_val)
-
-        #     #update the dataset
-        #     self.df[obstype] = checked_obs
-        #     label_column_name = qc_flags.name
-        #     self.df[label_column_name] = qc_flags
-        
     
-    def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True, coarsen_timeres=False):
+    def combine_all_to_obsspace(self):
+        """
+        Combine observations, outliers, gaps and missing timesteps to one dataframe in the resolution of the dataset.
+        Final quality labels are calculated for all checked obstypes.
+        
+        If an observation value exist for an outlier, it will be used in the corresponding obstype column.
+
+        Returns
+        -------
+        comb_df : pandas.DataFrame()
+            Multi index dataframe with observations and labels.
+
+        """
+        
+        from .df_helpers import remove_outliers_from_obs
+        outliersdf = self.outliersdf
+        
+        # if outliersdf is empty, create columns with 'not checked'
+        if outliersdf.empty:
+            outliercolumns = [col['label_columnname'] for col in Settings.qc_checks_info.values()]
+            for column in outliercolumns:
+                outliersdf[column] = 'not checked'
+        # get final label
+        outliersdf = add_final_label_to_outliersdf(outliersdf, self.metadf['dataset_resolution'])
+
+        # add gaps observations and fill with default values
+        gapsidx = self.gaps.get_gaps_indx_in_obs_space(self.df, self.outliersdf, self.metadf['dataset_resolution'])
+        gapsdf = gapsidx.to_frame()
+        
+        
+        # add missing observations if they occure in observation space
+        missingidx = self.missing_obs.get_missing_indx_in_obs_space(self.df, self.metadf['dataset_resolution'])
+        missingdf = missingidx.to_frame()
+
+        
+        #get observations
+        df = self.df
+        # remove outliers (represented by Nan's) from observations
+        df = remove_outliers_from_obs(df, outliersdf)
+        
+        
+        # add outliers columns to df and fill with 'ok' values as default
+        cols_to_add = {col: 'ok' for col in outliersdf.columns if not col in df.columns}
+        df = df.assign(**cols_to_add)
+
+       
+        #initiate default values
+        for col in df.columns:
+            if  col in Settings.observation_types:
+                default_value_gap = np.nan #nan for observations
+                default_value_missing = np.nan
+
+            elif col.endswith('_final_label'):
+                default_value_gap =  Settings.gaps_info['gap']['outlier_flag'] #'gap' for final label
+                default_value_missing =  Settings.gaps_info['missing_timestamp']['outlier_flag'] #'is_missing_timestamp' for final label
+
+            else: 
+                default_value_gap = 'not checked'
+                default_value_missing = 'not checked'
+
+            
+            gapsdf[col] = default_value_gap
+            missingdf[col] = default_value_missing
+
+        # sort columns
+        gapsdf = gapsdf[list(df.columns)]
+        missingdf = missingdf[list(df.columns)]
+        df = df[list(df.columns)]
+        
+        #Merge all together
+        comb_df = pd.concat([df, outliersdf, gapsdf, missingdf]).sort_index()
+        return comb_df
+        
+
+    
+    
+    def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):
         """
         Compute frequency statistics on the qc labels for an observationtype.
         The output is a dataframe containing the frequency statistics presented
@@ -619,76 +559,32 @@ class Dataset:
             A table containing the label frequencies per check presented as percentages0.
 
         """
-        outliersdf = self.outliersdf
-        #Add gaps to the outliers for comuting scores
-        outliersdf = pd.concat([outliersdf,
-                                gaps_to_outlier_format(gapsdf=self.gapsdf,
-                                                       dataset_res_series=self.metadf['dataset_resolution'])])
         
-        outliersdf[obstype+'_final_label'] = self.get_final_qc_labels()[obstype+'_final_label']
-
-       
-        if coarsen_timeres:
-            gaps = outliersdf[outliersdf["gap_timestamp_label"] == "missing timestamp (gap)"]
-            outliersdf.drop(gaps.index, inplace=True)
-            outliersdf = outliersdf.loc[outliersdf.index.intersection(self.df.index)]
-            outliersdf = pd.concat([outliersdf, gaps], sort=True)
-            
-            
-        outliersdf = outliersdf.fillna(value='ok')
-        if isinstance(stationnames, type(None)):
-            df = self.df
-            
-            title=f'Frequency for {obstype}-qc-checks on all stations.'
-        else: 
-            title=f'Frequency for {obstype}-qc-checks on {stationnames}.'
-            if isinstance(stationnames, str):
-                stationnames = [stationnames]
-            
-            #qc_labels_df = qc_labels_df.loc[qc_labels_df.index.get_level_values(level='name').isin(stationnames)]
-            df = self.df.loc[self.df.index.get_level_values(level='name').isin(stationnames)]
-            outliersdf = outliersdf.loc[outliersdf.index.get_level_values(level='name').isin(stationnames)]
-            
         
-        #Do not include the 'final_qc_label' in the statis
-        if obstype + '_final_label' in outliersdf.columns:
-            logger.debug(f'The {obstype}_final_label, is ingored for the QC-stats. ')
-            outliersdf_without_final_label = outliersdf.loc[:, outliersdf.columns != obstype+'_final_label']
-            
-       
+        #cobmine all and get final label
+        comb_df = self.combine_all_to_obsspace()
         
-        #stats on datset level
-        qc_labels = {key: val['outlier_flag'] for key, val in Settings.qc_checks_info.items()}
-
-
-        if coarsen_timeres:
-            for idx, row in self.gapsdf.iterrows():
-                if (idx in df.index.get_level_values('name')):
-                    df_idx = df.loc[df.index.get_level_values('name') == idx]
-                    df_not_idx = df[~df.index.isin(df_idx.index)]
-                    df_idx.reset_index(level='name', inplace=True)
-                    indices_to_remove = df_idx.loc[(df_idx.index <= row['end_gap']) & (df_idx.index >= row['start_gap'])].index
-                    df_idx.drop(indices_to_remove, inplace=True)
-                    df_idx.set_index(['name', df_idx.index], inplace=True)
-                    df = pd.concat([df_not_idx, df_idx], sort=True)
-                    
+        #drop observation columns that are not obstype
+        ignore_obstypes = Settings.observation_types.copy()
+        ignore_obstypes.remove(obstype)
+        comb_df = comb_df.drop(columns=ignore_obstypes)
         
-        dataset_qc_stats = get_qc_effectiveness_stats(outliersdf = outliersdf_without_final_label,
-                                                      df =df,
-                                                      obstype=obstype,
-                                                      observation_types = observation_types,
-                                                      qc_labels=qc_labels)
-            
-            
-        valid_records_df = df.drop(outliersdf.index.intersection(df.index).dropna())           
+        # compute freq statistics
+        final_freq, outl_freq, specific_freq = get_freq_statistics(comb_df, obstype)
+        
+        if any([isinstance(stat, type(None)) for stat in [final_freq, outl_freq, specific_freq]]):
+            return None
         
         if make_plot:
-            qc_stats_pie(valid_records_df, outliersdf, qc_stats=dataset_qc_stats,
-                         figsize=Settings.plot_settings['qc_stats']['figsize'],
-                         title=title)
-               
+            # make pie plots
+            qc_stats_pie(final_stats=final_freq,
+                         outlier_stats=outl_freq,
+                         specific_stats=specific_freq)
         
-        return dataset_qc_stats
+        
+        return (final_freq, outl_freq, specific_freq)
+                
+      
     
     
     def update_outliersdf(self, add_to_outliersdf):
@@ -711,7 +607,7 @@ class Dataset:
         #add final quality labels
     
         outldf = add_final_label_to_outliersdf(outliersdf=self.outliersdf,
-                                               gapsdf=self.gapsdf,
+                                               # gapsdf=self.gapsdf,
                                                data_res_series=self.metadf['dataset_resolution'])
         
         return outldf
@@ -724,7 +620,7 @@ class Dataset:
     def coarsen_time_resolution(self, freq='1H', method='nearest', limit=1):
         logger.info(f'Coarsening the timeresolution to {freq} using the {method}-method (with limit={limit}).')
         #TODO: implement buffer method
-        
+        #TODO: implement startdt point
         #Coarsen timeresolution
         df = self.df.reset_index()
         if method == 'nearest':
@@ -864,11 +760,6 @@ class Dataset:
         
         #Make data template
         self.data_template =  pd.DataFrame().from_dict(template_to_package_space(Settings.vlinder_db_obs_template))
-        
-        # if coarsen_timeres:
-        #     df = coarsen_time_resolution(df=df,
-        #                                   freq=Settings.target_time_res,
-        #                                   method=Settings.resample_method)
             
         #convert dataframe to multiindex (datetime - name)
         df = df.set_index(['name', df.index])
@@ -905,15 +796,16 @@ class Dataset:
         None.
 
         """
+        from .df_helpers import metadf_to_gdf
        
         logger.info(f'Updating dataset by dataframe with shape: {dataframe.shape}.')
         
         #Create dataframe with fixed number and order of observational columns
-        df = dataframe.reindex(columns = observation_types)
+        df = dataframe.reindex(columns = Settings.observation_types)
         self.df = df
         
         #create metadataframe with fixed number and order of columns
-        metadf = dataframe.reindex(columns = location_info)
+        metadf = dataframe.reindex(columns = Settings.location_info)
         metadf.index = metadf.index.droplevel('datetime') #drop datetimeindex
         metadf = metadf[~metadf.index.duplicated(keep='first')]#drop dubplicates due to datetime
         
@@ -926,11 +818,20 @@ class Dataset:
         self.df = df.sort_index()
         self.original_df = df.sort_index()
         
-        self.df, missing_outl_df, self.gapsdf, station_freqs= missing_timestamp_and_gap_check(df=self.df)
+        # find missing obs and gaps, and remove them from the df
+        self.df, missing_obs, gaps_df = missing_timestamp_and_gap_check(df=self.df)
+        
+        #Create gaps and missing obs objects
+        self.gaps = Gap_collection(gaps_df)
+        self.missing_obs = Missingob_collection(missing_obs)
+        
+        
+        # Perform QC checks on original observation frequencies
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
-       
+
+        
         #update outliersdf
-        self.outliersdf = pd.concat([self.outliersdf, dup_outl_df, missing_outl_df])
+        self.outliersdf = pd.concat([self.outliersdf, dup_outl_df])
        
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
@@ -940,6 +841,11 @@ class Dataset:
         else:
             self.metadf['dataset_resolution'] = self.metadf['assumed_import_frequency']
             
+        #Remove gaps and missing obs from the observations AFTER timecoarsening
+        self.df = self.gaps.remove_gaps_from_obs(obsdf = self.df)
+        self.df = self.missing_obs.remove_missing_from_obs(obsdf = self.df)
+        
+
         
         
         
@@ -1002,46 +908,27 @@ class Dataset:
         #     self.metadf = metadf.merge(elev_df, how='left', left_index=True, right_index=True)
             
     
-            
+# =============================================================================
+# Class stations (inherit all methods from dataset)            
+# =============================================================================
+
+class Station(Dataset):
+    def __init__(self, name, df, outliersdf, gaps, missing_obs, metadf, data_template):
+        self.name = name
+        self.df = df
+        self.outliersdf = outliersdf
+        self.gaps = gaps
+        self.missing_obs = missing_obs
+        self.metadf = metadf
+        self.data_template = data_template
         
-          
+        self._istype='Station'
 
-def metadf_to_gdf(df, crs=4326):
-    """
-    Function to convert a dataframe with 'lat' en 'lon' columnst to a geopandas 
-    dataframe with a geometry column containing points.
-    
-    Special care for stations with missing coordinates.
 
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Dataframe with a 'lat' en 'lon' column.
-    crs : Integer, optional
-        The epsg number of the coordinates. The default is 4326.
-
-    Returns
-    -------
-    geodf : geopandas.GeaDataFrame
-        The geodataframe equivalent of the df.
-
-    """
-    
-    # only conver to points if coordinates are present
-    coordsdf = df[(~df['lat'].isnull()) & (~df['lon'].isnull())]
-    missing_coords_df =  df[(df['lat'].isnull()) | (df['lon'].isnull())]
-    
-    geodf = gpd.GeoDataFrame(coordsdf,
-                              geometry=gpd.points_from_xy(coordsdf.lon,
-                                                          coordsdf.lat)) 
-    geodf = geodf.set_crs(epsg = crs)
-    geodf = pd.concat([geodf, missing_coords_df])
-    
-    geodf = geodf.sort_index()
-    return geodf
 
 
           
+
 def loggin_nan_warnings(df):
     """
     Function to feed the logger if Nan values are found in the df
@@ -1059,172 +946,7 @@ def loggin_nan_warnings(df):
         
 
 
-def datetime_subsetting(df, starttime, endtime):
-    """
-    Wrapper function for subsetting a dataframe with datetimeindex with a start- and 
-    endtime. 
-
-    Parameters
-    ----------
-    df : pandas.DataFrame with datetimeindex
-        The dataframe to apply the subsetting to.
-    starttime : datetime.Datetime
-        Starttime for the subsetting period (included).
-    endtime : datetime.Datetime
-        Endtime for the subsetting period (included).
-
-    Returns
-    -------
-    pandas.DataFrame
-        Subset of the df.
-
-    """
-    
-    stand_format = '%Y-%m-%d %H:%M:%S'
-    
-    if isinstance(starttime, type(None)):
-        startstring = None #will select from the beginning of the df
-    else:
-        startstring = starttime.strftime(stand_format)
-    if isinstance(endtime, type(None)):
-        endstring = None
-    else: 
-        endstring = endtime.strftime(stand_format)
-
-    return df[startstring: endstring]
 
 
 
-
-def add_final_label_to_outliersdf(outliersdf, gapsdf, data_res_series):
-    """
-    V3
-        This function creates a final label based on de individual qc labels. The final label will be that of the individual qc-label
-        which rejected the obseration.
-       
-        This functions converts labels to numeric values, algebra to get final label, and inversly 
-        convert to labels. This is faster than looping over the rows.
-
-        Parameters
-        ----------
-        outliersdf : pandas.DataFrame 
-            The dataset outliers dataframe containing the observations and QC labels. 
-        gapsdf : pandas.Dataframe
-            The dataset gaps dataframe. The gaps will be exploded and added to the outliersdf.
-        data_res_series : Pandas.Series
-            The series that contain the dataset resolution (values) per station (index). This 
-            is stored in the dataset.metadf as column 'dataset_resolution'. These are used to explode the gaps.
-
-        Returns
-        -------
-        outliersdf : pd.DataFrame
-            The outliersdf with extra columns indicated by example 'temp_final_label' and 'humid_final_label'.
-
-        """ 
-       
-
-    #combine gaps with outliers
-    gaps_exploded = gaps_to_outlier_format(gapsdf, data_res_series)
-    outliersdf = pd.concat([outliersdf, gaps_exploded])
-    #fill Nan's by 'ok'
-    if Settings.qc_checks_info['gaps_finder']['label_columnname'] in outliersdf.columns:
-        outliersdf[Settings.qc_checks_info['gaps_finder']['label_columnname']].fillna(value='ok',
-                                                                                      inplace=True)
-    
-    # order columns
-    labels_columns = [column for column in outliersdf.columns if not column in observation_types]
-    checked_obstypes = [obstype for obstype in observation_types if any([qc_column.startswith(obstype+'_') for qc_column in labels_columns])]
-    columns_on_record_lvl = [info['label_columnname'] for checkname, info in Settings.qc_checks_info.items() if info['apply_on'] == 'record']
-   
-    
-    # Construct numeric mapper
-    labels_to_numeric_mapper = {info['outlier_flag']:info['numeric_flag'] for info in Settings.qc_checks_info.values()}
-    # add 'ok' and 'not checked' labels
-    labels_to_numeric_mapper['ok'] = 0
-    labels_to_numeric_mapper['not checked'] = np.nan
-    #invert numeric mapper
-    inv_label_to_num = {v: k for k, v in labels_to_numeric_mapper.items()}
-    
-    
-    #generete final label per obstype
-    for obstype in checked_obstypes:
-        # logger.debug(f'Generating final QC labels for {obstype}.')
-        #Get qc column namse specific for this obstype
-        specific_columns = [col for col in labels_columns if col.startswith(obstype+'_')]
-        #add qc labels that are applicable on all obstypes
-        specific_columns.extend(columns_on_record_lvl)
-        
-        #Drop columns that are not present
-        specific_columns = [colmn for colmn in specific_columns if colmn in outliersdf.columns]
-        
-        
-        
-        #get labels dataframe
-        qc_df = outliersdf[specific_columns]
-        num_qc_df = pd.DataFrame()
-        num_qc_df = qc_df.applymap(labels_to_numeric_mapper.get )
-       
-    
-        outliersdf[obstype+'_final_label'] = num_qc_df.sum(axis=1, skipna=True).map(inv_label_to_num)
-       
-   
-    return outliersdf
-# def final_qc_label_maker(df, label_to_numeric_mapper):
-#     """
-#     This function creates a final label based on de individual qc labels. If all labels
-#     are ok, the final label is ok. Else the final label will be that of the individual qc-label
-#     which rejected the obseration.
-    
-#     This functions converts labels to numeric values, algebra to get final label, and inversly 
-#     convert to labels. This is faster than looping over the rows.
-
-#     Parameters
-#     ----------
-#     qc_df : pandas.DataFrame 
-#         the specific qc_label_df with the datetimeindex, the first column the observations,
-#         and labels for each QC check per column.
-#     label_to_numeric_mapper : dict
-#         The dictionary that maps qc-labels to numeric values (for speedup).
-
-#     Returns
-#     -------
-#     final_labels : pd.Series
-#         A series with the final labels and the same index as the qc_df.
-
-#     """ 
-        
-#     #invert numeric mapper
-#     inv_label_to_num = {v: k for k, v in label_to_numeric_mapper.items()}
-    
-    
-#     #extract label columns
-#     qc_labels_columns = [col for col in df.columns if not col in observation_types]
-#     #Extra savety
-#     qc_labels_columns = [col for col in qc_labels_columns if col.endswith('_label')]
-    
-    
-#     # find the observation types on which QC is applied
-#     checked_obstypes = [obstype for obstype in observation_types if any([qc_column.startswith(obstype+'_') for qc_column in qc_labels_columns])]
-    
-    
-#     #generete final label per obstype
-#     for obstype in checked_obstypes:
-#         logger.debug(f'Generating final QC labels for {obstype}.')
-#         #Get qc column namse specific for this obstype
-#         specific_columns = [col for col in qc_labels_columns if col.startswith(obstype+'_')]
-#         #add qc labels that are applicable on all obstypes
-#         if 'missing_timestamp_label' in qc_labels_columns:
-#             specific_columns.append('missing_timestamp_label')
-        
-        
-#         #get labels dataframe
-#         qc_df = df[specific_columns]
-#         num_qc_df = pd.DataFrame()
-#         num_qc_df = qc_df.applymap(label_to_numeric_mapper.get )
-       
-    
-#         df[obstype+'_final_label'] = num_qc_df.sum(axis=1, skipna=True).map(inv_label_to_num)
-    
-#     #return only the final label series
-#     return df[[obstype + '_final_label' for obstype in checked_obstypes]]
 
