@@ -9,15 +9,13 @@ Welcome to vlinder-toolkit's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-<<<<<<< HEAD
+
    
    dataset
    station
    settings
    gaps
-=======
 
->>>>>>> master
 
 
 Indices and tables
@@ -26,7 +24,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-<<<<<<< HEAD
 
-=======
->>>>>>> master
