@@ -6,7 +6,6 @@ Created on Thu Mar  2 14:56:26 2023
 @author: thoverga
 """
 
-import pandas as pd
 from datetime import datetime
 from .settings import Settings
 
@@ -18,7 +17,7 @@ def print_dataset_info(df, outliersdf, gapsdf):
         # logger.error('The dataset is empty!')
     else: 
         print('\n','--------  General ---------', '\n')
-        print(f' .... ')
+        print(' .... ')
         
         
         
