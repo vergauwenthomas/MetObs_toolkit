@@ -10,13 +10,10 @@ main_folder = Path(__file__).resolve().parents[1]
 testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
 # metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
-import sys
-sys.path.append(str(main_folder))
+# import sys
+# sys.path.append(str(main_folder))
 import vlinder_toolkit
 
-
-
-#%%
 
 # =============================================================================
 # Settings
@@ -102,6 +99,19 @@ sept_2022_all_vlinders.apply_quality_control(obstype='temp', #which observations
                                              window_variation=True # apply internal consistency check?
                                              )
 
+
+# ----- INTERMEZZO ------
+# quality control methods can also be applied on station level. Be aware that the QC labels are an attribute of the station
+# and not of the dataset the station belongs to!
+
+station = sept_2022_all_vlinders.get_station('vlinder01')
+
+station.apply_quality_control()
+
+print(station.outliersdf.head())
+ 
+    
+    
 # =============================================================================
 # Quality control values
 # =============================================================================
@@ -138,7 +148,6 @@ print(outliers_sept_2022_all_vlinders['temp_final_label'].head())
 # (When writing a dataset to file, there is an attribute 'add_final_labels'. When 
 #  True, the final labels are computed and added to the file.)
 
-
 # =============================================================================
 # Quality control stats
 # =============================================================================
@@ -159,7 +168,6 @@ qc_statistics = sept_2022_all_vlinders.get_qc_stats(obstype='temp',
 
 print(qc_statistics)
 
-        
 
 
 # =============================================================================
