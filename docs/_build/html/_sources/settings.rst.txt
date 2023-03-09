@@ -3,23 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to vlinder-toolkit's documentation!
+Settings class
 ===========================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-   
-   dataset
-   station
-   settings
-   gaps
 
 
-Indices and tables
-==================
+test test settings test
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+.. automodule:: settings
+    :members:
+    :undoc-members:

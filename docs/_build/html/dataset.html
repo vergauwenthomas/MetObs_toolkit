@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Dataset class &#8212; vlinder-toolkit 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Station class" href="station.html" />
+    <link rel="prev" title="Welcome to vlinder-toolkit’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="dataset-class">
+<h1>Dataset class<a class="headerlink" href="#dataset-class" title="Permalink to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="dataset.Dataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dataset.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><a class="headerlink" href="#dataset.Dataset" title="Permalink to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.apply_quality_control">
+<span class="sig-name descname"><span class="pre">apply_quality_control</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gross_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repetitions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_variation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.apply_quality_control" title="Permalink to this definition"></a></dt>
+<dd><blockquote>
+<div><p>V3
+Apply quality control methods to the dataset. The default settings are used, and can be changed
+in the settings_files/qc_settings.py</p>
+<p>The checks are performed in a sequence: gross_vallue –&gt; persistance –&gt; …,
+Outliers by a previous check are ignored in the following checks!</p>
+<p>The dataset is updated inline.</p>
+<dl class="simple">
+<dt>obstype<span class="classifier">String, optional</span></dt><dd><p>Name of the observationtype you want to apply the checks on. The default is ‘temp’.</p>
+</dd>
+<dt>gross_value<span class="classifier">Bool, optional</span></dt><dd><p>If True the gross_value check is applied if False not. The default is True.</p>
+</dd>
+<dt>persistance<span class="classifier">Bool, optional</span></dt><dd><p>If True the persistance check is applied if False not. The default is True.. The default is True.</p>
+</dd>
+<dt>step<span class="classifier">Bool, optional</span></dt><dd><p>If True the step check is applied if False not. The default is True.</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl>
+<dt>internal_consistency<span class="classifier">Bool, optional            </span></dt><dd><p>If True the internal consistency check is applied if False not. The default is True.</p>
+</dd>
+<dt>qc_info: Bool, optional</dt><dd><blockquote>
+<div><p>If True info about the quality control is printed if False not. The default is True.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>ignore_val<span class="classifier">numeric, optional</span></dt><dd><p>Values to ignore in the quality checks. The default is np.nan.</p>
+</dd>
+</dl>
+<p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.coarsen_time_resolution">
+<span class="sig-name descname"><span class="pre">coarsen_time_resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1H'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.coarsen_time_resolution" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.combine_all_to_obsspace">
+<span class="sig-name descname"><span class="pre">combine_all_to_obsspace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.combine_all_to_obsspace" title="Permalink to this definition"></a></dt>
+<dd><p>Combine observations, outliers, gaps and missing timesteps to one dataframe in the resolution of the dataset.
+Final quality labels are calculated for all checked obstypes.</p>
+<p>If an observation value exist for an outlier, it will be used in the corresponding obstype column.</p>
+<dl class="simple">
+<dt>comb_df<span class="classifier">pandas.DataFrame()</span></dt><dd><p>Multi index dataframe with observations and labels.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.get_final_qc_labels">
+<span class="sig-name descname"><span class="pre">get_final_qc_labels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_final_qc_labels" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.get_physiography_data">
+<span class="sig-name descname"><span class="pre">get_physiography_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['lcz',</span> <span class="pre">'elevation']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_physiography_data" title="Permalink to this definition"></a></dt>
+<dd><p>Function to extract the LCZ’s for all locations in the metadf.
+A column ‘lcz’ is added tot the metadf.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.get_qc_stats">
+<span class="sig-name descname"><span class="pre">get_qc_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_qc_stats" title="Permalink to this definition"></a></dt>
+<dd><p>Compute frequency statistics on the qc labels for an observationtype.
+The output is a dataframe containing the frequency statistics presented
+as percentages.</p>
+<p>These frequencies can also be presented as a collection of piecharts per check.</p>
+<p>With stationnames you can subset the data to one ore multiple stations.</p>
+<dl class="simple">
+<dt>obstype<span class="classifier">Str, optional</span></dt><dd><p>Observation type to analyse the QC labels on. The default is ‘temp’.</p>
+</dd>
+<dt>stationnames<span class="classifier">List, Str, optional</span></dt><dd><p>Stationname(s) to subset the quality labels on. If None, all stations are used. The default is None.</p>
+</dd>
+<dt>make_plot<span class="classifier">Bool, optional</span></dt><dd><p>If True, a plot with piecharts is generated. The default is True.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>dataset_qc_stats<span class="classifier">pandas.DataFrame</span></dt><dd><p>A table containing the label frequencies per check presented as percentages0.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.get_station">
+<span class="sig-name descname"><span class="pre">get_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_station" title="Permalink to this definition"></a></dt>
+<dd><p>Extract a station object from the dataset.</p>
+<dl class="simple">
+<dt>stationname<span class="classifier">String</span></dt><dd><p>Name of the station, example ‘vlinder16’</p>
+</dd>
+</dl>
+<p>station_obj : vlinder_toolkit.station.Station</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.import_data_from_database">
+<span class="sig-name descname"><span class="pre">import_data_from_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_datetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.import_data_from_database" title="Permalink to this definition"></a></dt>
+<dd><p>Function to import data directly from the framboos database and updating the 
+network and station objects.</p>
+<dl class="simple">
+<dt>start_datetime<span class="classifier">datetime, optional</span></dt><dd><p>Start datetime of the observations. The default is None and using 
+yesterday’s midnight.</p>
+</dd>
+<dt>end_datetime<span class="classifier">datetime, optional</span></dt><dd><p>End datetime of the observations. The default is None and using todays
+midnight.</p>
+</dd>
+<dt>coarsen_timeres<span class="classifier">Bool, optional</span></dt><dd><p>If True, the observations will be interpolated to a coarser time resolution
+as is defined in the Settings. The default is False.</p>
+</dd>
+</dl>
+<p>None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.import_data_from_file">
+<span class="sig-name descname"><span class="pre">import_data_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vlinder'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.import_data_from_file" title="Permalink to this definition"></a></dt>
+<dd><p>Read observations from a csv file as defined in the Settings.input_file. 
+The input file columns should have a template that is stored in Settings.template_list.</p>
+<p>If the metadata is stored in a seperate file, and the Settings.input_metadata_file is correct,
+than this metadata is also imported (if a suitable template is in the Settings.template_list.)</p>
+<p>It is possible to apply a 
+resampling (downsampling) of the observations as defined in the settings.</p>
+<p>After the import there is always a call to Dataset.update_dataset_by_df, that 
+sets up the dataset with the observations and applies some sanity checks.</p>
+<dl class="simple">
+<dt>network<span class="classifier">String, optional</span></dt><dd><p>The name of the network for these observationsThe default is ‘vlinder’.</p>
+</dd>
+<dt>coarsen_timeres<span class="classifier">Bool, optional</span></dt><dd><p>If True, the observations will be interpolated to a coarser time resolution
+as is defined in the Settings. The default is False.</p>
+</dd>
+</dl>
+<p>None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.make_geo_plot">
+<span class="sig-name descname"><span class="pre">make_geo_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeinstance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.make_geo_plot" title="Permalink to this definition"></a></dt>
+<dd><p>This functions creates a geospatial plot for a field (observations or attributes) of all stations.</p>
+<p>If the field is timedepending, than the timeinstance is used to plot the field status at that datetime.
+If the field is categorical than the leged will have categorical values, else a colorbar is used.</p>
+<p>All styling attributes are extracted from the Settings.</p>
+<dl class="simple">
+<dt>variable<span class="classifier">String, optional</span></dt><dd><p>Fieldname to visualise. This can be an observation or station attribute. The default is ‘temp’.</p>
+</dd>
+<dt>title<span class="classifier">String, optional</span></dt><dd><p>Title of the figure, if None a default title is generated. The default is None.</p>
+</dd>
+<dt>timeinstance<span class="classifier">datetime, optional</span></dt><dd><p>Datetime moment of the geospatial plot. The default is None and the first datetime available
+is used.</p>
+</dd>
+<dt>legend<span class="classifier">Bool, optional</span></dt><dd><p>Add legend to the figure. The default is True.</p>
+</dd>
+<dt>vmin<span class="classifier">float, optional</span></dt><dd><p>The minimum value corresponding to the minimum color. The default is None and 
+the minimum of the variable is used.</p>
+</dd>
+<dt>vmax<span class="classifier">float, optional</span></dt><dd><p>The maximum value corresponding to the minimum color. The default is None and 
+the maximum of the variable is used.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>ax<span class="classifier">Geoaxes</span></dt><dd><p>The geoaxes is returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.make_plot">
+<span class="sig-name descname"><span class="pre">make_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starttime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.make_plot" title="Permalink to this definition"></a></dt>
+<dd><p>This function creates a timeseries plot for the dataset. The variable observation type
+is plotted for all stationnames from a starttime to an endtime.</p>
+<dl class="simple">
+<dt>stationnames<span class="classifier">List</span></dt><dd><p>List of stationnames to plot. If None, all available stations ar plotted. The default is None.</p>
+</dd>
+<dt>variable<span class="classifier">String, optional</span></dt><dd><p>The name of the observation type to plot. The default is ‘temp’.</p>
+</dd>
+<dt>colorby: ‘name’ or ‘label’</dt><dd><p>Indicate how to color the timeseries. ‘name’ will use seperate colors for each stations, 
+‘label’ will color by the observation label from the quality control. The default is ‘name’.</p>
+</dd>
+<dt>starttime<span class="classifier">datetime, optional</span></dt><dd><p>The starttime of the timeseries to plot. The default is None and all observations 
+are used.</p>
+</dd>
+<dt>endtime<span class="classifier">datetime, optional</span></dt><dd><p>The endtime of the timeseries to plot. The default is None and all observations 
+are used..</p>
+</dd>
+<dt>title<span class="classifier">String, optional</span></dt><dd><p>Title of the figure, if None a default title is generated. The default is None.</p>
+</dd>
+<dt>legend<span class="classifier">Bool, optional</span></dt><dd><p>Add legend to the figure. The default is True.</p>
+</dd>
+<dt>show_outliers<span class="classifier">Bool, optional</span></dt><dd><p>If true, the outlier values will be plotted else they are removed from the plot. The default is True.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>ax<span class="classifier">matplotlib.axes</span></dt><dd><p>The plot axes is returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.show" title="Permalink to this definition"></a></dt>
+<dd><p>Print basic information about the dataset.</p>
+<p>None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.update_dataset_by_df">
+<span class="sig-name descname"><span class="pre">update_dataset_by_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.update_dataset_by_df" title="Permalink to this definition"></a></dt>
+<dd><p>Update the dataset object by a dataframe.</p>
+<p>When filling the observations, there is an automatic check for missing timestamps and duplicating timestamps. 
+If a missing timestamp is detected, the timestamp is created with Nan values for all observation types.</p>
+<p>If metadata is present and a LCZ-tiff file availible, than the LCZ’s of the stations are computed.</p>
+<p>dataframe : pandas.DataFrame
+A dataframe that has an datetimeindex and following columns: ‘name, temp, radiation_temp, humidity, …’</p>
+<p>None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.update_outliersdf">
+<span class="sig-name descname"><span class="pre">update_outliersdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_to_outliersdf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.update_outliersdf" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dataset.Dataset.write_to_csv">
+<span class="sig-name descname"><span class="pre">write_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_final_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tlk_obsnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.write_to_csv" title="Permalink to this definition"></a></dt>
+<dd><p>Write the dataset to a file where the observations, metadata and (if available)
+the quality labels per observation type are merged together.</p>
+<p>A final qualty controll label for each quality-controlled-observation type
+can be added in the outputfile.</p>
+<p>The file will be writen to the Settings.outputfolder.</p>
+<dl class="simple">
+<dt>filename<span class="classifier">string, optional</span></dt><dd><p>The name of the output csv file. If none, a standard-filename is generated
+based on the period of data. The default is None.</p>
+</dd>
+<dt>add_final_labels<span class="classifier">Bool, optional</span></dt><dd><p>If True, a final qualty control label per observation type
+is added as a column. The default is True.</p>
+</dd>
+</dl>
+<p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">vlinder-toolkit</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Dataset class</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="station.html">Station class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="settings.html">Settings class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gaps.html">Gaps class</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to vlinder-toolkit’s documentation!</a></li>
+      <li>Next: <a href="station.html" title="next chapter">Station class</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Thomas Vergauwen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/dataset.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

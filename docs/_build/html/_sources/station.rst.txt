@@ -3,23 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to vlinder-toolkit's documentation!
+Station class
 ===========================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-   
-   dataset
-   station
-   settings
-   gaps
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+.. py:currentmodule:: dataset
+.. autoclass:: Station 
+    :members:
+    :undoc-members:

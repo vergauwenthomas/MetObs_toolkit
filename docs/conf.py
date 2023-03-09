@@ -13,6 +13,33 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+from pathlib import Path
+import sys, os
+
+lib_folder = Path(__file__).resolve().parents[1]
+tlk_folder = os.path.join(str(lib_folder), 'vlinder_toolkit')
+
+sys.path.append(tlk_folder)
+from settings import Settings
+import data_import
+import landcover_functions
+import geometry_functions
+import qc_statistics
+sys.path.append(tlk_folder)
+import qc_checks
+sys.path.append(tlk_folder)
+import plotting_functions
+sys.path.append(tlk_folder)
+import gap
+sys.path.append(tlk_folder)
+import df_helpers
+sys.path.append(tlk_folder)
+import dataset
+from dataset import Dataset, Station
+# #Add modules for automatic documentation
+
+#%%
+
 
 
 # -- Project information -----------------------------------------------------
@@ -30,8 +57,8 @@ release = '0.0.1'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-]
+extensions = ['sphinx.ext.autodoc',
+              'sphinx_rtd_theme',]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

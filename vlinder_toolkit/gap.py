@@ -16,8 +16,24 @@ import logging
 from datetime import datetime, timedelta
 import math
 
+# -----------Start standalone -trick 
+#These lines makes it possible to run a python package module as a standalone script
+#in this way imports of modules do not need a . in them.
 
-from .settings import Settings
+import sys
+from pathlib import Path # if you haven't already done so
+file = Path(__file__).resolve()
+parent, root = file.parent, file.parents[1]
+sys.path.append(str(root))
+
+# Additionally remove the current file's directory from sys.path
+try:
+    sys.path.remove(str(parent))
+except ValueError: # Already removed
+    pass
+
+# -----------End standalone -trick
+from settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +200,24 @@ class Gap_collection:
     
     
     def get_gaps_indx_in_obs_space(self, obsdf, outliersdf, resolutionseries):
-            
+        """
+        test test document
+
+        Parameters
+        ----------
+        obsdf : TYPE
+            DESCRIPTION.
+        outliersdf : TYPE
+            DESCRIPTION.
+        resolutionseries : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        expanded_gabsidx_obsspace : TYPE
+            DESCRIPTION.
+
+        """
             
         self._add_leading_and_trailing_obs(obsdf, outliersdf)
         

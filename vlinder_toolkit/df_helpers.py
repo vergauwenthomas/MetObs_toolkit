@@ -7,11 +7,28 @@ Created on Thu Mar  2 16:00:59 2023
 
 @author: thoverga
 """
+# -----------Start standalone -trick 
+#These lines makes it possible to run a python package module as a standalone script
+#in this way imports of modules do not need a . in them.
+
+import sys
+from pathlib import Path # if you haven't already done so
+file = Path(__file__).resolve()
+parent, root = file.parent, file.parents[1]
+sys.path.append(str(root))
+
+# Additionally remove the current file's directory from sys.path
+try:
+    sys.path.remove(str(parent))
+except ValueError: # Already removed
+    pass
+
+# -----------End standalone -trick
 import pandas as pd
 import numpy as np
 import geopandas as gpd
 
-from .settings import Settings
+from settings import Settings
 
 
 def add_final_label_to_outliersdf(outliersdf, data_res_series):
