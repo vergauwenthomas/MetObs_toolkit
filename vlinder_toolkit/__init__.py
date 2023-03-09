@@ -5,7 +5,7 @@
 
 import logging
 from pathlib import Path
-import os
+import os, sys
 # Create the Logger
 loggers = logging.getLogger(__name__) #logger name is <vlinder-toolkit>
 loggers.setLevel(logging.DEBUG)
@@ -27,18 +27,14 @@ loggers.info('Logger initiated')
 
 
 
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_PATH)
 
 
-#Import classes
-from .dataset import Dataset
+
+
 from .settings import Settings
-
-
-#Import QC checks
-from . import qc_checks
-
-
-
+from .dataset import Dataset
 
 __version__ = "version debug"
 

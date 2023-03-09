@@ -20,22 +20,8 @@ lib_folder = Path(__file__).resolve().parents[1]
 tlk_folder = os.path.join(str(lib_folder), 'vlinder_toolkit')
 
 sys.path.append(tlk_folder)
-from settings import Settings
-import data_import
-import landcover_functions
-import geometry_functions
-import qc_statistics
-sys.path.append(tlk_folder)
-import qc_checks
-sys.path.append(tlk_folder)
-import plotting_functions
-sys.path.append(tlk_folder)
-import gap
-sys.path.append(tlk_folder)
-import df_helpers
-sys.path.append(tlk_folder)
-import dataset
-from dataset import Dataset, Station
+import vlinder_toolkit
+
 # #Add modules for automatic documentation
 
 #%%
