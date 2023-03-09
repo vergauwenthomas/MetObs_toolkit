@@ -10,100 +10,109 @@ Created on Fri Nov  25 13:44:54 2022
 
 
 import pandas as pd
-import numpy as np
 import logging
+
+
+from .settings import Settings
 
 logger = logging.getLogger(__name__)
 
-
-
-
-def get_qc_effectiveness_stats(outliersdf, df, obstype, observation_types, qc_labels):
-
-    #1. Get list of relevant columns
-    #extract label columns
-    qc_labels_columns = [col for col in outliersdf.columns if not col in observation_types]
-    #Extra savety
-    qc_labels_columns = [col for col in qc_labels_columns if col.endswith('_label')]
-
-    # for obstype in checked_obstypes:
-    specific_columns = [col for col in qc_labels_columns if col.startswith(obstype+'_')] #qc applied on all obstypes not present! added later
+def get_freq_statistics(comb_df, obstype):
+        
+    outlier_labels = [qc['outlier_flag'] for qc in Settings.qc_checks_info.values()]
+    
+    if not obstype+'_final_label' in comb_df.columns:
+        print(f'Final observation label for {obstype} is not computed!')
+        return (None, None, None)
+    
+    final_counts = comb_df[obstype+'_final_label'].value_counts()
+    
+    #add missing labels
+    # QC labels
+    non_triggered_labels_dict = {}
+    #fill with zeros for non-triggered checks
+    for outl_label in outlier_labels:
+        if not outl_label in final_counts.index:
+            non_triggered_labels_dict[outl_label] = 0
+    
+    #gaps
+    if not Settings.gaps_info['gap']['outlier_flag'] in final_counts.index:
+        non_triggered_labels_dict[Settings.gaps_info['gap']['outlier_flag']] = 0
+        
+    #missing timestamps
+    if not Settings.gaps_info['missing_timestamp']['outlier_flag'] in final_counts.index:
+        non_triggered_labels_dict[Settings.gaps_info['missing_timestamp']['outlier_flag']] = 0
+    
+    
+    non_triggered_labels = pd.Series(non_triggered_labels_dict)
+    final_counts = pd.concat([final_counts, non_triggered_labels])
+    tot_n_obs= final_counts.sum()
+    
+    # to percentages
+    final_counts = (final_counts/(final_counts.sum()))*100.0
     
     
     
-    # merge outliers and good observations
-    df = df.merge(outliersdf[qc_labels_columns], how='outer', left_index=True, right_index=True)
-    df[qc_labels_columns] = df[qc_labels_columns].fillna(value='ok')
+    # ------- aggregate outliers ----------
     
-    #2. Create mapping dict for each check to its possible labels 
-    
-    #make label and column mappers
-    obs_labels_mappers = {}
-    for col in specific_columns:
-        checkname = col.replace(obstype+'_', '').replace('_label', '')
-        obs_labels_mappers[col] = {'ok': 'ok',
-                                   'not checked': 'not checked',
-                                   'outlier': qc_labels[checkname],
-                                   'checkname': checkname}
 
-    #add qc labels that are applicable on all obstypes
-    if 'missing_timestamp_label' in qc_labels_columns:
-        obs_labels_mappers['missing_timestamp_label'] = {
-                        'ok': 'ok',
-                        'not checked': 'not checked',
-                        'outlier': qc_labels['missing_timestamp'],
-                        'checkname': 'missing_timestamp'}
-    if 'gap_timestamp_label' in qc_labels_columns:
-        obs_labels_mappers['gap_timestamp_label'] = {
-                        'ok': 'ok',
-                        'not checked': 'not checked',
-                        'outlier': qc_labels['gaps_finder'],
-                        'checkname': 'gap_timestamp'}
+    
+    # 1 agg to ok - outlier - gap - missing
+
+    agg_dict = {
+        'ok': final_counts["ok"].squeeze(),
+        'QC outliers': final_counts.loc[final_counts.index.isin(outlier_labels)].sum(),
+        'missing (gaps)': final_counts[Settings.gaps_info['gap']['outlier_flag']].squeeze(),
+        'missing (individual)': final_counts[Settings.gaps_info['missing_timestamp']['outlier_flag']].squeeze()
+        }
+    
+
+    
+    #2 indevidual outliers
+    outl_dict =  final_counts.loc[final_counts.index.isin(outlier_labels)].to_dict()
+    
+    
+    # 3 Effectivenes per check
+    
+    qc_label_columns = [col for col in comb_df.columns if not col in [obstype, obstype+'_final_label' ] ]
+    
+    mapper = {qc_type['outlier_flag']: 'outlier' for qc_type in Settings.qc_checks_info.values()}
+    specific_counts = comb_df.replace(mapper).reset_index()[qc_label_columns] \
+                            .transpose().apply(pd.Series.value_counts, axis=1).fillna(0) #\
+                            # .to_dict(orient='index')
+    
+    # convert to percentages and dict
+    specific_counts = ((specific_counts/tot_n_obs) * 100).to_dict(orient='index')
+    
+
+    #add gaps and missing obs
+    tot_n_obs= final_counts.sum()
+    
+    # specific_counts[Settings.gaps_info['gap']['label_columnname']] = {}
+    gap_specific_counts = {
+        'not checked': 0, #all obs are always checked
+        'ok': 100.0 - final_counts[Settings.gaps_info['gap']['outlier_flag']],
+        'outlier': final_counts[Settings.gaps_info['gap']['outlier_flag']]
+        } 
+    specific_counts[Settings.gaps_info['gap']['label_columnname']] = gap_specific_counts 
+    
+    
+    #misssing timestamps
+    missing_specific_counts = {
+        'not checked': 0, #all obs are always checked
+        'ok': 100.0 - final_counts[Settings.gaps_info['missing_timestamp']['outlier_flag']],
+        'outlier': final_counts[Settings.gaps_info['missing_timestamp']['outlier_flag']]
+        } 
+    specific_counts[Settings.gaps_info['missing_timestamp']['label_columnname']] = missing_specific_counts 
         
     
-    if 'duplicated_timestamp_label' in qc_labels_columns:
-        obs_labels_mappers['duplicated_timestamp_label'] = {
-                        'ok': 'ok',
-                        'not checked': 'not checked',
-                        'outlier': qc_labels['duplicated_timestamp'],
-                        'checkname': 'duplicated_timestamp'}
-
-        
-        
-    #3. Subset the dataframe and aggregate. Convert output to pandas.df
-    df_qc = df[obs_labels_mappers.keys()]
-  
-    #TODO: maybe sort the keys first??
- 
-    #make counts for full dataset
-    counts = df_qc.apply(lambda x: x.value_counts()).fillna(0)
-    qc_countings_dict = {}
-    for column, check_info  in obs_labels_mappers.items():
-        try:
-            ok_count = counts.loc[check_info['ok'], column]
-        except KeyError:
-            ok_count = 0    
-        try:
-            not_checked_count = counts.loc[check_info['not checked'], column]
-        except KeyError:
-            not_checked_count = 0    
-        try:
-            outlier_count = counts.loc[check_info['outlier'], column]
-        except KeyError:
-            outlier_count = 0    
-        
-        qc_countings_dict[check_info['checkname']] = {
-            'ok': ok_count,
-            'not checked': not_checked_count,
-            'outlier': outlier_count
-            }
+    return (agg_dict, outl_dict, specific_counts)
     
-    
-    #Convert to df and make pieplot
-    qc_counts_df = pd.DataFrame().from_dict(qc_countings_dict)
 
-    # 4. Convert to persentages
-    qc_percentage_df = qc_counts_df.div(qc_counts_df.sum(axis=0)) * 100.
-    return qc_percentage_df
+
+
+
+
+
 
 
