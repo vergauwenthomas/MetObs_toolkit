@@ -12,6 +12,29 @@ plot_settings = {}
 # General plot settings
 # =============================================================================
 
+# =============================================================================
+# Default obs and metadata settings
+# =============================================================================
+
+#Static fields are fields (attributes and observations) that do not change in time
+static_fields = ['network', 'name', 
+                'lat', 'lon', #TODO make these dynamic, now used as static 
+                'call_name', 'location',
+                'lcz']
+
+#Categorical fields are fields with values that are assumed to be categorical.
+#Note: (there are static and dynamic fields that are categorical)
+categorical_fields = ['wind_direction', 'lcz']
+
+
+observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
+                     'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction',
+                     'pressure', 'pressure_at_sea_level']
+
+location_info = ['network', 'lat', 'lon', 'lcz', 'call_name', 'location' ]
+
+
+
 
 # =============================================================================
 # Timeseries plots
@@ -20,6 +43,10 @@ plot_settings['time_series'] = {
     
     #shape
     'figsize' : (10,5),
+    'linewidth': 2, #
+    'linezorder': 1, #for ok obs
+    'scattersize': 4,
+    'scatterzorder': 2
     
     }
 # =============================================================================
@@ -51,6 +78,28 @@ plot_settings['qc_stats'] = {
     #shape
     'figsize': (10,10),
     
+
+    }
+
+plot_settings['color_mapper']={
+    #QC specific labels
+    'duplicated_timestamp': '#a32a1f',
+    'gross_value': '#f1ff2b',
+    'persistance':'#f0051c',
+    'repetitions':'#056ff0',
+    'step':'#05d4f0',
+    'window_variation':'#05f0c9',
+    
+    #missing and gap
+    'gap': '#f00592',
+    'missing_timestamp':'#e86bb6',
+    
+    #common
+    'ok': '#07f72b',
+    'not checked': '#f7cf07',
+    
+    #Aggregated
+    'outlier': '#f20000'
     
     }
 
