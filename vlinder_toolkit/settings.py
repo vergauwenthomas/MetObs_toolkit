@@ -166,7 +166,7 @@ class Settings:
        
        #import csv templates
        Settings.template_list = csv_templates_list
-       # Settings.vlinder_csv_template = vlinder_brian_csv_template
+       
       
        #import db templates
        Settings.vlinder_db_meta_template = vlinder_metadata_db_template
