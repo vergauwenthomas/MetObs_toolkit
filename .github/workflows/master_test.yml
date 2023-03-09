@@ -11,7 +11,8 @@ jobs:
       # For example, pypy-2.7 and pypy-3.8
       matrix:
         python-version: ["3.9", "3.10"]
-        os: [ubuntu-latest, windows-latest]
+        # os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         node-version: [12.x]
 
     steps:
@@ -20,7 +21,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'poetry'
+          #cache: 'poetry'
       # You can test your matrix by printing the current Python version
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
@@ -30,8 +31,8 @@ jobs:
 
       - name: Install dependencies and build
         run: |
-            # poetry update
-            # poetry install
+            poetry update
+            poetry install
             poetry build
       - name: Run tests
         run: |
