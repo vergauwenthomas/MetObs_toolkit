@@ -5,6 +5,9 @@ Created on Fri Oct 21 11:26:52 2022
 
 @author: thoverga
 """
+
+
+
 import pandas as pd
 import math
 import numpy as np
@@ -15,8 +18,8 @@ from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 import matplotlib.gridspec as gridspec
 
-from .geometry_functions import find_largest_extent
-from .settings import Settings
+from vlinder_toolkit.geometry_functions import find_largest_extent
+from vlinder_toolkit.settings import Settings
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 

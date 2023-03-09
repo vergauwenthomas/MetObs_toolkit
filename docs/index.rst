@@ -10,6 +10,12 @@ Welcome to vlinder-toolkit's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   
+   dataset
+   station
+   settings
+   gaps
+
 
 
 Indices and tables
@@ -18,3 +24,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+

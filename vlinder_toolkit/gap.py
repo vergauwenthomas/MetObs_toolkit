@@ -16,8 +16,7 @@ import logging
 from datetime import datetime, timedelta
 import math
 
-
-from .settings import Settings
+from vlinder_toolkit.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +183,24 @@ class Gap_collection:
     
     
     def get_gaps_indx_in_obs_space(self, obsdf, outliersdf, resolutionseries):
-            
+        """
+        test test document
+
+        Parameters
+        ----------
+        obsdf : TYPE
+            DESCRIPTION.
+        outliersdf : TYPE
+            DESCRIPTION.
+        resolutionseries : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        expanded_gabsidx_obsspace : TYPE
+            DESCRIPTION.
+
+        """
             
         self._add_leading_and_trailing_obs(obsdf, outliersdf)
         

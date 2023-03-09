@@ -4,33 +4,47 @@
 The class object for a Vlinder/mocca station
 @author: thoverga
 """
-# from collections.abc import Iterable
+
 
 import pandas as pd
-import geopandas as gpd
 import numpy as np
 import os
 from datetime import datetime
 import logging
 
-from .settings import Settings
-from .data_import import import_data_from_csv, import_data_from_database, template_to_package_space, import_metadata_from_csv
-# from .data_import import coarsen_time_resolution
-from .landcover_functions import connect_to_gee, extract_pointvalues
-from .geometry_functions import find_largest_extent
-from .plotting_functions import geospatial_plot, timeseries_plot, qc_stats_pie
 
-from .qc_checks import gross_value_check, persistance_check, repetitions_check, duplicate_timestamp_check
-from .qc_checks import step_check
-from .qc_checks import init_outlier_multiindexdf, window_variation_check
+from vlinder_toolkit.settings import Settings
+from vlinder_toolkit.data_import import (import_data_from_csv,
+                                         import_data_from_database,
+                                         template_to_package_space,
+                                         import_metadata_from_csv)
 
-from .statistics import get_freq_statistics
 
-# from .station import Station
-from .gap import Gap_collection, Missingob_collection
-from .gap import missing_timestamp_and_gap_check, get_freqency_series
 
-from .df_helpers import add_final_label_to_outliersdf
+from vlinder_toolkit.landcover_functions import (connect_to_gee,
+                                                 extract_pointvalues)
+
+from vlinder_toolkit.plotting_functions import (geospatial_plot,
+                                timeseries_plot,
+                                qc_stats_pie)
+
+from vlinder_toolkit.qc_checks import (gross_value_check,
+                                       persistance_check,
+                                       repetitions_check,
+                                       duplicate_timestamp_check,
+                                       step_check,
+                                       init_outlier_multiindexdf,
+                                       window_variation_check)
+
+from vlinder_toolkit.qc_statistics import get_freq_statistics
+
+
+from vlinder_toolkit.gap import (Gap_collection,
+                                 Missingob_collection)
+from vlinder_toolkit.gap import (missing_timestamp_and_gap_check,
+                                 get_freqency_series)
+
+from vlinder_toolkit.df_helpers import add_final_label_to_outliersdf
 
 
 logger = logging.getLogger(__name__)

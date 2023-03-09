@@ -9,11 +9,13 @@ Created on Thu Oct  6 13:44:54 2022
 import sys
 import pandas as pd
 import numpy as np
-
-
 import logging
 
-from .settings_files.qc_settings import check_settings, checks_info
+
+from vlinder_toolkit.settings_files.qc_settings import (check_settings,
+                                                        checks_info)
+
+
 
 
 

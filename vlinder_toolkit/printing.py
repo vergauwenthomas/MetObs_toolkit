@@ -6,8 +6,9 @@ Created on Thu Mar  2 14:56:26 2023
 @author: thoverga
 """
 
+
 from datetime import datetime
-from .settings import Settings
+from vlinder_toolkit.settings import Settings
 
 
 def print_dataset_info(df, outliersdf, gapsdf):
