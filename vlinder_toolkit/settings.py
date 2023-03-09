@@ -76,6 +76,7 @@ class Settings:
         self.update_time_res_settings()
         self.update_app_settings()
         self.update_qc_settings()
+        self.update_gap_settings()
         self.update_templates()
         self.update_gee_settings()
        
@@ -119,11 +120,13 @@ class Settings:
     def update_app_settings(self):
         logger.debug('Updating app settings.')
         from .settings_files.default_formats_settings import plot_settings, print_settings, vars_display
+        from .settings_files.default_formats_settings import static_fields, categorical_fields, observation_types, location_info
+        
+        
         #1. Print settings
         Settings.print_fmt_datetime = print_settings['fmt_datetime']
         Settings.print_max_n = int(print_settings["max_print_per_line"])
         #2. Plot settings
-        
         Settings.plot_settings = plot_settings
         Settings.world_boundary_map = os.path.join(Settings._settings_files_path,
                                                    "world_boundaries",
@@ -131,6 +134,12 @@ class Settings:
     
         # 3. display name mappers
         Settings.display_name_mapper = vars_display
+        
+        #4 Fields settings
+        Settings.static_fields = static_fields #fields without timeevolution
+        Settings.categorical_fields = categorical_fields #wind and lcz
+        Settings.observation_types = observation_types #order of all possible observations
+        Settings.location_info = location_info #all possible metadata
     
     @classmethod
     def update_qc_settings(self):
@@ -138,6 +147,14 @@ class Settings:
         from .settings_files.qc_settings import check_settings, checks_info
         Settings.qc_check_settings = check_settings
         Settings.qc_checks_info = checks_info
+    
+    @classmethod
+    def update_gap_settings(self):
+        logger.debug('Updating gap settings.')
+        from .settings_files.gaps_settings import gaps_settings, gaps_info
+        
+        Settings.gaps_settings = gaps_settings
+        Settings.gaps_info = gaps_info
         
     
     @classmethod
