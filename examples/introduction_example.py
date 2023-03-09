@@ -12,8 +12,8 @@ testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderda
 metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
 
-#import sys
-#sys.path.append(str(main_folder))
+# import sys
+# sys.path.append(str(main_folder))
 
 
 import vlinder_toolkit
@@ -142,7 +142,17 @@ temperature = favorite_station.df['temp']
 
 
 
+# =============================================================================
+# Writing to a file
+# =============================================================================
+
+# to write the dataset to a file, specify an outputfolder first. The data will be written there.
+settings.update_settings(output_folder=os.getcwd())
 
 
-
-
+# To write the output to a file the following function can be used:
+aug_2020_all_vlinders.write_to_csv(filename='testdata.csv',
+                                   include_outliers=True,
+                                   add_final_labels=True,
+                                   use_tlk_obsnames=True,
+                                   )
