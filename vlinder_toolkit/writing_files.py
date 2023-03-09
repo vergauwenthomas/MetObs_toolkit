@@ -7,17 +7,13 @@ Created on Thu Mar  2 15:30:55 2023
 """
 
 import os
-import pandas as pd
-from datetime import datetime
 from .settings import Settings
 
 
-
-
-
-def write_dataset_to_csv(df, outliersdf, metadf, 
-                         observation_types, location_info,
-                         filename, include_outliers):
+    
+    
+    
+def write_dataset_to_csv(df,  metadf, filename):
     """
         Write the dataset to a file where the observations, metadata and (if available)
         the quality labels per observation type are merged together. 
@@ -29,12 +25,14 @@ def write_dataset_to_csv(df, outliersdf, metadf,
 
         Parameters
         ----------
+        df: pandas.DataFrame
+            The merged dataframe containing observations, gaps, outliers and missing timestamps.
+        metadf: pandas.DataFrame
+            The Dataset.metadf attribute.
         filename : string, optional
             The name of the output csv file. If none, a standard-filename is generated
             based on the period of data. The default is None.
-        add_final_labels : Bool, optional
-            If True, a final qualty control label per observation type
-            is added as a column. The default is True.
+       
 
         Returns
         -------
@@ -43,48 +41,38 @@ def write_dataset_to_csv(df, outliersdf, metadf,
         """
     
     
-     
-   
-    #Get observations and metadata columns in the right order
-    # logger.debug('Merging data and metadata')
+    #make column ordering 'datetime', 'name', obs, QC, Qc final metadata
+    write_cols = ['datetime', 'name']
+    write_cols.extend([col for col in df.columns if col in Settings.observation_types])
+    write_cols.extend([col for col in df.columns if col.endswith('_label')])
+    write_cols.extend(Settings.location_info) #metadata
     
-    
-    #make column ordering
-    df_columns = observation_types.copy() #observations
-    df_columns.extend(location_info) #metadata
-    qc_columns = [col for col in outliersdf if col.endswith('_label')] #add qc labels
-    df_columns.extend(qc_columns)
-    df_columns.insert(0, 'datetime') # timestamp as first column
-    df_columns.insert(1, 'name') #station name as second column
-    
-    
-
-    
-    #unstack observations and merge with metadf
-    df[qc_columns] = 'ok'
-    df = pd.concat([df, outliersdf])
     df = df.reset_index()
     
-    metadf = metadf.reset_index()
-    df = df.merge(metadf, how='left', on='name')
+    #merge metadata
+    df = df.merge(metadf, how='left', left_on='name',
+                  right_index=True)
     
-    #sort and subset columns
-    df = df[df_columns]
+    #subset and order columns
+    df = df[write_cols]
+    
     
             
     #find observation type that are not present
-    ignore_obstypes = [col for col in observation_types if df[col].isnull().all()]
-    
+    ignore_obstypes = [col for col in Settings.observation_types if df[col].isnull().all()]
     df = df.drop(columns=ignore_obstypes)
     
-    # logger.debug(f'Skip quality labels for obstypes: {ignore_obstypes}.')
+    #find metadata that are not present
+    ignore_metadat = [col for col in Settings.location_info if df[col].isnull().all()]
+    df = df.drop(columns=ignore_metadat)
+    
     
     df = df.sort_values(['name', 'datetime'])
    
     #make filename
     if isinstance(filename, type(None)):
-        startstr = df.index.min().strftime('%Y%m%d') 
-        endstr = df.index.max().strftime('%Y%m%d') 
+        startstr = df['datetime'].min().strftime('%Y%m%d') 
+        endstr = df['datetime'].max().strftime('%Y%m%d') 
         filename= 'dataset_' + startstr + '_' + endstr
     else:
         if filename.endswith('.csv'):
@@ -93,8 +81,8 @@ def write_dataset_to_csv(df, outliersdf, metadf,
     filepath = os.path.join(Settings.output_folder, filename + '.csv')
     
     #write to csv in output folder
-    # logger.info(f'write dataset to file: {filepath}')
+    print(f'write dataset to file: {filepath}')
     df.to_csv(path_or_buf=filepath,
                    sep=';',
                    na_rep='NaN',
-                   index=True)    
+                   index=False)    
