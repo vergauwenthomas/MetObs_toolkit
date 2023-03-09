@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 lib_folder = Path(__file__).resolve().parents[2]
-sys.path.append(str(lib_folder))
+#sys.path.append(str(lib_folder))
 
 
 import vlinder_toolkit
@@ -39,7 +39,7 @@ dataset.apply_quality_control(obstype='temp',
                                             )
 
 
-dataset.get_final_qc_labels()
+outliersdf = dataset.get_final_qc_labels()
 
 
 

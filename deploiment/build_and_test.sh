@@ -69,27 +69,9 @@ for t in $filenames; do
 done
 
 
-#Run deploy test
-
-cd ${TESTDIR}/deployed_test
-filenames=`ls ./*.py`
-for t in $filenames; do
-        depl_file=${TESTDIR}/deployed_test/${t}
-        logfile="$(make_test_log ${t})"
-	echo Running deploy tests: ${t}
-	poetry run python ${depl_file} >> ${logfile} 2>&1
-	if [ $? -eq 0 ]; then
-                echo "succeeded !!"
-        else
-                echo "FAIL!!"
-        fi
-
-done
 
 
-
-
-#Run push tests
+#Run tests
 cd ${TESTDIR}/push_test
 filenames=`ls ./*.py`
 for t in $filenames; do

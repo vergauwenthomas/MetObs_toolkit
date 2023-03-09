@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep 23 12:01:35 2022
-
 @author: thoverga
 """
 import os
@@ -11,12 +10,15 @@ main_folder = Path(__file__).resolve().parents[1]
 testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
 # metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
+<<<<<<< HEAD
 
 from src import vlinder_toolkit
+=======
+# import sys
+# sys.path.append(str(main_folder))
+import vlinder_toolkit
+>>>>>>> a8f3eac485cc30ef46a3a0b07aa6aed1f941e946
 
-
-
-#%%
 
 # =============================================================================
 # Settings
@@ -60,7 +62,7 @@ sept_2022_all_vlinders = vlinder_toolkit.Dataset()
 
 #The dataset is initiated but still empty. Filling it with the data from a csv file is simply done by:
     
-sept_2022_all_vlinders.import_data_from_file(settings) #Rember that you added the input file in the settings object, this file will be used.
+sept_2022_all_vlinders.import_data_from_file(settings, coarsen_timeres=True) #Rember that you added the input file in the settings object, this file will be used.
 
 
 # =============================================================================
@@ -102,14 +104,25 @@ sept_2022_all_vlinders.apply_quality_control(obstype='temp', #which observations
                                              window_variation=True # apply internal consistency check?
                                              )
 
+
+# ----- INTERMEZZO ------
+# quality control methods can also be applied on station level. Be aware that the QC labels are an attribute of the station
+# and not of the dataset the station belongs to!
+
+station = sept_2022_all_vlinders.get_station('vlinder01')
+
+station.apply_quality_control()
+
+print(station.outliersdf.head())
+ 
+    
+    
 # =============================================================================
 # Quality control values
 # =============================================================================
 
 # If an observation is flagged as an outlier by a check, the observational value is replaced.
-# By default the outliers are replaced by Nan-values. You can see or change the default replacement values:
-
-print(settings.qc_outlier_values)
+# By default the outliers are replaced by Nan-values. 
 
 
 # =============================================================================
@@ -133,13 +146,12 @@ print(sept_2022_all_vlinders.df.columns)
 # To create One column with the final label (based on the labels for each check), you can call the 
 # add_final_qc_labels, which will add a final-qc-label column in the dataset.df:
 
-sept_2022_all_vlinders.add_final_qc_labels()
+outliers_sept_2022_all_vlinders = sept_2022_all_vlinders.get_final_qc_labels()
 
-print(sept_2022_all_vlinders.df['temp_final_label'].head())
+print(outliers_sept_2022_all_vlinders['temp_final_label'].head())
 
 # (When writing a dataset to file, there is an attribute 'add_final_labels'. When 
 #  True, the final labels are computed and added to the file.)
-
 
 # =============================================================================
 # Quality control stats
@@ -161,7 +173,6 @@ qc_statistics = sept_2022_all_vlinders.get_qc_stats(obstype='temp',
 
 print(qc_statistics)
 
-        
 
 
 # =============================================================================
@@ -172,8 +183,7 @@ print(qc_statistics)
 
 
 #To plot timeseries for one station you can use the make_plot function on the station object:
-favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder05')
-
+favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder10')
 
 #Possible obstypes to plot:
     # 'temp','radiation_temp','humidity','precip','precip_sum','wind_speed',
@@ -201,19 +211,3 @@ sept_2022_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinde
                                 legend=True
                                 )
 #If you do not specify a start and endtime, all available timestamps are used.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
