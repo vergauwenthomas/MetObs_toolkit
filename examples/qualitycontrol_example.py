@@ -10,13 +10,10 @@ main_folder = Path(__file__).resolve().parents[1]
 testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
 # metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
-import sys
-sys.path.append(str(main_folder))
+# import sys
+# sys.path.append(str(main_folder))
 import vlinder_toolkit
 
-
-
-#%%
 
 # =============================================================================
 # Settings
@@ -60,7 +57,7 @@ sept_2022_all_vlinders = vlinder_toolkit.Dataset()
 
 #The dataset is initiated but still empty. Filling it with the data from a csv file is simply done by:
     
-sept_2022_all_vlinders.import_data_from_file(settings) #Rember that you added the input file in the settings object, this file will be used.
+sept_2022_all_vlinders.import_data_from_file(settings, coarsen_timeres=True) #Rember that you added the input file in the settings object, this file will be used.
 
 
 # =============================================================================
@@ -102,6 +99,19 @@ sept_2022_all_vlinders.apply_quality_control(obstype='temp', #which observations
                                              window_variation=True # apply internal consistency check?
                                              )
 
+
+# ----- INTERMEZZO ------
+# quality control methods can also be applied on station level. Be aware that the QC labels are an attribute of the station
+# and not of the dataset the station belongs to!
+
+station = sept_2022_all_vlinders.get_station('vlinder01')
+
+station.apply_quality_control()
+
+print(station.outliersdf.head())
+ 
+    
+    
 # =============================================================================
 # Quality control values
 # =============================================================================
@@ -138,7 +148,6 @@ print(outliers_sept_2022_all_vlinders['temp_final_label'].head())
 # (When writing a dataset to file, there is an attribute 'add_final_labels'. When 
 #  True, the final labels are computed and added to the file.)
 
-
 # =============================================================================
 # Quality control stats
 # =============================================================================
@@ -159,7 +168,6 @@ qc_statistics = sept_2022_all_vlinders.get_qc_stats(obstype='temp',
 
 print(qc_statistics)
 
-        
 
 
 # =============================================================================
@@ -170,8 +178,7 @@ print(qc_statistics)
 
 
 #To plot timeseries for one station you can use the make_plot function on the station object:
-favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder05')
-
+favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder10')
 
 #Possible obstypes to plot:
     # 'temp','radiation_temp','humidity','precip','precip_sum','wind_speed',
