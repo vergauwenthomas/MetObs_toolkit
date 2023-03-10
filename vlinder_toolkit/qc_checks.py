@@ -112,12 +112,13 @@ def invalid_input_check(df, obstype):
     
     nan_df = df[df[obstype].isnull()]
     nan_indices = nan_df.index
-    df = df[~df.index.isin(nan_df.index)]
 
     outlierdf = make_outlier_df_for_check(station_dt_list = nan_indices,
                                           values_in_dict = nan_df.to_dict(orient='series'),
                                           flagcolumnname=obstype+'_'+checks_info[checkname]['label_columnname'],
                                           flag=checks_info[checkname]['outlier_flag'])
+    
+    df = df.drop(nan_indices)
     
     return df, outlierdf
   

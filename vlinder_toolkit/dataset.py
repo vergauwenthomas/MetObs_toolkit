@@ -32,7 +32,8 @@ from vlinder_toolkit.qc_checks import (gross_value_check,
                                        duplicate_timestamp_check,
                                        step_check,
                                        init_outlier_multiindexdf,
-                                       window_variation_check)
+                                       window_variation_check,
+                                       invalid_input_check)
 
 from vlinder_toolkit.qc_statistics import get_freq_statistics
 from vlinder_toolkit.writing_files import write_dataset_to_csv
@@ -880,9 +881,10 @@ class Dataset:
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df])
 
 
-        self.df, nan_outl_df = invalid_input_check(self.df, obstype)
-        self.update_outliersdf(nan_outl_df)
-        
+        for column in list(self.df.columns[~self.df.isnull().all()]):
+            self.df, nan_outl_df = invalid_input_check(self.df, obstype=column)
+            self.update_outliersdf(nan_outl_df)
+ 
 
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
