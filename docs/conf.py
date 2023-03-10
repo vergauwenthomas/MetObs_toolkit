@@ -4,15 +4,22 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+
+from pathlib import Path
+import sys, os
+
+lib_folder = Path(__file__).resolve().parents[1]
+tlk_folder = os.path.join(str(lib_folder), 'vlinder_toolkit')
+
+sys.path.append(lib_folder)
+import vlinder_toolkit
+
+# #Add modules for automatic documentation
+
+#%%
+
+
 
 from pathlib import Path
 import sys, os
