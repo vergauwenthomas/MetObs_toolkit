@@ -47,7 +47,11 @@ datetimes wrt dataset.df.</p>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap_collection.get_gaps_indx_in_obs_space">
 <span class="sig-name descname"><span class="pre">get_gaps_indx_in_obs_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutionseries</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection.get_gaps_indx_in_obs_space" title="Permalink to this definition"></a></dt>
-<dd><p>test test document</p>
+<dd><p>Explode the gaps, to the dataset resolution and format to a multiindex
+with name – datetime.</p>
+<p>In addition the last observation before the gap (leading), and first
+observation (after) the gap are computed and stored in the df attribute.
+(the outliers are used to look for leading and trailing observations.)</p>
 <dl class="simple">
 <dt>obsdf<span class="classifier">TYPE</span></dt><dd><p>DESCRIPTION.</p>
 </dd>
@@ -65,12 +69,35 @@ datetimes wrt dataset.df.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap_collection.get_station_gaps">
 <span class="sig-name descname"><span class="pre">get_station_gaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection.get_station_gaps" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Extract a Gap_collection specific to one station. If no gaps are found
+for the station, an empty Gap_collection is returned.</p>
+<dl class="simple">
+<dt>name<span class="classifier">String</span></dt><dd><p>Name of the station to extract a Gaps_collection from.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Gap_collection</dt><dd><p>A Gap collection specific of the specified station.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap_collection.remove_gaps_from_obs">
 <span class="sig-name descname"><span class="pre">remove_gaps_from_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection.remove_gaps_from_obs" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Remove station - datetime records that are in the gaps from the obsdf.</p>
+<dl class="simple">
+<dt>(Usefull when filling timestamps to a df, and if you whant to remove the</dt><dd><p>gaps.)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>obsdf<span class="classifier">pandas.DataFrame()</span></dt><dd><p>A MultiIndex dataframe with name – datetime as index.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>obsdf<span class="classifier">pandas.DataFrame()</span></dt><dd><p>The same dataframe with records inside gaps removed.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 

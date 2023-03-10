@@ -217,12 +217,14 @@ class Gap_collection:
     
     def get_gaps_indx_in_obs_space(self, obsdf, outliersdf, resolutionseries):
         """
+
         Explode the gaps, to the dataset resolution and format to a multiindex
         with name -- datetime. 
         
         In addition the last observation before the gap (leading), and first
         observation (after) the gap are computed and stored in the df attribute.
         (the outliers are used to look for leading and trailing observations.)
+
 
         Parameters
         ----------

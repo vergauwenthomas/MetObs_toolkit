@@ -63,7 +63,7 @@ Outliers by a previous check are ignored in the following checks!</p>
 </dl>
 </div></blockquote>
 <dl>
-<dt>internal_consistency<span class="classifier">Bool, optional            </span></dt><dd><p>If True the internal consistency check is applied if False not. The default is True.</p>
+<dt>internal_consistency<span class="classifier">Bool, optional</span></dt><dd><p>If True the internal consistency check is applied if False not. The default is True.</p>
 </dd>
 <dt>qc_info: Bool, optional</dt><dd><blockquote>
 <div><p>If True info about the quality control is printed if False not. The default is True.</p>
@@ -142,10 +142,10 @@ as percentages.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.import_data_from_database">
 <span class="sig-name descname"><span class="pre">import_data_from_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_datetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.import_data_from_database" title="Permalink to this definition"></a></dt>
-<dd><p>Function to import data directly from the framboos database and updating the 
+<dd><p>Function to import data directly from the framboos database and updating the
 network and station objects.</p>
 <dl class="simple">
-<dt>start_datetime<span class="classifier">datetime, optional</span></dt><dd><p>Start datetime of the observations. The default is None and using 
+<dt>start_datetime<span class="classifier">datetime, optional</span></dt><dd><p>Start datetime of the observations. The default is None and using
 yesterday’s midnight.</p>
 </dd>
 <dt>end_datetime<span class="classifier">datetime, optional</span></dt><dd><p>End datetime of the observations. The default is None and using todays
@@ -161,13 +161,13 @@ as is defined in the Settings. The default is False.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.import_data_from_file">
 <span class="sig-name descname"><span class="pre">import_data_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vlinder'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.import_data_from_file" title="Permalink to this definition"></a></dt>
-<dd><p>Read observations from a csv file as defined in the Settings.input_file. 
+<dd><p>Read observations from a csv file as defined in the Settings.input_file.
 The input file columns should have a template that is stored in Settings.template_list.</p>
 <p>If the metadata is stored in a seperate file, and the Settings.input_metadata_file is correct,
 than this metadata is also imported (if a suitable template is in the Settings.template_list.)</p>
-<p>It is possible to apply a 
+<p>It is possible to apply a
 resampling (downsampling) of the observations as defined in the settings.</p>
-<p>After the import there is always a call to Dataset.update_dataset_by_df, that 
+<p>After the import there is always a call to Dataset.update_dataset_by_df, that
 sets up the dataset with the observations and applies some sanity checks.</p>
 <dl class="simple">
 <dt>network<span class="classifier">String, optional</span></dt><dd><p>The name of the network for these observationsThe default is ‘vlinder’.</p>
@@ -196,10 +196,10 @@ is used.</p>
 </dd>
 <dt>legend<span class="classifier">Bool, optional</span></dt><dd><p>Add legend to the figure. The default is True.</p>
 </dd>
-<dt>vmin<span class="classifier">float, optional</span></dt><dd><p>The minimum value corresponding to the minimum color. The default is None and 
+<dt>vmin<span class="classifier">float, optional</span></dt><dd><p>The minimum value corresponding to the minimum color. The default is None and
 the minimum of the variable is used.</p>
 </dd>
-<dt>vmax<span class="classifier">float, optional</span></dt><dd><p>The maximum value corresponding to the minimum color. The default is None and 
+<dt>vmax<span class="classifier">float, optional</span></dt><dd><p>The maximum value corresponding to the minimum color. The default is None and
 the maximum of the variable is used.</p>
 </dd>
 </dl>
@@ -215,17 +215,20 @@ the maximum of the variable is used.</p>
 <dd><p>This function creates a timeseries plot for the dataset. The variable observation type
 is plotted for all stationnames from a starttime to an endtime.</p>
 <dl class="simple">
-<dt>stationnames<span class="classifier">List</span></dt><dd><p>List of stationnames to plot. If None, all available stations ar plotted. The default is None.</p>
+<dt>stationnames<span class="classifier">List</span></dt><dd><p>List of stationnames to plot. If None, all available stations ar 
+plotted. The default is None.</p>
 </dd>
 <dt>variable<span class="classifier">String, optional</span></dt><dd><p>The name of the observation type to plot. The default is ‘temp’.</p>
 </dd>
-<dt>colorby: ‘name’ or ‘label’</dt><dd><p>Indicate how to color the timeseries. ‘name’ will use seperate colors for each stations, 
-‘label’ will color by the observation label from the quality control. The default is ‘name’.</p>
+<dt>colorby: ‘name’ or ‘label’</dt><dd><p>Indicate how to color the timeseries. ‘name’ will use seperate
+colors for each stations,
+‘label’ will color by the observation label from the quality
+control. The default is ‘name’.</p>
 </dd>
-<dt>starttime<span class="classifier">datetime, optional</span></dt><dd><p>The starttime of the timeseries to plot. The default is None and all observations 
+<dt>starttime<span class="classifier">datetime, optional</span></dt><dd><p>The starttime of the timeseries to plot. The default is None and all observations
 are used.</p>
 </dd>
-<dt>endtime<span class="classifier">datetime, optional</span></dt><dd><p>The endtime of the timeseries to plot. The default is None and all observations 
+<dt>endtime<span class="classifier">datetime, optional</span></dt><dd><p>The endtime of the timeseries to plot. The default is None and all observations
 are used..</p>
 </dd>
 <dt>title<span class="classifier">String, optional</span></dt><dd><p>Title of the figure, if None a default title is generated. The default is None.</p>
@@ -252,7 +255,7 @@ are used..</p>
 <dt class="sig sig-object py" id="dataset.Dataset.update_dataset_by_df">
 <span class="sig-name descname"><span class="pre">update_dataset_by_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.update_dataset_by_df" title="Permalink to this definition"></a></dt>
 <dd><p>Update the dataset object by a dataframe.</p>
-<p>When filling the observations, there is an automatic check for missing timestamps and duplicating timestamps. 
+<p>When filling the observations, there is an automatic check for missing timestamps and duplicating timestamps.
 If a missing timestamp is detected, the timestamp is created with Nan values for all observation types.</p>
 <p>If metadata is present and a LCZ-tiff file availible, than the LCZ’s of the stations are computed.</p>
 <p>dataframe : pandas.DataFrame
