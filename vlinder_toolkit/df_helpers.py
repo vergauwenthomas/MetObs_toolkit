@@ -7,11 +7,12 @@ Created on Thu Mar  2 16:00:59 2023
 
 @author: thoverga
 """
+
 import pandas as pd
 import numpy as np
 import geopandas as gpd
 
-from .settings import Settings
+from vlinder_toolkit.settings import Settings
 
 
 def add_final_label_to_outliersdf(outliersdf, data_res_series):

@@ -2,6 +2,8 @@
 
 This repo contains all the software for the [vlinder_toolkit](https://test.pypi.org/project/vlinder-toolkit/).
 The vlinder_toolt is a package for scientists who make use of the VLINDER and MOCCA observations.
+## Documentation ##
+Documentation can be found [here](https://vlinder-toolkit.readthedocs.io/en/latest/).
 
 ## Installing the package
 Install the package by:
