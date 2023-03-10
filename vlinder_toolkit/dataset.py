@@ -71,6 +71,8 @@ class Dataset:
 
         self.missing_obs = None  # becomes a Missingob_collection after import
         self.gaps = None  # becomes a gap_collection after import
+        
+        self.gapfilldf = pd.DataFrame()
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
@@ -306,11 +308,17 @@ class Dataset:
     def fill_gaps(self, obstype='temp', method='linear'):
         #TODO logging
         if method=='linear':
-            self.interp_gaps = interp_gaps(obsdf = self.df,
-                                           gapsdf=self.gapsdf,
-                                           obstype=obstype, 
-                                           method='time',
-                                           max_consec_fill=1000)
+            self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
+                                        obsdf = self.df,
+                                        outliersdf = self.outliersdf,
+                                        dataset_res=self.metadf['dataset_resolution'],
+                                        obstype=obstype,
+                                        method='time',
+                                        max_consec_fill=100)
+            
+            self.gapfilldf['method'] = method
+            
+            
 
     def write_to_csv(self, filename=None, include_outliers=True,
                      add_final_labels=True, use_tlk_obsnames=True):

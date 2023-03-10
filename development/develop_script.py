@@ -52,12 +52,20 @@ dataset.apply_quality_control()
 
 
 
-# test = dataset.get_qc_stats()
+#%%
+
 
 
 
 dataset.fill_gaps()
 
-#%%
+
+
+print(dataset.gapfilldf)
+
+
+
+
+
 
 
