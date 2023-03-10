@@ -29,6 +29,6 @@ physiography/*
 
 # pychache
 *__pycache__*
-
+.spyproject
 
 *.pyc
