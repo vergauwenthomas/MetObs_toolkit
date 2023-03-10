@@ -153,9 +153,6 @@ print('Testing the gaps')
 man_gapsdf = pd.DataFrame().from_records(manual_missing_gaps)
 man_gapsdf = man_gapsdf.set_index('name')
 
-dataset_coarsened.get_qc_stats(coarsen_timeres=True, stationnames=('1'))
-dataset.get_qc_stats()
-
 tlk_gapsdf = dataset.gaps.df
 tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
 

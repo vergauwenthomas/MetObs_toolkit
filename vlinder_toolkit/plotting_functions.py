@@ -266,11 +266,12 @@ def _make_pie_from_freqs(freq_dict, colormapper, radius, ax,
                         title=None, anchor_legend=(-0.25, 0.75)):
     # To dataframe
     stats = pd.Series(freq_dict, name='freq').to_frame()
+
     # make color mapper
     stats['color'] = stats.index.map(colormapper)
-    
+ 
     # Make pie and legend 
-    patches, text = ax.pie(stats['freq'], colors=stats['color'])
+    patches, text = ax.pie(stats['freq'], colors=stats['color'], radius=radius)
     ax.legend(handles=patches, labels = [f'{l}, {s:0.1f}%' for l, s in zip(stats.index.to_list(),
                                                                    stats['freq'].to_list())],
               loc = anchor_legend)
@@ -317,7 +318,7 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
         
     fig = plt.figure(figsize=Settings.plot_settings['qc_stats']['figsize'])
     fig.tight_layout()
-    spec = fig.add_gridspec(3, 4, wspace=10)
+    spec = fig.add_gridspec(4, 4, wspace=10)
     
     ax_thl = fig.add_subplot(spec[0,:2]) #top half left
     ax_thr = fig.add_subplot(spec[0,2:]) #top half right
@@ -356,7 +357,7 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
     i=0
     for checkname, stats in specific_stats.items():
         ax = fig.add_subplot(spec[math.floor(i/4)+1,i%4])
-        _make_pie_from_freqs(stats, spec_col_mapper,8, ax, checkname)
+        _make_pie_from_freqs(stats, spec_col_mapper,10, ax, checkname, anchor_legend=(-3.5, 2.2))
         i += 1
         
         

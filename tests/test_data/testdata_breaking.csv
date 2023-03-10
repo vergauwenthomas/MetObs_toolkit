@@ -28,7 +28,7 @@ Fictional,2020-09-15,00:55:00,13,ok
 Fictional,2020-09-15,01:00:00,12.8,ok
 Fictional,2020-09-15,01:05:00,12.7,ok
 Fictional,2020-09-15,01:10:00,12.7,ok
-Fictional,2020-09-15,01:15:00,nan,ok
+Fictional,2020-09-15,01:15:00,nan,invalid input
 Fictional,2020-09-15,01:20:00,12.4,ok
 Fictional,2020-09-15,01:25:00,12.3,ok
 Fictional,2020-09-15,01:30:00,12.3,duplicated timestamp outlier
@@ -59,7 +59,7 @@ Fictional,2020-09-15,03:55:00,6.1,in step outlier group
 Fictional,2020-09-15,04:00:00,6.2,ok
 Fictional,2020-09-15,04:05:00,6.2,ok
 Fictional,2020-09-15,04:10:00,6.3,ok
-Fictional,2020-09-15,04:15:00,flqfevaeb,ok
+Fictional,2020-09-15,04:15:00,flqfevaeb,invalid input
 Fictional,2020-09-15,04:20:00,6.4,ok
 Fictional,2020-09-15,04:25:00,6.4,ok
 Fictional,2020-09-15,04:30:00,6.5,ok
@@ -71,7 +71,7 @@ Fictional,2020-09-15,04:55:00,8.6,in step outlier group
 Fictional,2020-09-15,05:00:00,6.8,in step outlier group
 Fictional,2020-09-15,05:05:00,6.9,duplicated timestamp outlier
 Fictional,2020-09-15,05:05:00,,duplicated timestamp outlier
-Fictional,2020-09-15,05:15:00,qsfvqb,ok
+Fictional,2020-09-15,05:15:00,qsfvqb,invalid input
 Fictional,2020-09-15,05:20:00,7,ok
 Fictional,2020-09-15,05:25:00,7.1,ok
 Fictional,2020-09-15,05:30:00,7.1,ok
@@ -82,7 +82,7 @@ Fictional,2020-09-15,05:40:00,7.4,duplicated timestamp outlier
 Fictional,2020-09-15,05:45:00,7.5,ok
 Fictional,2020-09-15,05:50:00,7.7,ok
 Fictional,2020-09-15,05:55:00,7.9,ok
-Fictional,2020-09-15,06:00:00,,ok
+Fictional,2020-09-15,06:00:00,,invalid input
 Fictional,2020-09-15,06:05:00,8,ok
 Fictional,2020-09-15,06:10:00,,duplicated timestamp outlier
 Fictional,2020-09-15,06:10:00,8.2,duplicated timestamp outlier
@@ -102,7 +102,7 @@ Fictional,2020-09-15,07:15:00,18.9,in window variation outlier group
 Fictional,2020-09-15,07:20:00,21.1,in step outlier group
 Fictional,2020-09-15,07:25:00,21.4,in window variation outlier group
 Fictional,2020-09-15,07:30:00,10.2,in step outlier group
-Fictional,2020-09-15,07:35:00,,ok
+Fictional,2020-09-15,07:35:00,,invalid input
 Fictional,2020-09-15,07:00:00,10.4,duplicated timestamp outlier
 Fictional,2020-09-15,07:45:00,10.5,in window variation outlier group
 Fictional,2020-09-15,07:50:00,10.6,in window variation outlier group
@@ -115,7 +115,7 @@ Fictional,2020-09-15,10:20:00,11,in step outlier group
 Fictional,2020-09-15,08:20:00,11,in window variation outlier group
 Fictional,2020-09-15,08:25:00,11.2,in window variation outlier group
 Fictional,2020-09-15,08:30:00,11.4,ok
-Fictional,2020-09-15,08:35:00,dfveka,ok
+Fictional,2020-09-15,08:35:00,dfveka,invalid input
 Fictional,2020-09-15,08:40:00,11.8,ok
 Fictional,2020-09-15,08:45:00,12,ok
 Fictional,2020-09-15,08:50:00,9,in step outlier group
@@ -191,7 +191,7 @@ Fictional,2020-09-15,20:30:00,24.2,ok
 Fictional,2020-09-15,20:45:00,24.3,ok
 Fictional,2020-09-15,21:00:00,24.4,duplicated timestamp outlier
 Fictional,2020-09-15,21:15:00,24.6,ok
-Fictional,2020-09-15,21:30:00,,ok
+Fictional,2020-09-15,21:30:00,,invalid input
 Fictional,2020-09-15,21:00:00,24.9,duplicated timestamp outlier
 Fictional,2020-09-15,21:45:00,25.1,ok
 Fictional,2020-09-15,22:00:00,25.2,ok
@@ -207,12 +207,12 @@ Fictional,2020-09-16,12:45:00,26.8,duplicated timestamp outlier
 Fictional,2020-09-16,12:00:00,26.8,duplicated timestamp outlier
 Fictional,2020-09-16,01:15:00,26.8,repetitions outlier
 Fictional,2020-09-16,01:30:00,26.8,repetitions outlier
-Fictional,2020-09-16,01:45:00,,ok
-Fictional,2020-09-16,02:00:00,26.8,persistance outlier
-Fictional,2020-09-16,02:15:00,26.8,persistance outlier
-Fictional,2020-09-16,02:30:00,26.8,persistance outlier
-Fictional,2020-09-16,02:45:00,26.8,persistance outlier
-Fictional,2020-09-16,03:00:00,26.8,persistance outlier
+Fictional,2020-09-16,01:45:00,,invalid input
+Fictional,2020-09-16,02:00:00,26.8,repetitions outlier
+Fictional,2020-09-16,02:15:00,26.8,repetitions outlier
+Fictional,2020-09-16,02:30:00,26.8,repetitions outlier
+Fictional,2020-09-16,02:45:00,26.8,repetitions outlier
+Fictional,2020-09-16,03:00:00,26.8,repetitions outlier
 Fictional,2020-09-16,03:15:00,28.1,ok
 Fictional,2020-09-16,03:30:00,28.3,ok
 Fictional,2020-09-16,03:45:00,28.5,duplicated timestamp outlier
@@ -233,7 +233,7 @@ Fictional,2020-09-16,07:00:00,28.5,ok
 Fictional,2020-09-16,07:15:00,28.5,ok
 Fictional,2020-09-16,07:30:00,28.4,ok
 Fictional,2020-09-16,07:45:00,28.3,ok
-Fictional,2020-09-16,08:00:00,,ok
+Fictional,2020-09-16,08:00:00,,invalid input
 Fictional,2020-09-16,08:15:00,28.2,ok
 Fictional,2020-09-16,08:30:00,28,ok
 Fictional,2020-09-16,08:45:00,27.8,ok
@@ -278,13 +278,13 @@ Fictional,2020-09-16,18:00:00,20.9,ok
 Fictional,2020-09-16,18:15:00,20.6,duplicated timestamp outlier
 Fictional,2020-09-16,18:30:00,20.4,ok
 Fictional,2020-09-16,18:45:00,20.2,ok
-Fictional,2020-09-16,19:00:00,nan,ok
+Fictional,2020-09-16,19:00:00,nan,invalid input
 Fictional,2020-09-16,19:15:00,19.8,ok
 Fictional,2020-09-16,19:30:00,19.6,ok
 Fictional,2020-09-16,19:45:00,19.4,ok
 Fictional,2020-09-16,20:00:00,19.3,ok
 Fictional,2020-09-16,20:15:00,,duplicated timestamp outlier
-Fictional,2020-09-16,20:30:00,,ok
+Fictional,2020-09-16,20:30:00,,invalid input
 Fictional,2020-09-16,20:45:00,18.7,ok
 Fictional,2020-09-16,21:00:00,18.5,ok
 Fictional,2020-09-16,21:15:00,18.3,duplicated timestamp outlier
@@ -293,12 +293,12 @@ Fictional,2020-09-16,21:30:00,18.2,ok
 Fictional,2020-09-16,21:45:00,18.1,ok
 Fictional,2020-09-16,22:00:00,17.8,ok
 Fictional,2020-09-16,22:15:00,17.6,ok
-Fictional,2020-09-16,22:30:00,dsjfhsdF,ok
+Fictional,2020-09-16,22:30:00,dsjfhsdF,invalid input
 Fictional,2020-09-16,22:45:00,17.3,ok
 1,2020-09-16,19:45:00,19.1,ok
 1,2020-09-16,20:00:00,19.1,ok
-1,2020-09-16,20:15:00,,ok
-1,2020-09-16,20:30:00,,ok
+1,2020-09-16,20:15:00,,invalid input
+1,2020-09-16,20:30:00,,invalid input
 1,2020-09-16,20:45:00,18.5,ok
 1,2020-09-16,21:00:00,18.4,duplicated timestamp outlier
 1,2020-09-16,21:00:00,18.3,duplicated timestamp outlier
@@ -306,5 +306,5 @@ Fictional,2020-09-16,22:45:00,17.3,ok
 1,2020-09-16,21:45:00,18.1,in step outlier group
 1,2020-09-16,22:00:00,17.5,ok
 1,2020-09-16,22:15:00,17.3,ok
-1,2020-09-16,22:30:00,dsjfhsdF,ok
+1,2020-09-16,22:30:00,dsjfhsdF,invalid input
 1,2020-09-16,22:45:00,17.3,ok
