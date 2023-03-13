@@ -308,16 +308,20 @@ class Dataset:
     def fill_gaps(self, obstype='temp', method='linear'):
         #TODO logging
         if method=='linear':
+            fill_settings = Settings.gaps_fill_settings['linear']
+            fill_info = Settings.gaps_fill_info['linear']
+            
+            #fill gaps
             self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
                                         obsdf = self.df,
                                         outliersdf = self.outliersdf,
                                         dataset_res=self.metadf['dataset_resolution'],
                                         obstype=obstype,
-                                        method='time',
-                                        max_consec_fill=100)
+                                        method=fill_settings['method'],
+                                        max_consec_fill=fill_settings['max_consec_fill'])
             
-            self.gapfilldf['method'] = method
-            
+            #add label column
+            self.gapfilldf[fill_info['label_columnname']] = fill_info['label']
             
 
     def write_to_csv(self, filename=None, include_outliers=True,

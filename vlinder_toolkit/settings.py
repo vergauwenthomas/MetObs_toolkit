@@ -151,10 +151,14 @@ class Settings:
     @classmethod
     def update_gap_settings(self):
         logger.debug('Updating gap settings.')
-        from .settings_files.gaps_settings import gaps_settings, gaps_info
+        from .settings_files.gaps_settings import (gaps_settings, gaps_info,
+                                                   gaps_fill_settings, 
+                                                   gaps_fill_info)
         
         Settings.gaps_settings = gaps_settings
         Settings.gaps_info = gaps_info
+        Settings.gaps_fill_settings = gaps_fill_settings
+        Settings.gaps_fill_info = gaps_fill_info
         
     
     @classmethod

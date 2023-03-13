@@ -239,11 +239,7 @@ class Gap:
             
         
         self.update_leading_trailing_obs(obsdf, outliersdf)
-        
-        
-        expanded_gabsidx_obsspace = pd.MultiIndex(levels=[['name'],['datetime']],
-                                 codes=[[],[]],
-                                 names=[u'name', u'datetime'])
+    
 
         
         gaprange = pd.date_range(start=self.leading_timestamp,
@@ -416,6 +412,8 @@ class Gap_collection:
     def apply_interpolate_gaps(self, obsdf, outliersdf, dataset_res, obstype='temp',
                               method='time', max_consec_fill=100):
     
+        
+        
         expanded_gabsidx_obsspace = pd.MultiIndex(levels=[['name'],['datetime']],
                                  codes=[[],[]],
                                  names=[u'name', u'datetime'])
@@ -430,6 +428,7 @@ class Gap_collection:
                                              obstype=obstype,
                                              method=method,
                                              max_consec_fill=max_consec_fill)
+            
             gapdf = gapfill_series.to_frame().reset_index()
             gapdf['name'] = gap.name
             gapdf.index = pd.MultiIndex.from_arrays(arrays=[gapdf['name'].values,

@@ -50,6 +50,7 @@ dataset.write_to_csv()
 
 dataset.apply_quality_control()
 
+dataset.fill_gaps()
 
 
 #%%
@@ -57,7 +58,6 @@ dataset.apply_quality_control()
 
 
 
-dataset.fill_gaps()
 
 
 

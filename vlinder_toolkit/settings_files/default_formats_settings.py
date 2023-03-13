@@ -94,6 +94,9 @@ plot_settings['color_mapper']={
     'gap': '#f00592',
     'missing_timestamp':'#e86bb6',
     
+    #Gap filling
+    'gapfill': '#d406c6',
+    
     #common
     'ok': '#07f72b',
     'not checked': '#f7cf07',
