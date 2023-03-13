@@ -146,8 +146,10 @@ class Dataset:
 
         """
         logger.info('Show basic info of dataset.')
-
-        print_dataset_info(self.df, self.outliersdf, self.gaps.df)
+        
+        gapsdf = self.gaps.to_df()
+        
+        print_dataset_info(self.df, self.outliersdf, gapsdf)
 
     def make_plot(self, stationnames=None, variable='temp', colorby='name',
                   starttime=None, endtime=None,

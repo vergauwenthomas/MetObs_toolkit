@@ -154,7 +154,7 @@ print('Testing the gaps')
 man_gapsdf = pd.DataFrame().from_records(manual_missing_gaps)
 man_gapsdf = man_gapsdf.set_index('name')
 
-tlk_gapsdf = dataset.gaps.df
+tlk_gapsdf = dataset.gaps.to_df()
 tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
 
 
