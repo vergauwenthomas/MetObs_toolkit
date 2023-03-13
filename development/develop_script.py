@@ -41,24 +41,20 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 dataset.apply_quality_control()
 
-dataset.write_to_csv()
+
 
 
 dataset.apply_quality_control()
 
 dataset.fill_gaps()
 
-
+dataset.write_to_csv(include_gapfill=False)
 
 
 # comb_df = dataset.combine_all_to_obsspace()
 
 
-sta = dataset.get_station('vlinder01')
 
-
-
-dataset.make_plot(colorby='label')
 
 
 

@@ -334,6 +334,7 @@ class Dataset:
             
 
     def write_to_csv(self, filename=None, include_outliers=True,
+                     include_gapfill=True, 
                      add_final_labels=True, use_tlk_obsnames=True):
         """
             Write the dataset to a file where the observations, metadata and
@@ -384,7 +385,32 @@ class Dataset:
                 cols_to_keep.extend([col for col in mergedf.columns
                                      if col.endswith('_final_label')])
                 mergedf = mergedf[cols_to_keep]
+                
+        if not include_gapfill:
+            # locate all filled values
+            filled_df =  init_multiindexdf()
+            final_columns = [col for col in mergedf.columns if col.endswith('_final_label')]
+            for final_column in final_columns:
+                filled_df = pd.concat([filled_df, 
+                                       mergedf.loc[mergedf[final_column] == 
+                                                   Settings.gaps_fill_info['label']]])
+                
+            # drop filled values from mergedf
+            mergedf = mergedf.drop(filled_df.index, errors='ignore')
+            
+            #fill with numpy nan
+            nan_columns = {col: np.nan for col in mergedf.columns if col in Settings.observation_types}
+            filled_df = filled_df.assign(**nan_columns)
+            # rename label
+            filled_df = filled_df.replace({Settings.gaps_fill_info['label']: Settings.gaps_info['gap']['outlier_flag']})
+            #add to mergedf
+            mergedf = pd.concat([mergedf, filled_df]).sort_index()
+            
 
+            
+            
+            
+            
         # Map obstypes columns
         if not use_tlk_obsnames:
             # TODO
