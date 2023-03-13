@@ -297,9 +297,11 @@ class Gap_collection:
             gaps_enddt.append(gap.endgap)
             
 
-        df = pd.DataFrame(index=[gaps_names], data={'start_gap': gaps_startdt,
-                                                    'end_gap': gaps_enddt})
+        df = pd.DataFrame(index=pd.Index(gaps_names),
+                          data={'start_gap': gaps_startdt,
+                                'end_gap': gaps_enddt})
         df.index.name = 'name'
+        
         return df
     
     
@@ -320,6 +322,7 @@ class Gap_collection:
 
         """
         gapdf = self.to_df()
+        
         if name in gapdf.index:
             return Gap_collection(gapdf.loc[name])
         else:

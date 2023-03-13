@@ -15,7 +15,7 @@ import logging
 from vlinder_toolkit.settings_files.qc_settings import (check_settings,
                                                         checks_info)
 
-
+from vlinder_toolkit.df_helpers import init_multiindexdf
 
 
 
@@ -26,14 +26,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Helper functions
 # =============================================================================
-def init_outlier_multiindexdf():
-    my_index = pd.MultiIndex(levels=[['name'],['datetime']],
-                             codes=[[],[]],
-                             names=[u'name', u'datetime'])
 
-   
-    df = pd.DataFrame(index=my_index)
-    return df
 
 def make_outlier_df_for_check(station_dt_list, values_in_dict, flagcolumnname, flag, stationname=None, datetimelist=None):
     """
@@ -190,7 +183,7 @@ def gross_value_check(input_series, obstype):
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         
-        return input_series, init_outlier_multiindexdf()
+        return input_series, init_multiindexdf()
    
 
     
@@ -250,7 +243,7 @@ def persistance_check(station_frequencies, input_series, obstype):
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         
-        return input_series, init_outlier_multiindexdf()
+        return input_series, init_multiindexdf()
     
     #apply persistance
     def is_unique(window):   #comp order of N (while using the 'unique' function is Nlog(N))
@@ -318,7 +311,7 @@ def repetitions_check(input_series, obstype):
     except:
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-        return input_series, init_outlier_multiindexdf()
+        return input_series, init_multiindexdf()
 
     
     #find outlier datetimes
@@ -394,7 +387,7 @@ def step_check(input_series, obstype):
     except:
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-        return input_series, init_outlier_multiindexdf()
+        return input_series, init_multiindexdf()
     
     list_of_outliers = []
     
@@ -462,7 +455,7 @@ def window_variation_check(station_frequencies, input_series, obstype):
     except:
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-        return input_series, init_outlier_multiindexdf()
+        return input_series, init_multiindexdf()
 
     # Calculate window thresholds (by linear extarpolation)
     windowsize_seconds = pd.Timedelta(specific_settings['time_window_to_check']).total_seconds()

@@ -31,7 +31,6 @@ from vlinder_toolkit.qc_checks import (gross_value_check,
                                        repetitions_check,
                                        duplicate_timestamp_check,
                                        step_check,
-                                       init_outlier_multiindexdf,
                                        window_variation_check)
 
 from vlinder_toolkit.qc_statistics import get_freq_statistics
@@ -45,6 +44,7 @@ from vlinder_toolkit.gap import (missing_timestamp_and_gap_check,
 from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         multiindexdf_datetime_subsetting,
                                         remove_outliers_from_obs, 
+                                        init_multiindexdf,
                                         metadf_to_gdf)
 
 
@@ -67,12 +67,12 @@ class Dataset:
         self.df = pd.DataFrame()
 
         # Dataset with outlier observations
-        self.outliersdf = init_outlier_multiindexdf()
+        self.outliersdf = init_multiindexdf()
 
         self.missing_obs = None  # becomes a Missingob_collection after import
         self.gaps = None  # becomes a gap_collection after import
         
-        self.gapfilldf = pd.DataFrame()
+        self.gapfilldf = init_multiindexdf()
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
@@ -114,16 +114,23 @@ class Dataset:
             sta_outliers = self.outliersdf.xs(
                 stationname, level='name', drop_level=False)
         except KeyError:
-            sta_outliers = init_outlier_multiindexdf()
+            sta_outliers = init_multiindexdf()
 
         sta_gaps = self.gaps.get_station_gaps(stationname)
         sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
+        
+        try:
+            sta_gapfill=self.gapfilldf.xs(
+                stationname, level='name', drop_level=False)
+        except KeyError:
+            sta_gapfill = init_multiindexdf()
 
         return Station(name=stationname,
                        df=sta_df,
                        outliersdf=sta_outliers,
                        gaps=sta_gaps,
                        missing_obs=sta_missingobs,
+                       gapfilldf=sta_gapfill,
                        metadf=sta_metadf,
                        data_template=self.data_template)
 
@@ -309,7 +316,7 @@ class Dataset:
         #TODO logging
         if method=='linear':
             fill_settings = Settings.gaps_fill_settings['linear']
-            fill_info = Settings.gaps_fill_info['linear']
+            fill_info = Settings.gaps_fill_info
             
             #fill gaps
             self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
@@ -543,7 +550,7 @@ class Dataset:
         missingdf = missingidx.to_frame()
         
         # add gapfill and remove the filled records from gaps
-        gapsfilldf = self.gapfilldf
+        gapsfilldf = self.gapfilldf.copy()
 
         gapsdf = gapsdf.drop(gapsfilldf.index, errors='ignore')
         # missingdf = missingdf.drop(gapsfilldf, errors='ignore') #for future when missing are filled
@@ -993,13 +1000,14 @@ class Dataset:
 # =============================================================================
 
 class Station(Dataset):
-    def __init__(self, name, df, outliersdf, gaps, missing_obs,
+    def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
                  metadf, data_template):
         self.name = name
         self.df = df
         self.outliersdf = outliersdf
         self.gaps = gaps
         self.missing_obs = missing_obs
+        self.gapfilldf = gapfilldf
         self.metadf = metadf
         self.data_template = data_template
 

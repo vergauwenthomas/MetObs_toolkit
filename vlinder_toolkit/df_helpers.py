@@ -91,7 +91,14 @@ def remove_outliers_from_obs(obsdf, outliersdf):
     return obsdf.loc[~obsdf.index.isin(outliersdf.index)]
 
     
-  
+def init_multiindexdf():
+    my_index = pd.MultiIndex(levels=[['name'],['datetime']],
+                             codes=[[],[]],
+                             names=[u'name', u'datetime'])
+
+   
+    df = pd.DataFrame(index=my_index)
+    return df
 
 
 

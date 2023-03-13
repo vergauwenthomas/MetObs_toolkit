@@ -45,8 +45,9 @@ plot_settings['time_series'] = {
     'figsize' : (10,5),
     'linewidth': 2, #
     'linezorder': 1, #for ok obs
-    'scattersize': 4,
-    'scatterzorder': 2
+    'scattersize': 4, #for outliers
+    'scatterzorder': 2, #for outliers
+    'dashedzorder': 2, #for gapfills 
     
     }
 # =============================================================================

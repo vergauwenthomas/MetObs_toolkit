@@ -44,31 +44,21 @@ dataset.apply_quality_control()
 dataset.write_to_csv()
 
 
-
-
-# dataset.get_physiography_data(types=['elevation'])
-
 dataset.apply_quality_control()
 
 dataset.fill_gaps()
 
 
 
-comb_df = dataset.combine_all_to_obsspace()
+
+# comb_df = dataset.combine_all_to_obsspace()
+
+
+sta = dataset.get_station('vlinder01')
 
 
 
-#%%
-
-
-
-
-
-
-
-
-
-
+dataset.make_plot(colorby='label')
 
 
 
