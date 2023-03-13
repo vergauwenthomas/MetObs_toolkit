@@ -36,10 +36,12 @@ from vlinder_toolkit.qc_checks import (gross_value_check,
 from vlinder_toolkit.qc_statistics import get_freq_statistics
 from vlinder_toolkit.writing_files import write_dataset_to_csv
 
-from vlinder_toolkit.gap import (Gap_collection,
-                                 Missingob_collection)
-from vlinder_toolkit.gap import (missing_timestamp_and_gap_check,
+from vlinder_toolkit.missingobs import Missingob_collection
+
+from vlinder_toolkit.gap import (Gap_collection, 
+                                 missing_timestamp_and_gap_check,
                                  get_freqency_series)
+
 
 from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         multiindexdf_datetime_subsetting,
