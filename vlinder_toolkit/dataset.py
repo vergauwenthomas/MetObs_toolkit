@@ -11,6 +11,7 @@ import logging
 import pandas as pd
 import numpy as np
 
+
 from vlinder_toolkit.settings import Settings
 from vlinder_toolkit.data_import import (import_data_from_csv,
                                          import_data_from_database,
@@ -31,7 +32,8 @@ from vlinder_toolkit.qc_checks import (gross_value_check,
                                        duplicate_timestamp_check,
                                        step_check,
                                        init_outlier_multiindexdf,
-                                       window_variation_check)
+                                       window_variation_check,
+                                       invalid_input_check)
 
 from vlinder_toolkit.qc_statistics import get_freq_statistics
 from vlinder_toolkit.writing_files import write_dataset_to_csv
@@ -45,6 +47,7 @@ from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         multiindexdf_datetime_subsetting,
                                         remove_outliers_from_obs, 
                                         metadf_to_gdf)
+
 
 logger = logging.getLogger(__name__)
 
@@ -411,6 +414,7 @@ class Dataset:
         """
 
         if repetitions:
+
             print('Applying the repetitions-check on all stations.')
             logger.info('Applying repetitions check on the full dataset')
 
@@ -421,6 +425,7 @@ class Dataset:
             # update the dataset and outliers
             self.df[obstype] = checked_series
             self.update_outliersdf(outl_df)
+
 
         if gross_value:
             print('Applying the gross-value-check on all stations.')
@@ -513,7 +518,9 @@ class Dataset:
         missingdf = missingidx.to_frame()
 
         # get observations
+
         df = self.df
+
         # remove outliers (represented by Nan's) from observations
         df = remove_outliers_from_obs(df, outliersdf)
 
@@ -595,6 +602,7 @@ class Dataset:
         if any([isinstance(stat, type(None)) for stat in [final_freq,
                                                           outl_freq,
                                                           specific_freq]]):
+
             return None
 
         if make_plot:
@@ -813,6 +821,7 @@ class Dataset:
             dataframe=df, coarsen_timeres=coarsen_timeres)
 
     def update_dataset_by_df(self, dataframe, coarsen_timeres=False):
+
         """
         Update the dataset object by a dataframe.
 
@@ -869,9 +878,13 @@ class Dataset:
 
         # Perform QC checks on original observation frequencies
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
-
-        # update outliersdf
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df])
+        
+        for obstype in Settings.observation_types:
+            if not self.df[obstype].isnull().all():
+                self.df, nan_outl_df = invalid_input_check(self.df, obstype=obstype)
+                self.update_outliersdf(nan_outl_df)
+           
 
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
@@ -986,3 +999,4 @@ def loggin_nan_warnings(df):
                 logger.warning(f'No values for stations: \
                                {outliers.index.to_list()}, for {column},\
                                    they are initiated as Nan.')
+

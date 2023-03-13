@@ -51,9 +51,10 @@ def add_final_label_to_outliersdf(outliersdf, data_res_series):
     checked_obstypes = [obstype for obstype in Settings.observation_types if any([qc_column.startswith(obstype+'_') for qc_column in labels_columns])]
     columns_on_record_lvl = [info['label_columnname'] for checkname, info in Settings.qc_checks_info.items() if info['apply_on'] == 'record']
    
-    
+
     # Construct numeric mapper
     labels_to_numeric_mapper = {info['outlier_flag']:info['numeric_flag'] for info in Settings.qc_checks_info.values()}
+
     # add 'ok' and 'not checked' labels
     labels_to_numeric_mapper['ok'] = 0
     labels_to_numeric_mapper['not checked'] = np.nan
@@ -68,17 +69,15 @@ def add_final_label_to_outliersdf(outliersdf, data_res_series):
         specific_columns = [col for col in labels_columns if col.startswith(obstype+'_')]
         #add qc labels that are applicable on all obstypes
         specific_columns.extend(columns_on_record_lvl)
-        
+ 
         #Drop columns that are not present
         specific_columns = [colmn for colmn in specific_columns if colmn in outliersdf.columns]
-        
-        
+
         
         #get labels dataframe
         qc_df = outliersdf[specific_columns]
         num_qc_df = pd.DataFrame()
         num_qc_df = qc_df.applymap(labels_to_numeric_mapper.get )
-       
     
         outliersdf[obstype+'_final_label'] = num_qc_df.sum(axis=1, skipna=True).map(inv_label_to_num)
        
@@ -181,5 +180,4 @@ def datetime_subsetting(df, starttime, endtime):
         endstring = endtime.strftime(stand_format)
 
     return df[startstring: endstring]
-
 
