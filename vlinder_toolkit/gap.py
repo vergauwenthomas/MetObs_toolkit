@@ -32,9 +32,26 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 class Gap:    
-
+    """ Gap class holds all gap information and methods for gaps."""
+    
     def __init__(self, name, startdt, enddt):
-        
+        """
+        Initiate Gap object with a name, startdt and enddt.
+
+        Parameters
+        ----------
+        name : String
+            Station name where the gap occures.
+        startdt : datetime.datetime
+            Start datetime of the gap (included).
+        enddt : datetime.datetime
+            End datetime of the gap (included)
+
+        Returns
+        -------
+        None
+
+        """    
         # init attributes
         self.name = name
         self.startgap = startdt #in IO space
@@ -50,6 +67,16 @@ class Gap:
         self.exp_gap_idx = None
 
     def to_df(self):
+        """
+        Convert a Gap object to a dataframe (with one row). The station name is
+        the index and two colums ('start_gap', 'end_gap') are constructed.
+
+        Returns
+        -------
+        pandas.DataFrame()
+            Gap in dataframe format.
+
+        """
         return pd.DataFrame(index=[self.name],
                             data={'start_gap': self.startgap,
                                   'end_gap': self.endgap})
@@ -121,17 +148,18 @@ class Gap:
 
         Parameters
         ----------
-        obsdf : TYPE
-            DESCRIPTION.
-        outliersdf : TYPE
-            DESCRIPTION.
-        resolutionseries : TYPE
-            DESCRIPTION.
+        obsdf : Dataset.df
+            The Dataset.df attribute. (Needed to extract trailing/leading 
+                                       observations.)
+        outliersdf : Dataset.outliersdf
+            The Dataset.outliersdf attribute.(Needed to extract trailing/leading 
+                                              observations.))
+        resolutionseries : Datetime.timedelta
+            Resolution of the station observations in the dataset.
 
         Returns
         -------
-        expanded_gabsidx_obsspace : TYPE
-            DESCRIPTION.
+        None
 
         """
             
@@ -159,6 +187,35 @@ class Gap:
     
     def apply_interpolate_gap(self, obsdf, outliersdf, dataset_res, obstype='temp',
                               method='time', max_consec_fill=100):
+        """
+        Fill a Gap using a linear interpolation gapfill method for an obstype.
+        
+        The filled datetimes (in dataset resolution) are returned in the form 
+        af a multiindex pandas Series (name -- datetime) as index. 
+
+        Parameters
+        ----------
+        obsdf : Dataset.df
+            The Dataset.df attribute. (Needed to extract trailing/leading 
+                                       observations.)
+        outliersdf : Dataset.outliersdf
+            The Dataset.outliersdf attribute.(Needed to extract trailing/leading 
+                                              observations.))
+        resolutionseries : Datetime.timedelta
+            Resolution of the station observations in the dataset.
+        obstype : String, optional
+            The observational type to apply gapfilling on. The default is 'temp'.
+        method : String, optional
+            Method to pass to the Numpy.interpolate function. The default is 'time'.
+        max_consec_fill : Integer, optional
+            Value to pass to the limit argument of Numpy.interpolate. The default is 100.
+
+        Returns
+        -------
+        Pandas.Series
+            Multiindex Series with filled gap values in dataset space.
+
+        """
 
 
         gapfill_series = interpolate_gap(gap=self,
