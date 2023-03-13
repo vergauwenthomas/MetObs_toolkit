@@ -321,7 +321,7 @@ class Dataset:
                                         max_consec_fill=fill_settings['max_consec_fill'])
             
             #add label column
-            self.gapfilldf[fill_info['label_columnname']] = fill_info['label']
+            self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']
             
 
     def write_to_csv(self, filename=None, include_outliers=True,
@@ -541,6 +541,12 @@ class Dataset:
         missingidx = self.missing_obs.get_missing_indx_in_obs_space(
             self.df, self.metadf['dataset_resolution'])
         missingdf = missingidx.to_frame()
+        
+        # add gapfill and remove the filled records from gaps
+        gapsfilldf = self.gapfilldf
+
+        gapsdf = gapsdf.drop(gapsfilldf.index, errors='ignore')
+        # missingdf = missingdf.drop(gapsfilldf, errors='ignore') #for future when missing are filled
 
         # get observations
         df = self.df
@@ -567,6 +573,7 @@ class Dataset:
             else:
                 default_value_gap = 'not checked'
                 default_value_missing = 'not checked'
+                gapsfilldf[col] = 'not checked'
 
             gapsdf[col] = default_value_gap
             missingdf[col] = default_value_missing
@@ -577,7 +584,7 @@ class Dataset:
         df = df[list(df.columns)]
 
         # Merge all together
-        comb_df = pd.concat([df, outliersdf, gapsdf, missingdf]).sort_index()
+        comb_df = pd.concat([df, outliersdf, gapsdf, missingdf, gapsfilldf]).sort_index()
         return comb_df
 
     def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):

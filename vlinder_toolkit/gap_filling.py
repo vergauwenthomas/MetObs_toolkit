@@ -47,7 +47,7 @@ def interpolate_gap(gap, obsdf, outliersdf, dataset_res, obstype,
     sta_obs = obsdf.xs(gap.name, level='name')
     
     # leading
-    if gap.leading_timestamp in sta_obs:
+    if gap.leading_timestamp in sta_obs.index:
         # leading found in obs
         leading_dt = gap.leading_timestamp
         leading_val = sta_obs.loc[gap.leading_timestamp, obstype]
@@ -62,7 +62,7 @@ def interpolate_gap(gap, obsdf, outliersdf, dataset_res, obstype,
         leading_val = sta_obs.loc[leading_dt, obstype]
     
     #trailing
-    if gap.trailing_timestamp in sta_obs:
+    if gap.trailing_timestamp in sta_obs.index:
         # leading found in obs
         trailing_dt = gap.trailing_timestamp
         trailing_val = sta_obs.loc[gap.trailing_timestamp, obstype]

@@ -47,7 +47,7 @@ gaps_fill_settings={
 
 gaps_fill_info = {
     
-    'linear':{'label_columnname': 'linear_gapfill_label',
+    'linear':{'label_columnname': 'final_label',
               'label': 'gapfill',
               'numeric_flag': 21,
               },

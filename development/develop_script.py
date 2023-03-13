@@ -53,6 +53,11 @@ dataset.apply_quality_control()
 dataset.fill_gaps()
 
 
+
+comb_df = dataset.combine_all_to_obsspace()
+
+
+
 #%%
 
 
@@ -61,7 +66,6 @@ dataset.fill_gaps()
 
 
 
-print(dataset.gapfilldf)
 
 
 
