@@ -879,12 +879,12 @@ class Dataset:
         # Perform QC checks on original observation frequencies
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
         self.outliersdf = pd.concat([self.outliersdf, dup_outl_df])
-
-
-        for column in list(self.df.columns[~self.df.isnull().all()]):
-            self.df, nan_outl_df = invalid_input_check(self.df, obstype=column)
-            self.update_outliersdf(nan_outl_df)
- 
+        
+        for obstype in Settings.observation_types:
+            if not self.df[obstype].isnull().all():
+                self.df, nan_outl_df = invalid_input_check(self.df, obstype=obstype)
+                self.update_outliersdf(nan_outl_df)
+           
 
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
