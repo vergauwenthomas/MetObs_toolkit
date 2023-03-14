@@ -13,20 +13,20 @@ import pandas as pd
 import logging
 
 
-from .settings import Settings
+from vlinder_toolkit.settings import Settings
 
 logger = logging.getLogger(__name__)
 
 def get_freq_statistics(comb_df, obstype):
         
     outlier_labels = [qc['outlier_flag'] for qc in Settings.qc_checks_info.values()]
-    
+
     if not obstype+'_final_label' in comb_df.columns:
         print(f'Final observation label for {obstype} is not computed!')
         return (None, None, None)
     
     final_counts = comb_df[obstype+'_final_label'].value_counts()
-    
+
     #add missing labels
     # QC labels
     non_triggered_labels_dict = {}
@@ -49,7 +49,7 @@ def get_freq_statistics(comb_df, obstype):
     tot_n_obs= final_counts.sum()
     
     # to percentages
-    final_counts = (final_counts/(final_counts.sum()))*100.0
+    final_counts = (final_counts/tot_n_obs)*100.0
     
     
     
@@ -67,7 +67,6 @@ def get_freq_statistics(comb_df, obstype):
         }
     
 
-    
     #2 indevidual outliers
     outl_dict =  final_counts.loc[final_counts.index.isin(outlier_labels)].to_dict()
     
@@ -83,11 +82,7 @@ def get_freq_statistics(comb_df, obstype):
     
     # convert to percentages and dict
     specific_counts = ((specific_counts/tot_n_obs) * 100).to_dict(orient='index')
-    
 
-    #add gaps and missing obs
-    tot_n_obs= final_counts.sum()
-    
     # specific_counts[Settings.gaps_info['gap']['label_columnname']] = {}
     gap_specific_counts = {
         'not checked': 0, #all obs are always checked
@@ -104,12 +99,9 @@ def get_freq_statistics(comb_df, obstype):
         'outlier': final_counts[Settings.gaps_info['missing_timestamp']['outlier_flag']]
         } 
     specific_counts[Settings.gaps_info['missing_timestamp']['label_columnname']] = missing_specific_counts 
-        
     
     return (agg_dict, outl_dict, specific_counts)
     
-
-
 
 
 

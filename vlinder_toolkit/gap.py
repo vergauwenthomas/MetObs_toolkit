@@ -16,8 +16,7 @@ import logging
 from datetime import datetime, timedelta
 import math
 
-
-from .settings import Settings
+from vlinder_toolkit.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +130,7 @@ class Missingob_collection:
 # a gap is a sequence of repeting missing obs
 # =============================================================================
 
-class _Gap:
+class _Gap:    
     # do not use this class outside this module
     def __init__(self, name, startdt, enddt):
         
@@ -151,6 +150,22 @@ class Gap_collection:
     
     
     def get_station_gaps(self, name):
+        """
+        Extract a Gap_collection specific to one station. If no gaps are found
+        for the station, an empty Gap_collection is returned.
+
+        Parameters
+        ----------
+        name : String
+            Name of the station to extract a Gaps_collection from.
+
+        Returns
+        -------
+        Gap_collection
+            A Gap collection specific of the specified station. 
+
+        """
+        
         if name in self.df.index:
             return Gap_collection(self.df.loc[name])
         else:
@@ -159,6 +174,23 @@ class Gap_collection:
     
     
     def remove_gaps_from_obs(self, obsdf):
+        """
+        Remove station - datetime records that are in the gaps from the obsdf. 
+        
+        (Usefull when filling timestamps to a df, and if you whant to remove the
+         gaps.)
+
+        Parameters
+        ----------
+        obsdf : pandas.DataFrame()
+            A MultiIndex dataframe with name -- datetime as index.
+
+        Returns
+        -------
+        obsdf : pandas.DataFrame()
+            The same dataframe with records inside gaps removed.
+
+        """
         
         #Create index for gaps records in the obsdf
         expanded_gabsidx = pd.MultiIndex(levels=[['name'],['datetime']],
@@ -184,7 +216,31 @@ class Gap_collection:
     
     
     def get_gaps_indx_in_obs_space(self, obsdf, outliersdf, resolutionseries):
-            
+        """
+
+        Explode the gaps, to the dataset resolution and format to a multiindex
+        with name -- datetime. 
+        
+        In addition the last observation before the gap (leading), and first
+        observation (after) the gap are computed and stored in the df attribute.
+        (the outliers are used to look for leading and trailing observations.)
+
+
+        Parameters
+        ----------
+        obsdf : TYPE
+            DESCRIPTION.
+        outliersdf : TYPE
+            DESCRIPTION.
+        resolutionseries : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        expanded_gabsidx_obsspace : TYPE
+            DESCRIPTION.
+
+        """
             
         self._add_leading_and_trailing_obs(obsdf, outliersdf)
         

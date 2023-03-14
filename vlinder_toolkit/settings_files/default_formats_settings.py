@@ -74,16 +74,20 @@ plot_settings['spatial_geo'] = {
 # Stats plot settings
 # =============================================================================
 
-plot_settings['qc_stats'] = {
+plot_settings['pie_charts'] = {
     #shape
     'figsize': (10,10),
-    
+    'anchor_legend_big': (-0.25, 0.75),
+    'anchor_legend_small': (-3.5, 2.2),
+    'radius_big': 1.5,
+    'radius_small': 10
 
     }
 
 plot_settings['color_mapper']={
     #QC specific labels
     'duplicated_timestamp': '#a32a1f',
+    'invalid_input': '#900357',
     'gross_value': '#f1ff2b',
     'persistance':'#f0051c',
     'repetitions':'#056ff0',

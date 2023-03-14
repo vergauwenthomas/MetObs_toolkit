@@ -55,6 +55,13 @@ checks_info={
                             'numeric_flag': 1,
                             'apply_on': 'record'
                             },
+    
+    # 2. --> on data import
+    'invalid_input':{'label_columnname': 'invalid_input_label',
+                            'outlier_flag': 'invalid input',
+                            'numeric_flag': 2,
+                            'apply_on': 'obstype'
+                            },
   
     # 3. --> on observed values
     'gross_value':{'label_columnname': 'gross_value_label', #Obstype_ is prefix
@@ -88,7 +95,6 @@ checks_info={
                             },
     
     }
-
 
 
 

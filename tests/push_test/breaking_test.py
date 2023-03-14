@@ -19,12 +19,6 @@ lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-
-
-<<<<<<< HEAD
-=======
-
->>>>>>> a8f3eac485cc30ef46a3a0b07aa6aed1f941e946
 #x = all(keys in ['a', 'b', 'c'] for keys in ['c', 'b', 'a'])
 
 testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
@@ -34,7 +28,7 @@ settings.update_settings(input_data_file=testdata)
 
 #####################################################################
 # Set settings for QC
-minimal_gapsize = 40    #gaps defined as n times the highest frequency on IO.
+minimal_gapsize = 10    #gaps defined as n times the highest frequency on IO.
 dupl_dropping = False #method used to drop duplicated timestamps
 
 persistance_time_window_to_check = '1h'   # Use this format as example: "1h20min50s"
@@ -84,11 +78,13 @@ dataset_coarsened = vlinder_toolkit.Dataset()
 dataset_coarsened.import_data_from_file(coarsen_timeres=True)
 dataset_coarsened.apply_quality_control()
 
-_ = dataset_coarsened.get_qc_stats()
+#_ = dataset_coarsened.get_qc_stats()
 #%%
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
+
+_ = dataset.get_qc_stats()
 
 dataset.make_plot(stationnames=['Fictional'],colorby='label', show_outliers=True)
 
@@ -150,28 +146,22 @@ for man_label, tlk_label in manual_to_tlkit_label_map.items():
 from datetime import datetime
 import pandas as pd
 
-manual_missing_gaps = [{'name': 'Fictional', 'start_gap': datetime(2020,9,14,1,30), 'end_gap': datetime(2020,9,14,23,55)}] #UPDATE MANUALLY !!!!!!!!!!
+manual_missing_gaps = [{'name': 'Fictional', 'start_gap': datetime(2020,9,14,22,30), 'end_gap': datetime(2020,9,14,23,55)}] #UPDATE MANUALLY !!!!!!!!!!
 
 print('Testing the gaps')
 
 man_gapsdf = pd.DataFrame().from_records(manual_missing_gaps)
 man_gapsdf = man_gapsdf.set_index('name')
 
-<<<<<<< HEAD
-dataset_coarsened.get_qc_stats(coarsen_timeres=True, stationnames=('1'))
-dataset.get_qc_stats()
-=======
 tlk_gapsdf = dataset.gaps.df
 tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
->>>>>>> a8f3eac485cc30ef46a3a0b07aa6aed1f941e946
-
 
 
 if not tlk_gapsdf.equals(man_gapsdf):
     print(f'ERROR: wrong gaps detection')
     
-    print(f'differences tlkit --> manual: { tlk_gapsdf.difference(man_gapsdf)}')
-    print(f'differences manual --> tlkit: {man_gapsdf.difference(tlk_gapsdf)}')
+    print(f'differences tlkit --> manual: {tlk_gapsdf[~tlk_gapsdf.apply(tuple,1).isin(man_gapsdf.apply(tuple,1))]}')
+    print(f'differences manual --> tlkit: {man_gapsdf[~man_gapsdf.apply(tuple,1).isin(tlk_gapsdf.apply(tuple,1))]}')
     sys.exit(1)
 
 else:
@@ -190,21 +180,46 @@ else:
 number_missing_timestamps = {'1': 1,
                              'Fictional' : 307}
 
-print('Testing the missing obs')
-tlk_missing_series = dataset.missing_obs.series
 
-for station in tlk_missing_series.index.unique():
-    sta_n_missing = tlk_missing_series[[station]].shape[0]
+print('Testing the missing obs')
+
+man_missing_timestamps_df = pd.DataFrame([('Fictional', datetime(2020,9,15,2,50)), ('Fictional', datetime(2020,9,15,3,00)), ('Fictional', datetime(2020,9,15,3,5)),
+                     ('Fictional', datetime(2020,9,15,3,10)), ('Fictional', datetime(2020,9,15,3,15)), ('Fictional', datetime(2020,9,15,3,20)),
+                     ('Fictional', datetime(2020,9,15,5,10)), ('Fictional', datetime(2020,9,15,6,45)), ('Fictional', datetime(2020,9,15,7,40)),
+                     ('Fictional', datetime(2020,9,15,12,40)), ('Fictional', datetime(2020,9,15,17,35)), ('Fictional', datetime(2020,9,15,20,40)),
+                     ('Fictional', datetime(2020,9,15,23,50)), ('1', datetime(2020,9,16,21,30))], columns=['name', 'datetime'])
+
+man_missing_timestamps_idx = pd.MultiIndex.from_frame(man_missing_timestamps_df).sort_values()
+
+tlk_missing_series = dataset.missing_obs.series
+tlk_missing_series = tlk_missing_series.reset_index().rename(columns={'index': 'name', 0: 'datetime'})
+tlk_missing_timestamps_idx = pd.MultiIndex.from_frame(tlk_missing_series).sort_values()
+
+print(tlk_missing_timestamps_idx)
+print(man_missing_timestamps_idx)
+
+if not tlk_missing_timestamps_idx.equals(man_missing_timestamps_idx):
+    print(f'ERROR: wrong missing timestamps detection')
     
-    if sta_n_missing != number_missing_timestamps[station]:
-        print(f'ERROR: wrong number of missing obs for station: {station}')
-        
-        print(f'number of missing obs for {station} by manual work: {number_missing_timestamps[station]}')
-        print(f'number of missing obs for {station} by toolkit: {tlk_missing_series}')
-        sys.exit(1)
-    
-    
-print('OK!')
+    print(f'differences tlkit --> manual: { tlk_missing_timestamps_idx.difference(man_missing_timestamps_idx)}')
+    print(f'differences manual --> tlkit: {man_missing_timestamps_idx.difference(tlk_missing_timestamps_idx)}')
+    sys.exit(1)
+
+else:
+    print('OK!')
+
+#for station in tlk_missing_series.index.unique():
+#    sta_n_missing = tlk_missing_series[[station]].shape[0]
+#    
+#    if sta_n_missing != number_missing_timestamps[station]:
+#        print(f'ERROR: wrong number of missing obs for station: {station}')
+#        
+#        print(f'number of missing obs for {station} by manual work: {number_missing_timestamps[station]}')
+#        print(f'number of missing obs for {station} by toolkit: {tlk_missing_series}')
+#        sys.exit(1)
+#    
+#    
+#print('OK!')
     
 
 
@@ -257,5 +272,4 @@ print('OK!')
 # else:
 #     print('The quality control is performing as expected')
     
-
 

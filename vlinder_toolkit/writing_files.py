@@ -5,9 +5,9 @@ Created on Thu Mar  2 15:30:55 2023
 
 @author: thoverga
 """
-
+# --
 import os
-from .settings import Settings
+from vlinder_toolkit.settings import Settings
 
 
     

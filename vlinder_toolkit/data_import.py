@@ -375,4 +375,3 @@ def import_data_from_database(Settings,
 #     elif (obs_units == 'Kelvin') & (target_unit == 'Celcius'):
 #         return observations - 273.15 
         
-

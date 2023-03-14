@@ -5,6 +5,9 @@ Created on Fri Oct 21 11:26:52 2022
 
 @author: thoverga
 """
+
+
+
 import pandas as pd
 import math
 import numpy as np
@@ -15,8 +18,8 @@ from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 import matplotlib.gridspec as gridspec
 
-from .geometry_functions import find_largest_extent
-from .settings import Settings
+from vlinder_toolkit.geometry_functions import find_largest_extent
+from vlinder_toolkit.settings import Settings
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
@@ -263,14 +266,15 @@ def spatial_plot(gdf, variable, legend, use_quantiles, is_categorical, k_quantil
 
 
 def _make_pie_from_freqs(freq_dict, colormapper, radius, ax,
-                        title=None, anchor_legend=(-0.25, 0.75)):
+                         anchor_legend, title=None):
     # To dataframe
     stats = pd.Series(freq_dict, name='freq').to_frame()
+
     # make color mapper
     stats['color'] = stats.index.map(colormapper)
-    
+ 
     # Make pie and legend 
-    patches, text = ax.pie(stats['freq'], colors=stats['color'])
+    patches, text = ax.pie(stats['freq'], colors=stats['color'], radius=radius)
     ax.legend(handles=patches, labels = [f'{l}, {s:0.1f}%' for l, s in zip(stats.index.to_list(),
                                                                    stats['freq'].to_list())],
               loc = anchor_legend)
@@ -279,23 +283,6 @@ def _make_pie_from_freqs(freq_dict, colormapper, radius, ax,
     if not isinstance(title, type(None)):
         ax.set_title(title)
 
-<<<<<<< HEAD
-def qc_stats_pie(valid_records, final_labels_df, qc_stats, figsize, title, obstype='temp'):
-     
-    valid_records_without_na = valid_records[valid_records[obstype].notna()]
-    num_valid_records_without_na = len(valid_records_without_na)
-    num_not_valid_observations = len(valid_records) - len(valid_records_without_na)
-    if ((final_labels_df[obstype+'_final_label'] == 'missing timestamp (gap)').any()):
-        num_gaps = final_labels_df[obstype+'_final_label'].value_counts()['missing timestamp (gap)']
-    else:
-        num_gaps = 0
-    num_outliers = len(final_labels_df) - num_gaps
-    
-    colors = {'ok': 'green', 'not checked': 'orange', 'outlier': 'red'}
-    names_1 = ['ok', 'outliers', 'gaps', 'not valid observations']
-    colors_1 = ["green", "orange", "blue", "red"]
-    values_1 = [num_valid_records_without_na, num_outliers, num_gaps, num_not_valid_observations]
-=======
     return ax
 
 def _outl_value_to_colormapper():
@@ -311,7 +298,6 @@ def _all_possible_labels_colormapper():
     color_defenitions = Settings.plot_settings['color_mapper']
     
     mapper = dict()
->>>>>>> a8f3eac485cc30ef46a3a0b07aa6aed1f941e946
     
     #get QC outlier labels
 
@@ -333,34 +319,13 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
     color_defenitions = Settings.plot_settings['color_mapper']
     # Define layout
         
-    fig = plt.figure(figsize=Settings.plot_settings['qc_stats']['figsize'])
+    fig = plt.figure(figsize=Settings.plot_settings['pie_charts']['figsize'])
     fig.tight_layout()
-    spec = fig.add_gridspec(3, 4, wspace=10)
+    spec = fig.add_gridspec(4, 4, wspace=10)
     
     ax_thl = fig.add_subplot(spec[0,:2]) #top half left
     ax_thr = fig.add_subplot(spec[0,2:]) #top half right
     
-<<<<<<< HEAD
-    patches1, texts1 = ax_1.pie(values_1, radius=1.5, colors = colors_1)
-    percents_1 = [item/sum(values_1) * 100 for item in values_1]
-    ax_1.legend(patches1, labels = [f'{l}, {s:0.1f}%' for l, s in zip(names_1, percents_1)], loc = (-0.25, 0.75))
-
-    for i in range(len(qc_stats.columns)):
-        data = list(qc_stats.iloc[:,i].values)
-        names = list(qc_stats.index)
-        ax = fig.add_subplot(spec[math.floor(i/4)+1,i%4])
-        patches, texts = ax.pie(data, colors=list(colors.values()), radius = 8)
-        ax.set_title(qc_stats.columns[i], pad=60, fontweight ="bold")
-        ax.legend(patches, labels = [f'{l}, {s:0.1f}%' for l, s in zip(names, data)], loc = (0.25, 1))
-       
-    names_2 = list(final_labels_df[obstype+'_final_label'].value_counts().index)
-    values_2 = list(final_labels_df[obstype+'_final_label'].value_counts().values)
-    
-    percents_2 = [item/sum(values_2) * 100 for item in values_2]
-    patches2, texts2 = ax_2.pie(values_2, radius=1.5)
-    ax_2.legend(patches2, labels = [f'{l}, {s:0.1f}%' for l, s in zip(names_2, percents_2)], loc = (-1, 0.5))
-    plt.show()
-=======
 
 
 
@@ -373,17 +338,18 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
         'missing (individual)': color_defenitions['missing_timestamp']
         }
     
-    _make_pie_from_freqs(final_stats, final_col_mapper, 1.5, ax_thl, 'Final label frequencies')
+    _make_pie_from_freqs(final_stats, final_col_mapper, Settings.plot_settings['pie_charts']['radius_big'], 
+                         ax_thl, Settings.plot_settings['pie_charts']['anchor_legend_big'], 'Final label frequencies')
 
 
     # 2. Make QC overview pie
     # make color mapper
     outl_col_mapper = _outl_value_to_colormapper()
 
-    _make_pie_from_freqs(outlier_stats, outl_col_mapper, 1.5, ax_thr, 'Outlier performance')
+    _make_pie_from_freqs(outlier_stats, outl_col_mapper, Settings.plot_settings['pie_charts']['radius_big'], 
+                         ax_thr, Settings.plot_settings['pie_charts']['anchor_legend_big'], 'Outlier performance')
     
     
->>>>>>> a8f3eac485cc30ef46a3a0b07aa6aed1f941e946
     
     # 3. Make a specific pie for each indvidual QC + gap + missing 
     
@@ -396,11 +362,11 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
     i=0
     for checkname, stats in specific_stats.items():
         ax = fig.add_subplot(spec[math.floor(i/4)+1,i%4])
-        _make_pie_from_freqs(stats, spec_col_mapper,8, ax, checkname)
+        _make_pie_from_freqs(stats, spec_col_mapper, Settings.plot_settings['pie_charts']['radius_small'], 
+                             ax, Settings.plot_settings['pie_charts']['anchor_legend_small'], checkname)
         i += 1
         
         
         
     plt.show()
     return
-
