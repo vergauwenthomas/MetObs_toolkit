@@ -28,7 +28,7 @@ settings.update_settings(input_data_file=testdata)
 
 #####################################################################
 # Set settings for QC
-minimal_gapsize = 40    #gaps defined as n times the highest frequency on IO.
+minimal_gapsize = 10    #gaps defined as n times the highest frequency on IO.
 dupl_dropping = False #method used to drop duplicated timestamps
 
 persistance_time_window_to_check = '1h'   # Use this format as example: "1h20min50s"
@@ -180,7 +180,7 @@ else:
 from datetime import datetime
 import pandas as pd
 
-manual_missing_gaps = [{'name': 'Fictional', 'start_gap': datetime(2020,9,14,1,30), 'end_gap': datetime(2020,9,14,23,55)}] #UPDATE MANUALLY !!!!!!!!!!
+manual_missing_gaps = [{'name': 'Fictional', 'start_gap': datetime(2020,9,14,22,30), 'end_gap': datetime(2020,9,14,23,55)}] #UPDATE MANUALLY !!!!!!!!!!
 
 print('Testing the gaps')
 
@@ -192,12 +192,11 @@ tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
 
 
 
-
 if not tlk_gapsdf.equals(man_gapsdf):
     print(f'ERROR: wrong gaps detection')
     
-    print(f'differences tlkit --> manual: { tlk_gapsdf.difference(man_gapsdf)}')
-    print(f'differences manual --> tlkit: {man_gapsdf.difference(tlk_gapsdf)}')
+    print(f'differences tlkit --> manual: {tlk_gapsdf[~tlk_gapsdf.apply(tuple,1).isin(man_gapsdf.apply(tuple,1))]}')
+    print(f'differences manual --> tlkit: {man_gapsdf[~man_gapsdf.apply(tuple,1).isin(tlk_gapsdf.apply(tuple,1))]}')
     sys.exit(1)
 
 else:
@@ -216,72 +215,32 @@ else:
 number_missing_timestamps = {'1': 1,
                              'Fictional' : 307}
 
+
 print('Testing the missing obs')
+
+man_missing_timestamps_df = pd.DataFrame([('Fictional', datetime(2020,9,15,2,50)), ('Fictional', datetime(2020,9,15,3,00)), ('Fictional', datetime(2020,9,15,3,5)),
+                     ('Fictional', datetime(2020,9,15,3,10)), ('Fictional', datetime(2020,9,15,3,15)), ('Fictional', datetime(2020,9,15,3,20)),
+                     ('Fictional', datetime(2020,9,15,5,10)), ('Fictional', datetime(2020,9,15,6,45)), ('Fictional', datetime(2020,9,15,7,40)),
+                     ('Fictional', datetime(2020,9,15,12,40)), ('Fictional', datetime(2020,9,15,17,35)), ('Fictional', datetime(2020,9,15,20,40)),
+                     ('Fictional', datetime(2020,9,15,23,50)), ('1', datetime(2020,9,16,21,30))], columns=['name', 'datetime'])
+
+man_missing_timestamps_idx = pd.MultiIndex.from_frame(man_missing_timestamps_df).sort_values()
+
 tlk_missing_series = dataset.missing_obs.series
+tlk_missing_series = tlk_missing_series.reset_index().rename(columns={'index': 'name', 0: 'datetime'})
+tlk_missing_timestamps_idx = pd.MultiIndex.from_frame(tlk_missing_series).sort_values()
 
-for station in tlk_missing_series.index.unique():
-    sta_n_missing = tlk_missing_series[[station]].shape[0]
+
+
+if not tlk_missing_timestamps_idx.equals(man_missing_timestamps_idx):
+    print(f'ERROR: wrong missing timestamps detection')
     
-    if sta_n_missing != number_missing_timestamps[station]:
-        print(f'ERROR: wrong number of missing obs for station: {station}')
-        
-        print(f'number of missing obs for {station} by manual work: {number_missing_timestamps[station]}')
-        print(f'number of missing obs for {station} by toolkit: {tlk_missing_series}')
-        sys.exit(1)
-    
-    
-print('OK!')
-    
+    print(f'differences tlkit --> manual: { tlk_missing_timestamps_idx.difference(man_missing_timestamps_idx)}')
+    print(f'differences manual --> tlkit: {man_missing_timestamps_idx.difference(tlk_missing_timestamps_idx)}')
+    sys.exit(1)
 
+else:
+    print('OK!')
 
-
-
-
-
-
-
-
-# # indices_dupl_df = df[df['flags'] =='duplicated timestamp outlier'].index.sortlevel()[0]
-# # df = df[df['flags'] != 'duplicated timestamp outlier']
-
-# # indices_dupl_outliers = outliersdf[outliersdf['temp_final_label'] =='duplicated timestamp outlier'].index.sortlevel()[0]
-# # outliersdf = outliersdf[outliersdf['temp_final_label'] != 'duplicated timestamp outlier']
-
-
-# df = df[df['flags'] != 'duplicated timestamp outlier']
-# outliersdf = outliersdf[outliersdf['temp_final_label'] != 'duplicated timestamp outlier']
-
-
-
-
-
-
-# if not indices_dupl_df.equals(indices_dupl_outliers):
-#     if len(indices_dupl_outliers.difference(indices_dupl_df)) > 0:
-#         print('Timestamps with wrong duplicate label are: ', indices_dupl_outliers.difference(indices_dupl_df))
-#     else:
-#         print('Timestamps with missing duplicate label are: ', indices_dupl_df.difference(indices_dupl_outliers))
-#     sys.exit('There is a problem with the duplicates')
-
-# df = df.merge(outliersdf['temp_final_label'], how='outer', left_index=True, right_index=True)
-# df['temp_final_label'] = df['temp_final_label'].fillna(value='ok')
-
-# indices_missing_timestamp = df[df['temp_final_label'] == 'missing timestamp'].index
-# df.loc[indices_missing_timestamp,'flags'] = 'missing timestamp'
-
-# indices_gap_timestamp = df[df['temp_final_label'] == 'missing timestamp (gap)'].index
-# df.loc[indices_gap_timestamp,'flags'] = 'missing timestamp (gap)'
-
-
-# dataset.get_qc_stats()
-
-
-
-# if not df['flags'].equals(df['temp_final_label']):
-#     print('Timestamps with wrong label are: ', list(df.index[df['flags'] != df['temp_final_label']]))
-#     sys.exit('There is a problem with the quality control')
-# else:
-#     print('The quality control is performing as expected')
-    
 
 

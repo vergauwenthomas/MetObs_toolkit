@@ -43,13 +43,18 @@ from vlinder_toolkit.gap import (Gap_collection,
 from vlinder_toolkit.gap import (missing_timestamp_and_gap_check,
                                  get_freqency_series)
 
+
 from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         multiindexdf_datetime_subsetting,
                                         remove_outliers_from_obs, 
                                         metadf_to_gdf)
 
 
+
+
 logger = logging.getLogger(__name__)
+
+
 
 
 # =============================================================================
@@ -366,8 +371,7 @@ class Dataset:
     # =============================================================================
     #     Quality control
     # =============================================================================
- 
-        
+
     def apply_quality_control(self, obstype='temp',
                               gross_value=True,
                               persistance=True,
@@ -456,7 +460,7 @@ class Dataset:
         if step:
             print('Applying the step-check on all stations.')
             logger.info('Applying step-check on the full dataset')
-
+            
             obsdf, outl_df = step_check(obsdf=self.df,
                                                  obstype=obstype)
 
@@ -497,8 +501,9 @@ class Dataset:
 
         """
 
+
         outliersdf = self.outliersdf
-        
+
         # if outliersdf is empty, create columns with 'not checked'
         if outliersdf.empty:
             outliercolumns = [col['label_columnname']
@@ -517,14 +522,13 @@ class Dataset:
         gapsidx = self.gaps.get_gaps_indx_in_obs_space(
             self.df, self.outliersdf, self.metadf['dataset_resolution'])
         gapsdf = gapsidx.to_frame()
-        
+
         # add missing observations if they occure in observation space
         missingidx = self.missing_obs.get_missing_indx_in_obs_space(
             self.df, self.metadf['dataset_resolution'])
         missingdf = missingidx.to_frame()
-        
-        
-        
+
+
         # get observations
         df = self.df
         #fill QC outlier columns with custom values
@@ -550,7 +554,7 @@ class Dataset:
                 default_value_gap = Settings.gaps_info['gap']['outlier_flag']
                 # 'is_missing_timestamp' for final label
                 default_value_missing = Settings.gaps_info['missing_timestamp']['outlier_flag']
-        
+    
             else:
                 default_value_gap = 'not checked'
                 default_value_missing = 'not checked'
@@ -561,14 +565,13 @@ class Dataset:
         # sort columns
         gapsdf = gapsdf[list(df.columns)]
         missingdf = missingdf[list(df.columns)]
-        
-        
+
+
         # Merge all together
         comb_df = pd.concat([df, gapsdf, missingdf]).sort_index()
         return comb_df
     
-    
-    
+
     def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):
         """
         Compute frequency statistics on the qc labels for an observationtype.
@@ -606,6 +609,7 @@ class Dataset:
         ignore_obstypes = Settings.observation_types.copy()
         ignore_obstypes.remove(obstype)
         comb_df = comb_df.drop(columns=ignore_obstypes)
+
         # drop label columns not applicable on obstype
         relevant_columns = [col for col in comb_df.columns if col.startswith(obstype)]
         
@@ -655,7 +659,7 @@ class Dataset:
         self.outliersdf[new_performed_checks_columns] = self.outliersdf[
             new_performed_checks_columns].fillna(value='not checked')
 
-   
+
     # =============================================================================
     #     importing data
     # =============================================================================
@@ -895,13 +899,13 @@ class Dataset:
         
         self.df, nan_outl_df = invalid_input_check(self.df)
         self.update_outliersdf(nan_outl_df)
-        
-           
+                
 
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
                                           method=Settings.resample_method,
                                           limit=Settings.resample_limit)
+
 
         else:
             self.metadf['dataset_resolution'] = self.metadf['assumed_import_frequency']
@@ -991,7 +995,9 @@ class Station(Dataset):
         self.metadf = metadf
         self.data_template = data_template
 
+
         self._istype = 'Station'
+
 
 
 def loggin_nan_warnings(df):
@@ -1006,7 +1012,6 @@ def loggin_nan_warnings(df):
                 logger.warning(f'No values for {column}, they are initiated\
                                as Nan.')
             else:
-
                 outliers = bool_series[bool_series]
                 logger.warning(f'No values for stations: \
                                {outliers.index.to_list()}, for {column},\

@@ -272,6 +272,7 @@ def _make_pie_from_freqs(freq_dict, colormapper, radius, ax,
 
     # make color mapper
     stats['color'] = stats.index.map(colormapper)
+
     if (stats['freq'] == 0.0).all():
         print('No occurences in sample.')
         #add a 100% no occurences to it, so it can be plotted
@@ -379,4 +380,6 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
         
         
     plt.show()
+
     return
+

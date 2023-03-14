@@ -16,6 +16,7 @@ from vlinder_toolkit.settings import Settings
 
 
 
+
 def init_outlier_multiindexdf():
     my_index = pd.MultiIndex(levels=[['name'],['datetime']],
                              codes=[[],[]],
@@ -29,6 +30,7 @@ def init_outlier_multiindex():
      return pd.MultiIndex(levels=[['name'],['datetime']],
                              codes=[[],[]],
                              names=[u'name', u'datetime'])
+
 
 
 def add_final_label_to_outliersdf(outliersdf, data_res_series):
@@ -196,4 +198,3 @@ def datetime_subsetting(df, starttime, endtime):
         endstring = endtime.strftime(stand_format)
 
     return df[startstring: endstring]
-

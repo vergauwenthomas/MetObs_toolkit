@@ -6,13 +6,12 @@ Created on Thu Sep 22 16:24:06 2022
 @author: thoverga
 """
 import sys
-# import json
-# import datetime
+
 import pandas as pd
 
 import mysql.connector
 from mysql.connector import errorcode
-# from pathlib import Path
+
 
 
 def template_to_package_space(specific_template):
@@ -374,4 +373,4 @@ def import_data_from_database(Settings,
 #         return observations + 273.15
 #     elif (obs_units == 'Kelvin') & (target_unit == 'Celcius'):
 #         return observations - 273.15 
-        
+

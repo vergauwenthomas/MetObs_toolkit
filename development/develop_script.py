@@ -18,7 +18,9 @@ lib_folder = Path(__file__).resolve().parents[1]
 sys.path.append(str(lib_folder))
 
 
+
 #%% % Import
+
 
 testdatafile = os.path.join(
     str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
@@ -30,6 +32,7 @@ static_data = os.path.join(
 # #% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
+
                          # input_metadata_file=static_data,
                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                          )
@@ -37,10 +40,12 @@ settings.update_settings(input_data_file=testdatafile,
 dataset = vlinder_toolkit.Dataset()
 
 
+
 df = dataset.import_data_from_file(coarsen_timeres=True)
 
 
 dataset.apply_quality_control()
+
 
 #add obstype to get qc stats
 

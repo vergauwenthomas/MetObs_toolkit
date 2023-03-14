@@ -20,6 +20,7 @@ from vlinder_toolkit.df_helpers import (init_outlier_multiindex,
 
 
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -100,6 +101,7 @@ def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
 # =============================================================================
 
 
+
 def invalid_input_check(df):
         
     checkname = 'invalid_input'
@@ -137,6 +139,7 @@ def invalid_input_check(df):
         outl_df = pd.concat([outl_df, specific_outl_df])
     
     return df, outl_df
+
   
     
 def duplicate_timestamp_check(df):
@@ -170,6 +173,7 @@ def duplicate_timestamp_check(df):
     #Fill the outlierdf with the duplicates
     outliers = df[df.index.duplicated(keep=check_settings[checkname]['keep'])]
    
+
     
     # replace observation values by nan
     for obstype in df.columns:
@@ -178,6 +182,7 @@ def duplicate_timestamp_check(df):
     # drop duplicates in the obsdf, because this gives a lot of troubles
     # The method does not really mater because the values are set to nan in the observations
     df = df[~df.index.duplicated(keep='first')]
+
     
     #add label
     outliers[checks_info[checkname]['label_columnname']] = checks_info[checkname]['outlier_flag']
@@ -569,6 +574,4 @@ def get_outliers_in_daterange(input_data, date, name, time_window, station_freq)
     intersection = outlier_sub_df.index.intersection(input_data.dropna().index).values
     
     return intersection
-
-
 
