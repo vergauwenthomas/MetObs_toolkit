@@ -99,8 +99,21 @@ def make_outlier_df_for_check(station_dt_list, values_in_dict, flagcolumnname, f
 # =============================================================================
 
 
+def invalid_input_check(df, obstype):
     
+    checkname = 'invalid_input'
+    
+    nan_df = df[df[obstype].isnull()]
+    nan_indices = nan_df.index
 
+    outlierdf = make_outlier_df_for_check(station_dt_list = nan_indices,
+                                          values_in_dict = nan_df.to_dict(orient='series'),
+                                          flagcolumnname=obstype+'_'+checks_info[checkname]['label_columnname'],
+                                          flag=checks_info[checkname]['outlier_flag'])
+    
+    df = df.drop(nan_indices)
+    
+    return df, outlierdf
   
 def duplicate_timestamp_check(df):
     """
@@ -132,7 +145,7 @@ def duplicate_timestamp_check(df):
 
     #Fill the outlierdf with the duplicates
     outliers = df[df.index.duplicated(keep=check_settings[checkname]['keep'])]
-    
+   
     outlierdf = make_outlier_df_for_check(station_dt_list = outliers.index,
                                           values_in_dict = outliers.to_dict(orient='series'),
                                           flagcolumnname=checks_info[checkname]['label_columnname'],
@@ -562,5 +575,4 @@ def get_outliers_in_daterange(input_data, date, name, time_window, station_freq)
 #     print("Humidity 0 at: ", qc_dataframe[qc_dataframe['internal_consistency'] == 'humidity 0'].index)
     
     
-
 

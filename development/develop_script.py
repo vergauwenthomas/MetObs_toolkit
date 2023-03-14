@@ -39,19 +39,19 @@ dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
 
 
-dataset.apply_quality_control()
+# dataset.apply_quality_control()
 
 
 
 
-dataset.apply_quality_control()
+# dataset.apply_quality_control()
 
-dataset.fill_gaps()
+# dataset.fill_gaps()
 
-dataset.write_to_csv(include_gapfill=False)
+# dataset.write_to_csv(include_gapfill=False)
 
 
-# comb_df = dataset.combine_all_to_obsspace()
+
 
 
 

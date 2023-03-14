@@ -286,14 +286,15 @@ def spatial_plot(gdf, variable, legend, use_quantiles, is_categorical, k_quantil
 
 
 def _make_pie_from_freqs(freq_dict, colormapper, radius, ax,
-                        title=None, anchor_legend=(-0.25, 0.75)):
+                         anchor_legend, title=None):
     # To dataframe
     stats = pd.Series(freq_dict, name='freq').to_frame()
+
     # make color mapper
     stats['color'] = stats.index.map(colormapper)
-    
+ 
     # Make pie and legend 
-    patches, text = ax.pie(stats['freq'], colors=stats['color'])
+    patches, text = ax.pie(stats['freq'], colors=stats['color'], radius=radius)
     ax.legend(handles=patches, labels = [f'{l}, {s:0.1f}%' for l, s in zip(stats.index.to_list(),
                                                                    stats['freq'].to_list())],
               loc = anchor_legend)
@@ -341,9 +342,9 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
     color_defenitions = Settings.plot_settings['color_mapper']
     # Define layout
         
-    fig = plt.figure(figsize=Settings.plot_settings['qc_stats']['figsize'])
+    fig = plt.figure(figsize=Settings.plot_settings['pie_charts']['figsize'])
     fig.tight_layout()
-    spec = fig.add_gridspec(3, 4, wspace=10)
+    spec = fig.add_gridspec(4, 4, wspace=10)
     
     ax_thl = fig.add_subplot(spec[0,:2]) #top half left
     ax_thr = fig.add_subplot(spec[0,2:]) #top half right
@@ -360,14 +361,16 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
         'missing (individual)': color_defenitions['missing_timestamp']
         }
     
-    _make_pie_from_freqs(final_stats, final_col_mapper, 1.5, ax_thl, 'Final label frequencies')
+    _make_pie_from_freqs(final_stats, final_col_mapper, Settings.plot_settings['pie_charts']['radius_big'], 
+                         ax_thl, Settings.plot_settings['pie_charts']['anchor_legend_big'], 'Final label frequencies')
 
 
     # 2. Make QC overview pie
     # make color mapper
     outl_col_mapper = _outl_value_to_colormapper()
 
-    _make_pie_from_freqs(outlier_stats, outl_col_mapper, 1.5, ax_thr, 'Outlier performance')
+    _make_pie_from_freqs(outlier_stats, outl_col_mapper, Settings.plot_settings['pie_charts']['radius_big'], 
+                         ax_thr, Settings.plot_settings['pie_charts']['anchor_legend_big'], 'Outlier performance')
     
     
     
@@ -382,11 +385,11 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
     i=0
     for checkname, stats in specific_stats.items():
         ax = fig.add_subplot(spec[math.floor(i/4)+1,i%4])
-        _make_pie_from_freqs(stats, spec_col_mapper,8, ax, checkname)
+        _make_pie_from_freqs(stats, spec_col_mapper, Settings.plot_settings['pie_charts']['radius_small'], 
+                             ax, Settings.plot_settings['pie_charts']['anchor_legend_small'], checkname)
         i += 1
         
         
         
     plt.show()
     return
-

@@ -19,9 +19,6 @@ lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-
-
-
 #x = all(keys in ['a', 'b', 'c'] for keys in ['c', 'b', 'a'])
 
 testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
@@ -81,11 +78,13 @@ dataset_coarsened = vlinder_toolkit.Dataset()
 dataset_coarsened.import_data_from_file(coarsen_timeres=True)
 dataset_coarsened.apply_quality_control()
 
-_ = dataset_coarsened.get_qc_stats()
+#_ = dataset_coarsened.get_qc_stats()
 #%%
 dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
+
+_ = dataset.get_qc_stats()
 
 dataset.make_plot(stationnames=['Fictional'],colorby='label', show_outliers=True)
 
@@ -156,6 +155,7 @@ man_gapsdf = man_gapsdf.set_index('name')
 
 tlk_gapsdf = dataset.gaps.to_df()
 tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
+
 
 
 
