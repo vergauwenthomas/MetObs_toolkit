@@ -356,7 +356,9 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats):
     spec_col_mapper = {
         'ok': color_defenitions['ok'],
         'not checked': color_defenitions['not checked'],
-        'outlier': color_defenitions['outlier']
+        'outlier': color_defenitions['outlier'],
+        'gap': color_defenitions['gap'],
+        'missing timestamp': color_defenitions['missing_timestamp']
         }
     
     i=0

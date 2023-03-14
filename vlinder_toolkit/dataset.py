@@ -606,6 +606,15 @@ class Dataset:
         ignore_obstypes = Settings.observation_types.copy()
         ignore_obstypes.remove(obstype)
         comb_df = comb_df.drop(columns=ignore_obstypes)
+        # drop label columns not applicable on obstype
+        relevant_columns = [col for col in comb_df.columns if col.startswith(obstype)]
+        
+        # add all columns of checks applied on records (i.g. without obs prefix like duplicate timestamp)
+        record_check = {key: item['label_columnname'] for key, item in Settings.qc_checks_info.items() if item['apply_on'] == 'record'}
+        relevant_columns.extend(list(record_check.values()))
+        # filter relevant columns
+        comb_df = comb_df[relevant_columns]
+        
 
         # compute freq statistics
         final_freq, outl_freq, specific_freq = get_freq_statistics(
