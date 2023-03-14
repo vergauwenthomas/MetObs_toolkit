@@ -30,30 +30,23 @@ static_data = os.path.join(
 # #% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
-                         input_metadata_file=static_data,
+                         # input_metadata_file=static_data,
                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                          )
 
-
 dataset = vlinder_toolkit.Dataset()
-dataset.import_data_from_file(coarsen_timeres=True)
+
+
+df = dataset.import_data_from_file(coarsen_timeres=True)
 
 
 dataset.apply_quality_control()
 
-dataset.write_to_csv()
+#add obstype to get qc stats
+
+dataset.get_qc_stats()
 
 
-
-
-
-
-# test = dataset.get_qc_stats()
-
-
-
-#%%
-
-
-
+test = dataset.combine_all_to_obsspace()
+    
 #%% 

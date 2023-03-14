@@ -119,7 +119,17 @@ assert all([True for label in all_manual_labels if label in manual_to_tlkit_labe
 # iterate over all labels and validate if the indices are equal between manual and toolkit
 # =============================================================================
 
+to_check = ['ok',
+            'in step outlier group',
+            'repetitions outlier',
+            # 'duplicated timestamp outlier',
+            'gross value outlier',
+            'in window variation outlier group',
+            'persistance outlier']
 for man_label, tlk_label in manual_to_tlkit_label_map.items():
+    if not man_label in to_check:
+        continue
+    
     print(f' Testing equality of the {tlk_label} with the manual labeling ({man_label}).')
     
     man_idx = man_df[man_df['flags'] == man_label].index.sort_values()
@@ -137,6 +147,30 @@ for man_label, tlk_label in manual_to_tlkit_label_map.items():
         print('OK!')
 
 
+# =============================================================================
+# test duplicates
+# =============================================================================
+# tested seperatly because duplicates are in tlk stored as one record, to avoid 
+# duplicate index errors. So we have to do the same for the manual labeling
+man_label = 'duplicated timestamp outlier'
+tlk_label = manual_to_tlkit_label_map[man_label]
+
+print(f' Testing equality of the {tlk_label} with the manual labeling ({man_label}).')
+
+man_df_no_duplic = man_df[~man_df.index.duplicated(keep='first')]
+
+man_idx = man_df_no_duplic[man_df_no_duplic['flags'] == man_label].index.sort_values()
+tlk_idx = tlk_df[tlk_df['temp_final_label'] == tlk_label].index.sort_values()
+
+if not tlk_idx.equals(man_idx):
+    print(f'ERROR: wrong labels for {tlk_label}')
+    
+    print(f'differences tlkit --> manual: { tlk_idx.difference(man_idx)}')
+    print(f'differences manual --> tlkit: {man_idx.difference(tlk_idx)}')
+    sys.exit(1)
+
+else:
+    print('OK!')
 # =============================================================================
 # test missing Gaps
 # =============================================================================
