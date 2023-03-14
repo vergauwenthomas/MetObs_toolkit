@@ -195,8 +195,7 @@ tlk_missing_series = dataset.missing_obs.series
 tlk_missing_series = tlk_missing_series.reset_index().rename(columns={'index': 'name', 0: 'datetime'})
 tlk_missing_timestamps_idx = pd.MultiIndex.from_frame(tlk_missing_series).sort_values()
 
-print(tlk_missing_timestamps_idx)
-print(man_missing_timestamps_idx)
+
 
 if not tlk_missing_timestamps_idx.equals(man_missing_timestamps_idx):
     print(f'ERROR: wrong missing timestamps detection')
@@ -208,68 +207,5 @@ if not tlk_missing_timestamps_idx.equals(man_missing_timestamps_idx):
 else:
     print('OK!')
 
-#for station in tlk_missing_series.index.unique():
-#    sta_n_missing = tlk_missing_series[[station]].shape[0]
-#    
-#    if sta_n_missing != number_missing_timestamps[station]:
-#        print(f'ERROR: wrong number of missing obs for station: {station}')
-#        
-#        print(f'number of missing obs for {station} by manual work: {number_missing_timestamps[station]}')
-#        print(f'number of missing obs for {station} by toolkit: {tlk_missing_series}')
-#        sys.exit(1)
-#    
-#    
-#print('OK!')
-    
 
-
-
-
-
-
-
-
-
-# # indices_dupl_df = df[df['flags'] =='duplicated timestamp outlier'].index.sortlevel()[0]
-# # df = df[df['flags'] != 'duplicated timestamp outlier']
-
-# # indices_dupl_outliers = outliersdf[outliersdf['temp_final_label'] =='duplicated timestamp outlier'].index.sortlevel()[0]
-# # outliersdf = outliersdf[outliersdf['temp_final_label'] != 'duplicated timestamp outlier']
-
-
-# df = df[df['flags'] != 'duplicated timestamp outlier']
-# outliersdf = outliersdf[outliersdf['temp_final_label'] != 'duplicated timestamp outlier']
-
-
-
-
-
-
-# if not indices_dupl_df.equals(indices_dupl_outliers):
-#     if len(indices_dupl_outliers.difference(indices_dupl_df)) > 0:
-#         print('Timestamps with wrong duplicate label are: ', indices_dupl_outliers.difference(indices_dupl_df))
-#     else:
-#         print('Timestamps with missing duplicate label are: ', indices_dupl_df.difference(indices_dupl_outliers))
-#     sys.exit('There is a problem with the duplicates')
-
-# df = df.merge(outliersdf['temp_final_label'], how='outer', left_index=True, right_index=True)
-# df['temp_final_label'] = df['temp_final_label'].fillna(value='ok')
-
-# indices_missing_timestamp = df[df['temp_final_label'] == 'missing timestamp'].index
-# df.loc[indices_missing_timestamp,'flags'] = 'missing timestamp'
-
-# indices_gap_timestamp = df[df['temp_final_label'] == 'missing timestamp (gap)'].index
-# df.loc[indices_gap_timestamp,'flags'] = 'missing timestamp (gap)'
-
-
-# dataset.get_qc_stats()
-
-
-
-# if not df['flags'].equals(df['temp_final_label']):
-#     print('Timestamps with wrong label are: ', list(df.index[df['flags'] != df['temp_final_label']]))
-#     sys.exit('There is a problem with the quality control')
-# else:
-#     print('The quality control is performing as expected')
-    
 
