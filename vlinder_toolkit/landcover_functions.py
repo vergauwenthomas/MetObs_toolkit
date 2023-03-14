@@ -258,3 +258,4 @@ def gee_extract_timeseries(metadf, mapinfo, startdt, enddt, obstype='temp', latc
     df = df.rename(columns={bandname: obstype})
 
     return df
+

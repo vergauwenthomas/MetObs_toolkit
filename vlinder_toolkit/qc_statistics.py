@@ -105,6 +105,3 @@ def get_freq_statistics(comb_df, obstype):
 
 
 
-
-
-
