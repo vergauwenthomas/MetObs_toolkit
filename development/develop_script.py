@@ -27,33 +27,31 @@ static_data = os.path.join(
     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
 
+#Testdata
+testdatafile = '/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/tests/test_data/testdata_breaking.csv'
+
+template = '/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/tests/test_data/template_breaking.csv'
+
+
 # #% Setup dataset
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
-                         input_metadata_file=static_data,
+                         # input_metadata_file=static_data,
                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                          )
-
+settings.add_csv_template(template)
 
 dataset = vlinder_toolkit.Dataset()
-dataset.import_data_from_file(coarsen_timeres=True)
+
+
+df = dataset.import_data_from_file(coarsen_timeres=False)
 
 
 dataset.apply_quality_control()
 
-dataset.write_to_csv()
+dataset.get_qc_stats()
 
 
-
-
-
-
-# test = dataset.get_qc_stats()
-
-
-
-#%%
-
-
-
+    
+    
 #%% 
