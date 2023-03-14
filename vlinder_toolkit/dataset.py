@@ -655,16 +655,7 @@ class Dataset:
         self.outliersdf[new_performed_checks_columns] = self.outliersdf[
             new_performed_checks_columns].fillna(value='not checked')
 
-    def get_final_qc_labels(self):
-
-        # add final quality labels
-
-        outldf = add_final_label_to_outliersdf(
-                        outliersdf=self.outliersdf,
-                        data_res_series=self.metadf['dataset_resolution'])
-
-        return outldf
-
+   
     # =============================================================================
     #     importing data
     # =============================================================================

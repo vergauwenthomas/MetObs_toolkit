@@ -27,77 +27,6 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Helper functions
 # =============================================================================
-# def init_outlier_multiindexdf():
-#     my_index = pd.MultiIndex(levels=[['name'],['datetime']],
-#                              codes=[[],[]],
-#                              names=[u'name', u'datetime'])
-
-   
-#     df = pd.DataFrame(index=my_index)
-#     return df
-
-# def make_outlier_df_for_check(station_dt_list, values_in_dict, flagcolumnname, flag, stationname=None, datetimelist=None):
-#     """
-#     V3
-#     Helper function to create an outlier dataframe for the given station(s) and datetimes. This will be returned by 
-#     a quality control check and later added to the dastes.outlierdf. 
-    
-#     Multiple commum inputstructures can be handles
-    
-#     A multiindex dataframe with the relevant observationtypes i.e. the values_in_dict and a specific quality flag column (i.g. the labels) is returned.
-#     Parameters
-#     ----------
-#     station_dt_list : MultiIndex or list of tuples: (name, datetime)
-#         The stations with corresponding datetimes that are labeled as outliers.
-#     values_in_dict : Dictionary
-#         A Dictionary {columnname: pd.Series()} with the values on which this check is applied.
-#     flagcolumnname : String
-#         Name of the labels column
-#     flag : String
-#         The label for all the outliers.
-#     stationname : String, optional
-#         It is possible to give the name of one station. The default is None.
-#     datetimelist : DatetimeIndex or List, optional
-#         The outlier timestamps for the stationname. The default is None.
-#     Returns
-#     -------
-#     check_outliers : pd.Dataframe
-#         A multiindex (name -- datetime) datatframe with one column (columname) and all
-#         values are the flag.
-#     """
-
-        
-#     columnorder =list(values_in_dict.keys())
-#     columnorder.append(flagcolumnname)
-        
-    
-#     if isinstance(station_dt_list, pd.MultiIndex):
-#         check_outliers = pd.DataFrame(data=flag, index=station_dt_list, columns=[flagcolumnname])
-#         for obstype, obsvalues in values_in_dict.items():    
-#             check_outliers[obstype] = obsvalues
-#         check_outliers = check_outliers[columnorder]
-#         return check_outliers
-#     elif isinstance(station_dt_list, list): #list of tuples: (name, datetime)
-#         multi_idx = pd.MultiIndex.from_tuples(station_dt_list, names=['name', 'datetime'])
-#         check_outliers = pd.DataFrame(data=flag, index=multi_idx, columns=[flagcolumnname])
-#         for obstype, obsvalues in values_in_dict.items():    
-#             check_outliers[obstype] = obsvalues
-#         check_outliers = check_outliers[columnorder]
-#         return check_outliers
-#     elif not isinstance(stationname, type(None)):
-#         if isinstance(datetimelist, pd.DatetimeIndex):
-#             datetimelist = datetimelist.to_list()
-#         if isinstance(datetimelist, list):
-#             indexarrays = list(zip([stationname]*len(datetimelist), datetimelist))
-#             multi_idx = pd.MultiIndex.from_tuples(indexarrays, names=['name', 'datetime'])
-#             check_outliers = pd.DataFrame(data=flag, index=multi_idx, columns=[flagcolumnname])
-#             for obstype, obsvalues in values_in_dict.items():    
-#                 check_outliers[obstype] = obsvalues
-#             check_outliers = check_outliers[columnorder]
-#             return check_outliers
-#         else:
-#             sys.exit(f'Type of datetimelist: {type(datetimelist)} is not implemented.')
-
 
 
 def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
@@ -171,22 +100,6 @@ def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
 # =============================================================================
 
 
-# def invalid_input_check(df, obstype):
-    
-#     checkname = 'invalid_input'
-    
-#     nan_df = df[df[obstype].isnull()]
-#     nan_indices = nan_df.index
-
-#     outlierdf = make_outlier_df_for_check(station_dt_list = nan_indices,
-#                                           values_in_dict = nan_df.to_dict(orient='series'),
-#                                           flagcolumnname=obstype+'_'+checks_info[checkname]['label_columnname'],
-#                                           flag=checks_info[checkname]['outlier_flag'])
-    
-#     df = df.drop(nan_indices)
-    
-#     return df, outlierdf
-
 def invalid_input_check(df):
         
     checkname = 'invalid_input'
@@ -225,6 +138,7 @@ def invalid_input_check(df):
     
     return df, outl_df
   
+    
 def duplicate_timestamp_check(df):
     """
     V3
@@ -657,45 +571,4 @@ def get_outliers_in_daterange(input_data, date, name, time_window, station_freq)
     return intersection
 
 
-
-
-# def qc_info(qc_dataframe):
-    
-#     number_gross_error_outliers = qc_dataframe.persistance.str.contains('gross value outlier').sum()
-#     number_persistance_outliers = qc_dataframe.persistance.str.contains('persistance outlier').sum()
-#     number_step_outliers = qc_dataframe.persistance.str.contains('step outlier').sum()
-#     number_int_consistency_outliers = qc_dataframe.persistance.str.contains('internal consistency outlier').sum()
-    
-#     fraction_gross_outliers = number_gross_error_outliers/(number_gross_error_outliers+number_persistance_outliers+number_step_outliers+number_int_consistency_outliers)
-#     fraction_persistance_outliers = number_persistance_outliers/(number_gross_error_outliers+number_persistance_outliers+number_step_outliers+number_int_consistency_outliers)
-#     fraction_step_outliers = number_step_outliers/(number_gross_error_outliers+number_persistance_outliers+number_step_outliers+number_int_consistency_outliers)
-#     fraction_int_consistency_outliers = number_int_consistency_outliers/(number_gross_error_outliers+number_persistance_outliers+number_step_outliers+number_int_consistency_outliers)
-    
-#     percentage_of_data_gross_outlier = number_gross_error_outliers/len(qc_dataframe)
-#     percentage_of_data_persistance_outlier = number_persistance_outliers/len(qc_dataframe)
-#     percentage_of_data_step_outlier = number_step_outliers/len(qc_dataframe)
-#     percentage_of_data_consistency_outlier = number_int_consistency_outliers/len(qc_dataframe)
-    
-#     print("Number of gross error outliers: ", number_gross_error_outliers)
-#     print("Number of persistance outliers: ", number_persistance_outliers)
-#     print("Number of step outliers: ", number_step_outliers)
-#     print("Number of internal consistency outliers: ", number_int_consistency_outliers)
-    
-#     print("Fraction of gross error outliers: ", fraction_gross_outliers)
-#     print("Fraction of persistance outliers: ", fraction_persistance_outliers)
-#     print("Fraction of step outliers: ", fraction_step_outliers)
-#     print("Fraction of internal consistency outliers: ", fraction_int_consistency_outliers)
-    
-#     print("Percentage of data gross outlier: ", percentage_of_data_gross_outlier)
-#     print("Percentage of data persistance outlier: ", percentage_of_data_persistance_outlier)
-#     print("Percentage of data step outlier: ", percentage_of_data_step_outlier)
-#     print("Percentage of data internal consistency outlier: ", percentage_of_data_consistency_outlier)
-    
-#     print("Gross error outliers at: ", qc_dataframe[qc_dataframe['gross_value'] == 'gross value outlier'].index)
-#     print("Persistance outliers at: ", qc_dataframe[qc_dataframe['persistance'] == 'persistance outlier'].index)
-#     print("Step outliers at: ", qc_dataframe[qc_dataframe['step'] == 'step outlier'].index)
-#     print("Internal consistency outliers at: ", qc_dataframe[qc_dataframe['internal_consistency'] == 'internal consistency outlier'].index)
-#     print("Humidity 0 at: ", qc_dataframe[qc_dataframe['internal_consistency'] == 'humidity 0'].index)
-    
-    
 
