@@ -612,6 +612,7 @@ class Dataset:
         # add all columns of checks applied on records (i.g. without obs prefix like duplicate timestamp)
         record_check = {key: item['label_columnname'] for key, item in Settings.qc_checks_info.items() if item['apply_on'] == 'record'}
         relevant_columns.extend(list(record_check.values()))
+        relevant_columns = [col for col in relevant_columns if col in comb_df.columns]
         # filter relevant columns
         comb_df = comb_df[relevant_columns]
         

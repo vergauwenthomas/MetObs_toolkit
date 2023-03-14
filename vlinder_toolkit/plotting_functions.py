@@ -272,7 +272,15 @@ def _make_pie_from_freqs(freq_dict, colormapper, radius, ax,
 
     # make color mapper
     stats['color'] = stats.index.map(colormapper)
- 
+    if (stats['freq'] == 0.0).all():
+        print('No occurences in sample.')
+        #add a 100% no occurences to it, so it can be plotted
+        no_oc_df = pd.DataFrame(index=['No occurences'],
+                     data={'freq': [100.0],
+                           'color':[Settings.plot_settings['color_mapper']['ok']]})
+        stats = pd.concat([stats, no_oc_df])
+        
+        
     # Make pie and legend 
     patches, text = ax.pie(stats['freq'], colors=stats['color'], radius=radius)
     ax.legend(handles=patches, labels = [f'{l}, {s:0.1f}%' for l, s in zip(stats.index.to_list(),
