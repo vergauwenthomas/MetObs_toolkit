@@ -36,7 +36,7 @@ dataset.import_data_from_file(coarsen_timeres=True)
 dataset.apply_quality_control(obstype='temp')
 
 
-outliersdf = dataset.get_final_qc_labels()
+outliersdf = dataset.combine_all_to_obsspace()
 dataset.get_qc_stats(make_plot = False)
 
 
