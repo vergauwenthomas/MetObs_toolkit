@@ -15,6 +15,23 @@ import geopandas as gpd
 from vlinder_toolkit.settings import Settings
 
 
+def init_multiindexdf():
+    my_index = pd.MultiIndex(levels=[['name'],['datetime']],
+                             codes=[[],[]],
+                             names=[u'name', u'datetime'])
+
+   
+    df = pd.DataFrame(index=my_index)
+    return df
+
+
+def init_multiindex():
+     return pd.MultiIndex(levels=[['name'],['datetime']],
+                             codes=[[],[]],
+                             names=[u'name', u'datetime'])
+
+
+
 def add_final_label_to_outliersdf(outliersdf, data_res_series):
     """
     V3
@@ -87,17 +104,11 @@ def add_final_label_to_outliersdf(outliersdf, data_res_series):
 
 
 def remove_outliers_from_obs(obsdf, outliersdf):
+    #TODO this function can only be used with care!!! 
+    # because all timestamps will be removed that have an oulier in one specific obstype !!!!
     return obsdf.loc[~obsdf.index.isin(outliersdf.index)]
 
-    
-def init_multiindexdf():
-    my_index = pd.MultiIndex(levels=[['name'],['datetime']],
-                             codes=[[],[]],
-                             names=[u'name', u'datetime'])
 
-   
-    df = pd.DataFrame(index=my_index)
-    return df
 
 
 
@@ -187,4 +198,3 @@ def datetime_subsetting(df, starttime, endtime):
         endstring = endtime.strftime(stand_format)
 
     return df[startstring: endstring]
-

@@ -52,7 +52,11 @@ from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         metadf_to_gdf)
 
 
+
+
 logger = logging.getLogger(__name__)
+
+
 
 
 # =============================================================================
@@ -484,12 +488,12 @@ class Dataset:
             print('Applying the repetitions-check on all stations.')
             logger.info('Applying repetitions check on the full dataset')
 
-            checked_series, outl_df = repetitions_check(
-                                            input_series=self.df[obstype],
+            obsdf, outl_df = repetitions_check(
+                                            obsdf=self.df,
                                             obstype=obstype)
 
             # update the dataset and outliers
-            self.df[obstype] = checked_series
+            self.df = obsdf
             self.update_outliersdf(outl_df)
 
 
@@ -497,52 +501,54 @@ class Dataset:
             print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
 
-            checked_series, outl_df = gross_value_check(
-                                            input_series=self.df[obstype],
+            obs, outl_df = gross_value_check(
+                                            obsdf=self.df,
                                             obstype=obstype)
 
             # update the dataset and outliers
-            self.df[obstype] = checked_series
+            self.df = obs
             self.update_outliersdf(outl_df)
 
         if persistance:
             print('Applying the persistance-check on all stations.')
             logger.info('Applying persistance check on the full dataset')
 
-            checked_series, outl_df = persistance_check(
+            obsdf, outl_df = persistance_check(
                         station_frequencies=self.metadf['dataset_resolution'],
-                        input_series=self.df[obstype],
+                        obsdf=self.df,
                         obstype=obstype)
 
             # update the dataset and outliers
-            self.df[obstype] = checked_series
+            self.df = obsdf
             self.update_outliersdf(outl_df)
 
         if step:
             print('Applying the step-check on all stations.')
             logger.info('Applying step-check on the full dataset')
-
-            checked_series, outl_df = step_check(input_series=self.df[obstype],
+            
+            obsdf, outl_df = step_check(obsdf=self.df,
                                                  obstype=obstype)
 
             # update the dataset and outliers
-            self.df[obstype] = checked_series
+            self.df = obsdf
             self.update_outliersdf(outl_df)
 
         if window_variation:
             print('Applying the window variation-check on all stations.')
             logger.info('Applying window variation-check on the full dataset')
 
-            checked_series, outl_df = window_variation_check(
+            obsdf, outl_df = window_variation_check(
                         station_frequencies=self.metadf['dataset_resolution'],
-                        input_series=self.df[obstype],
+                        obsdf=self.df,
                         obstype=obstype)
 
             # update the dataset and outliers
-            self.df[obstype] = checked_series
+            self.df = obsdf
             self.update_outliersdf(outl_df)
 
         self.outliersdf = self.outliersdf.sort_index()
+
+
 
     def combine_all_to_obsspace(self):
         """
@@ -571,8 +577,12 @@ class Dataset:
                 outliersdf[column] = 'not checked'
         # get final label
         outliersdf = add_final_label_to_outliersdf(
-            outliersdf, self.metadf['dataset_resolution'])
-
+                        outliersdf=self.outliersdf,
+                        data_res_series=self.metadf['dataset_resolution'])
+        #remove duplicate indixes (needed for update)
+        outliersdf = outliersdf[~outliersdf.index.duplicated(keep='first')]
+        
+        
         # add gaps observations and fill with default values
         gapsidx = self.gaps.get_gaps_indx_in_obs_space(
             self.df, self.outliersdf, self.metadf['dataset_resolution'])
@@ -589,46 +599,51 @@ class Dataset:
         gapsdf = gapsdf.drop(gapsfilldf.index, errors='ignore')
         # missingdf = missingdf.drop(gapsfilldf, errors='ignore') #for future when missing are filled
 
+
         # get observations
-
         df = self.df
-
-        # remove outliers (represented by Nan's) from observations
-        df = remove_outliers_from_obs(df, outliersdf)
-
-        # add outliers columns to df and fill with 'ok' values as default
-        cols_to_add = {
-            col: 'ok' for col in outliersdf.columns if not col in df.columns}
-        df = df.assign(**cols_to_add)
+        #fill QC outlier columns with custom values
+        label_cols = [col for col in outliersdf.columns if col.endswith('_label')]
+        for col in label_cols:
+            df[col] = 'ok'
+        
+        # Merge obs and outliers, where obs values will be updated by outliers
+        df.update(other=outliersdf,
+                         join='left',
+                         overwrite=True,
+                         errors='ignore')
+        
 
         # initiate default values
         for col in df.columns:
             if col in Settings.observation_types:
                 default_value_gap = np.nan  # nan for observations
                 default_value_missing = np.nan
-
+        
             elif col.endswith('_final_label'):
                 # 'gap' for final label
                 default_value_gap = Settings.gaps_info['gap']['outlier_flag']
                 # 'is_missing_timestamp' for final label
                 default_value_missing = Settings.gaps_info['missing_timestamp']['outlier_flag']
-
+    
             else:
                 default_value_gap = 'not checked'
                 default_value_missing = 'not checked'
                 gapsfilldf[col] = 'not checked'
-
+        
             gapsdf[col] = default_value_gap
             missingdf[col] = default_value_missing
-
+        
         # sort columns
         gapsdf = gapsdf[list(df.columns)]
         missingdf = missingdf[list(df.columns)]
-        df = df[list(df.columns)]
+
 
         # Merge all together
-        comb_df = pd.concat([df, outliersdf, gapsdf, missingdf, gapsfilldf]).sort_index()
+        comb_df = pd.concat([df, gapsdf, missingdf, gapsfilldf]).sort_index()
+
         return comb_df
+    
 
     def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):
         """
@@ -668,6 +683,17 @@ class Dataset:
         ignore_obstypes.remove(obstype)
         comb_df = comb_df.drop(columns=ignore_obstypes)
 
+        # drop label columns not applicable on obstype
+        relevant_columns = [col for col in comb_df.columns if col.startswith(obstype)]
+        
+        # add all columns of checks applied on records (i.g. without obs prefix like duplicate timestamp)
+        record_check = {key: item['label_columnname'] for key, item in Settings.qc_checks_info.items() if item['apply_on'] == 'record'}
+        relevant_columns.extend(list(record_check.values()))
+        relevant_columns = [col for col in relevant_columns if col in comb_df.columns]
+        # filter relevant columns
+        comb_df = comb_df[relevant_columns]
+        
+
         # compute freq statistics
         final_freq, outl_freq, specific_freq = get_freq_statistics(
             comb_df, obstype)
@@ -706,15 +732,6 @@ class Dataset:
         self.outliersdf[new_performed_checks_columns] = self.outliersdf[
             new_performed_checks_columns].fillna(value='not checked')
 
-    def get_final_qc_labels(self):
-
-        # add final quality labels
-
-        outldf = add_final_label_to_outliersdf(
-                        outliersdf=self.outliersdf,
-                        data_res_series=self.metadf['dataset_resolution'])
-
-        return outldf
 
     # =============================================================================
     #     importing data
@@ -951,18 +968,17 @@ class Dataset:
 
         # Perform QC checks on original observation frequencies
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
-        self.outliersdf = pd.concat([self.outliersdf, dup_outl_df])
+        self.update_outliersdf(dup_outl_df)
         
-        for obstype in Settings.observation_types:
-            if not self.df[obstype].isnull().all():
-                self.df, nan_outl_df = invalid_input_check(self.df, obstype=obstype)
-                self.update_outliersdf(nan_outl_df)
-           
+        self.df, nan_outl_df = invalid_input_check(self.df)
+        self.update_outliersdf(nan_outl_df)
+                
 
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
-                                         method=Settings.resample_method,
-                                         limit=Settings.resample_limit)
+                                          method=Settings.resample_method,
+                                          limit=Settings.resample_limit)
+
 
         else:
             self.metadf['dataset_resolution'] = self.metadf['assumed_import_frequency']
@@ -1053,7 +1069,9 @@ class Station(Dataset):
         self.metadf = metadf
         self.data_template = data_template
 
+
         self._istype = 'Station'
+
 
 
 def loggin_nan_warnings(df):
@@ -1068,7 +1086,6 @@ def loggin_nan_warnings(df):
                 logger.warning(f'No values for {column}, they are initiated\
                                as Nan.')
             else:
-
                 outliers = bool_series[bool_series]
                 logger.warning(f'No values for stations: \
                                {outliers.index.to_list()}, for {column},\
