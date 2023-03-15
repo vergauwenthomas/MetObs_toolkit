@@ -31,22 +31,24 @@ from vlinder_toolkit.qc_checks import (gross_value_check,
                                        repetitions_check,
                                        duplicate_timestamp_check,
                                        step_check,
-                                       init_outlier_multiindexdf,
                                        window_variation_check,
                                        invalid_input_check)
+
 
 from vlinder_toolkit.qc_statistics import get_freq_statistics
 from vlinder_toolkit.writing_files import write_dataset_to_csv
 
-from vlinder_toolkit.gap import (Gap_collection,
-                                 Missingob_collection)
-from vlinder_toolkit.gap import (missing_timestamp_and_gap_check,
+from vlinder_toolkit.missingobs import Missingob_collection
+
+from vlinder_toolkit.gap import (Gap_collection, 
+                                 missing_timestamp_and_gap_check,
                                  get_freqency_series)
 
 
 from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         multiindexdf_datetime_subsetting,
                                         remove_outliers_from_obs, 
+                                        init_multiindexdf,
                                         metadf_to_gdf)
 
 
@@ -73,10 +75,12 @@ class Dataset:
         self.df = pd.DataFrame()
 
         # Dataset with outlier observations
-        self.outliersdf = init_outlier_multiindexdf()
+        self.outliersdf = init_multiindexdf()
 
         self.missing_obs = None  # becomes a Missingob_collection after import
         self.gaps = None  # becomes a gap_collection after import
+        
+        self.gapfilldf = init_multiindexdf()
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
@@ -118,16 +122,23 @@ class Dataset:
             sta_outliers = self.outliersdf.xs(
                 stationname, level='name', drop_level=False)
         except KeyError:
-            sta_outliers = init_outlier_multiindexdf()
+            sta_outliers = init_multiindexdf()
 
         sta_gaps = self.gaps.get_station_gaps(stationname)
         sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
+        
+        try:
+            sta_gapfill=self.gapfilldf.xs(
+                stationname, level='name', drop_level=False)
+        except KeyError:
+            sta_gapfill = init_multiindexdf()
 
         return Station(name=stationname,
                        df=sta_df,
                        outliersdf=sta_outliers,
                        gaps=sta_gaps,
                        missing_obs=sta_missingobs,
+                       gapfilldf=sta_gapfill,
                        metadf=sta_metadf,
                        data_template=self.data_template)
 
@@ -141,8 +152,10 @@ class Dataset:
 
         """
         logger.info('Show basic info of dataset.')
-
-        print_dataset_info(self.df, self.outliersdf, self.gaps.df)
+        
+        gapsdf = self.gaps.to_df()
+        
+        print_dataset_info(self.df, self.outliersdf, gapsdf)
 
     def make_plot(self, stationnames=None, variable='temp', colorby='name',
                   starttime=None, endtime=None,
@@ -303,8 +316,33 @@ class Dataset:
                              vmax=vmax)
 
         return axis
+    
+    
+    # =============================================================================
+    #   Gap Filling  
+    # =============================================================================
+
+    def fill_gaps(self, obstype='temp', method='linear'):
+        #TODO logging
+        if method=='linear':
+            fill_settings = Settings.gaps_fill_settings['linear']
+            fill_info = Settings.gaps_fill_info
+            
+            #fill gaps
+            self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
+                                        obsdf = self.df,
+                                        outliersdf = self.outliersdf,
+                                        dataset_res=self.metadf['dataset_resolution'],
+                                        obstype=obstype,
+                                        method=fill_settings['method'],
+                                        max_consec_fill=fill_settings['max_consec_fill'])
+            
+            #add label column
+            self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']
+            
 
     def write_to_csv(self, filename=None, include_outliers=True,
+                     include_gapfill=True, 
                      add_final_labels=True, use_tlk_obsnames=True):
         """
             Write the dataset to a file where the observations, metadata and
@@ -332,6 +370,7 @@ class Dataset:
             """
 
         logger.info('Writing the dataset to a csv file')
+
         assert not isinstance(Settings.output_folder, type(None)), 'Specify \
             Settings.output_folder in order to export a csv.'
         assert os.path.isdir(Settings.output_folder), f'The outputfolder: \
@@ -354,7 +393,32 @@ class Dataset:
                 cols_to_keep.extend([col for col in mergedf.columns
                                      if col.endswith('_final_label')])
                 mergedf = mergedf[cols_to_keep]
+                
+        if not include_gapfill:
+            # locate all filled values
+            filled_df =  init_multiindexdf()
+            final_columns = [col for col in mergedf.columns if col.endswith('_final_label')]
+            for final_column in final_columns:
+                filled_df = pd.concat([filled_df, 
+                                       mergedf.loc[mergedf[final_column] == 
+                                                   Settings.gaps_fill_info['label']]])
+                
+            # drop filled values from mergedf
+            mergedf = mergedf.drop(filled_df.index, errors='ignore')
+            
+            #fill with numpy nan
+            nan_columns = {col: np.nan for col in mergedf.columns if col in Settings.observation_types}
+            filled_df = filled_df.assign(**nan_columns)
+            # rename label
+            filled_df = filled_df.replace({Settings.gaps_fill_info['label']: Settings.gaps_info['gap']['outlier_flag']})
+            #add to mergedf
+            mergedf = pd.concat([mergedf, filled_df]).sort_index()
+            
 
+            
+            
+            
+            
         # Map obstypes columns
         if not use_tlk_obsnames:
             # TODO
@@ -367,6 +431,7 @@ class Dataset:
                              metadf=self.metadf,
                              filename=filename,
                              )
+
 
     # =============================================================================
     #     Quality control
@@ -527,6 +592,12 @@ class Dataset:
         missingidx = self.missing_obs.get_missing_indx_in_obs_space(
             self.df, self.metadf['dataset_resolution'])
         missingdf = missingidx.to_frame()
+        
+        # add gapfill and remove the filled records from gaps
+        gapsfilldf = self.gapfilldf.copy()
+
+        gapsdf = gapsdf.drop(gapsfilldf.index, errors='ignore')
+        # missingdf = missingdf.drop(gapsfilldf, errors='ignore') #for future when missing are filled
 
 
         # get observations
@@ -558,6 +629,7 @@ class Dataset:
             else:
                 default_value_gap = 'not checked'
                 default_value_missing = 'not checked'
+                gapsfilldf[col] = 'not checked'
         
             gapsdf[col] = default_value_gap
             missingdf[col] = default_value_missing
@@ -568,7 +640,8 @@ class Dataset:
 
 
         # Merge all together
-        comb_df = pd.concat([df, gapsdf, missingdf]).sort_index()
+        comb_df = pd.concat([df, gapsdf, missingdf, gapsfilldf]).sort_index()
+
         return comb_df
     
 
@@ -985,13 +1058,14 @@ class Dataset:
 # =============================================================================
 
 class Station(Dataset):
-    def __init__(self, name, df, outliersdf, gaps, missing_obs,
+    def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
                  metadf, data_template):
         self.name = name
         self.df = df
         self.outliersdf = outliersdf
         self.gaps = gaps
         self.missing_obs = missing_obs
+        self.gapfilldf = gapfilldf
         self.metadf = metadf
         self.data_template = data_template
 

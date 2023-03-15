@@ -15,8 +15,10 @@ import logging
 from vlinder_toolkit.settings_files.qc_settings import (check_settings,
                                                         checks_info)
 
-from vlinder_toolkit.df_helpers import (init_outlier_multiindex,
-                                        init_outlier_multiindexdf)
+
+from vlinder_toolkit.df_helpers import (init_multiindex,
+                                        init_multiindexdf)
+
 
 
 
@@ -120,7 +122,7 @@ def invalid_input_check(df):
     for obstype in outl_obstypes:
         #get stations that have ouliers for this obstype
         outl_stations = groups.loc[groups[obstype], obstype].index.to_list()
-        outl_multiidx = init_outlier_multiindex()
+        outl_multiidx = init_multiindex()
         for sta in outl_stations:
             #apply check per station
             outl_idx = df.xs(sta, level='name', drop_level=False)[obstype].isnull().loc[lambda x: x].index
@@ -129,7 +131,7 @@ def invalid_input_check(df):
         outl_dict[obstype]=outl_multiidx
     
     #create outliersdf for all outliers for all osbtypes
-    outl_df = init_outlier_multiindexdf()
+    outl_df = init_multiindexdf()
     for obstype, outliers in outl_dict.items():
         df, specific_outl_df = make_outlier_df_for_check(station_dt_list=outliers,
                                                      obsdf=df,
@@ -226,8 +228,8 @@ def gross_value_check(obsdf, obstype):
     except:
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-        
-        return obsdf, init_outlier_multiindexdf()
+        return obsdf, init_multiindexdf()
+
    
     # drop outliers from the series (these are Nan's)
     input_series = obsdf[obstype].dropna()
@@ -285,8 +287,7 @@ def persistance_check(station_frequencies, obsdf, obstype):
     except:
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-        
-        return obsdf, init_outlier_multiindexdf()
+        return obsdf, init_multiindexdf()
     
     # drop outliers from the series (these are Nan's)
     input_series = obsdf[obstype].dropna()
@@ -358,7 +359,8 @@ def repetitions_check(obsdf, obstype):
     except:
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-        return obsdf, init_outlier_multiindexdf()
+        return obsdf, init_multiindexdf()
+
 
     # drop outliers from the series (these are Nan's)
     input_series = obsdf[obstype].dropna()
@@ -435,7 +437,7 @@ def step_check(obsdf, obstype):
     except:
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-        return obsdf, init_outlier_multiindexdf()
+        return obsdf, init_multiindexdf()
     
     # drop outliers from the series (these are Nan's)
     input_series = obsdf[obstype].dropna()
@@ -509,7 +511,7 @@ def window_variation_check(station_frequencies, obsdf, obstype):
     except:
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
-        return obsdf, init_outlier_multiindexdf()
+        return obsdf, init_multiindexdf()
 
     # drop outliers from the series (these are Nan's)
     input_series = obsdf[obstype].dropna()

@@ -138,6 +138,20 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby, show_legen
                                 zorder=plot_settings['linezorder'], 
                                 linewidth=plot_settings['linewidth'])
                 
+                
+            elif outl_label==Settings.gaps_fill_info['label']: #fill gaps as dashed lines
+                
+                fill_idx = init_idx.to_frame().drop(groupdf.index)
+                groupdf = pd.concat([groupdf, fill_idx])
+                groupdf = groupdf.drop(columns=['name', 'datetime'], errors='ignore')
+                groupdf.sort_index()
+                plotdf = groupdf.reset_index().pivot(index='datetime', columns='name', values=obstype) #long to wide
+
+                ax=plotdf.plot(kind='line', style='--', color=outl_color, ax=ax, legend=False,
+                                zorder=plot_settings['dashedzorder'], 
+                                linewidth=plot_settings['linewidth'])
+                
+                
             else: #outliers as scatters
                 plotdf = groupdf[obstype]
                 plotdf.index = plotdf.index.droplevel('name')
@@ -159,6 +173,12 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby, show_legen
                                              label='ok', lw=4))
                 del legenddict['ok'] #remove ok key
                 
+            if Settings.gaps_fill_info['label'] in legenddict.keys():
+                custom_handles.append(Line2D([0], [0],
+                                             color=legenddict[Settings.gaps_fill_info['label']],
+                                             label='gap filled', lw=4, linestyle='--'))
+                del legenddict[Settings.gaps_fill_info['label']] #remove ok key
+                
                 
             custom_scatters = [Line2D([0], [0], marker='o', color='w',
                                    markerfacecolor=col, label=lab, lw=1) for lab, col in legenddict.items()]
@@ -175,7 +195,7 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby, show_legen
 
     #Set title
     ax.set_title(title)
-    ax.legend().set_title('')
+    # ax.legend().set_title('')
 
     #Set x and y labels
     ax.set_xlabel(xlabel)
@@ -319,6 +339,9 @@ def _all_possible_labels_colormapper():
     # update gap and missing timestamp labels
     mapper[Settings.gaps_info['gap']['outlier_flag']] = color_defenitions['gap']
     mapper[Settings.gaps_info['missing_timestamp']['outlier_flag']] = color_defenitions['missing_timestamp']
+
+    #add gapfill 
+    mapper[Settings.gaps_fill_info['label']] = color_defenitions['gapfill']
 
     return mapper
 

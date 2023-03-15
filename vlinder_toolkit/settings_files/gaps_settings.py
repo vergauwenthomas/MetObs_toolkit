@@ -32,5 +32,24 @@ gaps_info = {
     
     }
 
-#settings for gapfilling
-gaps_fill_settings = {}
+
+# =============================================================================
+#  Gap filling settings
+# =============================================================================
+
+
+gaps_fill_settings={
+    'linear': {'method': 'time',
+               'max_consec_fill': 100}
+    
+    }
+
+
+gaps_fill_info = {
+    
+    'label_columnname': 'final_label',
+    'label': 'gapfill',
+     'numeric_flag': 21,
+     
+    }
+

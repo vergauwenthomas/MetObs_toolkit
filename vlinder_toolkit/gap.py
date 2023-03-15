@@ -16,113 +16,14 @@ import logging
 from datetime import datetime, timedelta
 import math
 
+
+from vlinder_toolkit.gap_filling import interpolate_gap
+
 from vlinder_toolkit.settings import Settings
 
 logger = logging.getLogger(__name__)
 
 
-
-
-# =============================================================================
-# Missing observation
-
-# a missing observation is a missing timestamp
-# =============================================================================
-
-
-    
-
-class Missingob_collection:
-    def __init__(self, missing_obs_series):
-        self.series = missing_obs_series
-        
-        
-    def get_station_missingobs(self, name):
-        if name in self.series.index:
-            return Missingob_collection(self.series.loc[[name]])
-        else:
-            # return empty collection
-            series = pd.Series(data=[], name='datetime', dtype=object)
-            series.index.name = 'name'
-            return Missingob_collection(series)
-        
-        
-    def remove_missing_from_obs(self, obsdf):
-        
-        #Normally there are no missing records in the obsdf
-        missing_multiidx = pd.MultiIndex.from_arrays(arrays=[self.series.index.to_list(),
-                                                             self.series.to_list()],
-                                                  names=[u'name', u'datetime'])
-        
-        obsdf = obsdf.drop(index=missing_multiidx, errors='ignore')
-        
-        return obsdf
-    
-    
-    def get_missing_indx_in_obs_space(self, obsdf, resolutionseries):
-        """
-        Function to found which missing timestamps are expected in the observation space.
-        Because of time coarsening not all missing timestamps are expected in observation space.
-        
-        This function handles each station seperatly because stations can have differnent resolution/timerange.
-        
-        
-
-        Parameters
-        ----------
-        obsdf : pandas.DataFrame()
-            Dataset.df.
-        resolutionseries : pandas.Series() or Timedelta
-            Dataset.metadf['dataset_resolution'].
-
-        Returns
-        -------
-        missing_obsspace : pandas.MultiIndex
-            The multiindex (name - datetime) is returned with the missing timestamps that are expexted in the observation space.
-
-        """
-                 
-        missing_obsspace = pd.MultiIndex(levels=[['name'],['datetime']],
-                                 codes=[[],[]],
-                                 names=[u'name', u'datetime'])
-        
-        # per stationtion because stations can have different resolutions/timerange
-        for sta in self.series.index.unique():
-            
-            # Get missing observations in IO space
-            sta_missing = self.series.loc[sta]
-            if not isinstance(sta_missing, type(pd.Series(dtype=object))):
-                sta_missing = pd.Series(data=[sta_missing], index=[sta],
-                                        dtype=object)
-             
-            
-            # Get start, end and frequency of the observation in obs space
-            startdt = obsdf.xs(sta, level='name').index.min()
-            enddt = obsdf.xs(sta, level='name').index.max()
-            obs_freq = resolutionseries.loc[sta]
-            
-            # Make datetimerange
-            obsrange = pd.date_range(start=startdt,
-                                     end=enddt,
-                                     freq = obs_freq,
-                                     inclusive="both")
-            
-            # # Look which missing timestamps appears obsspace
-            sta_missing =sta_missing[sta_missing.isin(obsrange)]
-
-            
-            #Convert to multiindex
-            if sta_missing.empty:
-                continue
-            
-            sta_missing_idx =  pd.MultiIndex.from_arrays(arrays=[[sta]*len(sta_missing),
-                                                                 sta_missing.to_numpy()],
-                                                      names=[u'name', u'datetime'])
-            
-            missing_obsspace = missing_obsspace.append(sta_missing_idx)
-         
-            
-        return missing_obsspace
          
 # =============================================================================
 # Gap class
@@ -130,23 +31,233 @@ class Missingob_collection:
 # a gap is a sequence of repeting missing obs
 # =============================================================================
 
-class _Gap:    
-    # do not use this class outside this module
+class Gap:    
+    """ Gap class holds all gap information and methods for gaps."""
+    
     def __init__(self, name, startdt, enddt):
-        
-        self.name = name
-        self.startgap = startdt
-        self.endgap = enddt
+        """
+        Initiate Gap object with a name, startdt and enddt.
 
+        Parameters
+        ----------
+        name : String
+            Station name where the gap occures.
+        startdt : datetime.datetime
+            Start datetime of the gap (included).
+        enddt : datetime.datetime
+            End datetime of the gap (included)
+
+        Returns
+        -------
+        None
+
+        """    
+        # init attributes
+        self.name = name
+        self.startgap = startdt #in IO space
+        self.endgap = enddt #in IO space
+        
+       
+            
+
+        # computed attributes 
+        self.leading_timestamp=None #last ob_dt before gap in datset space
+        self.trailing_timestamp=None #first ob_dt after gap in dataset space
+
+        self.exp_gap_idx = None
+
+    def to_df(self):
+        """
+        Convert a Gap object to a dataframe (with one row). The station name is
+        the index and two colums ('start_gap', 'end_gap') are constructed.
+
+        Returns
+        -------
+        pandas.DataFrame()
+            Gap in dataframe format.
+
+        """
+        return pd.DataFrame(index=[self.name],
+                            data={'start_gap': self.startgap,
+                                  'end_gap': self.endgap})
+
+
+
+    def update_leading_trailing_obs(self, obsdf, outliersdf):
+        """
+        Add the leading (last obs before gap) and trailing (first obs after gap)
+        as extra columns to the self.df. 
+        
+        The obsdf and outliersdf are both used to scan for the leading and trailing obs.
+
+        Parameters
+        ----------
+        obsdf : pandas.DataFrame
+            Dataset.df
+        outliersdf : pandas.DataFrame
+            Dataset.outliersdf
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        
+        # combine timestamps of observations and outliers
+        sta_obs = obsdf.xs(self.name, level='name').index
+        sta_outl = outliersdf.xs(self.name, level='name').index
+        sta_comb = sta_obs.append(sta_outl)
+        
+        
+        #find minimium timediff before
+        before_diff = _find_closes_occuring_date(refdt = self.startgap,
+                                                series_of_dt = sta_comb,
+                                                where='before')
+        
+        #if no timestamps are before gap, assume gap at the start of the observations
+        if math.isnan(before_diff):
+            before_diff = 0.0
+           
+        # find minimum timediff after gap
+        after_diff = _find_closes_occuring_date(refdt = self.endgap,
+                                                series_of_dt = sta_comb,
+                                                where='after')
+        #if no timestamps are after gap, assume gap at the end of the observations
+        if math.isnan(after_diff):
+            after_diff = 0.0
+        
+        
+        # get before and after timestamps
+        self.leading_timestamp = self.startgap - timedelta(seconds=before_diff)
+        self.trailing_timestamp = self.endgap + timedelta(seconds=after_diff)
+
+       
+
+
+    def update_gaps_indx_in_obs_space(self, obsdf, outliersdf, dataset_res):
+        """
+
+        Explode the gap, to the dataset resolution and format to a multiindex
+        with name -- datetime. 
+        
+        In addition the last observation before the gap (leading), and first
+        observation (after) the gap are computed and stored in the df attribute.
+        (the outliers are used to look for leading and trailing observations.)
+
+
+        Parameters
+        ----------
+        obsdf : Dataset.df
+            The Dataset.df attribute. (Needed to extract trailing/leading 
+                                       observations.)
+        outliersdf : Dataset.outliersdf
+            The Dataset.outliersdf attribute.(Needed to extract trailing/leading 
+                                              observations.))
+        resolutionseries : Datetime.timedelta
+            Resolution of the station observations in the dataset.
+
+        Returns
+        -------
+        None
+
+        """
+            
+        
+        self.update_leading_trailing_obs(obsdf, outliersdf)
+    
+
+        
+        gaprange = pd.date_range(start=self.leading_timestamp,
+                                 end=self.trailing_timestamp,
+                                 freq = dataset_res,
+                                 inclusive="neither")
+        
+        self.exp_gap_idx = pd.MultiIndex.from_arrays(arrays=[[self.name]*len(gaprange),
+                                                          gaprange],
+                                                  names=[u'name', u'datetime'])
+        
+        
+        
+        
+        
+    # =============================================================================
+    #         Gapfill
+    # =============================================================================
+    
+    def apply_interpolate_gap(self, obsdf, outliersdf, dataset_res, obstype='temp',
+                              method='time', max_consec_fill=100):
+        """
+        Fill a Gap using a linear interpolation gapfill method for an obstype.
+        
+        The filled datetimes (in dataset resolution) are returned in the form 
+        af a multiindex pandas Series (name -- datetime) as index. 
+
+        Parameters
+        ----------
+        obsdf : Dataset.df
+            The Dataset.df attribute. (Needed to extract trailing/leading 
+                                       observations.)
+        outliersdf : Dataset.outliersdf
+            The Dataset.outliersdf attribute.(Needed to extract trailing/leading 
+                                              observations.))
+        resolutionseries : Datetime.timedelta
+            Resolution of the station observations in the dataset.
+        obstype : String, optional
+            The observational type to apply gapfilling on. The default is 'temp'.
+        method : String, optional
+            Method to pass to the Numpy.interpolate function. The default is 'time'.
+        max_consec_fill : Integer, optional
+            Value to pass to the limit argument of Numpy.interpolate. The default is 100.
+
+        Returns
+        -------
+        Pandas.Series
+            Multiindex Series with filled gap values in dataset space.
+
+        """
+
+
+        gapfill_series = interpolate_gap(gap=self,
+                                         obsdf=obsdf,
+                                         outliersdf=outliersdf,
+                                         dataset_res=dataset_res,
+                                         obstype=obstype,
+                                         method=method,
+                                         max_consec_fill=max_consec_fill)
+        gapdf = gapfill_series.to_frame().reset_index()
+        gapdf['name'] = self.name
+        gapdf.index = pd.MultiIndex.from_arrays(arrays=[gapdf['name'].values,
+                                                        gapdf['datetime'].values],
+                                                  names=[u'name', u'datetime'])
+        return gapdf[obstype]
+                
+        
 
 
 
 class Gap_collection:
     def __init__(self, gapsdf):
-        self.list = [_Gap(sta, row['start_gap'], row['end_gap']) for sta, row in gapsdf.iterrows()]
-        self.df = gapsdf
+        self.list = [Gap(sta, row['start_gap'], row['end_gap']) for sta, row in gapsdf.iterrows()]
+        # self.df = gapsdf
         
+    def to_df(self):
         
+        gaps_names = []
+        gaps_startdt = []
+        gaps_enddt = []
+        for gap in self.list:
+            gaps_names.append(gap.name)
+            gaps_startdt.append(gap.startgap)
+            gaps_enddt.append(gap.endgap)
+            
+
+        df = pd.DataFrame(index=pd.Index(gaps_names),
+                          data={'start_gap': gaps_startdt,
+                                'end_gap': gaps_enddt})
+        df.index.name = 'name'
+        
+        return df
     
     
     def get_station_gaps(self, name):
@@ -165,9 +276,10 @@ class Gap_collection:
             A Gap collection specific of the specified station. 
 
         """
+        gapdf = self.to_df()
         
-        if name in self.df.index:
-            return Gap_collection(self.df.loc[name])
+        if name in gapdf.index:
+            return Gap_collection(gapdf.loc[name])
         else:
             return Gap_collection(pd.DataFrame())
         
@@ -197,14 +309,14 @@ class Gap_collection:
                                  codes=[[],[]],
                                  names=[u'name', u'datetime'])
         
-        for sta, row in self.df.iterrows():
+        for gap in self.list:
         
-            sta_records = obsdf.xs(sta, level='name').index #filter by name 
+            sta_records = obsdf.xs(gap.name, level='name').index #filter by name 
            
-            gaps_dt = sta_records[(sta_records >= row['start_gap']) & #filter if the observations are within a gap
-                                  (sta_records <= row['end_gap'])]
+            gaps_dt = sta_records[(sta_records >= gap.startgap) & #filter if the observations are within a gap
+                                  (sta_records <= gap.endgap)]
             
-            gaps_multiidx = pd.MultiIndex.from_arrays(arrays=[[sta]*len(gaps_dt),
+            gaps_multiidx = pd.MultiIndex.from_arrays(arrays=[[gap.name]*len(gaps_dt),
                                                               gaps_dt],
                                                       names=[u'name', u'datetime'])
             
@@ -241,98 +353,48 @@ class Gap_collection:
             DESCRIPTION.
 
         """
-            
-        self._add_leading_and_trailing_obs(obsdf, outliersdf)
+        expanded_gabsidx_obsspace = pd.MultiIndex(levels=[['name'],['datetime']],
+                                  codes=[[],[]],
+                                  names=[u'name', u'datetime'])
+        
+        for gap in self.list:
+            gap.update_gaps_indx_in_obs_space(obsdf,
+                                              outliersdf,
+                                              resolutionseries.loc[gap.name])
+            expanded_gabsidx_obsspace = expanded_gabsidx_obsspace.append(gap.exp_gap_idx)
+        
+        return expanded_gabsidx_obsspace
+       
+
+    
+    def apply_interpolate_gaps(self, obsdf, outliersdf, dataset_res, obstype='temp',
+                              method='time', max_consec_fill=100):
+    
         
         
         expanded_gabsidx_obsspace = pd.MultiIndex(levels=[['name'],['datetime']],
                                  codes=[[],[]],
                                  names=[u'name', u'datetime'])
-        
-        
-        for sta, row in self.df.iterrows():
-            obs_freq = resolutionseries.loc[sta]
+        filled_gaps_series = pd.Series(data=[], index=expanded_gabsidx_obsspace,
+                                       dtype=object)
+    
+        for gap in self.list:
+            gapfill_series = interpolate_gap(gap=gap,
+                                             obsdf=obsdf,
+                                             outliersdf=outliersdf,
+                                             dataset_res=dataset_res.loc[gap.name],
+                                             obstype=obstype,
+                                             method=method,
+                                             max_consec_fill=max_consec_fill)
             
-            gaprange = pd.date_range(start=row['leading_ob'],
-                                     end=row['trailing_ob'],
-                                     freq = obs_freq,
-                                     inclusive="neither")
-            
-            gaps_multiidx = pd.MultiIndex.from_arrays(arrays=[[sta]*len(gaprange),
-                                                              gaprange],
+            gapdf = gapfill_series.to_frame().reset_index()
+            gapdf['name'] = gap.name
+            gapdf.index = pd.MultiIndex.from_arrays(arrays=[gapdf['name'].values,
+                                                            gapdf['datetime'].values],
                                                       names=[u'name', u'datetime'])
-            
-            expanded_gabsidx_obsspace = expanded_gabsidx_obsspace.append(gaps_multiidx)
-            
-    
-        return expanded_gabsidx_obsspace
-    
-    
-    def _add_leading_and_trailing_obs(self, obsdf, outliersdf):
-        """
-        Add the leading (last obs before gap) and trailing (first obs after gap)
-        as extra columns to the self.df. 
-        
-        The obsdf and outliersdf are both used to scan for the leading and trailing obs.
+            filled_gaps_series = pd.concat([filled_gaps_series, gapdf[obstype]])
+        return filled_gaps_series
 
-        Parameters
-        ----------
-        obsdf : pandas.DataFrame
-            Dataset.df
-        outliersdf : pandas.DataFrame
-            Dataset.outliersdf
-
-        Returns
-        -------
-        None.
-
-        """
-        
-        leading_gap_timestamp = pd.Series(dtype=object)
-        trailing_gap_timestamp = pd.Series(dtype=object)
-
-        for sta, row in self.df.iterrows():
-            # combine timestamps of observations and outliers
-            sta_obs = obsdf.xs(sta, level='name').index
-            sta_outl = outliersdf.xs(sta, level='name').index
-            sta_comb = sta_obs.append(sta_outl)
-            
-            
-            #find minimium timediff before
-            before_diff = _find_closes_occuring_date(refdt = row['start_gap'],
-                                                    series_of_dt = sta_comb,
-                                                    where='before')
-            
-            #if no timestamps are before gap, assume gap at the start of the observations
-            if math.isnan(before_diff):
-                before_diff = 0.0
-               
-            # find minimum timediff after gap
-            after_diff = _find_closes_occuring_date(refdt = row['end_gap'],
-                                                    series_of_dt = sta_comb,
-                                                    where='after')
-            #if no timestamps are after gap, assume gap at the end of the observations
-            if math.isnan(after_diff):
-                after_diff = 0.0
-            
-            
-            # get before and after timestamps
-            last_ob_before = row['start_gap'] - timedelta(seconds=before_diff)
-            first_ob_after = row['end_gap'] + timedelta(seconds=after_diff)
-
-            #fill the series
-            leading_gap_timestamp = pd.concat([leading_gap_timestamp, 
-                                               pd.Series(index=[sta],
-                                                         data=[last_ob_before])])
-            
-            trailing_gap_timestamp = pd.concat([trailing_gap_timestamp, 
-                                               pd.Series(index=[sta],
-                                                         data=[first_ob_after])])
-
-
-        #add to gapsdf
-        self.df['leading_ob'] = leading_gap_timestamp
-        self.df['trailing_ob'] = trailing_gap_timestamp
 
 
 # =============================================================================
@@ -462,10 +524,6 @@ def missing_timestamp_and_gap_check(df):
                                                   pd.Series(index=[station] * len(datetime_of_missing_records),
                                                             data=datetime_of_missing_records)])
             
-    
-    
-   
-    
     
 
    

@@ -18,6 +18,9 @@ proj/proj-9.0.0/*
 
 #logs
 *log*
+#exclude data
+examples/*.csv 
+
 
 #Exclude development scripts for testing
 development/*
