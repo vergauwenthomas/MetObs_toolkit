@@ -83,13 +83,12 @@ sept_2022_all_vlinders.import_data_from_file(settings, coarsen_timeres=True) #Re
             
 #All settings, labels, replacement values are defind in the default settings in /settings_files/qc_settings.py
 #To inspect (and change) these quality control settings, you can extract them out of the Settings:
-
-qc_settings = settings.qc_check_settings #Settings are stored in nested dictionary
+qc_settings = settings.qc_check_settings
 print(qc_settings)
 
 #Changing a setting example:
-settings.qc_check_settings['persistance']['temp']['max_valid_repetitions'] = 6
-
+qc_settings['repetitions']['temp']['max_valid_repetitions'] = 6
+print(qc_settings)
 
         
 # Quality control checks are always applied on the full dataset Using the apply_quality_control method on the dataset.
@@ -100,7 +99,6 @@ sept_2022_all_vlinders.apply_quality_control(obstype='temp', #which observations
                                              step=True, #apply the step chec?
                                              window_variation=True # apply internal consistency check?
                                              )
-
 
 # ----- INTERMEZZO ------
 # quality control methods can also be applied on station level. Be aware that the QC labels are an attribute of the station

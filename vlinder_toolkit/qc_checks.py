@@ -115,19 +115,20 @@ def invalid_input_check(df):
     #extract all obstype that have outliers
     outl_obstypes = groups.apply(lambda x: x.any(), axis=0)
     outl_obstypes = outl_obstypes[outl_obstypes].index.to_list()
-    
+  
     #first loop over the smallest sample: outlier obstypes
     outl_dict = {}
     
     for obstype in outl_obstypes:
         #get stations that have ouliers for this obstype
         outl_stations = groups.loc[groups[obstype], obstype].index.to_list()
+
         outl_multiidx = init_multiindex()
         for sta in outl_stations:
             #apply check per station
             outl_idx = df.xs(sta, level='name', drop_level=False)[obstype].isnull().loc[lambda x: x].index
             outl_multiidx = outl_multiidx.append(outl_idx)
-        
+           
         outl_dict[obstype]=outl_multiidx
     
     #create outliersdf for all outliers for all osbtypes
@@ -139,7 +140,7 @@ def invalid_input_check(df):
                                                      flagcolumnname= checks_info[checkname]['label_columnname'],
                                                      flag=checks_info[checkname]['outlier_flag'])
         outl_df = pd.concat([outl_df, specific_outl_df])
-    
+        
     return df, outl_df
 
   
@@ -167,14 +168,13 @@ def duplicate_timestamp_check(df):
     
     duplicates = pd.Series(data=df.index.duplicated(keep=check_settings[checkname]['keep']),
                            index=df.index)
-    
+
     if not df.loc[duplicates].empty:
         logging.warning(f' Following records are labeld as duplicates: {df.loc[duplicates]}, and are removed')
     
 
     #Fill the outlierdf with the duplicates
     outliers = df[df.index.duplicated(keep=check_settings[checkname]['keep'])]
-   
 
     
     # replace observation values by nan
@@ -512,51 +512,52 @@ def window_variation_check(station_frequencies, obsdf, obstype):
         print(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         logger.warning(f'No {checkname} settings found for obstype={obstype}. Check is skipped!')
         return obsdf, init_multiindexdf()
-
+     
     # drop outliers from the series (these are Nan's)
     input_series = obsdf[obstype].dropna()
-     
-
+         
+    
     # Calculate window thresholds (by linear extarpolation)
     windowsize_seconds = pd.Timedelta(specific_settings['time_window_to_check']).total_seconds()
     max_window_increase = specific_settings['max_increase_per_second'] * windowsize_seconds
     max_window_decrease = specific_settings['max_decrease_per_second'] * windowsize_seconds
+        
     
-
     #apply steptest
     def variation_test(window):
-        if ((max(window) - min(window) > max_window_increase) & 
-            (window.idxmax() > window.idxmin())):
-            return 1
-
-        if ((max(window) - min(window) > max_window_decrease) & 
-            (window.idxmax() < window.idxmin())):
-            return 1
-        else:
-            return 0
-        
+         if ((max(window) - min(window) > max_window_increase) & 
+             (window.idxmax() > window.idxmin())):
+             return 1
+    
+         if ((max(window) - min(window) > max_window_decrease) & 
+             (window.idxmax() < window.idxmin())):
+             return 1
+         else:
+             return 0
+            
     window_output = input_series.reset_index(level=0).groupby('name').rolling(window=specific_settings['time_window_to_check'],
-                                                                            closed='both',
-                                                                            center=True,
-                                                                            min_periods=specific_settings['min_window_members']).apply(variation_test)
-
+                                                                             closed='both',
+                                                                             center=True,
+                                                                             min_periods=specific_settings['min_window_members']).apply(variation_test)
+    
     list_of_outliers = []
     outl_obs = window_output.loc[window_output[obstype] == 1].index
-
+    
     for outlier in outl_obs:
         outliers_list = get_outliers_in_daterange(input_series, outlier[1], outlier[0], specific_settings['time_window_to_check'], station_frequencies)
-      
+          
         list_of_outliers.extend(outliers_list)
-        
+            
     list_of_outliers = list(set(list_of_outliers))
-    
+        
     #make new obsdf and outlierdf
     obsdf, outlier_df = make_outlier_df_for_check(station_dt_list=list_of_outliers,
-                                           obsdf=obsdf,
-                                           obstype=obstype,
-                                           flagcolumnname=checks_info[checkname]['label_columnname'],
-                                           flag=checks_info[checkname]['outlier_flag'])
-   
+                                            obsdf=obsdf,
+                                            obstype=obstype,
+                                            flagcolumnname=checks_info[checkname]['label_columnname'],
+                                            flag=checks_info[checkname]['outlier_flag'])
+
+    
     return obsdf, outlier_df
 
 def get_outliers_in_daterange(input_data, date, name, time_window, station_freq):

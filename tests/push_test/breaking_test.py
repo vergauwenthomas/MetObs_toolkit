@@ -11,6 +11,7 @@ Created on Tue Nov 29 12:19:03 2022
 """
 
 import sys, os
+import pandas as pd
 
 from pathlib import Path
 
@@ -42,7 +43,7 @@ max_value = 50.0 # Maximal allowed value
 max_increase_per_second = 8.0/3600.0   # Maximal allowed increase per second (for window variation check)
 max_decrease_per_second = 10.0/3600.0   # Maximal allowed decrease per second (for window variation check)
 time_window_to_check = '1h'   # Use this format as example: "1h20min50s"
-min_window_members = 3 # Minimal number of records in window to perform check
+min_window_members = 5 # Minimal number of records in window to perform check
 
 max_increase_per_second_step = 8.0/3600.0   # Maximal allowed increase per second (for step check)
 max_decrease_per_second_step = -10.0/3600.0   # Maximal allowed increase per second (for step check)

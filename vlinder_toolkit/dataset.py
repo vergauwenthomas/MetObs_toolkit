@@ -496,7 +496,6 @@ class Dataset:
             self.df = obsdf
             self.update_outliersdf(outl_df)
 
-
         if gross_value:
             print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
@@ -532,20 +531,33 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             self.update_outliersdf(outl_df)
-
+        
         if window_variation:
             print('Applying the window variation-check on all stations.')
             logger.info('Applying window variation-check on the full dataset')
 
-            obsdf, outl_df = window_variation_check(
-                        station_frequencies=self.metadf['dataset_resolution'],
-                        obsdf=self.df,
-                        obstype=obstype)
+            invalid_windows_check_df = pd.to_timedelta(Settings.qc_check_settings['window_variation'][obstype]['time_window_to_check'])/self.metadf['dataset_resolution'] < Settings.qc_check_settings['window_variation'][obstype]['min_window_members']
+            invalid_stations = list(invalid_windows_check_df[invalid_windows_check_df == True].index)
+            if invalid_stations:
+                print(f'The windows are too small for stations  {invalid_stations} to perform window variation check')
+                logger.info(f'The windows are too small for stations  {invalid_stations} to perform window variation check')
+            
+            subset_not_used = self.df[self.df.index.get_level_values('name').isin(invalid_stations)]
+            subset_used = self.df[~self.df.index.get_level_values('name').isin(invalid_stations)]            
+      
+            if not subset_used.empty:
+                subset_used, outl_df = window_variation_check(
+                            station_frequencies=self.metadf['dataset_resolution'],
+                            obsdf=subset_used,
+                            obstype=obstype)
+                
+                self.update_outliersdf(outl_df)
 
+            obsdf = pd.concat([subset_used, subset_not_used])
+         
             # update the dataset and outliers
             self.df = obsdf
-            self.update_outliersdf(outl_df)
-
+        
         self.outliersdf = self.outliersdf.sort_index()
 
 
@@ -972,7 +984,7 @@ class Dataset:
         
         self.df, nan_outl_df = invalid_input_check(self.df)
         self.update_outliersdf(nan_outl_df)
-                
+       
 
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=Settings.target_time_res,
