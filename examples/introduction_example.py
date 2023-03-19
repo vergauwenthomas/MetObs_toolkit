@@ -32,7 +32,7 @@ import vlinder_toolkit
 
 # Settings contains all information about all the paths that will be used. Without proper initiating the settings, a script will not run.
 
-# 1. Initiate settings object. This object contains all settings needed for furthur analysis
+# 1. Initiate settings object. This object contains all settings needed for further analysis
 settings = vlinder_toolkit.Settings()
 
 #At any time you can see all the used settings:
