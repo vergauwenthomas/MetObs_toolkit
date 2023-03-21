@@ -39,10 +39,8 @@ settings.update_settings(input_data_file=testdatafile,
 
 dataset = vlinder_toolkit.Dataset()
 
-<<<<<<< HEAD
+
 # dataset.apply_quality_control()
-=======
->>>>>>> master
 
 
 df = dataset.import_data_from_file(coarsen_timeres=True)
