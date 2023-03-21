@@ -29,6 +29,8 @@ def connect_to_gee():
 # =============================================================================
 
 
+def _datetime_to_gee_datetime(datetime):
+    return ee.Date(datetime.strftime('%Y-%m-%dT%H:%M:%S'))
 
 def get_ee_obj(mapinfo, band=None):
     if mapinfo['is_image']:
@@ -67,11 +69,11 @@ def _addDate(image):
 def _df_to_featurescollection(df, loncolname, latcolname):
     """ Convert a dataframe to a featurecollections row-wise"""
     features=[]
-    for index, row in df.iterrows():
+    for index, row in df.reset_index().iterrows():
     #     construct the geometry from dataframe
         poi_geometry = ee.Geometry.Point([row[loncolname], row[latcolname]])
     #     construct the attributes (properties) for each point 
-        poi_properties = dict(row)
+        poi_properties = poi_properties = {'name': row['name']}
     #     construct feature combining geometry and properties
         poi_feature = ee.Feature(poi_geometry, poi_properties)
         features.append(poi_feature)
@@ -79,8 +81,14 @@ def _df_to_featurescollection(df, loncolname, latcolname):
     return ee.FeatureCollection(features)
 
 
-
-
+def coordinates_available(metadf, latcol='lat', loncol='lon'):
+    if metadf[latcol].isnull().all():
+        print('No coordinates are found!')
+        return False
+    if metadf[loncol].isnull().all():
+        print('No coordinates are found!')
+        return False
+    return True
 
 
 
@@ -120,6 +128,11 @@ def extract_pointvalues(metadf, mapinfo, output_column_name, latcolname='lat', l
 
     """
     scale=mapinfo['scale']
+    
+    
+    # test if coordiantes are available
+    if not coordinates_available(metadf, latcolname, loncolname):
+        return pd.DataFrame()
     
     # =============================================================================
     # df to featurecollection
@@ -210,6 +223,10 @@ def gee_extract_timeseries(metadf, mapinfo, startdt, enddt, obstype='temp', latc
     scale=mapinfo['scale']
     bandname=mapinfo['band_of_use'][obstype]['name']
     
+    
+    # test if coordiantes are available
+    if not coordinates_available(metadf, latcolname, loncolname):
+        return pd.DataFrame()
 
     # =============================================================================
     # df to featurecollection
@@ -233,7 +250,8 @@ def gee_extract_timeseries(metadf, mapinfo, startdt, enddt, obstype='temp', latc
 
     
     raster = get_ee_obj(mapinfo, bandname) #dataset
-    results = raster.filter(ee.Filter.date(startdt, enddt)) \
+    results = raster.filter(ee.Filter.date(_datetime_to_gee_datetime(startdt),
+                                           _datetime_to_gee_datetime(enddt))) \
                     .map(_addDate) \
                     .map(rasterExtraction) \
                     .flatten() \
