@@ -33,7 +33,7 @@ static_data = os.path.join(
 settings = vlinder_toolkit.Settings()
 settings.update_settings(input_data_file=testdatafile,
 
-                         # input_metadata_file=static_data,
+                          input_metadata_file=static_data,
                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                          )
 
@@ -43,35 +43,25 @@ dataset = vlinder_toolkit.Dataset()
 # dataset.apply_quality_control()
 
 
-df = dataset.import_data_from_file(coarsen_timeres=True)
-
-
-<<<<<<< HEAD
-# dataset.apply_quality_control()
-
-# dataset.fill_gaps()
-
-# dataset.write_to_csv(include_gapfill=False)
-
-=======
+dataset.import_data_from_file(coarsen_timeres=True)
 dataset.apply_quality_control()
->>>>>>> master
 
-
-#add obstype to get qc stats
-
-<<<<<<< HEAD
-
-
+#%%
+from vlinder_toolkit.landcover_functions import gee_extract_timeseries, connect_to_gee
+from datetime import datetime
+from vlinder_toolkit.settings_files.gee_settings import gee_datasets
 
 
 
+startdt = datetime(2022,10,4)
 
-=======
-dataset.get_qc_stats()
+enddt = datetime(2022, 10, 11)
+
+connect_to_gee()
+
+era = gee_extract_timeseries(metadf = dataset.metadf,
+                              mapinfo = gee_datasets['ERA5_hourly'],
+                              startdt = startdt,
+                              enddt = enddt)
 
 
-test = dataset.combine_all_to_obsspace()
-    
-#%% 
->>>>>>> master
