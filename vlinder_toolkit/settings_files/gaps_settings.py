@@ -40,7 +40,16 @@ gaps_info = {
 
 gaps_fill_settings={
     'linear': {'method': 'time',
-               'max_consec_fill': 100}
+               'max_consec_fill': 100},
+    
+    'model_debias':{
+        'debias_period': {'prefered_leading_sample_duration_hours': 48,
+                          'prefered_trailing_sample_duration_hours': 48,
+                          'minimum_leading_sample_duration_hours': 24,
+                          'minimum_trailing_sample_duration_hours': 24}
+        
+        } 
+    
     
     }
 
@@ -48,7 +57,8 @@ gaps_fill_settings={
 gaps_fill_info = {
     
     'label_columnname': 'final_label',
-    'label': 'gapfill',
+    'label': {'linear': 'interpolation',
+              'era5_debias': 'debiased_era5'},
      'numeric_flag': 21,
      
     }

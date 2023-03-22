@@ -20,7 +20,8 @@ from vlinder_toolkit.data_import import (import_data_from_csv,
 
 from vlinder_toolkit.printing import print_dataset_info
 from vlinder_toolkit.landcover_functions import (connect_to_gee,
-                                                 extract_pointvalues)
+                                                 extract_pointvalues,
+                                                 )
 
 from vlinder_toolkit.plotting_functions import (geospatial_plot,
                                                 timeseries_plot,
@@ -81,6 +82,8 @@ class Dataset:
         self.gaps = None  # becomes a gap_collection after import
         
         self.gapfilldf = init_multiindexdf()
+        
+        self.modeldf = init_multiindexdf() #only era5 for now
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
@@ -322,23 +325,42 @@ class Dataset:
     #   Gap Filling  
     # =============================================================================
 
-    def fill_gaps(self, obstype='temp', method='linear'):
+    def fill_gaps_linear(self, obstype='temp'):
         #TODO logging
-        if method=='linear':
-            fill_settings = Settings.gaps_fill_settings['linear']
-            fill_info = Settings.gaps_fill_info
-            
-            #fill gaps
-            self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
-                                        obsdf = self.df,
-                                        outliersdf = self.outliersdf,
-                                        dataset_res=self.metadf['dataset_resolution'],
-                                        obstype=obstype,
-                                        method=fill_settings['method'],
-                                        max_consec_fill=fill_settings['max_consec_fill'])
-            
+    
+        fill_settings = Settings.gaps_fill_settings['linear']
+        fill_info = Settings.gaps_fill_info
+        
+        #fill gaps
+        self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
+                                    obsdf = self.df,
+                                    outliersdf = self.outliersdf,
+                                    dataset_res=self.metadf['dataset_resolution'],
+                                    obstype=obstype,
+                                    method=fill_settings['method'],
+                                    max_consec_fill=fill_settings['max_consec_fill'])
+        
+        #add label column
+        self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']['linear']
+        
+        
+    def fill_gaps_era5(self, eraModelData, method='debias', obstype='temp'):
+        
+        fill_info = Settings.gaps_fill_info
+        # check if obstype is present in eramodel
+        
+        # check if all station are present in eramodeldata
+        
+        
+        if method=='debias':
+            self.gapfilldf[obstype] = self.gaps.apply_debias_era5_gapfill(dataset=self,
+                                                       eraModelData=eraModelData,
+                                                       obstype=obstype)
             #add label column
-            self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']
+            self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']['era5_debias']
+        else:
+            print('not implemented yet')
+            
             
 
     def write_to_csv(self, filename=None, include_outliers=True,
@@ -1071,7 +1093,8 @@ class Station(Dataset):
 
 
         self._istype = 'Station'
-
+        
+      
 
 
 def loggin_nan_warnings(df):

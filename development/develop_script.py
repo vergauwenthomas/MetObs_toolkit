@@ -46,22 +46,35 @@ dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
 dataset.apply_quality_control()
 
+
+
+
 #%%
-from vlinder_toolkit.landcover_functions import gee_extract_timeseries, connect_to_gee
 from datetime import datetime
-from vlinder_toolkit.settings_files.gee_settings import gee_datasets
-
-
-
 startdt = datetime(2022,10,4)
 
 enddt = datetime(2022, 10, 11)
 
-connect_to_gee()
 
-era = gee_extract_timeseries(metadf = dataset.metadf,
-                              mapinfo = gee_datasets['ERA5_hourly'],
-                              startdt = startdt,
-                              enddt = enddt)
+
+
+
+era5 = vlinder_toolkit.Modeldata('era5')
+era5.get_ERA5_data(metadf = dataset.metadf,
+                   startdt=startdt,
+                   enddt=enddt)
+
+
+dataset.fill_gaps_era5(era5)
+
+
+
+
+
+
+
+#%%
+
+
 
 
