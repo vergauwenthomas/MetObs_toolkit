@@ -143,3 +143,16 @@ def enable_all_boxes(main):
     main.psea_units_CB.setEnabled(True)
     main.psea_desc_T.setEnabled(True)
    
+    main.build_B.setEnabled(True)
+    
+def make_template_build(main):
+    print('in builder')
+    
+    def get_obs_map(map_CB, unit_CB, desc_T):
+        returndict = {
+            'map_column': desc_T.getText()
+            }
+    test = get_obs_map(main.temp_col_CB, main.temp_units_CB, main.temp_desc_T)
+    print(test)
+    
+    

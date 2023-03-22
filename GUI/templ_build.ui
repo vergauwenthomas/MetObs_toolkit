@@ -1179,6 +1179,22 @@
     <string>Network name</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="build_B">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>700</y>
+     <width>1201</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Build template</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

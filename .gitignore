@@ -5,6 +5,7 @@ deploy_info
 temp_output/*
 *~lock*
 *.swp
+.spyproject
 #Exclude deploy scripts
 *deploy*
 

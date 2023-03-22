@@ -43,6 +43,8 @@ class MainWindow(QDialog):
         self.start_mapping_B.clicked.connect(lambda: self.set_templ_map_val())
         default_path = '/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/tests/test_data/vlinderdata_small.csv'
         self.data_file_T.setText(default_path)
+        
+        self.build_B.clicked.connect(lambda: self.build_template())
 
 
 # =============================================================================
@@ -93,7 +95,8 @@ class MainWindow(QDialog):
         
         return columns
 
-
+    def build_template(self):
+        template_func.make_template_build(self)
 
 
 
