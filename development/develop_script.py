@@ -28,52 +28,35 @@ testdatafile = os.path.join(
 static_data = os.path.join(
     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
-
-# #% Setup dataset
-settings = vlinder_toolkit.Settings()
-settings.update_settings(input_data_file=testdatafile,
-
-                         # input_metadata_file=static_data,
-                         output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
-                         )
-
+#%%
 dataset = vlinder_toolkit.Dataset()
 
-<<<<<<< HEAD
-# dataset.apply_quality_control()
-=======
->>>>>>> master
+dataset.update_settings(input_data_file=testdatafile,
+                        input_metadata_file=static_data,
+                        output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
+                        )
 
-
-df = dataset.import_data_from_file(coarsen_timeres=True)
-
-
-<<<<<<< HEAD
-# dataset.apply_quality_control()
-
-# dataset.fill_gaps()
-
-# dataset.write_to_csv(include_gapfill=False)
-
-=======
+dataset.import_data_from_file(coarsen_timeres=True)
 dataset.apply_quality_control()
->>>>>>> master
-
-
-#add obstype to get qc stats
-
-<<<<<<< HEAD
-
-
-
-
-
-
-=======
 dataset.get_qc_stats()
+dataset.make_geo_plot()
+dataset.make_plot()
+
+#%%
+# # #% Setup dataset
+# settings = vlinder_toolkit.Settings()
+# settings.update_settings(input_data_file=testdatafile,
+
+#                           input_metadata_file=static_data,
+#                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
+#                          )
+
+# dataset = vlinder_toolkit.Dataset()
 
 
-test = dataset.combine_all_to_obsspace()
-    
-#%% 
->>>>>>> master
+
+# df = dataset.import_data_from_file(coarsen_timeres=True)
+
+
+# dataset.apply_quality_control()
+
