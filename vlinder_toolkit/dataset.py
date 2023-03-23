@@ -584,6 +584,7 @@ class Dataset:
         outliersdf = add_final_label_to_outliersdf(
                         outliersdf=self.outliersdf,
                         data_res_series=self.metadf['dataset_resolution'])
+        
         #remove duplicate indixes (needed for update)
         outliersdf = outliersdf[~outliersdf.index.duplicated(keep='first')]
         

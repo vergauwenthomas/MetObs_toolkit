@@ -290,7 +290,7 @@ def persistance_check(station_frequencies, obsdf, obstype):
     
     invalid_windows_check_df = pd.to_timedelta(specific_settings['time_window_to_check'])/station_frequencies < specific_settings['min_num_obs']
     invalid_stations = list(invalid_windows_check_df[invalid_windows_check_df == True].index)
-    if invalid_stations:
+    if bool(invalid_stations):
         print(f'The windows are too small for stations  {invalid_stations} to perform persistance check')
         logger.info(f'The windows are too small for stations  {invalid_stations} to perform persistance check')
     
@@ -530,7 +530,7 @@ def window_variation_check(station_frequencies, obsdf, obstype):
     
     invalid_windows_check_df = pd.to_timedelta(specific_settings['time_window_to_check'])/station_frequencies < specific_settings['min_window_members']
     invalid_stations = list(invalid_windows_check_df[invalid_windows_check_df == True].index)
-    if invalid_stations:
+    if bool(invalid_stations):
         print(f'The windows are too small for stations  {invalid_stations} to perform window variation check')
         logger.info(f'The windows are too small for stations  {invalid_stations} to perform window variation check')
     
