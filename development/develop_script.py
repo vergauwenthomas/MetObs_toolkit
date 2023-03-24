@@ -39,41 +39,10 @@ settings.update_settings(input_data_file=testdatafile,
 
 dataset = vlinder_toolkit.Dataset()
 
-<<<<<<< HEAD
+
 # dataset.apply_quality_control()
-=======
->>>>>>> master
 
 
 df = dataset.import_data_from_file(coarsen_timeres=True)
 
 
-<<<<<<< HEAD
-# dataset.apply_quality_control()
-
-# dataset.fill_gaps()
-
-# dataset.write_to_csv(include_gapfill=False)
-
-=======
-dataset.apply_quality_control()
->>>>>>> master
-
-
-#add obstype to get qc stats
-
-<<<<<<< HEAD
-
-
-
-
-
-
-=======
-dataset.get_qc_stats()
-
-
-test = dataset.combine_all_to_obsspace()
-    
-#%% 
->>>>>>> master
