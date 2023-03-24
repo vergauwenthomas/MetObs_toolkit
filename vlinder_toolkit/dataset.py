@@ -526,22 +526,23 @@ class Dataset:
 
             # update the dataset and outliers
             self.df = obsdf
-            self.update_outliersdf(outl_df)
-
+            if not outl_df.empty:
+                self.update_outliersdf(outl_df)
 
         if gross_value:
             print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
 
-            obs, outl_df = gross_value_check(
+            obsdf, outl_df = gross_value_check(
                                             obsdf=self.df,
                                             obstype=obstype,
                                             checks_info=self.settings.qc['qc_checks_info'],
                                             checks_settings = self.settings.qc['qc_check_settings'])
 
             # update the dataset and outliers
-            self.df = obs
-            self.update_outliersdf(outl_df)
+            self.df = obsdf
+            if not outl_df.empty:
+                self.update_outliersdf(outl_df)
 
         if persistance:
             print('Applying the persistance-check on all stations.')
@@ -556,7 +557,8 @@ class Dataset:
 
             # update the dataset and outliers
             self.df = obsdf
-            self.update_outliersdf(outl_df)
+            if not outl_df.empty:
+                self.update_outliersdf(outl_df)
 
         if step:
             print('Applying the step-check on all stations.')
@@ -567,14 +569,16 @@ class Dataset:
                                         checks_info=self.settings.qc['qc_checks_info'],
                                         checks_settings = self.settings.qc['qc_check_settings'])
 
+
             # update the dataset and outliers
             self.df = obsdf
-            self.update_outliersdf(outl_df)
-
+            if  not outl_df.empty:
+                self.update_outliersdf(outl_df)
+        
         if window_variation:
             print('Applying the window variation-check on all stations.')
             logger.info('Applying window variation-check on the full dataset')
-
+            
             obsdf, outl_df = window_variation_check(
                         station_frequencies=self.metadf['dataset_resolution'],
                         obsdf=self.df,
@@ -582,10 +586,13 @@ class Dataset:
                         checks_info=self.settings.qc['qc_checks_info'],
                         checks_settings = self.settings.qc['qc_check_settings'])
 
+
             # update the dataset and outliers
             self.df = obsdf
-            self.update_outliersdf(outl_df)
-
+            if not outl_df.empty:
+                self.update_outliersdf(outl_df)
+            
+        
         self.outliersdf = self.outliersdf.sort_index()
 
 
@@ -621,6 +628,7 @@ class Dataset:
                         data_res_series=self.metadf['dataset_resolution'],
                         observation_types=self.settings.app['observation_types'],
                         checks_info=self.settings.qc['qc_checks_info'])
+
         #remove duplicate indixes (needed for update)
         outliersdf = outliersdf[~outliersdf.index.duplicated(keep='first')]
 
@@ -1019,15 +1027,18 @@ class Dataset:
         self.missing_obs = Missingob_collection(missing_obs)
 
         # Perform QC checks on original observation frequencies
+
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df,
                                                          checks_info=self.settings.qc['qc_checks_info'],
                                                          checks_settings = self.settings.qc['qc_check_settings'])
-        self.update_outliersdf(dup_outl_df)
-
-        self.df, nan_outl_df = invalid_input_check(df=self.df,
+        if not dup_outl_df.empty:
+            self.update_outliersdf(dup_outl_df)
+        
+        self.df, nan_outl_df = invalid_input_check(self.df,
                                                    checks_info=self.settings.qc['qc_checks_info'])
-        self.update_outliersdf(nan_outl_df)
-
+        if not nan_outl_df.empty:
+            self.update_outliersdf(nan_outl_df)
+      
 
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=self.settings.time_resolution['target_time_res'],

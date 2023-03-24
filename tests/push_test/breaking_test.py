@@ -39,7 +39,7 @@ minimal_gapsize = 10    #gaps defined as n times the highest frequency on IO.
 dupl_dropping = False #method used to drop duplicated timestamps
 
 persistance_time_window_to_check = '1h'   # Use this format as example: "1h20min50s"
-min_num_obs = 5   #Minimum number of records in window to perform persistance check
+min_num_obs = 3   #Minimum number of records in window to perform persistance check
 
 max_valid_repetitions = 5 # Maximal number of repetitions that is allowed
 
