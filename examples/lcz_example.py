@@ -25,15 +25,13 @@ import vlinder_toolkit
 # Import data
 # =============================================================================
 
-
-# 1. Initiate settings object and inport the data + metadata. This object contains all settings needed for furthur analysis
-settings = vlinder_toolkit.Settings()
-settings.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
-                         input_metadata_file=metadata) #Coordinates needed to extract LCZ!
                          
-#2. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
+#1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
 aug_2020_all_vlinders = vlinder_toolkit.Dataset()
-aug_2020_all_vlinders.import_data_from_file(settings)
+aug_2020_all_vlinders.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
+                         input_metadata_file=metadata) 
+#Coordinates needed to extract LCZ!
+aug_2020_all_vlinders.import_data_from_file()
 
 
 # The metadata is stored in the metadf attribute:

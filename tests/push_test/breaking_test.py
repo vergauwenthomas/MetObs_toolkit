@@ -19,12 +19,19 @@ lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-#x = all(keys in ['a', 'b', 'c'] for keys in ['c', 'b', 'a'])
 
 testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
 
-settings = vlinder_toolkit.Settings()
-settings.update_settings(input_data_file=testdata)
+
+####### Create dataset ######
+#% add template
+template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.csv')
+
+dataset_coarsened = vlinder_toolkit.Dataset()
+dataset_coarsened.update_settings(input_data_file=testdata)
+dataset_coarsened.add_csv_template(template_file)
+
+
 
 #####################################################################
 # Set settings for QC
@@ -47,40 +54,36 @@ min_window_members = 3 # Minimal number of records in window to perform check
 max_increase_per_second_step = 8.0/3600.0   # Maximal allowed increase per second (for step check)
 max_decrease_per_second_step = -10.0/3600.0   # Maximal allowed increase per second (for step check)
 
+dataset_coarsened.settings.gap['gaps_settings']['gaps_finder']['gapsize_n'] = minimal_gapsize
 
-settings.gaps_settings['gaps_finder']['gapsize_n'] = minimal_gapsize
+dataset_coarsened.settings.qc['qc_check_settings']['duplicated_timestamp']['keep'] = dupl_dropping
 
-settings.qc_check_settings['duplicated_timestamp']['keep'] = dupl_dropping
+dataset_coarsened.settings.qc['qc_check_settings']['persistance']['temp']['time_window_to_check'] = persistance_time_window_to_check
+dataset_coarsened.settings.qc['qc_check_settings']['persistance']['temp']['min_num_obs'] = min_num_obs
 
-settings.qc_check_settings['persistance']['temp']['time_window_to_check'] = persistance_time_window_to_check
-settings.qc_check_settings['persistance']['temp']['min_num_obs'] = min_num_obs
+dataset_coarsened.settings.qc['qc_check_settings']['repetitions']['temp']['max_valid_repetitions'] = max_valid_repetitions
 
-settings.qc_check_settings['repetitions']['temp']['max_valid_repetitions'] = max_valid_repetitions
+dataset_coarsened.settings.qc['qc_check_settings']['gross_value']['temp']['min_value'] = min_value
+dataset_coarsened.settings.qc['qc_check_settings']['gross_value']['temp']['max_value'] = max_value
 
-settings.qc_check_settings['gross_value']['temp']['min_value'] = min_value
-settings.qc_check_settings['gross_value']['temp']['max_value'] = max_value
+dataset_coarsened.settings.qc['qc_check_settings']['window_variation']['temp']['max_increase_per_second'] = max_increase_per_second
+dataset_coarsened.settings.qc['qc_check_settings']['window_variation']['temp']['max_decrease_per_second'] = max_decrease_per_second
+dataset_coarsened.settings.qc['qc_check_settings']['window_variation']['temp']['time_window_to_check'] = time_window_to_check
+dataset_coarsened.settings.qc['qc_check_settings']['window_variation']['temp']['min_window_members'] = min_window_members
 
-settings.qc_check_settings['window_variation']['temp']['max_increase_per_second'] = max_increase_per_second
-settings.qc_check_settings['window_variation']['temp']['max_decrease_per_second'] = max_decrease_per_second
-settings.qc_check_settings['window_variation']['temp']['time_window_to_check'] = time_window_to_check
-settings.qc_check_settings['window_variation']['temp']['min_window_members'] = min_window_members
-
-settings.qc_check_settings['step']['temp']['max_increase_per_second'] = max_increase_per_second_step
-settings.qc_check_settings['step']['temp']['max_decrease_per_second'] = max_decrease_per_second_step
+dataset_coarsened.settings.qc['qc_check_settings']['step']['temp']['max_increase_per_second'] = max_increase_per_second_step
+dataset_coarsened.settings.qc['qc_check_settings']['step']['temp']['max_decrease_per_second'] = max_decrease_per_second_step
 #####################################################################
 
 
-#% add template
-template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.csv')
-settings.add_csv_template(template_file)
 
-dataset_coarsened = vlinder_toolkit.Dataset()
 dataset_coarsened.import_data_from_file(coarsen_timeres=True)
 dataset_coarsened.apply_quality_control()
 
 #_ = dataset_coarsened.get_qc_stats()
 #%%
 dataset = vlinder_toolkit.Dataset()
+dataset.update_settings(input_data_file = testdata)
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
 
@@ -102,12 +105,12 @@ tlk_df = dataset.combine_all_to_obsspace()
 all_manual_labels = list(man_df['flags'].unique())
 manual_to_tlkit_label_map = {
      'ok': 'ok',
-     'in step outlier group': settings.qc_checks_info['step']['outlier_flag'],
-     'repetitions outlier': settings.qc_checks_info['repetitions']['outlier_flag'],
-     'duplicated timestamp outlier': settings.qc_checks_info['duplicated_timestamp']['outlier_flag'],
-     'gross value outlier': settings.qc_checks_info['gross_value']['outlier_flag'],
-     'in window variation outlier group': settings.qc_checks_info['window_variation']['outlier_flag'],
-     'persistance outlier': settings.qc_checks_info['persistance']['outlier_flag']
+     'in step outlier group': dataset_coarsened.settings.qc['qc_checks_info']['step']['outlier_flag'],
+     'repetitions outlier': dataset_coarsened.settings.qc['qc_checks_info']['repetitions']['outlier_flag'],
+     'duplicated timestamp outlier': dataset_coarsened.settings.qc['qc_checks_info']['duplicated_timestamp']['outlier_flag'],
+     'gross value outlier': dataset_coarsened.settings.qc['qc_checks_info']['gross_value']['outlier_flag'],
+     'in window variation outlier group': dataset_coarsened.settings.qc['qc_checks_info']['window_variation']['outlier_flag'],
+     'persistance outlier': dataset_coarsened.settings.qc['qc_checks_info']['persistance']['outlier_flag']
     }
 
 #check if the mapper is still up to date
