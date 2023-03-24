@@ -22,12 +22,8 @@ import vlinder_toolkit
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata_small.csv')
 
 
-
-settings = vlinder_toolkit.Settings()
-settings.update_settings(input_data_file=testdatafile)
-settings.check_settings()
-
 dataset = vlinder_toolkit.Dataset()
+dataset.update_settings(input_data_file=testdatafile)
 dataset.import_data_from_file(coarsen_timeres=True)
 
 

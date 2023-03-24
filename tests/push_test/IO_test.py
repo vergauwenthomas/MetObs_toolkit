@@ -23,18 +23,11 @@ testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata
 
 
 
-#%% Define setting 
-
-settings = vlinder_toolkit.Settings()
-settings.show()
-
-
-settings.update_settings(input_data_file=testdatafile)
-settings.check_settings()
-
 #%% import data from file
 
 dataset = vlinder_toolkit.Dataset()
+dataset.update_settings(input_data_file=testdatafile)
+dataset.show_settings()
 
 dataset.import_data_from_file()
 

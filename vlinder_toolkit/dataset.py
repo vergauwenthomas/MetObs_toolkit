@@ -95,6 +95,11 @@ class Dataset:
     def update_settings(self, *args, **kwargs):
         self.settings.update_IO(*args, **kwargs)
 
+
+    def add_csv_template(self, csv_file):
+        self.settings.add_csv_template(csv_file)
+
+
     def show_settings(self):
         self.settings.show()
 

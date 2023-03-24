@@ -26,14 +26,15 @@ static_data = os.path.join(
     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
 
-# #% Setup dataset
-settings = vlinder_toolkit.Settings()
-settings.update_settings(input_data_file=testdatafile,
+# #% import data
+
+
+
+dataset = vlinder_toolkit.Dataset()
+dataset.update_settings(input_data_file=testdatafile,
                          input_metadata_file=static_data,
                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                          )
-
-dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
 
 #%% Basic tests on the gaps
