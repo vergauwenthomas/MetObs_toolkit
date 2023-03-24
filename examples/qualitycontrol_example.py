@@ -17,31 +17,6 @@ import vlinder_toolkit
 
 
 
-# =============================================================================
-# Settings
-# =============================================================================
-
-
-# 1. Initiate settings object. This object contains all settings needed for furthur analysis
-settings = vlinder_toolkit.Settings()
-
-
-
-
-# 3. If the output data folder and input file are not exported as system variables, you need to update them:
-settings.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
-                         output_folder='/home/$USER/output/')
-
-
-
-
-
-# 4. Check the setting by using the .show() or .check_settings() function 
-settings.show()
-
-
-
-
 
 # =============================================================================
 #  Import data
@@ -52,6 +27,8 @@ settings.show()
 #1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
 
 sept_2022_all_vlinders = vlinder_toolkit.Dataset()
+sept_2022_all_vlinders.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
+                         output_folder='/home/$USER/output/')
 
 
 # ---------------- Importing from CSV file -------------------------------
@@ -59,7 +36,7 @@ sept_2022_all_vlinders = vlinder_toolkit.Dataset()
 
 #The dataset is initiated but still empty. Filling it with the data from a csv file is simply done by:
     
-sept_2022_all_vlinders.import_data_from_file(settings, coarsen_timeres=True) #Rember that you added the input file in the settings object, this file will be used.
+sept_2022_all_vlinders.import_data_from_file(coarsen_timeres=True) #Rember that you added the input file in the settings object, this file will be used.
 
 
 # =============================================================================
@@ -84,11 +61,11 @@ sept_2022_all_vlinders.import_data_from_file(settings, coarsen_timeres=True) #Re
 #All settings, labels, replacement values are defind in the default settings in /settings_files/qc_settings.py
 #To inspect (and change) these quality control settings, you can extract them out of the Settings:
 
-qc_settings = settings.qc_check_settings #Settings are stored in nested dictionary
+qc_settings = sept_2022_all_vlinders.settings.qc['qc_check_settings'] #Settings are stored in nested dictionary
 print(qc_settings)
 
 #Changing a setting example:
-settings.qc_check_settings['persistance']['temp']['max_valid_repetitions'] = 6
+qc_settings['persistance']['temp']['max_valid_repetitions'] = 6
 
 
         
@@ -202,7 +179,7 @@ favorite_station.make_plot(variable='temp',
 from datetime import datetime    
 
 sept_2022_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder07'],
-                                variable='humidity',
+                                variable='temp',
                                 starttime=datetime(2022, 9,4), # 2022/09/04 00:00:00
                                 endtime=datetime(2022,9,12,12,45), #2022/09/12 12:45:00
                                 title=None,

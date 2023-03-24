@@ -20,32 +20,6 @@ import vlinder_toolkit
 
 
 
-# =============================================================================
-# Settings
-# =============================================================================
-
-
-# 1. Initiate settings object. This object contains all settings needed for furthur analysis
-settings = vlinder_toolkit.Settings()
-
-
-
-
-# 3. If the output data folder and input file are not exported as system variables, you need to update them:
-settings.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
-                         output_folder='/home/$USER/output/',
-                         input_metadata_file=vlinders_metadatafile)
-
-
-
-
-
-# 4. Check the setting by using the .show() or .check_settings() function 
-settings.show()
-
-
-
-
 
 # =============================================================================
 #  Import data
@@ -56,6 +30,9 @@ settings.show()
 #1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
 
 aug_2020_all_vlinders = vlinder_toolkit.Dataset()
+aug_2020_all_vlinders.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
+                         output_folder='/home/$USER/output/',
+                         input_metadata_file=vlinders_metadatafile)
 
 
 # ---------------- Importing from CSV file -------------------------------
@@ -63,7 +40,7 @@ aug_2020_all_vlinders = vlinder_toolkit.Dataset()
 
 #The dataset is initiated but still empty. Filling it with the data from a csv file is simply done by:
     
-aug_2020_all_vlinders.import_data_from_file(settings) #Rember that you added the input file in the settings object, this file will be used.
+aug_2020_all_vlinders.import_data_from_file() #Rember that you added the input file in the settings object, this file will be used.
 
 
 

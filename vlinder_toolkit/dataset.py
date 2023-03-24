@@ -95,6 +95,9 @@ class Dataset:
     def update_settings(self, *args, **kwargs):
         self.settings.update_IO(*args, **kwargs)
 
+    def show_settings(self):
+        self.settings.show()
+
     def get_station(self, stationname):
         """
         Extract a station object from the dataset.
@@ -159,7 +162,11 @@ class Dataset:
         """
         logger.info('Show basic info of dataset.')
 
-        gapsdf = self.gaps.to_df()
+        try:
+            gapsdf = self.gaps.to_df()
+        except:
+            gapsdf=init_multiindexdf()
+
 
         print_dataset_info(self.df, self.outliersdf, gapsdf,
                            self.settings.app['print_fmt_datetime'])
@@ -253,7 +260,8 @@ class Dataset:
                              show_legend=legend,
                              show_outliers=show_outliers,
                              plot_settings = self.settings.app['plot_settings'],
-                             gap_settings = self.settings.gap)
+                             gap_settings = self.settings.gap,
+                             qc_info_settings=self.settings.qc['qc_checks_info'])
 
         return ax
 
@@ -923,10 +931,13 @@ class Dataset:
         df = import_data_from_db(self.settings.db,
                                 start_datetime=start_datetime,
                                 end_datetime=end_datetime)
+        
+        if df.empty: #No data has, probably connection error
+            return 
 
         # Make data template
         self.data_template = pd.DataFrame().from_dict(
-            template_to_package_space(self.settings.templates['vlinder_db_obs_template']))
+            template_to_package_space(self.settings.db['vlinder_db_obs_template']))
 
         # convert dataframe to multiindex (datetime - name)
         df = df.set_index(['name', df.index])

@@ -11,7 +11,7 @@ import pandas as pd
 
 import mysql.connector
 from mysql.connector import errorcode
-
+from vlinder_toolkit.df_helpers import init_multiindexdf
 
 
 def template_to_package_space(specific_template):
@@ -237,10 +237,14 @@ def import_data_from_db(db_settings,
             print('    VLINDER_DB_USER_NAME')
             print('    VLINDER_DB_USER_PASW')
             print('or update the Settings.db_user and Settings.db_passw')
-            sys.exit()
+
+            #TODO use default return
+            return init_multiindexdf()
         elif err.errno == 2003:
             print("Can't connect to ", db_settings['db_host'], ' host. Make shure your Ugent VPN is on!')
-            sys.exit()
+            # sys.exit()
+            #TODO use default return
+            return init_multiindexdf()
 
 
 

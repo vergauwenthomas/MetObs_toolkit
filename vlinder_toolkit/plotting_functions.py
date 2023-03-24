@@ -159,6 +159,7 @@ def _spatial_plot(gdf, variable, legend, use_quantiles, is_categorical, k_quanti
 
 def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby,
                     show_legend, show_outliers, plot_settings, gap_settings,
+                    qc_info_settings
                     ):
 
     # plot_settings = plot_settings['time_series']
@@ -186,7 +187,7 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby,
 
     if colorby=='label':
         # iterate over label groups
-        col_mapper = _all_possible_labels_colormapper(plot_settings, gap_settings) #get color mapper
+        col_mapper = _all_possible_labels_colormapper(plot_settings, qc_info_settings, gap_settings) #get color mapper
         outl_groups = mergedf.groupby(obstype+'_final_label')
         legenddict={}
         for outl_label, groupdf in outl_groups:
@@ -203,11 +204,11 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby,
                 plotdf = groupdf.reset_index().pivot(index='datetime', columns='name', values=obstype) #long to wide
 
                 ax=plotdf.plot(kind='line', color=outl_color, ax=ax, legend=False,
-                                zorder=plot_settings['linezorder'],
-                                linewidth=plot_settings['linewidth'])
+                                zorder=plot_settings['time_series']['linezorder'],
+                                linewidth=plot_settings['time_series']['linewidth'])
 
 
-            elif outl_label==gap_settings['gap_fill_info']['label']: #fill gaps as dashed lines
+            elif outl_label==gap_settings['gaps_fill_info']['label']: #fill gaps as dashed lines
 
                 fill_idx = init_idx.to_frame().drop(groupdf.index)
                 groupdf = pd.concat([groupdf, fill_idx])
@@ -226,8 +227,8 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby,
                 plotdf = plotdf.reset_index()
                 ax=plotdf.plot(kind='scatter', x='datetime', y=obstype,
                                ax=ax, color=outl_color, legend=False,
-                               zorder=plot_settings['scatterzorder'],
-                               s=plot_settings['scattersize'])
+                               zorder=plot_settings['time_series']['scatterzorder'],
+                               s=plot_settings['time_series']['scattersize'])
 
             legenddict[outl_label] = outl_color
 
@@ -241,7 +242,7 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby,
                                              label='ok', lw=4))
                 del legenddict['ok'] #remove ok key
 
-            if gap_settings['gap_fill_info']['label'] in legenddict.keys():
+            if gap_settings['gaps_fill_info']['label'] in legenddict.keys():
                 custom_handles.append(Line2D([0], [0],
                                              color=legenddict[gap_settings['gap_fill_info']['label']],
                                              label='gap filled', lw=4, linestyle='--'))
@@ -313,7 +314,7 @@ def _outl_value_to_colormapper(plot_settings, qc_check_info):
     return outl_col_mapper
 
 
-def _all_possible_labels_colormapper(plot_settings, gap_settings):
+def _all_possible_labels_colormapper(plot_settings,qc_info_settings, gap_settings):
     """ Make color mapper for all LABELVALUES to colors. """
     color_defenitions = plot_settings['color_mapper']
 
@@ -321,7 +322,7 @@ def _all_possible_labels_colormapper(plot_settings, gap_settings):
 
     #get QC outlier labels
 
-    outl_col_mapper = _outl_value_to_colormapper()
+    outl_col_mapper = _outl_value_to_colormapper(plot_settings=plot_settings, qc_check_info=qc_info_settings)
     mapper.update(outl_col_mapper)
     #get 'ok' and 'not checked'
     mapper['ok'] = color_defenitions['ok']

@@ -5,7 +5,7 @@ Created on Thu Oct  6 13:25:02 2022
 @author: thoverga
 """
 
-# import vlinder_toolkit
+
 import vlinder_toolkit
 import os
 import sys
@@ -16,6 +16,7 @@ from pathlib import Path
 
 lib_folder = Path(__file__).resolve().parents[1]
 sys.path.append(str(lib_folder))
+
 
 
 
@@ -43,20 +44,4 @@ dataset.make_geo_plot()
 dataset.make_plot()
 
 #%%
-# # #% Setup dataset
-# settings = vlinder_toolkit.Settings()
-# settings.update_settings(input_data_file=testdatafile,
-
-#                           input_metadata_file=static_data,
-#                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
-#                          )
-
-# dataset = vlinder_toolkit.Dataset()
-
-
-
-# df = dataset.import_data_from_file(coarsen_timeres=True)
-
-
-# dataset.apply_quality_control()
-
+print('done')
