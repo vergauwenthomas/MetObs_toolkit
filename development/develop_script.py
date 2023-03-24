@@ -5,7 +5,7 @@ Created on Thu Oct  6 13:25:02 2022
 @author: thoverga
 """
 
-
+#%%
 import vlinder_toolkit
 import os
 import sys
@@ -37,11 +37,18 @@ dataset.update_settings(input_data_file=testdatafile,
                         output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                         )
 
-dataset.import_data_from_file(coarsen_timeres=True)
-dataset.apply_quality_control()
-dataset.get_qc_stats()
-dataset.make_geo_plot()
-dataset.make_plot()
+
+from datetime import datetime
+startdt = datetime(2020, 8,1)
+enddt = datetime(2020,8,2)
+test = dataset.import_data_from_database(start_datetime=startdt, end_datetime=enddt)
+
+
+# dataset.import_data_from_file(coarsen_timeres=True)
+# dataset.apply_quality_control()
+# dataset.get_qc_stats()
+# dataset.make_geo_plot()
+# dataset.make_plot()
 
 #%%
 print('done')

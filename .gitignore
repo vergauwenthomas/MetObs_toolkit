@@ -35,3 +35,4 @@ physiography/*
 .spyproject
 *.pyc
 .vscode
+*tempCodeRunnerFile.py
