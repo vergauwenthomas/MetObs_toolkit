@@ -17,7 +17,9 @@ from pathlib import Path
 lib_folder = Path(__file__).resolve().parents[1]
 sys.path.append(str(lib_folder))
 
+
 import vlinder_toolkit
+
 
 
 #%% % Import
@@ -43,8 +45,8 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 
 #%%
-analys = dataset.make_analysis_instance()
 
+analys = dataset.make_analysis_instance()
 
 
 
