@@ -51,7 +51,7 @@ from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         init_multiindexdf,
                                         metadf_to_gdf)
 
-
+from vlinder_toolkit.analysis import Analysis
 
 
 logger = logging.getLogger(__name__)
@@ -102,6 +102,11 @@ class Dataset:
 
     def show_settings(self):
         self.settings.show()
+
+    def make_analysis_instance(self):
+        return Analysis(obsdf = self.df,
+                        metadf = self.metadf,
+                        settings = self.settings)
 
     def get_station(self, stationname):
         """
@@ -574,11 +579,11 @@ class Dataset:
             self.df = obsdf
             if  not outl_df.empty:
                 self.update_outliersdf(outl_df)
-        
+
         if window_variation:
             print('Applying the window variation-check on all stations.')
             logger.info('Applying window variation-check on the full dataset')
-            
+
             obsdf, outl_df = window_variation_check(
                         station_frequencies=self.metadf['dataset_resolution'],
                         obsdf=self.df,
@@ -591,8 +596,8 @@ class Dataset:
             self.df = obsdf
             if not outl_df.empty:
                 self.update_outliersdf(outl_df)
-            
-        
+
+
         self.outliersdf = self.outliersdf.sort_index()
 
 
@@ -944,9 +949,9 @@ class Dataset:
         df = import_data_from_db(self.settings.db,
                                 start_datetime=start_datetime,
                                 end_datetime=end_datetime)
-        
+
         if df.empty: #No data has, probably connection error
-            return 
+            return
 
         # Make data template
         self.data_template = pd.DataFrame().from_dict(
@@ -1033,12 +1038,12 @@ class Dataset:
                                                          checks_settings = self.settings.qc['qc_check_settings'])
         if not dup_outl_df.empty:
             self.update_outliersdf(dup_outl_df)
-        
+
         self.df, nan_outl_df = invalid_input_check(self.df,
                                                    checks_info=self.settings.qc['qc_checks_info'])
         if not nan_outl_df.empty:
             self.update_outliersdf(nan_outl_df)
-      
+
 
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=self.settings.time_resolution['target_time_res'],

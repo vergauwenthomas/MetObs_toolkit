@@ -6,7 +6,7 @@ Created on Thu Oct  6 13:25:02 2022
 """
 
 #%%
-import vlinder_toolkit
+
 import os
 import sys
 import pandas as pd
@@ -17,7 +17,7 @@ from pathlib import Path
 lib_folder = Path(__file__).resolve().parents[1]
 sys.path.append(str(lib_folder))
 
-
+import vlinder_toolkit
 
 
 #%% % Import
@@ -43,9 +43,7 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 
 #%%
-
-df = dataset.df
-
+analys = dataset.make_analysis_instance()
 
 
 
