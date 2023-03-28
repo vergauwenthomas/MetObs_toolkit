@@ -365,11 +365,6 @@ class Dataset:
         else:
             metadf = self.metadf
 
-        # convert to dataframe if needed
-        # try:
-        #     metadf = metadf.to_frame()
-        # except:
-        #     pass
 
         # fill modell with data
         if modelname == 'ERA5_hourly':
