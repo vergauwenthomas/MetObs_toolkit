@@ -411,5 +411,4 @@ dependencies:
       - trove-classifiers==2023.3.9
       - urllib3==1.26.15
       - virtualenv==20.21.0
-      - vlinder-toolkit==0.4.19
 prefix: /home/thoverga/anaconda3/envs/ee_env

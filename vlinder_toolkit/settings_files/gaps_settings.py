@@ -9,11 +9,11 @@ Created on Thu Mar  2 18:47:05 2023
 from numpy import nan
 
 gaps_settings = {
-    "gaps_finder": {'gapsize_n': 40}, #gaps defined as n times the highest frequency on IO. 
-    
-    
+    "gaps_finder": {'gapsize_n': 40}, #gaps defined as n times the highest frequency on IO.
 
-    
+
+
+
     }
 
 gaps_info = {
@@ -29,7 +29,7 @@ gaps_info = {
                          'numeric_flag': 13,
                          'apply_on': 'record'
                          },
-    
+
     }
 
 
@@ -41,25 +41,25 @@ gaps_info = {
 gaps_fill_settings={
     'linear': {'method': 'time',
                'max_consec_fill': 100},
-    
+
     'model_debias':{
         'debias_period': {'prefered_leading_sample_duration_hours': 48,
                           'prefered_trailing_sample_duration_hours': 48,
                           'minimum_leading_sample_duration_hours': 24,
                           'minimum_trailing_sample_duration_hours': 24}
-        
-        } 
-    
-    
+
+        }
+
+
     }
 
 
 gaps_fill_info = {
-    
-    'label_columnname': 'final_label',
+
+    'label_columnname': 'fill_method',
     'label': {'linear': 'interpolation',
-              'era5_debias': 'debiased_era5'},
+              'model_debias': 'debiased_era5'},
      'numeric_flag': 21,
-     
+
     }
 

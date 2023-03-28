@@ -100,7 +100,9 @@ plot_settings['color_mapper']={
     'missing_timestamp':'#e86bb6',
     
     #Gap filling
-    'gapfill': '#d406c6',
+    'linear': '#d406c6',
+    'model_debias': '#6e1868',
+
     
     #common
     'ok': '#07f72b',

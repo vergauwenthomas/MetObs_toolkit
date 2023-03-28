@@ -12,6 +12,7 @@ from pathlib import Path
 
 
 lib_folder = Path(__file__).resolve().parents[2]
+
 #sys.path.append(str(lib_folder))
 
 
@@ -26,16 +27,16 @@ static_data = os.path.join(
     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
 
-# #% Setup dataset
-settings = vlinder_toolkit.Settings()
-settings.update_settings(input_data_file=testdatafile,
+# #% import data
+
+
+
+dataset = vlinder_toolkit.Dataset()
+dataset.update_settings(input_data_file=testdatafile,
                          input_metadata_file=static_data,
                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                          )
-
-dataset = vlinder_toolkit.Dataset()
 dataset.import_data_from_file(coarsen_timeres=True)
-
 #%% Basic tests on the gaps
 gapsdf = dataset.gaps.to_df()
 # check if two gaps are found
@@ -66,13 +67,13 @@ dataset.gaps.list[0].update_leading_trailing_obs(dataset.df, dataset.outliersdf)
 
 #%% Test gapfilling
 
+# ------------------ linear interpolation ----------------------------
 
-interp_series = dataset.gaps.apply_interpolate_gaps(dataset.df, dataset.outliersdf, dataset.metadf['dataset_resolution'])
-interp_series.name = 'tlk'
+dataset.fill_gaps_linear(obstype='temp')
 
-interpdf = interp_series.to_frame()
+gapsfilldf = dataset.gapfilldf
 
-interpdf['manual']=[     
+gapsfilldf['manual']=[
                 9.487500,
                 9.875000,
                 10.262500,
@@ -86,13 +87,97 @@ interpdf['manual']=[
                 12.633333,
                 11.566667]
 
-interpdf['diff'] = interpdf['tlk'] - interpdf['manual']
+gapsfilldf['diff'] = gapsfilldf['temp'] - gapsfilldf['manual']
 
 
-assert not interpdf['tlk'].isnull().any(), f'Nan value found in tlk interpolation ! \n {interpdf}'
-assert (interpdf['diff']).sum() < 1e-5, f'Tlk interpolation differs from manual: \n {interpdf}'
+assert not gapsfilldf['temp'].isnull().any(), f'Nan value found in tlk interpolation ! \n {gapsfilldf}'
+assert (gapsfilldf['diff']).sum() < 1e-5, f'Tlk interpolation differs from manual: \n {gapsfilldf}'
+
+#%%
+# ------------------ ERA debias fill
+obstype='temp'
 
 
+dataset = vlinder_toolkit.Dataset()
+dataset.update_settings(input_data_file=testdatafile,
+                         input_metadata_file=static_data,
+                         output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
+                         )
+
+dataset.settings.time_resolution['target_time_res'] = '30T'
+
+dataset.import_data_from_file(coarsen_timeres=True)
+
+
+
+
+
+#offline mode
+era = vlinder_toolkit.Modeldata('ERA5_hourly')
+
+era_datafile = os.path.join(
+    str(lib_folder), 'tests', 'test_data',  'era5_data.csv')
+
+
+era.set_model_from_csv(era_datafile, 'ERA5_hourly', obstype)
+
+assert era.df.shape[0] == 5348, 'Something wrong with importing era data from csv.'
+
+
+
+# # Fill gaps using era5 data:
+dataset.fill_gaps_era5(modeldata=era,
+                        method='debias',
+                        obstype='temp',
+                        overwrite=True)
+
+
+#%%
+from datetime import datetime
+import numpy as np
+import pandas as pd
+from vlinder_toolkit.df_helpers import init_multiindexdf
+
+
+# validate
+checked = {'temp': {('vlinder01', datetime.strptime('2022-10-04 02:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 02:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 03:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 03:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 04:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 04:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 05:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 05:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 06:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 06:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 07:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 07:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-04 08:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
+                    ('vlinder01', datetime.strptime('2022-10-06 17:00:00', '%Y-%m-%d %H:%M:%S' )): 14.719558715820341,
+                    ('vlinder01', datetime.strptime('2022-10-06 17:30:00', '%Y-%m-%d %H:%M:%S' )): 14.105651664733898,
+                    ('vlinder01', datetime.strptime('2022-10-06 18:00:00', '%Y-%m-%d %H:%M:%S' )): 13.523644638061523,
+                    ('vlinder01', datetime.strptime('2022-10-06 18:30:00', '%Y-%m-%d %H:%M:%S' )): 13.272471523284917,
+                    ('vlinder01', datetime.strptime('2022-10-06 19:00:00', '%Y-%m-%d %H:%M:%S' )): 12.417074584960952,
+                    ('vlinder01', datetime.strptime('2022-10-06 19:30:00', '%Y-%m-%d %H:%M:%S' )): 12.083017063140879,
+                    ('vlinder01', datetime.strptime('2022-10-06 20:00:00', '%Y-%m-%d %H:%M:%S' )): 12.194173049926757,
+                    ('vlinder01', datetime.strptime('2022-10-06 20:30:00', '%Y-%m-%d %H:%M:%S' )): 11.708401107788086,
+                    ('vlinder01', datetime.strptime('2022-10-06 21:00:00', '%Y-%m-%d %H:%M:%S' )): 11.562461853027344}}
+
+checkeddf = pd.DataFrame(checked)
+checkeddf.index = checkeddf.index.set_names(['name', 'datetime'])
+
+# fill na by -1 (no equality operation on nans)
+checkeddf = checkeddf.fillna(-1)
+dataset.gapfilldf = dataset.gapfilldf.fillna(-1)
+
+
+
+test = dataset.gapfilldf[obstype].astype(float).eq(checkeddf[obstype] )
+if not test.all():
+    print('Gapfill for era debias not equal to manual labels! Here is the difference')
+    print(f'manual: {checkeddf}, tlk: {dataset.gapfilldf}')
+    print(f'equal at: {test}')
+    sys.exit('Error in debias gapfilling')
 
 print('Done! ')
 

@@ -22,7 +22,7 @@ logger_handler.setFormatter(logger_formatter)
 
 # Add the Handler to the Logger
 loggers.addHandler(logger_handler)
-loggers.info('Logger initiated') 
+loggers.info('Logger initiated')
 
 
 
@@ -31,9 +31,6 @@ BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_PATH)
 
 
-
-
-from vlinder_toolkit.settings import Settings
 from vlinder_toolkit.dataset import Dataset
 from vlinder_toolkit.modeldata import Modeldata
 

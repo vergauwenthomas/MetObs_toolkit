@@ -14,7 +14,7 @@ import numpy as np
 
 from vlinder_toolkit.settings import Settings
 from vlinder_toolkit.data_import import (import_data_from_csv,
-                                         import_data_from_database,
+                                         import_data_from_db,
                                          template_to_package_space,
                                          import_metadata_from_csv)
 
@@ -41,18 +41,19 @@ from vlinder_toolkit.writing_files import write_dataset_to_csv
 
 from vlinder_toolkit.missingobs import Missingob_collection
 
-from vlinder_toolkit.gap import (Gap_collection, 
+from vlinder_toolkit.gap import (Gap_collection,
                                  missing_timestamp_and_gap_check,
                                  get_freqency_series)
 
 
 from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         multiindexdf_datetime_subsetting,
-                                        remove_outliers_from_obs, 
+                                        remove_outliers_from_obs,
                                         init_multiindexdf,
                                         metadf_to_gdf)
 
 
+from vlinder_toolkit.modeldata import Modeldata
 
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,7 @@ logger = logging.getLogger(__name__)
 # Dataset class
 # =============================================================================
 
-class Dataset:    
+class Dataset:
     def __init__(self):
         """
         Constructs all the necessary attributes for Dataset object.
@@ -80,10 +81,9 @@ class Dataset:
 
         self.missing_obs = None  # becomes a Missingob_collection after import
         self.gaps = None  # becomes a gap_collection after import
-        
+
         self.gapfilldf = init_multiindexdf()
-        
-        self.modeldf = init_multiindexdf() #only era5 for now
+
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
@@ -91,7 +91,20 @@ class Dataset:
         self.data_template = pd.DataFrame()
 
         self._istype = 'Dataset'
-        self._freqs = pd.Series()
+        self._freqs = pd.Series(dtype=object)
+
+        self.settings = Settings()
+
+    def update_settings(self, *args, **kwargs):
+        self.settings.update_IO(*args, **kwargs)
+
+
+    def add_csv_template(self, csv_file):
+        self.settings.add_csv_template(csv_file)
+
+
+    def show_settings(self):
+        self.settings.show()
 
     def get_station(self, stationname):
         """
@@ -129,7 +142,7 @@ class Dataset:
 
         sta_gaps = self.gaps.get_station_gaps(stationname)
         sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
-        
+
         try:
             sta_gapfill=self.gapfilldf.xs(
                 stationname, level='name', drop_level=False)
@@ -143,7 +156,8 @@ class Dataset:
                        missing_obs=sta_missingobs,
                        gapfilldf=sta_gapfill,
                        metadf=sta_metadf,
-                       data_template=self.data_template)
+                       data_template=self.data_template,
+                       settings = self.settings)
 
     def show(self):
         """
@@ -155,10 +169,15 @@ class Dataset:
 
         """
         logger.info('Show basic info of dataset.')
-        
-        gapsdf = self.gaps.to_df()
-        
-        print_dataset_info(self.df, self.outliersdf, gapsdf)
+
+        try:
+            gapsdf = self.gaps.to_df()
+        except:
+            gapsdf=init_multiindexdf()
+
+
+        print_dataset_info(self.df, self.outliersdf, gapsdf,
+                           self.settings.app['print_fmt_datetime'])
 
     def make_plot(self, stationnames=None, variable='temp', colorby='name',
                   starttime=None, endtime=None,
@@ -200,7 +219,7 @@ class Dataset:
 
         """
 
-       
+
 
         logger.info(f'Make {variable}-timeseries plot for {stationnames}')
 
@@ -219,14 +238,14 @@ class Dataset:
         if isinstance(title, type(None)):
             if isinstance(stationnames, type(None)):
                 if self._istype == 'Dataset':
-                    title = Settings.display_name_mapper[variable] + \
+                    title = self.settings.app['display_name_mapper'][variable] + \
                         ' for all stations. '
                 elif self._istype == 'Station':
-                    title = Settings.display_name_mapper[variable] + \
+                    title = self.settings.app['display_name_mapper'][variable] + \
                         ' of ' + self.name
 
             else:
-                title = Settings.display_name_mapper[variable] + \
+                title = self.settings.app['display_name_mapper'][variable] + \
                     ' for stations: ' + str(stationnames)
 
         if ((variable+'_final_label' not in mergedf.columns) &
@@ -247,7 +266,10 @@ class Dataset:
                              ylabel=self.data_template[variable]['orig_name'],
                              colorby=colorby,
                              show_legend=legend,
-                             show_outliers=show_outliers)
+                             show_outliers=show_outliers,
+                             plot_settings = self.settings.app['plot_settings'],
+                             gap_settings = self.settings.gap,
+                             qc_info_settings=self.settings.qc['qc_checks_info'])
 
         return ax
 
@@ -316,21 +338,58 @@ class Dataset:
                              title=title,
                              legend=legend,
                              vmin=vmin,
-                             vmax=vmax)
+                             vmax=vmax,
+                             plotsettings=self.settings.app['plot_settings'],
+                             categorical_fields=self.settings.app['categorical_fields'],
+                             static_fields = self.settings.app['static_fields'],
+                             display_name_mapper=self.settings.app['display_name_mapper'],
+                             world_boundaries_map = self.settings.app['world_boundary_map'])
 
         return axis
-    
-    
     # =============================================================================
-    #   Gap Filling  
+    #   Gap Filling
+    # =============================================================================
+    def get_modeldata(self, modelname='ERA5_hourly', stations=None, startdt=None, enddt=None):
+        Modl = Modeldata(modelname)
+
+        #Filters
+        if isinstance(startdt, type(None)):
+            startdt=self.df.index.get_level_values('datetime').min()
+        if isinstance(enddt, type(None)):
+            enddt=self.df.index.get_level_values('datetime').max()
+        if not isinstance(stations, type(None)):
+            if isinstance(stations, str):
+                metadf=self.metadf.loc[[stations]]
+            if isinstance(stations, list):
+                metadf = self.metadf.iloc[self.metadf.index.isin(stations)]
+        else:
+            metadf = self.metadf
+
+        # convert to dataframe if needed
+        # try:
+        #     metadf = metadf.to_frame()
+        # except:
+        #     pass
+
+        # fill modell with data
+        if modelname == 'ERA5_hourly':
+            Modl.get_ERA5_data(metadf, startdt, enddt)
+
+            return Modl
+        else:
+            print(f"{modelname} for set_modeldata is not implemented yet")
+            return None
+
+    # =============================================================================
+    #   Gap Filling
     # =============================================================================
 
     def fill_gaps_linear(self, obstype='temp'):
         #TODO logging
-    
-        fill_settings = Settings.gaps_fill_settings['linear']
-        fill_info = Settings.gaps_fill_info
-        
+        fill_settings =self.settings.gap['gaps_fill_settings']['linear']
+        fill_info = self.settings.gap['gaps_fill_info']
+
+
         #fill gaps
         self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
                                     obsdf = self.df,
@@ -339,32 +398,54 @@ class Dataset:
                                     obstype=obstype,
                                     method=fill_settings['method'],
                                     max_consec_fill=fill_settings['max_consec_fill'])
-        
+
         #add label column
         self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']['linear']
-        
-        
-    def fill_gaps_era5(self, eraModelData, method='debias', obstype='temp'):
-        
-        fill_info = Settings.gaps_fill_info
+
+
+    def fill_gaps_era5(self, modeldata, method='debias', obstype='temp', overwrite=True):
+
+        fill_info = self.settings.gap['gaps_fill_info']
+
+        # check if modeldata is available
+        if isinstance(modeldata, type(None)):
+            print('The dataset has no modeldate. Use the set_modeldata() function to add modeldata.')
+            return None
         # check if obstype is present in eramodel
-        
+        assert obstype in modeldata.df.columns, f'{obstype} is not present in the modeldate: {modeldata}'
         # check if all station are present in eramodeldata
-        
-        
+        stations = self.gaps.to_df().index.unique().to_list()
+        assert all([sta in modeldata.df.index.get_level_values('name') for sta in stations]),\
+            f'Not all stations with gaps are in the modeldata!'
+
+        if not self.gapfilldf.empty:
+            if overwrite:
+                print('Gapfilldf will be overwritten!')
+                self.gapfilldf = init_multiindexdf()
+            else:
+                print('Gapfilldf is not empty, set "overwrite=True" to overwrite it!')
+                print('CANCEL gap fill with ERA5')
+                return
+
+
+
+
         if method=='debias':
-            self.gapfilldf[obstype] = self.gaps.apply_debias_era5_gapfill(dataset=self,
-                                                       eraModelData=eraModelData,
-                                                       obstype=obstype)
+            test = self.gaps.apply_debias_era5_gapfill(dataset=self,
+                                                       eraModelData=modeldata,
+                                                       obstype=obstype,
+                                                       debias_settings=self.settings.gap['gaps_fill_settings']['model_debias'])
+
+            self.gapfilldf[obstype] = test
             #add label column
-            self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']['era5_debias']
+            self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']['model_debias']
         else:
             print('not implemented yet')
-            
-            
+
+
 
     def write_to_csv(self, filename=None, include_outliers=True,
-                     include_gapfill=True, 
+                     include_gapfill=True,
                      add_final_labels=True, use_tlk_obsnames=True):
         """
             Write the dataset to a file where the observations, metadata and
@@ -393,10 +474,10 @@ class Dataset:
 
         logger.info('Writing the dataset to a csv file')
 
-        assert not isinstance(Settings.output_folder, type(None)), 'Specify \
+        assert not isinstance(self.settings.IO['output_folder'], type(None)), 'Specify \
             Settings.output_folder in order to export a csv.'
-        assert os.path.isdir(Settings.output_folder), f'The outputfolder: \
-            {Settings.output_folder} is not found. '
+        assert os.path.isdir(self.settings.IO['output_folder']), f'The outputfolder: \
+            {self.settings.IO["output_folder"]} is not found. '
 
         # combine all dataframes
         mergedf = self.combine_all_to_obsspace()  # with outliers
@@ -411,36 +492,36 @@ class Dataset:
         else:  # exclude outliers
             if add_final_labels:
                 cols_to_keep = [col for col in mergedf.columns
-                                if col in Settings.observation_types]
+                                if col in self.settings.app['observation_types']]
                 cols_to_keep.extend([col for col in mergedf.columns
                                      if col.endswith('_final_label')])
                 mergedf = mergedf[cols_to_keep]
-                
+
         if not include_gapfill:
             # locate all filled values
             filled_df =  init_multiindexdf()
             final_columns = [col for col in mergedf.columns if col.endswith('_final_label')]
             for final_column in final_columns:
-                filled_df = pd.concat([filled_df, 
-                                       mergedf.loc[mergedf[final_column] == 
-                                                   Settings.gaps_fill_info['label']]])
-                
+                filled_df = pd.concat([filled_df,
+                                       mergedf.loc[mergedf[final_column] ==
+                                                   self.settings.gaps['gaps_fill_info']['label']]])
+
             # drop filled values from mergedf
             mergedf = mergedf.drop(filled_df.index, errors='ignore')
-            
+
             #fill with numpy nan
-            nan_columns = {col: np.nan for col in mergedf.columns if col in Settings.observation_types}
+            nan_columns = {col: np.nan for col in mergedf.columns if col in self.settings.app['observation_types']}
             filled_df = filled_df.assign(**nan_columns)
             # rename label
-            filled_df = filled_df.replace({Settings.gaps_fill_info['label']: Settings.gaps_info['gap']['outlier_flag']})
+            filled_df = filled_df.replace({self.settings.gaps['gaps_fill_info']['label']: self.settings.gaps['gaps_info']['gap']['outlier_flag']})
             #add to mergedf
             mergedf = pd.concat([mergedf, filled_df]).sort_index()
-            
 
-            
-            
-            
-            
+
+
+
+
+
         # Map obstypes columns
         if not use_tlk_obsnames:
             # TODO
@@ -452,6 +533,9 @@ class Dataset:
         write_dataset_to_csv(df=mergedf,
                              metadf=self.metadf,
                              filename=filename,
+                             outputfolder = self.settings.IO['output_folder'],
+                             location_info = self.settings.app['location_info'],
+                             observation_types=self.settings.app['observation_types']
                              )
 
 
@@ -512,24 +596,29 @@ class Dataset:
 
             obsdf, outl_df = repetitions_check(
                                             obsdf=self.df,
-                                            obstype=obstype)
+                                            obstype=obstype,
+                                            checks_info=self.settings.qc['qc_checks_info'],
+                                            checks_settings = self.settings.qc['qc_check_settings'])
 
             # update the dataset and outliers
             self.df = obsdf
-            self.update_outliersdf(outl_df)
-
+            if not outl_df.empty:
+                self.update_outliersdf(outl_df)
 
         if gross_value:
             print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
 
-            obs, outl_df = gross_value_check(
+            obsdf, outl_df = gross_value_check(
                                             obsdf=self.df,
-                                            obstype=obstype)
+                                            obstype=obstype,
+                                            checks_info=self.settings.qc['qc_checks_info'],
+                                            checks_settings = self.settings.qc['qc_check_settings'])
 
             # update the dataset and outliers
-            self.df = obs
-            self.update_outliersdf(outl_df)
+            self.df = obsdf
+            if not outl_df.empty:
+                self.update_outliersdf(outl_df)
 
         if persistance:
             print('Applying the persistance-check on all stations.')
@@ -538,22 +627,29 @@ class Dataset:
             obsdf, outl_df = persistance_check(
                         station_frequencies=self.metadf['dataset_resolution'],
                         obsdf=self.df,
-                        obstype=obstype)
+                        obstype=obstype,
+                        checks_info=self.settings.qc['qc_checks_info'],
+                        checks_settings = self.settings.qc['qc_check_settings'])
 
             # update the dataset and outliers
             self.df = obsdf
-            self.update_outliersdf(outl_df)
+            if not outl_df.empty:
+                self.update_outliersdf(outl_df)
 
         if step:
             print('Applying the step-check on all stations.')
             logger.info('Applying step-check on the full dataset')
-            
+
             obsdf, outl_df = step_check(obsdf=self.df,
-                                                 obstype=obstype)
+                                        obstype=obstype,
+                                        checks_info=self.settings.qc['qc_checks_info'],
+                                        checks_settings = self.settings.qc['qc_check_settings'])
+
 
             # update the dataset and outliers
             self.df = obsdf
-            self.update_outliersdf(outl_df)
+            if  not outl_df.empty:
+                self.update_outliersdf(outl_df)
 
         if window_variation:
             print('Applying the window variation-check on all stations.')
@@ -562,11 +658,16 @@ class Dataset:
             obsdf, outl_df = window_variation_check(
                         station_frequencies=self.metadf['dataset_resolution'],
                         obsdf=self.df,
-                        obstype=obstype)
+                        obstype=obstype,
+                        checks_info=self.settings.qc['qc_checks_info'],
+                        checks_settings = self.settings.qc['qc_check_settings'])
+
 
             # update the dataset and outliers
             self.df = obsdf
-            self.update_outliersdf(outl_df)
+            if not outl_df.empty:
+                self.update_outliersdf(outl_df)
+
 
         self.outliersdf = self.outliersdf.sort_index()
 
@@ -594,17 +695,20 @@ class Dataset:
         # if outliersdf is empty, create columns with 'not checked'
         if outliersdf.empty:
             outliercolumns = [col['label_columnname']
-                              for col in Settings.qc_checks_info.values()]
+                              for col in self.settings.qc['qc_checks_info'].values()]
             for column in outliercolumns:
                 outliersdf[column] = 'not checked'
         # get final label
         outliersdf = add_final_label_to_outliersdf(
                         outliersdf=self.outliersdf,
-                        data_res_series=self.metadf['dataset_resolution'])
+                        data_res_series=self.metadf['dataset_resolution'],
+                        observation_types=self.settings.app['observation_types'],
+                        checks_info=self.settings.qc['qc_checks_info'])
+
         #remove duplicate indixes (needed for update)
         outliersdf = outliersdf[~outliersdf.index.duplicated(keep='first')]
-        
-        
+
+
         # add gaps observations and fill with default values
         gapsidx = self.gaps.get_gaps_indx_in_obs_space(
             self.df, self.outliersdf, self.metadf['dataset_resolution'])
@@ -614,7 +718,7 @@ class Dataset:
         missingidx = self.missing_obs.get_missing_indx_in_obs_space(
             self.df, self.metadf['dataset_resolution'])
         missingdf = missingidx.to_frame()
-        
+
         # add gapfill and remove the filled records from gaps
         gapsfilldf = self.gapfilldf.copy()
 
@@ -628,34 +732,34 @@ class Dataset:
         label_cols = [col for col in outliersdf.columns if col.endswith('_label')]
         for col in label_cols:
             df[col] = 'ok'
-        
+
         # Merge obs and outliers, where obs values will be updated by outliers
         df.update(other=outliersdf,
                          join='left',
                          overwrite=True,
                          errors='ignore')
-        
+
 
         # initiate default values
         for col in df.columns:
-            if col in Settings.observation_types:
+            if col in self.settings.app['observation_types']:
                 default_value_gap = np.nan  # nan for observations
                 default_value_missing = np.nan
-        
+
             elif col.endswith('_final_label'):
                 # 'gap' for final label
-                default_value_gap = Settings.gaps_info['gap']['outlier_flag']
+                default_value_gap = self.settings.gap['gaps_info']['gap']['outlier_flag']
                 # 'is_missing_timestamp' for final label
-                default_value_missing = Settings.gaps_info['missing_timestamp']['outlier_flag']
-    
+                default_value_missing = self.settings.gap['gaps_info']['missing_timestamp']['outlier_flag']
+
             else:
                 default_value_gap = 'not checked'
                 default_value_missing = 'not checked'
                 gapsfilldf[col] = 'not checked'
-        
+
             gapsdf[col] = default_value_gap
             missingdf[col] = default_value_missing
-        
+
         # sort columns
         gapsdf = gapsdf[list(df.columns)]
         missingdf = missingdf[list(df.columns)]
@@ -665,7 +769,7 @@ class Dataset:
         comb_df = pd.concat([df, gapsdf, missingdf, gapsfilldf]).sort_index()
 
         return comb_df
-    
+
 
     def get_qc_stats(self, obstype='temp', stationnames=None, make_plot=True):
         """
@@ -701,24 +805,28 @@ class Dataset:
         comb_df = self.combine_all_to_obsspace()
 
         # drop observation columns that are not obstype
-        ignore_obstypes = Settings.observation_types.copy()
+        ignore_obstypes = self.settings.app['observation_types'].copy()
         ignore_obstypes.remove(obstype)
         comb_df = comb_df.drop(columns=ignore_obstypes)
 
         # drop label columns not applicable on obstype
         relevant_columns = [col for col in comb_df.columns if col.startswith(obstype)]
-        
+
         # add all columns of checks applied on records (i.g. without obs prefix like duplicate timestamp)
-        record_check = {key: item['label_columnname'] for key, item in Settings.qc_checks_info.items() if item['apply_on'] == 'record'}
+        record_check = {key: item['label_columnname'] for key, item in self.settings.qc['qc_checks_info'].items() if item['apply_on'] == 'record'}
         relevant_columns.extend(list(record_check.values()))
         relevant_columns = [col for col in relevant_columns if col in comb_df.columns]
         # filter relevant columns
         comb_df = comb_df[relevant_columns]
-        
+
 
         # compute freq statistics
         final_freq, outl_freq, specific_freq = get_freq_statistics(
-            comb_df, obstype)
+            comb_df = comb_df,
+            obstype=obstype,
+            checks_info=self.settings.qc['qc_checks_info'],
+            gaps_info =self.settings.gap['gaps_info'],
+            )
 
         if any([isinstance(stat, type(None)) for stat in [final_freq,
                                                           outl_freq,
@@ -730,7 +838,9 @@ class Dataset:
             # make pie plots
             qc_stats_pie(final_stats=final_freq,
                          outlier_stats=outl_freq,
-                         specific_stats=specific_freq)
+                         specific_stats=specific_freq,
+                         plot_settings=self.settings.app['plot_settings'],
+                         qc_check_info=self.settings.qc['qc_checks_info'])
 
         return (final_freq, outl_freq, specific_freq)
 
@@ -818,33 +928,33 @@ class Dataset:
         None.
 
         """
-        print('Settings input data file: ', Settings.input_data_file)
-        logger.info(f'Importing data from file: {Settings.input_data_file}')
+        print('Settings input data file: ', self.settings.IO['input_data_file'])
+        logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(
-                            input_file=Settings.input_data_file,
-                            file_csv_template=Settings.input_csv_template,
-                            template_list=Settings.template_list)
+                            input_file=self.settings.IO['input_data_file'],
+                            file_csv_template=self.settings.templates['input_csv_template'],
+                            template_list=self.settings.templates['template_list'])
 
-        logger.debug(f'Data from {Settings.input_data_file} \
+        logger.debug(f'Data from {self.settings.IO["input_data_file"]} \
                      imported to dataframe.')
 
         # drop Nat datetimes if present
         df = df.loc[pd.notnull(df.index)]
 
-        if isinstance(Settings.input_metadata_file, type(None)):
+        if isinstance(self.settings.IO['input_metadata_file'], type(None)):
             print('WARNING: No metadata file is defined.\
                   Add your settings object.')
             logger.warning('No metadata file is defined,\
                     no metadata attributes can be set!')
         else:
             logger.info(f'Importing metadata from file:\
-                        {Settings.input_metadata_file}')
+                        {self.settings.IO["input_metadata_file"]}')
             meta_df = import_metadata_from_csv(
-                        input_file=Settings.input_metadata_file,
-                        file_csv_template=Settings.input_metadata_template,
-                        template_list=Settings.template_list)
+                        input_file=self.settings.IO["input_metadata_file"],
+                        file_csv_template=self.settings.templates['input_metadata_template'],
+                        template_list=self.settings.templates['template_list'])
 
             # merge additional metadata to observations
             meta_cols = [colname for colname in meta_df.columns
@@ -907,13 +1017,16 @@ class Dataset:
             end_datetime = datetime.date.today()
 
         # Read observations into pandas dataframe
-        df = import_data_from_database(Settings,
-                                       start_datetime=start_datetime,
-                                       end_datetime=end_datetime)
+        df = import_data_from_db(self.settings.db,
+                                start_datetime=start_datetime,
+                                end_datetime=end_datetime)
+
+        if df.empty: #No data has, probably connection error
+            return
 
         # Make data template
         self.data_template = pd.DataFrame().from_dict(
-            template_to_package_space(Settings.vlinder_db_obs_template))
+            template_to_package_space(self.settings.db['vlinder_db_obs_template']))
 
         # convert dataframe to multiindex (datetime - name)
         df = df.set_index(['name', df.index])
@@ -964,11 +1077,11 @@ class Dataset:
                     {dataframe.shape}.')
 
         # Create dataframe with fixed number and order of observational columns
-        df = dataframe.reindex(columns=Settings.observation_types)
+        df = dataframe.reindex(columns=self.settings.app['observation_types'])
         self.df = df
 
         # create metadataframe with fixed number and order of columns
-        metadf = dataframe.reindex(columns=Settings.location_info)
+        metadf = dataframe.reindex(columns=self.settings.app['location_info'])
         metadf.index = metadf.index.droplevel('datetime')  # drop datetimeindex
         # drop dubplicates due to datetime
         metadf = metadf[~metadf.index.duplicated(keep='first')]
@@ -982,24 +1095,31 @@ class Dataset:
 
         # find missing obs and gaps, and remove them from the df
         self.df, missing_obs, gaps_df = missing_timestamp_and_gap_check(
-            df=self.df)
+            df=self.df,
+            gapsize_n=self.settings.gap['gaps_settings']['gaps_finder']['gapsize_n'])
 
         # Create gaps and missing obs objects
         self.gaps = Gap_collection(gaps_df)
         self.missing_obs = Missingob_collection(missing_obs)
 
         # Perform QC checks on original observation frequencies
-        self.df, dup_outl_df = duplicate_timestamp_check(df=self.df)
-        self.update_outliersdf(dup_outl_df)
-        
-        self.df, nan_outl_df = invalid_input_check(self.df)
-        self.update_outliersdf(nan_outl_df)
-                
+
+        self.df, dup_outl_df = duplicate_timestamp_check(df=self.df,
+                                                         checks_info=self.settings.qc['qc_checks_info'],
+                                                         checks_settings = self.settings.qc['qc_check_settings'])
+        if not dup_outl_df.empty:
+            self.update_outliersdf(dup_outl_df)
+
+        self.df, nan_outl_df = invalid_input_check(self.df,
+                                                   checks_info=self.settings.qc['qc_checks_info'])
+        if not nan_outl_df.empty:
+            self.update_outliersdf(nan_outl_df)
+
 
         if coarsen_timeres:
-            self.coarsen_time_resolution(freq=Settings.target_time_res,
-                                          method=Settings.resample_method,
-                                          limit=Settings.resample_limit)
+            self.coarsen_time_resolution(freq=self.settings.time_resolution['target_time_res'],
+                                          method=self.settings.time_resolution['resample_method'],
+                                          limit=self.settings.time_resolution['resample_limit'])
 
 
         else:
@@ -1042,7 +1162,7 @@ class Dataset:
             # extract LCZ from gee
             lcz_df = extract_pointvalues(
                         metadf=relevant_metadf,
-                        mapinfo=Settings.gee_dataset_info['global_lcz_map'],
+                        mapinfo=self.settings.gee['gee_dataset_info']['global_lcz_map'],
                         output_column_name='lcz')
             # Merge lcz column in metadf
             if 'lcz' in self.metadf.columns:
@@ -1054,7 +1174,7 @@ class Dataset:
 
             self.metadf = metadf.merge(
                 lcz_df, how='left', left_index=True, right_index=True)
-            
+
             return self.metadf
         # # if 'elevation' in types:
         # #     logger.debug('Extract elevation')
@@ -1081,7 +1201,7 @@ class Dataset:
 
 class Station(Dataset):
     def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
-                 metadf, data_template):
+                 metadf, data_template, settings):
         self.name = name
         self.df = df
         self.outliersdf = outliersdf
@@ -1090,11 +1210,12 @@ class Station(Dataset):
         self.gapfilldf = gapfilldf
         self.metadf = metadf
         self.data_template = data_template
+        self.settings=settings
 
 
         self._istype = 'Station'
-        
-      
+
+
 
 
 def loggin_nan_warnings(df):

@@ -14,7 +14,7 @@ gee_datasets = {
                       'band_of_use': 'LCZ_Filter', #band to use for imagecollections (or None if no band available)
                       'value_type': 'categorical', #categorical or numeric
                       'dynamical': False, #time evolution? To be used for timeseries
-                      'scale': 100, 
+                      'scale': 100,
                       'is_image': False,
                       'is_imagecollection': True,
                       'categorical_mapper': {
@@ -34,7 +34,7 @@ gee_datasets = {
                          14:'Low plants (LCZ D)',
                          15:'Bare rock or paved (LCZ E)',
                          16:'Bare soil or sand (LCZ F)',
-                         17:'Water (LCZ G)',                          
+                         17:'Water (LCZ G)',
                           },
                       'credentials': 'Demuzere M.; Kittner J.; Martilli A.; Mills, G.; Moede, C.; Stewart, I.D.; van Vliet, J.; Bechtel, B. A global map of local climate zones to support earth system modelling and urban-scale environmental science. Earth System Science Data 2022, 14 Volume 8: 3835-3873. doi:10.5194/essd-14-3835-2022'
     },
@@ -43,22 +43,23 @@ gee_datasets = {
                       'band_of_use': 'elevation', #band to use for imagecollections (or None if no band available)
                       'value_type': 'numeric', #categorical or numeric
                       'dynamical': False, #time evolution? To be used for timeseries
-                      'scale': 100, 
+                      'scale': 100,
                       'is_image': True,
                       'is_imagecollection': False,
                       'credentials': 'SRTM Digital Elevation Data Version 4'
     },
     'ERA5_hourly':{'location': "ECMWF/ERA5_LAND/HOURLY", #GEE location
                       'usage': 'ERA5', #Human readable application domain
-                      'band_of_use': 
+                      'band_of_use':
                           {'temp': {'name': "temperature_2m", 'units': 'K'}},
                                       #band mapper to use for imagecollections (or None if no band available)
                       'value_type': 'numeric', #categorical or numeric
                       'dynamical': True, #time evolution? To be used for timeseries
-                      'scale': 2500, 
+                      'scale': 2500,
                       'is_image': False,
                       'is_imagecollection': True,
+                      'time_res': '1H',
                       'credentials': ''
     },
-    
+
 }
