@@ -132,20 +132,20 @@ to_check = ['ok',
 for man_label, tlk_label in manual_to_tlkit_label_map.items():
     if not man_label in to_check:
         continue
-    
+
     print(f' Testing equality of the {tlk_label} with the manual labeling ({man_label}).')
-    
+
     man_idx = man_df[man_df['flags'] == man_label].index.sort_values()
     tlk_idx = tlk_df[tlk_df['temp_final_label'] == tlk_label].index.sort_values()
 
-    
+
     if not tlk_idx.equals(man_idx):
         print(f'ERROR: wrong labels for {tlk_label}')
-        
+
         print(f'differences tlkit --> manual: { tlk_idx.difference(man_idx)}')
         print(f'differences manual --> tlkit: {man_idx.difference(tlk_idx)}')
         sys.exit(1)
-    
+
     else:
         print('OK!')
 
@@ -153,7 +153,7 @@ for man_label, tlk_label in manual_to_tlkit_label_map.items():
 # =============================================================================
 # test duplicates
 # =============================================================================
-# tested seperatly because duplicates are in tlk stored as one record, to avoid 
+# tested seperatly because duplicates are in tlk stored as one record, to avoid
 # duplicate index errors. So we have to do the same for the manual labeling
 man_label = 'duplicated timestamp outlier'
 tlk_label = manual_to_tlkit_label_map[man_label]
@@ -167,7 +167,7 @@ tlk_idx = tlk_df[tlk_df['temp_final_label'] == tlk_label].index.sort_values()
 
 if not tlk_idx.equals(man_idx):
     print(f'ERROR: wrong labels for {tlk_label}')
-    
+
     print(f'differences tlkit --> manual: { tlk_idx.difference(man_idx)}')
     print(f'differences manual --> tlkit: {man_idx.difference(tlk_idx)}')
     sys.exit(1)
@@ -179,16 +179,27 @@ else:
 # =============================================================================
 
 
-
 from datetime import datetime
 import pandas as pd
 
-manual_missing_gaps = [{'name': 'Fictional', 'start_gap': datetime(2020,9,14,22,30), 'end_gap': datetime(2020,9,14,23,55)}] #UPDATE MANUALLY !!!!!!!!!!
+
+
+
+manual_missing_gaps = [{'name': 'Fictional', 'start_gap': datetime(2020,9,14,22,30),
+                        'end_gap': datetime(2020,9,14,23,55)}] #UPDATE MANUALLY !!!!!!!!!!
 
 print('Testing the gaps')
 
 man_gapsdf = pd.DataFrame().from_records(manual_missing_gaps)
 man_gapsdf = man_gapsdf.set_index('name')
+
+#Set timezone
+man_gapsdf['start_gap'] = pd.to_datetime(man_gapsdf['start_gap']).dt.tz_localize(tz='Europe/Brussels')
+man_gapsdf['end_gap'] = pd.to_datetime(man_gapsdf['end_gap']).dt.tz_localize(tz='Europe/Brussels')
+
+
+
+#%%
 
 tlk_gapsdf = dataset.gaps.to_df()
 tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
@@ -197,7 +208,7 @@ tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
 
 if not tlk_gapsdf.equals(man_gapsdf):
     print(f'ERROR: wrong gaps detection')
-    
+
     print(f'differences tlkit --> manual: {tlk_gapsdf[~tlk_gapsdf.apply(tuple,1).isin(man_gapsdf.apply(tuple,1))]}')
     print(f'differences manual --> tlkit: {man_gapsdf[~man_gapsdf.apply(tuple,1).isin(tlk_gapsdf.apply(tuple,1))]}')
     sys.exit(1)
@@ -212,7 +223,7 @@ else:
 # =============================================================================
 
 
-#This has to be done properly, there are too much missing timestamps for manual labelling. 
+#This has to be done properly, there are too much missing timestamps for manual labelling.
 # as a dirty fix, now only count the number of missing timestamps and see it that is oke
 
 number_missing_timestamps = {'1': 1,
@@ -227,6 +238,10 @@ man_missing_timestamps_df = pd.DataFrame([('Fictional', datetime(2020,9,15,2,50)
                      ('Fictional', datetime(2020,9,15,12,40)), ('Fictional', datetime(2020,9,15,17,35)), ('Fictional', datetime(2020,9,15,20,40)),
                      ('Fictional', datetime(2020,9,15,23,50)), ('1', datetime(2020,9,16,21,30))], columns=['name', 'datetime'])
 
+#set timezone
+man_missing_timestamps_df['datetime'] = pd.to_datetime(man_missing_timestamps_df['datetime']).dt.tz_localize(tz='Europe/Brussels')
+
+#get index
 man_missing_timestamps_idx = pd.MultiIndex.from_frame(man_missing_timestamps_df).sort_values()
 
 tlk_missing_series = dataset.missing_obs.series
@@ -237,7 +252,7 @@ tlk_missing_timestamps_idx = pd.MultiIndex.from_frame(tlk_missing_series).sort_v
 
 if not tlk_missing_timestamps_idx.equals(man_missing_timestamps_idx):
     print(f'ERROR: wrong missing timestamps detection')
-    
+
     print(f'differences tlkit --> manual: { tlk_missing_timestamps_idx.difference(man_missing_timestamps_idx)}')
     print(f'differences manual --> tlkit: {man_missing_timestamps_idx.difference(tlk_missing_timestamps_idx)}')
     sys.exit(1)
