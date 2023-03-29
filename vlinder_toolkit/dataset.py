@@ -94,36 +94,6 @@ class Dataset:
 
         self.settings = Settings()
 
-    # def update_timezone(self, tzstring='Europe/Brussels'):
-
-    #     if not tzstring in all_timezones:
-    #         print(f'timezone: {tzstring}, is not a valid timezone. Select one of the following:')
-    #         print(f'{common_timezones}')
-    #         return
-
-    #     print(f'Timezone of observations set to: {tzstring}')
-    #     self.tz = tzstring
-    #     #Update timezone on obs
-    #     self.df.index = self.df.index.set_levels(self.df.index.levels[1]
-    #                                              .tz_localize(tzstring,
-    #                                                           ambiguous='infer',
-    #                                                           nonexistent='shift_forward'),
-    #                                              level=1)
-    #     if not self.outliersdf.empty:
-    #         self.outliersdf.index = self.outliersdf.index.set_levels(self.outliersdf.index.levels[1]
-    #                                              .tz_localize(tzstring,
-    #                                                           ambiguous='infer',
-    #                                                           nonexistent='shift_forward'),
-    #                                              level=1)
-    #     if not self.gapfilldf.empty:
-    #         self.gapfilldf.index = self.gapfilldf.index.set_levels(self.gapfilldf.index.levels[1]
-    #                                              .tz_localize(tzstring,
-    #                                                           ambiguous='infer',
-    #                                                           nonexistent='shift_forward'),
-    #                                              level=1)
-
-    #     #update gaps and missing obs
-
 
     def update_settings(self, *args, **kwargs):
         self.settings.update_IO(*args, **kwargs)
