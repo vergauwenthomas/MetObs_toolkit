@@ -5,6 +5,7 @@ deploy_info
 temp_output/*
 *~lock*
 *.swp
+poetry.lock
 #Exclude deploy scripts
 *deploy*
 
@@ -20,6 +21,7 @@ proj/proj-9.0.0/*
 *log*
 #exclude data
 examples/*.csv 
+examples/testdata.csv
 
 
 #Exclude development scripts for testing
