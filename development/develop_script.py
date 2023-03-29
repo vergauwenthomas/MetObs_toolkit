@@ -49,32 +49,13 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 
 
-# dataset.set_timezone()
-
-# # dataset.import_data_from_file(coarsen_timeres=True)
-
-# # dataset.apply_quality_control()
-# # dataset.get_qc_stats()
-# dataset.make_geo_plot()
-# dataset.make_plot()
-
-
-# dataset.make_plot(stationnames=['vlinder01', 'vlinder02'])
-
-
 #%%
-# from datetime import datetime
-# import pandas as pd
 
-# startdt = datetime(2023, 3,24)
-# enddt = datetime(2023, 3, 28)
-
-
-era = dataset.get_modeldata(stations=['vlinder01'])
-
-# era.get_ERA5_data(dataset.metadf, startdt, enddt)
+test = dataset.get_altitude()
+print(test)
 
 
 
-
-
+# test = dataset.get_lcz()
+# test2 = dataset.get_landcover(buffer=200, aggregate=False)
+# print(test2)

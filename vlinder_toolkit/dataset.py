@@ -21,7 +21,9 @@ from vlinder_toolkit.data_import import (import_data_from_csv,
 
 from vlinder_toolkit.printing import print_dataset_info
 from vlinder_toolkit.landcover_functions import (connect_to_gee,
-                                                 extract_pointvalues,
+                                                 lcz_extractor,
+                                                 height_extractor,
+                                                 lc_fractions_extractor,
                                                  )
 
 from vlinder_toolkit.plotting_functions import (geospatial_plot,
@@ -1135,70 +1137,71 @@ class Dataset:
         self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
+    # =============================================================================
+    # Physiography extractions
+    # =============================================================================
+
+    def get_lcz(self):
+        # connect to gee
+        connect_to_gee()
+
+        # Extract LCZ for all stations
+        lcz_series = lcz_extractor(metadf = self.metadf,
+                                   mapinfo=self.settings.gee['gee_dataset_info']['global_lcz_map'])
+
+        #drop column if it was already present
+        if 'lcz' in self.metadf:
+            self.metadf = self.metadf.drop(columns=['lcz'])
+
+        # update metadata
+        self.metadf = self.metadf.merge(lcz_series.to_frame(),
+                                        how='left',
+                                        left_index=True, right_index=True)
+        return lcz_series
 
 
-    def get_physiography_data(self, types=['lcz', 'elevation']):
-        """
-        Function to extract the LCZ's for all locations in the metadf.
-        A column 'lcz' is added tot the metadf.
+    def get_altitude(self):
+        # connect to gee
+        connect_to_gee()
 
-        All information on the LCZ is extracted from the global lcz map using
-        gee-api.
+        # Extract LCZ for all stations
+        altitude_series = height_extractor(metadf = self.metadf,
+                                   mapinfo=self.settings.gee['gee_dataset_info']['DEM'])
 
-        """
+        #drop column if it was already present
+        if 'altitude' in self.metadf:
+            self.metadf = self.metadf.drop(columns=['altitude'])
 
-        if self.metadf['geometry'].x.isnull().values.all():
-            logger.info('Extract LCZs is not possible because no longtitude\
-                        information is found.')
-            self.metadf['lcz'] = 'Location unknown'
-            return self.metadf
-        if self.metadf['geometry'].y.isnull().values.all():
-            logger.info('Extract LCZs is not possible because no latitude\
-                        information is found.')
-            self.metadf['lcz'] = 'Location unknown'
-            return self.metadf
+        # update metadata
+        self.metadf = self.metadf.merge(altitude_series.to_frame(),
+                                        how='left',
+                                        left_index=True, right_index=True)
+        return altitude_series
+
+
+    def get_landcover(self, buffer=100, aggregate=True):
+
 
         # connect to gee
         connect_to_gee()
 
-        relevant_metadf = self.metadf.reset_index()[['name', 'lat', 'lon']]
+        # Extract landcover fractions for all stations
+        lc_frac_df = lc_fractions_extractor(metadf = self.metadf,
+                                   mapinfo=self.settings.gee['gee_dataset_info']['worldcover'],
+                                   buffer=buffer,
+                                   agg=aggregate)
 
-        if 'lcz' in types:
-            logger.debug('Extract LCZs')
-            # extract LCZ from gee
-            lcz_df = extract_pointvalues(
-                        metadf=relevant_metadf,
-                        mapinfo=self.settings.gee['gee_dataset_info']['global_lcz_map'],
-                        output_column_name='lcz')
-            # Merge lcz column in metadf
-            if 'lcz' in self.metadf.columns:
-                metadf = self.metadf.drop(columns=['lcz'])
-            else:
-                metadf = self.metadf
+        # remove columns if they exists
+        self.metadf = self.metadf.drop(columns=list(lc_frac_df.columns),
+                                       errors='ignore')
 
-            lcz_df = lcz_df[['lcz']]
+        # update metadf
+        self.metadf = self.metadf.merge(lc_frac_df,
+                                        how='left',
+                                        left_index=True, right_index=True)
 
-            self.metadf = metadf.merge(
-                lcz_df, how='left', left_index=True, right_index=True)
+        return lc_frac_df
 
-            return self.metadf
-        # # if 'elevation' in types:
-        # #     logger.debug('Extract elevation')
-        # #     # extract elevation from gee
-        # #     elev_df = extract_pointvalues(
-        #                             metadf=relevant_metadf,
-        #                             mapinfo=Settings.gee_dataset_info['DEM'],
-        #                             output_column_name='elevation')
-        # #     # Merge elevation column in metadf
-        # #     if 'elevation' in self.metadf.columns:
-        # #         metadf = self.metadf.drop(columns=['elevation'])
-        # #     else:
-        # #         metadf = self.metadf
-
-        # #     elev_df = elev_df[['elevation']]
-
-        # #     self.metadf = metadf.merge(elev_df, how='left',
-        # left_index=True, right_index=True)
 
 
 # =============================================================================
