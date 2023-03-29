@@ -58,7 +58,6 @@ class Gap:
 
 
 
-
         # computed attributes
         self.leading_timestamp=None #last ob_dt before gap in datset space
         self.trailing_timestamp=None #first ob_dt after gap in dataset space
@@ -238,7 +237,7 @@ class Gap:
 class Gap_collection:
     def __init__(self, gapsdf):
         self.list = [Gap(sta, row['start_gap'], row['end_gap']) for sta, row in gapsdf.iterrows()]
-        # self.df = gapsdf
+
 
     def to_df(self):
 

@@ -7,6 +7,7 @@ The class object for a Vlinder/mocca station
 
 import os
 from datetime import datetime
+from pytz import all_timezones, common_timezones
 import logging
 import pandas as pd
 import numpy as np
@@ -90,10 +91,45 @@ class Dataset:
         self._istype = 'Dataset'
         self._freqs = pd.Series(dtype=object)
 
+
         self.settings = Settings()
+
+    # def update_timezone(self, tzstring='Europe/Brussels'):
+
+    #     if not tzstring in all_timezones:
+    #         print(f'timezone: {tzstring}, is not a valid timezone. Select one of the following:')
+    #         print(f'{common_timezones}')
+    #         return
+
+    #     print(f'Timezone of observations set to: {tzstring}')
+    #     self.tz = tzstring
+    #     #Update timezone on obs
+    #     self.df.index = self.df.index.set_levels(self.df.index.levels[1]
+    #                                              .tz_localize(tzstring,
+    #                                                           ambiguous='infer',
+    #                                                           nonexistent='shift_forward'),
+    #                                              level=1)
+    #     if not self.outliersdf.empty:
+    #         self.outliersdf.index = self.outliersdf.index.set_levels(self.outliersdf.index.levels[1]
+    #                                              .tz_localize(tzstring,
+    #                                                           ambiguous='infer',
+    #                                                           nonexistent='shift_forward'),
+    #                                              level=1)
+    #     if not self.gapfilldf.empty:
+    #         self.gapfilldf.index = self.gapfilldf.index.set_levels(self.gapfilldf.index.levels[1]
+    #                                              .tz_localize(tzstring,
+    #                                                           ambiguous='infer',
+    #                                                           nonexistent='shift_forward'),
+    #                                              level=1)
+
+    #     #update gaps and missing obs
+
 
     def update_settings(self, *args, **kwargs):
         self.settings.update_IO(*args, **kwargs)
+
+    def update_timezone(self, timezonestr):
+        self.settings.update_timezone(timezonestr)
 
 
     def add_csv_template(self, csv_file):
@@ -574,11 +610,11 @@ class Dataset:
             self.df = obsdf
             if  not outl_df.empty:
                 self.update_outliersdf(outl_df)
-        
+
         if window_variation:
             print('Applying the window variation-check on all stations.')
             logger.info('Applying window variation-check on the full dataset')
-            
+
             obsdf, outl_df = window_variation_check(
                         station_frequencies=self.metadf['dataset_resolution'],
                         obsdf=self.df,
@@ -591,8 +627,8 @@ class Dataset:
             self.df = obsdf
             if not outl_df.empty:
                 self.update_outliersdf(outl_df)
-            
-        
+
+
         self.outliersdf = self.outliersdf.sort_index()
 
 
@@ -861,6 +897,11 @@ class Dataset:
                             file_csv_template=self.settings.templates['input_csv_template'],
                             template_list=self.settings.templates['template_list'])
 
+        # Set timezone information
+        df.index = df.index.tz_localize(tz=self.settings.time_settings['timezone'],
+                                        ambiguous='infer',
+                                        nonexistent='shift_forward')
+
         logger.debug(f'Data from {self.settings.IO["input_data_file"]} \
                      imported to dataframe.')
 
@@ -944,9 +985,9 @@ class Dataset:
         df = import_data_from_db(self.settings.db,
                                 start_datetime=start_datetime,
                                 end_datetime=end_datetime)
-        
+
         if df.empty: #No data has, probably connection error
-            return 
+            return
 
         # Make data template
         self.data_template = pd.DataFrame().from_dict(
@@ -1033,17 +1074,17 @@ class Dataset:
                                                          checks_settings = self.settings.qc['qc_check_settings'])
         if not dup_outl_df.empty:
             self.update_outliersdf(dup_outl_df)
-        
+
         self.df, nan_outl_df = invalid_input_check(self.df,
                                                    checks_info=self.settings.qc['qc_checks_info'])
         if not nan_outl_df.empty:
             self.update_outliersdf(nan_outl_df)
-      
+
 
         if coarsen_timeres:
-            self.coarsen_time_resolution(freq=self.settings.time_resolution['target_time_res'],
-                                          method=self.settings.time_resolution['resample_method'],
-                                          limit=self.settings.time_resolution['resample_limit'])
+            self.coarsen_time_resolution(freq=self.settings.time_settings['target_time_res'],
+                                          method=self.settings.time_settings['resample_method'],
+                                          limit=self.settings.time_settings['resample_limit'])
 
 
         else:
