@@ -17,7 +17,9 @@ from datetime import datetime, timedelta
 import math
 
 
-from vlinder_toolkit.gap_filling import interpolate_gap
+from vlinder_toolkit.gap_filling import (interpolate_gap,
+                                         create_leading_trailing_debias_periods,
+                                         make_era_bias_correction)
 
 
 logger = logging.getLogger(__name__)
@@ -63,6 +65,15 @@ class Gap:
         self.trailing_timestamp=None #first ob_dt after gap in dataset space
 
         self.exp_gap_idx = None
+
+        # gap fill (only for conventional saving)
+        self.gapfill_values = None
+        self.gapfill_technique = None
+
+    def __str__(self):
+
+        return f'Gap instance: {self.name}: {self.startgap} --> {self.endgap} applied fill technique: {self.gapfill_technique}'
+
 
     def to_df(self):
         """
@@ -231,6 +242,17 @@ class Gap:
         return gapdf[obstype]
 
 
+    def get_leading_trailing_debias_periods(self, station, obstype, debias_periods):
+        # get debias periods
+
+        leading_period, trailing_period = create_leading_trailing_debias_periods(
+                                            station=station,
+                                            gap=self,
+                                            debias_period_settings=debias_periods,
+                                            obstype=obstype)
+
+
+        return leading_period, trailing_period
 
 
 
@@ -390,7 +412,78 @@ class Gap_collection:
             gapdf.index = pd.MultiIndex.from_arrays(arrays=[gapdf['name'].values,
                                                             gapdf['datetime'].values],
                                                       names=[u'name', u'datetime'])
+
+            #Update gap
+            gap.gapfill_technique = 'interpolation'
+            gap.gapfill_values = gapdf[obstype]
+
+
             filled_gaps_series = pd.concat([filled_gaps_series, gapdf[obstype]])
+        return filled_gaps_series
+
+
+    def apply_debias_era5_gapfill(self, dataset, eraModelData, debias_settings, obstype='temp'):
+        expanded_gabsidx_obsspace = pd.MultiIndex(levels=[['name'],['datetime']],
+                                 codes=[[],[]],
+                                 names=[u'name', u'datetime'])
+        filled_gaps_series = pd.Series(data=[], index=expanded_gabsidx_obsspace,
+                                       dtype=object)
+
+        for gap in self.list:
+
+            #avoid passing full dataset around
+            station = dataset.get_station(gap.name)
+
+            #Update gap attributes
+            gap.update_gaps_indx_in_obs_space(obsdf = station.df,
+                                              outliersdf=station.outliersdf,
+                                              dataset_res=station.metadf['dataset_resolution'].squeeze())
+
+            #get leading and trailing period
+            leading_obs, trailing_obs = gap.get_leading_trailing_debias_periods(
+                                        obstype=obstype,
+                                        station=dataset.get_station(gap.name),
+                                        debias_periods=debias_settings['debias_period'])
+            #check if leading/trailing is valid
+            if (leading_obs.empty | trailing_obs.empty):
+                print("No suitable leading or trailing period found. Gapfill not possible")
+                gap.gapfill_technique = 'debias era5 gapfill (not possible: no leading/trailing period)'
+                default_return = pd.Series(index=gap.exp_gap_idx, name=obstype, dtype='object')
+                gap.gapfill_values = default_return
+                filled_gaps_series = pd.concat([filled_gaps_series, default_return])
+                continue
+
+
+            #extract model values at leading and trailing period
+            leading_model = eraModelData.interpolate_modeldata(leading_obs.index)
+            trailing_model = eraModelData.interpolate_modeldata(trailing_obs.index)
+
+            #TODO check if there is modeldata for the leading and trailing + obs period
+            if (leading_model[obstype].isnull().any()) | (trailing_model[obstype].isnull().any()) :
+                print("No modeldata for the full leading/trailing period found. Gapfill not possible")
+                gap.gapfill_technique = 'debias era5 gapfill (not possible: not enough modeldata)'
+                default_return = pd.Series(index=gap.exp_gap_idx, name=obstype, dtype='object')
+                gap.gapfill_values = default_return
+                filled_gaps_series = pd.concat([filled_gaps_series, default_return])
+
+            # Get model data for gap timestamps
+            gap_model = eraModelData.interpolate_modeldata(gap.exp_gap_idx)
+
+            # apply bias correction
+            filled_gap_series = make_era_bias_correction(leading_model=leading_model,
+                                                          trailing_model=trailing_model,
+                                                          gap_model=gap_model,
+                                                          leading_obs=leading_obs,
+                                                          trailing_obs=trailing_obs,
+                                                          obstype=obstype)
+
+            #Update gap
+            gap.gapfill_technique = 'debias era5 gapfill'
+            gap.gapfill_values = filled_gap_series
+
+            filled_gaps_series = pd.concat([filled_gaps_series, filled_gap_series])
+
+        filled_gaps_series.name = obstype
         return filled_gaps_series
 
 

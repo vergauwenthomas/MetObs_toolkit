@@ -1,5 +1,5 @@
 {
-    "target_time_resolution": "1H",
+    "target_time_resolution": "60T",
     "timezone":"Europe/Brussels",
     "method": "nearest",
     "limit": 1

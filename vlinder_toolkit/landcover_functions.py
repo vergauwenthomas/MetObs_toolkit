@@ -8,9 +8,12 @@ Created on Wed Oct 19 11:28:36 2022
 
 
 import sys
+from time import sleep
+import pytz
 import pandas as pd
 import ee
 
+from vlinder_toolkit.df_helpers import init_multiindexdf
 
 # =============================================================================
 #  Connection functions
@@ -29,6 +32,10 @@ def connect_to_gee():
 # =============================================================================
 
 
+def _datetime_to_gee_datetime(datetime):
+    # covert to UTC!
+    utcdt = datetime.astimezone(pytz.utc)
+    return ee.Date(utcdt.strftime('%Y-%m-%dT%H:%M:%S'))
 
 def get_ee_obj(mapinfo, band=None):
     if mapinfo['is_image']:
@@ -38,7 +45,7 @@ def get_ee_obj(mapinfo, band=None):
             obj = ee.ImageCollection(mapinfo['location'])
         else:
             obj = ee.ImageCollection(mapinfo['location']).select(band)
-        
+
     else:
         sys.exit('Map type is not an Image or Imagecollection.')
     return obj
@@ -67,20 +74,32 @@ def _addDate(image):
 def _df_to_featurescollection(df, loncolname, latcolname):
     """ Convert a dataframe to a featurecollections row-wise"""
     features=[]
-    for index, row in df.iterrows():
+    for index, row in df.reset_index().iterrows():
     #     construct the geometry from dataframe
         poi_geometry = ee.Geometry.Point([row[loncolname], row[latcolname]])
-    #     construct the attributes (properties) for each point 
-        poi_properties = dict(row)
+    #     construct the attributes (properties) for each point
+        poi_properties = poi_properties = {'name': row['name']}
     #     construct feature combining geometry and properties
         poi_feature = ee.Feature(poi_geometry, poi_properties)
         features.append(poi_feature)
-    
+
     return ee.FeatureCollection(features)
 
 
+def coordinates_available(metadf, latcol='lat', loncol='lon'):
+    if metadf[latcol].isnull().all():
+        print('No coordinates are found!')
+        return False
+    if metadf[loncol].isnull().all():
+        print('No coordinates are found!')
+        return False
+    return True
 
 
+def _estimate_data_size(metadf, startdt, enddt, mapinfo):
+    datatimerange = pd.date_range(start=startdt, end=enddt, freq=mapinfo['time_res'])
+
+    return metadf.shape[0] * len(datatimerange)
 
 
 
@@ -92,11 +111,11 @@ def _df_to_featurescollection(df, loncolname, latcolname):
 
 def extract_pointvalues(metadf, mapinfo, output_column_name, latcolname='lat', loncolname='lon'):
     """
-    Extract values for point locations from a GEE dataset. 
-    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates. 
-    
+    Extract values for point locations from a GEE dataset.
+    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
 
-    A dataframe with the extracted values is returned. 
+
+    A dataframe with the extracted values is returned.
     The values are mapped to human classes if the dataset value type is labeld as categorical.
 
 
@@ -120,16 +139,21 @@ def extract_pointvalues(metadf, mapinfo, output_column_name, latcolname='lat', l
 
     """
     scale=mapinfo['scale']
-    
+
+
+    # test if coordiantes are available
+    if not coordinates_available(metadf, latcolname, loncolname):
+        return pd.DataFrame()
+
     # =============================================================================
     # df to featurecollection
     # =============================================================================
-    
+
     ee_fc = _df_to_featurescollection(metadf, loncolname, latcolname)
 
 
-        
-    
+
+
     # =============================================================================
     # extract raster values
     # =============================================================================
@@ -141,32 +165,32 @@ def extract_pointvalues(metadf, mapinfo, output_column_name, latcolname='lat', l
         )
         return feature
 
-    
+
     raster = get_ee_obj(mapinfo, mapinfo['band_of_use']) #dataset
     results = raster.map(rasterExtraction) \
                     .flatten() \
-                    .getInfo()         
-                    
-                    
+                    .getInfo()
+
+
     # =============================================================================
     # to dataframe
     # =============================================================================
-    
+
     # extract properties
     properties = [x['properties'] for x in results['features']]
     df = pd.DataFrame(properties)
-    
+
     #map to human space if categorical
     if mapinfo['value_type'] == 'categorical':
         df[mapinfo['band_of_use']] = df[mapinfo['band_of_use']].map(mapinfo['categorical_mapper'])
-        
+
     #rename to values to toolkit space
     df = df.rename(columns={mapinfo['band_of_use']: output_column_name})
-    
+
     # #format index
     df = df.set_index(['name'])
-   
-   
+
+
     return df
 
 
@@ -174,10 +198,10 @@ def extract_pointvalues(metadf, mapinfo, output_column_name, latcolname='lat', l
 
 def gee_extract_timeseries(metadf, mapinfo, startdt, enddt, obstype='temp', latcolname='lat', loncolname='lon'):
     """
-    Extract a timeseries, for a given obstype, for point locations from a GEE dataset. The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates. 
-    
-    The startdate is included, the enddate is excluded. 
-    
+    Extract a timeseries, for a given obstype, for point locations from a GEE dataset. The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
+
+    The startdate is included, the enddate is excluded.
+
     A multi-index dataframe with the timeseries is returned
 
     Parameters
@@ -187,7 +211,7 @@ def gee_extract_timeseries(metadf, mapinfo, startdt, enddt, obstype='temp', latc
     mapinfo : Dict
         The information about the GEE dataset.
     startdt : datetime obj
-        Start datetime for timeseries (included). 
+        Start datetime for timeseries (included).
     enddt : datetime obj
         End datetime for timeseries (excluded).
     obstype : String, optional
@@ -204,22 +228,32 @@ def gee_extract_timeseries(metadf, mapinfo, startdt, enddt, obstype='temp', latc
         column with the same name as the obstype.
 
     """
-    
-    
-    
+
+
+
     scale=mapinfo['scale']
     bandname=mapinfo['band_of_use'][obstype]['name']
-    
 
+
+
+    # test if coordiantes are available
+    if not coordinates_available(metadf, latcolname, loncolname):
+        return pd.DataFrame()
+
+    use_drive=False
+    _est_data_size = _estimate_data_size(metadf, startdt, enddt, mapinfo)
+    if _est_data_size > 4000:
+        print('THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!')
+        use_drive=True
     # =============================================================================
     # df to featurecollection
     # =============================================================================
-    
+
     ee_fc = _df_to_featurescollection(metadf, loncolname, latcolname)
 
 
-        
-    
+
+
     # =============================================================================
     # extract raster values
     # =============================================================================
@@ -231,31 +265,82 @@ def gee_extract_timeseries(metadf, mapinfo, startdt, enddt, obstype='temp', latc
         )
         return feature
 
-    
+
     raster = get_ee_obj(mapinfo, bandname) #dataset
-    results = raster.filter(ee.Filter.date(startdt, enddt)) \
+    results = raster.filter(ee.Filter.date(_datetime_to_gee_datetime(startdt),
+                                           _datetime_to_gee_datetime(enddt))) \
                     .map(_addDate) \
                     .map(rasterExtraction) \
-                    .flatten() \
-                    .getInfo()         
+                    .flatten()
 
-    # =============================================================================
-    # to dataframe
-    # =============================================================================
-    
-    # extract properties
-    properties = [x['properties'] for x in results['features']]
-    df = pd.DataFrame(properties)
-    
-    #format datetime
-    df['datetime'] = pd.to_datetime(df['datetime'], format='%Y%m%d%H%M%S')
-    
-    #format index
-    df = df.set_index(['name', 'datetime'])
-    df = df.sort_index()
-    
-    #rename to values to toolkit space
-    df = df.rename(columns={bandname: obstype})
 
-    return df
+    def format_df(df, obstype, bandname):
+        #format datetime
+        df['datetime'] = pd.to_datetime(df['datetime'], format='%Y%m%d%H%M%S')
+        # set timezone
+        df['datetime'] = df['datetime'].dt.tz_localize('UTC')
+
+        #format index
+        df = df.set_index(['name', 'datetime'])
+        df = df.sort_index()
+
+        #rename to values to toolkit space
+        df = df.rename(columns={bandname: obstype})
+
+        return df[obstype].to_frame()
+
+
+    if not use_drive:
+        results = results.getInfo()
+
+        # =============================================================================
+        # to dataframe
+        # =============================================================================
+
+        # extract properties
+        properties = [x['properties'] for x in results['features']]
+        df = pd.DataFrame(properties)
+
+        df = format_df(df, obstype, bandname)
+        return df
+
+    else:
+        _filename = 'era5_data'
+        _drivefolder = 'era5_timeseries'
+
+        print(f'The timeseries will be writen to your Drive in {_drivefolder}/{_filename} ')
+
+        task=ee.batch.Export.table.toDrive(collection=results,
+                                            description='extracting_era5',
+                                            folder=_drivefolder,
+                                            fileNamePrefix=_filename,
+                                            fileFormat='CSV',
+                                            selectors=['datetime', 'name', bandname]
+                                            )
+
+        task.start()
+        print('The google server is handling your request ...')
+        sleep(3)
+        finished=False
+        while finished == False:
+            if task.status()['state'] == "READY":
+                print('Awaitening execution ...')
+                sleep(4)
+            elif task.status()['state'] == 'RUNNING':
+                print('Running ...')
+                sleep(4)
+            else:
+                print('finished')
+                finished=True
+
+        doc_folder_id = task.status()['destination_uris'][0]
+        print('The data is transfered! Open the following link in your browser: \n\n')
+        print(f'{doc_folder_id} \n\n')
+        print('To upload the data to the model, use the Modeldata.set_model_from_csv() method')
+
+        return init_multiindexdf()
+
+
+
+
 

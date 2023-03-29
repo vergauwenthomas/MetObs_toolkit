@@ -9,8 +9,6 @@ Created on Thu Oct  6 13:25:02 2022
 import vlinder_toolkit
 import os
 import sys
-import pandas as pd
-import numpy as np
 from pathlib import Path
 
 
@@ -29,21 +27,26 @@ testdatafile = os.path.join(
 static_data = os.path.join(
     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
-#%%
+
+
+# #% Setup dataset
+
+
+
 dataset = vlinder_toolkit.Dataset()
-
-
 dataset.update_settings(input_data_file=testdatafile,
                         input_metadata_file=static_data,
                         output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                         )
 
-
-
-
+# dataset.apply_quality_control()
 
 
 dataset.import_data_from_file(coarsen_timeres=True)
+# dataset.apply_quality_control()
+
+
+
 
 
 # dataset.set_timezone()
@@ -52,48 +55,26 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 # # dataset.apply_quality_control()
 # # dataset.get_qc_stats()
-dataset.make_geo_plot()
-dataset.make_plot()
+# dataset.make_geo_plot()
+# dataset.make_plot()
+
+
+# dataset.make_plot(stationnames=['vlinder01', 'vlinder02'])
 
 
 #%%
-print('done')
+# from datetime import datetime
+# import pandas as pd
 
-#%%
-from datetime import datetime
-import pandas as pd
-
-startdt = datetime(2023, 3,24)
-enddt = datetime(2023, 3, 28)
+# startdt = datetime(2023, 3,24)
+# enddt = datetime(2023, 3, 28)
 
 
-df = pd.DataFrame()
+era = dataset.get_modeldata(stations=['vlinder01'])
 
+# era.get_ERA5_data(dataset.metadf, startdt, enddt)
 
 
 
-df['datetime'] = pd.date_range(startdt, enddt, freq='60T')
 
-
-df['date_lt'] = pd.to_datetime(df['datetime']).dt.tz_localize('Europe/Brussels',
-                                                                  ambiguous='infer',
-                                                                  nonexistent='shift_forward')
-
-df['date_utc'] =pd.to_datetime(df['date_lt'].dt.tz_convert('UTC'))
-
-
-
-import pytz
-test = pytz.common_timezones
-
-
-#%%
-test = dataset.df.copy()
-st# test.index. = test.index.get_level_values('datetime').tz_localize('Europe/Brussels',
-#                                                                   ambiguous='infer',
-#                                                                   nonexistent='shift_forward')
-
-test.index = test.index.set_levels(test.index.levels[1].tz_localize('Europe/Brussels',
-                                                                  ambiguous='infer',
-                                                                  nonexistent='shift_forward'), level=1)
 

@@ -21,7 +21,8 @@ from vlinder_toolkit.data_import import (import_data_from_csv,
 
 from vlinder_toolkit.printing import print_dataset_info
 from vlinder_toolkit.landcover_functions import (connect_to_gee,
-                                                 extract_pointvalues)
+                                                 extract_pointvalues,
+                                                 )
 
 from vlinder_toolkit.plotting_functions import (geospatial_plot,
                                                 timeseries_plot,
@@ -53,6 +54,7 @@ from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         metadf_to_gdf)
 
 
+from vlinder_toolkit.modeldata import Modeldata
 
 
 logger = logging.getLogger(__name__)
@@ -82,6 +84,7 @@ class Dataset:
         self.gaps = None  # becomes a gap_collection after import
 
         self.gapfilldf = init_multiindexdf()
+
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
@@ -349,29 +352,97 @@ class Dataset:
                              world_boundaries_map = self.settings.app['world_boundary_map'])
 
         return axis
+    # =============================================================================
+    #   Gap Filling
+    # =============================================================================
+    def get_modeldata(self, modelname='ERA5_hourly', stations=None, startdt=None, enddt=None):
+        Modl = Modeldata(modelname)
 
+        #Filters
+        if isinstance(startdt, type(None)):
+            startdt=self.df.index.get_level_values('datetime').min()
+        if isinstance(enddt, type(None)):
+            enddt=self.df.index.get_level_values('datetime').max()
+        if not isinstance(stations, type(None)):
+            if isinstance(stations, str):
+                metadf=self.metadf.loc[[stations]]
+            if isinstance(stations, list):
+                metadf = self.metadf.iloc[self.metadf.index.isin(stations)]
+        else:
+            metadf = self.metadf
+
+
+        # fill modell with data
+        if modelname == 'ERA5_hourly':
+            Modl.get_ERA5_data(metadf, startdt, enddt)
+
+            return Modl
+        else:
+            print(f"{modelname} for set_modeldata is not implemented yet")
+            return None
 
     # =============================================================================
     #   Gap Filling
     # =============================================================================
 
-    def fill_gaps(self, obstype='temp', method='linear'):
+    def fill_gaps_linear(self, obstype='temp'):
         #TODO logging
-        if method=='linear':
-            fill_settings =self.settings.gap['gaps_fill_settings']['linear']
-            fill_info = self.settings.gap['gaps_fill_info']
+        fill_settings =self.settings.gap['gaps_fill_settings']['linear']
+        fill_info = self.settings.gap['gaps_fill_info']
 
-            #fill gaps
-            self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
-                                        obsdf = self.df,
-                                        outliersdf = self.outliersdf,
-                                        dataset_res=self.metadf['dataset_resolution'],
-                                        obstype=obstype,
-                                        method=fill_settings['method'],
-                                        max_consec_fill=fill_settings['max_consec_fill'])
 
+        #fill gaps
+        self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
+                                    obsdf = self.df,
+                                    outliersdf = self.outliersdf,
+                                    dataset_res=self.metadf['dataset_resolution'],
+                                    obstype=obstype,
+                                    method=fill_settings['method'],
+                                    max_consec_fill=fill_settings['max_consec_fill'])
+
+        #add label column
+        self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']['linear']
+
+
+    def fill_gaps_era5(self, modeldata, method='debias', obstype='temp', overwrite=True):
+
+        fill_info = self.settings.gap['gaps_fill_info']
+
+        # check if modeldata is available
+        if isinstance(modeldata, type(None)):
+            print('The dataset has no modeldate. Use the set_modeldata() function to add modeldata.')
+            return None
+        # check if obstype is present in eramodel
+        assert obstype in modeldata.df.columns, f'{obstype} is not present in the modeldate: {modeldata}'
+        # check if all station are present in eramodeldata
+        stations = self.gaps.to_df().index.unique().to_list()
+        assert all([sta in modeldata.df.index.get_level_values('name') for sta in stations]),\
+            f'Not all stations with gaps are in the modeldata!'
+
+        if not self.gapfilldf.empty:
+            if overwrite:
+                print('Gapfilldf will be overwritten!')
+                self.gapfilldf = init_multiindexdf()
+            else:
+                print('Gapfilldf is not empty, set "overwrite=True" to overwrite it!')
+                print('CANCEL gap fill with ERA5')
+                return
+
+
+
+
+        if method=='debias':
+            test = self.gaps.apply_debias_era5_gapfill(dataset=self,
+                                                       eraModelData=modeldata,
+                                                       obstype=obstype,
+                                                       debias_settings=self.settings.gap['gaps_fill_settings']['model_debias'])
+
+            self.gapfilldf[obstype] = test
             #add label column
-            self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']
+            self.gapfilldf[obstype + '_' + fill_info['label_columnname']] = fill_info['label']['model_debias']
+        else:
+            print('not implemented yet')
+
 
 
     def write_to_csv(self, filename=None, include_outliers=True,
@@ -1149,6 +1220,7 @@ class Station(Dataset):
 
 
         self._istype = 'Station'
+
 
 
 

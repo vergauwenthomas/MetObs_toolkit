@@ -208,7 +208,7 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby,
                                 linewidth=plot_settings['time_series']['linewidth'])
 
 
-            elif outl_label==gap_settings['gaps_fill_info']['label']: #fill gaps as dashed lines
+            elif outl_label in list(gap_settings['gaps_fill_info']['label'].items()): #fill gaps as dashed lines
 
                 fill_idx = init_idx.to_frame().drop(groupdf.index)
                 groupdf = pd.concat([groupdf, fill_idx])
@@ -242,11 +242,12 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby,
                                              label='ok', lw=4))
                 del legenddict['ok'] #remove ok key
 
-            if gap_settings['gaps_fill_info']['label'] in legenddict.keys():
-                custom_handles.append(Line2D([0], [0],
-                                             color=legenddict[gap_settings['gap_fill_info']['label']],
-                                             label='gap filled', lw=4, linestyle='--'))
-                del legenddict[gap_settings['gap_fill_info']['label']] #remove ok key
+            for gapfillmethod, label in gap_settings['gaps_fill_info']['label'].items():
+                if label in legenddict.keys():
+                    custom_handles.append(Line2D([0], [0],
+                                                color=legenddict[gap_settings['gap_fill_info']['label']],
+                                                label=f'gap filled ({gapfillmethod})', lw=4, linestyle='--'))
+                    del legenddict[label] #remove key
 
 
             custom_scatters = [Line2D([0], [0], marker='o', color='w',
@@ -333,7 +334,8 @@ def _all_possible_labels_colormapper(plot_settings,qc_info_settings, gap_setting
     mapper[gap_settings['gaps_info']['missing_timestamp']['outlier_flag']] = color_defenitions['missing_timestamp']
 
     #add gapfill
-    mapper[gap_settings['gaps_fill_info']['label']] = color_defenitions['gapfill']
+    for method, label in gap_settings['gaps_fill_info']['label'].items():
+        mapper[label] = color_defenitions[method]
 
     return mapper
 
