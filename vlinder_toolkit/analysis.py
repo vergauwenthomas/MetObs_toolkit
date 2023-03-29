@@ -46,8 +46,10 @@ class Analysis():
     # =============================================================================
     #   Analyse method
     # =============================================================================
-    # def make_diurnal_cycle(self, stations=None, obstype='temp', relative=False, refstation=None):
+    def make_diurnal_cycle(self, stations=None, obstype='temp',
+                           relative=False, refstation=None):
 
-    #     # filter to stations and obstype
-    #     if isinstance(stations, str)
+        # filter to stations and obstype
+        if isinstance(stations, str):
+            df = self._subset_stations([stations])
 
