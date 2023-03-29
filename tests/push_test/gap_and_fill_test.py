@@ -104,7 +104,7 @@ dataset.update_settings(input_data_file=testdatafile,
                          output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
                          )
 
-dataset.settings.time_resolution['target_time_res'] = '30T'
+dataset.settings.time_settings['target_time_res'] = '30T'
 
 dataset.import_data_from_file(coarsen_timeres=True)
 
@@ -136,35 +136,64 @@ dataset.fill_gaps_era5(modeldata=era,
 from datetime import datetime
 import numpy as np
 import pandas as pd
-from vlinder_toolkit.df_helpers import init_multiindexdf
+from vlinder_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
 
 
 # validate
-checked = {'temp': {('vlinder01', datetime.strptime('2022-10-04 02:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 02:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 03:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 03:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 04:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 04:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 05:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 05:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 06:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 06:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 07:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 07:30:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-04 08:00:00', '%Y-%m-%d %H:%M:%S' )): np.nan,
-                    ('vlinder01', datetime.strptime('2022-10-06 17:00:00', '%Y-%m-%d %H:%M:%S' )): 14.719558715820341,
-                    ('vlinder01', datetime.strptime('2022-10-06 17:30:00', '%Y-%m-%d %H:%M:%S' )): 14.105651664733898,
-                    ('vlinder01', datetime.strptime('2022-10-06 18:00:00', '%Y-%m-%d %H:%M:%S' )): 13.523644638061523,
-                    ('vlinder01', datetime.strptime('2022-10-06 18:30:00', '%Y-%m-%d %H:%M:%S' )): 13.272471523284917,
-                    ('vlinder01', datetime.strptime('2022-10-06 19:00:00', '%Y-%m-%d %H:%M:%S' )): 12.417074584960952,
-                    ('vlinder01', datetime.strptime('2022-10-06 19:30:00', '%Y-%m-%d %H:%M:%S' )): 12.083017063140879,
-                    ('vlinder01', datetime.strptime('2022-10-06 20:00:00', '%Y-%m-%d %H:%M:%S' )): 12.194173049926757,
-                    ('vlinder01', datetime.strptime('2022-10-06 20:30:00', '%Y-%m-%d %H:%M:%S' )): 11.708401107788086,
-                    ('vlinder01', datetime.strptime('2022-10-06 21:00:00', '%Y-%m-%d %H:%M:%S' )): 11.562461853027344}}
+
+checked = {'temp': {('vlinder01',
+      datetime.strptime('2022-10-04 02:00:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 02:30:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 03:00:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 03:30:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 04:00:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 04:30:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 05:00:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 05:30:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 06:00:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 06:30:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 07:00:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 07:30:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-04 08:00:00', '%Y-%m-%d %H:%M:%S')): np.nan,
+     ('vlinder01',
+      datetime.strptime('2022-10-06 17:00:00', '%Y-%m-%d %H:%M:%S')): 15.046638488769531,
+     ('vlinder01',
+      datetime.strptime('2022-10-06 17:30:00', '%Y-%m-%d %H:%M:%S')): 14.839948940277099,
+     ('vlinder01',
+      datetime.strptime('2022-10-06 18:00:00', '%Y-%m-%d %H:%M:%S')): 14.560950469970702,
+     ('vlinder01',
+      datetime.strptime('2022-10-06 18:30:00', '%Y-%m-%d %H:%M:%S')): 13.707459545135507,
+     ('vlinder01',
+      datetime.strptime('2022-10-06 19:00:00', '%Y-%m-%d %H:%M:%S')): 12.349718475341811,
+     ('vlinder01',
+      datetime.strptime('2022-10-06 19:30:00', '%Y-%m-%d %H:%M:%S')): 11.568361473083502,
+     ('vlinder01',
+      datetime.strptime('2022-10-06 20:00:00', '%Y-%m-%d %H:%M:%S')): 11.356404495239257,
+     ('vlinder01',
+      datetime.strptime('2022-10-06 20:30:00', '%Y-%m-%d %H:%M:%S')): 10.896783733367933,
+     ('vlinder01',
+      datetime.strptime('2022-10-06 21:00:00', '%Y-%m-%d %H:%M:%S')): 10.707939147949247}}
+
 
 checkeddf = pd.DataFrame(checked)
-checkeddf.index = checkeddf.index.set_names(['name', 'datetime'])
+checkeddf = checkeddf.reset_index()
+checkeddf = checkeddf.rename(columns={'level_0':'name', 'level_1': 'datetime'})
+
+checkeddf['datetime'] = pd.to_datetime(checkeddf['datetime']).dt.tz_localize(tz='Europe/Brussels')
+
+checkeddf = checkeddf.set_index(['name', 'datetime'])
 
 # fill na by -1 (no equality operation on nans)
 checkeddf = checkeddf.fillna(-1)

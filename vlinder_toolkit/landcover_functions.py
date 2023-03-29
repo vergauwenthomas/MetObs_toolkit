@@ -9,6 +9,7 @@ Created on Wed Oct 19 11:28:36 2022
 
 import sys
 from time import sleep
+import pytz
 import pandas as pd
 import ee
 
@@ -32,7 +33,9 @@ def connect_to_gee():
 
 
 def _datetime_to_gee_datetime(datetime):
-    return ee.Date(datetime.strftime('%Y-%m-%dT%H:%M:%S'))
+    # covert to UTC!
+    utcdt = datetime.astimezone(pytz.utc)
+    return ee.Date(utcdt.strftime('%Y-%m-%dT%H:%M:%S'))
 
 def get_ee_obj(mapinfo, band=None):
     if mapinfo['is_image']:
@@ -274,6 +277,8 @@ def gee_extract_timeseries(metadf, mapinfo, startdt, enddt, obstype='temp', latc
     def format_df(df, obstype, bandname):
         #format datetime
         df['datetime'] = pd.to_datetime(df['datetime'], format='%Y%m%d%H%M%S')
+        # set timezone
+        df['datetime'] = df['datetime'].dt.tz_localize('UTC')
 
         #format index
         df = df.set_index(['name', 'datetime'])

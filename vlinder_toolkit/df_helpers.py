@@ -109,6 +109,10 @@ def remove_outliers_from_obs(obsdf, outliersdf):
     return obsdf.loc[~obsdf.index.isin(outliersdf.index)]
 
 
+def conv_tz_multiidxdf(df, timezone):
+
+    df.index = df.index.set_levels(df.index.levels[1].tz_convert(timezone), level=1)
+    return df
 
 
 

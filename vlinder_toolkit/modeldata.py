@@ -7,7 +7,8 @@ Created on Wed Mar 22 13:50:17 2023
 """
 import pandas as pd
 
-from vlinder_toolkit.df_helpers import init_multiindexdf
+from vlinder_toolkit.df_helpers import (init_multiindexdf,
+                                        conv_tz_multiidxdf)
 
 from vlinder_toolkit.landcover_functions import (connect_to_gee,
                                                  gee_extract_timeseries)
@@ -31,9 +32,13 @@ class Modeldata():
     def __repr__(self):
         return f'ModelData instance: {self.modelname} model data of {list(self.df.columns)}'
 
+    # def _conv_to_timezone(self, tz):
 
 
     def get_ERA5_data(self, metadf, startdt, enddt, obstype='temp'):
+
+        #startdt and enddt IN UTC FORMAT!!!!!
+
         era_mapinfo=self.mapinfo['ERA5_hourly']
         # Connect to Gee
         connect_to_gee()
@@ -54,13 +59,15 @@ class Modeldata():
         self.df = df
         self.modelname = 'ERA5_hourly'
 
-    def set_model_from_csv(self, csvpath, modelname='ERA5_hourly', convert_units=True, obstype='temp'):
+    def set_model_from_csv(self, csvpath, modelname='ERA5_hourly', convert_units=True,
+                           obstype='temp', datatimezone='UTC'):
 
 
 
          df = pd.read_csv(csvpath, sep=',')
          #format datetime
          df['datetime'] = pd.to_datetime(df['datetime'], format='%Y%m%d%H%M%S')
+         df['datetime'] = df['datetime'].dt.tz_localize(datatimezone)
 
          #format index
          df = df.set_index(['name', 'datetime'])
@@ -90,6 +97,9 @@ class Modeldata():
             sta_recordsdf = recordsdf.xs(sta, level='name', drop_level=False)
             sta_moddf = self.df.xs(sta, level='name', drop_level=False)
 
+            # convert modeldata to timezone of observations
+            sta_moddf = conv_tz_multiidxdf(df=sta_moddf,
+                                           timezone=sta_recordsdf.index.get_level_values('datetime').tz)
 
             # check if modeldata is will not be extrapolated !
             if min(sta_recordsdf.index.get_level_values('datetime')) < min(sta_moddf.index.get_level_values('datetime')):

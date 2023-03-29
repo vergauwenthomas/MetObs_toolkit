@@ -46,10 +46,7 @@ dataset.import_data_from_file(coarsen_timeres=True)
 # dataset.apply_quality_control()
 
 
-<<<<<<< HEAD
-=======
 
-dataset.import_data_from_file(coarsen_timeres=True)
 
 
 # dataset.set_timezone()
@@ -58,63 +55,26 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 # # dataset.apply_quality_control()
 # # dataset.get_qc_stats()
-dataset.make_geo_plot()
-dataset.make_plot()
->>>>>>> master
-
-dataset.make_plot(stationnames=['vlinder01', 'vlinder02'])
+# dataset.make_geo_plot()
+# dataset.make_plot()
 
 
-<<<<<<< HEAD
-# era_modeldata = dataset.get_modeldata(stations='vlinder01')
-
-# dataset.fill_gaps_era5(era_modeldata)
-
-
-
-
-
-
+# dataset.make_plot(stationnames=['vlinder01', 'vlinder02'])
 
 
 #%%
-=======
-#%%
-from datetime import datetime
-import pandas as pd
+# from datetime import datetime
+# import pandas as pd
 
-startdt = datetime(2023, 3,24)
-enddt = datetime(2023, 3, 28)
+# startdt = datetime(2023, 3,24)
+# enddt = datetime(2023, 3, 28)
 
 
-df = pd.DataFrame()
+era = dataset.get_modeldata(stations=['vlinder01'])
 
-
-
-
-df['datetime'] = pd.date_range(startdt, enddt, freq='60T')
-
-
-df['date_lt'] = pd.to_datetime(df['datetime']).dt.tz_localize('Europe/Brussels',
-                                                                  ambiguous='infer',
-                                                                  nonexistent='shift_forward')
-
-df['date_utc'] =pd.to_datetime(df['date_lt'].dt.tz_convert('UTC'))
+# era.get_ERA5_data(dataset.metadf, startdt, enddt)
 
 
 
-import pytz
-test = pytz.common_timezones
 
 
-#%%
-test = dataset.df.copy()
-st# test.index. = test.index.get_level_values('datetime').tz_localize('Europe/Brussels',
-#                                                                   ambiguous='infer',
-#                                                                   nonexistent='shift_forward')
-
-test.index = test.index.set_levels(test.index.levels[1].tz_localize('Europe/Brussels',
-                                                                  ambiguous='infer',
-                                                                  nonexistent='shift_forward'), level=1)
-
->>>>>>> master
