@@ -61,5 +61,34 @@ gee_datasets = {
                       'time_res': '1H',
                       'credentials': ''
     },
+    'worldcover': {'location': "ESA/WorldCover/v200", #GEE location
+                      'usage': 'landcover', #Human readable application domain
+                      'band_of_use': 'Map', #band to use for imagecollections (or None if no band available)
+                      'value_type': 'categorical', #categorical or numeric
+                      'dynamical': False, #time evolution? To be used for timeseries
+                      'scale': 10,
+                      'is_image': False,
+                      'is_imagecollection': True,
+                      'categorical_mapper': {
+                         10: 'Tree cover', #mapvalue: (color, human class)
+                         20: 'Shrubland',
+                         30:'Grassland',
+                         40:	'Cropland',
+                         50:	'Built-up',
+                         60:'Bare / sparse vegetation',
+                         70:	'Snow and ice',
+                         80:	'Permanent water bodies',
+                         90:	'Herbaceous wetland',
+                         95: 'Mangroves',
+                         100: 'Moss and lichen',
+                          },
+                      'aggregation': {
+                            'water': [70,80,90,95],
+                            'pervious': [10,20,30,40,60,100],
+                            'impervious': [50],
+                            },
+                      'credentials':'https://spdx.org/licenses/CC-BY-4.0.html'
+                      }
+
 
 }
