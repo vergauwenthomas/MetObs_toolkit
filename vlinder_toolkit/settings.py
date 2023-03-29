@@ -9,6 +9,7 @@ import os
 import json
 from pathlib import Path
 import logging
+from pytz import all_timezones, common_timezones
 
 #connect to logger
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class Settings:
 
         # define thematics in settings. Corresponds to settings files.
         self.db = {}
-        self.time_resolution = {}
+        self.time_settings = {}
         self.app = {}
         self.qc = {}
         self.gap = {}
@@ -80,9 +81,10 @@ class Settings:
         res_settings = json.load(f)
         f.close()
 
-        self.time_resolution['target_time_res'] = res_settings['target_time_resolution']
-        self.time_resolution['resample_method'] = res_settings['method']
-        self.time_resolution['resample_limit'] = res_settings['limit']
+        self.time_settings['target_time_res'] = res_settings['target_time_resolution']
+        self.time_settings['resample_method'] = res_settings['method']
+        self.time_settings['resample_limit'] = res_settings['limit']
+        self.time_settings['timezone'] = res_settings['timezone']
 
 
     def _update_app_settings(self):
@@ -150,8 +152,15 @@ class Settings:
 
         self.gee['gee_dataset_info'] = gee_datasets
 
+    def update_timezone(self, timezonestr):
+        if not timezonestr in all_timezones:
+            print(f'timezone: {timezonestr}, is not a valid timezone. Select one of the following:')
+            print(f'{common_timezones}')
+            return
+        else:
 
-
+            print(f'Update timezone: {self.time_settings["timezone"]} --> {timezonestr}')
+            self.time_settings['timezone'] = timezonestr
 
     # @classmethod
     def update_IO(self, output_folder=None, input_data_file=None,
@@ -238,7 +247,7 @@ class Settings:
         class_vars_name = [attr for attr in dir(Settings) if not callable(getattr(Settings, attr)) and not attr.startswith("__")]
 
 
-        attr_list = ['IO', 'db', 'time_resolution', 'app', 'qc', 'gap', 'templates', 'gee']
+        attr_list = ['IO', 'db', 'time_settings', 'app', 'qc', 'gap', 'templates', 'gee']
 
         #Drop variables starting with _
         class_vars_name = [mem for mem in class_vars_name if not mem.startswith('_')]

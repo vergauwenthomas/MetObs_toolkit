@@ -7,6 +7,7 @@ The class object for a Vlinder/mocca station
 
 import os
 from datetime import datetime
+from pytz import all_timezones, common_timezones
 import logging
 import pandas as pd
 import numpy as np
@@ -93,10 +94,15 @@ class Dataset:
         self._istype = 'Dataset'
         self._freqs = pd.Series(dtype=object)
 
+
         self.settings = Settings()
+
 
     def update_settings(self, *args, **kwargs):
         self.settings.update_IO(*args, **kwargs)
+
+    def update_timezone(self, timezonestr):
+        self.settings.update_timezone(timezonestr)
 
 
     def add_csv_template(self, csv_file):
@@ -932,6 +938,11 @@ class Dataset:
                             file_csv_template=self.settings.templates['input_csv_template'],
                             template_list=self.settings.templates['template_list'])
 
+        # Set timezone information
+        df.index = df.index.tz_localize(tz=self.settings.time_settings['timezone'],
+                                        ambiguous='infer',
+                                        nonexistent='shift_forward')
+
         logger.debug(f'Data from {self.settings.IO["input_data_file"]} \
                      imported to dataframe.')
 
@@ -1112,9 +1123,9 @@ class Dataset:
 
 
         if coarsen_timeres:
-            self.coarsen_time_resolution(freq=self.settings.time_resolution['target_time_res'],
-                                          method=self.settings.time_resolution['resample_method'],
-                                          limit=self.settings.time_resolution['resample_limit'])
+            self.coarsen_time_resolution(freq=self.settings.time_settings['target_time_res'],
+                                          method=self.settings.time_settings['resample_method'],
+                                          limit=self.settings.time_settings['resample_limit'])
 
 
         else:
