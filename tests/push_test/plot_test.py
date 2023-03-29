@@ -25,13 +25,12 @@ testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata
 metadatafile = os.path.join(str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
 
-
-settings = vlinder_toolkit.Settings()
-settings.update_settings(input_data_file=testdatafile,
-                         input_metadata_file=metadatafile)
-settings.check_settings()
-
 dataset = vlinder_toolkit.Dataset()
+dataset.update_settings(input_data_file=testdatafile,
+                         input_metadata_file=metadatafile)
+
+
+
 dataset.import_data_from_file(coarsen_timeres=True)
 
 #%% timeseries plots of dataset
