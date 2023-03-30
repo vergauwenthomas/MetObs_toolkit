@@ -10,7 +10,7 @@ Created on Mon Mar 20 09:47:48 2023
 
 
 
-import sys
+import os, sys
 from pathlib import Path
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog, QMainWindow
@@ -22,7 +22,8 @@ import data_func
 import template_func
 from json_save_func import get_saved_vals, update_json_file
 from pandasmodel import DataFrameModel
-
+import path_handler
+from errors import Error, Notification
 
 
 
@@ -33,7 +34,7 @@ class MainWindow(QDialog):
         # Load gui widgets
         loadUi('templ_build.ui', self) #open the ui file
 
-        # Setup widgets and default values
+        # ------- Setup (widgets and default values) ---------------
         # Setup error message dialog
         self.error_dialog = QtWidgets.QErrorMessage(self)
         self.set_datapaths_init()
@@ -43,7 +44,9 @@ class MainWindow(QDialog):
 
         # ------- Callbacks (Getters) ---------
         self.Browse_data_B.clicked.connect(lambda: self.browsefiles_data()) #browse datafile
+        self.Browse_data_B_2.clicked.connect(lambda: self.browsefiles_data_p2()) #browse datafile
         self.Browse_metadata_B.clicked.connect(lambda: self.browsefiles_metadata()) #browse metadatafile
+        self.Browse_metadata_B_2.clicked.connect(lambda: self.browsefiles_metadata_p2()) #browse metadatafile
 
         # ------- Callbacks (triggers) ------------
         # save paths when selected
@@ -61,7 +64,20 @@ class MainWindow(QDialog):
         # construnct the mappindict
         self.build_B.clicked.connect(lambda: self.build_template())
 
+        # save template
+        self.save_template.clicked.connect(lambda: self.save_template_call())
 
+
+        # ----------P2 -----------------
+        self.set_possible_templates() #load available dataset
+
+
+
+
+        #----- Cleanup files ----------------
+        path_handler.clear_dir(path_handler.TMP_dir) #cleanup tmp folder
+
+#%% P1
 # =============================================================================
 # Helpers
 # =============================================================================
@@ -100,10 +116,18 @@ class MainWindow(QDialog):
         # set datafile path
         if 'data_file_path' in saved_vals:
             self.data_file_T.setText(str(saved_vals['data_file_path']))
+            self.data_file_T_2.setText(str(saved_vals['data_file_path']))
 
         # set metadata file path
         if 'metadata_file_path' in saved_vals:
             self.metadata_file_T.setText(str(saved_vals['metadata_file_path']))
+            self.metadata_file_T_2.setText(str(saved_vals['metadata_file_path']))
+
+
+    def set_possible_templates(self):
+        template_list = path_handler.list_csv_filenames(path_handler.templates_dir)
+        self.select_temp.clear()
+        self.select_temp.addItems(template_list)
 # =============================================================================
 # Save values
 # =============================================================================
@@ -120,11 +144,22 @@ class MainWindow(QDialog):
         self.data_file_T.setText(fname[0]) #update text
 
 
+    def browsefiles_data_p2(self):
+        fname=QFileDialog.getOpenFileName(self, 'Select data file', str(Path.home()))
+        self.data_file_T_2.setText(fname[0])
+
+
     def browsefiles_metadata(self):
         fname=QFileDialog.getOpenFileName(self, 'Select metadata file', str(Path.home()))
         self.metadata_file_T.setText(fname[0]) #update text
 
+    def browsefiles_metadata(self):
+        fname=QFileDialog.getOpenFileName(self, 'Select metadata file', str(Path.home()))
+        self.metadata_file_T_2.setText(fname[0]) #update text
+
     def read_datafiles(self, filepath):
+        if not path_handler.file_exist(filepath):
+            Error(f'{filepath} is not a file.')
         _return = data_func.get_columns(filepath=filepath)
         columns = self.get_val(_return)
 
@@ -132,10 +167,35 @@ class MainWindow(QDialog):
 
     def build_template(self):
         df = template_func.make_template_build(self)
+        if df.empty:
+            Error('There are no mapped values.')
         self.templmodel.setDataFrame(df)
 
+        self.save_template.setEnabled(True) #enable the save button
 
 
+    def save_template_call(self):
+        # copy the template to the templates dir of the toolkit
+        templ_loc = os.path.join(path_handler.TMP_dir, 'template.csv')
+
+        filename = str(self.templatename.text())
+        if not filename.endswith('.csv'):
+            filename = filename + '.csv'
+
+        target_loc = os.path.join(path_handler.templates_dir, filename)
+
+        # check if templatefile already exists.
+        if path_handler.file_exist(target_loc):
+            Error(f'{target_loc} already exists! Change name of the template file.')
+            return
+        path_handler.copy_file(templ_loc, target_loc)
+
+        self.set_possible_templates() #update widget
+
+        Notification(f'Template ({filename}) is saved!')
+
+
+#%%
 
 # =============================================================================
 # Main and protector

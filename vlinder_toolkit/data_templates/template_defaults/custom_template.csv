@@ -1,5 +1,7 @@
 varname,template column name,format,dtype,units,description
-name,VLINDER,,object,,
+_date,Datum,%Y-%m-%d,object,,
+_time,Tijd (UTC),%H:%M:%S,object,,
+name,Vlinder,,object,,
 lat,lat,,object,,
 lon,lon,,object,,
 temp,Temperatuur,,float64,K,2mT

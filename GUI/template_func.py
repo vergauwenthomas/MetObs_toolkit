@@ -6,6 +6,7 @@ Created on Mon Mar 20 13:00:45 2023
 @author: thoverga
 """
 
+import path_handler
 import os
 from pathlib import Path
 import numpy as np
@@ -271,12 +272,10 @@ def make_template_build(main):
     mapdf = mapdf.reset_index(drop=True)
 
     # 3. check if mapping is valid
-
+    #TODO
 
     # 4. write mappingtemplate to csv
-    tmp_csv_file = os.path.join(str( Path(__file__).resolve().parents[0]),
-                                     'tmp',
-                                     'template.csv')
+    tmp_csv_file = os.path.join(path_handler.TMP_dir,'template.csv')
 
     mapdf.to_csv(path_or_buf=tmp_csv_file, sep=',', index=False)
 
