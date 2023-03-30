@@ -5,7 +5,7 @@
 
 import logging
 from pathlib import Path
-import os
+import os, sys
 # Create the Logger
 loggers = logging.getLogger(__name__) #logger name is <vlinder-toolkit>
 loggers.setLevel(logging.DEBUG)
@@ -22,37 +22,17 @@ logger_handler.setFormatter(logger_formatter)
 
 # Add the Handler to the Logger
 loggers.addHandler(logger_handler)
-loggers.info('Logger initiated') 
+loggers.info('Logger initiated')
 
 
 
 
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_PATH)
 
 
-#Import classes
-from .dataset import Dataset
-from .settings import Settings
-
-
-#Import QC checks
-from . import qc_checks
-
-
-#import templates and settingsfiles
-# from .data_templates import csv_templates, db_templates
-# from .settings_files import server_login.json
-
+from vlinder_toolkit.dataset import Dataset
+from vlinder_toolkit.modeldata import Modeldata
 
 __version__ = "version debug"
-
-
-#import functions
-# from .IO import import_data 
-
-
-# =============================================================================
-# import non-class functions that can be used by users
-# =============================================================================
-
-from .dataset import get_lcz
 

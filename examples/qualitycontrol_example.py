@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep 23 12:01:35 2022
-
 @author: thoverga
 """
 import os
@@ -11,36 +10,10 @@ main_folder = Path(__file__).resolve().parents[1]
 testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
 # metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 
-import sys
-sys.path.append(str(main_folder))
+
+# import sys
+# sys.path.append(str(main_folder))
 import vlinder_toolkit
-
-
-
-#%%
-
-# =============================================================================
-# Settings
-# =============================================================================
-
-
-# 1. Initiate settings object. This object contains all settings needed for furthur analysis
-settings = vlinder_toolkit.Settings()
-
-
-
-
-# 3. If the output data folder and input file are not exported as system variables, you need to update them:
-settings.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
-                         output_folder='/home/$USER/output/')
-
-
-
-
-
-# 4. Check the setting by using the .show() or .check_settings() function 
-settings.show()
-
 
 
 
@@ -54,6 +27,8 @@ settings.show()
 #1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
 
 sept_2022_all_vlinders = vlinder_toolkit.Dataset()
+sept_2022_all_vlinders.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
+                         output_folder='/home/$USER/output/')
 
 
 # ---------------- Importing from CSV file -------------------------------
@@ -61,7 +36,7 @@ sept_2022_all_vlinders = vlinder_toolkit.Dataset()
 
 #The dataset is initiated but still empty. Filling it with the data from a csv file is simply done by:
     
-sept_2022_all_vlinders.import_data_from_file(settings) #Rember that you added the input file in the settings object, this file will be used.
+sept_2022_all_vlinders.import_data_from_file(coarsen_timeres=True) #Rember that you added the input file in the settings object, this file will be used.
 
 
 # =============================================================================
@@ -86,11 +61,13 @@ sept_2022_all_vlinders.import_data_from_file(settings) #Rember that you added th
 #All settings, labels, replacement values are defind in the default settings in /settings_files/qc_settings.py
 #To inspect (and change) these quality control settings, you can extract them out of the Settings:
 
-qc_settings = settings.qc_check_settings #Settings are stored in nested dictionary
+
+qc_settings = sept_2022_all_vlinders.settings.qc['qc_check_settings'] #Settings are stored in nested dictionary
 print(qc_settings)
 
 #Changing a setting example:
-settings.qc_check_settings['persistance']['temp']['max_valid_repetitions'] = 6
+qc_settings['persistance']['temp']['max_valid_repetitions'] = 6
+
 
 
         
@@ -103,6 +80,18 @@ sept_2022_all_vlinders.apply_quality_control(obstype='temp', #which observations
                                              window_variation=True # apply internal consistency check?
                                              )
 
+# ----- INTERMEZZO ------
+# quality control methods can also be applied on station level. Be aware that the QC labels are an attribute of the station
+# and not of the dataset the station belongs to!
+
+station = sept_2022_all_vlinders.get_station('vlinder01')
+
+station.apply_quality_control()
+
+print(station.outliersdf.head())
+ 
+    
+    
 # =============================================================================
 # Quality control values
 # =============================================================================
@@ -130,15 +119,15 @@ print(sept_2022_all_vlinders.df.columns)
 
 # After applying the Quality control each observations (that is checked) has a set of qc-labels. 
 # To create One column with the final label (based on the labels for each check), you can call the 
-# add_final_qc_labels, which will add a final-qc-label column in the dataset.df:
+# combine_all_to_obsspace, which will combine observations, outliers gaps and missing timestamps,
+ # and add a final-qc-label column per obstype:
 
-outliers_sept_2022_all_vlinders = sept_2022_all_vlinders.get_final_qc_labels()
+outliers_sept_2022_all_vlinders = sept_2022_all_vlinders.combine_all_to_obsspace()
 
 print(outliers_sept_2022_all_vlinders['temp_final_label'].head())
 
 # (When writing a dataset to file, there is an attribute 'add_final_labels'. When 
 #  True, the final labels are computed and added to the file.)
-
 
 # =============================================================================
 # Quality control stats
@@ -160,7 +149,6 @@ qc_statistics = sept_2022_all_vlinders.get_qc_stats(obstype='temp',
 
 print(qc_statistics)
 
-        
 
 
 # =============================================================================
@@ -171,8 +159,7 @@ print(qc_statistics)
 
 
 #To plot timeseries for one station you can use the make_plot function on the station object:
-favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder05')
-
+favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder10')
 
 #Possible obstypes to plot:
     # 'temp','radiation_temp','humidity','precip','precip_sum','wind_speed',
@@ -193,26 +180,10 @@ favorite_station.make_plot(variable='temp',
 from datetime import datetime    
 
 sept_2022_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder07'],
-                                variable='humidity',
+                                variable='temp',
                                 starttime=datetime(2022, 9,4), # 2022/09/04 00:00:00
                                 endtime=datetime(2022,9,12,12,45), #2022/09/12 12:45:00
                                 title=None,
                                 legend=True
                                 )
 #If you do not specify a start and endtime, all available timestamps are used.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 lib_folder = Path(__file__).resolve().parents[2]
-sys.path.append(str(lib_folder))
+#sys.path.append(str(lib_folder))
 
 
 import vlinder_toolkit
@@ -22,34 +22,29 @@ import vlinder_toolkit
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata_small.csv')
 
 
-
-settings = vlinder_toolkit.Settings()
-settings.update_settings(input_data_file=testdatafile)
-settings.check_settings()
-
 dataset = vlinder_toolkit.Dataset()
+dataset.update_settings(input_data_file=testdatafile)
 dataset.import_data_from_file(coarsen_timeres=True)
 
 
 #%% Apply Qc on dataset level
 
-dataset.apply_quality_control(obstype='temp',
-                                            gross_value=True, #apply this check 
-                                            persistance=True, #apply this check
-                                            )
+dataset.apply_quality_control(obstype='temp')
 
 
-outliersdf = dataset.get_final_qc_labels()
-
+outliersdf = dataset.combine_all_to_obsspace()
+dataset.get_qc_stats(make_plot = False)
 
 
 #%% Apply Qc on obstype not specified in settings
 
 
 
-dataset.apply_quality_control(obstype='humidity',
-                                            gross_value=True, #apply this check 
-                                            persistance=True, #apply this check
-                                            )
+dataset.apply_quality_control(obstype='humidity')
 
+#%% Apply QC on station level
 
+sta = dataset.get_station('vlinder05')
+
+sta.apply_quality_control()
+sta.get_qc_stats(make_plot=True)
