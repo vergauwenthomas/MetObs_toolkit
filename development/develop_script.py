@@ -51,8 +51,8 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 #%%
 
-test = dataset.get_altitude()
-print(test)
+# test = dataset.get_altitude()
+# print(test)
 
 
 
