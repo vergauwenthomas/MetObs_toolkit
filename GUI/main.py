@@ -16,9 +16,12 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog, QMainWindow
 from PyQt5.uic import loadUi
 
+import pandas as pd
+
 import data_func
 import template_func
-
+from json_save_func import get_saved_vals, update_json_file
+from pandasmodel import DataFrameModel
 
 
 
@@ -29,21 +32,33 @@ class MainWindow(QDialog):
         super(MainWindow, self).__init__()
         # Load gui widgets
         loadUi('templ_build.ui', self) #open the ui file
-        
+
+        # Setup widgets and default values
         # Setup error message dialog
         self.error_dialog = QtWidgets.QErrorMessage(self)
-        
-        
-        # Callbacks (Getters)
+        self.set_datapaths_init()
+
+        self.templmodel = DataFrameModel()
+        self.table.setModel(self.templmodel)
+
+        # ------- Callbacks (Getters) ---------
         self.Browse_data_B.clicked.connect(lambda: self.browsefiles_data()) #browse datafile
         self.Browse_metadata_B.clicked.connect(lambda: self.browsefiles_metadata()) #browse metadatafile
 
-        # self.start_mapping_B.clicked.connect(lambda: self.read_datafiles())
-        # debug
+        # ------- Callbacks (triggers) ------------
+        # save paths when selected
+        self.save_data_path.clicked.connect(lambda: self.save_path(savebool=self.save_data_path.isChecked(),
+                                                                   savekey='data_file_path',
+                                                                   saveval=self.data_file_T.text()))
+        self.save_metadata_path.clicked.connect(lambda: self.save_path(savebool=self.save_metadata_path.isChecked(),
+                                                                   savekey='metadata_file_path',
+                                                                   saveval=self.metadata_file_T.text()))
+
+
+        # initiate the start mapping module
         self.start_mapping_B.clicked.connect(lambda: self.set_templ_map_val())
-        default_path = '/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/tests/test_data/vlinderdata_small.csv'
-        self.data_file_T.setText(default_path)
-        
+
+        # construnct the mappindict
         self.build_B.clicked.connect(lambda: self.build_template())
 
 
@@ -61,20 +76,41 @@ class MainWindow(QDialog):
 # Init values
 # =============================================================================
     def set_templ_map_val(self):
-        print(self.data_file_T.text())
         # First try reading the datafile
         data_columns = self.read_datafiles(self.data_file_T.text())
-        
-        
+
         # Check if meta data is given, if so read the metadata columns
         if len(self.metadata_file_T.text()) > 2:
-            metadata_columns = self.read_datafiles(self.data_file_T.text())
+            metadata_columns = self.read_datafiles(self.metadata_file_T.text())
         else:
             metadata_columns = []
-        
+
         # Set defaults appropriate
         template_func.set_templ_vals(self, data_columns, metadata_columns)
-        
+
+    def init_empty_table(self):
+        df = pd.DataFrame()
+        model = DataFrameModel(df)
+        self.table.setModel(model)
+
+
+    def set_datapaths_init(self):
+        saved_vals = get_saved_vals()
+
+        # set datafile path
+        if 'data_file_path' in saved_vals:
+            self.data_file_T.setText(str(saved_vals['data_file_path']))
+
+        # set metadata file path
+        if 'metadata_file_path' in saved_vals:
+            self.metadata_file_T.setText(str(saved_vals['metadata_file_path']))
+# =============================================================================
+# Save values
+# =============================================================================
+    def save_path(self, savebool, savekey, saveval):
+        if savebool:
+            savedict = {str(savekey): str(saveval)}
+            update_json_file(savedict, catkey=None)
 
 # =============================================================================
 # Triggers
@@ -82,7 +118,7 @@ class MainWindow(QDialog):
     def browsefiles_data(self):
         fname=QFileDialog.getOpenFileName(self, 'Select data file', str(Path.home()))
         self.data_file_T.setText(fname[0]) #update text
-        
+
 
     def browsefiles_metadata(self):
         fname=QFileDialog.getOpenFileName(self, 'Select metadata file', str(Path.home()))
@@ -90,13 +126,13 @@ class MainWindow(QDialog):
 
     def read_datafiles(self, filepath):
         _return = data_func.get_columns(filepath=filepath)
-        print(_return)
         columns = self.get_val(_return)
-        
+
         return columns
 
     def build_template(self):
-        template_func.make_template_build(self)
+        df = template_func.make_template_build(self)
+        self.templmodel.setDataFrame(df)
 
 
 
@@ -111,16 +147,16 @@ def main():
     widget = QtWidgets.QStackedWidget()
     widget.addWidget(mainwindow)
     # widget.show()
-    
+
     return widget
-    
-    
-    
-    
-    
+
+
+
+
+
 if __name__ == '__main__':
     app=QApplication(sys.argv)
-    
+
     widget = main()
     widget.show()
     sys.exit(app.exec_())
