@@ -107,10 +107,6 @@ class Dataset:
         self.settings.update_timezone(timezonestr)
 
 
-    def add_csv_template(self, csv_file):
-        self.settings.add_csv_template(csv_file)
-
-
     def show_settings(self):
         self.settings.show()
 
@@ -937,8 +933,7 @@ class Dataset:
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(
                             input_file=self.settings.IO['input_data_file'],
-                            file_csv_template=self.settings.templates['input_csv_template'],
-                            template_list=self.settings.templates['template_list'])
+                            template_file=self.settings.templates['data_template_file'])
 
         # Set timezone information
         df.index = df.index.tz_localize(tz=self.settings.time_settings['timezone'],
@@ -961,8 +956,7 @@ class Dataset:
                         {self.settings.IO["input_metadata_file"]}')
             meta_df = import_metadata_from_csv(
                         input_file=self.settings.IO["input_metadata_file"],
-                        file_csv_template=self.settings.templates['input_metadata_template'],
-                        template_list=self.settings.templates['template_list'])
+                        template_file=self.settings.templates['metadata_template_file'])
 
             # merge additional metadata to observations
             meta_cols = [colname for colname in meta_df.columns
