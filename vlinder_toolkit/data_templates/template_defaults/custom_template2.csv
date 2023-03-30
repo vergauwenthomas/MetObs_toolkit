@@ -1,5 +1,0 @@
-varname,template column name,format,dtype,units,description
-name,VLINDER,,object,,
-lat,lat,,object,,
-lon,lon,,object,,
-temp,Temperatuur,,float64,K,2mT
