@@ -28,10 +28,10 @@ TLK_dir = os.path.join(str( Path(__file__).resolve().parents[1]),
 
 TMP_dir = os.path.join(GUI_dir, 'tmp')
 
+CACHE_dir = os.path.join(GUI_dir, 'cache')
 # toolkit location of templates
-templates_dir = os.path.join(TLK_dir,
-                          'data_templates',
-                          'template_defaults')
+tlk_default_template = os.path.join(TLK_dir, 'data_templates',
+                                    'template_defaults', 'default_template.csv')
 
 
 # =============================================================================
@@ -54,8 +54,11 @@ def list_csv_filenames(folderpath):
     all_stuff = os.listdir(folderpath)
     all_files = [file for file in all_stuff if os.path.isfile(os.path.join(
                                                 folderpath, file))]
-    csv_files = [file.replace('.csv', '') for file in all_files if file.endswith('.csv')]
-    return csv_files
+
+    filenames =[file for file in all_files if file.endswith('.csv')]
+    filepaths =[os.path.join(folderpath, file) for file in filenames]
+
+    return filenames, filepaths
 
 
 def clear_dir(directory):

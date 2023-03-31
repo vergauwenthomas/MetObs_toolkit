@@ -280,3 +280,31 @@ def make_template_build(main):
     mapdf.to_csv(path_or_buf=tmp_csv_file, sep=',', index=False)
 
     return mapdf
+
+
+def get_all_templates():
+    """
+    Returns a dict with keys the filenames of all available templates and keys the full paths.
+    :return: DESCRIPTION
+    :rtype: dict
+
+    """
+    template_dict = {}
+
+    # default templates
+    template_dict['default_template'] = path_handler.tlk_default_template
+
+    # all templates in cache
+    filenames, filepaths = path_handler.list_csv_filenames(path_handler.CACHE_dir)
+    template_dict.update(dict(zip(filenames, filepaths)))
+
+    return template_dict
+
+
+
+
+
+
+
+
+

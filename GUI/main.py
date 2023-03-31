@@ -17,12 +17,14 @@ from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog, QMainWindow
 from PyQt5.uic import loadUi
 
 import pandas as pd
+import pytz
 
 import data_func
 import template_func
 from json_save_func import get_saved_vals, update_json_file
 from pandasmodel import DataFrameModel
 import path_handler
+import tlk_scripts
 from errors import Error, Notification
 
 
@@ -34,7 +36,22 @@ class MainWindow(QDialog):
         # Load gui widgets
         loadUi('templ_build.ui', self) #open the ui file
 
+        # -------- Information to pass beween different triggers ----------
+        self.dataset = None #the vlindertoolkit dataset instance
+        # P1 ------------------------
+
+
+
+        # P2 ------------------------
+        self.template_dict = None #dict; all available templname : templpath
+        self.default_settings = tlk_scripts.get_default_settings()
+
+
+
+
+
         # ------- Setup (widgets and default values) ---------------
+
         # Setup error message dialog
         self.error_dialog = QtWidgets.QErrorMessage(self)
         self.set_datapaths_init()
@@ -49,6 +66,7 @@ class MainWindow(QDialog):
         self.Browse_metadata_B_2.clicked.connect(lambda: self.browsefiles_metadata_p2()) #browse metadatafile
 
         # ------- Callbacks (triggers) ------------
+        # P1 ------
         # save paths when selected
         self.save_data_path.clicked.connect(lambda: self.save_path(savebool=self.save_data_path.isChecked(),
                                                                    savekey='data_file_path',
@@ -67,11 +85,21 @@ class MainWindow(QDialog):
         # save template
         self.save_template.clicked.connect(lambda: self.save_template_call())
 
+        # P2 -------
+        self.make_dataset.clicked.connect(lambda: self.make_tlk_dataset())
+        self.apply_qc.clicked.connect(lambda: self.apply_qc_on_dataset())
+
+
+        # ------- Initialize --------------
+
+
 
         # ----------P2 -----------------
         self.set_possible_templates() #load available dataset
+        self.set_timezone_spinners()
 
 
+        tlk_scripts.set_qc_default_settings(self)
 
 
         #----- Cleanup files ----------------
@@ -125,9 +153,28 @@ class MainWindow(QDialog):
 
 
     def set_possible_templates(self):
-        template_list = path_handler.list_csv_filenames(path_handler.templates_dir)
+        templ_dict = template_func.get_all_templates()
+
+        # remove .csv for presenting
+        templ_names = [name.replace('.csv', '') for name in templ_dict.keys()]
+
+        #update spinner
         self.select_temp.clear()
-        self.select_temp.addItems(template_list)
+        self.select_temp.addItems(templ_names)
+
+        # Store information to pass between triggers
+        self.template_dict = templ_dict #dict templname : templpath
+
+    def set_timezone_spinners(self):
+        # add all common tz to options
+        tzlist = pytz.common_timezones
+        self.tz_selector.addItems(tzlist)
+
+        # set default
+        default = self.default_settings.time_settings['timezone']
+        self.tz_selector.setCurrentText(default)
+
+
 # =============================================================================
 # Save values
 # =============================================================================
@@ -182,7 +229,7 @@ class MainWindow(QDialog):
         if not filename.endswith('.csv'):
             filename = filename + '.csv'
 
-        target_loc = os.path.join(path_handler.templates_dir, filename)
+        target_loc = os.path.join(path_handler.CACHE_dir, filename)
 
         # check if templatefile already exists.
         if path_handler.file_exist(target_loc):
@@ -194,6 +241,10 @@ class MainWindow(QDialog):
 
         Notification(f'Template ({filename}) is saved!')
 
+    def make_tlk_dataset(self):
+        self.dataset = tlk_scripts.load_dataset(self)
+    def apply_qc_on_dataset(self):
+        tlk_scripts.apply_qualitycontrol(self)
 
 #%%
 

@@ -12,6 +12,7 @@ import pandas as pd
 import mysql.connector
 from mysql.connector import errorcode
 from vlinder_toolkit.df_helpers import init_multiindexdf
+from vlinder_toolkit.data_templates.import_templates import read_csv_template
 
 
 def template_to_package_space(specific_template):
@@ -90,40 +91,54 @@ def compress_dict(nested_dict, valuesname):
 
 #         return resample_df
 
+def check_template_compatibility(template, df_columns):
 
-def import_metadata_from_csv(input_file, file_csv_template, template_list):
+    # test if all df_columns are in template keys
+    if not all(col in template.keys() for col in df_columns):
+        unmapped = list(set(df_columns) - set(template.keys()))
+        print(f'WARNING! The following columns are not pressent in the template,\
+              and cannot be mapped: {unmapped}')
+
+    if len(list(set(df_columns) - set(template.keys()))) == len(df_columns):
+        sys.exit(f'Fatal: The given template does not match with any of the data columns.')
+
+
+
+
+
+
+
+
+
+
+def import_metadata_from_csv(input_file, template_file):
+
+    common_seperators = [';',',','    ','.']
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
+    for sep in common_seperators:
 
-    df = pd.read_csv(input_file, sep=';')
+        df = pd.read_csv(input_file, sep=sep)
+        assert not df.empty, "Dataset is empty!"
 
-    assert not df.empty, "Dataset is empty!"
+        if len(df.columns) > 1:
+            break
 
-    assert len(df.columns) > 1, 'Only one column detected from import. See if csv template is correct.'
+    assert len(df.columns) > 1, f'Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct.'
 
 
-    # import template
-    if isinstance(file_csv_template, type(None)): #if no default is given
-        templ = find_compatible_templatefor(df_columns=df.columns,
-                                            template_list=template_list)
-
-    else:
-        templ = file_csv_template
-
-    #Check if template is compatible with the data, and try other templates if not
-    if not all(keys in list(df.columns) for keys in templ.keys()):
-        print("Default template not compatible, scanning other templates ...")
-        templ = find_compatible_templatefor(df_columns=df.columns,
-                                            template_list=template_list)
+    # validate template
+    template = read_csv_template(template_file)
+    check_template_compatibility(template, df.columns)
 
 
     # rename columns to toolkit attriute names
-    df = df.rename(columns=compress_dict(templ, 'varname'))
+    df = df.rename(columns=compress_dict(template, 'varname'))
 
     return df
 
 
 
-def import_data_from_csv(input_file, file_csv_template, template_list):
+def import_data_from_csv(input_file, template_file):
 
     common_seperators = [';',',','    ','.']
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
@@ -154,24 +169,13 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
 
 
 
-    # import template
-    if isinstance(file_csv_template, type(None)): #No default template is given
-
-        templ = find_compatible_templatefor(df_columns=df.columns,
-                                            template_list=template_list)
-    else:
-        templ=file_csv_template
-
-    #Check if template is compatible and find other if needed
-    if not all(keys in list(df.columns) for keys in templ.keys()):
-        print('Default template is not compatible, scanning for other templates ...')
+    # validate template
+    template = read_csv_template(template_file)
+    check_template_compatibility(template, df.columns)
 
 
-        templ = find_compatible_templatefor(df_columns=df.columns,
-                                            template_list=template_list)
 
-
-    for key, value in templ.items():
+    for key, value in template.items():
         if value['dtype'] == 'float64':
 
             df[key] = pd.to_numeric(df[key], errors='coerce')
@@ -179,10 +183,10 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
 
 
     # rename columns to toolkit attriute names
-    df = df.rename(columns=compress_dict(templ, 'varname'))
+    df = df.rename(columns=compress_dict(template, 'varname'))
 
     #COnvert template to package-space
-    template =template_to_package_space(templ)
+    invtemplate =template_to_package_space(template)
 
     #format columns
     #df = df.astype(dtype=compress_dict(template, 'dtype'))
@@ -190,10 +194,10 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
 
     if 'datetime' in df.columns:
         df['datetime'] =pd.to_datetime(df['datetime'],
-                                        format=template['datetime']['format'])
+                                        format=invtemplate['datetime']['format'])
 
     else:
-        datetime_fmt = template['_date']['format'] + ' ' + template['_time']['format']
+        datetime_fmt = invtemplate['_date']['format'] + ' ' + invtemplate['_time']['format']
         df['datetime'] =pd.to_datetime(df['_date'] +' ' + df['_time'], format=datetime_fmt)
         df = df.drop(columns=['_date', '_time'])
 
@@ -206,12 +210,12 @@ def import_data_from_csv(input_file, file_csv_template, template_list):
     #Keep only columns as defined in the template
     for column in df.columns:
 
-        if not (column in template.keys()):
+        if not (column in invtemplate.keys()):
             df = df.drop(columns=[column])
 
     # add template to the return
 
-    return df, template
+    return df, invtemplate
 
 #%%
 def import_data_from_db(db_settings,

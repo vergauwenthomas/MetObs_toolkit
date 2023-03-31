@@ -134,14 +134,11 @@ class Settings:
 
     def _update_templates(self):
        logger.debug('Updating data templates settings.')
-       from .data_templates.import_templates import csv_templates_list
+       from .data_templates.import_templates import default_template_file
 
-
-       #import csv templates
-       self.templates['template_list'] = csv_templates_list
-
-       self.templates['input_metadata_template'] = None #force this template to use
-       self.templates['input_csv_template'] = None #force this template to use
+       # Set default templates
+       self.templates['data_template_file'] = default_template_file
+       self.templates['metadata_template_file'] = default_template_file
 
 
 
@@ -164,7 +161,8 @@ class Settings:
 
     # @classmethod
     def update_IO(self, output_folder=None, input_data_file=None,
-                        input_metadata_file=None):
+                        input_metadata_file=None, data_template_file=None,
+                        metadata_template_file=None):
 
         logger.info('Updating settings with input: ')
 
@@ -185,54 +183,30 @@ class Settings:
             logger.info(f'Update meta_data_file:  {self.IO["input_metadata_file"]}  -->  {input_metadata_file}')
             self.IO['input_metadata_file'] = input_metadata_file
 
+        if not isinstance(data_template_file, type(None)):
+            print('Update data template file: ', self.templates['data_template_file'], ' --> ', data_template_file)
+            logger.info(f'Update data template file:  {self.templates["data_template_file"]}  -->  {data_template_file}')
+            self.templates['data_template_file'] = data_template_file
+
+        if not isinstance(metadata_template_file, type(None)):
+            print('Update metadata template file: ', self.templates['metadata_template_file'], ' --> ', metadata_template_file)
+            logger.info(f'Update metadata template file:  {self.templates["metadata_template_file"]}  -->  {metadata_template_file}')
+            self.templates['metadata_template_file'] = metadata_template_file
 
 
-    def add_csv_template(self, csv_file):
-         """
-         Add a template-csv to the templates.
-         The Settings class will be updated.
 
-         Parameters
-         ----------
-         csv_file : String
-             csv-template file path.
-
-         Returns
-         -------
-         None.
-
-         """
-
-         logger.info(f'Adding template from csv file: {csv_file}')
-
-         from .data_templates.import_templates import read_csv_template, check_if_templates_are_unique_defined
-
-         template = read_csv_template(csv_file)
-         logger.debug(f'Added teplate: {template}')
-
-         self.templates['template_list'].append(template)
-
-         #Check if all templates are still unique
-         check_if_templates_are_unique_defined(self.templates['template_list'])
-
-         # force import to use this template
-         self.templates['input_csv_template'] = template
 
 
     def copy_template_csv_files(self, target_folder):
          import shutil
-         from .data_templates.import_templates import csv_templates_dir, find_csv_filenames
+         from .data_templates.import_templates import default_template_file
 
-         default_files = find_csv_filenames(csv_templates_dir) #list all default templ files
+         # test if target_folder is a folder
+         assert os.path.isdir(target_folder), f'{target_folder} is not a folder'
 
-         #copy all defaults to target folder with dummy index
-         _idx = 1
-         for templ_file in default_files:
-             target_file = os.path.join(target_folder, 'default_templates' + str(_idx) + '.csv')
+         target_file = os.path.join(target_folder, 'example_template.csv')
 
-             shutil.copy2(templ_file, target_file)
-             _idx += 1
-             logger.info(f'Templatates copied to: {target_file}')
+         shutil.copy2(default_template_file, target_file)
 
          print("Templates copied to : ", target_file)
 

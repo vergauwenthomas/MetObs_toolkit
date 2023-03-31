@@ -28,8 +28,9 @@ testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaki
 template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.csv')
 
 dataset_coarsened = vlinder_toolkit.Dataset()
-dataset_coarsened.update_settings(input_data_file=testdata)
-dataset_coarsened.add_csv_template(template_file)
+dataset_coarsened.update_settings(input_data_file=testdata,
+                                  data_template_file=template_file)
+
 
 
 
@@ -83,7 +84,8 @@ dataset_coarsened.apply_quality_control()
 #_ = dataset_coarsened.get_qc_stats()
 #%%
 dataset = vlinder_toolkit.Dataset()
-dataset.update_settings(input_data_file = testdata)
+dataset.update_settings(input_data_file = testdata,
+                        data_template_file=template_file)
 dataset.import_data_from_file(coarsen_timeres=False)
 dataset.apply_quality_control()
 
