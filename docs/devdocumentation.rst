@@ -18,6 +18,7 @@ Dataset
 ================
 
 
+
 .. py:currentmodule:: vlinder_toolkit.dataset
 .. autoclass:: Dataset
     :members:
@@ -25,6 +26,7 @@ Dataset
 
 Station
 ================
+
 
 
 .. py:currentmodule:: vlinder_toolkit.dataset
@@ -35,7 +37,6 @@ Station
 
 Settings
 ================
-
 
 .. py:currentmodule:: vlinder_toolkit.settings
 .. autoclass:: Settings
@@ -72,7 +73,7 @@ Gap_collection class
 Model data
 ================
 
-.. py:currentmodule:: vlinder_toolkit.modeldata
+.. py:currentmodule:: modeldata
 .. autoclass:: Modeldata
     :members:
     :undoc-members:
@@ -83,28 +84,28 @@ Extra functions
 convertors
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.convertors
+.. automodule:: convertors
     :members:
     :undoc-members:
 
 data import
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.data_import
+.. automodule:: data_import
     :members:
     :undoc-members:
 
 data writing
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.writing_files
+.. automodule:: writing_files
     :members:
     :undoc-members:
 
 gap filling
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.gap_filling
+.. automodule:: gap_filling
     :members:
     :undoc-members:
 
@@ -125,7 +126,6 @@ landcover functions
 
 plotting functions
 ^^^^^^^^^^^^^^^^^^^^^^
-
 .. automodule:: vlinder_toolkit.plotting_functions
     :members:
     :undoc-members:
@@ -144,7 +144,7 @@ Quality control checks
 Quality control statistics
 """""""""""""""""""""""""""
 
-.. automodule:: vlinder_toolkit.qc_statistics
+.. automodule:: qc_statistics
     :members:
     :undoc-members:
 
