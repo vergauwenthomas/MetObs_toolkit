@@ -11,6 +11,16 @@
 
 #%%
 
+# make shure that the package directory is in the sys path
+import os, sys
+from pathlib import Path
+
+curdir = os.path.abspath('.')
+rootdir = Path(curdir).parents[1]
+pkgdir=os.path.join(rootdir, 'vlinder_toolkit')
+print('pkgdir::::: ', pkgdir)
+sys.path.insert(0, pkgdir)
+
 
 # import vlinder_toolkit
 # from pathlib import Path
