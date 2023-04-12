@@ -42,6 +42,12 @@ cd ${WORKDIR}
 poetry build
 
 
+
+echo "Export requirements file ..."
+poetry export -f requirements.txt --output requirements.txt
+
+
+
 #4 testing
 #run tests in the poetry environment
 
