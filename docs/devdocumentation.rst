@@ -73,7 +73,7 @@ Gap_collection class
 Model data
 ================
 
-.. py:currentmodule:: modeldata
+.. py:currentmodule:: vlinder_toolkit.modeldata
 .. autoclass:: Modeldata
     :members:
     :undoc-members:
@@ -84,28 +84,28 @@ Extra functions
 convertors
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: convertors
+.. automodule:: vlinder_toolkit.convertors
     :members:
     :undoc-members:
 
 data import
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: data_import
+.. automodule:: vlinder_toolkit.data_import
     :members:
     :undoc-members:
 
 data writing
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: writing_files
+.. automodule:: vlinder_toolkit.writing_files
     :members:
     :undoc-members:
 
 gap filling
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: gap_filling
+.. automodule:: vlinder_toolkit.gap_filling
     :members:
     :undoc-members:
 
@@ -144,7 +144,7 @@ Quality control checks
 Quality control statistics
 """""""""""""""""""""""""""
 
-.. automodule:: qc_statistics
+.. automodule:: vlinder_toolkit.qc_statistics
     :members:
     :undoc-members:
 
