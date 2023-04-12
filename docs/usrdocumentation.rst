@@ -13,7 +13,7 @@ bl bla bla
 
 Dataset
 ================
-.. py:currentmodule:: dataset
+.. py:currentmodule:: vlinder_toolkit.dataset
 .. autoclass:: Dataset
     :members:
     :undoc-members:
