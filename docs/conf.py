@@ -16,38 +16,9 @@ import os, sys
 from pathlib import Path
 
 
-# sys.path.insert(0, os.path.abspath('..'))
-# sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../..'))
-
-sys.path.append('/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/vlinder_toolkit')
-
-
-# curdir = os.path.abspath('.')
-# rootdir = Path(curdir).parents[1]
-# pkgdir=os.path.join(rootdir, 'vlinder_toolkit')
-# print('pkgdir::::: ', pkgdir)
-# sys.path.insert(0, pkgdir)
-
-
-
-# import vlinder_toolkit
-# from pathlib import Path
-# import sys, os
-
-# lib_folder = Path(__file__).resolve().parents[1]
-# tlk_folder = os.path.join(str(lib_folder), 'vlinder_toolkit')
-
-
-# sys.path.append(tlk_folder)
-
-# import vlinder_toolkit
-
-# #Add modules for automatic documentation
+sys.path.insert(0, os.path.join(os.path.abspath('.'), 'vlinder_toolkit'))
 
 #%%
-
-
 
 
 # -- Project information -----------------------------------------------------
