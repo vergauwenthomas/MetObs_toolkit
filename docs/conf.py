@@ -15,6 +15,7 @@
 import os, sys
 from pathlib import Path
 
+
 # sys.path.insert(0, os.path.abspath('..'))
 # sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../..'))
@@ -27,6 +28,7 @@ sys.path.append('/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/vlinder
 # pkgdir=os.path.join(rootdir, 'vlinder_toolkit')
 # print('pkgdir::::: ', pkgdir)
 # sys.path.insert(0, pkgdir)
+
 
 
 # import vlinder_toolkit

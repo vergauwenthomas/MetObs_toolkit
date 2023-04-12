@@ -17,6 +17,7 @@ bl bla bla
 Dataset
 ================
 
+
 .. py:currentmodule:: dataset
 .. autoclass:: Dataset
     :members:
@@ -24,6 +25,7 @@ Dataset
 
 Station
 ================
+
 
 .. py:currentmodule:: dataset
 .. autoclass:: Station
@@ -34,6 +36,7 @@ Station
 Settings
 ================
 
+
 .. py:currentmodule:: settings
 .. autoclass:: Settings
     :members:
@@ -42,6 +45,7 @@ Settings
 
 Missing timestamps
 ==================
+
 .. py:currentmodule:: missingobs
 .. autoclass:: Missingob_collection
     :members:
@@ -53,14 +57,14 @@ Gaps
 
 Gap class
 ^^^^^^^^^^^^^^^^^^^^^^
-.. py:currentmodule:: gap
+.. py:currentmodule:: vlinder_toolkit.gap
 .. autoclass:: Gap
     :members:
     :undoc-members:
 
 Gap_collection class
 ^^^^^^^^^^^^^^^^^^^^^^
-.. py:currentmodule:: gap
+.. py:currentmodule:: vlinder_toolkit.gap
 .. autoclass:: Gap_collection
     :members:
     :undoc-members:
