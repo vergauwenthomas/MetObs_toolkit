@@ -47,8 +47,8 @@ dataset.import_data_from_file(coarsen_timeres=True)
 #%%
 
 analys = dataset.make_analysis_instance()
-
-
+print(analys.df.columns.unique())
+print(analys.make_diurnal_cycle(stations=['vlinder02', 'vlinder03','vlinder02'],obstype='temp',relative=True, refstation='vlinder01'))
 #
 #%%
 print('done')
