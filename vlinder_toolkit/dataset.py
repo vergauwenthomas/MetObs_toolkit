@@ -115,12 +115,12 @@ class Dataset:
         Extract a station object from the dataset.
 
         Parameters
-        ----------
+
         stationname : String
             Name of the station, example 'vlinder16'
 
         Returns
-        -------
+
         station_obj : vlinder_toolkit.station.Station
 
 
@@ -168,7 +168,7 @@ class Dataset:
         Print basic information about the dataset.
 
         Returns
-        -------
+
         None.
 
         """
@@ -191,7 +191,7 @@ class Dataset:
         is plotted for all stationnames from a starttime to an endtime.
 
         Parameters
-        ----------
+
         stationnames : List
             List of stationnames to plot. If None, all available stations ar
             plotted. The default is None.
@@ -216,8 +216,9 @@ class Dataset:
         show_outliers : Bool, optional
             If true, the outlier values will be plotted else they are removed
             from the plot. The default is True.
+
         Returns
-        -------
+
         ax : matplotlib.axes
             The plot axes is returned.
 
@@ -294,7 +295,7 @@ class Dataset:
 
 
         Parameters
-        ----------
+
         variable : String, optional
             Fieldname to visualise. This can be an observation or station
             attribute. The default is 'temp'.
@@ -314,7 +315,7 @@ class Dataset:
            None and the maximum of the variable is used.
 
         Returns
-        -------
+
         ax : Geoaxes
             The geoaxes is returned.
 
@@ -457,7 +458,7 @@ class Dataset:
             The file will be writen to the Settings.outputfolder.
 
             Parameters
-            ----------
+
             filename : string, optional
                 The name of the output csv file. If none, a standard-filename
                 is generated based on the period of data. The default is None.
@@ -466,7 +467,7 @@ class Dataset:
                 is added as a column. The default is True.
 
             Returns
-            -------
+
             None
 
             """
@@ -561,7 +562,7 @@ class Dataset:
         The dataset is updated inline.
 
         Parameters
-        ----------
+
         obstype : String, optional
             Name of the observationtype you want to apply the checks on. The
             default is 'temp'.
@@ -583,7 +584,7 @@ class Dataset:
             Values to ignore in the quality checks. The default is np.nan.
 
         Returns
-        -------
+
         None.
 
         """
@@ -682,7 +683,7 @@ class Dataset:
         corresponding obstype column.
 
         Returns
-        -------
+
         comb_df : pandas.DataFrame()
             Multi index dataframe with observations and labels.
 
@@ -782,7 +783,7 @@ class Dataset:
         With stationnames you can subset the data to one ore multiple stations.
 
         Parameters
-        ----------
+
         obstype : Str, optional
             Observation type to analyse the QC labels on. The default is
             'temp'.
@@ -793,7 +794,7 @@ class Dataset:
             If True, a plot with piecharts is generated. The default is True.
 
         Returns
-        -------
+
         dataset_qc_stats : pandas.DataFrame
             A table containing the label frequencies per check presented
             as percentages0.
@@ -913,7 +914,7 @@ class Dataset:
         sets up the dataset with the observations and applies some sanity checks.
 
         Parameters
-        ----------
+
         network : String, optional
             The name of the network for these observations. The default
             is 'vlinder'.
@@ -923,7 +924,7 @@ class Dataset:
             is False.
 
         Returns
-        -------
+
         None.
 
         """
@@ -996,7 +997,7 @@ class Dataset:
 
 
         Parameters
-        ----------
+
         start_datetime : datetime, optional
             Start datetime of the observations. The default is None and using
             yesterday's midnight.
@@ -1009,7 +1010,7 @@ class Dataset:
             is False.
 
         Returns
-        -------
+
         None.
 
         """
@@ -1062,14 +1063,14 @@ class Dataset:
         of the stations are computed.
 
         Parameters
-        ----------
+
         dataframe : pandas.DataFrame
         A dataframe that has an datetimeindex and following columns:
             'name, temp, radiation_temp, humidity, ...'
 
 
         Returns
-        -------
+
         None.
 
         """

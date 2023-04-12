@@ -55,7 +55,6 @@ class Settings:
         and the 'db_user' and 'db_passw' envrionment variables if available.
         :return: No return
         :rtype: No return
-
         """
         logger.debug('Updating Database settings.')
         f = open(os.path.join(Settings._settings_files_path,
@@ -84,7 +83,6 @@ class Settings:
 
         :return: No return
         :rtype: No return
-
         """
         logger.debug('Updating time resolution settings.')
         f = open(os.path.join(Settings._settings_files_path,
@@ -102,7 +100,6 @@ class Settings:
         Update prefered display, print, plot and staticinfo settings of self using the default settings templates.
         :return: No return
         :rtype: No return
-
         """
         logger.debug('Updating app settings.')
         from .settings_files.default_formats_settings import plot_settings, print_settings, vars_display
@@ -133,7 +130,6 @@ class Settings:
         Update quality control settings of self using the default settings templates.
         :return: No return
         :rtype: No return
-
         """
         logger.debug('Updating QC settings.')
         from .settings_files.qc_settings import check_settings, checks_info
@@ -145,7 +141,6 @@ class Settings:
         Update gap defenition and fill settings of self using the default settings templates.
         :return: No return
         :rtype: No return
-
         """
         logger.debug('Updating gap settings.')
         from .settings_files.gaps_settings import (gaps_settings, gaps_info,
@@ -177,7 +172,6 @@ class Settings:
         Update the google earth enginge settings using the default settings templates.
         :return: No return
         :rtype: No return
-
         """
         logger.debug('Updating gee settings.')
         from .settings_files.gee_settings import gee_datasets
@@ -192,7 +186,6 @@ class Settings:
         :type timezonestr: String
         :return: None
         :rtype: None
-
         """
         if not timezonestr in all_timezones:
             print(
@@ -228,7 +221,6 @@ class Settings:
         :type metadata_template_file: String, optional
         :return: No return
         :rtype: No return
-
         """
 
         logger.info('Updating settings with input: ')
@@ -277,7 +269,6 @@ class Settings:
         :type target_folder: String
         :return: No return
         :rtype: No return
-
         """
 
 

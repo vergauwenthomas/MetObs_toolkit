@@ -15,11 +15,20 @@
 import os, sys
 from pathlib import Path
 
-curdir = os.path.abspath('.')
-rootdir = Path(curdir).parents[1]
-pkgdir=os.path.join(rootdir, 'vlinder_toolkit')
-print('pkgdir::::: ', pkgdir)
-sys.path.insert(0, pkgdir)
+
+# sys.path.insert(0, os.path.abspath('..'))
+# sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../..'))
+
+sys.path.append('/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/vlinder_toolkit')
+
+
+# curdir = os.path.abspath('.')
+# rootdir = Path(curdir).parents[1]
+# pkgdir=os.path.join(rootdir, 'vlinder_toolkit')
+# print('pkgdir::::: ', pkgdir)
+# sys.path.insert(0, pkgdir)
+
 
 
 # import vlinder_toolkit
@@ -62,7 +71,7 @@ extensions = ['sphinx.ext.autodoc',
 
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+# templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
