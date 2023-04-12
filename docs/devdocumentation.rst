@@ -16,6 +16,7 @@ bl bla bla
 
 Dataset
 ================
+
 .. py:currentmodule:: vlinder_toolkit.dataset
 .. autoclass:: Dataset
     :members:
@@ -23,6 +24,7 @@ Dataset
 
 Station
 ================
+
 .. py:currentmodule:: vlinder_toolkit.dataset
 .. autoclass:: Station
     :members:
@@ -31,6 +33,7 @@ Station
 
 Settings
 ================
+
 .. py:currentmodule:: vlinder_toolkit.settings
 .. autoclass:: Settings
     :members:
@@ -64,6 +67,7 @@ Gap_collection class
 
 Model data
 ================
+
 .. py:currentmodule:: vlinder_toolkit.modeldata
 .. autoclass:: Modeldata
     :members:
@@ -102,7 +106,6 @@ gap filling
 
 geometry functions
 ^^^^^^^^^^^^^^^^^^^^^^
-
 .. automodule:: vlinder_toolkit.geometry_functions
     :members:
     :undoc-members:
@@ -110,14 +113,12 @@ geometry functions
 
 landcover functions
 ^^^^^^^^^^^^^^^^^^^^^^
-
 .. automodule:: vlinder_toolkit.landcover_functions
     :members:
     :undoc-members:
 
 plotting functions
 ^^^^^^^^^^^^^^^^^^^^^^
-
 .. automodule:: vlinder_toolkit.plotting_functions
     :members:
     :undoc-members:
@@ -127,7 +128,6 @@ Quality control
 ^^^^^^^^^^^^^^^^^^^^^^
 Quality control checks
 """"""""""""""""""""""
-
 .. automodule:: vlinder_toolkit.qc_checks
     :members:
     :undoc-members:

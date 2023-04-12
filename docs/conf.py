@@ -29,7 +29,9 @@ sys.path.insert(0, pkgdir)
 # lib_folder = Path(__file__).resolve().parents[1]
 # tlk_folder = os.path.join(str(lib_folder), 'vlinder_toolkit')
 
+
 # sys.path.append(tlk_folder)
+
 # import vlinder_toolkit
 
 # #Add modules for automatic documentation
