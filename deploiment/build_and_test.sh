@@ -10,18 +10,22 @@ cd .. #Navigate to workdir
 
 
 WORKDIR=$(pwd)
+DOCDIR=${WORKDIR}/docs
 DISTDIR=${WORKDIR}/dist
-TESTDIR=${WORKDIR}/tests 
+TESTDIR=${WORKDIR}/tests
 EXAMPLESDIR=${WORKDIR}/examples
 
-#1. Update the pyproject.toml for any depending packages
+#1. Update documentation
+cd ${DOCDIR}
+source build_doc
+cd ${DEPLOY_DIR}
 
 
 
 #2 install the package using poetry
 
-poetry update #to update the poetry.lock with the latest versions of the depending packages 
-poetry install 
+poetry update #to update the poetry.lock with the latest versions of the depending packages
+poetry install
 
 
 #3 build the package

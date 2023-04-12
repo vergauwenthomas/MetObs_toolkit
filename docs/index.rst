@@ -10,11 +10,11 @@ Welcome to vlinder-toolkit's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   
-   dataset
-   station
-   settings
-   gaps
+   intro
+   examples
+   usrdocumentation
+   devdocumentation
+
 
 
 
