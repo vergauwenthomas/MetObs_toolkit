@@ -12,8 +12,8 @@ Welcome to vlinder-toolkit's documentation!
 
    intro
    examples
-   usrdocumentation
-   devdocumentation
+
+
 
 
 

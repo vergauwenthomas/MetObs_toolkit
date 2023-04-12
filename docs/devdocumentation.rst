@@ -16,6 +16,7 @@ bl bla bla
 
 Dataset
 ================
+
 .. py:currentmodule:: dataset
 .. autoclass:: Dataset
     :members:
@@ -23,6 +24,7 @@ Dataset
 
 Station
 ================
+
 .. py:currentmodule:: dataset
 .. autoclass:: Station
     :members:
@@ -31,6 +33,7 @@ Station
 
 Settings
 ================
+
 .. py:currentmodule:: settings
 .. autoclass:: Settings
     :members:
@@ -38,7 +41,7 @@ Settings
 
 
 Missing timestamps
-================
+==================
 .. py:currentmodule:: missingobs
 .. autoclass:: Missingob_collection
     :members:
@@ -64,6 +67,7 @@ Gap_collection class
 
 Model data
 ================
+
 .. py:currentmodule:: modeldata
 .. autoclass:: Modeldata
     :members:
