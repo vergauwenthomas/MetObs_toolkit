@@ -15,15 +15,17 @@ Suspendisse quis volutpat ipsum. Sed lobortis scelerisque tristique. Aenean cond
 quis accumsan ipsum laoreet ut. Integer porttitor maximus suscipit. Mauris in posuere sapien.
 Aliquam accumsan feugiat ligula, nec fringilla libero commodo sed. Proin et erat pharetra.
 
----------
+
+Reading in a dataset
+====================
 
 Etiam turpis ante, luctus sed velit tristique, finibus volutpat dui. Nam sagittis vel ante nec malesuada.
 Praesent dignissim mi nec ornare elementum. Nunc eu augue vel sem dignissim cursus sed et nulla.
 Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
 Pellentesque dictum dui sem, non placerat tortor rhoncus in. Sed placerat nulla at rhoncus iaculis.
 
-Document Section
-================
+The metadata
+=============
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed condimentum nulla vel neque venenatis,
 nec placerat lorem placerat. Cras purus eros, gravida vitae tincidunt id, vehicula nec nulla.
@@ -61,15 +63,3 @@ Pellentesque nec est in odio ultrices elementum. Vestibulum et hendrerit sapien,
 Suspendisse potenti. Curabitur tristique sit amet lectus non viverra. Phasellus rutrum dapibus turpis sed imperdiet.
 Mauris maximus viverra ante. Donec eu egestas mauris. Morbi vulputate tincidunt euismod. Integer vel porttitor neque.
 Donec at lacus suscipit, lacinia lectus vel, sagittis lectus.
-
-*********************
-Structural Elements 2
-*********************
-
-Etiam turpis ante, luctus sed velit tristique, finibus volutpat dui. Nam sagittis vel ante nec malesuada.
-Praesent dignissim mi nec ornare elementum. Nunc eu augue vel sem dignissim cursus sed et nulla.
-Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-Pellentesque dictum dui sem, non placerat tortor rhoncus in. Sed placerat nulla at rhoncus iaculis.
-
-Document Section
-================
