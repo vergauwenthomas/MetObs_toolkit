@@ -17,10 +17,10 @@ from pathlib import Path
 
 
 # sys.path.insert(0, os.path.abspath('..'))
-# sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.join(os.path.abspath('.'), 'vlinder_toolkit'))
+#sys.path.insert(0, os.path.abspath('../..'))
 
-sys.path.append('/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/vlinder_toolkit')
+#sys.path.append('/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/vlinder_toolkit')
 
 
 # curdir = os.path.abspath('.')

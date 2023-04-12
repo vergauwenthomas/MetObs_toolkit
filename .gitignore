@@ -11,7 +11,8 @@ poetry.lock
 
 #Exclude builds
 dist/*
-
+_build/
+_build
 #exclude proj build (only tar remaining)
 proj/proj-9.0.0/*
 
