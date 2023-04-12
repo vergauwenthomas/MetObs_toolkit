@@ -51,6 +51,8 @@ class Analysis():
                            relative=False, refstation=None):
 
         # filter to stations and obstype
+        if stations==None:
+            stations = self.df.reset_index().name.unique()
         stations = set(stations)
         stations = list(stations)
         for stat in stations:
@@ -74,73 +76,67 @@ class Analysis():
             else: 
                 print('chose one valid reff station')
                 return
-            df=df[obstype]
-            df=df.reset_index()
-            df_ref=df_ref[obstype]
-            df_ref=df_ref.reset_index()
-            df_ref=df_ref.rename(columns={obstype:obstype+'_'+refstation})
-            df_ref['datetime']=pd.to_datetime(df_ref['datetime'])
-            df_ref=df_ref.set_index('datetime')
-            df_ref=df_ref.resample('60min').first()
-            df_ref=df_ref.reset_index()
+            df = df[obstype]
+            df = df.reset_index()
+            df_ref = df_ref[obstype]
+            df_ref = df_ref.reset_index()
+            df_ref = df_ref.rename(columns={obstype:refstation})
+            df_ref['datetime'] = pd.to_datetime(df_ref['datetime'])
+            df_ref = df_ref.set_index('datetime')
+            df_ref = df_ref.resample('60min').first()
+            df_ref = df_ref.reset_index()
             df_ref.pop('name')
             for stat in stations: 
-                df_temp=df[df['name']==stat]
-                df_temp=df_temp.rename(columns={obstype:obstype+'_'+stat})
-                df_temp['datetime']=pd.to_datetime(df_temp['datetime'])
-                df_temp=df_temp.set_index('datetime')
-                df_temp=df_temp.resample('60min').first()
-                df_temp=df_temp.reset_index()
+                df_temp = df[df['name']==stat]
+                df_temp = df_temp.rename(columns={obstype:stat})
+                df_temp['datetime'] = pd.to_datetime(df_temp['datetime'])
+                df_temp = df_temp.set_index('datetime')
+                df_temp = df_temp.resample('60min').first()
+                df_temp = df_temp.reset_index()
                 df_temp.pop('name')
-                df_ref=df_ref.merge(df_temp,how='left',left_on='datetime',  right_on='datetime')
-            df_total=df_ref
-            df_total['hour']=pd.to_datetime(df_total['datetime'])
+                df_ref = df_ref.merge(df_temp,how='left',left_on='datetime',  right_on='datetime')
+            df_total = df_ref
+            df_total['hour'] = pd.to_datetime(df_total['datetime'])
             df_total['hour'] = df_total['hour'].dt.hour
             df_total.pop('datetime')
-            rel_names=[]
             for stat in stations:
-                name=obstype+'_rel_'+stat
-                rel_names.append(name)
-                df_total[name]=df_total[obstype+'_'+stat]-df_total[obstype+'_'+refstation]
-            rel_names.append('hour')
-            df_total=df_total[rel_names]
-            df_final=pd.DataFrame(columns=df_total.columns, index=range(0,24))
+                df_total[stat] = df_total[stat]-df_total[refstation]
+            df_total.pop(refstation)
+            df_final = pd.DataFrame(columns=df_total.columns, index=range(0,24))
             for h in range(0,24):
-                df_final.loc[h]=df_total[df_total['hour']==h].mean()
-            df_final.pop('hour')
-            df_final.plot()
+                df_final.loc[h] = df_total[df_total['hour']==h].mean()
+            df_final=df_final.set_index('hour')
             return df_final
         #if relative is false we only plot the desired stations 
         elif relative==False:
-            df=df[obstype]
-            df=df.reset_index()
-            stat_init=stations[0]
+            df = df[obstype]
+            df = df.reset_index()
+            stat_init = stations[0]
             print(stat_init)
-            df_total=df[df['name']==stat_init]
-            df_total=df_total.rename(columns={obstype:obstype+'_'+stat_init})
-            df_total['datetime']=pd.to_datetime(df_total['datetime'])
-            df_total=df_total.set_index('datetime')
-            df_total=df_total.resample('60min').first()
-            df_total=df_total.reset_index()
+            df_total = df[df['name']==stat_init]
+            df_total = df_total.rename(columns={obstype:stat_init})
+            df_total['datetime'] = pd.to_datetime(df_total['datetime'])
+            df_total = df_total.set_index('datetime')
+            df_total = df_total.resample('60min').first()
+            df_total = df_total.reset_index()
             df_total.pop('name')
             if len(stations)!=1:
                 for stat in stations[1:]: 
-                    df_temp=df[df['name']==stat]
-                    df_temp=df_temp.rename(columns={obstype:obstype+'_'+stat})
-                    df_temp['datetime']=pd.to_datetime(df_temp['datetime'])
-                    df_temp=df_temp.set_index('datetime')
-                    df_temp=df_temp.resample('60min').first()
-                    df_temp=df_temp.reset_index()
+                    df_temp = df[df['name']==stat]
+                    df_temp = df_temp.rename(columns={obstype:stat})
+                    df_temp['datetime'] = pd.to_datetime(df_temp['datetime'])
+                    df_temp = df_temp.set_index('datetime')
+                    df_temp = df_temp.resample('60min').first()
+                    df_temp = df_temp.reset_index()
                     df_temp.pop('name')
-                    df_total=df_total.merge(df_temp,how='left',left_on='datetime',  right_on='datetime')
-            df_total['hour']=pd.to_datetime(df_total['datetime'])
+                    df_total = df_total.merge(df_temp,how='left',left_on='datetime',  right_on='datetime')
+            df_total['hour'] = pd.to_datetime(df_total['datetime'])
             df_total['hour'] = df_total['hour'].dt.hour
             df_total.pop('datetime')
-            df_final=pd.DataFrame(columns=df_total.columns, index=range(0,24))
+            df_final = pd.DataFrame(columns=df_total.columns, index=range(0,24))
             for h in range(0,24):
-                df_final.loc[h]=df_total[df_total['hour']==h].mean()
-            df_final.pop('hour')
-            df_final.plot()   
+                df_final.loc[h] = df_total[df_total['hour']==h].mean()
+            df_final=df_final.set_index('hour')
             return df_final
         else:
             print('Input needs to be True or False for relative')
