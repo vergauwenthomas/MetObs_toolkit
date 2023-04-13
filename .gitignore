@@ -17,7 +17,7 @@ _build
 proj/proj-9.0.0/*
 
 #logs
-*log*
+*log
 #exclude data
 examples/*.csv 
 examples/testdata.csv

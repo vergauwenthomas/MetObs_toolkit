@@ -1,0 +1,7 @@
+{
+    "host":"framboos.ugent.be",
+    "database":"vlinder",
+    "obs_table":"Vlinder",
+    "meta_table":"Vlinder_Identification"
+}
+
