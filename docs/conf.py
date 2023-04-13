@@ -23,10 +23,19 @@ curfolder =os.path.abspath('.')
 if 'docs' in curfolder:
     #when executing in docs folder
     basefolder=Path(curfolder).parents[0]
+
 else:
     #when executing in basefolder
     basefolder=curfolder
+sys.path.insert(0, basefolder)
 sys.path.insert(0, os.path.join(basefolder, 'vlinder_toolkit'))
+
+try:
+    import vlinder_toolkit
+except:
+    print('NOT ABLE TO IMPORT THE TOOLKIT!!')
+    pass
+
 
 print(sys.path)
 #%%
