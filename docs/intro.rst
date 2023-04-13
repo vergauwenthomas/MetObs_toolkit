@@ -23,7 +23,7 @@ and import it in python
 
 .. code-block:: python
 
-   import vlinder_toolkit
+   import metobs_toolkit
 
 
 
