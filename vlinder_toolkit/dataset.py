@@ -100,31 +100,72 @@ class Dataset:
         self.settings = Settings()
 
 
-    def update_settings(self, *args, **kwargs):
-        self.settings.update_IO(*args, **kwargs)
+    def update_settings(self, output_folder=None, input_data_file=None,
+                  input_metadata_file=None, data_template_file=None,
+                  metadata_template_file=None):
+
+        """
+        Update the most common input-output (IO) settings.
+        (This should be applied before importing the observations.)
+
+        When an update value is None, the specific setting will not be updated.
+
+
+        :param output_folder: a directory to store the output to, defaults to None.
+        :type output_folder: String, optional
+        :param input_data_file: Path to the input data file with observations, defaults to None.
+        :type input_data_file: String, optional
+        :param input_metadata_file: Path to the input metadata file, defaults to None
+        :type input_metadata_file: String, optional
+        :param data_template_file: Path to the mapper-template csv file to be used on the observations.
+        If not given, the default template is used.
+        :type data_template_file: String, optional
+        :param metadata_template_file: Path to the mapper-template csv file to be used on the metadata.
+        If not given, the default template is used.
+        :type metadata_template_file: String, optional
+        :return: No return
+        :rtype: No return
+        """
+
+        self.settings.update_IO(output_folder=output_folder,
+                                input_data_file=input_data_file,
+                                input_metadata_file=input_metadata_file,
+                                data_template_file=data_template_file,
+                                metadata_template_file=metadata_template_file)
 
     def update_timezone(self, timezonestr):
+        """
+        Change the timezone of the input data. By default the Brussels timezone is assumed.
+        A valid timezonestring is an element of the pytz.all_timezones.
+
+        :param timezonestr: Timezone string of the input observations.
+        :type timezonestr: String
+        :return: None
+        :rtype: None
+        """
         self.settings.update_timezone(timezonestr)
 
 
     def show_settings(self):
+        """
+        A function that prints out all the settings, structured per thematic.
+        :return: No return
+        :rtype: No return
+
+        """
         self.settings.show()
 
     def get_station(self, stationname):
         """
-        Extract a station object from the dataset.
+        Extract a station object from the dataset by name.
 
-        Parameters
-
-        stationname : String
-            Name of the station, example 'vlinder16'
-
-        Returns
-
-        station_obj : vlinder_toolkit.station.Station
-
+        :param stationname: The name of the station
+        :type stationname: String
+        :return: The station object.
+        :rtype: vlinder_toolkit.Station
 
         """
+
         logger.info(f'Extract {stationname} from dataset.')
 
         # important: make shure all station attributes are of the same time as dataset.
@@ -165,13 +206,12 @@ class Dataset:
 
     def show(self):
         """
-        Print basic information about the dataset.
+        A function to print out some overview information about the Dataset.
 
-        Returns
-
-        None.
-
+        :return: No return
+        :rtype: No return
         """
+
         logger.info('Show basic info of dataset.')
 
         try:
@@ -183,50 +223,36 @@ class Dataset:
         print_dataset_info(self.df, self.outliersdf, gapsdf,
                            self.settings.app['print_fmt_datetime'])
 
-    def make_plot(self, stationnames=None, variable='temp', colorby='name',
+    def make_plot(self, stationnames=None, obstype='temp', colorby='name',
                   starttime=None, endtime=None,
                   title=None, legend=True, show_outliers=True):
         """
         This function creates a timeseries plot for the dataset. The variable observation type
         is plotted for all stationnames from a starttime to an endtime.
 
-        Parameters
 
-        stationnames : List
-            List of stationnames to plot. If None, all available stations ar
-            plotted. The default is None.
-        variable : String, optional
-            The name of the observation type to plot. The default is 'temp'.
-        colorby: 'name' or 'label'
-            Indicate how to color the timeseries. 'name' will use seperate
-            colors for each stations,
-            'label' will color by the observation label from the quality
-            control. The default is 'name'.
-        starttime : datetime, optional
-            The starttime of the timeseries to plot. The default is None and
-            all observations are used.
-        endtime : datetime, optional
-            The endtime of the timeseries to plot. The default is None and all
-            observations are used..
-        title : String, optional
-            Title of the figure, if None a default title is generated. The
-            default is None.
-        legend : Bool, optional
-            Add legend to the figure. The default is True.
-        show_outliers : Bool, optional
-            If true, the outlier values will be plotted else they are removed
-            from the plot. The default is True.
-
-        Returns
-
-        ax : matplotlib.axes
-            The plot axes is returned.
+        :param stationnames: A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
+        :type stationnames: list or None, optional
+        :param obstype: The observation type to plot, defaults to 'temp'.
+        :type variable: String, optional
+        :param colorby: Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label. 'name' will color by each station, defaults to 'name'.
+        :type colorby: 'label' or 'name', optional
+        :param starttime: Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
+        :type starttime: datetime.datetime, optional
+        :param endtime: Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
+        :type endtime: datetime.datetime, optional
+        :param title: The title for the plot. If None is given a default title is used, defaults to None.
+        :type title: String, optional
+        :param legend: When thrue a legend is added to the plot, defaults to True
+        :type legend: Boolean, optional
+        :param show_outliers: If true the observations labeld as outliers will be included in the plot, defaults to True
+        :type show_outliers: boolean, optional
+        :return: The plot axis
+        :rtype: matplotlib.pyplot.axis
 
         """
 
-
-
-        logger.info(f'Make {variable}-timeseries plot for {stationnames}')
+        logger.info(f'Make {obstype}-timeseries plot for {stationnames}')
 
         # combine all dataframes
         mergedf = self.combine_all_to_obsspace()
@@ -243,20 +269,20 @@ class Dataset:
         if isinstance(title, type(None)):
             if isinstance(stationnames, type(None)):
                 if self._istype == 'Dataset':
-                    title = self.settings.app['display_name_mapper'][variable] + \
+                    title = self.settings.app['display_name_mapper'][obstype] + \
                         ' for all stations. '
                 elif self._istype == 'Station':
-                    title = self.settings.app['display_name_mapper'][variable] + \
+                    title = self.settings.app['display_name_mapper'][obstype] + \
                         ' of ' + self.name
 
             else:
-                title = self.settings.app['display_name_mapper'][variable] + \
+                title = self.settings.app['display_name_mapper'][obstype] + \
                     ' for stations: ' + str(stationnames)
 
-        if ((variable+'_final_label' not in mergedf.columns) &
+        if ((obstype+'_final_label' not in mergedf.columns) &
             ((colorby == 'label') | (show_outliers))):
-            # user whant outier information but no QC is applied on this variable
-            print(f' No quality control is applied on {variable}! \
+            # user whant outier information but no QC is applied on this obstype
+            print(f' No quality control is applied on {obstype}! \
                   No outlier information is available.')
             print('Colorby is set to "name" and show_outliers \
                   is set to False.')
@@ -265,10 +291,10 @@ class Dataset:
 
         # Make plot
         ax = timeseries_plot(mergedf=mergedf,
-                             obstype=variable,
+                             obstype=obstype,
                              title=title,
                              xlabel='Timestamp',
-                             ylabel=self.data_template[variable]['orig_name'],
+                             ylabel=self.data_template[obstype]['orig_name'],
                              colorby=colorby,
                              show_legend=legend,
                              show_outliers=show_outliers,
