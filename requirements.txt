@@ -154,8 +154,8 @@ contourpy==1.0.7 ; python_version >= "3.9" and python_version < "4.0" \
 cycler==0.11.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:3a27e95f763a428a739d2add979fa7494c912a32c17c4c38c4d5f082cad165a3 \
     --hash=sha256:9c87405839a19696e837b3b818fed3f5f69f16f1eec1a1ad77e043dcea9c772f
-earthengine-api==0.1.348 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:15591dd039e2c47cbd2b28735e71d140b13c598a0cda92406f35814cee56bd31
+earthengine-api==0.1.349 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:f7b37d21484a2046fc3929745c5ec5b89e6fc43c496753fed6865792a3cb12ad
 fiona==1.9.3 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:00628c5a3dd7e9bc037ba0487fc3b9f7163107e0a9794bd4c32c471ab65f3a45 \
     --hash=sha256:0e9141bdb8031419ed2f04c6da02ae12c3044a81987065e05ff40f39cc35e042 \
@@ -192,9 +192,9 @@ google-api-python-client==2.85.0 ; python_version >= "3.9" and python_version < 
 google-auth-httplib2==0.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:31e49c36c6b5643b57e82617cb3e021e3e1d2df9da63af67252c02fa9c1f4a10 \
     --hash=sha256:a07c39fd632becacd3f07718dfd6021bf396978f03ad3ce4321d060015cc30ac
-google-auth==2.17.2 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:295c80ebb95eac74003c07a696cf3ef6b414e9230ae8894f3843f8215fd2aa56 \
-    --hash=sha256:544536a43d44dff0f64222e4d027d124989fcb9c10979687e589e1694fba9c94
+google-auth==2.17.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:ce311e2bc58b130fddf316df57c9b3943c2a7b4f6ec31de9663a9333e4064efc \
+    --hash=sha256:f586b274d3eb7bd932ea424b1c702a30e0393a2e2bc4ca3eae8263ffd8be229f
 google-cloud-core==2.3.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:8417acf6466be2fa85123441696c4badda48db314c607cf1e5d543fa8bdc22fe \
     --hash=sha256:b9529ee7047fd8d4bf4a2182de619154240df17fbe60ead399078c1ae152af9a
@@ -466,9 +466,9 @@ numpy==1.24.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:eef70b4fc1e872ebddc38cddacc87c19a3709c0e3e5d20bf3954c147b1dd941d \
     --hash=sha256:f64bb98ac59b3ea3bf74b02f13836eb2e24e48e0ab0145bbda646295769bd780 \
     --hash=sha256:f9006288bcf4895917d02583cf3411f98631275bc67cce355a7f39f8c14338fa
-packaging==23.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:714ac14496c3e68c99c29b00845f7a2b85f3bb6f1078fd9f72fd20f0570002b2 \
-    --hash=sha256:b6ad297f8907de0fa2fe1ccbd26fdaf387f5f47c7275fedf8cce89f99446cf97
+packaging==23.1 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:994793af429502c4ea2ebf6bf664629d07c1a9fe974af92966e4b8d2df7edc61 \
+    --hash=sha256:a392980d2b6cffa644431898be54b0045151319d1e7ec34f0cfed48767dd334f
 pandas==1.5.3 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:14e45300521902689a81f3f41386dc86f19b8ba8dd5ac5a3c7010ef8d2932813 \
     --hash=sha256:26d9c71772c7afb9d5046e6e9cf42d83dd147b5cf5bcb9d97252077118543792 \

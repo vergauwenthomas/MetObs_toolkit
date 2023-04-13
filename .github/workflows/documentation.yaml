@@ -12,14 +12,13 @@ jobs:
         run: |
           pip install sphinx sphinx_rtd_theme sphinx-copybutton
           pip install poetry
-      - name: poetry build package
+      - name: poetry create requirements
         run: |
           poetry update
-          poetry install
-          poetry build
-      - name: export requirements.txt
-        run: |
           poetry export -f requirements.txt --output requirements.txt
+      - name: install package using pip
+        run: |
+          pip install -r requirements.txt
       - name: Sphinx build
         run: |
           sphinx-build -a docs _build
