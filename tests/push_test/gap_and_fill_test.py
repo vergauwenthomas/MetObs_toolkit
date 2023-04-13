@@ -34,7 +34,7 @@ static_data = os.path.join(
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile,
                          input_metadata_file=static_data,
-                         output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
+                         output_folder='/home/thoverga/Documents/VLINDER_github/metobs_toolkit'
                          )
 dataset.import_data_from_file(coarsen_timeres=True)
 #%% Basic tests on the gaps
@@ -101,7 +101,7 @@ obstype='temp'
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile,
                          input_metadata_file=static_data,
-                         output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
+                         output_folder='/home/thoverga/Documents/VLINDER_github/metobs_toolkit'
                          )
 
 dataset.settings.time_settings['target_time_res'] = '30T'
