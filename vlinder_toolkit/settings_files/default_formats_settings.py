@@ -80,7 +80,7 @@ plot_settings['pie_charts'] = {
     'figsize': (10,10),
     'anchor_legend_big': (-0.25, 0.75),
     'anchor_legend_small': (-3.5, 2.2),
-    'radius_big': 1.5,
+    'radius_big': 2.5,
     'radius_small': 10
 
     }

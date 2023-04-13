@@ -100,13 +100,18 @@ def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
 
 
 
-def invalid_input_check(df, checks_info):
+def invalid_input_check(df, duplicates_df, checks_info):
 
     checkname = 'invalid_input'
+    
+    # Remove duplicate indices from the dataframe that has to be checked for invalid inputs
+    # These indices already have a 'duplicated_timestamp_label'
+    indices_duplicates = duplicates_df.index.unique()
+    subset_not_used = df[df.index.isin(indices_duplicates)]
+    subset_used = df[~df.index.isin(indices_duplicates)]
 
     # fast scan wich stations and obstypes have nan outliers
-    groups = df.reset_index().groupby('name').apply(lambda x: (np.isnan(x).any()) & (np.isnan(x).all() == False))
-
+    groups = subset_used.reset_index().groupby('name').apply(lambda x: (np.isnan(x).any()) & (np.isnan(x).all() == False))
 
     #extract all obstype that have outliers
     outl_obstypes = groups.apply(lambda x: x.any(), axis=0)
@@ -122,21 +127,33 @@ def invalid_input_check(df, checks_info):
         outl_multiidx = init_multiindex()
         for sta in outl_stations:
             #apply check per station
-            outl_idx = df.xs(sta, level='name', drop_level=False)[obstype].isnull().loc[lambda x: x].index
+            outl_idx = subset_used.xs(sta, level='name', drop_level=False)[obstype].isnull().loc[lambda x: x].index
             outl_multiidx = outl_multiidx.append(outl_idx)
             
         outl_dict[obstype]=outl_multiidx
-
+   
     #create outliersdf for all outliers for all osbtypes
     outl_df = init_multiindexdf()
     for obstype, outliers in outl_dict.items():
-        df, specific_outl_df = make_outlier_df_for_check(station_dt_list=outliers,
-                                                     obsdf=df,
+        subset_used, specific_outl_df = make_outlier_df_for_check(station_dt_list=outliers,
+                                                     obsdf=subset_used,
                                                      obstype=obstype,
                                                      flagcolumnname= checks_info[checkname]['label_columnname'],
                                                      flag=checks_info[checkname]['outlier_flag'])
+        
+        
+        # Append the invalid input outliers for the specific obstype to the outliersdf
         outl_df = pd.concat([outl_df, specific_outl_df])
-
+        # Get the indices for which there are invalid inputs for multiple obstypes
+        idx_mult_invalid_inputs = outl_df[outl_df.index.duplicated(keep='first')].index
+        # Make sure that the invalid inputs for multiple obstypes appear on one row
+        outl_df = outl_df[~outl_df.index.duplicated(keep='first')]
+        outl_df.loc[idx_mult_invalid_inputs, obstype+'_invalid_input_label'] = 'invalid input'
+    
+    # Append the duplicate indices to the dataframe again
+    df = pd.concat([subset_used, subset_not_used])
+    df = df.sort_index()
+    
     return df, outl_df
 
 
