@@ -12,7 +12,7 @@ import numpy as np
 import logging
 
 
-from vlinder_toolkit.df_helpers import (init_multiindex,
+from metobs_toolkit.df_helpers import (init_multiindex,
                                         init_multiindexdf)
 
 

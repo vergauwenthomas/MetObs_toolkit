@@ -12,11 +12,11 @@ To use this package you can install is using pip:
 
 .. code-block:: console
 
-   pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple vlinder_toolkit --upgrade
+   pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple metobs_toolkit --upgrade
 
 .. note::
 
-   This is temporary on testpypi, it will be transfered to pypi
+   This is temporary on testpypi, it will be transfered to pypi.
 
 
 and import it in python

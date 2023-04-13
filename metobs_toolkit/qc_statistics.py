@@ -13,7 +13,6 @@ import pandas as pd
 import logging
 
 
-# from vlinder_toolkit.settings import Settings
 
 logger = logging.getLogger(__name__)
 

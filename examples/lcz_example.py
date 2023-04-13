@@ -16,7 +16,7 @@ metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
 #sys.path.append(str(main_folder))
 
 
-import vlinder_toolkit
+import metobs_toolkit
 
 
 #%%
@@ -27,7 +27,7 @@ import vlinder_toolkit
 
 
 #1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
-aug_2020_all_vlinders = vlinder_toolkit.Dataset()
+aug_2020_all_vlinders = metobs_toolkit.Dataset()
 aug_2020_all_vlinders.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
                          input_metadata_file=metadata)
 #Coordinates needed to extract LCZ!
@@ -62,7 +62,7 @@ print(aug_2020_all_vlinders.metadf.head())
 #You can recompute the lcz for all stations by calling the get_lcz function on the metadata.
 
 # To make a geospatial map of the LCZ of all stations:
-aug_2020_all_vlinders.make_geo_plot(variable='lcz')
+aug_2020_all_vlinders.make_geo_plot(obstype='lcz')
 
 # =============================================================================
 # Other physiography
