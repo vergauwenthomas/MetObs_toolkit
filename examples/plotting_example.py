@@ -39,7 +39,7 @@ aug_2020_all_vlinders.update_settings(input_data_file=testdata_file, #A demo dat
 
 
 #The dataset is initiated but still empty. Filling it with the data from a csv file is simply done by:
-    
+
 aug_2020_all_vlinders.import_data_from_file() #Rember that you added the input file in the settings object, this file will be used.
 
 
@@ -55,14 +55,14 @@ from datetime import datetime
 
 aug_2020_all_vlinders.make_plot(
                                 #specify the names of the stations in a list, or use None to plot them all.
-                                stationnames = None, 
+                                stationnames = None,
                                 #what variable to plot (default is 'temp')
                                 variable='temp',
-                                #choose how to color the timeseries: 
+                                #choose how to color the timeseries:
                                     #'name' : a specific color per station
                                     #'label': a specific color per quality control label
                                 colorby='name',
-                                #choose a start en endtime for the series (datetime). 
+                                #choose a start en endtime for the series (datetime).
                                 #Default is None, wich uses all available data
                                 starttime=None,
                                 endtime = datetime(2022, 9, 5),
@@ -83,21 +83,14 @@ favorite_station.apply_quality_control()
     # 'temp','radiation_temp','humidity','precip','precip_sum','wind_speed',
     # 'wind_gust','wind_direction','pressure','pressure_at_sea_level'
 
-    
+
 favorite_station.make_plot(variable='temp',
                            colorby='label',
                            title=None) #if title=None, a title will be generated
 
-
 #Nan values will be not shown in the plot
 
-
-
-
-
 #If you want to compair multiple stations by a timeseries you can use the make_plot function on the dataset:
-
-
 
 aug_2020_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder07'],
                                 variable='humidity',
@@ -109,14 +102,13 @@ aug_2020_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder
 
 
 
-
 # =============================================================================
 # Geospatial plots
 # =============================================================================
 
-# geospatial plots can be made for a given moment (datetimeinstance) by 
+# geospatial plots can be made for a given moment (datetimeinstance) by
 # applying the make_geo_plot() on a dataset object:
-    
+
 aug_2020_all_vlinders.make_geo_plot(variable='temp',
                                     timeinstance=datetime(2022, 9,6), # 2022/09/06 00:00:00
                                     title=None,
@@ -126,9 +118,9 @@ aug_2020_all_vlinders.make_geo_plot(variable='temp',
 
 # Notes:
     # * If no timeinstance is given, the first timestamp of the network is used
-    # * vmin and vmax are default (None) set to the minimum and maximum of the observations. 
+    # * vmin and vmax are default (None) set to the minimum and maximum of the observations.
     #   You can change this if you whant to compair geoplots using the same color scheme
-    
+
 
 
 

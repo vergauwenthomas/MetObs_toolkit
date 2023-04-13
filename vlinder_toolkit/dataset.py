@@ -235,8 +235,7 @@ class Dataset:
         :type stationnames: list or None, optional
         :param obstype: The observation type to plot, defaults to 'temp'.
         :type variable: String, optional
-        :param colorby: Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label.
-        'name' will color by each station, defaults to 'name'.
+        :param colorby: Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label. 'name' will color by each station, defaults to 'name'.
         :type colorby: 'label' or 'name', optional
         :param starttime: Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
         :type starttime: datetime.datetime, optional

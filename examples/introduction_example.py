@@ -20,9 +20,6 @@ sys.path.append(str(main_folder))
 import vlinder_toolkit
 
 
-
-#%%
-
 # =============================================================================
 # Dataset
 # =============================================================================
@@ -103,8 +100,6 @@ aug_2020_all_vlinders.show()
 # =============================================================================
 # Analysing one station
 # =============================================================================
-
-
 
 #if you are interested in one station, you can extract all the info for that one station from the dataset by:
 
