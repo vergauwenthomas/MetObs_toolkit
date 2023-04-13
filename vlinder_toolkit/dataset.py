@@ -590,7 +590,10 @@ class Dataset:
         
         # Extract columns with invalid inputs for obstypes for which no quality control is applied yet
         columns_to_exclude = [col for col in self.outliersdf if col.endswith('invalid_input_label')]
-        columns_to_exclude.remove(obstype+'_invalid_input_label')
+        if not obstype+'_invalid_input_label' in columns_to_exclude:
+            self.outliersdf[obstype+'_invalid_input_label'] = 'ok'
+        else:
+            columns_to_exclude.remove(obstype+'_invalid_input_label')
         for element in columns_to_exclude:
             if (element.split('_')[0]+'_repetitions_label' in self.outliersdf.columns) | (element.split('_')[0]+'_gross_value_label' in self.outliersdf.columns) | (element.split('_')[0]+'_persistance_label' in self.outliersdf.columns) | (element.split('_')[0]+'_step_label' in self.outliersdf.columns) | (element.split('_')[0]+'_window_variation_label' in self.outliersdf.columns):
                 columns_to_exclude.remove(element)     
@@ -609,9 +612,11 @@ class Dataset:
             idx_to_remove = []
             for col_name in columns_to_exclude:
                 invalid_inputs_col_name_excluded = invalid_inputs_excluded_columns[invalid_inputs_excluded_columns[col_name] != 'ok']
-                idx_to_remove.extend(self.outliersdf[self.outliersdf[self.outliersdf.columns[-1]] == 'ok'].index.intersection((invalid_inputs_col_name_excluded[col_name] != 'ok').index)) 
+                if not invalid_inputs_col_name_excluded.empty:
+                    idx_to_remove.extend(self.outliersdf[self.outliersdf[self.outliersdf.columns[-1]] == 'ok'].index.intersection((invalid_inputs_col_name_excluded[col_name] != 'ok').index)) 
             
-            self.outliersdf = self.outliersdf.drop(idx_to_remove)
+            if idx_to_remove:
+                self.outliersdf = self.outliersdf.drop(idx_to_remove)
 
         if repetitions:
 
@@ -703,17 +708,25 @@ class Dataset:
                 # These are called the 'duplicate indices'
                 dupl_indices = []
                 invalid_inputs_col_name_excluded = invalid_inputs_excluded_columns[invalid_inputs_excluded_columns[col_name] != 'ok']
-                for name in [col for col in self.outliersdf if col.endswith('invalid_input_label')]:
-                    dupl_indices.extend(invalid_inputs_col_name_excluded[col_name].index.intersection(self.outliersdf[(self.outliersdf[name] != 'ok')].index))
                 
-                # Remove the 'duplicate indices' from the indices of the invalid inputs for the selected excluded invalid input column
-                invalid_inputs_col_name_excluded = invalid_inputs_col_name_excluded.drop(dupl_indices)
-                # Append the selected excluded invalid input column to the outliers dataframe
-                self.update_outliersdf(invalid_inputs_col_name_excluded[col_name].to_frame())
-                # Set the indices without invalid input to 'ok' label
-                self.outliersdf[col_name] = self.outliersdf[col_name].replace('not checked', 'ok')
-                # Set the 'duplicate indices' to 'invalid input' label
-                self.outliersdf.loc[dupl_indices, col_name] = 'invalid input'
+                if not invalid_inputs_col_name_excluded.empty:
+                    for name in [col for col in self.outliersdf if col.endswith('invalid_input_label')]:
+                        dupl_indices.extend(invalid_inputs_col_name_excluded[col_name].index.intersection(self.outliersdf[(self.outliersdf[name] != 'ok')].index))
+                        
+                    # Remove the 'duplicate indices' from the indices of the invalid inputs for the selected excluded invalid input column
+                    invalid_inputs_col_name_excluded = invalid_inputs_col_name_excluded.drop(dupl_indices)
+                    
+                    # Append the selected excluded invalid input column to the outliers dataframe
+                    self.update_outliersdf(invalid_inputs_col_name_excluded[col_name].to_frame())
+                    # Set the indices without invalid input to 'ok' label
+                    self.outliersdf[col_name] = self.outliersdf[col_name].replace('not checked', 'ok')
+                    
+                    if dupl_indices:
+                        # Set the 'duplicate indices' to 'invalid input' label
+                        self.outliersdf.loc[dupl_indices, col_name] = 'invalid input'
+                
+                else:
+                    self.outliersdf[col_name] = 'ok'
         
         self.outliersdf = self.outliersdf.sort_index()
 
@@ -1161,12 +1174,13 @@ class Dataset:
             
         self.df, nan_outl_df = invalid_input_check(self.df, dup_outl_df,
                                                    checks_info=self.settings.qc['qc_checks_info'])
+        
         if not nan_outl_df.empty:
             self.update_outliersdf(nan_outl_df)
             # Set all indices without invalid inputs to 'ok' label
             self.outliersdf = self.outliersdf.replace(to_replace = 'not checked', value = 'ok')
-
-
+            
+        
         if coarsen_timeres:
             self.coarsen_time_resolution(freq=self.settings.time_settings['target_time_res'],
                                           method=self.settings.time_settings['resample_method'],

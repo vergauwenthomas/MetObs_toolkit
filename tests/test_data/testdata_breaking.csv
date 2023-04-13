@@ -126,7 +126,7 @@ Fictional,2020-09-15,21:00:00,12.5,66,14,duplicated timestamp outlier
 Fictional,2020-09-15,09:05:00,12.6,65,13,ok
 Fictional,2020-09-15,09:10:00,12.8,65,14,ok
 Fictional,2020-09-15,09:15:00,13,64,13,ok
-Fictional,2020-09-15,09:20:00,13.3,hddjfff ,12,ok
+Fictional,2020-09-15,09:20:00,13.3,hddjfff,12,ok
 Fictional,2020-09-15,09:25:00,13.5,62,12,ok
 Fictional,2020-09-15,09:30:00,13.6,63,10,ok
 Fictional,2020-09-15,09:35:00,13.8,62,11,ok
