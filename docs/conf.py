@@ -27,8 +27,8 @@ if 'docs' in curfolder:
 else:
     #when executing in basefolder
     basefolder=curfolder
-sys.path.insert(0, basefolder)
-sys.path.insert(0, os.path.join(basefolder, 'vlinder_toolkit'))
+sys.path.insert(0, str(basefolder))
+sys.path.insert(0, os.path.join(str(basefolder), 'vlinder_toolkit'))
 
 try:
     import vlinder_toolkit
