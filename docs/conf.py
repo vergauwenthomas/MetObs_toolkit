@@ -16,8 +16,17 @@ import os, sys
 from pathlib import Path
 
 
-sys.path.insert(0, os.path.join(os.path.abspath('.'), 'vlinder_toolkit'))
+# Note that on the github workflow the build is executed in the doc folder,
+# Thus if that is the case, we need to go up the foldertree
 
+curfolder =os.path.abspath('.')
+if 'docs' in curfolder:
+    #when executing in docs folder
+    basefolder=Path(curfolder).parents[0]
+else:
+    #when executing in basefolder
+    basefolder=curfolder
+sys.path.insert(0, os.path.join(basefolder, 'vlinder_toolkit'))
 
 print(sys.path)
 #%%
