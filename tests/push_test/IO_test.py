@@ -15,7 +15,7 @@ lib_folder = Path(__file__).resolve().parents[2]
 #sys.path.append(str(lib_folder))
 
 
-import vlinder_toolkit
+import metobs_toolkit
 
 
 #%% define inputfiles
@@ -25,7 +25,7 @@ testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata
 
 #%% import data from file
 
-dataset = vlinder_toolkit.Dataset()
+dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile)
 dataset.show_settings()
 

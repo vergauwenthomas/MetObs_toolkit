@@ -11,8 +11,8 @@ import pandas as pd
 
 import mysql.connector
 from mysql.connector import errorcode
-from vlinder_toolkit.df_helpers import init_multiindexdf
-from vlinder_toolkit.data_templates.import_templates import read_csv_template
+from metobs_toolkit.df_helpers import init_multiindexdf
+from metobs_toolkit.data_templates.import_templates import read_csv_template
 
 
 def template_to_package_space(specific_template):

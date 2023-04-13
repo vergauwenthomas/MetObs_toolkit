@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 import math
 
 
-from vlinder_toolkit.gap_filling import (interpolate_gap,
+from metobs_toolkit.gap_filling import (interpolate_gap,
                                          create_leading_trailing_debias_periods,
                                          make_era_bias_correction)
 

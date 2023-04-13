@@ -14,7 +14,7 @@ import sys, os
 
 from pathlib import Path
 
-import vlinder_toolkit
+import metobs_toolkit
 lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
@@ -27,7 +27,7 @@ testdata = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaki
 #% add template
 template_file = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.csv')
 
-dataset_coarsened = vlinder_toolkit.Dataset()
+dataset_coarsened = metobs_toolkit.Dataset()
 dataset_coarsened.update_settings(input_data_file=testdata,
                                   data_template_file=template_file)
 
@@ -83,7 +83,7 @@ dataset_coarsened.apply_quality_control()
 
 #_ = dataset_coarsened.get_qc_stats()
 #%%
-dataset = vlinder_toolkit.Dataset()
+dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file = testdata,
                         data_template_file=template_file)
 dataset.import_data_from_file(coarsen_timeres=False)

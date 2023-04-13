@@ -13,7 +13,7 @@ import pytz
 import pandas as pd
 import ee
 
-from vlinder_toolkit.df_helpers import init_multiindexdf
+from metobs_toolkit.df_helpers import init_multiindexdf
 
 # =============================================================================
 #  Connection functions

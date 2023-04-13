@@ -27,13 +27,13 @@ if 'docs' in curfolder:
 else:
     #when executing in basefolder
     basefolder=curfolder
-    
-    
+
+
 sys.path.insert(0, str(basefolder))
-sys.path.insert(0, os.path.join(str(basefolder), 'vlinder_toolkit'))
+sys.path.insert(0, os.path.join(str(basefolder), 'metobs_toolkit'))
 
 try:
-    import vlinder_toolkit
+    import metobs_toolkit
 except:
     print('NOT ABLE TO IMPORT THE TOOLKIT!!')
     pass
@@ -44,7 +44,7 @@ print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
-project = 'vlinder-toolkit'
+project = 'metobs_toolkit'
 copyright = '2023, Thomas Vergauwen'
 author = 'Thomas Vergauwen'
 

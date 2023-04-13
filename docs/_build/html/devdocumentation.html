@@ -4,9 +4,10 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Developper documentation &mdash; vlinder-toolkit 0.0.1 documentation</title>
+  <title>Developper documentation &mdash; metobs_toolkit 0.0.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -16,9 +17,12 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/clipboard.min.js"></script>
+        <script src="_static/copybutton.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="User documentation" href="usrdocumentation.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -30,7 +34,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            vlinder-toolkit
+            metobs_toolkit
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -40,11 +44,38 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html#structural-elements-2">Structural Elements 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usrdocumentation.html">User documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Developper documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dataset">Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#station">Station</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#missing-timestamps">Missing timestamps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gaps">Gaps</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gap-class">Gap class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gap-collection-class">Gap_collection class</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#model-data">Model data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extra-functions">Extra functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-convertors">convertors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-data_import">data import</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-writing_files">data writing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-gap_filling">gap filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-geometry_functions">geometry functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-landcover_functions">landcover functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-plotting_functions">plotting functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quality-control">Quality control</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-qc_checks">Quality control checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qc_statistics">Quality control statistics</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -53,7 +84,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">vlinder-toolkit</a>
+          <a href="index.html">metobs_toolkit</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -117,10 +148,10 @@
 <h2><a class="toc-backref" href="#id2" role="doc-backlink">Dataset</a><a class="headerlink" href="#dataset" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="dataset.Dataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dataset.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><a class="headerlink" href="#dataset.Dataset" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dataset.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><a class="reference internal" href="_modules/dataset.html#Dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset" title="Permalink to this definition"></a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.apply_quality_control">
-<span class="sig-name descname"><span class="pre">apply_quality_control</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gross_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repetitions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_variation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.apply_quality_control" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">apply_quality_control</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gross_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repetitions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_variation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.apply_quality_control"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.apply_quality_control" title="Permalink to this definition"></a></dt>
 <dd><blockquote>
 <div><p>Apply quality control methods to the dataset. The default settings
 are used, and can be changed in the settings_files/qc_settings.py</p>
@@ -163,12 +194,12 @@ default is True.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.coarsen_time_resolution">
-<span class="sig-name descname"><span class="pre">coarsen_time_resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1H'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.coarsen_time_resolution" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">coarsen_time_resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1H'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.coarsen_time_resolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.coarsen_time_resolution" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.combine_all_to_obsspace">
-<span class="sig-name descname"><span class="pre">combine_all_to_obsspace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.combine_all_to_obsspace" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">combine_all_to_obsspace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.combine_all_to_obsspace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.combine_all_to_obsspace" title="Permalink to this definition"></a></dt>
 <dd><p>Combine observations, outliers, gaps and missing timesteps to one
 dataframe in the resolution of the dataset. Final quality labels are
 calculated for all checked obstypes.</p>
@@ -183,37 +214,37 @@ corresponding obstype column.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.fill_gaps_era5">
-<span class="sig-name descname"><span class="pre">fill_gaps_era5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'debias'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.fill_gaps_era5" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">fill_gaps_era5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'debias'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.fill_gaps_era5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.fill_gaps_era5" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.fill_gaps_linear">
-<span class="sig-name descname"><span class="pre">fill_gaps_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.fill_gaps_linear" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">fill_gaps_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.fill_gaps_linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.fill_gaps_linear" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.get_altitude">
-<span class="sig-name descname"><span class="pre">get_altitude</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_altitude" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_altitude</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.get_altitude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.get_altitude" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.get_landcover">
-<span class="sig-name descname"><span class="pre">get_landcover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_landcover" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_landcover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.get_landcover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.get_landcover" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.get_lcz">
-<span class="sig-name descname"><span class="pre">get_lcz</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_lcz" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_lcz</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.get_lcz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.get_lcz" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.get_modeldata">
-<span class="sig-name descname"><span class="pre">get_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modelname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ERA5_hourly'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_modeldata" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modelname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ERA5_hourly'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.get_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.get_modeldata" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.get_qc_stats">
-<span class="sig-name descname"><span class="pre">get_qc_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_qc_stats" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_qc_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.get_qc_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.get_qc_stats" title="Permalink to this definition"></a></dt>
 <dd><p>Compute frequency statistics on the qc labels for an observationtype.
 The output is a dataframe containing the frequency statistics presented
 as percentages.</p>
@@ -241,20 +272,24 @@ as percentages0.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.get_station">
-<span class="sig-name descname"><span class="pre">get_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.get_station" title="Permalink to this definition"></a></dt>
-<dd><p>Extract a station object from the dataset.</p>
-<p>Parameters</p>
-<dl class="simple">
-<dt>stationname<span class="classifier">String</span></dt><dd><p>Name of the station, example ‘vlinder16’</p>
+<span class="sig-name descname"><span class="pre">get_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.get_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.get_station" title="Permalink to this definition"></a></dt>
+<dd><p>Extract a station object from the dataset by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>stationname</strong> (<em>String</em>) – The name of the station</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The station object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>metobs_toolkit.Station</p>
 </dd>
 </dl>
-<p>Returns</p>
-<p>station_obj : vlinder_toolkit.station.Station</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.import_data_from_database">
-<span class="sig-name descname"><span class="pre">import_data_from_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_datetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.import_data_from_database" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">import_data_from_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_datetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.import_data_from_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.import_data_from_database" title="Permalink to this definition"></a></dt>
 <dd><p>Function to import data directly from the framboos database and
 updating the network and station objects.</p>
 <p>Parameters</p>
@@ -276,7 +311,7 @@ is False.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.import_data_from_file">
-<span class="sig-name descname"><span class="pre">import_data_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vlinder'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.import_data_from_file" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">import_data_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vlinder'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.import_data_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.import_data_from_file" title="Permalink to this definition"></a></dt>
 <dd><p>Read observations from a csv file as defined in the
 Settings.input_file. The input file columns should have a template
 that is stored in Settings.template_list.</p>
@@ -303,7 +338,7 @@ is False.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.make_geo_plot">
-<span class="sig-name descname"><span class="pre">make_geo_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeinstance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.make_geo_plot" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">make_geo_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeinstance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.make_geo_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.make_geo_plot" title="Permalink to this definition"></a></dt>
 <dd><p>This functions creates a geospatial plot for a field
 (observations or attributes) of all stations.</p>
 <p>If the field is timedepending, than the timeinstance is used to plot
@@ -340,59 +375,56 @@ None and the maximum of the variable is used.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.make_plot">
-<span class="sig-name descname"><span class="pre">make_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starttime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.make_plot" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">make_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starttime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.make_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.make_plot" title="Permalink to this definition"></a></dt>
 <dd><p>This function creates a timeseries plot for the dataset. The variable observation type
 is plotted for all stationnames from a starttime to an endtime.</p>
-<p>Parameters</p>
-<dl class="simple">
-<dt>stationnames<span class="classifier">List</span></dt><dd><p>List of stationnames to plot. If None, all available stations ar
-plotted. The default is None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stationnames</strong> (<em>list</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.</p></li>
+<li><p><strong>obstype</strong> – The observation type to plot, defaults to ‘temp’.</p></li>
+<li><p><strong>colorby</strong> (<em>'label'</em><em> or </em><em>'name'</em><em>, </em><em>optional</em>) – Indicate how colors should be assigned to the lines. ‘label’ will color the lines by their quality control label. ‘name’ will color by each station, defaults to ‘name’.</p></li>
+<li><p><strong>starttime</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.</p></li>
+<li><p><strong>endtime</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.</p></li>
+<li><p><strong>title</strong> (<em>String</em><em>, </em><em>optional</em>) – The title for the plot. If None is given a default title is used, defaults to None.</p></li>
+<li><p><strong>legend</strong> (<em>Boolean</em><em>, </em><em>optional</em>) – When thrue a legend is added to the plot, defaults to True</p></li>
+<li><p><strong>show_outliers</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If true the observations labeld as outliers will be included in the plot, defaults to True</p></li>
+</ul>
 </dd>
-<dt>variable<span class="classifier">String, optional</span></dt><dd><p>The name of the observation type to plot. The default is ‘temp’.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The plot axis</p>
 </dd>
-<dt>colorby: ‘name’ or ‘label’</dt><dd><p>Indicate how to color the timeseries. ‘name’ will use seperate
-colors for each stations,
-‘label’ will color by the observation label from the quality
-control. The default is ‘name’.</p>
-</dd>
-<dt>starttime<span class="classifier">datetime, optional</span></dt><dd><p>The starttime of the timeseries to plot. The default is None and
-all observations are used.</p>
-</dd>
-<dt>endtime<span class="classifier">datetime, optional</span></dt><dd><p>The endtime of the timeseries to plot. The default is None and all
-observations are used..</p>
-</dd>
-<dt>title<span class="classifier">String, optional</span></dt><dd><p>Title of the figure, if None a default title is generated. The
-default is None.</p>
-</dd>
-<dt>legend<span class="classifier">Bool, optional</span></dt><dd><p>Add legend to the figure. The default is True.</p>
-</dd>
-<dt>show_outliers<span class="classifier">Bool, optional</span></dt><dd><p>If true, the outlier values will be plotted else they are removed
-from the plot. The default is True.</p>
-</dd>
-</dl>
-<p>Returns</p>
-<dl class="simple">
-<dt>ax<span class="classifier">matplotlib.axes</span></dt><dd><p>The plot axes is returned.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.pyplot.axis</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.show">
-<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.show" title="Permalink to this definition"></a></dt>
-<dd><p>Print basic information about the dataset.</p>
-<p>Returns</p>
-<p>None.</p>
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.show" title="Permalink to this definition"></a></dt>
+<dd><p>A function to print out some overview information about the Dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>No return</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>No return</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.show_settings">
-<span class="sig-name descname"><span class="pre">show_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.show_settings" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">show_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.show_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.show_settings" title="Permalink to this definition"></a></dt>
+<dd><p>A function that prints out all the settings, structured per thematic.
+:return: No return
+:rtype: No return</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.update_dataset_by_df">
-<span class="sig-name descname"><span class="pre">update_dataset_by_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.update_dataset_by_df" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">update_dataset_by_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coarsen_timeres</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.update_dataset_by_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.update_dataset_by_df" title="Permalink to this definition"></a></dt>
 <dd><p>Update the dataset object by a dataframe.</p>
 <p>When filling the observations, there is an automatic check for
 missing timestamps and duplicating timestamps. If a missing timestamp
@@ -412,22 +444,55 @@ A dataframe that has an datetimeindex and following columns:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.update_outliersdf">
-<span class="sig-name descname"><span class="pre">update_outliersdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_to_outliersdf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.update_outliersdf" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">update_outliersdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_to_outliersdf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.update_outliersdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.update_outliersdf" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.update_settings">
-<span class="sig-name descname"><span class="pre">update_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.update_settings" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">update_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_metadata_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_template_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_template_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.update_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.update_settings" title="Permalink to this definition"></a></dt>
+<dd><p>Update the most common input-output (IO) settings.
+(This should be applied before importing the observations.)</p>
+<p>When an update value is None, the specific setting will not be updated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_folder</strong> (<em>String</em><em>, </em><em>optional</em>) – a directory to store the output to, defaults to None.</p></li>
+<li><p><strong>input_data_file</strong> (<em>String</em><em>, </em><em>optional</em>) – Path to the input data file with observations, defaults to None.</p></li>
+<li><p><strong>input_metadata_file</strong> (<em>String</em><em>, </em><em>optional</em>) – Path to the input metadata file, defaults to None</p></li>
+<li><p><strong>data_template_file</strong> – Path to the mapper-template csv file to be used on the observations.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If not given, the default template is used.
+:type data_template_file: String, optional
+:param metadata_template_file: Path to the mapper-template csv file to be used on the metadata.
+If not given, the default template is used.
+:type metadata_template_file: String, optional
+:return: No return
+:rtype: No return</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.update_timezone">
-<span class="sig-name descname"><span class="pre">update_timezone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timezonestr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.update_timezone" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">update_timezone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timezonestr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.update_timezone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.update_timezone" title="Permalink to this definition"></a></dt>
+<dd><p>Change the timezone of the input data. By default the Brussels timezone is assumed.
+A valid timezonestring is an element of the pytz.all_timezones.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>timezonestr</strong> (<em>String</em>) – Timezone string of the input observations.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dataset.Dataset.write_to_csv">
-<span class="sig-name descname"><span class="pre">write_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gapfill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_final_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tlk_obsnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Dataset.write_to_csv" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gapfill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_final_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tlk_obsnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Dataset.write_to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Dataset.write_to_csv" title="Permalink to this definition"></a></dt>
 <dd><p>Write the dataset to a file where the observations, metadata and
 (if available) the quality labels per observation type are merged
 together.</p>
@@ -454,7 +519,7 @@ is added as a column. The default is True.</p>
 <h2><a class="toc-backref" href="#id3" role="doc-backlink">Station</a><a class="headerlink" href="#station" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="dataset.Station">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dataset.</span></span><span class="sig-name descname"><span class="pre">Station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapfilldf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.Station" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dataset.</span></span><span class="sig-name descname"><span class="pre">Station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapfilldf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dataset.html#Station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dataset.Station" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -462,10 +527,10 @@ is added as a column. The default is True.</p>
 <h2><a class="toc-backref" href="#id4" role="doc-backlink">Settings</a><a class="headerlink" href="#settings" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="settings.Settings">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">settings.</span></span><span class="sig-name descname"><span class="pre">Settings</span></span><a class="headerlink" href="#settings.Settings" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">settings.</span></span><span class="sig-name descname"><span class="pre">Settings</span></span><a class="reference internal" href="_modules/settings.html#Settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#settings.Settings" title="Permalink to this definition"></a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="settings.Settings.copy_template_csv_files">
-<span class="sig-name descname"><span class="pre">copy_template_csv_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_folder</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#settings.Settings.copy_template_csv_files" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy_template_csv_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_folder</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/settings.html#Settings.copy_template_csv_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#settings.Settings.copy_template_csv_files" title="Permalink to this definition"></a></dt>
 <dd><p>A function to copy the default template file to an other location. This
 can be of use when creating a template file to start from the default.</p>
 <dl class="field-list simple">
@@ -483,7 +548,7 @@ can be of use when creating a template file to start from the default.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="settings.Settings.show">
-<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#settings.Settings.show" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/settings.html#Settings.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#settings.Settings.show" title="Permalink to this definition"></a></dt>
 <dd><p>A function that prints out all the settings, structured per thematic.
 :return: No return
 :rtype: No return</p>
@@ -491,7 +556,7 @@ can be of use when creating a template file to start from the default.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="settings.Settings.update_IO">
-<span class="sig-name descname"><span class="pre">update_IO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_metadata_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_template_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_template_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#settings.Settings.update_IO" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">update_IO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_metadata_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_template_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_template_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/settings.html#Settings.update_IO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#settings.Settings.update_IO" title="Permalink to this definition"></a></dt>
 <dd><p>Update some settings that are relevent before data is imported. The self
 object will be updated.</p>
 <dl class="field-list simple">
@@ -515,7 +580,7 @@ If not given, the default template is used.
 
 <dl class="py method">
 <dt class="sig sig-object py" id="settings.Settings.update_timezone">
-<span class="sig-name descname"><span class="pre">update_timezone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timezonestr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#settings.Settings.update_timezone" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">update_timezone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timezonestr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/settings.html#Settings.update_timezone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#settings.Settings.update_timezone" title="Permalink to this definition"></a></dt>
 <dd><p>Change the timezone of the input data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -537,10 +602,10 @@ If not given, the default template is used.
 <h2><a class="toc-backref" href="#id5" role="doc-backlink">Missing timestamps</a><a class="headerlink" href="#missing-timestamps" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="missingobs.Missingob_collection">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">missingobs.</span></span><span class="sig-name descname"><span class="pre">Missingob_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_obs_series</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#missingobs.Missingob_collection" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">missingobs.</span></span><span class="sig-name descname"><span class="pre">Missingob_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_obs_series</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/missingobs.html#Missingob_collection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#missingobs.Missingob_collection" title="Permalink to this definition"></a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="missingobs.Missingob_collection.get_missing_indx_in_obs_space">
-<span class="sig-name descname"><span class="pre">get_missing_indx_in_obs_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutionseries</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#missingobs.Missingob_collection.get_missing_indx_in_obs_space" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_missing_indx_in_obs_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutionseries</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/missingobs.html#Missingob_collection.get_missing_indx_in_obs_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#missingobs.Missingob_collection.get_missing_indx_in_obs_space" title="Permalink to this definition"></a></dt>
 <dd><p>Function to found which missing timestamps are expected in the observation space.
 Because of time coarsening not all missing timestamps are expected in observation space.</p>
 <p>This function handles each station seperatly because stations can have differnent resolution/timerange.</p>
@@ -558,12 +623,12 @@ Because of time coarsening not all missing timestamps are expected in observatio
 
 <dl class="py method">
 <dt class="sig sig-object py" id="missingobs.Missingob_collection.get_station_missingobs">
-<span class="sig-name descname"><span class="pre">get_station_missingobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#missingobs.Missingob_collection.get_station_missingobs" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_station_missingobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/missingobs.html#Missingob_collection.get_station_missingobs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#missingobs.Missingob_collection.get_station_missingobs" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="missingobs.Missingob_collection.remove_missing_from_obs">
-<span class="sig-name descname"><span class="pre">remove_missing_from_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#missingobs.Missingob_collection.remove_missing_from_obs" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">remove_missing_from_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/missingobs.html#Missingob_collection.remove_missing_from_obs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#missingobs.Missingob_collection.remove_missing_from_obs" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -575,11 +640,11 @@ Because of time coarsening not all missing timestamps are expected in observatio
 <h3><a class="toc-backref" href="#id7" role="doc-backlink">Gap class</a><a class="headerlink" href="#gap-class" title="Permalink to this heading"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="gap.Gap">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gap.</span></span><span class="sig-name descname"><span class="pre">Gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gap.</span></span><span class="sig-name descname"><span class="pre">Gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap" title="Permalink to this definition"></a></dt>
 <dd><p>Gap class holds all gap information and methods for gaps.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap.apply_interpolate_gap">
-<span class="sig-name descname"><span class="pre">apply_interpolate_gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_consec_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap.apply_interpolate_gap" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">apply_interpolate_gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_consec_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap.apply_interpolate_gap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap.apply_interpolate_gap" title="Permalink to this definition"></a></dt>
 <dd><p>Fill a Gap using a linear interpolation gapfill method for an obstype.</p>
 <p>The filled datetimes (in dataset resolution) are returned in the form
 af a multiindex pandas Series (name – datetime) as index.</p>
@@ -611,12 +676,12 @@ af a multiindex pandas Series (name – datetime) as index.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap.get_leading_trailing_debias_periods">
-<span class="sig-name descname"><span class="pre">get_leading_trailing_debias_periods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debias_periods</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap.get_leading_trailing_debias_periods" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_leading_trailing_debias_periods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debias_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap.get_leading_trailing_debias_periods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap.get_leading_trailing_debias_periods" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap.to_df">
-<span class="sig-name descname"><span class="pre">to_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap.to_df" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">to_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap.to_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap.to_df" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a Gap object to a dataframe (with one row). The station name is
 the index and two colums (‘start_gap’, ‘end_gap’) are constructed.</p>
 <dl class="simple">
@@ -627,7 +692,7 @@ the index and two colums (‘start_gap’, ‘end_gap’) are constructed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap.update_gaps_indx_in_obs_space">
-<span class="sig-name descname"><span class="pre">update_gaps_indx_in_obs_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap.update_gaps_indx_in_obs_space" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">update_gaps_indx_in_obs_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap.update_gaps_indx_in_obs_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap.update_gaps_indx_in_obs_space" title="Permalink to this definition"></a></dt>
 <dd><p>Explode the gap, to the dataset resolution and format to a multiindex
 with name – datetime.</p>
 <p>In addition the last observation before the gap (leading), and first
@@ -652,7 +717,7 @@ observation (after) the gap are computed and stored in the df attribute.
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap.update_leading_trailing_obs">
-<span class="sig-name descname"><span class="pre">update_leading_trailing_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap.update_leading_trailing_obs" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">update_leading_trailing_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap.update_leading_trailing_obs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap.update_leading_trailing_obs" title="Permalink to this definition"></a></dt>
 <dd><p>Add the leading (last obs before gap) and trailing (first obs after gap)
 as extra columns to the self.df.</p>
 <p>The obsdf and outliersdf are both used to scan for the leading and trailing obs.</p>
@@ -672,20 +737,20 @@ as extra columns to the self.df.</p>
 <h3><a class="toc-backref" href="#id8" role="doc-backlink">Gap_collection class</a><a class="headerlink" href="#gap-collection-class" title="Permalink to this heading"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="gap.Gap_collection">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gap.</span></span><span class="sig-name descname"><span class="pre">Gap_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gapsdf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gap.</span></span><span class="sig-name descname"><span class="pre">Gap_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gapsdf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap_collection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap_collection" title="Permalink to this definition"></a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap_collection.apply_debias_era5_gapfill">
-<span class="sig-name descname"><span class="pre">apply_debias_era5_gapfill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eraModelData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debias_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection.apply_debias_era5_gapfill" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">apply_debias_era5_gapfill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eraModelData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debias_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap_collection.apply_debias_era5_gapfill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap_collection.apply_debias_era5_gapfill" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap_collection.apply_interpolate_gaps">
-<span class="sig-name descname"><span class="pre">apply_interpolate_gaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_consec_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection.apply_interpolate_gaps" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">apply_interpolate_gaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_consec_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap_collection.apply_interpolate_gaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap_collection.apply_interpolate_gaps" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap_collection.get_gaps_indx_in_obs_space">
-<span class="sig-name descname"><span class="pre">get_gaps_indx_in_obs_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutionseries</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection.get_gaps_indx_in_obs_space" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_gaps_indx_in_obs_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutionseries</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap_collection.get_gaps_indx_in_obs_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap_collection.get_gaps_indx_in_obs_space" title="Permalink to this definition"></a></dt>
 <dd><p>Explode the gaps, to the dataset resolution and format to a multiindex
 with name – datetime.</p>
 <p>In addition the last observation before the gap (leading), and first
@@ -707,7 +772,7 @@ observation (after) the gap are computed and stored in the df attribute.
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap_collection.get_station_gaps">
-<span class="sig-name descname"><span class="pre">get_station_gaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection.get_station_gaps" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_station_gaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap_collection.get_station_gaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap_collection.get_station_gaps" title="Permalink to this definition"></a></dt>
 <dd><p>Extract a Gap_collection specific to one station. If no gaps are found
 for the station, an empty Gap_collection is returned.</p>
 <dl class="simple">
@@ -722,7 +787,7 @@ for the station, an empty Gap_collection is returned.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap_collection.remove_gaps_from_obs">
-<span class="sig-name descname"><span class="pre">remove_gaps_from_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection.remove_gaps_from_obs" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">remove_gaps_from_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap_collection.remove_gaps_from_obs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap_collection.remove_gaps_from_obs" title="Permalink to this definition"></a></dt>
 <dd><p>Remove station - datetime records that are in the gaps from the obsdf.</p>
 <dl class="simple">
 <dt>(Usefull when filling timestamps to a df, and if you whant to remove the</dt><dd><p>gaps.)</p>
@@ -740,7 +805,7 @@ for the station, an empty Gap_collection is returned.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gap.Gap_collection.to_df">
-<span class="sig-name descname"><span class="pre">to_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gap.Gap_collection.to_df" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">to_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap.html#Gap_collection.to_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap.Gap_collection.to_df" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -751,20 +816,20 @@ for the station, an empty Gap_collection is returned.</p>
 <h2><a class="toc-backref" href="#id9" role="doc-backlink">Model data</a><a class="headerlink" href="#model-data" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="modeldata.Modeldata">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">modeldata.</span></span><span class="sig-name descname"><span class="pre">Modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modelname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#modeldata.Modeldata" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">modeldata.</span></span><span class="sig-name descname"><span class="pre">Modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modelname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modeldata.html#Modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#modeldata.Modeldata" title="Permalink to this definition"></a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="modeldata.Modeldata.get_ERA5_data">
-<span class="sig-name descname"><span class="pre">get_ERA5_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#modeldata.Modeldata.get_ERA5_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ERA5_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modeldata.html#Modeldata.get_ERA5_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#modeldata.Modeldata.get_ERA5_data" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="modeldata.Modeldata.interpolate_modeldata">
-<span class="sig-name descname"><span class="pre">interpolate_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_multiidx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#modeldata.Modeldata.interpolate_modeldata" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">interpolate_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_multiidx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modeldata.html#Modeldata.interpolate_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#modeldata.Modeldata.interpolate_modeldata" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="modeldata.Modeldata.set_model_from_csv">
-<span class="sig-name descname"><span class="pre">set_model_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csvpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modelname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ERA5_hourly'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datatimezone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UTC'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#modeldata.Modeldata.set_model_from_csv" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_model_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csvpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modelname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ERA5_hourly'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datatimezone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UTC'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modeldata.html#Modeldata.set_model_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#modeldata.Modeldata.set_model_from_csv" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -778,7 +843,7 @@ for the station, an empty Gap_collection is returned.</p>
 <p>&#64;author: thoverga</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="convertors.convert_to_toolkit_units">
-<span class="sig-prename descclassname"><span class="pre">convertors.</span></span><span class="sig-name descname"><span class="pre">convert_to_toolkit_units</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#convertors.convert_to_toolkit_units" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">convertors.</span></span><span class="sig-name descname"><span class="pre">convert_to_toolkit_units</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/convertors.html#convert_to_toolkit_units"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#convertors.convert_to_toolkit_units" title="Permalink to this definition"></a></dt>
 <dd><p>Convert the data to the toolkit perfered unit. Data can be a numeric value or an iterable. 
 Data_unit is the unit of the input data.</p>
 <p>The converted data AND the corresponding toolkit unit is returned.</p>
@@ -798,7 +863,7 @@ Data_unit is the unit of the input data.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="convertors.expression_calculator">
-<span class="sig-prename descclassname"><span class="pre">convertors.</span></span><span class="sig-name descname"><span class="pre">expression_calculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">equation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#convertors.expression_calculator" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">convertors.</span></span><span class="sig-name descname"><span class="pre">expression_calculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">equation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/convertors.html#expression_calculator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#convertors.expression_calculator" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -808,12 +873,12 @@ Data_unit is the unit of the input data.</p>
 <p>&#64;author: thoverga</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="data_import.check_template_compatibility">
-<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">check_template_compatibility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_columns</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data_import.check_template_compatibility" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">check_template_compatibility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_columns</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_import.html#check_template_compatibility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_import.check_template_compatibility" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="data_import.compress_dict">
-<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">compress_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nested_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valuesname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data_import.compress_dict" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">compress_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nested_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valuesname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_import.html#compress_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_import.compress_dict" title="Permalink to this definition"></a></dt>
 <dd><p>This function unnests a nested dictionary for a specific valuename that is a key in the nested dict.</p>
 <dl class="simple">
 <dt>nested_dict<span class="classifier">dict</span></dt><dd><p>Nested dictionary</p>
@@ -831,27 +896,27 @@ and values are the values of the values of the valuesname.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="data_import.find_compatible_templatefor">
-<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">find_compatible_templatefor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_columns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data_import.find_compatible_templatefor" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">find_compatible_templatefor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_columns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_import.html#find_compatible_templatefor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_import.find_compatible_templatefor" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="data_import.import_data_from_csv">
-<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">import_data_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data_import.import_data_from_csv" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">import_data_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_import.html#import_data_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_import.import_data_from_csv" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="data_import.import_data_from_db">
-<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">import_data_from_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_datetime</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data_import.import_data_from_db" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">import_data_from_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_datetime</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_import.html#import_data_from_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_import.import_data_from_db" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="data_import.import_metadata_from_csv">
-<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">import_metadata_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data_import.import_metadata_from_csv" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">import_metadata_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_import.html#import_metadata_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_import.import_metadata_from_csv" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="data_import.template_to_package_space">
-<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">template_to_package_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">specific_template</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data_import.template_to_package_space" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">data_import.</span></span><span class="sig-name descname"><span class="pre">template_to_package_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">specific_template</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_import.html#template_to_package_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_import.template_to_package_space" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -861,7 +926,7 @@ and values are the values of the values of the valuesname.
 <p>&#64;author: thoverga</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="writing_files.write_dataset_to_csv">
-<span class="sig-prename descclassname"><span class="pre">writing_files.</span></span><span class="sig-name descname"><span class="pre">write_dataset_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfolder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_types</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#writing_files.write_dataset_to_csv" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">writing_files.</span></span><span class="sig-name descname"><span class="pre">write_dataset_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfolder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_types</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/writing_files.html#write_dataset_to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#writing_files.write_dataset_to_csv" title="Permalink to this definition"></a></dt>
 <dd><p>Write the dataset to a file where the observations, metadata and (if available)
 the quality labels per observation type are merged together.</p>
 <p>A final qualty controll label for each quality-controlled-observation type
@@ -886,27 +951,27 @@ based on the period of data. The default is None.</p>
 <p>&#64;author: thoverga</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="gap_filling.create_leading_trailing_debias_periods">
-<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">create_leading_trailing_debias_periods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debias_period_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap_filling.create_leading_trailing_debias_periods" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">create_leading_trailing_debias_periods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debias_period_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap_filling.html#create_leading_trailing_debias_periods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap_filling.create_leading_trailing_debias_periods" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="gap_filling.get_sample_size">
-<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">get_sample_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_duration_hours</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap_filling.get_sample_size" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">get_sample_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_duration_hours</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap_filling.html#get_sample_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap_filling.get_sample_size" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="gap_filling.get_time_specific_biases">
-<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">get_time_specific_biases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap_filling.get_time_specific_biases" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">get_time_specific_biases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap_filling.html#get_time_specific_biases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap_filling.get_time_specific_biases" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="gap_filling.interpolate_gap">
-<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">interpolate_gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_consec_fill</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap_filling.interpolate_gap" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">interpolate_gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_consec_fill</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap_filling.html#interpolate_gap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap_filling.interpolate_gap" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="gap_filling.make_era_bias_correction">
-<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">make_era_bias_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">leading_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leading_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gap_filling.make_era_bias_correction" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">gap_filling.</span></span><span class="sig-name descname"><span class="pre">make_era_bias_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">leading_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leading_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gap_filling.html#make_era_bias_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gap_filling.make_era_bias_correction" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -916,17 +981,17 @@ based on the period of data. The default is None.</p>
 <p>&#64;author: thoverga</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="geometry_functions.extent_list_to_box">
-<span class="sig-prename descclassname"><span class="pre">geometry_functions.</span></span><span class="sig-name descname"><span class="pre">extent_list_to_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extentlist</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry_functions.extent_list_to_box" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">geometry_functions.</span></span><span class="sig-name descname"><span class="pre">extent_list_to_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extentlist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geometry_functions.html#extent_list_to_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geometry_functions.extent_list_to_box" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="geometry_functions.find_largest_extent">
-<span class="sig-prename descclassname"><span class="pre">geometry_functions.</span></span><span class="sig-name descname"><span class="pre">find_largest_extent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geodf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extentlist</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry_functions.find_largest_extent" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">geometry_functions.</span></span><span class="sig-name descname"><span class="pre">find_largest_extent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geodf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extentlist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geometry_functions.html#find_largest_extent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geometry_functions.find_largest_extent" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="geometry_functions.gpd_to_extent_box">
-<span class="sig-prename descclassname"><span class="pre">geometry_functions.</span></span><span class="sig-name descname"><span class="pre">gpd_to_extent_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geodf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry_functions.gpd_to_extent_box" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">geometry_functions.</span></span><span class="sig-name descname"><span class="pre">gpd_to_extent_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geodf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geometry_functions.html#gpd_to_extent_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geometry_functions.gpd_to_extent_box" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -936,22 +1001,22 @@ based on the period of data. The default is None.</p>
 <p>&#64;author: thoverga</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.connect_to_gee">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">connect_to_gee</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.connect_to_gee" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">connect_to_gee</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#connect_to_gee"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.connect_to_gee" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.coordinates_available">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">coordinates_available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latcol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loncol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lon'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.coordinates_available" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">coordinates_available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latcol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loncol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lon'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#coordinates_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.coordinates_available" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.coords_to_geometry">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">coords_to_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EPSG:4326'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.coords_to_geometry" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">coords_to_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EPSG:4326'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#coords_to_geometry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.coords_to_geometry" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.extract_buffer_frequencies">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">extract_buffer_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bufferradius</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.extract_buffer_frequencies" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">extract_buffer_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bufferradius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#extract_buffer_frequencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.extract_buffer_frequencies" title="Permalink to this definition"></a></dt>
 <dd><p>Extract values for circular buffers for a given radius arround a point locations from a GEE categorical dataset.
 The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.</p>
 <p>A dataframe with the extracted values is returned.
@@ -974,7 +1039,7 @@ The values are mapped to human classes if the dataset value type is labeld as ca
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.extract_pointvalues">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">extract_pointvalues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_column_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.extract_pointvalues" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">extract_pointvalues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_column_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#extract_pointvalues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.extract_pointvalues" title="Permalink to this definition"></a></dt>
 <dd><p>Extract values for point locations from a GEE dataset.
 The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.</p>
 <p>A dataframe with the extracted values is returned.
@@ -999,7 +1064,7 @@ The values are mapped to human classes if the dataset value type is labeld as ca
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.gee_extract_timeseries">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">gee_extract_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latcolname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loncolname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lon'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.gee_extract_timeseries" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">gee_extract_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latcolname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loncolname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lon'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#gee_extract_timeseries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.gee_extract_timeseries" title="Permalink to this definition"></a></dt>
 <dd><p>Extract a timeseries, for a given obstype, for point locations from a GEE dataset. The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.</p>
 <p>The startdate is included, the enddate is excluded.</p>
 <p>A multi-index dataframe with the timeseries is returned</p>
@@ -1028,22 +1093,22 @@ column with the same name as the obstype.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.get_ee_obj">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">get_ee_obj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.get_ee_obj" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">get_ee_obj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#get_ee_obj"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.get_ee_obj" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.height_extractor">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">height_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.height_extractor" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">height_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#height_extractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.height_extractor" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.lc_fractions_extractor">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">lc_fractions_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.lc_fractions_extractor" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">lc_fractions_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#lc_fractions_extractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.lc_fractions_extractor" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landcover_functions.lcz_extractor">
-<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">lcz_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landcover_functions.lcz_extractor" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landcover_functions.</span></span><span class="sig-name descname"><span class="pre">lcz_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landcover_functions.html#lcz_extractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#landcover_functions.lcz_extractor" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -1053,17 +1118,17 @@ column with the same name as the obstype.</p>
 <p>&#64;author: thoverga</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="plotting_functions.geospatial_plot">
-<span class="sig-prename descclassname"><span class="pre">plotting_functions.</span></span><span class="sig-name descname"><span class="pre">geospatial_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plotdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeinstance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotsettings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_fields</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_fields</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_name_mapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_boundaries_map</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plotting_functions.geospatial_plot" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">plotting_functions.</span></span><span class="sig-name descname"><span class="pre">geospatial_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plotdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeinstance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotsettings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_fields</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_fields</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_name_mapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_boundaries_map</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotting_functions.html#geospatial_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotting_functions.geospatial_plot" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="plotting_functions.qc_stats_pie">
-<span class="sig-prename descclassname"><span class="pre">plotting_functions.</span></span><span class="sig-name descname"><span class="pre">qc_stats_pie</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">final_stats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outlier_stats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_stats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qc_check_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plotting_functions.qc_stats_pie" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">plotting_functions.</span></span><span class="sig-name descname"><span class="pre">qc_stats_pie</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">final_stats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outlier_stats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_stats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qc_check_info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotting_functions.html#qc_stats_pie"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotting_functions.qc_stats_pie" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="plotting_functions.timeseries_plot">
-<span class="sig-prename descclassname"><span class="pre">plotting_functions.</span></span><span class="sig-name descname"><span class="pre">timeseries_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mergedf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outliers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qc_info_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plotting_functions.timeseries_plot" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">plotting_functions.</span></span><span class="sig-name descname"><span class="pre">timeseries_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mergedf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outliers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qc_info_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotting_functions.html#timeseries_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotting_functions.timeseries_plot" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -1075,7 +1140,7 @@ column with the same name as the obstype.</p>
 <p>&#64;author: thoverga</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_checks.duplicate_timestamp_check">
-<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">duplicate_timestamp_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_checks.duplicate_timestamp_check" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">duplicate_timestamp_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_checks.html#duplicate_timestamp_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_checks.duplicate_timestamp_check" title="Permalink to this definition"></a></dt>
 <dd><p>V3
 Looking for duplcate timestaps per station. Duplicated records are removed by the method specified in the qc_settings.</p>
 <p>Parameters</p>
@@ -1092,12 +1157,12 @@ Looking for duplcate timestaps per station. Duplicated records are removed by th
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_checks.get_outliers_in_daterange">
-<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">get_outliers_in_daterange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_freq</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_checks.get_outliers_in_daterange" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">get_outliers_in_daterange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_freq</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_checks.html#get_outliers_in_daterange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_checks.get_outliers_in_daterange" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_checks.gross_value_check">
-<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">gross_value_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_checks.gross_value_check" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">gross_value_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_checks.html#gross_value_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_checks.gross_value_check" title="Permalink to this definition"></a></dt>
 <dd><p>Looking for values of an observation type that are not physical. These values are labeled and the physical limits are specified in the qc_settings.</p>
 <p>Parameters</p>
 <dl class="simple">
@@ -1117,12 +1182,12 @@ Looking for duplcate timestaps per station. Duplicated records are removed by th
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_checks.invalid_input_check">
-<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">invalid_input_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_checks.invalid_input_check" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">invalid_input_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_checks.html#invalid_input_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_checks.invalid_input_check" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_checks.make_outlier_df_for_check">
-<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">make_outlier_df_for_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_dt_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flagcolumnname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_obstype_prefix_to_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datetimelist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_checks.make_outlier_df_for_check" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">make_outlier_df_for_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_dt_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flagcolumnname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_obstype_prefix_to_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datetimelist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_checks.html#make_outlier_df_for_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_checks.make_outlier_df_for_check" title="Permalink to this definition"></a></dt>
 <dd><p>V4
 Helper function to create an outlier dataframe for the given station(s) and datetimes. This will be returned by
 a quality control check and later added to the dastes.outlierdf.</p>
@@ -1153,7 +1218,7 @@ values are the flag.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_checks.persistance_check">
-<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">persistance_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_checks.persistance_check" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">persistance_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_checks.html#persistance_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_checks.persistance_check" title="Permalink to this definition"></a></dt>
 <dd><p>V3
 Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.</p>
 <p>In order to perform this check, at least N observations chould be in that time window.</p>
@@ -1175,7 +1240,7 @@ Looking for values of an observation type that do not change during a timewindow
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_checks.repetitions_check">
-<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">repetitions_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_checks.repetitions_check" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">repetitions_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_checks.html#repetitions_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_checks.repetitions_check" title="Permalink to this definition"></a></dt>
 <dd><p>Looking for values of an observation type that are repeated at least with the frequency specified in the qc_settings. These values are labeled.</p>
 <p>Parameters</p>
 <dl class="simple">
@@ -1195,7 +1260,7 @@ Looking for values of an observation type that do not change during a timewindow
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_checks.step_check">
-<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">step_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_checks.step_check" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">step_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_checks.html#step_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_checks.step_check" title="Permalink to this definition"></a></dt>
 <dd><p>V3
 Looking for jumps of the values of an observation type that are larger than the limit specified in the qc_settings. These values are removed from
 the input series and combined in the outlier df.</p>
@@ -1220,7 +1285,7 @@ the input series and combined in the outlier df.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_checks.window_variation_check">
-<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">window_variation_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_checks.window_variation_check" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_checks.</span></span><span class="sig-name descname"><span class="pre">window_variation_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_checks.html#window_variation_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_checks.window_variation_check" title="Permalink to this definition"></a></dt>
 <dd><p>V3
 Looking for jumps of the values of an observation type that are larger than the limit specified in the qc_settings. These values are removed from
 the input series and combined in the outlier df.</p>
@@ -1254,7 +1319,7 @@ And vice versa is there a decreament threshold.</p>
 <p>&#64;author: thoverga</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="qc_statistics.get_freq_statistics">
-<span class="sig-prename descclassname"><span class="pre">qc_statistics.</span></span><span class="sig-name descname"><span class="pre">get_freq_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comb_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaps_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qc_statistics.get_freq_statistics" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qc_statistics.</span></span><span class="sig-name descname"><span class="pre">get_freq_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comb_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checks_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaps_info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qc_statistics.html#get_freq_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qc_statistics.get_freq_statistics" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -1265,7 +1330,9 @@ And vice versa is there a decreament threshold.</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usrdocumentation.html" class="btn btn-neutral float-left" title="User documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
 
   <hr/>
 

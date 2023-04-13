@@ -1,10 +1,10 @@
 
-Welcome to vlinder-toolkit's documentation!
+Welcome to MetObs-Toolkit's documentation!
 ===========================================
 
 .. toctree::
    :maxdepth: 2
-   
+
    intro
    examples
    usrdocumentation
