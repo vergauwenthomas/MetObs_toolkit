@@ -19,7 +19,7 @@ Dataset
 
 
 
-.. py:currentmodule:: vlinder_toolkit.dataset
+.. py:currentmodule:: dataset
 .. autoclass:: Dataset
     :members:
     :undoc-members:
@@ -30,7 +30,7 @@ Station
 
 
 
-.. py:currentmodule:: vlinder_toolkit.dataset
+.. py:currentmodule:: dataset
 .. autoclass:: Station
     :members:
     :undoc-members:
@@ -39,7 +39,7 @@ Station
 Settings
 ================
 
-.. py:currentmodule:: vlinder_toolkit.settings
+.. py:currentmodule:: settings
 .. autoclass:: Settings
     :members:
     :undoc-members:
@@ -48,7 +48,7 @@ Settings
 Missing timestamps
 ==================
 
-.. py:currentmodule:: vlinder_toolkit.missingobs
+.. py:currentmodule:: missingobs
 .. autoclass:: Missingob_collection
     :members:
     :undoc-members:
@@ -59,14 +59,14 @@ Gaps
 
 Gap class
 ^^^^^^^^^^^^^^^^^^^^^^
-.. py:currentmodule:: vlinder_toolkit.gap
+.. py:currentmodule:: gap
 .. autoclass:: Gap
     :members:
     :undoc-members:
 
 Gap_collection class
 ^^^^^^^^^^^^^^^^^^^^^^
-.. py:currentmodule:: vlinder_toolkit.gap
+.. py:currentmodule:: gap
 .. autoclass:: Gap_collection
     :members:
     :undoc-members:
@@ -74,7 +74,7 @@ Gap_collection class
 Model data
 ================
 
-.. py:currentmodule:: vlinder_toolkit.modeldata
+.. py:currentmodule:: modeldata
 .. autoclass:: Modeldata
     :members:
     :undoc-members:
@@ -85,35 +85,35 @@ Extra functions
 convertors
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.convertors
+.. automodule:: convertors
     :members:
     :undoc-members:
 
 data import
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.data_import
+.. automodule:: data_import
     :members:
     :undoc-members:
 
 data writing
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.writing_files
+.. automodule:: writing_files
     :members:
     :undoc-members:
 
 gap filling
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.gap_filling
+.. automodule:: gap_filling
     :members:
     :undoc-members:
 
 geometry functions
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.geometry_functions
+.. automodule:: geometry_functions
     :members:
     :undoc-members:
 
@@ -121,13 +121,13 @@ geometry functions
 landcover functions
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: vlinder_toolkit.landcover_functions
+.. automodule:: landcover_functions
     :members:
     :undoc-members:
 
 plotting functions
 ^^^^^^^^^^^^^^^^^^^^^^
-.. automodule:: vlinder_toolkit.plotting_functions
+.. automodule:: plotting_functions
     :members:
     :undoc-members:
 
@@ -137,7 +137,7 @@ Quality control
 Quality control checks
 """"""""""""""""""""""
 
-.. automodule:: vlinder_toolkit.qc_checks
+.. automodule:: qc_checks
     :members:
     :undoc-members:
 
@@ -145,7 +145,7 @@ Quality control checks
 Quality control statistics
 """""""""""""""""""""""""""
 
-.. automodule:: vlinder_toolkit.qc_statistics
+.. automodule:: qc_statistics
     :members:
     :undoc-members:
 
