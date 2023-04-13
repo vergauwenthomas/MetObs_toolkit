@@ -38,8 +38,9 @@ jobs:
         run: |
             cd tests
             cd push_test
+            pwd
             poetry run python gap_and_fill_test.py
             poetry run python IO_test.py
             poetry run python qc_test.py
             poetry run python breaking_test.py
-     
+
