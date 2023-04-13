@@ -26,10 +26,10 @@ testdatafile = os.path.join(
 static_data = os.path.join(
     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
+# DEBUG
+print('sys path: ', sys.path)
 
 # #% import data
-
-
 
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile,

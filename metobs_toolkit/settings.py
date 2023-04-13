@@ -21,6 +21,11 @@ class Settings:
     _settings_files_path = os.path.join(
         str(Path(__file__).parent), 'settings_files')
 
+    #debug
+    print('filepath: ', str(Path(__file__)))
+    print('parentpath: ', str(Path(__file__).parent))
+    print('settings files path: ', _settings_files_path)
+
     def __init__(self):
         logger.info('Initialising settings')
 
