@@ -35,5 +35,5 @@ from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.modeldata import Modeldata
 
 #DO not change this manually!
-__version__="0.0.2a2"
+__version__="0.0.1"
 
