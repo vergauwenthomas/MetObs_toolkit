@@ -145,6 +145,20 @@ class Dataset:
         """
         self.settings.update_timezone(timezonestr)
 
+    def update_default_name(self, default_name):
+        """
+        Update the default name (the name of the station). This name will be
+        used when no names are found in the observational dataset.
+
+        (All observations are assumed to come from one station.)
+
+        :param default_name: Default name to use when no names are present in the data.
+        :type default_name: String
+        :return: None
+        :rtype: None
+
+        """
+        self.settings.app['default_name'] = str(default_name)
 
     def show_settings(self):
         """
@@ -972,6 +986,12 @@ class Dataset:
 
         # drop Nat datetimes if present
         df = df.loc[pd.notnull(df.index)]
+
+        if not 'name' in df.columns:
+            logger.warning(f'No station names find in the observations! \
+                           Assume the dataset is for ONE station with the \
+                         default name: {self.settings.app["default_name"]}.')
+            df['name'] =str(self.settings.app["default_name"])
 
         if isinstance(self.settings.IO['input_metadata_file'], type(None)):
             print('WARNING: No metadata file is defined.\
