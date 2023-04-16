@@ -21,6 +21,7 @@ pyproj = "~3.4"
 #rasterstats = "^0.16.0"
 mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
+PyQt5 = "^5.15.0"
 
 
 [tool.poetry.group.dev.dependencies]
