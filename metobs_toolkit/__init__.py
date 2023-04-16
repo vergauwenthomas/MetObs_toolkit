@@ -33,7 +33,7 @@ sys.path.append(BASE_PATH)
 
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.modeldata import Modeldata
-
+from metobs_toolkit.gui_launcher import launch_gui
 #DO not change this manually!
 __version__="0.0.2a1"
 

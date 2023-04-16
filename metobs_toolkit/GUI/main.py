@@ -1,322 +1,288 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Feb 24 11:53:45 2023
+Created on Mon Mar 20 09:47:48 2023
 
 @author: thoverga
 """
 
-import pandas as pd
-import numpy as np
-import bokeh
+# command: designer in terminal to open the desinger tool
 
 
-from bokeh.models import Button, Div, TextInput, Select
-from bokeh.layouts import layout, row, column
-from bokeh.models import ColumnDataSource, DataTable, DateFormatter, TableColumn
 
-#%%
-import gui_settings
-
-from gui_modules.set_widget_values import *
-from gui_modules.data_handlers import read_csv, init_datatable_with_default
-
-#%%
 import os, sys
 from pathlib import Path
-toolkit_folder = Path(__file__).resolve().parents[2]
-sys.path.append(str(toolkit_folder)) #turn of in operation mode
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog, QMainWindow
+from PyQt5.uic import loadUi
+
+import pandas as pd
+import pytz
+
+import metobs_toolkit.GUI.data_func as data_func
+import metobs_toolkit.GUI.template_func as template_func
+from metobs_toolkit.GUI.json_save_func import get_saved_vals, update_json_file
+from metobs_toolkit.GUI.pandasmodel import DataFrameModel
+import metobs_toolkit.GUI.path_handler as path_handler
+import metobs_toolkit.GUI.tlk_scripts as tlk_scripts
+from metobs_toolkit.GUI.errors import Error, Notification
 
 
-import vlinder_toolkit
+
+
+class MainWindow(QDialog):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        # Load gui widgets
+        loadUi(os.path.join(path_handler.GUI_dir,'templ_build.ui'),
+               self) #open the ui file
+
+        # -------- Information to pass beween different triggers ----------
+        self.dataset = None #the vlindertoolkit dataset instance
+        # P1 ------------------------
+
+
+
+        # P2 ------------------------
+        self.template_dict = None #dict; all available templname : templpath
+        self.default_settings = tlk_scripts.get_default_settings()
+
+
+
+
+
+        # ------- Setup (widgets and default values) ---------------
+
+        # Setup error message dialog
+        self.error_dialog = QtWidgets.QErrorMessage(self)
+        self.set_datapaths_init()
+
+        self.templmodel = DataFrameModel()
+        self.table.setModel(self.templmodel)
+
+        # ------- Callbacks (Getters) ---------
+        self.Browse_data_B.clicked.connect(lambda: self.browsefiles_data()) #browse datafile
+        self.Browse_data_B_2.clicked.connect(lambda: self.browsefiles_data_p2()) #browse datafile
+        self.Browse_metadata_B.clicked.connect(lambda: self.browsefiles_metadata()) #browse metadatafile
+        self.Browse_metadata_B_2.clicked.connect(lambda: self.browsefiles_metadata_p2()) #browse metadatafile
+
+        # ------- Callbacks (triggers) ------------
+        # P1 ------
+        # save paths when selected
+        self.save_data_path.clicked.connect(lambda: self.save_path(savebool=self.save_data_path.isChecked(),
+                                                                   savekey='data_file_path',
+                                                                   saveval=self.data_file_T.text()))
+        self.save_metadata_path.clicked.connect(lambda: self.save_path(savebool=self.save_metadata_path.isChecked(),
+                                                                   savekey='metadata_file_path',
+                                                                   saveval=self.metadata_file_T.text()))
+
+
+        # initiate the start mapping module
+        self.start_mapping_B.clicked.connect(lambda: self.set_templ_map_val())
+
+        # construnct the mappindict
+        self.build_B.clicked.connect(lambda: self.build_template())
+
+        # save template
+        self.save_template.clicked.connect(lambda: self.save_template_call())
+
+        # P2 -------
+        self.make_dataset.clicked.connect(lambda: self.make_tlk_dataset())
+        self.apply_qc.clicked.connect(lambda: self.apply_qc_on_dataset())
+
+
+        # ------- Initialize --------------
+
+
+
+        # ----------P2 -----------------
+        self.set_possible_templates() #load available dataset
+        self.set_timezone_spinners()
+
+
+        tlk_scripts.set_qc_default_settings(self)
+
+
+        #----- Cleanup files ----------------
+        path_handler.clear_dir(path_handler.TMP_dir) #cleanup tmp folder
+
+#%% P1
+# =============================================================================
+# Helpers
+# =============================================================================
+    def get_val(self, data_func_return):
+
+        if not data_func_return[1]:
+            self.error_dialog.showMessage(data_func_return[2])
+        return data_func_return[0]
+
+
+# =============================================================================
+# Init values
+# =============================================================================
+    def set_templ_map_val(self):
+        # First try reading the datafile
+        data_columns = self.read_datafiles(self.data_file_T.text())
+
+        # Check if meta data is given, if so read the metadata columns
+        if len(self.metadata_file_T.text()) > 2:
+            metadata_columns = self.read_datafiles(self.metadata_file_T.text())
+        else:
+            metadata_columns = []
+
+        # Set defaults appropriate
+        template_func.set_templ_vals(self, data_columns, metadata_columns)
+
+    def init_empty_table(self):
+        df = pd.DataFrame()
+        model = DataFrameModel(df)
+        self.table.setModel(model)
+
+
+    def set_datapaths_init(self):
+        saved_vals = get_saved_vals()
+
+        # set datafile path
+        if 'data_file_path' in saved_vals:
+            self.data_file_T.setText(str(saved_vals['data_file_path']))
+            self.data_file_T_2.setText(str(saved_vals['data_file_path']))
+
+        # set metadata file path
+        if 'metadata_file_path' in saved_vals:
+            self.metadata_file_T.setText(str(saved_vals['metadata_file_path']))
+            self.metadata_file_T_2.setText(str(saved_vals['metadata_file_path']))
+
+
+    def set_possible_templates(self):
+        templ_dict = template_func.get_all_templates()
+
+        # remove .csv for presenting
+        templ_names = [name.replace('.csv', '') for name in templ_dict.keys()]
+
+        #update spinner
+        self.select_temp.clear()
+        self.select_temp.addItems(templ_names)
+
+        # Store information to pass between triggers
+        self.template_dict = templ_dict #dict templname : templpath
+
+    def set_timezone_spinners(self):
+        # add all common tz to options
+        tzlist = pytz.common_timezones
+        self.tz_selector.addItems(tzlist)
+
+        # set default
+        default = self.default_settings.time_settings['timezone']
+        self.tz_selector.setCurrentText(default)
+
+
+# =============================================================================
+# Save values
+# =============================================================================
+    def save_path(self, savebool, savekey, saveval):
+        if savebool:
+            savedict = {str(savekey): str(saveval)}
+            update_json_file(savedict, catkey=None)
+
+# =============================================================================
+# Triggers
+# =============================================================================
+    def browsefiles_data(self):
+        fname=QFileDialog.getOpenFileName(self, 'Select data file', str(Path.home()))
+        self.data_file_T.setText(fname[0]) #update text
+
+
+    def browsefiles_data_p2(self):
+        fname=QFileDialog.getOpenFileName(self, 'Select data file', str(Path.home()))
+        self.data_file_T_2.setText(fname[0])
+
+
+    def browsefiles_metadata(self):
+        fname=QFileDialog.getOpenFileName(self, 'Select metadata file', str(Path.home()))
+        self.metadata_file_T.setText(fname[0]) #update text
+
+    def browsefiles_metadata(self):
+        fname=QFileDialog.getOpenFileName(self, 'Select metadata file', str(Path.home()))
+        self.metadata_file_T_2.setText(fname[0]) #update text
+
+    def read_datafiles(self, filepath):
+        if not path_handler.file_exist(filepath):
+            Error(f'{filepath} is not a file.')
+        _return = data_func.get_columns(filepath=filepath)
+        columns = self.get_val(_return)
+
+        return columns
+
+    def build_template(self):
+        df = template_func.make_template_build(self)
+        if df.empty:
+            Error('There are no mapped values.')
+        self.templmodel.setDataFrame(df)
+
+        self.save_template.setEnabled(True) #enable the save button
+
+
+    def save_template_call(self):
+        # copy the template to the templates dir of the toolkit
+        templ_loc = os.path.join(path_handler.TMP_dir, 'template.csv')
+
+        filename = str(self.templatename.text())
+        if not filename.endswith('.csv'):
+            filename = filename + '.csv'
+
+        target_loc = os.path.join(path_handler.CACHE_dir, filename)
+
+        # check if templatefile already exists.
+        if path_handler.file_exist(target_loc):
+            Error(f'{target_loc} already exists! Change name of the template file.')
+            return
+        path_handler.copy_file(templ_loc, target_loc)
+
+        self.set_possible_templates() #update widget
+
+        Notification(f'Template ({filename}) is saved!')
+
+    def make_tlk_dataset(self):
+        self.dataset = tlk_scripts.load_dataset(self)
+    def apply_qc_on_dataset(self):
+        tlk_scripts.apply_qualitycontrol(self)
+
 #%%
 
+# =============================================================================
+# Main and protector
+# =============================================================================
 
-class App_layout:
-    def set_root(self): #pass app
-        """ Set the root of the current document """
-        
-        
-        bokeh.io.curdoc().clear()
-        bokeh.io.curdoc().add_root(self.IO_page) 
-    
-    
-    def build_io_page(self, widgets):
-        
-        #Define rows and scaling
-        datarow = row(widgets['datapath'], widgets['datatemplatepath'], widgets['make_data_template'])
-        metadatarow = row(widgets['metadatapath'], widgets['metadatatemplatepath'], widgets['make_metadata_template'])
-        
-        widget_colmn = column([widgets['text'], datarow, metadatarow], sizing_mode='inherit')
-        
-        # init datatable
+def main():
+    try:
+        app=QApplication(sys.argv)
 
-        source = init_datatable_with_default(settingslist=[gui_settings.dt_names,
-                                                           gui_settings.meta_names,
-                                                           gui_settings.obs_names])
-        columns = [TableColumn(field=col, title=col) for col in gui_settings.data_table_column_order]
-   
-        self.data_table = DataTable(source=source, columns=columns, width=1400, height=400)
-        
-        table_column = column(self.data_table)
-        
-        
-        
-        
-        #Define glyphs
-        
-        
-        #create layout + SIZING MODE ON PARENT LEVEL (otherwise too complex)
-        layout_io_page = layout([
-            row([widget_colmn, table_column])
-            ], 
-            sizing_mode='stretch_width')
-        
-        return layout_io_page
-    def cleanup_io_page(self):
-    
-        self.IO_page.children = self.IO_page.children[:3]
-    
-    
-    def add_extra_row_io_page(self, rows, page='IO_page', column=None, sizemode='inherit', blank_avobe=True):
-        """
-        Add extra widgets (structured in rows or columns) to the IO page as a row at the bottom. 
-        
+        mainwindow = MainWindow()
+        widget = QtWidgets.QStackedWidget()
+        widget.addWidget(mainwindow)
+        widget.show()
 
-        Parameters
-        ----------
-        rows : bokeh.row
-            row containing widgets or glyphs.
-        sizemode : TYPE, optional
-            DESCRIPTION. The default is 'inherit'.
-        blank_avobe : TYPE, optional
-            DESCRIPTION. The default is True.
+        succesfull=True
+        print('einde succes')
+    except:
+        print('begin fail')
+        # sys.exit('Something went wrong in the GUI')
+        succesfull=False
+        pass
+    sys.exit(app.exec_())
 
-        Returns
-        -------
-        None.
-
-        """
-        blk_space=20
-        new_column = []
-        if isinstance(rows, list):
-            i = 0
-            for row_in_rows in rows:
-                row_in_rows.sizing_mode = sizemode
-                if (i == 0) & (blank_avobe):
-                    row_in_rows.margin=(blk_space,0,0,0)
-                new_column.append(row_in_rows)
-                # children = getattr(self, page).children
-                # children.append(row_in_rows)
-                # setattr(getattr(self, page), 'children', children)
-                
-                
-                i += 1
-        else:
-            rows.sizing_mode=sizemode
-            if (blank_avobe):
-                rows.margin=(blk_space,0,0,0)
-            new_column.append(rows)
-            # children = getattr(self, page).children
-            # children.append(rows)
-            # setattr(getattr(self, page), 'children', children)
-          
-            
-        # # get columns current children
-        # if not isinstance(column, type(None)):
-        #     children = self.IO_page.children[0].children[column].children
-        # else: 
-        children = getattr(self, page).children
-
-        children.extend(new_column)
-        setattr(getattr(self, page), 'children', children)
-    
-    
-    
-    def __init__(self, app):
-        
-        self.IO_page = self.build_io_page(app.widg['io']) #build page IO
-        
-        
-        # self.set_root()
-
-    
-
-class App:
-    def __init__(self):
-        
-        self.widg={} #nested dict
-        
-        
-        #init data objects to update
-        self.mapperdf = pd.DataFrame()
-        
-        
-        
-        #init widgetsn
-        
-        self.define_widgets_io()
-        self.layout = App_layout(self)
-        
-
-    def mapper_to_df(self, attr):
-        print('mapper triggered')
-        
-        
-        df = pd.DataFrame()
-        
-        categories = [gui_settings.dt_names, gui_settings.meta_names, gui_settings.obs_names]
-        
-        
-        
-        # dt spinners to dataframe
-        for category in categories:
-            mapper = {key : {colname: self.widg['io']['selectors'][key][colname].value for colname in val.keys()} for key, val in category.items()}
-         
-            for key in mapper:
-                mapper[key]['template_column_name'] = self.widg['io']['selectors'][key]['template_column_name'].value
-    
-            # convert to pandas dataframe
-            cat_df = pd.DataFrame(mapper).transpose()
-            df = pd.concat([df, cat_df])
-       
-        df = df.reset_index()
-        df = df.rename(columns={'index': 'toolkit_name'})
-        print('df: ', df)
-        # update table
-        self.layout.data_table.source.data = df
-        print(self.layout.data_table.source.data)
-        print('updated ???')        
-        
-        
-    def create_data_table(self, dataframe):
-        source = ColumnDataSource(data)
-
-        columns = [
-                TableColumn(field="dates", title="Date", formatter=DateFormatter()),
-                TableColumn(field="downloads", title="Downloads"),
-            ]
-        data_table = DataTable(source=source, columns=columns, width=400, height=280)
-        
-        show(data_table)
-        
-    def trig_make_data_template(self, attr):
-        
-        self.layout.cleanup_io_page()
-        
-        data_file_path = self.widg['io']['datapath'].value
-        # check if path is empty
-        if data_file_path=='':
-            self.widg['io']['text'].text = text_increase('Path to datafile is empty!', 2)
-            return
-        # add csv extension if needed
-        if data_file_path[-4:]!='.csv':
-            data_file_path = data_file_path+'.csv'
-        
-        #check if file exists
-        if not os.path.isfile(data_file_path):
-            self.widg['io']['text'].text = text_increase(f'{data_file_path} is not found!', 2)
-            return
-        
-        #read file, and get columnnames
-        df = read_csv(data_file_path)
-        data_columns  = list(df.columns)
-        
-        
-        #Create grid and store values in app class
-        #TODO: een lijst meegeven in plaats van argumenten, zo kan ik dezlfde functie gebruiken voor de metadata
-        widget_grid, self.widg['io']['selectors'] = make_data_template_spinners(data_file_columns = data_columns,
-                                                                                        tlk_meta_names = gui_settings.meta_names,
-                                                                                        tlk_dt_names = gui_settings.dt_names,
-                                                                                        tlk_obs_names = gui_settings.obs_names)
-        
-        # self.layout.add_extra_row_io_page(widget_grid)
-        
-        
-        #add button to bottom
-        test = Button(button_type='success', label="Create template") #define button
-        test.on_click(self.mapper_to_df) #make callback
-        self.layout.add_extra_row_io_page(row(test), column=0) #add to layout
-        
-    def trig_make_metadata_template(self, attr):
-        
-        
-      
-        self.layout.cleanup_io_page()
-        
-        data_file_path = self.widg['io']['metadatapath'].value
-        # check if path is empty
-        if data_file_path=='':
-            self.widg['io']['text'].text = text_increase('Path to Metadatafile is empty!', 2)
-            return
-        # add csv extension if needed
-        if data_file_path[-4:]!='.csv':
-            data_file_path = data_file_path+'.csv'
-        
-        #check if file exists
-        if not os.path.isfile(data_file_path):
-            self.widg['io']['text'].text = text_increase(f'{data_file_path} is not found!', 2)
-            return
-        
-        #read file, and get columnnames
-        df = read_csv(data_file_path)
-        data_columns  = list(df.columns)
-        
-        
-        #Create grid and store values in app class
-        #TODO: een lijst meegeven in plaats van argumenten, zo kan ik dezlfde functie gebruiken voor de metadata
-        widget_grid, self.widg['io']['selectors'] = make_data_template_spinners(data_file_columns = data_columns,
-                                                                                        tlk_meta_names = gui_settings.meta_names,
-                                                                                        tlk_dt_names = gui_settings.dt_names,
-                                                                                        tlk_obs_names = None)
-        
-        self.layout.add_extra_row_io_page(widget_grid)
-        
-        
-        #add button to bottom
-        print("add button")
-        test = Button(button_type='success', label="Create template") #define button
-        test.on_click(self.mapper_to_df) #make callback
-        self.layout.add_extra_row_io_page(row(test)) #add to layout
-    
-    
-    
-        
-        
-    def define_widgets_io(self):
-        self.widg['io'] = {} #init io dict
-        
-        #Create widgets
-        self.widg['io']['text'] = Div(text=text_increase('init text blabla',2),
-                                      sizing_mode='stretch_width')
-        self.widg['io']['datapath'] = TextInput(title='Path to data file',
-                                                value='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/tests/test_data/vlinderdata_small',
-                                                sizing_mode='stretch_width',
-                                                suffix='.csv')
-        self.widg['io']['metadatapath'] = TextInput(title='Path to metadata file (if needed)',
-                                                    value='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit/vlinder_toolkit/data_templates/template_defaults/vlinder_metadata_template.csv',
-                                                sizing_mode='stretch_width',
-                                                suffix='.csv')
-        self.widg['io']['datatemplatepath'] = TextInput(title='Path to template for data file',
-                                                sizing_mode='stretch_width',
-                                                suffix='.csv')
-        self.widg['io']['metadatatemplatepath'] = TextInput(title='Path to template for metadata file (if needed)',
-                                                sizing_mode='stretch_width',
-                                                suffix='.csv')
-        self.widg['io']['make_data_template'] = Button(button_type='warning', label="Make data template")
-        self.widg['io']['make_metadata_template'] = Button(button_type='warning', label="Make metadata template")
-        
-        
-        
-        #Setup callbacks
-        self.widg['io']['make_data_template'].on_click(self.trig_make_data_template)
-        self.widg['io']['make_metadata_template'].on_click(self.trig_make_metadata_template)
-        
-
-    
-
-        
-dummy = App()
+    return succesfull
 
 
-        
+
+
+
+if __name__ == '__main__':
+    app=QApplication(sys.argv)
+
+    widget = main()
+    widget.show()
+    sys.exit(app.exec_())
+
+
+

@@ -6,7 +6,7 @@ Created on Mon Mar 20 13:00:45 2023
 @author: thoverga
 """
 
-import path_handler
+import metobs_toolkit.GUI.path_handler as path_handler
 import os
 from pathlib import Path
 import numpy as np

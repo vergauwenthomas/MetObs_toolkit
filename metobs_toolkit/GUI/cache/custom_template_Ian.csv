@@ -1,0 +1,9 @@
+varname,template column name,format,dtype,units,description
+_date,Datum,%d/%m/%Y,object,,
+_time,Tijd (UTC),%H:%M:%S,object,,
+temp,Temperatuur,,float64,Celcius,2mT
+radiation_temp,Globe Temperatuur,,float64,Celcius,Blackglobe temperature
+humidity,Vochtigheid,,float64,%,Relative humidity
+precip,Neerslagintensiteit,,float64,l/hour x m²,Precipitation intensity
+precip_sum,Neerslagintensiteit,,float64,l/m²,Precipitation cumulated
+wind_speed,Windsnelheid,,float64,m/s,Average wind speed

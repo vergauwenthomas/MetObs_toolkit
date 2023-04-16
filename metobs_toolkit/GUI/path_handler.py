@@ -18,8 +18,7 @@ from pathlib import Path
 
 GUI_dir = str( Path(__file__).resolve().parents[0])
 
-TLK_dir = os.path.join(str( Path(__file__).resolve().parents[1]),
-                       'vlinder_toolkit')
+TLK_dir = str( Path(__file__).resolve().parents[1])
 
 
 # =============================================================================

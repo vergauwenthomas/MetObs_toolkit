@@ -13,14 +13,14 @@ from io import StringIO
 from PyQt5.QtWidgets import QSpinBox, QDoubleSpinBox
 
 
-import path_handler
-from errors import Error, Notification
+import metobs_toolkit.GUI.path_handler as path_handler
+from metobs_toolkit.GUI.errors import Error, Notification
 # method1: add the toolkit to path,
 # sys.path.append(path_handler.TLK_dir)
 # from vlinder_toolkit import Dataset
 
 # method2: loead as package
-import vlinder_toolkit
+import metobs_toolkit
 
 #%% Mapping
 # when specific manipulation has to be done on values
@@ -75,7 +75,7 @@ class Capturing(list):
 
 def get_default_settings():
     "Get default settings for initiating the widgets"
-    _dummy = vlinder_toolkit.Dataset()
+    _dummy = metobs_toolkit.Dataset()
     return _dummy.settings
 
 
@@ -187,7 +187,7 @@ def load_dataset(main):
     with Capturing() as terminaloutput:
 
         # init dataset
-        dataset = vlinder_toolkit.Dataset()
+        dataset = metobs_toolkit.Dataset()
 
         #use metadata
         use_metadata = main.metadata_box.isChecked()
