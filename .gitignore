@@ -12,14 +12,13 @@ poetry.lock
 
 #Exclude builds
 dist/*
-docs/_build/*
-docs/_*
-
+_build/
+_build
 #exclude proj build (only tar remaining)
 proj/proj-9.0.0/*
 
 #logs
-*log*
+*log
 #exclude data
 examples/*.csv
 examples/testdata.csv
@@ -39,3 +38,10 @@ physiography/*
 *.pyc
 .vscode
 *tempCodeRunnerFile.py
+
+#GUI stuff
+GUI/tmp
+GUI/cache
+
+#Documentation (build online)
+docs/_build

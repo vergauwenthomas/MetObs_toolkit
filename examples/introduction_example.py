@@ -10,18 +10,15 @@ from pathlib import Path
 main_folder = Path(__file__).resolve().parents[1]
 testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
 metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
-templatefile = os.path.join(str(main_folder), 'vlinder_toolkit', 'data_templates',
+templatefile = os.path.join(str(main_folder), 'metobs_toolkit', 'data_templates',
                             'template_defaults', 'default_template.csv')
 
 import sys
 sys.path.append(str(main_folder))
 
 
-import vlinder_toolkit
+import metobs_toolkit
 
-
-
-#%%
 
 # =============================================================================
 # Dataset
@@ -30,7 +27,7 @@ import vlinder_toolkit
 # A dataset is a collection of all observational data. Most of the methods are
 # applied directly on a dataset. Always start by initializing a dataset object:
 
-aug_2020_all_vlinders = vlinder_toolkit.Dataset()
+aug_2020_all_vlinders = metobs_toolkit.Dataset()
 
 
 # we created an dataset and stored in under the variable 'aug_2020_all_vlinder'.
@@ -87,7 +84,7 @@ aug_2020_all_vlinders.show()
 #If this is done correctly than the user and password should appear when running settings.show()
 
 # We have to start by first making an (empty) dataset
-# sept_2022_all_vlinders = vlinder_toolkit.Dataset()
+# sept_2022_all_vlinders = metobs_toolkit.Dataset()
 
 
 #We need to specify the start-moment and end-moment for this period. To do this we need to import the datetime module (base python module)
@@ -104,8 +101,6 @@ aug_2020_all_vlinders.show()
 # Analysing one station
 # =============================================================================
 
-
-
 #if you are interested in one station, you can extract all the info for that one station from the dataset by:
 
 favorite_station = aug_2020_all_vlinders.get_station(stationname='vlinder02')
@@ -119,7 +114,7 @@ print(observations.head())
 
 #Or you can make a timeseries plot for a field of chose:
 
-favorite_station.make_plot(variable='temp')
+favorite_station.make_plot(obstype='temp')
 
 #You can extract attributes from the station:
 

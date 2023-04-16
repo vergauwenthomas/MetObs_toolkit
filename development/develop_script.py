@@ -6,7 +6,7 @@ Created on Thu Oct  6 13:25:02 2022
 """
 
 #%%
-import vlinder_toolkit
+import metobs_toolkit
 import os
 import sys
 from pathlib import Path
@@ -32,7 +32,8 @@ static_data = os.path.join(
 # #% Setup dataset
 
 
-dataset = vlinder_toolkit.Dataset()
+
+dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile,
                         input_metadata_file=static_data,
                         output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'

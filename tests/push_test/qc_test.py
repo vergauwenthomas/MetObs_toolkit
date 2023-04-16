@@ -15,14 +15,14 @@ lib_folder = Path(__file__).resolve().parents[2]
 #sys.path.append(str(lib_folder))
 
 
-import vlinder_toolkit
+import metobs_toolkit
 
 #%% IO testdata
 
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata_small.csv')
 
 
-dataset = vlinder_toolkit.Dataset()
+dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile)
 dataset.import_data_from_file(coarsen_timeres=True)
 
