@@ -18,11 +18,10 @@ logger = logging.getLogger(__name__)
 
 class Settings:
     # make settingsfiles path
-    _settings_files_path = os.path.join(
-        str(Path(__file__).parent), 'settings_files')
+    _settings_files_path = os.path.join(str(Path(__file__).parent), "settings_files")
 
     def __init__(self):
-        logger.info('Initialising settings')
+        logger.info("Initialising settings")
 
         # define thematics in settings. Corresponds to settings files.
         self.db = {}
@@ -32,9 +31,11 @@ class Settings:
         self.gap = {}
         self.templates = {}
         self.gee = {}
-        self.IO = {'output_folder': None,
-                   'input_data_file': None,
-                   'input_metadata_file': None}
+        self.IO = {
+            "output_folder": None,
+            "input_data_file": None,
+            "input_metadata_file": None,
+        }
 
         # Update (instance and class variables) what can be updated by setingsfiles
         self._update_db_settings()
@@ -56,26 +57,29 @@ class Settings:
         :return: No return
         :rtype: No return
         """
-        logger.debug('Updating Database settings.')
-        f = open(os.path.join(Settings._settings_files_path,
-                              "server_login.json"))
+        logger.debug("Updating Database settings.")
+        f = open(os.path.join(Settings._settings_files_path, "server_login.json"))
         login_data = json.load(f)
         f.close()
 
-        self.db['db_host'] = login_data['host']
+        self.db["db_host"] = login_data["host"]
 
         # self.db_host = Settings.db_host
-        self.db['db_database'] = login_data['database']
-        self.db['db_obs_table'] = login_data['obs_table']
-        self.db['db_meta_table'] = login_data['meta_table']
+        self.db["db_database"] = login_data["database"]
+        self.db["db_obs_table"] = login_data["obs_table"]
+        self.db["db_meta_table"] = login_data["meta_table"]
 
-        self.db['db_user'] = os.getenv('VLINDER_DB_USER_NAME')
-        self.db['db_passw'] = os.getenv('VLINDER_DB_USER_PASW')
+        self.db["db_user"] = os.getenv("VLINDER_DB_USER_NAME")
+        self.db["db_passw"] = os.getenv("VLINDER_DB_USER_PASW")
 
         # import db templates
-        from .data_templates.db_templates import vlinder_metadata_db_template, vlinder_observations_db_template
-        self.db['vlinder_db_meta_template'] = vlinder_metadata_db_template
-        self.db['vlinder_db_obs_template'] = vlinder_observations_db_template
+        from .data_templates.db_templates import (
+            vlinder_metadata_db_template,
+            vlinder_observations_db_template,
+        )
+
+        self.db["vlinder_db_meta_template"] = vlinder_metadata_db_template
+        self.db["vlinder_db_obs_template"] = vlinder_observations_db_template
 
     def _update_time_res_settings(self):
         """
@@ -84,16 +88,19 @@ class Settings:
         :return: No return
         :rtype: No return
         """
-        logger.debug('Updating time resolution settings.')
-        f = open(os.path.join(Settings._settings_files_path,
-                 "dataset_resolution_settings.json"))
+        logger.debug("Updating time resolution settings.")
+        f = open(
+            os.path.join(
+                Settings._settings_files_path, "dataset_resolution_settings.json"
+            )
+        )
         res_settings = json.load(f)
         f.close()
 
-        self.time_settings['target_time_res'] = res_settings['target_time_resolution']
-        self.time_settings['resample_method'] = res_settings['method']
-        self.time_settings['resample_limit'] = res_settings['limit']
-        self.time_settings['timezone'] = res_settings['timezone']
+        self.time_settings["target_time_res"] = res_settings["target_time_resolution"]
+        self.time_settings["resample_method"] = res_settings["method"]
+        self.time_settings["resample_limit"] = res_settings["limit"]
+        self.time_settings["timezone"] = res_settings["timezone"]
 
     def _update_app_settings(self):
         """
@@ -101,32 +108,44 @@ class Settings:
         :return: No return
         :rtype: No return
         """
-        logger.debug('Updating app settings.')
-        from .settings_files.default_formats_settings import plot_settings, print_settings, vars_display, default_name
-        from .settings_files.default_formats_settings import static_fields, categorical_fields, observation_types, location_info
+        logger.debug("Updating app settings.")
+        from .settings_files.default_formats_settings import (
+            plot_settings,
+            print_settings,
+            vars_display,
+            default_name,
+        )
+        from .settings_files.default_formats_settings import (
+            static_fields,
+            categorical_fields,
+            observation_types,
+            location_info,
+        )
 
         # 1. Print settings
-        self.app['print_fmt_datetime'] = print_settings['fmt_datetime']
-        self.app['print_max_n'] = int(print_settings["max_print_per_line"])
+        self.app["print_fmt_datetime"] = print_settings["fmt_datetime"]
+        self.app["print_max_n"] = int(print_settings["max_print_per_line"])
         # 2. Plot settings
-        self.app['plot_settings'] = plot_settings
-        self.app['world_boundary_map'] = os.path.join(Settings._settings_files_path,
-                                                      "world_boundaries",
-                                                      "WB_countries_Admin0_10m.shp")
+        self.app["plot_settings"] = plot_settings
+        self.app["world_boundary_map"] = os.path.join(
+            Settings._settings_files_path,
+            "world_boundaries",
+            "WB_countries_Admin0_10m.shp",
+        )
 
         # 3. display name mappers
-        self.app['display_name_mapper'] = vars_display
+        self.app["display_name_mapper"] = vars_display
 
         # 4 Fields settings
         # fields without timeevolution
-        self.app['static_fields'] = static_fields
-        self.app['categorical_fields'] = categorical_fields  # wind and lcz
+        self.app["static_fields"] = static_fields
+        self.app["categorical_fields"] = categorical_fields  # wind and lcz
         # order of all possible observations
-        self.app['observation_types'] = observation_types
-        self.app['location_info'] = location_info  # all possible metadata
+        self.app["observation_types"] = observation_types
+        self.app["location_info"] = location_info  # all possible metadata
 
-        #5. default name (when station name is not present in dataset)
-        self.app['default_name'] = default_name
+        # 5. default name (when station name is not present in dataset)
+        self.app["default_name"] = default_name
 
     def _update_qc_settings(self):
         """
@@ -134,10 +153,11 @@ class Settings:
         :return: No return
         :rtype: No return
         """
-        logger.debug('Updating QC settings.')
+        logger.debug("Updating QC settings.")
         from .settings_files.qc_settings import check_settings, checks_info
-        self.qc['qc_check_settings'] = check_settings
-        self.qc['qc_checks_info'] = checks_info
+
+        self.qc["qc_check_settings"] = check_settings
+        self.qc["qc_checks_info"] = checks_info
 
     def _update_gap_settings(self):
         """
@@ -145,15 +165,18 @@ class Settings:
         :return: No return
         :rtype: No return
         """
-        logger.debug('Updating gap settings.')
-        from .settings_files.gaps_settings import (gaps_settings, gaps_info,
-                                                   gaps_fill_settings,
-                                                   gaps_fill_info)
+        logger.debug("Updating gap settings.")
+        from .settings_files.gaps_settings import (
+            gaps_settings,
+            gaps_info,
+            gaps_fill_settings,
+            gaps_fill_info,
+        )
 
-        self.gap['gaps_settings'] = gaps_settings
-        self.gap['gaps_info'] = gaps_info
-        self.gap['gaps_fill_settings'] = gaps_fill_settings
-        self.gap['gaps_fill_info'] = gaps_fill_info
+        self.gap["gaps_settings"] = gaps_settings
+        self.gap["gaps_info"] = gaps_info
+        self.gap["gaps_fill_settings"] = gaps_fill_settings
+        self.gap["gaps_fill_info"] = gaps_fill_info
 
     def _update_templates(self):
         """
@@ -163,12 +186,12 @@ class Settings:
         :rtype: No return
 
         """
-        logger.debug('Updating data templates settings.')
+        logger.debug("Updating data templates settings.")
         from .data_templates.import_templates import default_template_file
 
         # Set default templates
-        self.templates['data_template_file'] = default_template_file
-        self.templates['metadata_template_file'] = default_template_file
+        self.templates["data_template_file"] = default_template_file
+        self.templates["metadata_template_file"] = default_template_file
 
     def _update_gee_settings(self):
         """
@@ -176,10 +199,10 @@ class Settings:
         :return: No return
         :rtype: No return
         """
-        logger.debug('Updating gee settings.')
+        logger.debug("Updating gee settings.")
         from .settings_files.gee_settings import gee_datasets
 
-        self.gee['gee_dataset_info'] = gee_datasets
+        self.gee["gee_dataset_info"] = gee_datasets
 
     def update_timezone(self, timezonestr):
         """
@@ -192,19 +215,24 @@ class Settings:
         """
         if not timezonestr in all_timezones:
             print(
-                f'timezone: {timezonestr}, is not a valid timezone. Select one of the following:')
-            print(f'{common_timezones}')
+                f"timezone: {timezonestr}, is not a valid timezone. Select one of the following:"
+            )
+            print(f"{common_timezones}")
             return
         else:
-
             print(
-                f'Update timezone: {self.time_settings["timezone"]} --> {timezonestr}')
-            self.time_settings['timezone'] = timezonestr
+                f'Update timezone: {self.time_settings["timezone"]} --> {timezonestr}'
+            )
+            self.time_settings["timezone"] = timezonestr
 
-
-    def update_IO(self, output_folder=None, input_data_file=None,
-                  input_metadata_file=None, data_template_file=None,
-                  metadata_template_file=None):
+    def update_IO(
+        self,
+        output_folder=None,
+        input_data_file=None,
+        input_metadata_file=None,
+        data_template_file=None,
+        metadata_template_file=None,
+    ):
         """
         Update some settings that are relevent before data is imported. The self
         object will be updated.
@@ -226,42 +254,67 @@ class Settings:
         :rtype: No return
         """
 
-        logger.info('Updating settings with input: ')
+        logger.info("Updating settings with input: ")
 
         if not isinstance(output_folder, type(None)):
-            print('Update output_folder: ',
-                  self.IO['output_folder'], ' --> ', output_folder)
+            print(
+                "Update output_folder: ",
+                self.IO["output_folder"],
+                " --> ",
+                output_folder,
+            )
             logger.info(
-                f'Update output_folder:  {self.IO["output_folder"]}  -->  {output_folder}')
-            self.IO['output_folder'] = output_folder
+                f'Update output_folder:  {self.IO["output_folder"]}  -->  {output_folder}'
+            )
+            self.IO["output_folder"] = output_folder
 
         if not isinstance(input_data_file, type(None)):
-            print('Update input_data_file: ',
-                  self.IO['input_data_file'], ' --> ', input_data_file)
+            print(
+                "Update input_data_file: ",
+                self.IO["input_data_file"],
+                " --> ",
+                input_data_file,
+            )
             logger.info(
-                f'Update input_data_file:  {self.IO["input_data_file"]}  -->  {input_data_file}')
-            self.IO['input_data_file'] = input_data_file
+                f'Update input_data_file:  {self.IO["input_data_file"]}  -->  {input_data_file}'
+            )
+            self.IO["input_data_file"] = input_data_file
 
         if not isinstance(input_metadata_file, type(None)):
-            print('Update input_metadata_file: ',
-                  self.IO['input_metadata_file'], ' --> ', input_metadata_file)
+            print(
+                "Update input_metadata_file: ",
+                self.IO["input_metadata_file"],
+                " --> ",
+                input_metadata_file,
+            )
             logger.info(
-                f'Update meta_data_file:  {self.IO["input_metadata_file"]}  -->  {input_metadata_file}')
-            self.IO['input_metadata_file'] = input_metadata_file
+                f'Update meta_data_file:  {self.IO["input_metadata_file"]}  -->  {input_metadata_file}'
+            )
+            self.IO["input_metadata_file"] = input_metadata_file
 
         if not isinstance(data_template_file, type(None)):
-            print('Update data template file: ',
-                  self.templates['data_template_file'], ' --> ', data_template_file)
+            print(
+                "Update data template file: ",
+                self.templates["data_template_file"],
+                " --> ",
+                data_template_file,
+            )
             logger.info(
-                f'Update data template file:  {self.templates["data_template_file"]}  -->  {data_template_file}')
-            self.templates['data_template_file'] = data_template_file
+                f'Update data template file:  {self.templates["data_template_file"]}  -->  {data_template_file}'
+            )
+            self.templates["data_template_file"] = data_template_file
 
         if not isinstance(metadata_template_file, type(None)):
-            print('Update metadata template file: ',
-                  self.templates['metadata_template_file'], ' --> ', metadata_template_file)
+            print(
+                "Update metadata template file: ",
+                self.templates["metadata_template_file"],
+                " --> ",
+                metadata_template_file,
+            )
             logger.info(
-                f'Update metadata template file:  {self.templates["metadata_template_file"]}  -->  {metadata_template_file}')
-            self.templates['metadata_template_file'] = metadata_template_file
+                f'Update metadata template file:  {self.templates["metadata_template_file"]}  -->  {metadata_template_file}'
+            )
+            self.templates["metadata_template_file"] = metadata_template_file
 
     def copy_template_csv_files(self, target_folder):
         """
@@ -274,14 +327,12 @@ class Settings:
         :rtype: No return
         """
 
-
-
         from .data_templates.import_templates import default_template_file
 
         # test if target_folder is a folder
-        assert os.path.isdir(target_folder), f'{target_folder} is not a folder'
+        assert os.path.isdir(target_folder), f"{target_folder} is not a folder"
 
-        target_file = os.path.join(target_folder, 'default_template.csv')
+        target_file = os.path.join(target_folder, "default_template.csv")
 
         shutil.copy2(default_template_file, target_file)
 
@@ -298,29 +349,39 @@ class Settings:
         :rtype: No return
 
         """
-        logger.info('Show settings.')
-        class_vars_name = [attr for attr in dir(Settings) if not callable(
-            getattr(Settings, attr)) and not attr.startswith("__")]
+        logger.info("Show settings.")
+        class_vars_name = [
+            attr
+            for attr in dir(Settings)
+            if not callable(getattr(Settings, attr)) and not attr.startswith("__")
+        ]
 
-        attr_list = ['IO', 'db', 'time_settings',
-                     'app', 'qc', 'gap', 'templates', 'gee']
+        attr_list = [
+            "IO",
+            "db",
+            "time_settings",
+            "app",
+            "qc",
+            "gap",
+            "templates",
+            "gee",
+        ]
 
         # Drop variables starting with _
-        class_vars_name = [
-            mem for mem in class_vars_name if not mem.startswith('_')]
+        class_vars_name = [mem for mem in class_vars_name if not mem.startswith("_")]
         print("All settings:")
-        print(' \n ---------------------------------------\n')
+        print(" \n ---------------------------------------\n")
 
         for theme in attr_list:
-            print(f' ---------------- {theme} ----------------------\n')
+            print(f" ---------------- {theme} ----------------------\n")
             printdict = getattr(self, theme)
             for key1, item1 in printdict.items():
-                print(f'* {key1}: \n')
+                print(f"* {key1}: \n")
                 if isinstance(item1, type({})):
                     # nested dict level 1
                     for key2, item2 in item1.items():
-                        print(f'  - {key2}: \n')
-                        print(f'    -{item2} \n')
+                        print(f"  - {key2}: \n")
+                        print(f"    -{item2} \n")
                 else:
                     # not nested
-                    print(f'  -{item1} \n')
+                    print(f"  -{item1} \n")

@@ -7,30 +7,35 @@ Created on Fri Sep 23 12:01:35 2022
 """
 import os
 from pathlib import Path
+
 main_folder = Path(__file__).resolve().parents[1]
-testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderdata_small.csv' )
-metadata = os.path.join(str(main_folder), 'static_data', 'vlinder_metadata.csv')
+testdata_file = os.path.join(
+    str(main_folder), "tests", "test_data", "vlinderdata_small.csv"
+)
+metadata = os.path.join(str(main_folder), "static_data", "vlinder_metadata.csv")
 
 
-#import sys
-#sys.path.append(str(main_folder))
+# import sys
+# sys.path.append(str(main_folder))
 
 
 import metobs_toolkit
 
 
-#%%
+# %%
 
 # =============================================================================
 # Import data
 # =============================================================================
 
 
-#1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
+# 1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
 aug_2020_all_vlinders = metobs_toolkit.Dataset()
-aug_2020_all_vlinders.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
-                         input_metadata_file=metadata)
-#Coordinates needed to extract LCZ!
+aug_2020_all_vlinders.update_settings(
+    input_data_file=testdata_file,  # A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
+    input_metadata_file=metadata,
+)
+# Coordinates needed to extract LCZ!
 aug_2020_all_vlinders.import_data_from_file()
 
 
@@ -38,7 +43,7 @@ aug_2020_all_vlinders.import_data_from_file()
 
 print(aug_2020_all_vlinders.metadf.head())
 
-#you can see that there is no LCZ information yet. Als long as the coordinates are present, the lcz can be extracted.
+# you can see that there is no LCZ information yet. Als long as the coordinates are present, the lcz can be extracted.
 
 
 # =============================================================================
@@ -51,7 +56,7 @@ print(aug_2020_all_vlinders.metadf.head())
 lcz_values = aug_2020_all_vlinders.get_lcz()
 
 print(lcz_values)
-#Now the metadata is updated with lcz information for each station in the 'lcz' column:
+# Now the metadata is updated with lcz information for each station in the 'lcz' column:
 print(aug_2020_all_vlinders.metadf.head())
 
 
@@ -59,10 +64,10 @@ print(aug_2020_all_vlinders.metadf.head())
 # Analysing LCZ
 # =============================================================================
 
-#You can recompute the lcz for all stations by calling the get_lcz function on the metadata.
+# You can recompute the lcz for all stations by calling the get_lcz function on the metadata.
 
 # To make a geospatial map of the LCZ of all stations:
-aug_2020_all_vlinders.make_geo_plot(obstype='lcz')
+aug_2020_all_vlinders.make_geo_plot(obstype="lcz")
 
 # =============================================================================
 # Other physiography
@@ -75,8 +80,9 @@ aug_2020_all_vlinders.make_geo_plot(obstype='lcz')
 # or set aggregation to false to extract the landcoverclasses as present in the worldcover dataset.
 
 # aggregated
-agg_landcover = aug_2020_all_vlinders.get_landcover(buffer=250, #in meters
-                                    aggregate=True)
+agg_landcover = aug_2020_all_vlinders.get_landcover(
+    buffer=250, aggregate=True  # in meters
+)
 
 print(agg_landcover)
 
@@ -90,6 +96,4 @@ print(aug_2020_all_vlinders.metadf)
 
 altitude = aug_2020_all_vlinders.get_altitude()
 
-print(altitude) #altitude in meters
-
-
+print(altitude)  # altitude in meters
