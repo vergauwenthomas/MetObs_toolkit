@@ -1,5 +1,5 @@
 name: Code style format with Black
-on: [push, pull_request, workflow_dispatch]
+on: [pull_request, workflow_dispatch]
 permissions:
     contents: write
 jobs:
