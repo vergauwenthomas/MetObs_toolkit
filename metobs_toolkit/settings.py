@@ -102,7 +102,7 @@ class Settings:
         :rtype: No return
         """
         logger.debug('Updating app settings.')
-        from .settings_files.default_formats_settings import plot_settings, print_settings, vars_display
+        from .settings_files.default_formats_settings import plot_settings, print_settings, vars_display, default_name
         from .settings_files.default_formats_settings import static_fields, categorical_fields, observation_types, location_info
 
         # 1. Print settings
@@ -124,6 +124,9 @@ class Settings:
         # order of all possible observations
         self.app['observation_types'] = observation_types
         self.app['location_info'] = location_info  # all possible metadata
+
+        #5. default name (when station name is not present in dataset)
+        self.app['default_name'] = default_name
 
     def _update_qc_settings(self):
         """

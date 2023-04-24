@@ -13,24 +13,24 @@ import pandas as pd
 import numpy as np
 
 
-from vlinder_toolkit.settings import Settings
-from vlinder_toolkit.data_import import (import_data_from_csv,
+from metobs_toolkit.settings import Settings
+from metobs_toolkit.data_import import (import_data_from_csv,
                                          import_data_from_db,
                                          template_to_package_space,
                                          import_metadata_from_csv)
 
-from vlinder_toolkit.printing import print_dataset_info
-from vlinder_toolkit.landcover_functions import (connect_to_gee,
+from metobs_toolkit.printing import print_dataset_info
+from metobs_toolkit.landcover_functions import (connect_to_gee,
                                                  lcz_extractor,
                                                  height_extractor,
                                                  lc_fractions_extractor,
                                                  )
 
-from vlinder_toolkit.plotting_functions import (geospatial_plot,
+from metobs_toolkit.plotting_functions import (geospatial_plot,
                                                 timeseries_plot,
                                                 qc_stats_pie)
 
-from vlinder_toolkit.qc_checks import (gross_value_check,
+from metobs_toolkit.qc_checks import (gross_value_check,
                                        persistance_check,
                                        repetitions_check,
                                        duplicate_timestamp_check,
@@ -39,24 +39,24 @@ from vlinder_toolkit.qc_checks import (gross_value_check,
                                        invalid_input_check)
 
 
-from vlinder_toolkit.qc_statistics import get_freq_statistics
-from vlinder_toolkit.writing_files import write_dataset_to_csv
+from metobs_toolkit.qc_statistics import get_freq_statistics
+from metobs_toolkit.writing_files import write_dataset_to_csv
 
-from vlinder_toolkit.missingobs import Missingob_collection
+from metobs_toolkit.missingobs import Missingob_collection
 
-from vlinder_toolkit.gap import (Gap_collection,
+from metobs_toolkit.gap import (Gap_collection,
                                  missing_timestamp_and_gap_check,
                                  get_freqency_series)
 
 
-from vlinder_toolkit.df_helpers import (add_final_label_to_outliersdf,
+from metobs_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         multiindexdf_datetime_subsetting,
                                         remove_outliers_from_obs,
                                         init_multiindexdf,
                                         metadf_to_gdf)
 
 
-from vlinder_toolkit.modeldata import Modeldata
+from metobs_toolkit.modeldata import Modeldata
 
 
 logger = logging.getLogger(__name__)
@@ -145,6 +145,20 @@ class Dataset:
         """
         self.settings.update_timezone(timezonestr)
 
+    def update_default_name(self, default_name):
+        """
+        Update the default name (the name of the station). This name will be
+        used when no names are found in the observational dataset.
+
+        (All observations are assumed to come from one station.)
+
+        :param default_name: Default name to use when no names are present in the data.
+        :type default_name: String
+        :return: None
+        :rtype: None
+
+        """
+        self.settings.app['default_name'] = str(default_name)
 
     def show_settings(self):
         """
@@ -162,7 +176,7 @@ class Dataset:
         :param stationname: The name of the station
         :type stationname: String
         :return: The station object.
-        :rtype: vlinder_toolkit.Station
+        :rtype: metobs_toolkit.Station
 
         """
 
@@ -304,7 +318,7 @@ class Dataset:
 
         return ax
 
-    def make_geo_plot(self, variable='temp', title=None,
+    def make_geo_plot(self, obstype='temp', title=None,
                       timeinstance=None, legend=True,
                       vmin=None, vmax=None):
         """
@@ -354,7 +368,7 @@ class Dataset:
         if isinstance(timeinstance, type(None)):
             timeinstance = self.df.index.get_level_values('datetime').min()
 
-        logger.info(f'Make {variable}-geo plot at {timeinstance}')
+        logger.info(f'Make {obstype}-geo plot at {timeinstance}')
 
         # subset to timeinstance
         plotdf = self.df.xs(timeinstance, level='datetime')
@@ -364,7 +378,7 @@ class Dataset:
                               left_index=True, right_index=True)
 
         axis = geospatial_plot(plotdf=plotdf,
-                             variable=variable,
+                             variable=obstype,
                              timeinstance=timeinstance,
                              title=title,
                              legend=legend,
@@ -972,6 +986,12 @@ class Dataset:
 
         # drop Nat datetimes if present
         df = df.loc[pd.notnull(df.index)]
+
+        if not 'name' in df.columns:
+            logger.warning(f'No station names find in the observations! \
+                           Assume the dataset is for ONE station with the \
+                         default name: {self.settings.app["default_name"]}.')
+            df['name'] =str(self.settings.app["default_name"])
 
         if isinstance(self.settings.IO['input_metadata_file'], type(None)):
             print('WARNING: No metadata file is defined.\

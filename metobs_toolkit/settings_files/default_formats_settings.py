@@ -17,8 +17,8 @@ plot_settings = {}
 # =============================================================================
 
 #Static fields are fields (attributes and observations) that do not change in time
-static_fields = ['network', 'name', 
-                'lat', 'lon', #TODO make these dynamic, now used as static 
+static_fields = ['network', 'name',
+                'lat', 'lon', #TODO make these dynamic, now used as static
                 'call_name', 'location',
                 'lcz']
 
@@ -34,21 +34,21 @@ observation_types = ['temp', 'radiation_temp', 'humidity', 'precip',
 location_info = ['network', 'lat', 'lon', 'lcz', 'call_name', 'location' ]
 
 
-
+default_name = 'unknown_name' #used when no station names are available
 
 # =============================================================================
 # Timeseries plots
 # =============================================================================
 plot_settings['time_series'] = {
-    
+
     #shape
     'figsize' : (10,5),
     'linewidth': 2, #
     'linezorder': 1, #for ok obs
     'scattersize': 4, #for outliers
     'scatterzorder': 2, #for outliers
-    'dashedzorder': 2, #for gapfills 
-    
+    'dashedzorder': 2, #for gapfills
+
     }
 # =============================================================================
 # Spatial plot settings
@@ -58,17 +58,17 @@ plot_settings['spatial_geo'] = {
     #projection
     # 'proj' : 'Orthographic', #Orthographic or AlbersEqualArea
     'extent' : [ 2.260609, 49.25,  6.118359, 52.350618], #used if observatioons are within
-    
+
     #colors
     # 'cmap' : 'Set1',
     'cmap' : 'inferno_r',
-    'n_for_categorical' : 5, #number of quantiles for cat data (not for LCZ) 
-    
+    'n_for_categorical' : 5, #number of quantiles for cat data (not for LCZ)
+
     #shape
     'figsize': (10,15),
-    
+
     #datetime
-    'fmt': "%d/%m/%Y %H:%M:%S UTC" 
+    'fmt': "%d/%m/%Y %H:%M:%S UTC"
     }
 
 # =============================================================================
@@ -94,23 +94,23 @@ plot_settings['color_mapper']={
     'repetitions':'#056ff0',
     'step':'#05d4f0',
     'window_variation':'#05f0c9',
-    
+
     #missing and gap
     'gap': '#f00592',
     'missing_timestamp':'#e86bb6',
-    
+
     #Gap filling
     'linear': '#d406c6',
     'model_debias': '#6e1868',
 
-    
+
     #common
     'ok': '#07f72b',
     'not checked': '#f7cf07',
-    
+
     #Aggregated
     'outlier': '#f20000'
-    
+
     }
 
 
@@ -130,11 +130,11 @@ vars_display = {
     'name': 'station name',
     'call_name': 'pseudo name',
     'location': 'region',
-    
-    
+
+
     'lat': 'latitude',
     'lon': 'longtitude',
-    
+
     'temp': 'temperature',
     'radiation_temp': 'radiation temperature',
     'humidity': 'humidity',
@@ -145,7 +145,7 @@ vars_display = {
     'wind_direction': 'wind direction',
     'pressure': 'air pressure',
     'pressure_at_sea_level': 'corrected pressure at sea level',
-    
+
     'lcz':'LCZ'
-    
+
     }

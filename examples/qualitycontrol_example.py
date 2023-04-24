@@ -13,7 +13,7 @@ testdata_file = os.path.join(str(main_folder), 'tests', 'test_data',  'vlinderda
 
 # import sys
 # sys.path.append(str(main_folder))
-import vlinder_toolkit
+import metobs_toolkit
 
 
 
@@ -26,7 +26,7 @@ import vlinder_toolkit
 
 #1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
 
-sept_2022_all_vlinders = vlinder_toolkit.Dataset()
+sept_2022_all_vlinders = metobs_toolkit.Dataset()
 sept_2022_all_vlinders.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
                          output_folder='/home/$USER/output/')
 
@@ -165,7 +165,7 @@ favorite_station = sept_2022_all_vlinders.get_station(stationname='vlinder10')
     # 'temp','radiation_temp','humidity','precip','precip_sum','wind_speed',
     # 'wind_gust','wind_direction','pressure','pressure_at_sea_level'
 
-favorite_station.make_plot(variable='temp',
+favorite_station.make_plot(obstype='temp',
                             title=None) #if title=None, a title will be generated
 
 # You can see the effect of the quality control where the values are replaced when the observation was flagged as outlier.
@@ -180,7 +180,7 @@ favorite_station.make_plot(variable='temp',
 from datetime import datetime
 
 sept_2022_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder07'],
-                                variable='temp',
+                                obstype='temp',
                                 starttime=datetime(2022, 9,4), # 2022/09/04 00:00:00
                                 endtime=datetime(2022,9,12,12,45), #2022/09/12 12:45:00
                                 title=None,

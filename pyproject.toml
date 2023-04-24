@@ -1,11 +1,14 @@
 [tool.poetry]
-name = "vlinder-toolkit"
-version = "0.4.19"
-description = "A VLINDER and MOCCA toolkit for scientists"
+name = "MetObs-toolkit"
+version = "0.0.1"
+description = "A Meteorological observations toolkit for scientists"
 authors = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
+maintainers = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 license = "LICENSE"
 readme = "README.md"
-packages = [{include = "vlinder_toolkit"}]
+documentation = "https://python-poetry.org/docs/"
+packages = [{include = "metobs_toolkit"}]
+keywords = ["meteorology", "observations", "urban climate"]
 
 [tool.poetry.dependencies]
 python = "^3.9"

@@ -18,8 +18,7 @@ from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 import matplotlib.gridspec as gridspec
 
-from vlinder_toolkit.geometry_functions import find_largest_extent
-# from vlinder_toolkit.settings import Settings
+from metobs_toolkit.geometry_functions import find_largest_extent
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 

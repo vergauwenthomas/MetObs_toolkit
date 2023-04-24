@@ -16,7 +16,7 @@ lib_folder = Path(__file__).resolve().parents[2]
 #sys.path.append(str(lib_folder))
 
 
-import vlinder_toolkit
+import metobs_toolkit
 
 #%% Import data
 
@@ -31,10 +31,10 @@ static_data = os.path.join(
 
 
 
-dataset = vlinder_toolkit.Dataset()
+dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile,
                          input_metadata_file=static_data,
-                         output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
+                         output_folder='/home/thoverga/Documents/VLINDER_github/metobs_toolkit'
                          )
 dataset.import_data_from_file(coarsen_timeres=True)
 #%% Basic tests on the gaps
@@ -98,10 +98,10 @@ assert (gapsfilldf['diff']).sum() < 1e-5, f'Tlk interpolation differs from manua
 obstype='temp'
 
 
-dataset = vlinder_toolkit.Dataset()
+dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile,
                          input_metadata_file=static_data,
-                         output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
+                         output_folder='/home/thoverga/Documents/VLINDER_github/metobs_toolkit'
                          )
 
 dataset.settings.time_settings['target_time_res'] = '30T'
@@ -113,7 +113,7 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 
 #offline mode
-era = vlinder_toolkit.Modeldata('ERA5_hourly')
+era = metobs_toolkit.Modeldata('ERA5_hourly')
 
 era_datafile = os.path.join(
     str(lib_folder), 'tests', 'test_data',  'era5_data.csv')
@@ -136,7 +136,7 @@ dataset.fill_gaps_era5(modeldata=era,
 from datetime import datetime
 import numpy as np
 import pandas as pd
-from vlinder_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
+from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
 
 
 # validate

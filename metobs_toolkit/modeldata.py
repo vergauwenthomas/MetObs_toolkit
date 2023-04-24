@@ -7,15 +7,15 @@ Created on Wed Mar 22 13:50:17 2023
 """
 import pandas as pd
 
-from vlinder_toolkit.df_helpers import (init_multiindexdf,
+from metobs_toolkit.df_helpers import (init_multiindexdf,
                                         conv_tz_multiidxdf)
 
-from vlinder_toolkit.landcover_functions import (connect_to_gee,
+from metobs_toolkit.landcover_functions import (connect_to_gee,
                                                  gee_extract_timeseries)
 
-from vlinder_toolkit.convertors import convert_to_toolkit_units
+from metobs_toolkit.convertors import convert_to_toolkit_units
 
-from vlinder_toolkit.settings import Settings
+from metobs_toolkit.settings import Settings
 
 # =============================================================================
 # Class Model data (collection of external model data)

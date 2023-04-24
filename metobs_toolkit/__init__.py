@@ -31,8 +31,9 @@ BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_PATH)
 
 
-from vlinder_toolkit.dataset import Dataset
-from vlinder_toolkit.modeldata import Modeldata
+from metobs_toolkit.dataset import Dataset
+from metobs_toolkit.modeldata import Modeldata
 
-__version__ = "version debug"
+#DO not change this manually!
+__version__="0.0.2a1"
 

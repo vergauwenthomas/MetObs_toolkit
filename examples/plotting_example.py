@@ -16,7 +16,7 @@ vlinders_metadatafile = os.path.join(str(main_folder), 'static_data', 'vlinder_m
 # sys.path.append(str(main_folder))
 
 
-import vlinder_toolkit
+import metobs_toolkit
 
 
 
@@ -29,7 +29,7 @@ import vlinder_toolkit
 
 #1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
 
-aug_2020_all_vlinders = vlinder_toolkit.Dataset()
+aug_2020_all_vlinders = metobs_toolkit.Dataset()
 aug_2020_all_vlinders.update_settings(input_data_file=testdata_file, #A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
                          output_folder='/home/$USER/output/',
                          input_metadata_file=vlinders_metadatafile)
@@ -56,8 +56,8 @@ from datetime import datetime
 aug_2020_all_vlinders.make_plot(
                                 #specify the names of the stations in a list, or use None to plot them all.
                                 stationnames = None,
-                                #what variable to plot (default is 'temp')
-                                variable='temp',
+                                #what obstype to plot (default is 'temp')
+                                obstype='temp',
                                 #choose how to color the timeseries:
                                     #'name' : a specific color per station
                                     #'label': a specific color per quality control label
@@ -84,7 +84,7 @@ favorite_station.apply_quality_control()
     # 'wind_gust','wind_direction','pressure','pressure_at_sea_level'
 
 
-favorite_station.make_plot(variable='temp',
+favorite_station.make_plot(obstype='temp',
                            colorby='label',
                            title=None) #if title=None, a title will be generated
 
@@ -93,7 +93,7 @@ favorite_station.make_plot(variable='temp',
 #If you want to compair multiple stations by a timeseries you can use the make_plot function on the dataset:
 
 aug_2020_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder07'],
-                                variable='humidity',
+                                obstype='humidity',
                                 title=None,
                                 legend=True
                                 )
@@ -109,7 +109,7 @@ aug_2020_all_vlinders.make_plot(stationnames=['vlinder02', 'vlinder05', 'vlinder
 # geospatial plots can be made for a given moment (datetimeinstance) by
 # applying the make_geo_plot() on a dataset object:
 
-aug_2020_all_vlinders.make_geo_plot(variable='temp',
+aug_2020_all_vlinders.make_geo_plot(obstype='temp',
                                     timeinstance=datetime(2022, 9,6), # 2022/09/06 00:00:00
                                     title=None,
                                     legend=True,
