@@ -1,20 +1,25 @@
-name: reviewdog
-on: [pull_request]
+name: black-action
+on: [push, pull_request]
 jobs:
   linter_name:
-    name: runner / black formatter
+    name: runner / black
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      # Install specific version black (this step is not required. default is "black[jupyter]")
-      - run: pip install black==23.1.0
-      - uses: reviewdog/action-black@v3
+      - uses: actions/checkout@v2
+      - name: Check files using the black formatter
+        uses: rickstaa/action-black@v1
+        id: action_black
         with:
-          github_token: ${{ secrets.github_token }}
-          workdir: metobs_toolkit
-          black_args: "--verbose"
-          # Change reviewdog reporter if you need [github-pr-check, github-check].
-          reporter: github-pr-check
-          # Change reporter level if you need.
-          # GitHub Status Check won't become failure with a warning.
-          level: warning
+          black_args: "metobs_toolkit --verbose"
+      - name: Create Pull Request
+        if: steps.action_black.outputs.is_formatted == 'true'
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Format Python code with psf/black push"
+          commit-message: ":art: Format Python code with psf/black"
+          body: |
+            There appear to be some python formatting errors in ${{ github.sha }}. This pull request
+            uses the [psf/black](https://github.com/psf/black) formatter to fix these issues.
+          base: ${{ github.head_ref }} # Creates pull request onto pull request or commit branch
+          branch: actions/blacktest
