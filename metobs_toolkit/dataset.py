@@ -62,8 +62,6 @@ from metobs_toolkit.modeldata import Modeldata
 logger = logging.getLogger(__name__)
 
 
-
-
 # =============================================================================
 # Dataset class
 # =============================================================================
@@ -87,7 +85,6 @@ class Dataset:
 
         self.gapfilldf = init_multiindexdf()
 
-
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
         # dataframe containing all information on the description and mapping
@@ -96,35 +93,34 @@ class Dataset:
         self._istype = 'Dataset'
         self._freqs = pd.Series(dtype=object)
 
-
         self.settings = Settings()
-
 
     def update_settings(self, output_folder=None, input_data_file=None,
                   input_metadata_file=None, data_template_file=None,
                   metadata_template_file=None):
-
         """
         Update the most common input-output (IO) settings.
         (This should be applied before importing the observations.)
 
         When an update value is None, the specific setting will not be updated.
 
+        Parameters
+        ----------
+        output_folder : string, optional
+            A directory to store the output to. The default is None.
+        input_data_file : string, optional
+            Path to the input data file with observations. The default is None.
+        input_metadata_file : string, optional
+            Path to the input metadata file. The default is None.
+        data_template_file : string, optional
+            Path to the mapper-template csv file to be used on the observations.. The default is None.
+        metadata_template_file : string, optional
+            Path to the mapper-template csv file to be used on the metadata.. The default is None.
 
-        :param output_folder: a directory to store the output to, defaults to None.
-        :type output_folder: String, optional
-        :param input_data_file: Path to the input data file with observations, defaults to None.
-        :type input_data_file: String, optional
-        :param input_metadata_file: Path to the input metadata file, defaults to None
-        :type input_metadata_file: String, optional
-        :param data_template_file: Path to the mapper-template csv file to be used on the observations.
-        If not given, the default template is used.
-        :type data_template_file: String, optional
-        :param metadata_template_file: Path to the mapper-template csv file to be used on the metadata.
-        If not given, the default template is used.
-        :type metadata_template_file: String, optional
-        :return: No return
-        :rtype: No return
+        Returns
+        -------
+        None.
+
         """
 
         self.settings.update_IO(output_folder=output_folder,
@@ -138,11 +134,17 @@ class Dataset:
         Change the timezone of the input data. By default the Brussels timezone is assumed.
         A valid timezonestring is an element of the pytz.all_timezones.
 
-        :param timezonestr: Timezone string of the input observations.
-        :type timezonestr: String
-        :return: None
-        :rtype: None
+        Parameters
+        ----------
+        timezonestr : string
+            Timezone string of the input observations. Element of pytz.all_timezones.
+
+        Returns
+        -------
+        None.
+
         """
+
         self.settings.update_timezone(timezonestr)
 
     def update_default_name(self, default_name):
@@ -152,31 +154,44 @@ class Dataset:
 
         (All observations are assumed to come from one station.)
 
-        :param default_name: Default name to use when no names are present in the data.
-        :type default_name: String
-        :return: None
-        :rtype: None
+        Parameters
+        ----------
+        default_name : string
+            Default name to use when no names are present in the data.
+
+        Returns
+        -------
+        None.
 
         """
+
         self.settings.app['default_name'] = str(default_name)
 
     def show_settings(self):
         """
         A function that prints out all the settings, structured per thematic.
-        :return: No return
-        :rtype: No return
+
+        Returns
+        -------
+        None.
 
         """
+
         self.settings.show()
 
     def get_station(self, stationname):
         """
-        Extract a station object from the dataset by name.
+        Extract a metobs_toolkit.Station object from the dataset by name.
 
-        :param stationname: The name of the station
-        :type stationname: String
-        :return: The station object.
-        :rtype: metobs_toolkit.Station
+        Parameters
+        ----------
+        stationname : string
+            The name of the station.
+
+        Returns
+        -------
+        metobs_toolkit.Station
+            The station object.
 
         """
 
@@ -203,7 +218,7 @@ class Dataset:
         sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
 
         try:
-            sta_gapfill=self.gapfilldf.xs(
+            sta_gapfill = self.gapfilldf.xs(
                 stationname, level='name', drop_level=False)
         except KeyError:
             sta_gapfill = init_multiindexdf()
@@ -216,14 +231,16 @@ class Dataset:
                        gapfilldf=sta_gapfill,
                        metadf=sta_metadf,
                        data_template=self.data_template,
-                       settings = self.settings)
+                       settings=self.settings)
 
     def show(self):
         """
         A function to print out some overview information about the Dataset.
 
-        :return: No return
-        :rtype: No return
+        Returns
+        -------
+        None.
+
         """
 
         logger.info('Show basic info of dataset.')
@@ -231,8 +248,7 @@ class Dataset:
         try:
             gapsdf = self.gaps.to_df()
         except:
-            gapsdf=init_multiindexdf()
-
+            gapsdf = init_multiindexdf()
 
         print_dataset_info(self.df, self.outliersdf, gapsdf,
                            self.settings.app['print_fmt_datetime'])
@@ -245,26 +261,36 @@ class Dataset:
         is plotted for all stationnames from a starttime to an endtime.
 
 
-        :param stationnames: A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
-        :type stationnames: list or None, optional
-        :param obstype: The observation type to plot, defaults to 'temp'.
-        :type variable: String, optional
-        :param colorby: Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label. 'name' will color by each station, defaults to 'name'.
-        :type colorby: 'label' or 'name', optional
-        :param starttime: Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
-        :type starttime: datetime.datetime, optional
-        :param endtime: Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
-        :type endtime: datetime.datetime, optional
-        :param title: The title for the plot. If None is given a default title is used, defaults to None.
-        :type title: String, optional
-        :param legend: When thrue a legend is added to the plot, defaults to True
-        :type legend: Boolean, optional
-        :param show_outliers: If true the observations labeld as outliers will be included in the plot, defaults to True
-        :type show_outliers: boolean, optional
-        :return: The plot axis
-        :rtype: matplotlib.pyplot.axis
+         All styling attributes are extracted from the Settings.
+
+         Parameters
+         ----------
+         stationnames : list, optional
+             A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
+         obstype : string, optional
+             Fieldname to visualise. This can be an observation or station
+             attribute. The default is 'temp'.
+         colorby : 'label' or 'name', optional
+             Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label. 'name' will color by each station, defaults to 'name'.
+         starttime : datetime.datetime, optional
+             Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
+         endtime : datetime.datetime, optional
+             Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
+         title : string, optional
+             Title of the figure, if None a default title is generated. The default is None.
+         legend : bool, optional
+             I True, a legend is added to the plot. The default is True.
+         show_outliers : bool, optional
+             If true the observations labeld as outliers will be included in the plot, defaults to True
+
+
+         Returns
+         -------
+         axis : matplotlib.pyplot.axes
+             The timeseries axes of the plot is returned.
 
         """
+
 
         logger.info(f'Make {obstype}-timeseries plot for {stationnames}')
 
@@ -333,33 +359,29 @@ class Dataset:
 
         All styling attributes are extracted from the Settings.
 
-
         Parameters
-
-        variable : String, optional
+        ----------
+        obstype : string, optional
             Fieldname to visualise. This can be an observation or station
             attribute. The default is 'temp'.
-        title : String, optional
-            Title of the figure, if None a default title is generated. The
-            default is None.
-        timeinstance : datetime, optional
-            Datetime moment of the geospatial plot. The default is None and the
-            first datetime available is used.
-        legend : Bool, optional
-            Add legend to the figure. The default is True.
-        vmin : float, optional
-            The minimum value corresponding to the minimum color.
-            The default is None and the minimum of the variable is used.
-        vmax : float, optional
-           The maximum value corresponding to the minimum color. The default is
-           None and the maximum of the variable is used.
+        title : string, optional
+            Title of the figure, if None a default title is generated. The default is None.
+        timeinstance : datetime.datetime, optional
+            Datetime moment of the geospatial plot. If None, the first available datetime is used. The default is None.
+        legend : bool, optional
+            I True, a legend is added to the plot. The default is True.
+        vmin : numeric, optional
+            The value corresponding with the minimum color. If None, the minimum of the presented observations is used. The default is None.
+        vmax : numeric, optional
+            The value corresponding with the maximum color. If None, the maximum of the presented observations is used. The default is None.
 
         Returns
-
-        ax : Geoaxes
-            The geoaxes is returned.
+        -------
+        axis : matplotlib.pyplot.geoaxes
+            The geoaxes of the plot is returned.
 
         """
+
 
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
@@ -395,6 +417,28 @@ class Dataset:
     #   Gap Filling
     # =============================================================================
     def get_modeldata(self, modelname='ERA5_hourly', stations=None, startdt=None, enddt=None):
+        """
+        Make a metobs_toolkit.Modeldata object with modeldata at the locations
+        of the stations present in the dataset.
+
+        Parameters
+        ----------
+        modelname : 'ERA5_hourly', optional
+            Which dataset to download timeseries from. The default is 'ERA5_hourly'.
+        stations : string or list of strings, optional
+            Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.
+        startdt : datetime.datetime, optional
+            Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.
+        enddt : datetime.datetime, optional
+            End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.
+
+        Returns
+        -------
+        Modl : metobs_toolkit.Modeldata
+            The extracted modeldata for period and a set of stations.
+
+        """
+
         Modl = Modeldata(modelname)
 
         #Filters
@@ -425,6 +469,20 @@ class Dataset:
     # =============================================================================
 
     def fill_gaps_linear(self, obstype='temp'):
+        """
+        Fill the gaps using linear interpolation.
+
+        Parameters
+        ----------
+        obstype : string, optional
+            Fieldname to visualise. This can be an observation or station
+            attribute. The default is 'temp'.
+
+        Returns
+        -------
+        None.
+
+        """
         #TODO logging
         fill_settings =self.settings.gap['gaps_fill_settings']['linear']
         fill_info = self.settings.gap['gaps_fill_info']
@@ -444,6 +502,30 @@ class Dataset:
 
 
     def fill_gaps_era5(self, modeldata, method='debias', obstype='temp', overwrite=True):
+        """
+        Fill the gaps using a metobs_toolkit.Modeldata object.
+
+
+        Parameters
+        ----------
+        modeldata : metobs_toolkit.Modeldata
+            The modeldata to use for the gapfill. This model data should the required
+            timeseries to fill all gaps present in the dataset.
+        method : 'debias', optional
+            Specify which method to use. The default is 'debias'.
+        obstype : TYPE, optional
+            Fieldname to visualise. This can be an observation or station
+            attribute. The default is 'temp'.
+        overwrite : bool, optional
+            If True, the Dataset.Gapfilldf will be overwritten. The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
+
+
 
         fill_info = self.settings.gap['gaps_fill_info']
 
@@ -488,29 +570,36 @@ class Dataset:
                      include_gapfill=True,
                      add_final_labels=True, use_tlk_obsnames=True):
         """
-            Write the dataset to a file where the observations, metadata and
-            (if available) the quality labels per observation type are merged
-            together.
+        Write the dataset to a file where the observations, metadata and
+        (if available) the quality labels per observation type are merged
+        together.
 
-            A final qualty controll label for each
-            quality-controlled-observation type can be added in the outputfile.
+        A final qualty control label for each
+        quality-controlled-observation type can be added in the outputfile.
 
-            The file will be writen to the Settings.outputfolder.
+        The file will be writen to the outputfolder specified in the settings.
 
-            Parameters
+        Parameters
+        ----------
+        filename : string, optional
+            The name of the output csv file. If none, a standard-filename
+            is generated based on the period of data. The default is None.
+        include_outliers : bool, optional
+            If True, the outliers will be present in the csv file. The default is True.
+        include_gapfill : bool, optional
+            If True, the filled gap values will be present in the csv file. The default is True.
+        add_final_labels : bool, optional
+            If True, a column is added containing the final label of an observation. The default is True.
+        use_tlk_obsnames : bool, optional
+            If True, the standard naming of the metobs_toolkit is used, else
+            the original names for obstypes is used. The default is True.
 
-            filename : string, optional
-                The name of the output csv file. If none, a standard-filename
-                is generated based on the period of data. The default is None.
-            add_final_labels : Bool, optional
-                If True, a final qualty control label per observation type
-                is added as a column. The default is True.
+        Returns
+        -------
+        None.
 
-            Returns
+        """
 
-            None
-
-            """
 
         logger.info('Writing the dataset to a csv file')
 
@@ -559,9 +648,6 @@ class Dataset:
 
 
 
-
-
-
         # Map obstypes columns
         if not use_tlk_obsnames:
             # TODO
@@ -592,8 +678,10 @@ class Dataset:
                               # internal_consistency=True,
                               ):
         """
-        Apply quality control methods to the dataset. The default settings
-        are used, and can be changed in the settings_files/qc_settings.py
+        Apply quality control methods to the dataset.
+
+        The default settings are used, and can be changed in the
+        settings_files/qc_settings.py
 
         The checks are performed in a sequence: gross_vallue -->
         persistance --> ..., Outliers by a previous check are ignored in the
@@ -602,7 +690,7 @@ class Dataset:
         The dataset is updated inline.
 
         Parameters
-
+        ----------
         obstype : String, optional
             Name of the observationtype you want to apply the checks on. The
             default is 'temp'.
@@ -910,6 +998,26 @@ class Dataset:
     # =============================================================================
 
     def coarsen_time_resolution(self, freq='1H', method='nearest', limit=1):
+        """
+        Resample the observations to coarser timeresolution.
+
+
+        Parameters
+        ----------
+        freq : DateOffset, Timedelta or str, optional
+            The offset string or object representing target conversion.
+            Ex: '15T' is 15 minuts, '1H', is one hour. The default is '1H'.
+        method : 'nearest' or 'bfill', optional
+            Method to apply for the resampling. The default is 'nearest'.
+        limit : int, optional
+            Limit of how many values to fill with one original observations.
+            The default is 1.
+
+        Returns
+        -------
+        None.
+
+        """
         logger.info(f'Coarsening the timeresolution to {freq} using \
                     the {method}-method (with limit={limit}).')
         # TODO: implement buffer method
@@ -936,7 +1044,7 @@ class Dataset:
         # update df
         self.df = df
 
-    def import_data_from_file(self, network='vlinder', coarsen_timeres=False):
+    def import_data_from_file(self, coarsen_timeres=False):
         """
         Read observations from a csv file as defined in the
         Settings.input_file. The input file columns should have a template
@@ -954,16 +1062,14 @@ class Dataset:
         sets up the dataset with the observations and applies some sanity checks.
 
         Parameters
-
-        network : String, optional
-            The name of the network for these observations. The default
-            is 'vlinder'.
+        ----------
         coarsen_timeres : Bool, optional
             If True, the observations will be interpolated to a coarser
             time resolution as is defined in the Settings. The default
             is False.
 
         Returns
+        ----------
 
         None.
 
@@ -1043,6 +1149,7 @@ class Dataset:
 
 
         Parameters
+        ----------
 
         start_datetime : datetime, optional
             Start datetime of the observations. The default is None and using
@@ -1056,8 +1163,14 @@ class Dataset:
             is False.
 
         Returns
+        ----------
 
         None.
+
+        Note
+        ----------
+        A Ugent VPN connection must be present, as well as the username and password
+        stored in the settings.
 
         """
         if isinstance(start_datetime, type(None)):
@@ -1114,10 +1227,18 @@ class Dataset:
         A dataframe that has an datetimeindex and following columns:
             'name, temp, radiation_temp, humidity, ...'
 
+        coarsen_timeres : Bool, optional
+            If True, the observations will be interpolated to a coarser
+            time resolution as is defined in the Settings. The default
+            is False.
 
         Returns
 
         None.
+
+        Note
+        ----------
+        Using this function is discuraged.
 
         """
 
