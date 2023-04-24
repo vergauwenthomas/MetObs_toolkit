@@ -417,6 +417,28 @@ class Dataset:
     #   Gap Filling
     # =============================================================================
     def get_modeldata(self, modelname='ERA5_hourly', stations=None, startdt=None, enddt=None):
+        """
+        Make a metobs_toolkit.Modeldata object with modeldata at the locations
+        of the stations present in the dataset.
+
+        Parameters
+        ----------
+        modelname : 'ERA5_hourly', optional
+            Which dataset to download timeseries from. The default is 'ERA5_hourly'.
+        stations : string or list of strings, optional
+            Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.
+        startdt : datetime.datetime, optional
+            Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.
+        enddt : datetime.datetime, optional
+            End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.
+
+        Returns
+        -------
+        Modl : metobs_toolkit.Modeldata
+            The extracted modeldata for period and a set of stations.
+
+        """
+
         Modl = Modeldata(modelname)
 
         #Filters
@@ -447,6 +469,20 @@ class Dataset:
     # =============================================================================
 
     def fill_gaps_linear(self, obstype='temp'):
+        """
+        Fill the gaps using linear interpolation.
+
+        Parameters
+        ----------
+        obstype : string, optional
+            Fieldname to visualise. This can be an observation or station
+            attribute. The default is 'temp'.
+
+        Returns
+        -------
+        None.
+
+        """
         #TODO logging
         fill_settings =self.settings.gap['gaps_fill_settings']['linear']
         fill_info = self.settings.gap['gaps_fill_info']
@@ -466,6 +502,30 @@ class Dataset:
 
 
     def fill_gaps_era5(self, modeldata, method='debias', obstype='temp', overwrite=True):
+        """
+        Fill the gaps using a metobs_toolkit.Modeldata object.
+
+
+        Parameters
+        ----------
+        modeldata : metobs_toolkit.Modeldata
+            The modeldata to use for the gapfill. This model data should the required
+            timeseries to fill all gaps present in the dataset.
+        method : 'debias', optional
+            Specify which method to use. The default is 'debias'.
+        obstype : TYPE, optional
+            Fieldname to visualise. This can be an observation or station
+            attribute. The default is 'temp'.
+        overwrite : bool, optional
+            If True, the Dataset.Gapfilldf will be overwritten. The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
+
+
 
         fill_info = self.settings.gap['gaps_fill_info']
 
@@ -510,29 +570,36 @@ class Dataset:
                      include_gapfill=True,
                      add_final_labels=True, use_tlk_obsnames=True):
         """
-            Write the dataset to a file where the observations, metadata and
-            (if available) the quality labels per observation type are merged
-            together.
+        Write the dataset to a file where the observations, metadata and
+        (if available) the quality labels per observation type are merged
+        together.
 
-            A final qualty controll label for each
-            quality-controlled-observation type can be added in the outputfile.
+        A final qualty control label for each
+        quality-controlled-observation type can be added in the outputfile.
 
-            The file will be writen to the Settings.outputfolder.
+        The file will be writen to the outputfolder specified in the settings.
 
-            Parameters
+        Parameters
+        ----------
+        filename : string, optional
+            The name of the output csv file. If none, a standard-filename
+            is generated based on the period of data. The default is None.
+        include_outliers : bool, optional
+            If True, the outliers will be present in the csv file. The default is True.
+        include_gapfill : bool, optional
+            If True, the filled gap values will be present in the csv file. The default is True.
+        add_final_labels : bool, optional
+            If True, a column is added containing the final label of an observation. The default is True.
+        use_tlk_obsnames : bool, optional
+            If True, the standard naming of the metobs_toolkit is used, else
+            the original names for obstypes is used. The default is True.
 
-            filename : string, optional
-                The name of the output csv file. If none, a standard-filename
-                is generated based on the period of data. The default is None.
-            add_final_labels : Bool, optional
-                If True, a final qualty control label per observation type
-                is added as a column. The default is True.
+        Returns
+        -------
+        None.
 
-            Returns
+        """
 
-            None
-
-            """
 
         logger.info('Writing the dataset to a csv file')
 
@@ -581,9 +648,6 @@ class Dataset:
 
 
 
-
-
-
         # Map obstypes columns
         if not use_tlk_obsnames:
             # TODO
@@ -614,8 +678,10 @@ class Dataset:
                               # internal_consistency=True,
                               ):
         """
-        Apply quality control methods to the dataset. The default settings
-        are used, and can be changed in the settings_files/qc_settings.py
+        Apply quality control methods to the dataset.
+
+        The default settings are used, and can be changed in the
+        settings_files/qc_settings.py
 
         The checks are performed in a sequence: gross_vallue -->
         persistance --> ..., Outliers by a previous check are ignored in the
@@ -624,7 +690,7 @@ class Dataset:
         The dataset is updated inline.
 
         Parameters
-
+        ----------
         obstype : String, optional
             Name of the observationtype you want to apply the checks on. The
             default is 'temp'.
@@ -932,6 +998,26 @@ class Dataset:
     # =============================================================================
 
     def coarsen_time_resolution(self, freq='1H', method='nearest', limit=1):
+        """
+        Resample the observations to coarser timeresolution.
+
+
+        Parameters
+        ----------
+        freq : DateOffset, Timedelta or str, optional
+            The offset string or object representing target conversion.
+            Ex: '15T' is 15 minuts, '1H', is one hour. The default is '1H'.
+        method : 'nearest' or 'bfill', optional
+            Method to apply for the resampling. The default is 'nearest'.
+        limit : int, optional
+            Limit of how many values to fill with one original observations.
+            The default is 1.
+
+        Returns
+        -------
+        None.
+
+        """
         logger.info(f'Coarsening the timeresolution to {freq} using \
                     the {method}-method (with limit={limit}).')
         # TODO: implement buffer method
@@ -958,7 +1044,7 @@ class Dataset:
         # update df
         self.df = df
 
-    def import_data_from_file(self, network='vlinder', coarsen_timeres=False):
+    def import_data_from_file(self, coarsen_timeres=False):
         """
         Read observations from a csv file as defined in the
         Settings.input_file. The input file columns should have a template
@@ -976,16 +1062,14 @@ class Dataset:
         sets up the dataset with the observations and applies some sanity checks.
 
         Parameters
-
-        network : String, optional
-            The name of the network for these observations. The default
-            is 'vlinder'.
+        ----------
         coarsen_timeres : Bool, optional
             If True, the observations will be interpolated to a coarser
             time resolution as is defined in the Settings. The default
             is False.
 
         Returns
+        ----------
 
         None.
 
@@ -1065,6 +1149,7 @@ class Dataset:
 
 
         Parameters
+        ----------
 
         start_datetime : datetime, optional
             Start datetime of the observations. The default is None and using
@@ -1078,8 +1163,14 @@ class Dataset:
             is False.
 
         Returns
+        ----------
 
         None.
+
+        Note
+        ----------
+        A Ugent VPN connection must be present, as well as the username and password
+        stored in the settings.
 
         """
         if isinstance(start_datetime, type(None)):
@@ -1136,10 +1227,18 @@ class Dataset:
         A dataframe that has an datetimeindex and following columns:
             'name, temp, radiation_temp, humidity, ...'
 
+        coarsen_timeres : Bool, optional
+            If True, the observations will be interpolated to a coarser
+            time resolution as is defined in the Settings. The default
+            is False.
 
         Returns
 
         None.
+
+        Note
+        ----------
+        Using this function is discuraged.
 
         """
 
