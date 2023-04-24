@@ -1,13 +1,20 @@
-name: Code style format with Black
-on: [push, pull_request, workflow_dispatch]
-permissions:
-    contents: write
+name: reviewdog
+on: [pull_request]
 jobs:
   linter_name:
     name: runner / black formatter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: rickstaa/action-black@v1
+      - uses: actions/checkout@v3
+      # Install specific version black (this step is not required. default is "black[jupyter]")
+      - run: pip install black==23.1.0
+      - uses: reviewdog/action-black@v3
         with:
-          black_args: "./metobs_toolkit --verbose"
+          github_token: ${{ secrets.github_token }}
+          workdir: metobs_toolkit
+          black_args: "--verbose"
+          # Change reviewdog reporter if you need [github-pr-check, github-check].
+          reporter: github-pr-check
+          # Change reporter level if you need.
+          # GitHub Status Check won't become failure with a warning.
+          level: warning
