@@ -1,0 +1,21 @@
+name: Code style format with Black
+on: [push, pull_request, workflow_dispatch]
+permissions:
+    contents: write
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Black
+        run: |
+          pip install black
+      - name: Run Black
+        run: |
+          cd metobs_toolkit
+          black --include *.py -v
+          cd data_templates
+          black --include *.py -v
+          cd ..
+          cd settings_files
+          black --include *.py -v
