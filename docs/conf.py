@@ -58,14 +58,32 @@ release = '0.0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 
-extensions = ['sphinx.ext.autodoc',
-              'sphinx_rtd_theme',
-              'sphinx.ext.viewcode',
-              'sphinx_copybutton']
+extensions = ['sphinx.ext.autodoc', #Autodocument functions
+              'sphinx_rtd_theme', #Use the read the docs theme
+              'sphinx.ext.viewcode', #Button to go to source code
+              'sphinx_copybutton',# Copy button (for examples etc)
+              'sphinx.ext.napoleon', #To convert Numpydocstring to readable format
+              'sphinx.ext.autosummary',  # Create neat summary tables
+              'myst_parser', #for including md files (readme)
+              ]
 
 
 # Add any paths that contain templates here, relative to this directory.
-# templates_path = ['_templates']
+
+
+templates_path = ['_templates']
+autosummary_generate = True  # Turn on sphinx.ext.autosummary
+
+# When building the doc, sphinx will try to import all the depending packages,
+# this is not needed and problematic when building the docs in a clean docker on gitlab.
+# So specify which packages can be mocked
+
+autodoc_mock_imports = ["ee",'pytz', 
+                        'matplotlib', 'numpy','geopandas',
+                        'pandas',
+                        'pyproj', 'shapely', 'cartopy']
+
+
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

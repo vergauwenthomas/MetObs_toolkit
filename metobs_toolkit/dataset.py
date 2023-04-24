@@ -62,8 +62,6 @@ from metobs_toolkit.modeldata import Modeldata
 logger = logging.getLogger(__name__)
 
 
-
-
 # =============================================================================
 # Dataset class
 # =============================================================================
@@ -87,7 +85,6 @@ class Dataset:
 
         self.gapfilldf = init_multiindexdf()
 
-
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
         # dataframe containing all information on the description and mapping
@@ -96,35 +93,34 @@ class Dataset:
         self._istype = 'Dataset'
         self._freqs = pd.Series(dtype=object)
 
-
         self.settings = Settings()
-
 
     def update_settings(self, output_folder=None, input_data_file=None,
                   input_metadata_file=None, data_template_file=None,
                   metadata_template_file=None):
-
         """
         Update the most common input-output (IO) settings.
         (This should be applied before importing the observations.)
 
         When an update value is None, the specific setting will not be updated.
 
+        Parameters
+        ----------
+        output_folder : string, optional
+            A directory to store the output to. The default is None.
+        input_data_file : string, optional
+            Path to the input data file with observations. The default is None.
+        input_metadata_file : string, optional
+            Path to the input metadata file. The default is None.
+        data_template_file : string, optional
+            Path to the mapper-template csv file to be used on the observations.. The default is None.
+        metadata_template_file : string, optional
+            Path to the mapper-template csv file to be used on the metadata.. The default is None.
 
-        :param output_folder: a directory to store the output to, defaults to None.
-        :type output_folder: String, optional
-        :param input_data_file: Path to the input data file with observations, defaults to None.
-        :type input_data_file: String, optional
-        :param input_metadata_file: Path to the input metadata file, defaults to None
-        :type input_metadata_file: String, optional
-        :param data_template_file: Path to the mapper-template csv file to be used on the observations.
-        If not given, the default template is used.
-        :type data_template_file: String, optional
-        :param metadata_template_file: Path to the mapper-template csv file to be used on the metadata.
-        If not given, the default template is used.
-        :type metadata_template_file: String, optional
-        :return: No return
-        :rtype: No return
+        Returns
+        -------
+        None.
+
         """
 
         self.settings.update_IO(output_folder=output_folder,
@@ -138,11 +134,17 @@ class Dataset:
         Change the timezone of the input data. By default the Brussels timezone is assumed.
         A valid timezonestring is an element of the pytz.all_timezones.
 
-        :param timezonestr: Timezone string of the input observations.
-        :type timezonestr: String
-        :return: None
-        :rtype: None
+        Parameters
+        ----------
+        timezonestr : string
+            Timezone string of the input observations. Element of pytz.all_timezones.
+
+        Returns
+        -------
+        None.
+
         """
+
         self.settings.update_timezone(timezonestr)
 
     def update_default_name(self, default_name):
@@ -152,31 +154,44 @@ class Dataset:
 
         (All observations are assumed to come from one station.)
 
-        :param default_name: Default name to use when no names are present in the data.
-        :type default_name: String
-        :return: None
-        :rtype: None
+        Parameters
+        ----------
+        default_name : string
+            Default name to use when no names are present in the data.
+
+        Returns
+        -------
+        None.
 
         """
+
         self.settings.app['default_name'] = str(default_name)
 
     def show_settings(self):
         """
         A function that prints out all the settings, structured per thematic.
-        :return: No return
-        :rtype: No return
+
+        Returns
+        -------
+        None.
 
         """
+
         self.settings.show()
 
     def get_station(self, stationname):
         """
-        Extract a station object from the dataset by name.
+        Extract a metobs_toolkit.Station object from the dataset by name.
 
-        :param stationname: The name of the station
-        :type stationname: String
-        :return: The station object.
-        :rtype: metobs_toolkit.Station
+        Parameters
+        ----------
+        stationname : string
+            The name of the station.
+
+        Returns
+        -------
+        metobs_toolkit.Station
+            The station object.
 
         """
 
@@ -203,7 +218,7 @@ class Dataset:
         sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
 
         try:
-            sta_gapfill=self.gapfilldf.xs(
+            sta_gapfill = self.gapfilldf.xs(
                 stationname, level='name', drop_level=False)
         except KeyError:
             sta_gapfill = init_multiindexdf()
@@ -216,14 +231,16 @@ class Dataset:
                        gapfilldf=sta_gapfill,
                        metadf=sta_metadf,
                        data_template=self.data_template,
-                       settings = self.settings)
+                       settings=self.settings)
 
     def show(self):
         """
         A function to print out some overview information about the Dataset.
 
-        :return: No return
-        :rtype: No return
+        Returns
+        -------
+        None.
+
         """
 
         logger.info('Show basic info of dataset.')
@@ -231,8 +248,7 @@ class Dataset:
         try:
             gapsdf = self.gaps.to_df()
         except:
-            gapsdf=init_multiindexdf()
-
+            gapsdf = init_multiindexdf()
 
         print_dataset_info(self.df, self.outliersdf, gapsdf,
                            self.settings.app['print_fmt_datetime'])
@@ -245,26 +261,36 @@ class Dataset:
         is plotted for all stationnames from a starttime to an endtime.
 
 
-        :param stationnames: A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
-        :type stationnames: list or None, optional
-        :param obstype: The observation type to plot, defaults to 'temp'.
-        :type variable: String, optional
-        :param colorby: Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label. 'name' will color by each station, defaults to 'name'.
-        :type colorby: 'label' or 'name', optional
-        :param starttime: Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
-        :type starttime: datetime.datetime, optional
-        :param endtime: Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
-        :type endtime: datetime.datetime, optional
-        :param title: The title for the plot. If None is given a default title is used, defaults to None.
-        :type title: String, optional
-        :param legend: When thrue a legend is added to the plot, defaults to True
-        :type legend: Boolean, optional
-        :param show_outliers: If true the observations labeld as outliers will be included in the plot, defaults to True
-        :type show_outliers: boolean, optional
-        :return: The plot axis
-        :rtype: matplotlib.pyplot.axis
+         All styling attributes are extracted from the Settings.
+
+         Parameters
+         ----------
+         stationnames : list, optional
+             A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
+         obstype : string, optional
+             Fieldname to visualise. This can be an observation or station
+             attribute. The default is 'temp'.
+         colorby : 'label' or 'name', optional
+             Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label. 'name' will color by each station, defaults to 'name'.
+         starttime : datetime.datetime, optional
+             Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
+         endtime : datetime.datetime, optional
+             Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
+         title : string, optional
+             Title of the figure, if None a default title is generated. The default is None.
+         legend : bool, optional
+             I True, a legend is added to the plot. The default is True.
+         show_outliers : bool, optional
+             If true the observations labeld as outliers will be included in the plot, defaults to True
+
+
+         Returns
+         -------
+         axis : matplotlib.pyplot.axes
+             The timeseries axes of the plot is returned.
 
         """
+
 
         logger.info(f'Make {obstype}-timeseries plot for {stationnames}')
 
@@ -333,33 +359,29 @@ class Dataset:
 
         All styling attributes are extracted from the Settings.
 
-
         Parameters
-
-        variable : String, optional
+        ----------
+        obstype : string, optional
             Fieldname to visualise. This can be an observation or station
             attribute. The default is 'temp'.
-        title : String, optional
-            Title of the figure, if None a default title is generated. The
-            default is None.
-        timeinstance : datetime, optional
-            Datetime moment of the geospatial plot. The default is None and the
-            first datetime available is used.
-        legend : Bool, optional
-            Add legend to the figure. The default is True.
-        vmin : float, optional
-            The minimum value corresponding to the minimum color.
-            The default is None and the minimum of the variable is used.
-        vmax : float, optional
-           The maximum value corresponding to the minimum color. The default is
-           None and the maximum of the variable is used.
+        title : string, optional
+            Title of the figure, if None a default title is generated. The default is None.
+        timeinstance : datetime.datetime, optional
+            Datetime moment of the geospatial plot. If None, the first available datetime is used. The default is None.
+        legend : bool, optional
+            I True, a legend is added to the plot. The default is True.
+        vmin : numeric, optional
+            The value corresponding with the minimum color. If None, the minimum of the presented observations is used. The default is None.
+        vmax : numeric, optional
+            The value corresponding with the maximum color. If None, the maximum of the presented observations is used. The default is None.
 
         Returns
-
-        ax : Geoaxes
-            The geoaxes is returned.
+        -------
+        axis : matplotlib.pyplot.geoaxes
+            The geoaxes of the plot is returned.
 
         """
+
 
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
