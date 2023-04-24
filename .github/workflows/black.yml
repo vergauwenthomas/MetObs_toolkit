@@ -1,21 +1,13 @@
 name: Code style format with Black
-on: [pull_request, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch]
 permissions:
     contents: write
 jobs:
-  docs:
+  linter_name:
+    name: runner / black formatter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Black
-        run: |
-          pip install black
-      - name: Run Black
-        run: |
-          cd metobs_toolkit
-          black --include *.py -v
-          cd data_templates
-          black --include *.py -v
-          cd ..
-          cd settings_files
-          black --include *.py -v
+      - uses: actions/checkout@v2
+      - uses: rickstaa/action-black@v1
+        with:
+          black_args: "./metobs_toolkit --verbose"
