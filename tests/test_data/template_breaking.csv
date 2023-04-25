@@ -7,3 +7,5 @@ _time,time,,,object,%H:%M:%S
 ,,,,,
 temp,temperature,Celcius,2m-temperature,float64,
 flags,qc_flags,,,object,
+humidity,humidity,,,float64,
+wind_speed,windspeed,,,float64,
