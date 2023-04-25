@@ -53,6 +53,7 @@ from metobs_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         multiindexdf_datetime_subsetting,
                                         remove_outliers_from_obs,
                                         init_multiindexdf,
+                                        init_triple_multiindexdf,
                                         metadf_to_gdf)
 
 
@@ -78,7 +79,7 @@ class Dataset:
         self.df = pd.DataFrame()
 
         # Dataset with outlier observations
-        self.outliersdf = init_multiindexdf()
+        self.outliersdf = init_triple_multiindexdf()
 
         self.missing_obs = None  # becomes a Missingob_collection after import
         self.gaps = None  # becomes a gap_collection after import
@@ -92,6 +93,8 @@ class Dataset:
 
         self._istype = 'Dataset'
         self._freqs = pd.Series(dtype=object)
+
+        self._qc_checked_obstypes = [] #list with qc-checked obstypes
 
         self.settings = Settings()
 
@@ -796,12 +799,12 @@ class Dataset:
             if not outl_df.empty:
                 self.update_outliersdf(outl_df)
 
-
+        self._qc_checked_obstypes.append(obstype)
         self.outliersdf = self.outliersdf.sort_index()
 
 
 
-    def combine_all_to_obsspace(self):
+    def combine_all_to_obsspace(self, repr_outl_as_nan=False):
         """
         Combine observations, outliers, gaps and missing timesteps to one
         dataframe in the resolution of the dataset. Final quality labels are
@@ -817,59 +820,91 @@ class Dataset:
 
         """
 
-
+        # =============================================================================
+        # Unstack outliers to regular multiindex
+        # =============================================================================
         outliersdf = self.outliersdf
 
-        # if outliersdf is empty, create columns with 'not checked'
-        if outliersdf.empty:
-            outliercolumns = [col['label_columnname']
-                              for col in self.settings.qc['qc_checks_info'].values()]
-            for column in outliercolumns:
-                outliersdf[column] = 'not checked'
-        # get final label
-        outliersdf = add_final_label_to_outliersdf(
-                        outliersdf=self.outliersdf,
-                        data_res_series=self.metadf['dataset_resolution'],
-                        observation_types=self.settings.app['observation_types'],
-                        checks_info=self.settings.qc['qc_checks_info'])
 
         #remove duplicate indixes (needed for update)
         outliersdf = outliersdf[~outliersdf.index.duplicated(keep='first')]
 
 
+        if not outliersdf.empty:
+            outliersdf_values = outliersdf['value'].unstack() # for later use
+            # convert to wide df with labels
+            outliersdf = outliersdf['label'].unstack()
+
+            # convert to final label names for columns
+            outliersdf = outliersdf.rename(columns={col: col+'_final_label' for col in outliersdf.columns})
+
+
+        else:
+            outliersdf = init_multiindexdf()
+            outliersdf_values = init_multiindexdf() # for later use
+            outliercolumns = [col+'_final_label' for col in self.df if col in self.settings.app['observation_types']]
+            for column in outliercolumns:
+                outliersdf[column] = 'not checked'
+
+
+
+        # =============================================================================
+        # Combine observations and outliers
+        # =============================================================================
+        # get observations
+        df = self.df
+
+
+        # 1. Merge the label columns
+        df_and_outl = df.merge(outliersdf, how='outer', left_index=True, right_index=True)
+
+        # 2. fill the missing labels
+
+        # split between obstype that are checked by qc and obstypes that are not checked
+
+        checked_cols = [col+'_final_label' for col in self._qc_checked_obstypes]
+        not_checked_cols = [col for col in df_and_outl.columns if ((col.endswith('_final_label')) and (not col in checked_cols))]
+
+        # if obstype checked, and value is nan --> label ok
+        df_and_outl[checked_cols] = df_and_outl[checked_cols].fillna('ok')
+        # if obstype is not checked and label is missing --> label 'not checked'
+        df_and_outl[not_checked_cols] = df_and_outl[not_checked_cols].fillna('not checked')
+
+
+        # 3. Update the values if needed
+        if not repr_outl_as_nan:
+
+        # Merge obs and outliers, where obs values will be updated by outliers
+            df_and_outl.update(other=outliersdf_values,
+                         join='left',
+                         overwrite=True,
+                         errors='ignore')
+
+
+        # =============================================================================
+        # Make gaps, gapsfill and missing dataframes
+        # =============================================================================
+
         # add gaps observations and fill with default values
         gapsidx = self.gaps.get_gaps_indx_in_obs_space(
-            self.df, self.outliersdf, self.metadf['dataset_resolution'])
+               self.df, self.outliersdf, self.metadf['dataset_resolution'])
         gapsdf = gapsidx.to_frame()
 
         # add missing observations if they occure in observation space
         missingidx = self.missing_obs.get_missing_indx_in_obs_space(
-            self.df, self.metadf['dataset_resolution'])
+                self.df, self.metadf['dataset_resolution'])
         missingdf = missingidx.to_frame()
 
         # add gapfill and remove the filled records from gaps
         gapsfilldf = self.gapfilldf.copy()
 
         gapsdf = gapsdf.drop(gapsfilldf.index, errors='ignore')
-        # missingdf = missingdf.drop(gapsfilldf, errors='ignore') #for future when missing are filled
 
 
-        # get observations
-        df = self.df
-        #fill QC outlier columns with custom values
-        label_cols = [col for col in outliersdf.columns if col.endswith('_label')]
-        for col in label_cols:
-            df[col] = 'ok'
-
-        # Merge obs and outliers, where obs values will be updated by outliers
-        df.update(other=outliersdf,
-                         join='left',
-                         overwrite=True,
-                         errors='ignore')
 
 
         # initiate default values
-        for col in df.columns:
+        for col in df_and_outl.columns:
             if col in self.settings.app['observation_types']:
                 default_value_gap = np.nan  # nan for observations
                 default_value_missing = np.nan
@@ -889,12 +924,12 @@ class Dataset:
             missingdf[col] = default_value_missing
 
         # sort columns
-        gapsdf = gapsdf[list(df.columns)]
-        missingdf = missingdf[list(df.columns)]
+        gapsdf = gapsdf[list(df_and_outl.columns)]
+        missingdf = missingdf[list(df_and_outl.columns)]
 
 
         # Merge all together
-        comb_df = pd.concat([df, gapsdf, missingdf, gapsfilldf]).sort_index()
+        comb_df = pd.concat([df_and_outl, gapsdf, missingdf, gapsfilldf]).sort_index()
 
         return comb_df
 
@@ -972,25 +1007,13 @@ class Dataset:
 
         return (final_freq, outl_freq, specific_freq)
 
+
+
     def update_outliersdf(self, add_to_outliersdf):
+        """ V5 """
 
-        # Get the flag column labels and find the newly added columnlabelname
-        previous_performed_checks_columns = [
-            col for col in self.outliersdf.columns if col.endswith('_label')]
-        new_performed_checks_columns = list(set([
-                    col for col in add_to_outliersdf.columns
-                    if col.endswith('_label')])
-                    - set(previous_performed_checks_columns))
-
-        # add to the outliersdf
         self.outliersdf = pd.concat([self.outliersdf, add_to_outliersdf])
 
-        # Fix labels
-        self.outliersdf[previous_performed_checks_columns] = self.outliersdf[
-                        previous_performed_checks_columns].fillna(value='ok')
-
-        self.outliersdf[new_performed_checks_columns] = self.outliersdf[
-            new_performed_checks_columns].fillna(value='not checked')
 
 
     # =============================================================================
@@ -999,25 +1022,37 @@ class Dataset:
 
     def coarsen_time_resolution(self, freq='1H', method='nearest', limit=1):
         """
-        Resample the observations to coarser timeresolution.
+        Resample the observations to coarser timeresolution. The assumed
+        dataset resolution (stored in the metadf attribute) will be updated.
 
 
         Parameters
         ----------
         freq : DateOffset, Timedelta or str, optional
             The offset string or object representing target conversion.
-            Ex: '15T' is 15 minuts, '1H', is one hour. The default is '1H'.
+            Ex: '15T' is 15 minuts, '1H', is one hour. If None, the target time
+            resolution of the dataset.settings is used. The default is None.
         method : 'nearest' or 'bfill', optional
-            Method to apply for the resampling. The default is 'nearest'.
+            Method to apply for the resampling. If None, the resample method of
+            the dataset.settings is used. The default is None.
         limit : int, optional
-            Limit of how many values to fill with one original observations.
-            The default is 1.
+            Limit of how many values to fill with one original observations. If
+            None, the target limit of the dataset.settings is used. The default
+            is None.
 
         Returns
         -------
         None.
 
         """
+        if isinstance(freq, type(None)):
+            freq = self.settings.time_settings['target_time_res']
+        if isinstance(method, type(None)):
+            method = self.settings.time_settings['resample_method']
+        if isinstance(freq, type(None)):
+            limit = int(self.settings.time_settings['resample_limit'])
+
+
         logger.info(f'Coarsening the timeresolution to {freq} using \
                     the {method}-method (with limit={limit}).')
         # TODO: implement buffer method
@@ -1043,6 +1078,14 @@ class Dataset:
         self.metadf['dataset_resolution'] = pd.to_timedelta(freq)
         # update df
         self.df = df
+
+        # Remove gaps and missing from the observatios
+        # most gaps and missing are already removed but when increasing timeres,
+        # some records should be removed as well.
+        self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
+        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+
+
 
     def import_data_from_file(self, coarsen_timeres=False):
         """
@@ -1136,8 +1179,19 @@ class Dataset:
         # dataframe with all data of input file
         self.input_df = df
 
-        self.update_dataset_by_df(dataframe=df,
-                                  coarsen_timeres=coarsen_timeres)
+
+
+        # Convert dataframe to dataset attributes
+        self._initiate_df_attribute(dataframe=df)
+
+        # Apply quality control on Import resolution
+        self._apply_qc_on_import()
+
+        # Remove gaps and missing from the observations AFTER timecoarsening
+        self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
+        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+
+
 
     def import_data_from_database(self,
                                   start_datetime=None,
@@ -1201,47 +1255,22 @@ class Dataset:
         if not unknown_obs.empty:
             logger.warning('There is an unknown station in the dataset \
                            (probaply due to an ID that is not present in \
-                           the metadata file). This will be removed.')
+                           the metadata file). This will be removed from the dataset.')
             df = df[~df.index.get_level_values('name').isnull()]
 
-        self.update_dataset_by_df(
-            dataframe=df, coarsen_timeres=coarsen_timeres)
 
-    def update_dataset_by_df(self, dataframe, coarsen_timeres=False):
+        # Convert dataframe to dataset attributes
+        self._initiate_df_attribute(dataframe=df)
 
-        """
-        Update the dataset object by a dataframe.
+        # Apply quality control on Import resolution
+        self._apply_qc_on_import()
+
+        # Remove gaps and missing from the observations AFTER timecoarsening
+        self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
+        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
 
-        When filling the observations, there is an automatic check for
-        missing timestamps and duplicating timestamps. If a missing timestamp
-        is detected, the timestamp is created with Nan values for all
-        observation types.
-
-        If metadata is present and a LCZ-tiff file availible, than the LCZ's
-        of the stations are computed.
-
-        Parameters
-
-        dataframe : pandas.DataFrame
-        A dataframe that has an datetimeindex and following columns:
-            'name, temp, radiation_temp, humidity, ...'
-
-        coarsen_timeres : Bool, optional
-            If True, the observations will be interpolated to a coarser
-            time resolution as is defined in the Settings. The default
-            is False.
-
-        Returns
-
-        None.
-
-        Note
-        ----------
-        Using this function is discuraged.
-
-        """
-
+    def _initiate_df_attribute(self, dataframe):
 
         logger.info(f'Updating dataset by dataframe with shape:\
                     {dataframe.shape}.')
@@ -1260,9 +1289,11 @@ class Dataset:
 
         # add import frequencies to metadf
         self.metadf['assumed_import_frequency'] = get_freqency_series(self.df)
+        self.metadf['dataset_resolution'] = self.metadf['assumed_import_frequency']
         self.df = df.sort_index()
         self.original_df = df.sort_index()
 
+    def _apply_qc_on_import(self):
         # find missing obs and gaps, and remove them from the df
         self.df, missing_obs, gaps_df = missing_timestamp_and_gap_check(
             df=self.df,
@@ -1273,31 +1304,19 @@ class Dataset:
         self.missing_obs = Missingob_collection(missing_obs)
 
         # Perform QC checks on original observation frequencies
-
         self.df, dup_outl_df = duplicate_timestamp_check(df=self.df,
                                                          checks_info=self.settings.qc['qc_checks_info'],
                                                          checks_settings = self.settings.qc['qc_check_settings'])
         if not dup_outl_df.empty:
-            self.update_outliersdf(dup_outl_df)
+            self.update_outliersdf(add_to_outliersdf=dup_outl_df)
 
         self.df, nan_outl_df = invalid_input_check(self.df,
-                                                   checks_info=self.settings.qc['qc_checks_info'])
+                                                    checks_info=self.settings.qc['qc_checks_info'])
         if not nan_outl_df.empty:
             self.update_outliersdf(nan_outl_df)
 
 
-        if coarsen_timeres:
-            self.coarsen_time_resolution(freq=self.settings.time_settings['target_time_res'],
-                                          method=self.settings.time_settings['resample_method'],
-                                          limit=self.settings.time_settings['resample_limit'])
 
-
-        else:
-            self.metadf['dataset_resolution'] = self.metadf['assumed_import_frequency']
-
-        # Remove gaps and missing from the observations AFTER timecoarsening
-        self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
-        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
     # =============================================================================
     # Physiography extractions

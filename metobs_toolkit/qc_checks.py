@@ -13,7 +13,8 @@ import logging
 
 
 from metobs_toolkit.df_helpers import (init_multiindex,
-                                        init_multiindexdf)
+                                        init_multiindexdf,
+                                        init_triple_multiindexdf)
 
 
 
@@ -28,12 +29,80 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
+# def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
+#                               flagcolumnname, flag,
+#                               add_obstype_prefix_to_label=True,
+#                               stationname=None, datetimelist=None):
+#     """
+#     V4
+#     Helper function to create an outlier dataframe for the given station(s) and datetimes. This will be returned by
+#     a quality control check and later added to the dastes.outlierdf.
+
+#     Multiple commum inputstructures can be handles
+
+#     A multiindex dataframe with the relevant observationtypes i.e. the values_in_dict and a specific quality flag column (i.g. the labels) is returned.
+
+#     Parameters
+
+#     station_dt_list : MultiIndex or list of tuples: (name, datetime)
+#         The stations with corresponding datetimes that are labeled as outliers.
+#     values_in_dict : Dictionary
+#         A Dictionary {columnname: pd.Series()} with the values on which this check is applied.
+#     flagcolumnname : String
+#         Name of the labels column
+#     flag : String
+#         The label for all the outliers.
+#     stationname : String, optional
+#         It is possible to give the name of one station. The default is None.
+#     datetimelist : DatetimeIndex or List, optional
+#         The outlier timestamps for the stationname. The default is None.
+
+#     Returns
+
+#     check_outliers : pd.Dataframe
+#         A multiindex (name -- datetime) datatframe with one column (columname) and all
+#         values are the flag.
+#     """
+
+#     if add_obstype_prefix_to_label:
+#         flagcolumnname = obstype + '_' + flagcolumnname
+
+
+#     columnorder =[obstype, flagcolumnname]
+
+#     #Create outliersdf
+
+#     if isinstance(station_dt_list, pd.MultiIndex):
+#         multi_idx = station_dt_list
+
+#     elif isinstance(station_dt_list, list): #list of tuples: (name, datetime)
+#         multi_idx = pd.MultiIndex.from_tuples(station_dt_list, names=['name', 'datetime'])
+#     elif not isinstance(stationname, type(None)):
+#         if isinstance(datetimelist, pd.DatetimeIndex):
+#             datetimelist = datetimelist.to_list()
+#         if isinstance(datetimelist, list):
+#             indexarrays = list(zip([stationname]*len(datetimelist), datetimelist))
+#             multi_idx = pd.MultiIndex.from_tuples(indexarrays, names=['name', 'datetime'])
+
+#         else:
+#             sys.exit(f'Type of datetimelist: {type(datetimelist)} is not implemented.')
+
+#     # create outliers df
+#     check_outliers = pd.DataFrame(data=flag, index=station_dt_list, columns=[flagcolumnname])
+#     check_outliers[obstype] = obsdf.loc[multi_idx, obstype]
+#     check_outliers = check_outliers[columnorder]
+
+#     #replace values in obsdf by Nan
+#     obsdf.loc[multi_idx, obstype] = np.nan
+
+#     return obsdf, check_outliers
+
 def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
                               flagcolumnname, flag,
                               add_obstype_prefix_to_label=True,
                               stationname=None, datetimelist=None):
     """
-    V4
+    V5
     Helper function to create an outlier dataframe for the given station(s) and datetimes. This will be returned by
     a quality control check and later added to the dastes.outlierdf.
 
@@ -63,14 +132,6 @@ def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
         values are the flag.
     """
 
-    if add_obstype_prefix_to_label:
-        flagcolumnname = obstype + '_' + flagcolumnname
-
-
-    columnorder =[obstype, flagcolumnname]
-
-    #Create outliersdf
-
     if isinstance(station_dt_list, pd.MultiIndex):
         multi_idx = station_dt_list
 
@@ -86,15 +147,24 @@ def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
         else:
             sys.exit(f'Type of datetimelist: {type(datetimelist)} is not implemented.')
 
-    # create outliers df
-    check_outliers = pd.DataFrame(data=flag, index=station_dt_list, columns=[flagcolumnname])
-    check_outliers[obstype] = obsdf.loc[multi_idx, obstype]
-    check_outliers = check_outliers[columnorder]
+    #subset outliers
+    outliersdf = obsdf.loc[multi_idx]
+
+    #make the triple multiindex
+    outliersdf['obstype'] = obstype
+    outliersdf = outliersdf.set_index('obstype', append=True)
+
+    #add flag
+    outliersdf['label'] = flag
+
+    # subset columns
+    outliersdf = outliersdf[[obstype, 'label']].rename(columns={obstype: 'value'})
+
 
     #replace values in obsdf by Nan
     obsdf.loc[multi_idx, obstype] = np.nan
 
-    return obsdf, check_outliers
+    return obsdf, outliersdf
 
 # =============================================================================
 # Quality assesment checks on data import
@@ -174,20 +244,37 @@ def duplicate_timestamp_check(df, checks_info, checks_settings):
     #Fill the outlierdf with the duplicates
     outliers = df[df.index.duplicated(keep=checks_settings[checkname]['keep'])]
 
-
-    # replace observation values by nan
+    # convert values to nan in obsdf
     for obstype in df.columns:
         df.loc[outliers.index, obstype] = np.nan
+
+    # ------- Create a outliersdf -----------#
+    # the 'make outliersdf' function cannont be use because of duplicated indices
+
+    outliers = outliers.rename(columns={col: 'value_'+col for col in outliers.columns})
+    outliers = outliers.reset_index()
+    outliers['_to_get_unique_idx'] = np.arange(outliers.shape[0])
+
+
+    outliersdf = pd.wide_to_long(df=outliers,
+                                    stubnames='value',
+                                    sep='_',
+                                    suffix=r'\w+', #to use non-integer suffexes
+                                    i=['name', 'datetime', '_to_get_unique_idx'],
+                                    j = 'obstype')
+    # remove the temorary level from the index
+    outliersdf = outliersdf.droplevel('_to_get_unique_idx', axis=0)
+
+    # add label column
+    outliersdf['label'] = checks_info[checkname]['outlier_flag']
+
 
     # drop duplicates in the obsdf, because this gives a lot of troubles
     # The method does not really mater because the values are set to nan in the observations
     df = df[~df.index.duplicated(keep='first')]
 
 
-    #add label
-    outliers[checks_info[checkname]['label_columnname']] = checks_info[checkname]['outlier_flag']
-
-    return df, outliers
+    return df, outliersdf
 
 # =============================================================================
 # Quality assesment checks on dataset

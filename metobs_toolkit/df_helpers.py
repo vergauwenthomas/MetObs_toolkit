@@ -15,20 +15,24 @@ import geopandas as gpd
 
 
 
-def init_multiindexdf():
-    my_index = pd.MultiIndex(levels=[['name'],['datetime']],
-                             codes=[[],[]],
-                             names=[u'name', u'datetime'])
 
-
-    df = pd.DataFrame(index=my_index)
-    return df
 
 
 def init_multiindex():
      return pd.MultiIndex(levels=[['name'],['datetime']],
                              codes=[[],[]],
                              names=[u'name', u'datetime'])
+def init_multiindexdf():
+    return pd.DataFrame(index = init_multiindex())
+
+def init_triple_multiindex():
+    my_index = pd.MultiIndex(levels=[['name'],['datetime'],['obstype']],
+                             codes=[[],[],[]],
+                             names=[u'name', u'datetime', u'obstype'])
+    return my_index
+def init_triple_multiindexdf():
+    return pd.DataFrame(index=init_triple_multiindex())
+
 
 
 
