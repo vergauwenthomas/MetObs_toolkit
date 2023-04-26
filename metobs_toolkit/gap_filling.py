@@ -10,7 +10,8 @@ import pandas as pd
 from datetime import timedelta
 
 from metobs_toolkit.df_helpers import (remove_outliers_from_obs,
-                                        init_multiindexdf)
+                                       init_multiindexdf,
+                                       format_outliersdf_to_doubleidx)
 
 
 
@@ -21,6 +22,7 @@ from metobs_toolkit.df_helpers import (remove_outliers_from_obs,
 def interpolate_gap(gap, obsdf, outliersdf, dataset_res, obstype,
                     method, max_consec_fill):
 
+    outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
     #1 get trailing and leading + exploded index
     gap.update_leading_trailing_obs(obsdf, outliersdf)
@@ -130,7 +132,7 @@ def create_leading_trailing_debias_periods(station, gap, debias_period_settings,
 
     # remove blacklist
     #TODO
-    obs = remove_outliers_from_obs(obs, station.outliersdf)
+    obs = remove_outliers_from_obs(obs, format_outliersdf_to_doubleidx(station.outliersdf))
 
     # add whitelist
     #TODO

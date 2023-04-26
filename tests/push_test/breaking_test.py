@@ -78,7 +78,8 @@ dataset_coarsened.settings.qc['qc_check_settings']['step']['temp']['max_decrease
 
 
 
-dataset_coarsened.import_data_from_file(coarsen_timeres=True)
+dataset_coarsened.import_data_from_file()
+dataset_coarsened.coarsen_time_resolution()
 dataset_coarsened.apply_quality_control()
 
 #_ = dataset_coarsened.get_qc_stats()
@@ -86,7 +87,7 @@ dataset_coarsened.apply_quality_control()
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file = testdata,
                         data_template_file=template_file)
-dataset.import_data_from_file(coarsen_timeres=False)
+dataset.import_data_from_file()
 dataset.apply_quality_control()
 
 _ = dataset.get_qc_stats()

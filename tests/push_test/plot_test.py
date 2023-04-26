@@ -32,7 +32,8 @@ dataset.update_settings(input_data_file=testdatafile,
 
 
 
-dataset.import_data_from_file(coarsen_timeres=True)
+dataset.import_data_from_file()
+dataset.coarsen_time_resolution()
 
 #%% timeseries plots of dataset
 dataset.make_plot()

@@ -36,7 +36,8 @@ dataset.update_settings(input_data_file=testdatafile,
                          input_metadata_file=static_data,
                          output_folder='/home/thoverga/Documents/VLINDER_github/metobs_toolkit'
                          )
-dataset.import_data_from_file(coarsen_timeres=True)
+dataset.import_data_from_file()
+dataset.coarsen_time_resolution()
 #%% Basic tests on the gaps
 gapsdf = dataset.gaps.to_df()
 # check if two gaps are found
@@ -104,9 +105,10 @@ dataset.update_settings(input_data_file=testdatafile,
                          output_folder='/home/thoverga/Documents/VLINDER_github/metobs_toolkit'
                          )
 
-dataset.settings.time_settings['target_time_res'] = '30T'
 
-dataset.import_data_from_file(coarsen_timeres=True)
+
+dataset.import_data_from_file()
+dataset.coarsen_time_resolution(freq='30T')
 
 
 

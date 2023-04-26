@@ -21,7 +21,7 @@ from metobs_toolkit.gap_filling import (interpolate_gap,
                                          create_leading_trailing_debias_periods,
                                          make_era_bias_correction)
 
-
+from metobs_toolkit.df_helpers import format_outliersdf_to_doubleidx
 logger = logging.getLogger(__name__)
 
 
@@ -111,7 +111,7 @@ class Gap:
         None.
 
         """
-
+        outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
         # combine timestamps of observations and outliers
         sta_obs = obsdf.xs(self.name, level='name').index
@@ -172,7 +172,7 @@ class Gap:
 
         """
 
-
+        outliersdf = format_outliersdf_to_doubleidx(outliersdf)
         self.update_leading_trailing_obs(obsdf, outliersdf)
 
 
@@ -226,6 +226,7 @@ class Gap:
 
         """
 
+        outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
         gapfill_series = interpolate_gap(gap=self,
                                          obsdf=obsdf,
@@ -373,6 +374,8 @@ class Gap_collection:
             DESCRIPTION.
 
         """
+        outliersdf = format_outliersdf_to_doubleidx(outliersdf)
+
         expanded_gabsidx_obsspace = pd.MultiIndex(levels=[['name'],['datetime']],
                                   codes=[[],[]],
                                   names=[u'name', u'datetime'])
@@ -391,6 +394,7 @@ class Gap_collection:
                               method='time', max_consec_fill=100):
 
 
+        outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
         expanded_gabsidx_obsspace = pd.MultiIndex(levels=[['name'],['datetime']],
                                  codes=[[],[]],

@@ -11,7 +11,7 @@ Created on Thu Mar  2 16:00:59 2023
 import pandas as pd
 import numpy as np
 import geopandas as gpd
-
+import itertools
 
 
 
@@ -34,7 +34,30 @@ def init_triple_multiindexdf():
     return pd.DataFrame(index=init_triple_multiindex())
 
 
+def format_outliersdf_to_doubleidx(outliersdf):
+    """
+    Convert outliersdf to multiindex dataframe if needed.
 
+    This is applied when the obstype level in the index is not relevant.
+
+
+    Parameters
+    ----------
+    ouliersdf : Dataset.outliersdf
+        The outliers dataframe to format to name - datetime index.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The outliersdfdataframe where the 'obstype' level is dropped, if it was present.
+
+    """
+
+
+    if 'obstype' in outliersdf.index.names:
+        return outliersdf.droplevel('obstype')
+    else:
+        return outliersdf
 
 def add_final_label_to_outliersdf(outliersdf, data_res_series, observation_types, checks_info):
     """
@@ -206,3 +229,19 @@ def datetime_subsetting(df, starttime, endtime):
         endstring = endtime.strftime(stand_format)
 
     return df[startstring: endstring]
+
+
+def conv_applied_qc_to_df(obstypes, ordered_checknames):
+    if isinstance(obstypes, str):
+        obstypes = [obstypes]
+    if isinstance(ordered_checknames, str):
+        ordered_checknames = [ordered_checknames]
+
+    obslist = list(itertools.chain.from_iterable(itertools.repeat(item, len(ordered_checknames)) for item in obstypes))
+
+    checknamelist = list(itertools.chain.from_iterable(itertools.repeat(ordered_checknames, len(obstypes))))
+
+    df = pd.DataFrame({'obstype': obslist,
+                       'checkname': checknamelist})
+    return df
+

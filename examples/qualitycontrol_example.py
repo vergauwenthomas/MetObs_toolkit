@@ -36,9 +36,9 @@ sept_2022_all_vlinders.update_settings(input_data_file=testdata_file, #A demo da
 
 #The dataset is initiated but still empty. Filling it with the data from a csv file is simply done by:
 
-sept_2022_all_vlinders.import_data_from_file(coarsen_timeres=True) #Rember that you added the input file in the settings object, this file will be used.
+sept_2022_all_vlinders.import_data_from_file() #Rember that you added the input file in the settings object, this file will be used.
 
-
+sept_2022_all_vlinders.coarsen_time_resolution()
 
 # =============================================================================
 # Applying quality control

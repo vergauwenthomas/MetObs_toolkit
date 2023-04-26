@@ -54,7 +54,8 @@ from metobs_toolkit.df_helpers import (add_final_label_to_outliersdf,
                                         remove_outliers_from_obs,
                                         init_multiindexdf,
                                         init_triple_multiindexdf,
-                                        metadf_to_gdf)
+                                        metadf_to_gdf,
+                                        conv_applied_qc_to_df)
 
 
 from metobs_toolkit.modeldata import Modeldata
@@ -95,7 +96,7 @@ class Dataset:
         self._istype = 'Dataset'
         self._freqs = pd.Series(dtype=object)
 
-
+        self._applied_qc = pd.DataFrame(columns=['obstype', 'checkname'])
         self._qc_checked_obstypes = [] #list with qc-checked obstypes
 
         self.settings = Settings()
@@ -237,7 +238,9 @@ class Dataset:
                        gapfilldf=sta_gapfill,
                        metadf=sta_metadf,
                        data_template=self.data_template,
-                       settings=self.settings)
+                       settings=self.settings,
+                       _qc_checked_obstypes=self._qc_checked_obstypes,
+                       _applied_qc = self._applied_qc)
 
     def show(self):
         """
@@ -739,6 +742,13 @@ class Dataset:
             if not outl_df.empty:
                 self.outliersdf = pd.concat([self.outliersdf, outl_df])
 
+            # add this check to the applied checks
+            self._applied_qc = pd.concat([self._applied_qc,
+                                          conv_applied_qc_to_df(
+                                              obstypes=obstype,
+                                              ordered_checknames = 'repetitions')],
+                                         ignore_index=True)
+
         if gross_value:
             print('Applying the gross-value-check on all stations.')
             logger.info('Applying gross value check on the full dataset')
@@ -753,6 +763,13 @@ class Dataset:
             self.df = obsdf
             if not outl_df.empty:
                 self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+            # add this check to the applied checks
+            self._applied_qc = pd.concat([self._applied_qc,
+                                          conv_applied_qc_to_df(
+                                              obstypes=obstype,
+                                              ordered_checknames = 'gross_value')],
+                                         ignore_index=True)
 
         if persistance:
             print('Applying the persistance-check on all stations.')
@@ -770,6 +787,13 @@ class Dataset:
             if not outl_df.empty:
                 self.outliersdf = pd.concat([self.outliersdf, outl_df])
 
+            # add this check to the applied checks
+            self._applied_qc = pd.concat([self._applied_qc,
+                                          conv_applied_qc_to_df(
+                                              obstypes=obstype,
+                                              ordered_checknames = 'persistance')],
+                                         ignore_index=True)
+
         if step:
             print('Applying the step-check on all stations.')
             logger.info('Applying step-check on the full dataset')
@@ -784,6 +808,13 @@ class Dataset:
             self.df = obsdf
             if  not outl_df.empty:
                 self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+            # add this check to the applied checks
+            self._applied_qc = pd.concat([self._applied_qc,
+                                          conv_applied_qc_to_df(
+                                              obstypes=obstype,
+                                              ordered_checknames = 'step')],
+                                         ignore_index=True)
 
         if window_variation:
             print('Applying the window variation-check on all stations.')
@@ -802,7 +833,15 @@ class Dataset:
             if not outl_df.empty:
                 self.outliersdf = pd.concat([self.outliersdf, outl_df])
 
+            # add this check to the applied checks
+            self._applied_qc = pd.concat([self._applied_qc,
+                                          conv_applied_qc_to_df(
+                                              obstypes=obstype,
+                                              ordered_checknames = 'window_variation')],
+                                         ignore_index=True)
+
         self._qc_checked_obstypes.append(obstype)
+        self._qc_checked_obstypes = list(set(self._qc_checked_obstypes))
         self.outliersdf = self.outliersdf.sort_index()
 
 
@@ -851,11 +890,21 @@ class Dataset:
 
 
 
+
+
         # =============================================================================
         # Combine observations and outliers
         # =============================================================================
         # get observations
         df = self.df
+
+        # 0. make shure there is a final column for each obstype in the df,
+        # if qc did not found any outliers, then there is apriori no final label column
+        present_obstypes = [col for col in self.settings.app['observation_types'] if col in df.columns]
+        for presen_obstype in present_obstypes:
+            final_label = presen_obstype+'_final_label'
+            if not final_label in outliersdf.columns:
+                outliersdf[final_label] = np.nan
 
 
         # 1. Merge the label columns
@@ -864,8 +913,7 @@ class Dataset:
         # 2. fill the missing labels
 
         # split between obstype that are checked by qc and obstypes that are not checked
-
-        checked_cols = [col+'_final_label' for col in self._qc_checked_obstypes]
+        checked_cols = [col+'_final_label' for col in list(set(self._qc_checked_obstypes))]
         not_checked_cols = [col for col in df_and_outl.columns if ((col.endswith('_final_label')) and (not col in checked_cols))]
 
         # if obstype checked, and value is nan --> label ok
@@ -970,20 +1018,10 @@ class Dataset:
         # cobmine all and get final label
         comb_df = self.combine_all_to_obsspace()
 
-        # drop observation columns that are not obstype
-        ignore_obstypes = self.settings.app['observation_types'].copy()
-        ignore_obstypes.remove(obstype)
-        comb_df = comb_df.drop(columns=ignore_obstypes)
+        # subset to relevant columnt
+        relev_columns = [obstype, obstype+'_final_label']
+        comb_df = comb_df[relev_columns]
 
-        # drop label columns not applicable on obstype
-        relevant_columns = [col for col in comb_df.columns if col.startswith(obstype)]
-
-        # add all columns of checks applied on records (i.g. without obs prefix like duplicate timestamp)
-        record_check = {key: item['label_columnname'] for key, item in self.settings.qc['qc_checks_info'].items() if item['apply_on'] == 'record'}
-        relevant_columns.extend(list(record_check.values()))
-        relevant_columns = [col for col in relevant_columns if col in comb_df.columns]
-        # filter relevant columns
-        comb_df = comb_df[relevant_columns]
 
 
         # compute freq statistics
@@ -992,6 +1030,7 @@ class Dataset:
             obstype=obstype,
             checks_info=self.settings.qc['qc_checks_info'],
             gaps_info =self.settings.gap['gaps_info'],
+            applied_qc_order = self._applied_qc,
             )
 
         if any([isinstance(stat, type(None)) for stat in [final_freq,
@@ -1023,7 +1062,7 @@ class Dataset:
     #     importing data
     # =============================================================================
 
-    def coarsen_time_resolution(self, freq='1H', method='nearest', limit=1):
+    def coarsen_time_resolution(self, freq=None, method=None, limit=None):
         """
         Resample the observations to coarser timeresolution. The assumed
         dataset resolution (stored in the metadf attribute) will be updated.
@@ -1090,7 +1129,7 @@ class Dataset:
 
 
 
-    def import_data_from_file(self, coarsen_timeres=False):
+    def import_data_from_file(self):
         """
         Read observations from a csv file as defined in the
         Settings.input_file. The input file columns should have a template
@@ -1107,12 +1146,7 @@ class Dataset:
         After the import there is always a call to Dataset.update_dataset_by_df, that
         sets up the dataset with the observations and applies some sanity checks.
 
-        Parameters
-        ----------
-        coarsen_timeres : Bool, optional
-            If True, the observations will be interpolated to a coarser
-            time resolution as is defined in the Settings. The default
-            is False.
+
 
         Returns
         ----------
@@ -1321,6 +1355,14 @@ class Dataset:
 
         self.outliersdf = self.outliersdf.sort_index()
 
+        # update the order and which qc is applied on which obstype
+        checked_obstypes = [obs for obs in self.df.columns if obs in self.settings.app['observation_types']]
+        checknames = ['duplicated_timestamp', 'invalid_input'] #KEEP order
+
+        self._applied_qc = pd.concat([self._applied_qc,
+                                      conv_applied_qc_to_df(obstypes=checked_obstypes,
+                                                            ordered_checknames = checknames)],
+                                     ignore_index=True)
 
 
 

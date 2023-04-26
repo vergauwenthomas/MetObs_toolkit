@@ -29,78 +29,8 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-# def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
-#                               flagcolumnname, flag,
-#                               add_obstype_prefix_to_label=True,
-#                               stationname=None, datetimelist=None):
-#     """
-#     V4
-#     Helper function to create an outlier dataframe for the given station(s) and datetimes. This will be returned by
-#     a quality control check and later added to the dastes.outlierdf.
-
-#     Multiple commum inputstructures can be handles
-
-#     A multiindex dataframe with the relevant observationtypes i.e. the values_in_dict and a specific quality flag column (i.g. the labels) is returned.
-
-#     Parameters
-
-#     station_dt_list : MultiIndex or list of tuples: (name, datetime)
-#         The stations with corresponding datetimes that are labeled as outliers.
-#     values_in_dict : Dictionary
-#         A Dictionary {columnname: pd.Series()} with the values on which this check is applied.
-#     flagcolumnname : String
-#         Name of the labels column
-#     flag : String
-#         The label for all the outliers.
-#     stationname : String, optional
-#         It is possible to give the name of one station. The default is None.
-#     datetimelist : DatetimeIndex or List, optional
-#         The outlier timestamps for the stationname. The default is None.
-
-#     Returns
-
-#     check_outliers : pd.Dataframe
-#         A multiindex (name -- datetime) datatframe with one column (columname) and all
-#         values are the flag.
-#     """
-
-#     if add_obstype_prefix_to_label:
-#         flagcolumnname = obstype + '_' + flagcolumnname
-
-
-#     columnorder =[obstype, flagcolumnname]
-
-#     #Create outliersdf
-
-#     if isinstance(station_dt_list, pd.MultiIndex):
-#         multi_idx = station_dt_list
-
-#     elif isinstance(station_dt_list, list): #list of tuples: (name, datetime)
-#         multi_idx = pd.MultiIndex.from_tuples(station_dt_list, names=['name', 'datetime'])
-#     elif not isinstance(stationname, type(None)):
-#         if isinstance(datetimelist, pd.DatetimeIndex):
-#             datetimelist = datetimelist.to_list()
-#         if isinstance(datetimelist, list):
-#             indexarrays = list(zip([stationname]*len(datetimelist), datetimelist))
-#             multi_idx = pd.MultiIndex.from_tuples(indexarrays, names=['name', 'datetime'])
-
-#         else:
-#             sys.exit(f'Type of datetimelist: {type(datetimelist)} is not implemented.')
-
-#     # create outliers df
-#     check_outliers = pd.DataFrame(data=flag, index=station_dt_list, columns=[flagcolumnname])
-#     check_outliers[obstype] = obsdf.loc[multi_idx, obstype]
-#     check_outliers = check_outliers[columnorder]
-
-#     #replace values in obsdf by Nan
-#     obsdf.loc[multi_idx, obstype] = np.nan
-
-#     return obsdf, check_outliers
-
 def make_outlier_df_for_check(station_dt_list, obsdf, obstype,
-                              flagcolumnname, flag,
-                              add_obstype_prefix_to_label=True,
-                              stationname=None, datetimelist=None):
+                              flag, stationname=None, datetimelist=None):
     """
     V5
     Helper function to create an outlier dataframe for the given station(s) and datetimes. This will be returned by
@@ -205,7 +135,6 @@ def invalid_input_check(df, checks_info):
         df, specific_outl_df = make_outlier_df_for_check(station_dt_list=outliers,
                                                      obsdf=df,
                                                      obstype=obstype,
-                                                     flagcolumnname= checks_info[checkname]['label_columnname'],
                                                      flag=checks_info[checkname]['outlier_flag'])
         outl_df = pd.concat([outl_df, specific_outl_df])
 
@@ -328,7 +257,6 @@ def gross_value_check(obsdf, obstype, checks_info, checks_settings):
     obsdf, outlier_df = make_outlier_df_for_check(station_dt_list=outl_obs,
                                            obsdf=obsdf,
                                            obstype=obstype,
-                                           flagcolumnname=checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
 
 
@@ -415,7 +343,6 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_info,
         subset_used, outlier_df = make_outlier_df_for_check(station_dt_list=list_of_outliers,
                                                obsdf=subset_used,
                                                obstype=obstype,
-                                               flagcolumnname=checks_info[checkname]['label_columnname'],
                                                flag=checks_info[checkname]['outlier_flag'])
 
         obsdf = pd.concat([subset_used, subset_not_used])
@@ -496,7 +423,6 @@ def repetitions_check(obsdf, obstype, checks_info, checks_settings):
     obsdf, outlier_df = make_outlier_df_for_check(station_dt_list=outl_obs,
                                            obsdf=obsdf,
                                            obstype=obstype,
-                                           flagcolumnname=checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
 
 
@@ -566,7 +492,6 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
     obsdf, outlier_df = make_outlier_df_for_check(station_dt_list=list_of_outliers,
                                            obsdf=obsdf,
                                            obstype=obstype,
-                                           flagcolumnname=checks_info[checkname]['label_columnname'],
                                            flag=checks_info[checkname]['outlier_flag'])
 
     return obsdf, outlier_df
@@ -667,7 +592,6 @@ def window_variation_check(station_frequencies, obsdf, obstype, checks_info, che
         subset_used, outlier_df = make_outlier_df_for_check(station_dt_list=list_of_outliers,
                                                       obsdf=subset_used,
                                                       obstype=obstype,
-                                                      flagcolumnname=checks_info[checkname]['label_columnname'],
                                                       flag=checks_info[checkname]['outlier_flag'])
 
         obsdf = pd.concat([subset_used, subset_not_used])
