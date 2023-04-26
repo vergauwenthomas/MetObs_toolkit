@@ -32,6 +32,7 @@ sys.path.append(BASE_PATH)
 
 
 from metobs_toolkit.dataset import Dataset
+from metobs_toolkit.station import Station
 from metobs_toolkit.modeldata import Modeldata
 
 #DO not change this manually!

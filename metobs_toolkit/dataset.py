@@ -60,6 +60,7 @@ from metobs_toolkit.df_helpers import (add_final_label_to_outliersdf,
 from metobs_toolkit.modeldata import Modeldata
 
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -93,6 +94,7 @@ class Dataset:
 
         self._istype = 'Dataset'
         self._freqs = pd.Series(dtype=object)
+
 
         self._qc_checked_obstypes = [] #list with qc-checked obstypes
 
@@ -197,6 +199,7 @@ class Dataset:
             The station object.
 
         """
+        from metobs_toolkit.station import Station
 
         logger.info(f'Extract {stationname} from dataset.')
 
@@ -649,7 +652,7 @@ class Dataset:
             #add to mergedf
             mergedf = pd.concat([mergedf, filled_df]).sort_index()
 
-
+        present_obstypes = [col for col in self.settings.app['observation_types'] if col in mergedf.columns]
 
         # Map obstypes columns
         if not use_tlk_obsnames:
@@ -664,7 +667,7 @@ class Dataset:
                              filename=filename,
                              outputfolder = self.settings.IO['output_folder'],
                              location_info = self.settings.app['location_info'],
-                             observation_types=self.settings.app['observation_types']
+                             observation_types=present_obstypes,
                              )
 
 
@@ -734,7 +737,7 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outl_df.empty:
-                self.update_outliersdf(outl_df)
+                self.outliersdf = pd.concat([self.outliersdf, outl_df])
 
         if gross_value:
             print('Applying the gross-value-check on all stations.')
@@ -749,7 +752,7 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outl_df.empty:
-                self.update_outliersdf(outl_df)
+                self.outliersdf = pd.concat([self.outliersdf, outl_df])
 
         if persistance:
             print('Applying the persistance-check on all stations.')
@@ -765,7 +768,7 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outl_df.empty:
-                self.update_outliersdf(outl_df)
+                self.outliersdf = pd.concat([self.outliersdf, outl_df])
 
         if step:
             print('Applying the step-check on all stations.')
@@ -780,7 +783,7 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if  not outl_df.empty:
-                self.update_outliersdf(outl_df)
+                self.outliersdf = pd.concat([self.outliersdf, outl_df])
 
         if window_variation:
             print('Applying the window variation-check on all stations.')
@@ -797,7 +800,7 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outl_df.empty:
-                self.update_outliersdf(outl_df)
+                self.outliersdf = pd.concat([self.outliersdf, outl_df])
 
         self._qc_checked_obstypes.append(obstype)
         self.outliersdf = self.outliersdf.sort_index()
@@ -1177,7 +1180,7 @@ class Dataset:
         df = df.set_index(['name', df.index])
 
         # dataframe with all data of input file
-        self.input_df = df
+        self.input_df = df.sort_index()
 
 
 
@@ -1275,9 +1278,10 @@ class Dataset:
         logger.info(f'Updating dataset by dataframe with shape:\
                     {dataframe.shape}.')
 
-        # Create dataframe with fixed number and order of observational columns
-        df = dataframe.reindex(columns=self.settings.app['observation_types'])
-        self.df = df
+        # Create dataframe with fixed order of observational columns
+        obs_col_order = [col for col in self.settings.app['observation_types'] if col in dataframe.columns]
+        self.df = dataframe[obs_col_order].sort_index()
+
 
         # create metadataframe with fixed number and order of columns
         metadf = dataframe.reindex(columns=self.settings.app['location_info'])
@@ -1290,8 +1294,8 @@ class Dataset:
         # add import frequencies to metadf
         self.metadf['assumed_import_frequency'] = get_freqency_series(self.df)
         self.metadf['dataset_resolution'] = self.metadf['assumed_import_frequency']
-        self.df = df.sort_index()
-        self.original_df = df.sort_index()
+
+
 
     def _apply_qc_on_import(self):
         # find missing obs and gaps, and remove them from the df
@@ -1314,6 +1318,8 @@ class Dataset:
                                                     checks_info=self.settings.qc['qc_checks_info'])
         if not nan_outl_df.empty:
             self.update_outliersdf(nan_outl_df)
+
+        self.outliersdf = self.outliersdf.sort_index()
 
 
 
@@ -1389,39 +1395,21 @@ class Dataset:
 # Class stations (inherit all methods from dataset)
 # =============================================================================
 
-class Station(Dataset):
-    def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
-                 metadf, data_template, settings):
-        self.name = name
-        self.df = df
-        self.outliersdf = outliersdf
-        self.gaps = gaps
-        self.missing_obs = missing_obs
-        self.gapfilldf = gapfilldf
-        self.metadf = metadf
-        self.data_template = data_template
-        self.settings=settings
+# class Station(Dataset):
+#     def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
+#                  metadf, data_template, settings):
+#         self.name = name
+#         self.df = df
+#         self.outliersdf = outliersdf
+#         self.gaps = gaps
+#         self.missing_obs = missing_obs
+#         self.gapfilldf = gapfilldf
+#         self.metadf = metadf
+#         self.data_template = data_template
+#         self.settings=settings
 
 
-        self._istype = 'Station'
+#         self._istype = 'Station'
 
 
-
-
-def loggin_nan_warnings(df):
-    """
-    Function to feed the logger if Nan values are found in the df
-
-    """
-    for column in df.columns:
-        bool_series = df[column].isnull()
-        if bool_series.values.any():
-            if bool_series.values.all():
-                logger.warning(f'No values for {column}, they are initiated\
-                               as Nan.')
-            else:
-                outliers = bool_series[bool_series]
-                logger.warning(f'No values for stations: \
-                               {outliers.index.to_list()}, for {column},\
-                                   they are initiated as Nan.')
 
