@@ -124,12 +124,18 @@ def apply_qualitycontrol(main):
 
     with Capturing() as terminaloutput:
         main.dataset.apply_quality_control()
+        print('QC IS DONE')
 
+    # make mergedf for visualising
+    with Capturing() as terminaloutput:
+        comb_df = main.dataset.combine_all_to_obsspace()
 
     # write terminal output to
     main.prompt.append('\n \n ------ Qualtiy control ----- \n \n')
     for line in terminaloutput:
         main.prompt.append(line + '\n')
+
+    return comb_df
 
 
 def update_qc_settings(main, dataset, obstype):
@@ -206,22 +212,28 @@ def load_dataset(main):
         tz_select = str(main.tz_selector.currentText())
         dataset.update_timezone(tz_select)
 
+        # create dataset
+        dataset.import_data_from_file()
+
         # coarsen settings
         use_coarsening = main.resample_box.isChecked()
         resolution = str(main.resample_spinbox.value())+'T'
-        dataset.settings.time_settings['target_time_res'] = resolution
-        dataset.import_data_from_file(coarsen_timeres=use_coarsening)
+        if use_coarsening:
+            dataset.coarsen_time_resolution(freq=resolution)
 
         # Update QC settings
         update_qc_settings(main, dataset, main.obstype_selector.currentText())
 
-        print(dataset.settings.qc['qc_check_settings'])
+        # make mergedf (to visualise)
+        comb_df= dataset.combine_all_to_obsspace()
+
+        print('DATASET IS LOADED')
 
     # write terminal output to
     main.prompt.append('------ Make Dataset ----- \n \n')
     for line in terminaloutput:
         main.prompt.append(line + '\n')
 
-    return dataset
+    return dataset, comb_df
 
 

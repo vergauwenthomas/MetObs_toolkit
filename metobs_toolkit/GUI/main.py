@@ -8,7 +8,11 @@ Created on Mon Mar 20 09:47:48 2023
 
 # command: designer in terminal to open the desinger tool
 
-
+# DEBUG
+import sys
+sys.path.insert(0, '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit')
+import metobs_toolkit
+# END DEBUG
 
 import os, sys
 from pathlib import Path
@@ -27,7 +31,7 @@ import metobs_toolkit.GUI.path_handler as path_handler
 import metobs_toolkit.GUI.tlk_scripts as tlk_scripts
 from metobs_toolkit.GUI.errors import Error, Notification
 
-
+from metobs_toolkit.GUI.extra_windows import MergeWindow
 
 
 class MainWindow(QDialog):
@@ -39,6 +43,8 @@ class MainWindow(QDialog):
 
         # -------- Information to pass beween different triggers ----------
         self.dataset = None #the vlindertoolkit dataset instance
+        self.merge_window = MergeWindow() #New  ui window
+
         # P1 ------------------------
 
 
@@ -57,8 +63,11 @@ class MainWindow(QDialog):
         self.error_dialog = QtWidgets.QErrorMessage(self)
         self.set_datapaths_init()
 
+        # link dfmodels to tables
         self.templmodel = DataFrameModel()
         self.table.setModel(self.templmodel)
+
+
 
         # ------- Callbacks (Getters) ---------
         self.Browse_data_B.clicked.connect(lambda: self.browsefiles_data()) #browse datafile
@@ -90,6 +99,14 @@ class MainWindow(QDialog):
         self.make_dataset.clicked.connect(lambda: self.make_tlk_dataset())
         self.apply_qc.clicked.connect(lambda: self.apply_qc_on_dataset())
 
+        self.show_dataset.clicked.connect(lambda: self.create_dataset_window())
+
+
+         # P3 -------
+        self.make_figure_button.clicked.connect(lambda: self.make_figure())
+
+
+
 
         # ------- Initialize --------------
 
@@ -100,13 +117,15 @@ class MainWindow(QDialog):
         self.set_timezone_spinners()
 
 
+
+
         tlk_scripts.set_qc_default_settings(self)
 
 
         #----- Cleanup files ----------------
         path_handler.clear_dir(path_handler.TMP_dir) #cleanup tmp folder
 
-#%% P1
+#%%
 # =============================================================================
 # Helpers
 # =============================================================================
@@ -133,10 +152,6 @@ class MainWindow(QDialog):
         # Set defaults appropriate
         template_func.set_templ_vals(self, data_columns, metadata_columns)
 
-    def init_empty_table(self):
-        df = pd.DataFrame()
-        model = DataFrameModel(df)
-        self.table.setModel(model)
 
 
     def set_datapaths_init(self):
@@ -201,7 +216,7 @@ class MainWindow(QDialog):
         fname=QFileDialog.getOpenFileName(self, 'Select metadata file', str(Path.home()))
         self.metadata_file_T.setText(fname[0]) #update text
 
-    def browsefiles_metadata(self):
+    def browsefiles_metadata_p2(self):
         fname=QFileDialog.getOpenFileName(self, 'Select metadata file', str(Path.home()))
         self.metadata_file_T_2.setText(fname[0]) #update text
 
@@ -242,10 +257,26 @@ class MainWindow(QDialog):
 
         Notification(f'Template ({filename}) is saved!')
 
+
+
     def make_tlk_dataset(self):
-        self.dataset = tlk_scripts.load_dataset(self)
+        self.dataset, self.merge_window.comb_df = tlk_scripts.load_dataset(self)
+
+        # trigger update in seperate window
+        self.merge_window.trigger_update()
+
+
     def apply_qc_on_dataset(self):
-        tlk_scripts.apply_qualitycontrol(self)
+        self.merge_window.comb_df = tlk_scripts.apply_qualitycontrol(self)
+
+        # trigger update in seperate window
+        self.merge_window.trigger_update()
+
+
+    def create_dataset_window(self):
+
+        self.merge_window.show()
+
 
 #%%
 

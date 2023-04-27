@@ -1952,6 +1952,83 @@
       <double>-50.000000000000000</double>
      </property>
     </widget>
+    <widget class="Line" name="line_5">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>620</y>
+       <width>991</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QTableView" name="merge_table">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>640</y>
+       <width>1191</width>
+       <height>221</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="subset_merged_obstype">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>880</y>
+       <width>121</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_64">
+     <property name="geometry">
+      <rect>
+       <x>33</x>
+       <y>880</y>
+       <width>71</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Subset to </string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="show_dataset">
+     <property name="geometry">
+      <rect>
+       <x>800</x>
+       <y>600</y>
+       <width>161</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Show dataset</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_3">
+    <attribute name="title">
+     <string>Page</string>
+    </attribute>
+    <widget class="QPushButton" name="make_figure_button">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>120</y>
+       <width>261</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>make figure</string>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>
