@@ -273,10 +273,8 @@ def timeseries_plot(mergedf, obstype, title, xlabel, ylabel, colorby,
     return ax
 
 
-
-
 def _make_pie_from_freqs(freq_dict, colormapper, ax,
-                         plot_settings, title=None):
+                         plot_settings, radius, labelsize=10):
 
     # To dataframe
     stats = pd.Series(freq_dict, name='freq').to_frame()
@@ -293,18 +291,18 @@ def _make_pie_from_freqs(freq_dict, colormapper, ax,
         stats = pd.concat([stats, no_oc_df])
 
 
-    # Make pie and legend
+    # Make pie
     patches, text = ax.pie(stats['freq'], colors=stats['color'],
-                           radius=plot_settings['pie_charts']['radius_big'])
-    ax.legend(handles=patches, labels = [f'{l}, {s:0.1f}%' for l, s in zip(stats.index.to_list(),
-                                                                   stats['freq'].to_list())],
-              loc = plot_settings['pie_charts']['anchor_legend_big'])
+                           radius=radius,
+                           labels=[f'{l}, {s:0.1f}%' for l, s in zip(stats.index.to_list(), stats['freq'].to_list())],
+                           textprops={'fontsize': labelsize})
 
-    # add subtitle
-    if not isinstance(title, type(None)):
-        ax.set_title(title)
+
+
 
     return ax
+
+
 
 def _outl_value_to_colormapper(plot_settings, qc_check_info):
     """ Make color mapper for the outlier LABELVALUES to colors. """
@@ -342,6 +340,22 @@ def _all_possible_labels_colormapper(plot_settings,qc_info_settings, gap_setting
 def qc_stats_pie(final_stats, outlier_stats, specific_stats,
                  plot_settings, qc_check_info):
 
+    # restore rcParams
+    plt.rcParams = plt.rcParamsDefault
+
+    # Specify rcParams
+
+    # axestitl
+    plt.rcParams['axes.titlelocation'] = 'center'
+    plt.rcParams['axes.titlesize'] = 10
+    plt.rcParams['axes.titleweight'] = 2
+    plt.rcParams['axes.titlecolor'] = 'black'
+
+    # label size
+    textsize_big_pies = 10
+    textsize_small_pies = 7
+
+
     color_defenitions = plot_settings['color_mapper']
     # Define layout
 
@@ -364,25 +378,42 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats,
         'missing (individual)': color_defenitions['missing_timestamp']
         }
 
-    _make_pie_from_freqs(final_stats, final_col_mapper,
-                         ax_thl,
-                         plot_settings,
-                         'Final label frequencies')
+
+    _make_pie_from_freqs(freq_dict=final_stats,
+                         colormapper=final_col_mapper,
+                         ax=ax_thl,
+                         plot_settings=plot_settings,
+                         radius = plot_settings['pie_charts']['radius_big'],
+                         labelsize=textsize_big_pies,
+                         )
+
+    ax_thl.set_title(label='Final label frequencies',
+                 y=(plot_settings['pie_charts']['radius_big']/2)*1.4 ,
+                 fontweight='bold')
+
 
 
     # 2. Make QC overview pie
     # make color mapper
     outl_col_mapper = _outl_value_to_colormapper(plot_settings, qc_check_info)
 
-    _make_pie_from_freqs(outlier_stats, outl_col_mapper,
-                         ax_thr,
-                         plot_settings,
-                         'Outlier performance')
 
+    _make_pie_from_freqs(freq_dict=outlier_stats,
+                         colormapper=outl_col_mapper,
+                         ax=ax_thr,
+                         plot_settings=plot_settings,
+                         radius = plot_settings['pie_charts']['radius_big'],
+                         labelsize=textsize_big_pies,
+                         )
+
+    ax_thr.set_title(label='Outlier performance',
+                 y=(plot_settings['pie_charts']['radius_big']/2)*1.4,
+                 fontweight='bold')
 
 
     # 3. Make a specific pie for each indvidual QC + gap + missing
-
+    plt.rcParams["axes.titley"] = plot_settings['pie_charts']['radius_small']/2
+    # make color mapper
     spec_col_mapper = {
         'ok': color_defenitions['ok'],
         'not checked': color_defenitions['not checked'],
@@ -391,17 +422,47 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats,
         'missing timestamp': color_defenitions['missing_timestamp']
         }
 
+
+    specific_df = pd.DataFrame(specific_stats)
+
+
+    ncol = 4
+    nrow=4
+
+    # create list of axes for the small pies
+    axlist=[]
     i=0
-    for checkname, stats in specific_stats.items():
-        ax = fig.add_subplot(spec[math.floor(i/4)+1,i%4])
-        _make_pie_from_freqs(stats, spec_col_mapper,
-                             ax,
-                             plot_settings,
-                             checkname)
-        i += 1
+    for checkname in specific_stats:
+
+        ax = fig.add_subplot(spec[math.floor(i/ncol)+1: math.floor(i/ncol)+2,
+                                           i%nrow: i%nrow + 1])
+
+        # specific style formatting
+        ax.set_title(label=checkname.replace('_', ' '),
+                     y=plot_settings['pie_charts']['radius_small']/2,
+                     fontweight='bold')
+        ax.yaxis.set_visible(False) #ignore the default pandas title
+
+        axlist.append(ax)
+        i+=1
+
+    # Make pie plots
+    specific_df.plot.pie(subplots=True,
+                          labels=specific_df.index,
+                          legend=False,
+                          autopct='%1.1f%%',
+                          title=None,
+                          radius = plot_settings['pie_charts']['radius_small'],
+                          textprops={'fontsize': textsize_small_pies},
+                          ax=axlist)
+
+    # Specific styling setings per pie
+    for ax in axlist:
+        # specific style formatting
+        ax.yaxis.set_visible(False) #ignore the default pandas title
 
 
-
+    fig.subplots_adjust(hspace=0.7)
     plt.show()
 
     return

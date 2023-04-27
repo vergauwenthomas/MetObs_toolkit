@@ -59,74 +59,7 @@ def format_outliersdf_to_doubleidx(outliersdf):
     else:
         return outliersdf
 
-def add_final_label_to_outliersdf(outliersdf, data_res_series, observation_types, checks_info):
-    """
-    V3
-        This function creates a final label based on de individual qc labels. The final label will be that of the individual qc-label
-        which rejected the obseration.
 
-        This functions converts labels to numeric values, algebra to get final label, and inversly
-        convert to labels. This is faster than looping over the rows.
-
-        Parameters
-        ----------
-        outliersdf : pandas.DataFrame
-            The dataset outliers dataframe containing the observations and QC labels.
-
-        data_res_series : Pandas.Series
-            The series that contain the dataset resolution (values) per station (index). This
-            is stored in the dataset.metadf as column 'dataset_resolution'. These are used to explode the gaps.
-
-        Returns
-        -------
-        outliersdf : pd.DataFrame
-            The outliersdf with extra columns indicated by example 'temp_final_label' and 'humid_final_label'.
-
-        """
-
-
-
-
-    # order columns
-    labels_columns = [column for column in outliersdf.columns if not column in observation_types]
-    #drop final columns if they are in the outliersdf
-    labels_columns = [column for column in labels_columns if not column.endswith('_final_label')]
-
-    checked_obstypes = [obstype for obstype in observation_types if any([qc_column.startswith(obstype+'_') for qc_column in labels_columns])]
-    columns_on_record_lvl = [info['label_columnname'] for checkname, info in checks_info.items() if info['apply_on'] == 'record']
-
-
-    # Construct numeric mapper
-    labels_to_numeric_mapper = {info['outlier_flag']:info['numeric_flag'] for info in checks_info.values()}
-
-    # add 'ok' and 'not checked' labels
-    labels_to_numeric_mapper['ok'] = 0
-    labels_to_numeric_mapper['not checked'] = np.nan
-    #invert numeric mapper
-    inv_label_to_num = {v: k for k, v in labels_to_numeric_mapper.items()}
-
-
-    #generete final label per obstype
-    for obstype in checked_obstypes:
-        # logger.debug(f'Generating final QC labels for {obstype}.')
-        #Get qc column namse specific for this obstype
-        specific_columns = [col for col in labels_columns if col.startswith(obstype+'_')]
-        #add qc labels that are applicable on all obstypes
-        specific_columns.extend(columns_on_record_lvl)
-
-        #Drop columns that are not present
-        specific_columns = [colmn for colmn in specific_columns if colmn in outliersdf.columns]
-
-
-        #get labels dataframe
-        qc_df = outliersdf[specific_columns]
-        num_qc_df = pd.DataFrame()
-        num_qc_df = qc_df.applymap(labels_to_numeric_mapper.get )
-
-        outliersdf[obstype+'_final_label'] = num_qc_df.sum(axis=1, skipna=True).map(inv_label_to_num)
-
-
-    return outliersdf
 
 
 

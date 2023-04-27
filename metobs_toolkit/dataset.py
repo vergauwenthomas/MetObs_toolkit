@@ -49,7 +49,7 @@ from metobs_toolkit.gap import (Gap_collection,
                                  get_freqency_series)
 
 
-from metobs_toolkit.df_helpers import (add_final_label_to_outliersdf,
+from metobs_toolkit.df_helpers import (
                                         multiindexdf_datetime_subsetting,
                                         remove_outliers_from_obs,
                                         init_multiindexdf,
@@ -1430,28 +1430,4 @@ class Dataset:
                                         left_index=True, right_index=True)
 
         return lc_frac_df
-
-
-
-# =============================================================================
-# Class stations (inherit all methods from dataset)
-# =============================================================================
-
-# class Station(Dataset):
-#     def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
-#                  metadf, data_template, settings):
-#         self.name = name
-#         self.df = df
-#         self.outliersdf = outliersdf
-#         self.gaps = gaps
-#         self.missing_obs = missing_obs
-#         self.gapfilldf = gapfilldf
-#         self.metadf = metadf
-#         self.data_template = data_template
-#         self.settings=settings
-
-
-#         self._istype = 'Station'
-
-
 
