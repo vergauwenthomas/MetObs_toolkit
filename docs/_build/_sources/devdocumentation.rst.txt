@@ -17,13 +17,18 @@ bl bla bla
 Dataset
 ================
 
+
+
 .. py:currentmodule:: dataset
 .. autoclass:: Dataset
     :members:
     :undoc-members:
 
+
 Station
 ================
+
+
 
 .. py:currentmodule:: dataset
 .. autoclass:: Station
@@ -42,6 +47,7 @@ Settings
 
 Missing timestamps
 ==================
+
 .. py:currentmodule:: missingobs
 .. autoclass:: Missingob_collection
     :members:
@@ -121,7 +127,6 @@ landcover functions
 
 plotting functions
 ^^^^^^^^^^^^^^^^^^^^^^
-
 .. automodule:: plotting_functions
     :members:
     :undoc-members:

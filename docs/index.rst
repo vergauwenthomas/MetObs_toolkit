@@ -7,8 +7,17 @@ Welcome to MetObs-Toolkit's documentation!
 
    intro
    examples
-   usrdocumentation
-   devdocumentation
+   metobs_toolkit
+   
+MetObs toolkit Documentation
+=============================
+   
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-module-template.rst
+   :recursive:   
+   
+   metobs_toolkit
 
 
 

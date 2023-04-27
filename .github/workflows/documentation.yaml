@@ -1,5 +1,5 @@
 name: Build documentation
-on: [push, pull_request, workflow_dispatch]
+on: [pull_request, workflow_dispatch]
 permissions:
     contents: write
 jobs:
@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-python@v3
       - name: Install dependencies
         run: |
-          pip install sphinx sphinx_rtd_theme sphinx-copybutton
+          pip install sphinx sphinx_rtd_theme sphinx-copybutton myst_parser
           pip install poetry
       - name: poetry create requirements
         run: |

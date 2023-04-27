@@ -21,8 +21,11 @@ import metobs_toolkit
 #%% % Import
 
 
-testdatafile = os.path.join(
-    str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
+# testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
+testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
+
+
+template = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.csv')
 
 static_data = os.path.join(
     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
@@ -31,13 +34,13 @@ static_data = os.path.join(
 
 # #% Setup dataset
 
-
-
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile,
-                        input_metadata_file=static_data,
-                        output_folder='/home/thoverga/Documents/VLINDER_github/vlinder_toolkit'
+                        # input_metadata_file=static_data,
+                        data_template_file= template,
+                        output_folder='/home/thoverga/Documents'
                         )
+
 
 # dataset.apply_quality_control()
 
@@ -48,6 +51,10 @@ dataset.import_data_from_file(coarsen_timeres=True)
 
 
 
+dataset.import_data_from_file()
+dataset.apply_quality_control(gross_value=True,
+                              persistance=False)
 
 
-#%%
+dataset.get_qc_stats('temp', make_plot=True)
+

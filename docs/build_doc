@@ -1,2 +1,10 @@
 #!/usr/bin/env bash
-make html
+sphinx-autogen index.rst
+
+cd ..
+sphinx-build -a docs/ docs/_build/
+
+cd docs
+
+
+
