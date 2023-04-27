@@ -12,39 +12,45 @@ from pathlib import Path
 
 
 lib_folder = Path(__file__).resolve().parents[2]
-#sys.path.append(str(lib_folder))
+# sys.path.append(str(lib_folder))
 
 
 import metobs_toolkit
 
-#%% IO testdata
+# %% IO testdata
 
-testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'vlinderdata_small.csv')
+testdatafile = os.path.join(
+    str(lib_folder), "tests", "test_data", "vlinderdata_small.csv"
+)
 
 
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile)
-dataset.import_data_from_file(coarsen_timeres=True)
+dataset.import_data_from_file()
+dataset.coarsen_time_resolution()
 
 
-#%% Apply Qc on dataset level
+# %% Apply Qc on dataset level
 
-dataset.apply_quality_control(obstype='temp')
+dataset.apply_quality_control(obstype="temp")
 
 
 outliersdf = dataset.combine_all_to_obsspace()
-dataset.get_qc_stats(make_plot = False)
+dataset.get_qc_stats(make_plot=False)
+dataset.get_qc_stats(obstype="humidity", make_plot=False)
 
 
-#%% Apply Qc on obstype not specified in settings
+# %% Apply Qc on obstype not specified in settings
 
 
+dataset.apply_quality_control(obstype="humidity")
+dataset.get_qc_stats(obstype="humidity", make_plot=False)
+# %% Apply QC on station level
 
-dataset.apply_quality_control(obstype='humidity')
-
-#%% Apply QC on station level
-
-sta = dataset.get_station('vlinder05')
+sta = dataset.get_station("vlinder05")
 
 sta.apply_quality_control()
-sta.get_qc_stats(make_plot=True)
+
+test = sta.get_qc_stats(make_plot=True)
+
+# sta.get_qc_stats(make_plot=True)

@@ -9,14 +9,6 @@ metobs\_toolkit.dataset
 
    
    
-   .. rubric:: Functions
-
-   .. autosummary::
-      :toctree:
-      :nosignatures:
-   
-      loggin_nan_warnings
-   
    
 
    
@@ -29,7 +21,6 @@ metobs\_toolkit.dataset
       :nosignatures:
    
       Dataset
-      Station
    
    
 

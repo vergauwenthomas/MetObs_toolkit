@@ -33,7 +33,6 @@ metobs\_toolkit.dataset.Dataset
       ~Dataset.make_plot
       ~Dataset.show
       ~Dataset.show_settings
-      ~Dataset.update_dataset_by_df
       ~Dataset.update_default_name
       ~Dataset.update_outliersdf
       ~Dataset.update_settings
