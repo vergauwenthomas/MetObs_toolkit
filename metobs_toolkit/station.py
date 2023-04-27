@@ -8,11 +8,22 @@ Created on Wed Apr 26 09:31:51 2023
 
 from metobs_toolkit import dataset
 
-class Station(dataset.Dataset):
-    def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
-                 metadf, data_template, settings, _qc_checked_obstypes,
-                 _applied_qc):
 
+class Station(dataset.Dataset):
+    def __init__(
+        self,
+        name,
+        df,
+        outliersdf,
+        gaps,
+        missing_obs,
+        gapfilldf,
+        metadf,
+        data_template,
+        settings,
+        _qc_checked_obstypes,
+        _applied_qc,
+    ):
         self.name = name
         self.df = df
         self.outliersdf = outliersdf
@@ -21,10 +32,8 @@ class Station(dataset.Dataset):
         self.gapfilldf = gapfilldf
         self.metadf = metadf
         self.data_template = data_template
-        self.settings=settings
+        self.settings = settings
         self._qc_checked_obstypes = _qc_checked_obstypes
-        self._applied_qc=_applied_qc
+        self._applied_qc = _applied_qc
 
-
-        self._istype = 'Station'
-
+        self._istype = "Station"
