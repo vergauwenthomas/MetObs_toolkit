@@ -22,42 +22,11 @@ import metobs_toolkit
 #%%
 metobs_toolkit.launch_gui()
 
-#%%
-
-# from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton
-
-
-# class MainWindow(QMainWindow):
-#     def __init__(self):
-#         super().__init__()
-#         self.setGeometry(100, 100, 300, 200)
-#         self.button = QPushButton("Show Layout", self)
-#         self.button.clicked.connect(self.show_layout)
-
-#     def show_layout(self):
-#         layout_window = QWidget(self)
-#         layout_window.setGeometry(200, 200, 300, 200)
-#         layout = QVBoxLayout(layout_window)
-#         layout.addWidget(QPushButton("Button 1", layout_window))
-#         layout.addWidget(QPushButton("Button 2", layout_window))
-#         layout.addWidget(QPushButton("Button 3", layout_window))
-#         layout_window.show()
-
-
-# if __name__ == '__main__':
-#     app = QApplication([])
-#     window = MainWindow()
-#     window.show()
-#     app.exec_()
-
-
-
-
 
 #%% % Import
 
 
-# # testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
+# testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
 # testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
 
 
@@ -78,8 +47,19 @@ metobs_toolkit.launch_gui()
 #                         )
 
 
-# dataset.import_data_from_file(coarsen_timeres=True)
-# # dataset.apply_quality_control()
+# dataset.import_data_from_file()
+# dataset.apply_quality_control()
+
+
+
+#%%
+# sta = dataset.get_station('Fictional')
+
+# import matplotlib.pyplot as plt
+
+# fig, ax = plt.subplots()
+
+# sta.make_plot(ax=ax)
 
 
 

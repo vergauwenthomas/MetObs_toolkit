@@ -292,7 +292,7 @@ def get_all_templates():
     template_dict = {}
 
     # default templates
-    template_dict['default_template'] = path_handler.tlk_default_template
+    template_dict['default_template.csv'] = path_handler.tlk_default_template
 
     # all templates in cache
     filenames, filepaths = path_handler.list_csv_filenames(path_handler.CACHE_dir)

@@ -181,14 +181,18 @@ def load_dataset(main):
 
     data_file = main.data_file_T_2.text()
     metadata_file = main.metadata_file_T_2.text()
+    template_name =str(main.select_temp.currentText())+'.csv'
 
-    template_file = main.template_dict[str(main.select_temp.currentText())]
+    template_file = main.template_dict[template_name]
 
     # Basic checks
     for file in [data_file, metadata_file, template_file]:
         if not path_handler.file_exist(file):
             Error(f'{file} does not exist!')
             return
+
+
+    test=Capturing()
 
     with Capturing() as terminaloutput:
 
@@ -213,6 +217,7 @@ def load_dataset(main):
         dataset.update_timezone(tz_select)
 
         # create dataset
+
         dataset.import_data_from_file()
 
         # coarsen settings
@@ -228,6 +233,9 @@ def load_dataset(main):
         comb_df= dataset.combine_all_to_obsspace()
 
         print('DATASET IS LOADED')
+
+
+
 
     # write terminal output to
     main.prompt.append('------ Make Dataset ----- \n \n')

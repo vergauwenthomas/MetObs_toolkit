@@ -185,11 +185,13 @@ def timeseries_plot(
     plot_settings,
     gap_settings,
     qc_info_settings,
+    ax=None
 ):
-    # plot_settings = plot_settings['time_series']
 
-    # init figure
-    fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
+    if isinstance(ax, type(None)):
+        # init figure
+        fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
+
 
     # subbset and cleanup data
 

@@ -292,6 +292,7 @@ class Dataset:
         title=None,
         legend=True,
         show_outliers=True,
+        ax=None
     ):
         """
         This function creates a timeseries plot for the dataset. The variable observation type
@@ -392,6 +393,7 @@ class Dataset:
             plot_settings=self.settings.app["plot_settings"],
             gap_settings=self.settings.gap,
             qc_info_settings=self.settings.qc["qc_checks_info"],
+            ax=ax,
         )
 
         return ax

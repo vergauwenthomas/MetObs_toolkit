@@ -31,7 +31,7 @@ import metobs_toolkit.GUI.path_handler as path_handler
 import metobs_toolkit.GUI.tlk_scripts as tlk_scripts
 from metobs_toolkit.GUI.errors import Error, Notification
 
-from metobs_toolkit.GUI.extra_windows import MergeWindow
+from metobs_toolkit.GUI.extra_windows import MergeWindow, TimeSeriesWindow
 
 
 class MainWindow(QDialog):
@@ -44,6 +44,8 @@ class MainWindow(QDialog):
         # -------- Information to pass beween different triggers ----------
         self.dataset = None #the vlindertoolkit dataset instance
         self.merge_window = MergeWindow() #New  ui window
+
+        self.tswindow = TimeSeriesWindow(dataset=None) #for plots
 
         # P1 ------------------------
 
@@ -85,7 +87,8 @@ class MainWindow(QDialog):
                                                                    savekey='metadata_file_path',
                                                                    saveval=self.metadata_file_T.text()))
 
-
+        self.data_file_T.editingFinished.connect(lambda: self.link_datapath())
+        self.metadata_file_T.editingFinished.connect(lambda: self.link_datapath())
         # initiate the start mapping module
         self.start_mapping_B.clicked.connect(lambda: self.set_templ_map_val())
 
@@ -103,7 +106,7 @@ class MainWindow(QDialog):
 
 
          # P3 -------
-        self.make_figure_button.clicked.connect(lambda: self.make_figure())
+        self.plot_dataset.clicked.connect(lambda: self.make_figure())
 
 
 
@@ -197,7 +200,7 @@ class MainWindow(QDialog):
     def save_path(self, savebool, savekey, saveval):
         if savebool:
             savedict = {str(savekey): str(saveval)}
-            update_json_file(savedict, catkey=None)
+            update_json_file(savedict)
 
 # =============================================================================
 # Triggers
@@ -219,6 +222,11 @@ class MainWindow(QDialog):
     def browsefiles_metadata_p2(self):
         fname=QFileDialog.getOpenFileName(self, 'Select metadata file', str(Path.home()))
         self.metadata_file_T_2.setText(fname[0]) #update text
+
+    def link_datapath(self):
+        self.data_file_T_2.setText(str(self.data_file_T.text()))
+        self.metadata_file_T_2.setText(str(self.metadata_file_T.text()))
+
 
     def read_datafiles(self, filepath):
         if not path_handler.file_exist(filepath):
@@ -277,6 +285,17 @@ class MainWindow(QDialog):
 
         self.merge_window.show()
 
+# =============================================================================
+# Testing
+# =============================================================================
+
+
+    def make_figure(self):
+        self.tswindow.set_dataset(self.dataset)
+
+        self.tswindow.make_plot()
+        self.tswindow.show()
+
 
 #%%
 
@@ -303,9 +322,6 @@ def main():
     sys.exit(app.exec_())
 
     return succesfull
-
-
-
 
 
 if __name__ == '__main__':
