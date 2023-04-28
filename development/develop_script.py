@@ -22,13 +22,13 @@ sys.path.append(str(lib_folder))
 
 
 # testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
-testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
+testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_data.csv')
 
 
-template = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.csv')
+template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
 
-static_data = os.path.join(
-    str(lib_folder), 'static_data', 'vlinder_metadata.csv')
+# static_data = os.path.join(
+#     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
 
 
@@ -43,11 +43,11 @@ dataset.update_settings(input_data_file=testdatafile,
 
 
 
-dataset.import_data_from_file()
-dataset.apply_quality_control(gross_value=True,
-                              persistance=False)
+dataset.import_data_from_file(long_format=False, obstype='temp')
+# dataset.apply_quality_control(gross_value=True,
+#                               persistance=False)
 
 
-dataset.get_qc_stats('temp', make_plot=True)
+# dataset.get_qc_stats('temp', make_plot=True)
 
 #%%

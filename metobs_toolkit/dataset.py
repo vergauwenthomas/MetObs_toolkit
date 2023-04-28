@@ -1255,7 +1255,7 @@ class Dataset:
         self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
-    def import_data_from_file(self):
+    def import_data_from_file(self, long_format=True, obstype=None):
         """
         Read observations from a csv file as defined in the
         Settings.input_file. The input file columns should have a template
@@ -1283,11 +1283,20 @@ class Dataset:
         print("Settings input data file: ", self.settings.IO["input_data_file"])
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
+        # check if obstype is valid
+        if not isinstance(obstype, type(None)):
+            assert obstype in self.settings.app["observation_types"], f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
+
+
         # Read observations into pandas dataframe
+
         df, template = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
             template_file=self.settings.templates["data_template_file"],
+            long_format=long_format,
+            obstype=obstype, #only relevant in wide format
         )
+
 
         # Set timezone information
         df.index = df.index.tz_localize(
