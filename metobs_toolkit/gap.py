@@ -520,31 +520,6 @@ class Gap_collection:
 # =============================================================================
 
 
-# def get_freqency_series(df):
-#     freqs = {}
-#     for station in df.index.get_level_values(level="name").unique():
-#         subdf = df.xs(station, level="name")
-#         # remove rows with all obstype nans
-#         subdf = subdf.dropna(axis = 0, how = 'all')
-
-#         freqs[station] = get_likely_frequency(subdf.index)
-#     return pd.Series(data=freqs)
-
-
-# def get_likely_frequency(timestamps):
-#     assume_freq = abs(timestamps.to_series().diff().value_counts().index).sort_values(
-#         ascending=True
-#     )[0]
-
-#     if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
-#         # select the second highest frequency
-#         assume_freq = abs(
-#             timestamps.to_series().diff().value_counts().index
-#         ).sort_values(ascending=True)[1]
-
-#     return assume_freq
-
-
 def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
     if where == "before":
         diff = refdt - (series_of_dt[series_of_dt < refdt])

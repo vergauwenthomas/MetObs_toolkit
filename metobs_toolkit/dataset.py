@@ -343,7 +343,7 @@ class Dataset:
         mergedf = self.combine_all_to_obsspace()
 
         # Subset on stationnames
-        if not isinstance(stationnames, type(None)):
+        if not stationnames is None:
             mergedf = mergedf.loc[
                 mergedf.index.get_level_values("name").isin(stationnames)
             ]
@@ -352,8 +352,8 @@ class Dataset:
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
         # Get plot styling attributes
-        if isinstance(title, type(None)):
-            if isinstance(stationnames, type(None)):
+        if title is None:
+            if stationnames is None:
                 if self._istype == "Dataset":
                     title = (
                         self.settings.app["display_name_mapper"][obstype]
@@ -453,7 +453,7 @@ class Dataset:
         # default_settings=Settings.plot_settings['spatial_geo']
 
         # get first timeinstance of the dataset if not given
-        if isinstance(timeinstance, type(None)):
+        if timeinstance is None:
             timeinstance = self.df.index.get_level_values("datetime").min()
 
         logger.info(f"Make {obstype}-geo plot at {timeinstance}")
@@ -514,11 +514,11 @@ class Dataset:
         Modl = Modeldata(modelname)
 
         # Filters
-        if isinstance(startdt, type(None)):
+        if startdt is None:
             startdt = self.df.index.get_level_values("datetime").min()
-        if isinstance(enddt, type(None)):
+        if enddt is None:
             enddt = self.df.index.get_level_values("datetime").max()
-        if not isinstance(stations, type(None)):
+        if not stations is None:
             if isinstance(stations, str):
                 metadf = self.metadf.loc[[stations]]
             if isinstance(stations, list):
@@ -602,7 +602,7 @@ class Dataset:
         fill_info = self.settings.gap["gaps_fill_info"]
 
         # check if modeldata is available
-        if isinstance(modeldata, type(None)):
+        if modeldata is None:
             print(
                 "The dataset has no modeldate. Use the set_modeldata() function to add modeldata."
             )
@@ -683,10 +683,7 @@ class Dataset:
 
         logger.info("Writing the dataset to a csv file")
 
-        assert not isinstance(
-            self.settings.IO["output_folder"], type(None)
-        ), "Specify \
-            Settings.output_folder in order to export a csv."
+        assert not self.settings.IO["output_folder"] is None, "Specify Settings.output_folder in order to export a csv."
         assert os.path.isdir(
             self.settings.IO["output_folder"]
         ), f'The outputfolder: \
@@ -1163,8 +1160,7 @@ class Dataset:
 
         if any(
             [
-                isinstance(stat, type(None))
-                for stat in [final_freq, outl_freq, specific_freq]
+                stat is None for stat in [final_freq, outl_freq, specific_freq]
             ]
         ):
             return None
@@ -1474,7 +1470,7 @@ class Dataset:
 
 
     def import_data_from_file(self, long_format=True, obstype=None, freq_estimation_method=None,
-                              freq_estimation_simplify=True, freq_estimation_simplify_error=None):
+                              freq_estimation_simplify=None, freq_estimation_simplify_error=None):
         """
         Read observations from a csv file as defined in the
         Settings.input_file. The input file columns should have a template
@@ -1515,7 +1511,10 @@ class Dataset:
         freq_estimation_simplify : bool, optional
             If True, the likely frequency is converted to round hours, or round minutes.
             The "freq_estimation_simplify_error' is used as a constrain. If the constrain is not met,
-            the simplification is not performed.The default is True. The default is True.
+            the simplification is not performed. If None, the method
+            stored in the
+            Dataset.settings.time_settings['freq_estimation_simplify'] is used.
+            The default is None.
         freq_estimation_simplify_error : Timedelta or str, optional
             The tollerance string or object representing the maximum translation in time to form a simplified frequency estimation.
             Ex: '5T' is 5 minuts, '1H', is one hour. If None, the method
@@ -1543,7 +1542,7 @@ class Dataset:
 
 
         # check if obstype is valid
-        if not isinstance(obstype, type(None)):
+        if not obstype is None:
             assert obstype in observation_types, f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
 
         # Read observations into pandas dataframe
@@ -1578,7 +1577,7 @@ class Dataset:
             )
             df["name"] = str(self.settings.app["default_name"])
 
-        if isinstance(self.settings.IO["input_metadata_file"], type(None)):
+        if self.settings.IO["input_metadata_file"] is None:
             print(
                 "WARNING: No metadata file is defined.\
                   Add your settings object."
@@ -1663,9 +1662,9 @@ class Dataset:
         stored in the settings.
 
         """
-        if isinstance(start_datetime, type(None)):
+        if start_datetime is None:
             start_datetime = datetime.date.today() - datetime.timedelta(days=1)
-        if isinstance(end_datetime, type(None)):
+        if end_datetime is None:
             end_datetime = datetime.date.today()
 
         # Read observations into pandas dataframe
