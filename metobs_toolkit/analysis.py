@@ -8,6 +8,7 @@ Created on Tue Mar 28 15:35:07 2023
 from datetime import datetime
 import pandas as pd
 
+from metobs_toolkit.plotting_functions import diurnal_plot
 
 from metobs_toolkit.df_helpers import (init_multiindexdf,
                                         datetime_subsetting,
@@ -56,7 +57,7 @@ class Analysis():
     # =============================================================================
 
     def get_diurnal_statistics(self, obstype='temp',refstation=None, stations=None, verbose=False,
-                               startdt=None, enddt=None):
+                               startdt=None, enddt=None, plot=True, errorbands=False):
 
         obsdf = self.df
 
@@ -105,6 +106,10 @@ class Analysis():
             refdf = refdf.rename(columns={obstype: 'ref_'+obstype})
             mergedf = pd.merge(left=obsdf, right=refdf[['ref_'+obstype, 'year', 'month', 'day', 'hour']],
                                how='left', on=['year', 'month', 'day', 'hour'])
+
+            startdt = refdf['datetime'].min()
+            enddt = refdf['datetime'].max()
+
             # Compute difference
             agg_column_name = 'difference'
             mergedf[agg_column_name] = mergedf[obstype] - mergedf['ref_'+obstype]
@@ -114,6 +119,8 @@ class Analysis():
 
         else:
             agg_column_name = obstype #aggregate the measured obstypes
+            startdt = obsdf['datetime'].min()
+            enddt = obsdf['datetime'].max()
 
 
         # groupby and take the mean per station per hour.
@@ -121,19 +128,45 @@ class Analysis():
 
         hourly_avg = stats['mean'].unstack().transpose()
 
+        if plot:
+
+            # generate title
+            startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
+            enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
+            if refstation is None:
+                title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
+            else:
+                title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdtstr} - {enddtstr}'
+
+
+            # generate errorbands df
+            if errorbands:
+                stddf = stats['std'].unstack().transpose()
+            else:
+                stddf = None
+
+
+            # Make plot
+            diurnal_plot(diurnaldf = hourly_avg,
+                         errorbandsdf = stddf,
+                         title = title,
+                         plot_settings = self.settings.app['plot_settings']['diurnal'])
+
+
         if verbose:
             return hourly_avg, stats
 
         return hourly_avg
 
 
+
 # TODO:
-    1. dirunal cycle: Make plot function with options to add std as bands, add baseline as black,
-    colorby attribute (station/lcz)
+    # 1. dirunal cycle: Make plot function with options to add std as bands, add baseline as black,
+    # colorby attribute (station/lcz)
 
-    2. add filter to only use ok observations
+    # 2. add filter to only use ok observations
 
-    3. Setup interaction with Dataset (creation of analysis instance)
+    # 3. Setup interaction with Dataset (creation of analysis instance)
 
 
 

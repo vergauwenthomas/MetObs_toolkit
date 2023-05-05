@@ -329,6 +329,20 @@ def timeseries_plot(
 
     return ax
 
+def diurnal_plot(diurnaldf, errorbandsdf, title, plot_settings):
+    # init figure
+    fig, ax = plt.subplots(figsize=plot_settings["figsize"])
+
+
+
+
+    if not errorbandsdf is None:
+        print('Nog te implementeren')
+
+    else:
+        ax = diurnaldf.plot(ax=ax, title=title)
+
+    plt.show()
 
 def _make_pie_from_freqs(
     freq_dict, colormapper, ax, plot_settings, radius, labelsize=10

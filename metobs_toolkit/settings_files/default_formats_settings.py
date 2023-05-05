@@ -107,6 +107,20 @@ plot_settings["color_mapper"] = {
 }
 
 
+# =============================================================================
+# Diurnal plot settings
+# =============================================================================
+
+plot_settings["diurnal"] = {
+    "figsize": (10,10)
+
+
+
+}
+
+
+
+
 print_settings = {"fmt_datetime": "%d/%m/%Y %H:%M:%S", "max_print_per_line": "40"}
 
 
