@@ -18,17 +18,15 @@ sys.path.append(str(lib_folder))
 
 
 
-#%% % Import
+#% % Import
 
 
-# testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
-testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_data.csv')
+testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
+# testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_data.csv')
 
+# template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
+# template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
 
-template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
-
-# static_data = os.path.join(
-#     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
 
 
 
@@ -37,17 +35,21 @@ template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_templ
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile,
                         # input_metadata_file=static_data,
-                        data_template_file= template,
+                        # data_template_file= template,
                         output_folder='/home/thoverga/Documents'
                         )
 
 
 
-dataset.import_data_from_file(long_format=False, obstype='temp')
-# dataset.apply_quality_control(gross_value=True,
-#                               persistance=False)
+dataset.import_data_from_file(long_format=True, obstype='temp')
 
+dataset.show()
 
-# dataset.get_qc_stats('temp', make_plot=True)
-
+dfinit = dataset.df.copy()
+metadfinit = dataset.metadf.copy()
+outliersdfinit = dataset.outliersdf.copy()
 #%%
+test = dataset.sync_observations(tollerance='5T', verbose=True)
+
+
+dataset.show()

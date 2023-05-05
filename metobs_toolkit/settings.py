@@ -102,6 +102,11 @@ class Settings:
         self.time_settings["resample_limit"] = res_settings["limit"]
         self.time_settings["timezone"] = res_settings["timezone"]
 
+        # Freq estimation
+        self.time_settings['freq_estimation_method'] = res_settings["freq_estimation_method"]
+        self.time_settings['freq_estimation_simplify'] = bool(res_settings["freq_estimation_simplify"])
+        self.time_settings['freq_estimation_simplify_error'] = res_settings["freq_estimation_simplify_error"]
+
     def _update_app_settings(self):
         """
         Update prefered display, print, plot and staticinfo settings of self using the default settings templates.

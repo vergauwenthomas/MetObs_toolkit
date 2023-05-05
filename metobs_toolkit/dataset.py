@@ -54,7 +54,6 @@ from metobs_toolkit.missingobs import Missingob_collection
 from metobs_toolkit.gap import (
     Gap_collection,
     missing_timestamp_and_gap_check,
-    get_freqency_series,
 )
 
 
@@ -65,6 +64,7 @@ from metobs_toolkit.df_helpers import (
     init_triple_multiindexdf,
     metadf_to_gdf,
     conv_applied_qc_to_df,
+    get_freqency_series,
 )
 
 
@@ -111,6 +111,7 @@ class Dataset:
 
         self.settings = Settings()
 
+
     def update_settings(
         self,
         output_folder=None,
@@ -151,6 +152,7 @@ class Dataset:
             data_template_file=data_template_file,
             metadata_template_file=metadata_template_file,
         )
+
 
     def update_timezone(self, timezonestr):
         """
@@ -279,7 +281,7 @@ class Dataset:
             gapsdf = init_multiindexdf()
 
         print_dataset_info(
-            self.df, self.outliersdf, gapsdf, self.settings.app["print_fmt_datetime"]
+            self.df, self.outliersdf, gapsdf, self.missing_obs.series, self.settings.app["print_fmt_datetime"]
         )
 
     def make_plot(
@@ -1180,8 +1182,19 @@ class Dataset:
     # =============================================================================
     #     importing data
     # =============================================================================
+    # def sync_timestamps(self, origin=None, origin_tz=None, method=None, limit=None):
 
-    def coarsen_time_resolution(self, freq=None, method=None, limit=None):
+    #     if method is None:
+    #         method = self.settings.time_settings["resample_method"]
+    #     if limit is None:
+    #         limit = int(self.settings.time_settings["resample_limit"])
+    #     if origin_tz is None:
+    #         origin_tz = dataset.settings.time_settings['timezone']
+
+
+
+
+    def coarsen_time_resolution(self, origin=None, origin_tz=None, freq=None, method=None, limit=None):
         """
         Resample the observations to coarser timeresolution. The assumed
         dataset resolution (stored in the metadf attribute) will be updated.
@@ -1206,12 +1219,14 @@ class Dataset:
         None.
 
         """
-        if isinstance(freq, type(None)):
+        if freq is None:
             freq = self.settings.time_settings["target_time_res"]
-        if isinstance(method, type(None)):
+        if method is None:
             method = self.settings.time_settings["resample_method"]
-        if isinstance(freq, type(None)):
+        if limit is None:
             limit = int(self.settings.time_settings["resample_limit"])
+        if origin_tz is None:
+            origin_tz = self.settings.time_settings['timezone']
 
         logger.info(
             f"Coarsening the timeresolution to {freq} using \
@@ -1219,13 +1234,29 @@ class Dataset:
         )
         # TODO: implement buffer method
         # TODO: implement startdt point
-        # Coarsen timeresolution
         df = self.df.reset_index()
+
+        if origin is None:
+            # find earlyest timestamp, if it is on the hour, use it else use the following hour
+            tstart = df['datetime'].min()
+
+            if tstart.minute != 0 or tstart.second != 0 or tstart.microsecond != 0:
+                # Round up to nearest hour
+                tstart = tstart.ceil(freq=freq)
+        else:
+
+            origin_tz_aware=pytz.timezone(origin_tz).localize(origin)
+            tstart = origin_tz_aware.astimezone(pytz.timezone(self.settings.time_settings['timezone']))
+
+
+
+        # Coarsen timeresolution
+
         if method == "nearest":
             df = (
                 df.set_index("datetime")
                 .groupby("name")
-                .resample(freq)
+                .resample(freq, origin = tstart)
                 .nearest(limit=limit)
             )
 
@@ -1233,7 +1264,7 @@ class Dataset:
             df = (
                 df.set_index("datetime")
                 .groupby("name")
-                .resample(freq)
+                .resample(freq, origin=tstart)
                 .bfill(limit=limit)
             )
 
@@ -1255,7 +1286,290 @@ class Dataset:
         self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
-    def import_data_from_file(self, long_format=True, obstype=None):
+
+    # # TODO: make a sync function for observation with quasi equal freqs, but when they are out of sync
+    # def sync_observations(self, tollerance, verbose=True):
+
+    #     # find simplified resolution
+
+
+    #     simplified_resolution = get_freqency_series(df=self.df,
+    #                                                 method='median',
+    #                                                 simplify=True,
+    #                                                 max_simplify_error=tollerance)
+
+    #     occuring_resolutions = simplified_resolution.unique()
+
+    #     df = self.df.reset_index()
+
+
+    #     # Reset the missing and gaps
+
+    #     self.gaps = None
+    #     self.missing_obs=None
+    #     self.gapfilldf = init_multiindexdf()
+
+    #     def find_simple_origin(tstart, tollerance):
+    #         if tstart.minute == 0 and tstart.second == 0 and tstart.microsecond == 0:
+    #             return tstart #already a round hour
+
+    #         # try converting to a round hour
+    #         tstart_round_hour =tstart.round('60min')
+    #         if abs(tstart - tstart_round_hour) <= pd.to_timedelta(tollerance):
+    #             return tstart_round_hour
+
+
+    #         # try converting to a tenfold in minutes
+    #         tstart_round_tenfold =tstart.round('10min')
+    #         if abs(tstart - tstart_round_tenfold) <= pd.to_timedelta(tollerance):
+    #             return tstart_round_tenfold
+
+
+    #         # try converting to a fivefold in minutes
+    #         tstart_round_fivefold =tstart.round('5min')
+    #         if abs(tstart - tstart_round_fivefold) <= pd.to_timedelta(tollerance):
+    #             return tstart_round_fivefold
+
+    #         # no suitable conversion found
+    #         return tstart
+
+
+
+
+
+    #     merged_df = pd.DataFrame()
+    #     _total_verbose_df = pd.DataFrame()
+    #     for occur_res in occuring_resolutions:
+
+    #         group_stations = simplified_resolution[simplified_resolution == occur_res].index.to_list()
+    #         print(f' Grouping stations with simplified resolution of {pd.to_timedelta(occur_res)}: {group_stations}')
+    #         groupdf = df[df['name'].isin(group_stations)]
+
+    #         tstart = groupdf['datetime'].min()
+    #         tend = groupdf['datetime'].max()
+
+    #         # find a good origin point
+    #         origin = find_simple_origin(tstart = tstart, tollerance = tollerance)
+
+    #         # Create records index
+    #         target_records = pd.date_range(start = origin,
+    #                                        end = tend,
+    #                                        freq = pd.Timedelta(occur_res)).to_series()
+    #         target_records.name = "target_datetime"
+    #         # convert records to new target records, station per station
+
+    #         for sta in group_stations:
+    #             stadf = groupdf[groupdf['name'] == sta]
+    #             # Drop all nan values! these will be added later from the outliersdf
+    #             stadf = stadf.set_index(['name', 'datetime'])
+    #             stadf = stadf.dropna(axis = 0, how = 'all')
+    #             stadf = stadf.reset_index()
+
+    #             mergedstadf = pd.merge_asof(left=stadf.sort_values('datetime'),
+    #                                  right=target_records.to_frame(),
+    #                                  right_on='target_datetime',
+    #                                  left_on='datetime',
+    #                                  direction='nearest',
+    #                                  tolerance=pd.Timedelta(tollerance))
+
+
+
+    #             # possibility 1: record is mapped crrectly
+    #             correct_mapped = mergedstadf[~mergedstadf['target_datetime'].isnull()]
+
+    #             # possibility2: records that ar not mapped to target
+    #             not_mapped_records =mergedstadf[mergedstadf['target_datetime'].isnull()]
+
+
+    #             # possibilyt 3 : no suitable candidates found for the target
+    #             # these will be cached by the missing and gap check
+    #             no_record_candidates = target_records[~target_records.isin(mergedstadf['target_datetime'])].values
+
+
+    #             merged_df = pd.concat([merged_df, correct_mapped])
+    #             if verbose:
+    #                 _total_verbose_df = pd.concat([_total_verbose_df, mergedstadf])
+
+
+    #     # overwrite the df with the synced observations
+    #     merged_df = (merged_df
+    #                  .rename(columns={'datetime': 'original_datetime',
+    #                                   'target_datetime': 'datetime'})
+    #                  .set_index(['name', 'datetime'])
+    #                  .drop(['original_datetime'], errors='ignore', axis=1))
+    #     # self.df = merged_df
+
+
+    #     if verbose:
+    #         _total_verbose_df = _total_verbose_df.rename(columns={'datetime': 'original_datetime',
+    #                                               'target_datetime': 'datetime'}).set_index(['name', 'datetime'])
+
+
+
+    #     # Update metadf
+    #     self.metadf["self_resolution"] = simplified_resolution
+
+    #     # Reset outliersdf
+    #     self.outliersdf = init_triple_multiindexdf()
+
+
+    #     self._construct_dataset(df = merged_df,
+    #                                freq_estimation_method= 'median',
+    #                                freq_estimation_simplify=False,
+    #                                freq_estimation_simplify_error='0T')
+    #     # # Reapply missing and gap checks
+    #     # self.gaps = None
+    #     # self.missing_obs=None
+    #     # self.gapfilldf = init_multiindexdf()
+
+    #     # self._apply_qc_on_import()
+
+    #     if verbose:
+    #         return _total_verbose_df
+
+
+    # TODO: make a sync function for observation with quasi equal freqs, but when they are out of sync
+    def sync_observations(self, tollerance, verbose=True):
+
+
+        # Start from input_df !!!!!
+        #   reset self.df, and dataset resolution in metadf
+        #   reset self.outliersdf, gaps, missing
+        #
+        df = self.input_df
+
+
+
+
+        self.df = init_multiindexdf()
+        self.outliersdf = init_triple_multiindexdf()
+        self.gapfilldf = init_multiindexdf()
+        self.missing_obs = None
+        self.gaps = None
+
+        # find simplified resolution
+        simplified_resolution = get_freqency_series(df=df,
+                                                    method='median',
+                                                    simplify=True,
+                                                    max_simplify_error=tollerance)
+
+        occuring_resolutions = simplified_resolution.unique()
+
+        df = df.reset_index()
+
+
+        def find_simple_origin(tstart, tollerance):
+            if tstart.minute == 0 and tstart.second == 0 and tstart.microsecond == 0:
+                return tstart #already a round hour
+
+            # try converting to a round hour
+            tstart_round_hour =tstart.round('60min')
+            if abs(tstart - tstart_round_hour) <= pd.to_timedelta(tollerance):
+                return tstart_round_hour
+
+
+            # try converting to a tenfold in minutes
+            tstart_round_tenfold =tstart.round('10min')
+            if abs(tstart - tstart_round_tenfold) <= pd.to_timedelta(tollerance):
+                return tstart_round_tenfold
+
+
+            # try converting to a fivefold in minutes
+            tstart_round_fivefold =tstart.round('5min')
+            if abs(tstart - tstart_round_fivefold) <= pd.to_timedelta(tollerance):
+                return tstart_round_fivefold
+
+            # no suitable conversion found
+            return tstart
+
+
+
+
+
+        merged_df = pd.DataFrame()
+        _total_verbose_df = pd.DataFrame()
+        for occur_res in occuring_resolutions:
+
+            group_stations = simplified_resolution[simplified_resolution == occur_res].index.to_list()
+            print(f' Grouping stations with simplified resolution of {pd.to_timedelta(occur_res)}: {group_stations}')
+            groupdf = df[df['name'].isin(group_stations)]
+
+            tstart = groupdf['datetime'].min()
+            tend = groupdf['datetime'].max()
+
+            # find a good origin point
+            origin = find_simple_origin(tstart = tstart, tollerance = tollerance)
+
+            # Create records index
+            target_records = pd.date_range(start = origin,
+                                           end = tend,
+                                           freq = pd.Timedelta(occur_res)).to_series()
+            target_records.name = "target_datetime"
+            # convert records to new target records, station per station
+
+            for sta in group_stations:
+                stadf = groupdf[groupdf['name'] == sta]
+                # Drop all nan values! these will be added later from the outliersdf
+                stadf = stadf.set_index(['name', 'datetime'])
+                stadf = stadf.dropna(axis = 0, how = 'all')
+                stadf = stadf.reset_index()
+
+                mergedstadf = pd.merge_asof(left=stadf.sort_values('datetime'),
+                                     right=target_records.to_frame(),
+                                     right_on='target_datetime',
+                                     left_on='datetime',
+                                     direction='nearest',
+                                     tolerance=pd.Timedelta(tollerance))
+
+
+
+                # possibility 1: record is mapped crrectly
+                correct_mapped = mergedstadf[~mergedstadf['target_datetime'].isnull()]
+
+                # possibility2: records that ar not mapped to target
+                # not_mapped_records =mergedstadf[mergedstadf['target_datetime'].isnull()]
+
+
+                # possibilyt 3 : no suitable candidates found for the target
+                # these will be cached by the missing and gap check
+                # no_record_candidates = target_records[~target_records.isin(mergedstadf['target_datetime'])].values
+
+
+                merged_df = pd.concat([merged_df, correct_mapped])
+                if verbose:
+                    _total_verbose_df = pd.concat([_total_verbose_df, mergedstadf])
+
+
+        # overwrite the df with the synced observations
+        merged_df = (merged_df
+                     .rename(columns={'datetime': 'original_datetime',
+                                      'target_datetime': 'datetime'})
+                     .set_index(['name', 'datetime'])
+                     .drop(['original_datetime'], errors='ignore', axis=1)
+                     .sort_index())
+        # self.df = merged_df
+
+
+        # Recompute the dataset attributes, apply qc, gap and missing searches, etc.
+        self._construct_dataset(df = merged_df,
+                                   freq_estimation_method = 'highest',
+                                   freq_estimation_simplify = False,
+                                   freq_estimation_simplify_error = None,
+                                   fixed_freq_series=simplified_resolution)
+
+
+
+
+
+        if verbose:
+            _total_verbose_df = _total_verbose_df.rename(columns={'datetime': 'original_datetime',
+                                                  'target_datetime': 'datetime'}).set_index(['name', 'datetime'])
+            return _total_verbose_df
+
+
+
+    def import_data_from_file(self, long_format=True, obstype=None, freq_estimation_method=None,
+                              freq_estimation_simplify=True, freq_estimation_simplify_error=None):
         """
         Read observations from a csv file as defined in the
         Settings.input_file. The input file columns should have a template
@@ -1280,13 +1594,21 @@ class Dataset:
         None.
 
         """
+
         print("Settings input data file: ", self.settings.IO["input_data_file"])
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
+
+        if freq_estimation_method is None:
+            freq_estimation_method=self.settings.time_settings['freq_estimation_method']
+        if freq_estimation_simplify is None:
+            freq_estimation_simplify=self.settings.time_settings['freq_estimation_simplify']
+        if freq_estimation_simplify_error is None:
+            freq_estimation_simplify_error = self.settings.time_settings['freq_estimation_simplify_error']
+
 
         # check if obstype is valid
         if not isinstance(obstype, type(None)):
             assert obstype in self.settings.app["observation_types"], f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
-
 
         # Read observations into pandas dataframe
 
@@ -1368,15 +1690,10 @@ class Dataset:
         # dataframe with all data of input file
         self.input_df = df.sort_index()
 
-        # Convert dataframe to dataset attributes
-        self._initiate_df_attribute(dataframe=df)
-
-        # Apply quality control on Import resolution
-        self._apply_qc_on_import()
-
-        # Remove gaps and missing from the observations AFTER timecoarsening
-        self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
-        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+        self._construct_dataset(df = df,
+                                freq_estimation_method = freq_estimation_method,
+                                freq_estimation_simplify = freq_estimation_simplify,
+                                freq_estimation_simplify_error = freq_estimation_simplify_error)
 
     def import_data_from_database(
         self, start_datetime=None, end_datetime=None, coarsen_timeres=False
@@ -1445,15 +1762,50 @@ class Dataset:
             )
             df = df[~df.index.get_level_values("name").isnull()]
 
+
+        self._construct_dataset(df)
+
+    def _construct_dataset(self, df, freq_estimation_method,
+                          freq_estimation_simplify, freq_estimation_simplify_error,
+                          fixed_freq_series=None):
+        import time
+
         # Convert dataframe to dataset attributes
         self._initiate_df_attribute(dataframe=df)
 
         # Apply quality control on Import resolution
+        t1 = time.time()
         self._apply_qc_on_import()
+        t2 = time.time()
+        print(f'qc on import time: {t2-t1}')
+
+        if fixed_freq_series is None:
+            freq_series = get_freqency_series(
+                                            df = self.df,
+                                            method = freq_estimation_method,
+                                            simplify = freq_estimation_simplify,
+                                            max_simplify_error=freq_estimation_simplify_error)
+            freq_series_import = freq_series
+
+        else:
+            if "assumed_import_frequency" in self.metadf.columns:
+                freq_series_import =self.metadf["assumed_import_frequency"] #No update
+            else:
+                freq_series_import = fixed_freq_series
+            freq_series = fixed_freq_series
+
+
+        # add import frequencies to metadf (after import qc!)
+        self.metadf["assumed_import_frequency"] = freq_series_import
+
+        self.metadf["dataset_resolution"] = freq_series
 
         # Remove gaps and missing from the observations AFTER timecoarsening
         self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+
+
+
 
     def _initiate_df_attribute(self, dataframe):
         logger.info(
@@ -1477,9 +1829,7 @@ class Dataset:
 
         self.metadf = metadf_to_gdf(metadf)
 
-        # add import frequencies to metadf
-        self.metadf["assumed_import_frequency"] = get_freqency_series(self.df)
-        self.metadf["dataset_resolution"] = self.metadf["assumed_import_frequency"]
+
 
     def _apply_qc_on_import(self):
         # find missing obs and gaps, and remove them from the df

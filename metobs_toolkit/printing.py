@@ -10,7 +10,7 @@ Created on Thu Mar  2 14:56:26 2023
 from datetime import datetime
 
 
-def print_dataset_info(df, outliersdf, gapsdf, fmt_datetime):
+def print_dataset_info(df, outliersdf, gapsdf, missing_obs, fmt_datetime):
     if df.empty:
         print("This dataset is empty!")
         # logger.error('The dataset is empty!')
@@ -35,6 +35,11 @@ def print_dataset_info(df, outliersdf, gapsdf, fmt_datetime):
         print("\n", "--------  Outliers ---------", "\n")
         print(
             f'There are {outliersdf.shape[0]} flagged observations found in total. They occure in these stations: {list(outliersdf.index.get_level_values("name").unique())}'
+        )
+
+        print("\n", "--------  Missing observations ---------", "\n")
+        print(
+            f"There are {missing_obs.shape[0]} missing observations in total. They occure in these stations: {list(missing_obs.index.unique())}"
         )
 
         print("\n", "--------  Gaps ---------", "\n")
