@@ -23,6 +23,9 @@ sys.path.append(str(lib_folder))
 
 # testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
 testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_data.csv')
+testdatafile = '/home/thoverga/Downloads/testdataset.csv'
+
+
 
 template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
 # template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
@@ -35,13 +38,13 @@ template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_templ
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdatafile,
                         # input_metadata_file=static_data,
-                        # data_template_file= template,
+                        data_template_file= template,
                         output_folder='/home/thoverga/Documents'
                         )
 
 
 
-dataset.import_data_from_file(long_format=True, obstype='temp')
+dataset.import_data_from_file(long_format=False, obstype='temp')
 
 dataset.show()
 
@@ -57,5 +60,12 @@ dataset.show()
 
 
 #%%
+import pandas as pd
 
 
+# df = pd.DataFrame({'A': [1, 2, 3, 4, 5],
+#                    'B': [1, 1, 1, pd.np.nan, pd.np.nan],
+#                    'C': [pd.np.nan, 2, 3, pd.np.nan, pd.np.nan],
+#                    'D': [pd.np.nan, pd.np.nan, pd.np.nan, pd.np.nan, pd.np.nan]})
+
+# column_names = df.nunique().loc[lambda x: x <= 1].index.tolist()

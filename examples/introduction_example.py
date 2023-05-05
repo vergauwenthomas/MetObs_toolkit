@@ -38,6 +38,9 @@ import metobs_toolkit
 
 aug_2020_all_vlinders = metobs_toolkit.Dataset()
 
+# All default observationtypes present in the MetObs toolkit can be shown by:
+print(metobs_toolkit.observation_types)
+
 
 # we created an dataset and stored in under the variable 'aug_2020_all_vlinder'.
 # The show function prints out an overview of data in the dataset:

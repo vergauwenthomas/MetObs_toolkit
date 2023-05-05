@@ -282,7 +282,8 @@ def get_freqency_series(df, method='highest', simplify=True,
                         max_simplify_error='2T'):
     """
     Find the most likely observation frequency for all stations individually
-    based on the df.
+    based on the df. If an observation has less than two observations, assign
+    the most commum frequency to it an raise a warning.
 
     Parameters
     ----------
@@ -291,11 +292,11 @@ def get_freqency_series(df, method='highest', simplify=True,
     method : 'highest' or 'median', optional
         Select wich method to use. If 'highest', the highest apearing frequency is used.
         If 'median', the median of the apearing frequencies is used. The default is 'highest'.
-    simplify : Boolean, optional
+    simplify : bool, optional
         If True, the likely frequency is converted to round hours, or round minutes.
         The "max_simplify_error' is used as a constrain. If the constrain is not met,
         the simplification is not performed.The default is True.
-    max_simplify_error : datetimestring, optional
+    max_simplify_error : Timedelta or str, optional
         The maximum deviation from the found frequency when simplifying. The default is '2T'.
 
     Returns
@@ -304,14 +305,36 @@ def get_freqency_series(df, method='highest', simplify=True,
         A pandas series with 'name' as index and likely frequencies as values.
 
     """
+
+
+    problematic_stations = []
     freqs = {}
     for station in df.index.get_level_values(level="name").unique():
         subdf = df.xs(station, level="name")
         # remove rows with all obstype nans
         subdf = subdf.dropna(axis = 0, how = 'all')
 
+        # Check if all observations have at least two observations
+        if subdf.shape[0] < 2 :
+            problematic_stations.append(station)
+            print(f'WARNING! Stations {station} have to few observations to make a frequency estimate.')
+            continue
+
+
         freqs[station] = get_likely_frequency(timestamps = subdf.index,
                                               method=method,
                                               simplify=simplify,
                                               max_simplify_error=max_simplify_error)
+
+    if len(problematic_stations) != 0:
+        assign_med_freq = pd.to_timedelta(
+                            np.median([freq.total_seconds() for freq in freqs.values()]),
+                            unit='seconds')
+
+        print(f'Asigning the median of frequencies ({assign_med_freq}) to these stations {problematic_stations}.')
+        for prob_station in problematic_stations:
+            freqs[prob_station] = assign_med_freq
+
+
+
     return pd.Series(data=freqs)

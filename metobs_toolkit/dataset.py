@@ -70,6 +70,8 @@ from metobs_toolkit.df_helpers import (
 
 from metobs_toolkit.modeldata import Modeldata
 
+from metobs_toolkit import observation_types
+
 
 logger = logging.getLogger(__name__)
 
@@ -280,8 +282,13 @@ class Dataset:
         except:
             gapsdf = init_multiindexdf()
 
+        if self.missing_obs is None:
+            missing_obs_series = pd.Series(dtype=object)
+        else:
+            missing_obs_series = self.missing_obs.series
+
         print_dataset_info(
-            self.df, self.outliersdf, gapsdf, self.missing_obs.series, self.settings.app["print_fmt_datetime"]
+            self.df, self.outliersdf, gapsdf, missing_obs_series, self.settings.app["print_fmt_datetime"]
         )
 
     def make_plot(
@@ -701,7 +708,7 @@ class Dataset:
                 cols_to_keep = [
                     col
                     for col in mergedf.columns
-                    if col in self.settings.app["observation_types"]
+                    if col in observation_types
                 ]
                 cols_to_keep.extend(
                     [col for col in mergedf.columns if col.endswith("_final_label")]
@@ -732,7 +739,7 @@ class Dataset:
             nan_columns = {
                 col: np.nan
                 for col in mergedf.columns
-                if col in self.settings.app["observation_types"]
+                if col in observation_types
             }
             filled_df = filled_df.assign(**nan_columns)
             # rename label
@@ -748,7 +755,7 @@ class Dataset:
 
         present_obstypes = [
             col
-            for col in self.settings.app["observation_types"]
+            for col in observation_types
             if col in mergedf.columns
         ]
 
@@ -1002,7 +1009,7 @@ class Dataset:
             outliercolumns = [
                 col + "_final_label"
                 for col in self.df
-                if col in self.settings.app["observation_types"]
+                if col in observation_types
             ]
             for column in outliercolumns:
                 outliersdf[column] = "not checked"
@@ -1016,7 +1023,7 @@ class Dataset:
         # 0. make shure there is a final column for each obstype in the df,
         # if qc did not found any outliers, then there is apriori no final label column
         present_obstypes = [
-            col for col in self.settings.app["observation_types"] if col in df.columns
+            col for col in observation_types if col in df.columns
         ]
         for presen_obstype in present_obstypes:
             final_label = presen_obstype + "_final_label"
@@ -1077,7 +1084,7 @@ class Dataset:
 
         # initiate default values
         for col in df_and_outl.columns:
-            if col in self.settings.app["observation_types"]:
+            if col in observation_types:
                 default_value_gap = np.nan  # nan for observations
                 default_value_missing = np.nan
 
@@ -1182,15 +1189,6 @@ class Dataset:
     # =============================================================================
     #     importing data
     # =============================================================================
-    # def sync_timestamps(self, origin=None, origin_tz=None, method=None, limit=None):
-
-    #     if method is None:
-    #         method = self.settings.time_settings["resample_method"]
-    #     if limit is None:
-    #         limit = int(self.settings.time_settings["resample_limit"])
-    #     if origin_tz is None:
-    #         origin_tz = dataset.settings.time_settings['timezone']
-
 
 
 
@@ -1199,9 +1197,17 @@ class Dataset:
         Resample the observations to coarser timeresolution. The assumed
         dataset resolution (stored in the metadf attribute) will be updated.
 
-
         Parameters
         ----------
+        origin : datetime.datetime, optional
+            Define the origin (first timestamp) for the obervations. The origin
+            is timezone naive, and is assumed to have the same timezone as the
+            obervations. If None, the earliest occuring timestamp is used as
+            origin. The default is None.
+        origin_tz : str, optional
+            Timezone string of the input observations. Element of
+            pytz.all_timezones. If None, the timezone from the settings is
+            used. The default is None.
         freq : DateOffset, Timedelta or str, optional
             The offset string or object representing target conversion.
             Ex: '15T' is 15 minuts, '1H', is one hour. If None, the target time
@@ -1219,6 +1225,7 @@ class Dataset:
         None.
 
         """
+
         if freq is None:
             freq = self.settings.time_settings["target_time_res"]
         if method is None:
@@ -1287,150 +1294,47 @@ class Dataset:
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
 
-    # # TODO: make a sync function for observation with quasi equal freqs, but when they are out of sync
-    # def sync_observations(self, tollerance, verbose=True):
 
-    #     # find simplified resolution
-
-
-    #     simplified_resolution = get_freqency_series(df=self.df,
-    #                                                 method='median',
-    #                                                 simplify=True,
-    #                                                 max_simplify_error=tollerance)
-
-    #     occuring_resolutions = simplified_resolution.unique()
-
-    #     df = self.df.reset_index()
-
-
-    #     # Reset the missing and gaps
-
-    #     self.gaps = None
-    #     self.missing_obs=None
-    #     self.gapfilldf = init_multiindexdf()
-
-    #     def find_simple_origin(tstart, tollerance):
-    #         if tstart.minute == 0 and tstart.second == 0 and tstart.microsecond == 0:
-    #             return tstart #already a round hour
-
-    #         # try converting to a round hour
-    #         tstart_round_hour =tstart.round('60min')
-    #         if abs(tstart - tstart_round_hour) <= pd.to_timedelta(tollerance):
-    #             return tstart_round_hour
-
-
-    #         # try converting to a tenfold in minutes
-    #         tstart_round_tenfold =tstart.round('10min')
-    #         if abs(tstart - tstart_round_tenfold) <= pd.to_timedelta(tollerance):
-    #             return tstart_round_tenfold
-
-
-    #         # try converting to a fivefold in minutes
-    #         tstart_round_fivefold =tstart.round('5min')
-    #         if abs(tstart - tstart_round_fivefold) <= pd.to_timedelta(tollerance):
-    #             return tstart_round_fivefold
-
-    #         # no suitable conversion found
-    #         return tstart
-
-
-
-
-
-    #     merged_df = pd.DataFrame()
-    #     _total_verbose_df = pd.DataFrame()
-    #     for occur_res in occuring_resolutions:
-
-    #         group_stations = simplified_resolution[simplified_resolution == occur_res].index.to_list()
-    #         print(f' Grouping stations with simplified resolution of {pd.to_timedelta(occur_res)}: {group_stations}')
-    #         groupdf = df[df['name'].isin(group_stations)]
-
-    #         tstart = groupdf['datetime'].min()
-    #         tend = groupdf['datetime'].max()
-
-    #         # find a good origin point
-    #         origin = find_simple_origin(tstart = tstart, tollerance = tollerance)
-
-    #         # Create records index
-    #         target_records = pd.date_range(start = origin,
-    #                                        end = tend,
-    #                                        freq = pd.Timedelta(occur_res)).to_series()
-    #         target_records.name = "target_datetime"
-    #         # convert records to new target records, station per station
-
-    #         for sta in group_stations:
-    #             stadf = groupdf[groupdf['name'] == sta]
-    #             # Drop all nan values! these will be added later from the outliersdf
-    #             stadf = stadf.set_index(['name', 'datetime'])
-    #             stadf = stadf.dropna(axis = 0, how = 'all')
-    #             stadf = stadf.reset_index()
-
-    #             mergedstadf = pd.merge_asof(left=stadf.sort_values('datetime'),
-    #                                  right=target_records.to_frame(),
-    #                                  right_on='target_datetime',
-    #                                  left_on='datetime',
-    #                                  direction='nearest',
-    #                                  tolerance=pd.Timedelta(tollerance))
-
-
-
-    #             # possibility 1: record is mapped crrectly
-    #             correct_mapped = mergedstadf[~mergedstadf['target_datetime'].isnull()]
-
-    #             # possibility2: records that ar not mapped to target
-    #             not_mapped_records =mergedstadf[mergedstadf['target_datetime'].isnull()]
-
-
-    #             # possibilyt 3 : no suitable candidates found for the target
-    #             # these will be cached by the missing and gap check
-    #             no_record_candidates = target_records[~target_records.isin(mergedstadf['target_datetime'])].values
-
-
-    #             merged_df = pd.concat([merged_df, correct_mapped])
-    #             if verbose:
-    #                 _total_verbose_df = pd.concat([_total_verbose_df, mergedstadf])
-
-
-    #     # overwrite the df with the synced observations
-    #     merged_df = (merged_df
-    #                  .rename(columns={'datetime': 'original_datetime',
-    #                                   'target_datetime': 'datetime'})
-    #                  .set_index(['name', 'datetime'])
-    #                  .drop(['original_datetime'], errors='ignore', axis=1))
-    #     # self.df = merged_df
-
-
-    #     if verbose:
-    #         _total_verbose_df = _total_verbose_df.rename(columns={'datetime': 'original_datetime',
-    #                                               'target_datetime': 'datetime'}).set_index(['name', 'datetime'])
-
-
-
-    #     # Update metadf
-    #     self.metadf["self_resolution"] = simplified_resolution
-
-    #     # Reset outliersdf
-    #     self.outliersdf = init_triple_multiindexdf()
-
-
-    #     self._construct_dataset(df = merged_df,
-    #                                freq_estimation_method= 'median',
-    #                                freq_estimation_simplify=False,
-    #                                freq_estimation_simplify_error='0T')
-    #     # # Reapply missing and gap checks
-    #     # self.gaps = None
-    #     # self.missing_obs=None
-    #     # self.gapfilldf = init_multiindexdf()
-
-    #     # self._apply_qc_on_import()
-
-    #     if verbose:
-    #         return _total_verbose_df
 
 
     # TODO: make a sync function for observation with quasi equal freqs, but when they are out of sync
     def sync_observations(self, tollerance, verbose=True):
+        """
+        Simplify and syncronize the observation timestamps along different stations.
 
+        To simplify the resolution (per station), a tollerance is use to shift timestamps. The tollerance indicates the
+        maximum translation in time that can be applied to an observation.
+
+        The sycronisation tries to group stations that have an equal simplified resolution, and syncronize them. The origin
+        of the sycronized timestamps will be set to round hours, round 10-minutes or round-5 minutes if possible given the tollerance.
+
+        The observations present in the input file are used.
+
+        After syncronization, the IO outliers, missing observations and gaps are recomputed.
+
+        Parameters
+        ----------
+        tollerance, Timedelta or str
+            The tollerance string or object representing the maximum translation in time.
+            Ex: '5T' is 5 minuts, '1H', is one hour.
+        verbose : bool, optional
+            If True, a dataframe illustrating the mapping from original datetimes to simplified and syncronized is returned. The default is True.
+
+        Note
+        --------
+        Keep in mind that this method will overwrite the df, outliersdf, missing timestamps and gaps.
+
+        Note
+        --------
+        Because the used observations are from the input file, previously coarsend timeresolutions are ignored.
+
+
+        Returns
+        -------
+        pandas.DataFrame (if verbose is True)
+            A dataframe containing the original observations with original timestamps and the corresponding target timestamps.
+
+        """
 
         # Start from input_df !!!!!
         #   reset self.df, and dataset resolution in metadf
@@ -1555,7 +1459,8 @@ class Dataset:
                                    freq_estimation_method = 'highest',
                                    freq_estimation_simplify = False,
                                    freq_estimation_simplify_error = None,
-                                   fixed_freq_series=simplified_resolution)
+                                   fixed_freq_series=simplified_resolution,
+                                   update_full_metadf=False) #Do not overwrite full metadf, only the frequencies
 
 
 
@@ -1579,21 +1484,52 @@ class Dataset:
         Settings.input_metadata_file is correct, than this metadata is also
         imported (if a suitable template is in the Settings.template_list.)
 
+        The dataset is by default assumed to be in long-format (each column represent an observation type, one column indicates the stationname).
+        Wide-format can be used if 'long_format' is set to False and if the observation type is specified by obstype.
 
-        It is possible to apply a
-        resampling (downsampling) of the observations as defined in the settings.
-
-        After the import there is always a call to Dataset.update_dataset_by_df, that
-        sets up the dataset with the observations and applies some sanity checks.
+        An estimation of the observational frequency is made per station. This is used
+        to find missing observations and gaps.
 
 
+        The Dataset attributes are set and the following checks are executed:
+                * Duplicate check
+                * Invalid input check
+                * Find missing observations
+                * Find gaps
+
+        Parameters
+        ----------
+        long_format : bool, optional
+            True if the inputdata has a long-format, False if it has a wide-format. The default is True.
+        obstype : str, optional
+            If the dataformat is wide, specify which observation type the
+            observations represent. The obstype should be an element of
+            metobs_toolkit.observation_types. The default is None.
+        freq_estimation_method : 'highest' or 'median', optional
+            Select wich method to use for the frequency estimation. If
+            'highest', the highest apearing frequency is used. If 'median', the
+            median of the apearing frequencies is used. If None, the method
+            stored in the
+            Dataset.settings.time_settings['freq_estimation_method'] is used.
+            The default is None.
+        freq_estimation_simplify : bool, optional
+            If True, the likely frequency is converted to round hours, or round minutes.
+            The "freq_estimation_simplify_error' is used as a constrain. If the constrain is not met,
+            the simplification is not performed.The default is True. The default is True.
+        freq_estimation_simplify_error : Timedelta or str, optional
+            The tollerance string or object representing the maximum translation in time to form a simplified frequency estimation.
+            Ex: '5T' is 5 minuts, '1H', is one hour. If None, the method
+            stored in the
+            Dataset.settings.time_settings['freq_estimation_simplify_error'] is
+            used. The default is None.
 
         Returns
-        ----------
-
+        -------
         None.
 
         """
+
+
 
         print("Settings input data file: ", self.settings.IO["input_data_file"])
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
@@ -1608,10 +1544,9 @@ class Dataset:
 
         # check if obstype is valid
         if not isinstance(obstype, type(None)):
-            assert obstype in self.settings.app["observation_types"], f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
+            assert obstype in observation_types, f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
 
         # Read observations into pandas dataframe
-
         df, template = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
             template_file=self.settings.templates["data_template_file"],
@@ -1767,11 +1702,46 @@ class Dataset:
 
     def _construct_dataset(self, df, freq_estimation_method,
                           freq_estimation_simplify, freq_estimation_simplify_error,
-                          fixed_freq_series=None):
-        import time
+                          fixed_freq_series=None, update_full_metadf=True):
+        """
+        Helper function to construct the Dataset class from a IO dataframe.
+
+        The df, metadf, outliersdf, gaps and missing timestamps attributes are set.
+
+        Qc on IO is applied (duplicated check and invalid check) + gaps and missing
+        values are defined by assuming a frequency per station.
+
+        Parameters
+        ----------
+        df : pandas.dataframe
+            The dataframe containing the input observations and metadata.
+        freq_estimation_method : 'highest' or 'median'
+            Select wich method to use for the frequency estimation. If
+            'highest', the highest apearing frequency is used. If 'median', the
+            median of the apearing frequencies is used.
+        freq_estimation_simplify : bool
+            If True, the likely frequency is converted to round hours, or round minutes.
+            The "freq_estimation_simplify_error' is used as a constrain. If the constrain is not met,
+            the simplification is not performed.
+        freq_estimation_simplify_error : Timedelta or str, optional
+            The tollerance string or object representing the maximum translation in time to form a simplified frequency estimation.
+            Ex: '5T' is 5 minuts, '1H', is one hour.
+        fixed_freq_series : pandas.series or None, optional
+            If you do not want the frequencies to be recalculated, one can pass the
+            frequency series to update the metadf["dataset_resolution"]. If None, the frequencies will be estimated. The default is None.
+        update_full_metadf : bool, optional
+            If True, the full Dataset.metadf will be updated. If False, only the frequency columns in the Dataset.metadf will be updated. The default is True.
+
+
+        Returns
+        -------
+        None.
+
+        """
+
 
         # Convert dataframe to dataset attributes
-        self._initiate_df_attribute(dataframe=df)
+        self._initiate_df_attribute(dataframe=df, update_metadf=update_full_metadf)
 
         # Apply quality control on Import resolution
         self._apply_qc_on_import()
@@ -1805,7 +1775,7 @@ class Dataset:
 
 
 
-    def _initiate_df_attribute(self, dataframe):
+    def _initiate_df_attribute(self, dataframe, update_metadf=True):
         logger.info(
             f"Updating dataset by dataframe with shape:\
                     {dataframe.shape}."
@@ -1814,18 +1784,19 @@ class Dataset:
         # Create dataframe with fixed order of observational columns
         obs_col_order = [
             col
-            for col in self.settings.app["observation_types"]
+            for col in observation_types
             if col in dataframe.columns
         ]
         self.df = dataframe[obs_col_order].sort_index()
 
-        # create metadataframe with fixed number and order of columns
-        metadf = dataframe.reindex(columns=self.settings.app["location_info"])
-        metadf.index = metadf.index.droplevel("datetime")  # drop datetimeindex
-        # drop dubplicates due to datetime
-        metadf = metadf[~metadf.index.duplicated(keep="first")]
+        if update_metadf:
+            # create metadataframe with fixed number and order of columns
+            metadf = dataframe.reindex(columns=self.settings.app["location_info"])
+            metadf.index = metadf.index.droplevel("datetime")  # drop datetimeindex
+            # drop dubplicates due to datetime
+            metadf = metadf[~metadf.index.duplicated(keep="first")]
 
-        self.metadf = metadf_to_gdf(metadf)
+            self.metadf = metadf_to_gdf(metadf)
 
 
 
@@ -1861,7 +1832,7 @@ class Dataset:
         checked_obstypes = [
             obs
             for obs in self.df.columns
-            if obs in self.settings.app["observation_types"]
+            if obs in observation_types
         ]
         checknames = ["duplicated_timestamp", "invalid_input"]  # KEEP order
 

@@ -123,7 +123,7 @@ class Settings:
         from .settings_files.default_formats_settings import (
             static_fields,
             categorical_fields,
-            observation_types,
+            # observation_types,
             location_info,
         )
 
@@ -146,7 +146,7 @@ class Settings:
         self.app["static_fields"] = static_fields
         self.app["categorical_fields"] = categorical_fields  # wind and lcz
         # order of all possible observations
-        self.app["observation_types"] = observation_types
+        # self.app["observation_types"] = observation_types
         self.app["location_info"] = location_info  # all possible metadata
 
         # 5. default name (when station name is not present in dataset)
