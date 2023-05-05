@@ -194,6 +194,7 @@ def conv_applied_qc_to_df(obstypes, ordered_checknames):
 def get_likely_frequency(
     timestamps, method="highest", simplify=True, max_simplify_error="2T"
 ):
+
     """
     Find the most likely observation frequency of a datetimeindex.
 
@@ -223,6 +224,7 @@ def get_likely_frequency(
         "median",
     ], f"The method for frequency estimation ({method}) is not known. Use one of [highest, median]"
 
+
     try:
         pd.to_timedelta(max_simplify_error)
     except ValueError:
@@ -233,6 +235,7 @@ def get_likely_frequency(
     freqdist = abs(timestamps.to_series().diff().value_counts().index).sort_values(
         ascending=True
     )
+    
     if method == "highest":
         assume_freq = freqdist[0]  # highest frequency
 
@@ -276,6 +279,7 @@ def get_likely_frequency(
         else:
             assume_freq = simplify_freq
 
+
     if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
         # select the second highest frequency
         assume_freq = abs(
@@ -286,6 +290,7 @@ def get_likely_frequency(
 
 
 def get_freqency_series(df, method="highest", simplify=True, max_simplify_error="2T"):
+
     """
     Find the most likely observation frequency for all stations individually
     based on the df. If an observation has less than two observations, assign
@@ -344,5 +349,6 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
         )
         for prob_station in problematic_stations:
             freqs[prob_station] = assign_med_freq
+
 
     return pd.Series(data=freqs)

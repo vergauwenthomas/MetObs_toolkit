@@ -29,6 +29,7 @@ from metobs_toolkit.df_helpers import (
 )
 
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -578,18 +579,18 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
         timestamps = df.xs(station, level="name").index
         likely_freq = get_likely_frequency(timestamps, method="highest", simplify=False)
 
+
         assert likely_freq.seconds > 0, f"The frequency is not positive!"
 
         station_freqs[station] = likely_freq
 
-        missing_datetimeseries = (
-            pd.date_range(
-                start=timestamps.min(), end=timestamps.max(), freq=likely_freq
-            )
-            .difference(timestamps)
-            .to_series()
-            .diff()
-        )
+        missing_datetimeseries = (pd.date_range(start=timestamps.min(),
+                                               end=timestamps.max(),
+                                               freq=likely_freq)
+                                  .difference(timestamps)
+                                  .to_series()
+                                  .diff())
+
 
         if missing_datetimeseries.empty:
             continue
