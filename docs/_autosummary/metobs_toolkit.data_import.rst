@@ -22,6 +22,7 @@ metobs\_toolkit.data\_import
       import_data_from_db
       import_metadata_from_csv
       template_to_package_space
+      wide_to_long
    
    
 

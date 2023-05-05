@@ -24,11 +24,11 @@ default_template_file = os.path.join(
 # values contain the mapping information to the toolkit classes and names.
 
 
-def read_csv_template(file):
+def read_csv_template(file, data_long_format=True, obstype=None):
     common_seperators = [";", ",", "    ", "."]
     for sep in common_seperators:
         templ = pd.read_csv(file, sep=sep)
-        assert not templ.empty, "Dataset is empty!"
+        assert not templ.empty, "Template is empty!"
 
         if len(templ.columns) > 1:
             break
@@ -36,8 +36,15 @@ def read_csv_template(file):
     # Drop emty rows
     templ = templ.dropna(axis="index", how="all")
 
-    # Drop variables that are not present in templ
-    templ = templ[templ["template column name"].notna()]
+    if data_long_format:
+        # Drop variables that are not present in templ
+        templ = templ[templ["template column name"].notna()]
+
+    else:
+        # Do not do this for wide dataframes since the present obstype
+        # is not specified in template oclumn name, but the defenition and datatype do.
+        templ.loc[templ['varname'] ==obstype, 'template column name'] = '_wide_dummy'
+
 
     # create dictionary from templframe
     templ = templ.set_index("template column name")

@@ -102,6 +102,11 @@ class Settings:
         self.time_settings["resample_limit"] = res_settings["limit"]
         self.time_settings["timezone"] = res_settings["timezone"]
 
+        # Freq estimation
+        self.time_settings['freq_estimation_method'] = res_settings["freq_estimation_method"]
+        self.time_settings['freq_estimation_simplify'] = bool(res_settings["freq_estimation_simplify"])
+        self.time_settings['freq_estimation_simplify_error'] = res_settings["freq_estimation_simplify_error"]
+
     def _update_app_settings(self):
         """
         Update prefered display, print, plot and staticinfo settings of self using the default settings templates.
@@ -118,7 +123,6 @@ class Settings:
         from .settings_files.default_formats_settings import (
             static_fields,
             categorical_fields,
-            observation_types,
             location_info,
         )
 
@@ -140,8 +144,6 @@ class Settings:
         # fields without timeevolution
         self.app["static_fields"] = static_fields
         self.app["categorical_fields"] = categorical_fields  # wind and lcz
-        # order of all possible observations
-        self.app["observation_types"] = observation_types
         self.app["location_info"] = location_info  # all possible metadata
 
         # 5. default name (when station name is not present in dataset)

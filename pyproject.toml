@@ -23,6 +23,7 @@ mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
 
 
+
 [tool.poetry.group.dev.dependencies]
 poetry = "^1.3.2"
 

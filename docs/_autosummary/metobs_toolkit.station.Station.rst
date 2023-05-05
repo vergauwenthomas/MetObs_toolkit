@@ -1,4 +1,4 @@
-metobs\_toolkit.station.Station
+﻿metobs\_toolkit.station.Station
 ===============================
 
 .. currentmodule:: metobs_toolkit.station
@@ -33,6 +33,7 @@ metobs\_toolkit.station.Station
       ~Station.make_plot
       ~Station.show
       ~Station.show_settings
+      ~Station.sync_observations
       ~Station.update_default_name
       ~Station.update_outliersdf
       ~Station.update_settings

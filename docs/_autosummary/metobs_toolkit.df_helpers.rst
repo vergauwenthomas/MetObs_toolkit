@@ -15,11 +15,12 @@ metobs\_toolkit.df\_helpers
       :toctree:
       :nosignatures:
    
-      add_final_label_to_outliersdf
       conv_applied_qc_to_df
       conv_tz_multiidxdf
       datetime_subsetting
       format_outliersdf_to_doubleidx
+      get_freqency_series
+      get_likely_frequency
       init_multiindex
       init_multiindexdf
       init_triple_multiindex

@@ -1,4 +1,4 @@
-metobs\_toolkit.dataset.Dataset
+﻿metobs\_toolkit.dataset.Dataset
 ===============================
 
 .. currentmodule:: metobs_toolkit.dataset
@@ -33,6 +33,7 @@ metobs\_toolkit.dataset.Dataset
       ~Dataset.make_plot
       ~Dataset.show
       ~Dataset.show_settings
+      ~Dataset.sync_observations
       ~Dataset.update_default_name
       ~Dataset.update_outliersdf
       ~Dataset.update_settings

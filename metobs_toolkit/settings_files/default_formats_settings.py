@@ -31,18 +31,6 @@ static_fields = [
 categorical_fields = ["wind_direction", "lcz"]
 
 
-observation_types = [
-    "temp",
-    "radiation_temp",
-    "humidity",
-    "precip",
-    "precip_sum",
-    "wind_speed",
-    "wind_gust",
-    "wind_direction",
-    "pressure",
-    "pressure_at_sea_level",
-]
 
 location_info = ["network", "lat", "lon", "lcz", "call_name", "location"]
 

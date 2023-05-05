@@ -63,33 +63,6 @@ def compress_dict(nested_dict, valuesname):
     return returndict
 
 
-# def coarsen_time_resolution(df, freq='H', method='bfill'):
-
-#     #TODO: implement buffer method
-
-#     if method=='bfill':
-#         #apply per station
-#         resample_df = pd.DataFrame()
-#         for stationname in df['name'].unique():
-#             subdf = df[df['name'] == stationname]
-
-
-#             #  Check if index is unique
-#             if not subdf.index.is_unique:
-#                 print('Duplicate timestamp found !!, this will be removed')
-#                 dup_mask = subdf.index.duplicated(keep='first')
-#                 subdf = subdf[~dup_mask]
-#                 subdf = subdf.sort_index()
-
-
-#             resample_subdf = subdf.resample(rule=freq,
-#                                             axis='index').bfill()
-
-#             resample_df = pd.concat([resample_df, resample_subdf])
-
-#         return resample_df
-
-
 def check_template_compatibility(template, df_columns):
     # test if all df_columns are in template keys
     if not all(col in template.keys() for col in df_columns):
@@ -127,9 +100,24 @@ def import_metadata_from_csv(input_file, template_file):
     df = df.rename(columns=compress_dict(template, "varname"))
 
     return df
+def wide_to_long(df, template, obstype):
+
+    print('Converting wide data to long')
+    mapped_colnames = [val['varname'] for val in template.values()]
+    data_colnames = [col for col in df.columns if not col in mapped_colnames]
+    longdf = pd.melt(df, id_vars=['Tijd'], value_vars=data_colnames,
+                   var_name='name', value_name=obstype)
+
+    # update template
+    template[obstype] = template['_wide_dummy']
+    del template['_wide_dummy']
+
+    template['name'] = {'varname': 'name', 'dtype':'object'}
+
+    return longdf, template
 
 
-def import_data_from_csv(input_file, template_file):
+def import_data_from_csv(input_file, template_file, long_format, obstype):
     common_seperators = [";", ",", "    ", "."]
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
     for sep in common_seperators:
@@ -158,8 +146,14 @@ def import_data_from_csv(input_file, template_file):
     df.index = range(len(df))
 
     # validate template
-    template = read_csv_template(template_file)
+    template = read_csv_template(template_file, long_format, obstype)
+    # convert wide data to long if needed
+    if not long_format:
+        df, template = wide_to_long(df, template, obstype)
+
     check_template_compatibility(template, df.columns)
+
+
 
     for key, value in template.items():
         if value["dtype"] == "float64":
