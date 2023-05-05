@@ -30,9 +30,15 @@ BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_PATH)
 
 # demo files
-demo_datafile = os.path.join(BASE_PATH, 'metobs_toolkit', 'datafiles', 'demo_datafile.csv')
-demo_metadatafile = os.path.join(BASE_PATH, 'metobs_toolkit', 'datafiles', 'demo_metadatafile.csv')
-demo_template =os.path.join(BASE_PATH, 'metobs_toolkit', 'datafiles', 'demo_templatefile.csv')
+demo_datafile = os.path.join(
+    BASE_PATH, "metobs_toolkit", "datafiles", "demo_datafile.csv"
+)
+demo_metadatafile = os.path.join(
+    BASE_PATH, "metobs_toolkit", "datafiles", "demo_metadatafile.csv"
+)
+demo_template = os.path.join(
+    BASE_PATH, "metobs_toolkit", "datafiles", "demo_templatefile.csv"
+)
 
 # =============================================================================
 #  Static variables to be reached by users
@@ -66,4 +72,3 @@ from metobs_toolkit.modeldata import Modeldata
 
 # DO not change this manually!
 __version__ = "0.0.2a1"
-

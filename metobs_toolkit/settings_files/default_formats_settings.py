@@ -31,7 +31,6 @@ static_fields = [
 categorical_fields = ["wind_direction", "lcz"]
 
 
-
 location_info = ["network", "lat", "lon", "lcz", "call_name", "location"]
 
 
