@@ -1774,10 +1774,8 @@ class Dataset:
         self._initiate_df_attribute(dataframe=df)
 
         # Apply quality control on Import resolution
-        t1 = time.time()
         self._apply_qc_on_import()
-        t2 = time.time()
-        print(f'qc on import time: {t2-t1}')
+
 
         if fixed_freq_series is None:
             freq_series = get_freqency_series(

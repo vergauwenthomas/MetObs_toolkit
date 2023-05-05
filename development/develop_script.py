@@ -18,13 +18,13 @@ sys.path.append(str(lib_folder))
 
 
 
-#% % Import
+#%% % Import
 
 
-testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
-# testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_data.csv')
+# testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
+testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_data.csv')
 
-# template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
+template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
 # template = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
 
 
@@ -53,3 +53,9 @@ test = dataset.sync_observations(tollerance='5T', verbose=True)
 
 
 dataset.show()
+
+
+
+#%%
+
+

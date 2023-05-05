@@ -29,6 +29,11 @@ loggers.info("Logger initiated")
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_PATH)
 
+demo_datafile = os.path.join(BASE_PATH, 'metobs_toolkit', 'datafiles', 'demo_datafile.csv')
+demo_metadatafile = os.path.join(BASE_PATH, 'metobs_toolkit', 'datafiles', 'demo_metadatafile.csv')
+demo_template =os.path.join(BASE_PATH, 'metobs_toolkit', 'datafiles', 'demo_templatefile.csv')
+
+
 
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
