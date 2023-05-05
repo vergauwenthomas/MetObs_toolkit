@@ -43,7 +43,7 @@ def read_csv_template(file, data_long_format=True, obstype=None):
     else:
         # Do not do this for wide dataframes since the present obstype
         # is not specified in template oclumn name, but the defenition and datatype do.
-        templ.loc[templ['varname'] ==obstype, 'template column name'] = '_wide_dummy'
+        templ.loc[templ["varname"] == obstype, "template column name"] = "_wide_dummy"
 
 
     # create dictionary from templframe

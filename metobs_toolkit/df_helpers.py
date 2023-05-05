@@ -185,11 +185,16 @@ def conv_applied_qc_to_df(obstypes, ordered_checknames):
     df = pd.DataFrame({"obstype": obslist, "checkname": checknamelist})
     return df
 
+
 # =============================================================================
 # Records frequencies
 # =============================================================================
 
-def get_likely_frequency(timestamps, method='highest', simplify=True, max_simplify_error='2T'):
+
+def get_likely_frequency(
+    timestamps, method="highest", simplify=True, max_simplify_error="2T"
+):
+
     """
     Find the most likely observation frequency of a datetimeindex.
 
@@ -214,46 +219,54 @@ def get_likely_frequency(timestamps, method='highest', simplify=True, max_simpli
 
     """
 
-    assert method in ['highest', 'median'], f'The method for frequency estimation ({method}) is not known. Use one of [highest, median]'
+    assert method in [
+        "highest",
+        "median",
+    ], f"The method for frequency estimation ({method}) is not known. Use one of [highest, median]"
+
 
     try:
         pd.to_timedelta(max_simplify_error)
     except ValueError:
-        sys.exit(f'{max_simplify_error} is not valid timeindication. Example: "5T" indicates 5 minutes.')
+        sys.exit(
+            f'{max_simplify_error} is not valid timeindication. Example: "5T" indicates 5 minutes.'
+        )
 
     freqdist = abs(timestamps.to_series().diff().value_counts().index).sort_values(
         ascending=True
     )
-    if method=='highest':
-        assume_freq = freqdist[0] #highest frequency
+    
+    if method == "highest":
+        assume_freq = freqdist[0]  # highest frequency
 
-    elif method=='median':
+    elif method == "median":
         assume_freq = freqdist.median()
 
     if simplify:
         simplify_freq = None
 
         # try simplyfy to round hours
-        trail_hour = assume_freq.ceil('H')
-        lead_hour = assume_freq.floor('H')
+        trail_hour = assume_freq.ceil("H")
+        lead_hour = assume_freq.floor("H")
 
-        if ((abs(lead_hour - assume_freq) <= abs(trail_hour - assume_freq)) &
-            (lead_hour.total_seconds() != 0.0)):  # avoid assume freq of 0 seconds
+        if (abs(lead_hour - assume_freq) <= abs(trail_hour - assume_freq)) & (
+            lead_hour.total_seconds() != 0.0
+        ):  # avoid assume freq of 0 seconds
             best_candidate = lead_hour
         else:
             best_candidate = trail_hour
-
 
         if abs(assume_freq - best_candidate) < pd.to_timedelta(max_simplify_error):
             simplify_freq = best_candidate
 
         # try simplyfy to round minutes
         if simplify_freq is None:
-            trail_min = assume_freq.ceil('T')
-            lead_min = assume_freq.floor('T')
+            trail_min = assume_freq.ceil("T")
+            lead_min = assume_freq.floor("T")
 
-            if ((abs(lead_min - assume_freq) <= abs(trail_min - assume_freq)) &
-                (lead_min.total_seconds() != 0.0)):  # avoid assume freq of 0 seconds
+            if (abs(lead_min - assume_freq) <= abs(trail_min - assume_freq)) & (
+                lead_min.total_seconds() != 0.0
+            ):  # avoid assume freq of 0 seconds
                 best_candidate = lead_min
             else:
                 best_candidate = trail_min
@@ -267,7 +280,6 @@ def get_likely_frequency(timestamps, method='highest', simplify=True, max_simpli
             assume_freq = simplify_freq
 
 
-
     if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
         # select the second highest frequency
         assume_freq = abs(
@@ -277,9 +289,8 @@ def get_likely_frequency(timestamps, method='highest', simplify=True, max_simpli
     return assume_freq
 
 
+def get_freqency_series(df, method="highest", simplify=True, max_simplify_error="2T"):
 
-def get_freqency_series(df, method='highest', simplify=True,
-                        max_simplify_error='2T'):
     """
     Find the most likely observation frequency for all stations individually
     based on the df. If an observation has less than two observations, assign
@@ -306,35 +317,38 @@ def get_freqency_series(df, method='highest', simplify=True,
 
     """
 
-
     problematic_stations = []
     freqs = {}
     for station in df.index.get_level_values(level="name").unique():
         subdf = df.xs(station, level="name")
         # remove rows with all obstype nans
-        subdf = subdf.dropna(axis = 0, how = 'all')
+        subdf = subdf.dropna(axis=0, how="all")
 
         # Check if all observations have at least two observations
-        if subdf.shape[0] < 2 :
+        if subdf.shape[0] < 2:
             problematic_stations.append(station)
-            print(f'WARNING! Stations {station} have to few observations to make a frequency estimate.')
+            print(
+                f"WARNING! Stations {station} have to few observations to make a frequency estimate."
+            )
             continue
 
-
-        freqs[station] = get_likely_frequency(timestamps = subdf.index,
-                                              method=method,
-                                              simplify=simplify,
-                                              max_simplify_error=max_simplify_error)
+        freqs[station] = get_likely_frequency(
+            timestamps=subdf.index,
+            method=method,
+            simplify=simplify,
+            max_simplify_error=max_simplify_error,
+        )
 
     if len(problematic_stations) != 0:
         assign_med_freq = pd.to_timedelta(
-                            np.median([freq.total_seconds() for freq in freqs.values()]),
-                            unit='seconds')
+            np.median([freq.total_seconds() for freq in freqs.values()]), unit="seconds"
+        )
 
-        print(f'Asigning the median of frequencies ({assign_med_freq}) to these stations {problematic_stations}.')
+        print(
+            f"Asigning the median of frequencies ({assign_med_freq}) to these stations {problematic_stations}."
+        )
         for prob_station in problematic_stations:
             freqs[prob_station] = assign_med_freq
-
 
 
     return pd.Series(data=freqs)

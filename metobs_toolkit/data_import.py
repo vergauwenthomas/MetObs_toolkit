@@ -117,6 +117,29 @@ def wide_to_long(df, template, obstype):
     return longdf, template
 
 
+
+def wide_to_long(df, template, obstype):
+    print("Converting wide data to long")
+    mapped_colnames = [val["varname"] for val in template.values()]
+    data_colnames = [col for col in df.columns if not col in mapped_colnames]
+    longdf = pd.melt(
+        df,
+        id_vars=["Tijd"],
+        value_vars=data_colnames,
+        var_name="name",
+        value_name=obstype,
+    )
+
+    # update template
+    template[obstype] = template["_wide_dummy"]
+    del template["_wide_dummy"]
+
+    template["name"] = {"varname": "name", "dtype": "object"}
+
+    return longdf, template
+
+
+
 def import_data_from_csv(input_file, template_file, long_format, obstype):
     common_seperators = [";", ",", "    ", "."]
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"

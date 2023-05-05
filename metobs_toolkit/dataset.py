@@ -288,7 +288,11 @@ class Dataset:
             missing_obs_series = self.missing_obs.series
 
         print_dataset_info(
-            self.df, self.outliersdf, gapsdf, missing_obs_series, self.settings.app["print_fmt_datetime"]
+            self.df,
+            self.outliersdf,
+            gapsdf,
+            missing_obs_series,
+            self.settings.app["print_fmt_datetime"],
         )
 
     def make_plot(
@@ -683,7 +687,10 @@ class Dataset:
 
         logger.info("Writing the dataset to a csv file")
 
-        assert not self.settings.IO["output_folder"] is None, "Specify Settings.output_folder in order to export a csv."
+        assert (
+            not self.settings.IO["output_folder"] is None
+        ), "Specify Settings.output_folder in order to export a csv."
+
         assert os.path.isdir(
             self.settings.IO["output_folder"]
         ), f'The outputfolder: \
@@ -703,9 +710,7 @@ class Dataset:
         else:  # exclude outliers
             if add_final_labels:
                 cols_to_keep = [
-                    col
-                    for col in mergedf.columns
-                    if col in observation_types
+                    col for col in mergedf.columns if col in observation_types
                 ]
                 cols_to_keep.extend(
                     [col for col in mergedf.columns if col.endswith("_final_label")]
@@ -734,9 +739,7 @@ class Dataset:
 
             # fill with numpy nan
             nan_columns = {
-                col: np.nan
-                for col in mergedf.columns
-                if col in observation_types
+                col: np.nan for col in mergedf.columns if col in observation_types
             }
             filled_df = filled_df.assign(**nan_columns)
             # rename label
@@ -750,11 +753,7 @@ class Dataset:
             # add to mergedf
             mergedf = pd.concat([mergedf, filled_df]).sort_index()
 
-        present_obstypes = [
-            col
-            for col in observation_types
-            if col in mergedf.columns
-        ]
+        present_obstypes = [col for col in observation_types if col in mergedf.columns]
 
         # Map obstypes columns
         if not use_tlk_obsnames:
@@ -1004,9 +1003,7 @@ class Dataset:
             outliersdf = init_multiindexdf()
             outliersdf_values = init_multiindexdf()  # for later use
             outliercolumns = [
-                col + "_final_label"
-                for col in self.df
-                if col in observation_types
+                col + "_final_label" for col in self.df if col in observation_types
             ]
             for column in outliercolumns:
                 outliersdf[column] = "not checked"
@@ -1019,9 +1016,7 @@ class Dataset:
 
         # 0. make shure there is a final column for each obstype in the df,
         # if qc did not found any outliers, then there is apriori no final label column
-        present_obstypes = [
-            col for col in observation_types if col in df.columns
-        ]
+        present_obstypes = [col for col in observation_types if col in df.columns]
         for presen_obstype in present_obstypes:
             final_label = presen_obstype + "_final_label"
             if not final_label in outliersdf.columns:
@@ -1158,11 +1153,7 @@ class Dataset:
             applied_qc_order=self._applied_qc,
         )
 
-        if any(
-            [
-                stat is None for stat in [final_freq, outl_freq, specific_freq]
-            ]
-        ):
+        if any([stat is None for stat in [final_freq, outl_freq, specific_freq]]):
             return None
 
         if make_plot:
@@ -1186,9 +1177,9 @@ class Dataset:
     #     importing data
     # =============================================================================
 
-
-
-    def coarsen_time_resolution(self, origin=None, origin_tz=None, freq=None, method=None, limit=None):
+    def coarsen_time_resolution(
+        self, origin=None, origin_tz=None, freq=None, method=None, limit=None
+    ):
         """
         Resample the observations to coarser timeresolution. The assumed
         dataset resolution (stored in the metadf attribute) will be updated.
@@ -1229,7 +1220,7 @@ class Dataset:
         if limit is None:
             limit = int(self.settings.time_settings["resample_limit"])
         if origin_tz is None:
-            origin_tz = self.settings.time_settings['timezone']
+            origin_tz = self.settings.time_settings["timezone"]
 
         logger.info(
             f"Coarsening the timeresolution to {freq} using \
@@ -1241,17 +1232,16 @@ class Dataset:
 
         if origin is None:
             # find earlyest timestamp, if it is on the hour, use it else use the following hour
-            tstart = df['datetime'].min()
+            tstart = df["datetime"].min()
 
             if tstart.minute != 0 or tstart.second != 0 or tstart.microsecond != 0:
                 # Round up to nearest hour
                 tstart = tstart.ceil(freq=freq)
         else:
-
-            origin_tz_aware=pytz.timezone(origin_tz).localize(origin)
-            tstart = origin_tz_aware.astimezone(pytz.timezone(self.settings.time_settings['timezone']))
-
-
+            origin_tz_aware = pytz.timezone(origin_tz).localize(origin)
+            tstart = origin_tz_aware.astimezone(
+                pytz.timezone(self.settings.time_settings["timezone"])
+            )
 
         # Coarsen timeresolution
 
@@ -1259,7 +1249,7 @@ class Dataset:
             df = (
                 df.set_index("datetime")
                 .groupby("name")
-                .resample(freq, origin = tstart)
+                .resample(freq, origin=tstart)
                 .nearest(limit=limit)
             )
 
@@ -1290,10 +1280,6 @@ class Dataset:
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
 
-
-
-
-    # TODO: make a sync function for observation with quasi equal freqs, but when they are out of sync
     def sync_observations(self, tollerance, verbose=True):
         """
         Simplify and syncronize the observation timestamps along different stations.
@@ -1338,9 +1324,6 @@ class Dataset:
         #
         df = self.input_df
 
-
-
-
         self.df = init_multiindexdf()
         self.outliersdf = init_triple_multiindexdf()
         self.gapfilldf = init_multiindexdf()
@@ -1348,83 +1331,81 @@ class Dataset:
         self.gaps = None
 
         # find simplified resolution
-        simplified_resolution = get_freqency_series(df=df,
-                                                    method='median',
-                                                    simplify=True,
-                                                    max_simplify_error=tollerance)
+        simplified_resolution = get_freqency_series(
+            df=df, method="median", simplify=True, max_simplify_error=tollerance
+        )
 
         occuring_resolutions = simplified_resolution.unique()
 
         df = df.reset_index()
 
-
         def find_simple_origin(tstart, tollerance):
             if tstart.minute == 0 and tstart.second == 0 and tstart.microsecond == 0:
-                return tstart #already a round hour
+                return tstart  # already a round hour
 
             # try converting to a round hour
-            tstart_round_hour =tstart.round('60min')
+            tstart_round_hour = tstart.round("60min")
             if abs(tstart - tstart_round_hour) <= pd.to_timedelta(tollerance):
                 return tstart_round_hour
 
-
             # try converting to a tenfold in minutes
-            tstart_round_tenfold =tstart.round('10min')
+            tstart_round_tenfold = tstart.round("10min")
             if abs(tstart - tstart_round_tenfold) <= pd.to_timedelta(tollerance):
                 return tstart_round_tenfold
 
-
             # try converting to a fivefold in minutes
-            tstart_round_fivefold =tstart.round('5min')
+            tstart_round_fivefold = tstart.round("5min")
+
             if abs(tstart - tstart_round_fivefold) <= pd.to_timedelta(tollerance):
                 return tstart_round_fivefold
 
             # no suitable conversion found
             return tstart
 
-
-
-
-
         merged_df = pd.DataFrame()
         _total_verbose_df = pd.DataFrame()
         for occur_res in occuring_resolutions:
+            group_stations = simplified_resolution[
+                simplified_resolution == occur_res
+            ].index.to_list()
+            print(
+                f" Grouping stations with simplified resolution of {pd.to_timedelta(occur_res)}: {group_stations}"
+            )
+            groupdf = df[df["name"].isin(group_stations)]
 
-            group_stations = simplified_resolution[simplified_resolution == occur_res].index.to_list()
-            print(f' Grouping stations with simplified resolution of {pd.to_timedelta(occur_res)}: {group_stations}')
-            groupdf = df[df['name'].isin(group_stations)]
-
-            tstart = groupdf['datetime'].min()
-            tend = groupdf['datetime'].max()
+            tstart = groupdf["datetime"].min()
+            tend = groupdf["datetime"].max()
 
             # find a good origin point
-            origin = find_simple_origin(tstart = tstart, tollerance = tollerance)
+            origin = find_simple_origin(tstart=tstart, tollerance=tollerance)
 
             # Create records index
-            target_records = pd.date_range(start = origin,
-                                           end = tend,
-                                           freq = pd.Timedelta(occur_res)).to_series()
+            target_records = pd.date_range(
+                start=origin, end=tend, freq=pd.Timedelta(occur_res)
+            ).to_series()
+
             target_records.name = "target_datetime"
             # convert records to new target records, station per station
 
             for sta in group_stations:
-                stadf = groupdf[groupdf['name'] == sta]
+                stadf = groupdf[groupdf["name"] == sta]
                 # Drop all nan values! these will be added later from the outliersdf
-                stadf = stadf.set_index(['name', 'datetime'])
-                stadf = stadf.dropna(axis = 0, how = 'all')
+                stadf = stadf.set_index(["name", "datetime"])
+                stadf = stadf.dropna(axis=0, how="all")
                 stadf = stadf.reset_index()
 
-                mergedstadf = pd.merge_asof(left=stadf.sort_values('datetime'),
-                                     right=target_records.to_frame(),
-                                     right_on='target_datetime',
-                                     left_on='datetime',
-                                     direction='nearest',
-                                     tolerance=pd.Timedelta(tollerance))
-
-
+                mergedstadf = pd.merge_asof(
+                    left=stadf.sort_values("datetime"),
+                    right=target_records.to_frame(),
+                    right_on="target_datetime",
+                    left_on="datetime",
+                    direction="nearest",
+                    tolerance=pd.Timedelta(tollerance),
+                )
 
                 # possibility 1: record is mapped crrectly
-                correct_mapped = mergedstadf[~mergedstadf['target_datetime'].isnull()]
+                correct_mapped = mergedstadf[~mergedstadf["target_datetime"].isnull()]
+
 
                 # possibility2: records that ar not mapped to target
                 # not_mapped_records =mergedstadf[mergedstadf['target_datetime'].isnull()]
@@ -1439,38 +1420,42 @@ class Dataset:
                 if verbose:
                     _total_verbose_df = pd.concat([_total_verbose_df, mergedstadf])
 
-
         # overwrite the df with the synced observations
-        merged_df = (merged_df
-                     .rename(columns={'datetime': 'original_datetime',
-                                      'target_datetime': 'datetime'})
-                     .set_index(['name', 'datetime'])
-                     .drop(['original_datetime'], errors='ignore', axis=1)
-                     .sort_index())
+        merged_df = (
+            merged_df.rename(
+                columns={"datetime": "original_datetime", "target_datetime": "datetime"}
+            )
+            .set_index(["name", "datetime"])
+            .drop(["original_datetime"], errors="ignore", axis=1)
+            .sort_index()
+        )
         # self.df = merged_df
 
-
         # Recompute the dataset attributes, apply qc, gap and missing searches, etc.
-        self._construct_dataset(df = merged_df,
-                                   freq_estimation_method = 'highest',
-                                   freq_estimation_simplify = False,
-                                   freq_estimation_simplify_error = None,
-                                   fixed_freq_series=simplified_resolution,
-                                   update_full_metadf=False) #Do not overwrite full metadf, only the frequencies
-
-
-
-
+        self._construct_dataset(
+            df=merged_df,
+            freq_estimation_method="highest",
+            freq_estimation_simplify=False,
+            freq_estimation_simplify_error=None,
+            fixed_freq_series=simplified_resolution,
+            update_full_metadf=False,
+        )  # Do not overwrite full metadf, only the frequencies
 
         if verbose:
-            _total_verbose_df = _total_verbose_df.rename(columns={'datetime': 'original_datetime',
-                                                  'target_datetime': 'datetime'}).set_index(['name', 'datetime'])
+            _total_verbose_df = _total_verbose_df.rename(
+                columns={"datetime": "original_datetime", "target_datetime": "datetime"}
+            ).set_index(["name", "datetime"])
             return _total_verbose_df
 
+    def import_data_from_file(
+        self,
+        long_format=True,
+        obstype=None,
+        freq_estimation_method=None,
+        freq_estimation_simplify=None,
+        freq_estimation_simplify_error=None,
+    ):
 
-
-    def import_data_from_file(self, long_format=True, obstype=None, freq_estimation_method=None,
-                              freq_estimation_simplify=None, freq_estimation_simplify_error=None):
         """
         Read observations from a csv file as defined in the
         Settings.input_file. The input file columns should have a template
@@ -1492,6 +1477,7 @@ class Dataset:
                 * Invalid input check
                 * Find missing observations
                 * Find gaps
+
 
         Parameters
         ----------
@@ -1528,29 +1514,36 @@ class Dataset:
 
         """
 
-
-
         print("Settings input data file: ", self.settings.IO["input_data_file"])
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         if freq_estimation_method is None:
-            freq_estimation_method=self.settings.time_settings['freq_estimation_method']
-        if freq_estimation_simplify is None:
-            freq_estimation_simplify=self.settings.time_settings['freq_estimation_simplify']
-        if freq_estimation_simplify_error is None:
-            freq_estimation_simplify_error = self.settings.time_settings['freq_estimation_simplify_error']
 
+            freq_estimation_method = self.settings.time_settings[
+                "freq_estimation_method"
+            ]
+        if freq_estimation_simplify is None:
+            freq_estimation_simplify = self.settings.time_settings[
+                "freq_estimation_simplify"
+            ]
+        if freq_estimation_simplify_error is None:
+            freq_estimation_simplify_error = self.settings.time_settings[
+                "freq_estimation_simplify_error"
+            ]
 
         # check if obstype is valid
         if not obstype is None:
-            assert obstype in observation_types, f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
+            assert (
+                obstype in observation_types
+            ), f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
+
 
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
             template_file=self.settings.templates["data_template_file"],
             long_format=long_format,
-            obstype=obstype, #only relevant in wide format
+            obstype=obstype,  # only relevant in wide format
         )
 
 
@@ -1624,10 +1617,12 @@ class Dataset:
         # dataframe with all data of input file
         self.input_df = df.sort_index()
 
-        self._construct_dataset(df = df,
-                                freq_estimation_method = freq_estimation_method,
-                                freq_estimation_simplify = freq_estimation_simplify,
-                                freq_estimation_simplify_error = freq_estimation_simplify_error)
+        self._construct_dataset(
+            df=df,
+            freq_estimation_method=freq_estimation_method,
+            freq_estimation_simplify=freq_estimation_simplify,
+            freq_estimation_simplify_error=freq_estimation_simplify_error,
+        )
 
     def import_data_from_database(
         self, start_datetime=None, end_datetime=None, coarsen_timeres=False
@@ -1695,13 +1690,19 @@ class Dataset:
                            the metadata file). This will be removed from the dataset."
             )
             df = df[~df.index.get_level_values("name").isnull()]
-
-
         self._construct_dataset(df)
 
-    def _construct_dataset(self, df, freq_estimation_method,
-                          freq_estimation_simplify, freq_estimation_simplify_error,
-                          fixed_freq_series=None, update_full_metadf=True):
+    
+    def _construct_dataset(
+        self,
+        df,
+        freq_estimation_method,
+        freq_estimation_simplify,
+        freq_estimation_simplify_error,
+        fixed_freq_series=None,
+        update_full_metadf=True,
+    ):
+
         """
         Helper function to construct the Dataset class from a IO dataframe.
 
@@ -1748,15 +1749,19 @@ class Dataset:
 
         if fixed_freq_series is None:
             freq_series = get_freqency_series(
-                                            df = self.df,
-                                            method = freq_estimation_method,
-                                            simplify = freq_estimation_simplify,
-                                            max_simplify_error=freq_estimation_simplify_error)
+                df=self.df,
+                method=freq_estimation_method,
+                simplify=freq_estimation_simplify,
+                max_simplify_error=freq_estimation_simplify_error,
+            )
+
             freq_series_import = freq_series
 
         else:
             if "assumed_import_frequency" in self.metadf.columns:
-                freq_series_import =self.metadf["assumed_import_frequency"] #No update
+                freq_series_import = self.metadf[
+                    "assumed_import_frequency"
+                ]  # No update
             else:
                 freq_series_import = fixed_freq_series
             freq_series = fixed_freq_series
@@ -1772,8 +1777,6 @@ class Dataset:
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
 
-
-
     def _initiate_df_attribute(self, dataframe, update_metadf=True):
         logger.info(
             f"Updating dataset by dataframe with shape:\
@@ -1781,11 +1784,8 @@ class Dataset:
         )
 
         # Create dataframe with fixed order of observational columns
-        obs_col_order = [
-            col
-            for col in observation_types
-            if col in dataframe.columns
-        ]
+        obs_col_order = [col for col in observation_types if col in dataframe.columns]
+
         self.df = dataframe[obs_col_order].sort_index()
 
         if update_metadf:
@@ -1796,7 +1796,6 @@ class Dataset:
             metadf = metadf[~metadf.index.duplicated(keep="first")]
 
             self.metadf = metadf_to_gdf(metadf)
-
 
 
     def _apply_qc_on_import(self):
@@ -1828,11 +1827,8 @@ class Dataset:
         self.outliersdf = self.outliersdf.sort_index()
 
         # update the order and which qc is applied on which obstype
-        checked_obstypes = [
-            obs
-            for obs in self.df.columns
-            if obs in observation_types
-        ]
+        checked_obstypes = [obs for obs in self.df.columns if obs in observation_types]
+
         checknames = ["duplicated_timestamp", "invalid_input"]  # KEEP order
 
         self._applied_qc = pd.concat(

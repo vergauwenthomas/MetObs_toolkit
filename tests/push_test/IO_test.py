@@ -21,7 +21,6 @@ import metobs_toolkit
 # %% define inputfiles
 
 
-
 # %% import data from file (long standard format)
 
 testdatafile = os.path.join(
@@ -46,14 +45,16 @@ ax = station.make_plot()
 ax = dataset.make_plot()
 
 
-
-#%% import default dataset.
+# %% import default dataset.
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        data_template_file=metobs_toolkit.demo_template)
+dataset.update_settings(
+    input_data_file=metobs_toolkit.demo_datafile,
+    input_metadata_file=metobs_toolkit.demo_metadatafile,
+    data_template_file=metobs_toolkit.demo_template,
+)
+
 
 dataset.show_settings()
 
@@ -68,6 +69,7 @@ assert dataset.df.shape == (120957, 10), 'Shape of demo data is not correct.'
 
 widedatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_data.csv')
 widetemplate = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
+
 
 
 
@@ -92,6 +94,4 @@ test = dataset.sync_observations(tollerance='5T', verbose=True)
 assert dataset.df.shape == (180, 1), 'Shape after syncronizing widedata is not correct.'
 
 assert dataset.missing_obs.series.shape == (18,), 'Number of missing obs after sync wide data not correct'
-
-
 

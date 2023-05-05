@@ -23,8 +23,11 @@ from metobs_toolkit.gap_filling import (
     make_era_bias_correction,
 )
 
-from metobs_toolkit.df_helpers import (format_outliersdf_to_doubleidx,
-                                       get_likely_frequency)
+from metobs_toolkit.df_helpers import (
+    format_outliersdf_to_doubleidx,
+    get_likely_frequency,
+)
+
 
 
 logger = logging.getLogger(__name__)
@@ -574,7 +577,8 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
     for station in stationnames:
         # find missing timestamps
         timestamps = df.xs(station, level="name").index
-        likely_freq = get_likely_frequency(timestamps, method='highest', simplify=False)
+        likely_freq = get_likely_frequency(timestamps, method="highest", simplify=False)
+
 
         assert likely_freq.seconds > 0, f"The frequency is not positive!"
 
