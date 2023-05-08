@@ -189,6 +189,99 @@ class Dataset:
         """
 
         self.settings.app["default_name"] = str(default_name)
+        
+    def qc_settings_update(self, obstype, dupl_timestamp_keep=None, persis_time_win_to_check=None, persis_min_num_obs=None,
+                            rep_max_valid_repetitions=None, gross_value_min_value=None, gross_value_max_value=None,
+                            win_var_max_increase_per_sec=None, win_var_max_decrease_per_sec=None, win_var_time_win_to_check=None, 
+                            win_var_min_num_obs=None, step_max_increase_per_sec=None, step_max_decrease_per_sec=None):
+         
+        """
+        Update the QC settings for the specified observation type.
+        
+        Parameters
+        ----------
+        dupl_timestamp_keep : string
+            Setting that determines how many duplicates of a certain timestamp are stored in the outliersdf
+        persis_time_win_to_check : string
+            Time window for persistance check
+        persis_min_num_obs : numeric
+            Minimal window members for persistance check
+        rep_max_valid_repetitions : numeric
+            Maximal valid repetitions for repetitions check
+        gross_value_min_value : numeric
+            Minimal value for gross value check
+        gross_value_max_value : numeric
+            Maximal value for gross value check
+        win_var_max_increase_per_sec : numeric
+            Maximal increase per second for window variation check
+        win_var_max_decrease_per_sec : numeric
+            Maximal decrease per second for window variation check
+        win_var_time_win_to_check : string
+            Time window for window variation check
+        win_var_min_num_obs : numeric
+            Minimal window members for window variation check
+        step_max_increase_per_sec : numeric
+            Maximal increase per second for step check
+        step_max_decrease_per_sec : numeric
+            Maximal decrease per second for step check
+
+        Returns
+        -------
+        None.
+        
+        """
+        
+        assert obstype in self.settings.app["observation_types"], f'{obstype} is not a known observation type'
+         
+        if not gross_value_max_value is None:
+            print('a')
+            logger.info(f'Maximal value for gross value check set to {gross_value_max_value}')
+            self.settings.qc['qc_check_settings']["gross_value"][obstype]['max_value'] = float(gross_value_max_value)
+         
+        if not gross_value_min_value is None:
+            logger.info(f'Minimal value for gross value check set to {gross_value_min_value}')
+            self.settings.qc['qc_check_settings']["gross_value"][obstype]['min_value'] = float(gross_value_min_value)
+         
+        if not dupl_timestamp_keep is None:
+            logger.info(f'Settings for duplicate timestamp check changed to {dupl_timestamp_keep}')
+            self.settings.qc['qc_check_settings']["duplicated_timestamp"]['keep'] = dupl_timestamp_keep
+             
+        if not persis_time_win_to_check is None:
+            logger.info(f'Time window for persistance check set to {persis_time_win_to_check}')
+            self.settings.qc['qc_check_settings']["persistance"][obstype]['time_window_to_check'] = persis_time_win_to_check
+         
+        if not persis_min_num_obs is None:
+            logger.info(f'Minimal window members for persistance check set to {persis_min_num_obs}')
+            self.settings.qc['qc_check_settings']["persistance"][obstype]['min_num_obs'] = float(persis_min_num_obs)
+         
+        if not rep_max_valid_repetitions is None:
+            logger.info(f'Maximal valid repetitions for repetitions check set to {rep_max_valid_repetitions}')
+            self.settings.qc['qc_check_settings']["repetitions"][obstype]['max_valid_repetitions'] = float(rep_max_valid_repetitions)
+         
+        if not win_var_max_increase_per_sec is None:
+            logger.info(f'Maximal increase per second for window variation check set to {win_var_max_increase_per_sec}')
+            self.settings.qc['qc_check_settings']["window_variation"][obstype]['max_increase_per_second'] = float(win_var_max_increase_per_sec)
+         
+        if not win_var_max_decrease_per_sec is None:
+            logger.info(f'Maximal decrease per second for window variation check set to {win_var_max_decrease_per_sec}')
+            self.settings.qc['qc_check_settings']["window_variation"][obstype]['max_decrease_per_second'] = float(win_var_max_decrease_per_sec)
+         
+        if not win_var_time_win_to_check is None:
+            logger.info(f'Time window for window variation check set to {win_var_time_win_to_check}')
+            self.settings.qc['qc_check_settings']["window_variation"][obstype]['time_window_to_check'] = win_var_time_win_to_check
+         
+        if not win_var_min_num_obs is None:
+            logger.info(f'Minimal window members for window variation check set to {win_var_min_num_obs}')
+            self.settings.qc['qc_check_settings']["window_variation"][obstype]['min_window_members'] = float(win_var_min_num_obs)
+         
+        if not step_max_increase_per_sec is None:
+            logger.info(f'Maximal increase per second for step check set to {step_max_increase_per_sec}')
+            self.settings.qc['qc_check_settings']["step"][obstype]['max_increase_per_second'] = float(step_max_increase_per_sec)
+             
+        if not step_max_decrease_per_sec is None:
+            logger.info(f'Maximal decrease per second for step check set to {step_max_decrease_per_sec}')
+            self.settings.qc['qc_check_settings']["step"][obstype]['max_decrease_per_second'] = float(step_max_decrease_per_sec)    
+             
 
     def show_settings(self):
         """

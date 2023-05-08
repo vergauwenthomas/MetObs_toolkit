@@ -46,7 +46,7 @@ min_num_obs = 3  # Minimum number of records in window to perform persistance ch
 max_valid_repetitions = 5  # Maximal number of repetitions that is allowed
 
 min_value = -15.0  # Minimal allowed value
-max_value = 50.0  # Maximal allowed value
+max_value = 29.0  # Maximal allowed value
 
 max_increase_per_second = (
     8.0 / 3600.0
@@ -64,51 +64,57 @@ max_decrease_per_second_step = (
     -10.0 / 3600.0
 )  # Maximal allowed increase per second (for step check)
 
-dataset_coarsened.settings.gap["gaps_settings"]["gaps_finder"][
-    "gapsize_n"
-] = minimal_gapsize
+dataset_coarsened.qc_settings_update(obstype='temp', dupl_timestamp_keep=dupl_dropping, persis_time_win_to_check=persistance_time_window_to_check, persis_min_num_obs=min_num_obs,
+                                     rep_max_valid_repetitions=max_valid_repetitions, gross_value_min_value=min_value, gross_value_max_value=max_value,
+                                     win_var_max_increase_per_sec=max_increase_per_second, win_var_max_decrease_per_sec=max_decrease_per_second, win_var_time_win_to_check=time_window_to_check,
+                                     win_var_min_num_obs=min_window_members, step_max_increase_per_sec=max_increase_per_second_step, step_max_decrease_per_sec=max_decrease_per_second_step)
 
-dataset_coarsened.settings.qc["qc_check_settings"]["duplicated_timestamp"][
-    "keep"
-] = dupl_dropping
 
-dataset_coarsened.settings.qc["qc_check_settings"]["persistance"]["temp"][
-    "time_window_to_check"
-] = persistance_time_window_to_check
-dataset_coarsened.settings.qc["qc_check_settings"]["persistance"]["temp"][
-    "min_num_obs"
-] = min_num_obs
+#dataset_coarsened.settings.gap["gaps_settings"]["gaps_finder"][
+#    "gapsize_n"
+#] = minimal_gapsize
+#
+#dataset_coarsened.settings.qc["qc_check_settings"]["duplicated_timestamp"][
+#    "keep"
+#] = dupl_dropping#
 
-dataset_coarsened.settings.qc["qc_check_settings"]["repetitions"]["temp"][
-    "max_valid_repetitions"
-] = max_valid_repetitions
+#dataset_coarsened.settings.qc["qc_check_settings"]["persistance"]["temp"][
+#    "time_window_to_check"
+#] = persistance_time_window_to_check
+#dataset_coarsened.settings.qc["qc_check_settings"]["persistance"]["temp"][
+#    "min_num_obs"
+#] = min_num_obs
 
-dataset_coarsened.settings.qc["qc_check_settings"]["gross_value"]["temp"][
-    "min_value"
-] = min_value
-dataset_coarsened.settings.qc["qc_check_settings"]["gross_value"]["temp"][
-    "max_value"
-] = max_value
+#dataset_coarsened.settings.qc["qc_check_settings"]["repetitions"]["temp"][
+#    "max_valid_repetitions"
+#] = max_valid_repetitions
 
-dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-    "max_increase_per_second"
-] = max_increase_per_second
-dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-    "max_decrease_per_second"
-] = max_decrease_per_second
-dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-    "time_window_to_check"
-] = time_window_to_check
-dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-    "min_window_members"
-] = min_window_members
+#dataset_coarsened.settings.qc["qc_check_settings"]["gross_value"]["temp"][
+#    "min_value"
+#] = min_value
+#dataset_coarsened.settings.qc["qc_check_settings"]["gross_value"]["temp"][
+#    "max_value"
+#] = max_value
 
-dataset_coarsened.settings.qc["qc_check_settings"]["step"]["temp"][
-    "max_increase_per_second"
-] = max_increase_per_second_step
-dataset_coarsened.settings.qc["qc_check_settings"]["step"]["temp"][
-    "max_decrease_per_second"
-] = max_decrease_per_second_step
+#dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
+#    "max_increase_per_second"
+#] = max_increase_per_second
+#dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
+#    "max_decrease_per_second"
+#] = max_decrease_per_second
+#dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
+#    "time_window_to_check"
+#] = time_window_to_check
+#dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
+#    "min_window_members"
+#] = min_window_members
+
+#dataset_coarsened.settings.qc["qc_check_settings"]["step"]["temp"][
+#    "max_increase_per_second"
+#] = max_increase_per_second_step
+#dataset_coarsened.settings.qc["qc_check_settings"]["step"]["temp"][
+#    "max_decrease_per_second"
+#] = max_decrease_per_second_step
 #####################################################################
 
 
@@ -120,8 +126,14 @@ dataset_coarsened.apply_quality_control()
 # %%
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdata, data_template_file=template_file)
+dataset.qc_settings_update(obstype='temp', dupl_timestamp_keep=dupl_dropping, persis_time_win_to_check=persistance_time_window_to_check, persis_min_num_obs=min_num_obs,
+                                     rep_max_valid_repetitions=max_valid_repetitions, gross_value_min_value=min_value,
+                                     win_var_max_increase_per_sec=max_increase_per_second, win_var_max_decrease_per_sec=max_decrease_per_second, win_var_time_win_to_check=time_window_to_check,
+                                     win_var_min_num_obs=min_window_members, step_max_increase_per_sec=max_increase_per_second_step, step_max_decrease_per_sec=max_decrease_per_second_step)
+
 dataset.import_data_from_file()
 dataset.apply_quality_control()
+
 
 _ = dataset.get_qc_stats()
 
