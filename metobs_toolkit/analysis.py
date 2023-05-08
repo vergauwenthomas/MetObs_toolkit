@@ -28,10 +28,10 @@ class Analysis():
 
 
     def subset_period(self, startdt, enddt):
-       if not isinstance(startdt, type(datetime)):
+       if not isinstance(startdt, type(datetime(2020,1,1))):
            print(f' {startdt} not a datetime type. Ignore subsetting!')
            return
-       if not isinstance(enddt, type(datetime)):
+       if not isinstance(enddt, type(datetime(2020,1,1))):
            print(f' {enddt} not a datetime type. Ignore subsetting!')
            return
 
@@ -40,16 +40,16 @@ class Analysis():
     # =============================================================================
     #   Helpers
     # =============================================================================
-    def _subset_stations(self, stationslist):
-        df = self.df.loc[self.df.index.get_level_values(
-                    'name').isin(stationslist)]
+    # def _subset_stations(self, stationslist):
+    #     df = self.df.loc[self.df.index.get_level_values(
+    #                 'name').isin(stationslist)]
 
-        present_stations = df.index.get_level_values('name')
-        not_present_stations = list(set(stationlist) - set(present_stations))
-        if len(not_present_stations)!=0:
-            print(f'WARNING: The stations: {not_present_stations} not found in the dataframe.')
+    #     present_stations = df.index.get_level_values('name')
+    #     not_present_stations = list(set(stationlist) - set(present_stations))
+    #     if len(not_present_stations)!=0:
+    #         print(f'WARNING: The stations: {not_present_stations} not found in the dataframe.')
 
-        return df
+    #     return df
 
     def aggregate_df(self, df, agg=['lcz', 'datetime'], method='mean'):
 
@@ -77,7 +77,85 @@ class Analysis():
     # =============================================================================
     #   Analyse method
     # =============================================================================
-    def get_diurnal_statistic_with_reference(self, obstype='temp', refstation=None, stations=None,
+    def get_diurnal_statistics(self, obstype='temp', stations=None,
+                               startdt=None, enddt=None, colorby='name', plot=True, errorbands=False, verbose=False):
+
+        obsdf = self.df
+
+        # Filter stations
+        if not stations is None:
+            if isinstance(stations, str):
+                stations = [stations]
+
+            obsdf = subset_stations(obsdf, stations)
+
+        # Filter datetimes
+        obsdf = datetime_subsetting(df=obsdf,
+                                    starttime=startdt,
+                                    endtime=enddt)
+
+
+
+        # Get hours for all records
+        obsdf = obsdf.reset_index()
+        obsdf['hour'] = obsdf['datetime'].dt.hour
+
+
+        agg_column_name = obstype #aggregate the measured obstypes
+        startdt = obsdf['datetime'].min()
+        enddt = obsdf['datetime'].max()
+
+
+        # groupby and take the mean per station per hour.
+        stats = obsdf.groupby(['name', 'hour'])[agg_column_name].agg(['mean', 'std', 'median'])
+
+        hourly_avg = stats['mean'].unstack().transpose()
+
+
+        if plot:
+            # get lcz groups if needed
+            if ((colorby == 'lcz') & (not 'lcz' in self.metadf.columns)):
+                print('Warning: No LCZ information, thus colorby will be set to name.')
+                colorby = 'name'
+            if colorby =='lcz':
+                lcz_dict = self.metadf['lcz'].to_dict()
+            else:
+                lcz_dict = None
+
+            # generate title
+            startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
+            enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
+
+            title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
+
+
+
+            # generate errorbands df
+            if errorbands:
+                stddf = stats['std'].unstack().transpose()
+            else:
+                stddf = None
+
+            # extract timezone
+            tzstring = self.df.index.get_level_values('datetime').tz.zone
+
+
+            # Make plot
+            diurnal_plot(diurnaldf = hourly_avg,
+                         errorbandsdf = stddf,
+                         title = title,
+                         tzstr=tzstring,
+                         plot_settings = self.settings.app['plot_settings']['diurnal'],
+                         colorby = colorby,
+                         lcz_dict = lcz_dict)
+
+
+        if verbose:
+            return hourly_avg, stats
+
+        return hourly_avg
+
+    def get_diurnal_statistics_with_reference(self, obstype='temp', refstation=None, stations=None,
                                startdt=None, enddt=None, colorby='name', plot=True, errorbands=False, verbose=False):
 
         obsdf = self.df
@@ -103,10 +181,16 @@ class Analysis():
 
             obsdf = subset_stations(obsdf, stations)
 
+        # Filter datetimes
+        obsdf = datetime_subsetting(df=obsdf,
+                                    starttime=startdt,
+                                    endtime=enddt)
+
 
         obsdf = obsdf[obstype].reset_index()
 
-        # Create extra identifiers to form unique hours
+        # Create identifiers to form unique hours
+        obsdf['hour'] = obsdf['datetime'].dt.hour
         obsdf['day'] = obsdf['datetime'].dt.day
         obsdf['month'] = obsdf['datetime'].dt.month
         obsdf['year'] = obsdf['datetime'].dt.year
@@ -181,8 +265,8 @@ class Analysis():
         return hourly_avg
 
 
-    def get_aggregated_diurnal_cycle(self, obstype='temp', stations=None, aggregation=[], aggregation_method='mean',
-                               startdt=None, enddt=None, colorby='name', plot=True, errorbands=False, verbose=False):
+    def get_aggregated_diurnal_statistics(self, obstype='temp', stations=None, aggregation=['lcz', 'datetime'], aggregation_method='mean',
+                               startdt=None, enddt=None, plot=True, errorbands=False, verbose=False):
 
         obsdf = self.df
 
@@ -198,11 +282,6 @@ class Analysis():
 
 
         # Filter datetimes
-        if not startdt is None:
-            assert isinstance(startdt, type(datetime)), f'{startdt} is not a datetime.datetime.'
-        if not enddt is None:
-            assert isinstance(enddt, type(datetime)), f'{enddt} is not a datetime.datetime.'
-
         obsdf = datetime_subsetting(df=obsdf,
                                     starttime=startdt,
                                     endtime=enddt)
@@ -218,6 +297,8 @@ class Analysis():
                                       method=aggregation_method)
 
         obsdf = obsdf.reset_index()
+        # Create identifiers to form unique hours
+        obsdf['hour'] = obsdf['datetime'].dt.hour
 
 
         # aggregation scheme setup
@@ -233,28 +314,20 @@ class Analysis():
 
 
 
+
         # groupby and take the mean per station per hour.
         stats = obsdf.groupby(groupby_list)[agg_column_name].agg(['mean', 'std', 'median'])
 
         hourly_avg = stats['mean'].unstack().transpose()
 
         if plot:
-            # get lcz groups if needed
-            if ((colorby == 'lcz') & (not 'lcz' in self.metadf.columns)):
-                print('Warning: No LCZ information, thus colorby will be set to name.')
-                colorby = 'name'
-            if colorby =='lcz':
-                lcz_dict = self.metadf['lcz'].to_dict()
-            else:
-                lcz_dict = None
 
             # generate title
             startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
             enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
-            if refstation is None:
-                title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
-            else:
-                title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdtstr} - {enddtstr}'
+
+            title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
+
 
 
             # generate errorbands df
@@ -273,8 +346,8 @@ class Analysis():
                          title = title,
                          tzstr=tzstring,
                          plot_settings = self.settings.app['plot_settings']['diurnal'],
-                         colorby = colorby,
-                         lcz_dict = lcz_dict)
+                         colorby = 'name',
+                         lcz_dict = None)
 
 
         if verbose:
@@ -285,113 +358,7 @@ class Analysis():
 
 
 
-    def get_diurnal_statistics(self, obstype='temp', stations=None, aggregation=[], aggregation_method='mean',
-                               startdt=None, enddt=None, colorby='name', plot=True, errorbands=False, verbose=False):
 
-        obsdf = self.df
-
-        # Filter stations
-        if not stations is None:
-            if isinstance(stations, str):
-                stations = [stations]
-
-            obsdf = subset_stations(obsdf, stations)
-
-        # Filter datetimes
-        if not startdt is None:
-            assert isinstance(startdt, type(datetime)), f'{startdt} is not a datetime.datetime.'
-        if not enddt is None:
-            assert isinstance(enddt, type(datetime)), f'{enddt} is not a datetime.datetime.'
-
-        obsdf = datetime_subsetting(df=obsdf,
-                                    starttime=startdt,
-                                    endtime=enddt)
-
-
-
-        # Get hours for all records
-        obsdf['hour'] = obsdf.reset_index()['datetime'].dt.hour
-
-        if not refstation is None:
-            # Create extra identifiers to form unique hours
-            obsdf['day'] = obsdf['datetime'].dt.day
-            obsdf['month'] = obsdf['datetime'].dt.month
-            obsdf['year'] = obsdf['datetime'].dt.year
-
-            # extract refernce from observations
-            refdf = obsdf[obsdf['name'] == refstation]
-            obsdf = obsdf[obsdf['name']!= refstation]
-
-            # Merge refdf to obsdf using unique hours
-            refdf = refdf.rename(columns={obstype: 'ref_'+obstype})
-            mergedf = pd.merge(left=obsdf, right=refdf[['ref_'+obstype, 'year', 'month', 'day', 'hour']],
-                               how='left', on=['year', 'month', 'day', 'hour'])
-
-            startdt = refdf['datetime'].min()
-            enddt = refdf['datetime'].max()
-
-            # Compute difference
-            agg_column_name = 'difference'
-            mergedf[agg_column_name] = mergedf[obstype] - mergedf['ref_'+obstype]
-
-            # overwrite the obsdf
-            obsdf = mergedf
-
-        else:
-            agg_column_name = obstype #aggregate the measured obstypes
-            startdt = obsdf['datetime'].min()
-            enddt = obsdf['datetime'].max()
-
-
-        # groupby and take the mean per station per hour.
-        stats = obsdf.groupby(['name', 'hour'])[agg_column_name].agg(['mean', 'std', 'median'])
-
-        hourly_avg = stats['mean'].unstack().transpose()
-
-
-        if plot:
-            # get lcz groups if needed
-            if ((colorby == 'lcz') & (not 'lcz' in self.metadf.columns)):
-                print('Warning: No LCZ information, thus colorby will be set to name.')
-                colorby = 'name'
-            if colorby =='lcz':
-                lcz_dict = self.metadf['lcz'].to_dict()
-            else:
-                lcz_dict = None
-
-            # generate title
-            startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
-            enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
-            if refstation is None:
-                title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
-            else:
-                title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdtstr} - {enddtstr}'
-
-
-            # generate errorbands df
-            if errorbands:
-                stddf = stats['std'].unstack().transpose()
-            else:
-                stddf = None
-
-            # extract timezone
-            tzstring = self.df.index.get_level_values('datetime').tz.zone
-
-
-            # Make plot
-            diurnal_plot(diurnaldf = hourly_avg,
-                         errorbandsdf = stddf,
-                         title = title,
-                         tzstr=tzstring,
-                         plot_settings = self.settings.app['plot_settings']['diurnal'],
-                         colorby = colorby,
-                         lcz_dict = lcz_dict)
-
-
-        if verbose:
-            return hourly_avg, stats
-
-        return hourly_avg
 
 
 

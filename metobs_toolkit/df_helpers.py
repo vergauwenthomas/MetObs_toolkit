@@ -138,7 +138,7 @@ def subset_stations(df, stationslist):
                 'name').isin(stationslist)]
 
     present_stations = df.index.get_level_values('name')
-    not_present_stations = list(set(stationlist) - set(present_stations))
+    not_present_stations = list(set(stationslist) - set(present_stations))
     if len(not_present_stations)!=0:
         print(f'WARNING: The stations: {not_present_stations} not found in the dataframe.')
 
@@ -148,7 +148,7 @@ def subset_stations(df, stationslist):
 
 def datetime_subsetting(df, starttime, endtime):
     """
-    Wrapper function for subsetting a dataframe with datetimeindex with a start- and
+    Wrapper function for subsetting a dataframe with a 'datetime' column or index with a start- and
     endtime.
 
     Parameters
@@ -166,7 +166,9 @@ def datetime_subsetting(df, starttime, endtime):
         Subset of the df.
 
     """
-
+    idx_names = list(df.index.names)
+    df = df.reset_index()
+    df = df.set_index('datetime')
     stand_format = "%Y-%m-%d %H:%M:%S"
 
     if isinstance(starttime, type(None)):
@@ -178,7 +180,10 @@ def datetime_subsetting(df, starttime, endtime):
     else:
         endstring = endtime.strftime(stand_format)
 
-    return df[startstring:endstring]
+    subset =  df[startstring:endstring]
+    subset = subset.reset_index()
+    subset = subset.set_index(idx_names)
+    return subset
 
 
 def conv_applied_qc_to_df(obstypes, ordered_checknames):

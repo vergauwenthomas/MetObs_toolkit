@@ -42,4 +42,5 @@ jobs:
             poetry run python IO_test.py
             poetry run python qc_test.py
             poetry run python breaking_test.py
-     
+            poetry run python analysis_test.py
+

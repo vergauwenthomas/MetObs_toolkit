@@ -429,7 +429,7 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings, colorby, 
 
     if colorby == 'name':
         # which colormap to use:
-        if diurnaldf.shape[0] <= plot_settings['n_cat_max']:
+        if diurnaldf.shape[1] <= plot_settings['n_cat_max']:
             cmap = plot_settings['cmap_categorical']
         else:
             cmap = plot_settings['cmap_continious']
