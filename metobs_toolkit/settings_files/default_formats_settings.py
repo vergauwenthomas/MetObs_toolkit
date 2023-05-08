@@ -112,7 +112,14 @@ plot_settings["color_mapper"] = {
 # =============================================================================
 
 plot_settings["diurnal"] = {
-    "figsize": (10,10)
+    "figsize": (10,10),
+    'alpha_error_bands': 0.3,
+    'cmap_continious' : "viridis", #if many stations are present, best to use continious rather than categorical
+
+    'n_cat_max': 20, #when less or equal categories are detected, use the categorical col mapping
+    'cmap_categorical': "tab20",
+
+
 
 
 

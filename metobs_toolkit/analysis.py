@@ -57,7 +57,7 @@ class Analysis():
     # =============================================================================
 
     def get_diurnal_statistics(self, obstype='temp',refstation=None, stations=None, verbose=False,
-                               startdt=None, enddt=None, plot=True, errorbands=False):
+                               startdt=None, enddt=None, colorby='name', plot=True, errorbands=False):
 
         obsdf = self.df
 
@@ -128,7 +128,16 @@ class Analysis():
 
         hourly_avg = stats['mean'].unstack().transpose()
 
+
         if plot:
+            # get lcz groups if needed
+            if ((colorby == 'lcz') & (not 'lcz' in self.metadf.columns)):
+                print('Warning: No LCZ information, thus colorby will be set to name.')
+                colorby = 'name'
+            if colorby =='lcz':
+                lcz_dict = self.metadf['lcz'].to_dict()
+            else:
+                lcz_dict = None
 
             # generate title
             startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
@@ -145,12 +154,18 @@ class Analysis():
             else:
                 stddf = None
 
+            # extract timezone
+            tzstring = self.df.index.get_level_values('datetime').tz.zone
+
 
             # Make plot
             diurnal_plot(diurnaldf = hourly_avg,
                          errorbandsdf = stddf,
                          title = title,
-                         plot_settings = self.settings.app['plot_settings']['diurnal'])
+                         tzstr=tzstring,
+                         plot_settings = self.settings.app['plot_settings']['diurnal'],
+                         colorby = colorby,
+                         lcz_dict = lcz_dict)
 
 
         if verbose:
