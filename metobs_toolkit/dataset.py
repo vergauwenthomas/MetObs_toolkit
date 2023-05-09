@@ -252,6 +252,11 @@ class Dataset:
         except KeyError:
             sta_gapfill = init_multiindexdf()
 
+        try:
+            sta_missingfill = self.missing_fill_df.xs(stationname, level="name", drop_level=False)
+        except KeyError:
+            sta_missingfill = init_multiindexdf()
+
         return Station(
             name=stationname,
             df=sta_df,
@@ -259,6 +264,7 @@ class Dataset:
             gaps=sta_gaps,
             missing_obs=sta_missingobs,
             gapfilldf=sta_gapfill,
+            missing_fill_df = sta_missingfill,
             metadf=sta_metadf,
             data_template=self.data_template,
             settings=self.settings,

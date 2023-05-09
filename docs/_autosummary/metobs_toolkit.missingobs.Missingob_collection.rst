@@ -1,4 +1,4 @@
-metobs\_toolkit.missingobs.Missingob\_collection
+﻿metobs\_toolkit.missingobs.Missingob\_collection
 ================================================
 
 .. currentmodule:: metobs_toolkit.missingobs
@@ -18,6 +18,7 @@ metobs\_toolkit.missingobs.Missingob\_collection
    
       ~Missingob_collection.get_missing_indx_in_obs_space
       ~Missingob_collection.get_station_missingobs
+      ~Missingob_collection.interpolate_missing
       ~Missingob_collection.remove_missing_from_obs
    
    
