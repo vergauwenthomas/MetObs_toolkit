@@ -45,7 +45,6 @@ def read_csv_template(file, data_long_format=True, obstype=None):
         # is not specified in template oclumn name, but the defenition and datatype do.
         templ.loc[templ["varname"] == obstype, "template column name"] = "_wide_dummy"
 
-
     # create dictionary from templframe
     templ = templ.set_index("template column name")
 
