@@ -52,7 +52,7 @@ gaps_fill_settings = {
 
 gaps_fill_info = {
     "label_columnname": "final_label",
-    "label": {"linear": "gap_interpolation", "model_debias": "debiased_era5"},
+    "label": {"linear": "gap_interpolation", "model_debias": "gap_debiased_era5"},
     "numeric_flag": 21,
 }
 

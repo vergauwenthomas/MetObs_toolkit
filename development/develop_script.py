@@ -47,14 +47,17 @@ dataset.import_data_from_file()
 
 dataset.coarsen_time_resolution()
 
-
 #%%
-
-dataset.fill_gaps_linear()
+test = dataset.missing_obs.get_station_missingobs('vlinder03')
+print(test)
+#%%
+# model = dataset.get_modeldata()
+# dataset.fill_gaps_linear()
 dataset.fill_missing_obs_linear()
 
 
-test = dataset.combine_all_to_obsspace(repr_outl_as_nan=True)
+
+# test = dataset.combine_all_to_obsspace(repr_outl_as_nan=True)
 
 
 # print(dataset.gapfilldf)

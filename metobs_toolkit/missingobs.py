@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class Missingob_collection:
+    """ Class object handling a set of missing observations. """
     def __init__(self, missing_obs_series):
 
         missing_obs_series.name = 'datetime'
@@ -51,6 +52,20 @@ class Missingob_collection:
 
 
     def get_station_missingobs(self, name):
+        """
+        Get the missing observations of a specific station.
+
+        Parameters
+        ----------
+        name : str
+            The name of the station to extract the missing observation from.
+
+        Returns
+        -------
+        Metobs_toolkit.Missingob_collection
+            A subset of the missing observations from a specific station.
+
+        """
         if name in self.series.index:
             return Missingob_collection(self.series.loc[[name]])
         else:
@@ -60,6 +75,22 @@ class Missingob_collection:
             return Missingob_collection(series)
 
     def remove_missing_from_obs(self, obsdf):
+        """
+        Drop the missing observation records from an observational dataframe, if
+        they are present.
+
+        Parameters
+        ----------
+        obsdf : pandas.DataFrame
+            Multiindex observational dataframe.
+
+        Returns
+        -------
+        obsdf : pandas.DataFrame
+            Multiindex observational dataframe without records linked to missing
+            observations.
+
+        """
         # Normally there are no missing records in the obsdf
         missing_multiidx = pd.MultiIndex.from_arrays(
             arrays=[self.series.index.to_list(), self.series.to_list()],
@@ -71,7 +102,27 @@ class Missingob_collection:
         return obsdf
 
     def interpolate_missing(self, obsdf, resolutionseries, obstype='temp', method='time'):
+        """
+        Fill the missing observations using an interpolation method.
 
+        The "fill_df" and "fill_technique" attributes will be updated.
+
+        Parameters
+        ----------
+        obsdf : Metobs_toolkit.Dataset.df
+            The observations that can be used for the interpolation.
+        resolutionseries : pd.Series
+            The dataset resolution series for all stations..
+        obstype : element of Metobs_toolkit.observational_types, optional
+            Select which observation type you wish to interpolate. The default is 'temp'.
+        method : valid input for pandas.DataFrame.interpolate method arg, optional
+            Which interpolation method to use. The default is 'time'.
+
+        Returns
+        -------
+        None.
+
+        """
         # create fill column for the obstype
         self.fill_df[obstype] = np.nan
         self.fill_technique = 'interpolate'
