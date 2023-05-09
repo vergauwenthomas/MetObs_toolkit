@@ -27,6 +27,12 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 # Helpers
 # =============================================================================
 
+def map_obstype(obstype, template):
+    return template[obstype].to_dict()
+
+
+
+
 def make_cat_colormapper(catlist, cmapname):
     """
     Create a dictionary {cat : color} for a list of categorical values.
@@ -392,7 +398,9 @@ def timeseries_plot(
 
     return ax
 
-def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings, colorby, lcz_dict):
+def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
+                 colorby, lcz_dict, data_template, obstype,
+                 show_zero_horizontal=False):
     # init figure
     fig, ax = plt.subplots(figsize=plot_settings["figsize"])
 
@@ -407,14 +415,13 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings, colorby, 
 
         colordict = make_cat_colormapper(catlist=present_lczs,
                                          cmapname=cmap)
-        print('colordict =  ', colordict)
+
 
         # Make plot per lcz
         custom_handles = []
 
         for lcz_cat  in present_lczs:
             stations = [sta for sta in diurnaldf.columns if lcz_dict[sta] == lcz_cat]
-            print('stations: ', stations, ' color: ', colordict[lcz_cat])
             diurnaldf[stations].plot(ax=ax, title=title, color=colordict[lcz_cat], legend=False)
 
             # add legend item
@@ -434,7 +441,7 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings, colorby, 
         else:
             cmap = plot_settings['cmap_continious']
 
-        ax = diurnaldf.plot(ax=ax, title=title, cmap=cmap)
+        diurnaldf.plot(ax=ax, title=title, cmap=cmap)
 
 
 
@@ -450,9 +457,16 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings, colorby, 
                              color=col_sheme[sta],
                              )
 
+    if show_zero_horizontal:
+        ax.axhline(y=0., color='black', linestyle='--')
     # Styling attributes
+
+
+
+    ax.set_ylabel(map_obstype(obstype, data_template)['orig_name'])
     ax.xaxis.set_major_formatter('{x:.0f} h')
     ax.set_xlabel(f'Hours (timezone: {tzstr})')
+
 
     plt.show()
 

@@ -591,7 +591,8 @@ class Dataset:
 
         return Analysis(obsdf = self.df,
                         metadf = self.metadf,
-                        settings = self.settings)
+                        settings = self.settings,
+                        data_template=self.data_template)
 
 
     def fill_gaps_era5(

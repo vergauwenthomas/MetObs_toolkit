@@ -57,7 +57,7 @@ an = dataset.get_analysis()
 
 teststa =  ['vlinder01', 'vlinder02']
 
-test2 = an.get_diurnal_statistics_with_reference(stations = teststa, refstation='vlinder08',colorby='name', verbose=True)
+test2 = an.get_diurnal_statistics_with_reference(refstation='vlinder08',colorby='name', verbose=True, errorbands=True)
 
 
 
@@ -65,15 +65,21 @@ from datetime import datetime
 startdt = datetime(2022,10,6)
 
 #%%
-test1 = an.get_diurnal_statistics(colorby='name', stations=teststa, startdt=startdt, verbose=True)
-an.get_diurnal_statistics(colorby='name', stations=teststa)
+# test1 = an.get_diurnal_statistics(colorby='name', stations=teststa, startdt=startdt, verbose=True)
+# an.get_diurnal_statistics(colorby='name', stations=teststa, errorbands=True)
 #%%
 
-test2 = an.get_diurnal_statistics_with_reference(refstation='vlinder08',colorby='name', verbose=True)
+# test2 = an.get_diurnal_statistics_with_reference(refstation='vlinder08',colorby='name', verbose=True)
 
 
 #%%
-test3 = an.get_aggregated_diurnal_statistics(aggregation=['lcz'], verbose=True)
+# test3 = an.get_aggregated_diurnal_statistics(aggregation=['lcz'], verbose=True)
+
+obstype = 'temp'
+template = dataset.data_template
+
+
+
 
 
 
