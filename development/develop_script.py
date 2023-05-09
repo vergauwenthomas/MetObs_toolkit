@@ -44,39 +44,82 @@ dataset.update_settings(input_data_file=testdatafile,
 
 
 dataset.import_data_from_file()
-# dataset.get_lcz()
+
+dataset.coarsen_time_resolution()
 
 
+#%%
+
+dataset.fill_gaps_linear()
+dataset.fill_missing_obs_linear()
+
+
+test = dataset.combine_all_to_obsspace(repr_outl_as_nan=True)
+
+
+# print(dataset.gapfilldf)
+#%%
+# dataset.fill_missing_obs_linear()
+# print(dataset.missing_fill_df)
+
+
+#%%
+# missing_obs = dataset.missing_obs
+# missing_obs.interpolate_missing(dataset.df, dataset.metadf['dataset_resolution'])
 
 
 
 #%%
+# gaps = dataset.gaps
 
-an = dataset.get_analysis()
+# print(gaps)
 
+# #%%
+# method='time'
+# obsdf = dataset.df
+# obstype = 'temp'
+# missing_obs = dataset.missing_obs
 
-teststa =  ['vlinder01', 'vlinder02']
-
-test2 = an.get_diurnal_statistics_with_reference(refstation='vlinder08',colorby='name', verbose=True, errorbands=True)
-
-
-
-from datetime import datetime
-startdt = datetime(2022,10,6)
-
-#%%
-# test1 = an.get_diurnal_statistics(colorby='name', stations=teststa, startdt=startdt, verbose=True)
-# an.get_diurnal_statistics(colorby='name', stations=teststa, errorbands=True)
-#%%
-
-# test2 = an.get_diurnal_statistics_with_reference(refstation='vlinder08',colorby='name', verbose=True)
+# missing_obsspace = missing_obs.get_missing_indx_in_obs_space(dataset.df, dataset.metadf['dataset_resolution'])
 
 
-#%%
-# test3 = an.get_aggregated_diurnal_statistics(aggregation=['lcz'], verbose=True)
+# from metobs_toolkit.gap import _find_closes_occuring_date
 
-obstype = 'temp'
-template = dataset.data_template
+# import numpy as np
+
+# for staname, missingdt in missing_obsspace:
+#     staobs = obsdf.xs(staname, level='name')[obstype]
+#     # exclude nan values because they are no good leading/trailing
+#     staobs = staobs[~staobs.isnull()]
+
+#     # find leading and trailing datetimes
+#     leading_dt = missingdt - timedelta(
+#         seconds=_find_closes_occuring_date(
+#             refdt = missingdt,
+#             series_of_dt = staobs.index,
+#             where='before')
+#         )
+#     trailing_dt = missingdt + timedelta(
+#         seconds=_find_closes_occuring_date(
+#             refdt = missingdt,
+#             series_of_dt = staobs.index,
+#             where='after')
+#         )
+
+#     # extract the values and combine them in a dataframe
+#     leading_val = staobs.loc[leading_dt]
+#     trailing_val = staobs.loc[trailing_dt]
+
+#     stadf = pd.DataFrame(
+#         index=[leading_dt, missingdt, trailing_dt],
+#         data={obstype: [leading_val, np.nan, trailing_val]}
+#     )
+
+
+#     # interpolate the missing obs
+#     stadf['interp'] = stadf[obstype].interpolate(
+#                                         method=method,
+#         )
 
 
 

@@ -99,6 +99,7 @@ class Dataset:
         self.gaps = None  # becomes a gap_collection after import
 
         self.gapfilldf = init_multiindexdf()
+        self.missing_fill_df = init_multiindexdf()
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
@@ -576,6 +577,28 @@ class Dataset:
         self.gapfilldf[obstype + "_" + fill_info["label_columnname"]] = fill_info[
             "label"
         ]["linear"]
+
+    def fill_missing_obs_linear(self, obstype='temp'):
+        # TODO logging
+        fill_settings = self.settings.missing_obs['missing_obs_fill_settings']['linear']
+        fill_info = self.settings.missing_obs['missing_obs_fill_info']
+
+
+
+        # fill missing obs
+        self.missing_obs.interpolate_missing(
+                                            obsdf=self.df,
+                                            resolutionseries=self.metadf["dataset_resolution"],
+                                            obstype=obstype,
+                                            method=fill_settings["method"],
+        )
+        missing_fill_df = self.missing_obs.fill_df
+        missing_fill_df[obstype+'_' + fill_info["label_columnname"]] = fill_info["label"]["linear"]
+
+        # Update attribute
+
+        self.missing_fill_df = missing_fill_df
+
 
 
     def get_analysis(self):
@@ -1081,18 +1104,22 @@ class Dataset:
         )
         gapsdf = gapsidx.to_frame()
 
+        # add gapfill and remove the filled records from gaps
+        gapsfilldf = self.gapfilldf.copy()
+        gapsdf = gapsdf.drop(gapsfilldf.index, errors="ignore")
+
+
         # add missing observations if they occure in observation space
         missingidx = self.missing_obs.get_missing_indx_in_obs_space(
             self.df, self.metadf["dataset_resolution"]
         )
         missingdf = missingidx.to_frame()
+        missingfilldf = self.missing_fill_df.copy()
+        missingdf = missingdf.drop(missingfilldf.index, errors="ignore")
 
-        # add gapfill and remove the filled records from gaps
-        gapsfilldf = self.gapfilldf.copy()
 
-        gapsdf = gapsdf.drop(gapsfilldf.index, errors="ignore")
 
-        # initiate default values
+        # initiate default values for gaps and missing that are not filled
         for col in df_and_outl.columns:
             if col in observation_types:
                 default_value_gap = np.nan  # nan for observations
@@ -1103,6 +1130,7 @@ class Dataset:
                 default_value_gap = self.settings.gap["gaps_info"]["gap"][
                     "outlier_flag"
                 ]
+
                 # 'is_missing_timestamp' for final label
                 default_value_missing = self.settings.gap["gaps_info"][
                     "missing_timestamp"
@@ -1111,17 +1139,25 @@ class Dataset:
             else:
                 default_value_gap = "not checked"
                 default_value_missing = "not checked"
-                gapsfilldf[col] = "not checked"
+
 
             gapsdf[col] = default_value_gap
             missingdf[col] = default_value_missing
+            if not col in gapsfilldf.columns:
+                gapsfilldf[col] = default_value_gap
+            if not col in missingfilldf.columns:
+                missingfilldf[col] = default_value_missing
 
         # sort columns
-        gapsdf = gapsdf[list(df_and_outl.columns)]
-        missingdf = missingdf[list(df_and_outl.columns)]
+        column_order = df_and_outl.columns.to_list()
+        gapsdf = gapsdf[column_order]
+        gapsfilldf=gapsfilldf[column_order]
+        missingdf = missingdf[column_order]
+        missingfilldf = missingfilldf[column_order]
 
         # Merge all together
-        comb_df = pd.concat([df_and_outl, gapsdf, missingdf, gapsfilldf]).sort_index()
+        comb_df = pd.concat([df_and_outl, gapsdf, missingdf,
+                             gapsfilldf, missingfilldf]).sort_index()
 
         return comb_df
 

@@ -77,7 +77,10 @@ class Gap:
         self.gapfill_technique = None
 
     def __str__(self):
-        return f"Gap instance: {self.name}: {self.startgap} --> {self.endgap} applied fill technique: {self.gapfill_technique}"
+        return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}"
+    def __repr__(self):
+        return self.__str__()
+
 
     def to_df(self):
         """
@@ -264,6 +267,16 @@ class Gap_collection:
             Gap(sta, row["start_gap"], row["end_gap"]) for sta, row in gapsdf.iterrows()
         ]
 
+    def __str__(self):
+        if not bool(self.list):
+            return f'Empty gap collection'
+        longstring = ''
+        for gap in self.list:
+            longstring += str(gap) + '\n'
+        return f"Gap collection for: \n {longstring}"
+    def __repr__(self):
+        return self.__str__()
+
     def to_df(self):
         gaps_names = []
         gaps_startdt = []
@@ -421,10 +434,11 @@ class Gap_collection:
 
             gapdf = gapfill_series.to_frame().reset_index()
             gapdf["name"] = gap.name
-            gapdf.index = pd.MultiIndex.from_arrays(
-                arrays=[gapdf["name"].values, gapdf["datetime"].values],
-                names=["name", "datetime"],
-            )
+            gapdf = gapdf.set_index(['name', 'datetime'])
+            # gapdf.index = pd.MultiIndex.from_arrays(
+            #     arrays=[gapdf["name"].values, gapdf["datetime"].values],
+            #     names=["name", "datetime"],
+            # )
 
             # Update gap
             gap.gapfill_technique = "interpolation"
