@@ -67,7 +67,7 @@ from metobs_toolkit.df_helpers import (
     get_freqency_series,
 )
 
-
+from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
 
 from metobs_toolkit import observation_types
@@ -576,6 +576,24 @@ class Dataset:
         self.gapfilldf[obstype + "_" + fill_info["label_columnname"]] = fill_info[
             "label"
         ]["linear"]
+
+
+    def get_analysis(self):
+        """
+        Create a MetObs_toolkit.Analysis instance from the Dataframe
+
+        Returns
+        -------
+        metobs_toolkit.Analysis
+            The Analysis instance of the Dataset.
+
+        """
+
+        return Analysis(obsdf = self.df,
+                        metadf = self.metadf,
+                        settings = self.settings,
+                        data_template=self.data_template)
+
 
     def fill_gaps_era5(
         self, modeldata, method="debias", obstype="temp", overwrite=True
@@ -1692,7 +1710,7 @@ class Dataset:
             df = df[~df.index.get_level_values("name").isnull()]
         self._construct_dataset(df)
 
-    
+
     def _construct_dataset(
         self,
         df,
