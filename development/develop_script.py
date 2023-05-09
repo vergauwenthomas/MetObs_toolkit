@@ -44,7 +44,7 @@ dataset.update_settings(input_data_file=testdatafile,
 
 
 dataset.import_data_from_file()
-dataset.get_lcz()
+# dataset.get_lcz()
 
 
 
@@ -55,7 +55,11 @@ dataset.get_lcz()
 an = dataset.get_analysis()
 
 
-teststa =  ['vlinder01', 'vlinder02', 'vlinder03']
+teststa =  ['vlinder01', 'vlinder02']
+
+test2 = an.get_diurnal_statistics_with_reference(stations = teststa, refstation='vlinder08',colorby='name', verbose=True)
+
+
 
 from datetime import datetime
 startdt = datetime(2022,10,6)
@@ -73,37 +77,3 @@ test3 = an.get_aggregated_diurnal_statistics(aggregation=['lcz'], verbose=True)
 
 
 
-# df = an.get_diurnal_statistics(errorbands=False, colorby='lcz')
-
-#%%
-# def aggregate_df(an, agg=['lcz', 'datetime'], method='mean'):
-#     numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-
-#     df =an.df.reset_index()
-
-#     # merge relevant info to the df for aggregation
-
-#     if 'lcz' in agg:
-#         if not 'lcz' in an.metadf:
-#             print('Warning: Aggregation to LCZ not possible because no LCZ information found.')
-#             return df
-#         else:
-#             df = pd.merge(df, an.metadf[['lcz']],
-#                               how='left', left_on='name',
-#                               right_index=True)
-
-#     # Aggregate the df
-
-
-#     # Remove columns that cannot be aggregated
-#     # agg_df = df.select_dtypes(include=numerics)
-
-#     agg_df = df.groupby(agg).agg(method, numeric_only=True)
-#     agg_df = agg_df.reset_index()
-#     agg_df = agg_df.set_index(agg)
-#     return agg_df
-
-# test = aggregate_df(an, agg=['lcz', 'datetime'])
-
-
-# print(test)
