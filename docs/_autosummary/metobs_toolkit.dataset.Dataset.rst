@@ -36,11 +36,7 @@
       ~Dataset.show
       ~Dataset.show_settings
       ~Dataset.sync_observations
-      ~Dataset.update_default_name
       ~Dataset.update_outliersdf
-      ~Dataset.update_qc_settings
-      ~Dataset.update_settings
-      ~Dataset.update_timezone
       ~Dataset.write_to_csv
    
    

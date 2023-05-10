@@ -12,7 +12,7 @@ temp_output/*
 deploiment/*_log
 deploiment/*online* #only for thomas
 deploiment/update_version.sh #only for thomas
-deploiment/
+deploiment/*
 
 #Exclude local package builds
 dist/*

@@ -36,11 +36,7 @@
       ~Station.show
       ~Station.show_settings
       ~Station.sync_observations
-      ~Station.update_default_name
       ~Station.update_outliersdf
-      ~Station.update_qc_settings
-      ~Station.update_settings
-      ~Station.update_timezone
       ~Station.write_to_csv
    
    
