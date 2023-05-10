@@ -113,7 +113,6 @@ class Dataset:
 
         self.settings = Settings()
 
-
     def update_settings(
         self,
         output_folder=None,
@@ -154,7 +153,6 @@ class Dataset:
             data_template_file=data_template_file,
             metadata_template_file=metadata_template_file,
         )
-
 
     def update_timezone(self, timezonestr):
         """
@@ -577,7 +575,6 @@ class Dataset:
             "label"
         ]["linear"]
 
-
     def get_analysis(self):
         """
         Create a MetObs_toolkit.Analysis instance from the Dataframe
@@ -589,11 +586,12 @@ class Dataset:
 
         """
 
-        return Analysis(obsdf = self.df,
-                        metadf = self.metadf,
-                        settings = self.settings,
-                        data_template=self.data_template)
-
+        return Analysis(
+            obsdf=self.df,
+            metadf=self.metadf,
+            settings=self.settings,
+            data_template=self.data_template,
+        )
 
     def fill_gaps_era5(
         self, modeldata, method="debias", obstype="temp", overwrite=True
@@ -1297,7 +1295,6 @@ class Dataset:
         self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
-
     def sync_observations(self, tollerance, verbose=True):
         """
         Simplify and syncronize the observation timestamps along different stations.
@@ -1424,15 +1421,12 @@ class Dataset:
                 # possibility 1: record is mapped crrectly
                 correct_mapped = mergedstadf[~mergedstadf["target_datetime"].isnull()]
 
-
                 # possibility2: records that ar not mapped to target
                 # not_mapped_records =mergedstadf[mergedstadf['target_datetime'].isnull()]
-
 
                 # possibilyt 3 : no suitable candidates found for the target
                 # these will be cached by the missing and gap check
                 # no_record_candidates = target_records[~target_records.isin(mergedstadf['target_datetime'])].values
-
 
                 merged_df = pd.concat([merged_df, correct_mapped])
                 if verbose:
@@ -1473,7 +1467,6 @@ class Dataset:
         freq_estimation_simplify=None,
         freq_estimation_simplify_error=None,
     ):
-
         """
         Read observations from a csv file as defined in the
         Settings.input_file. The input file columns should have a template
@@ -1536,7 +1529,6 @@ class Dataset:
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         if freq_estimation_method is None:
-
             freq_estimation_method = self.settings.time_settings[
                 "freq_estimation_method"
             ]
@@ -1555,7 +1547,6 @@ class Dataset:
                 obstype in observation_types
             ), f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
 
-
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
@@ -1563,7 +1554,6 @@ class Dataset:
             long_format=long_format,
             obstype=obstype,  # only relevant in wide format
         )
-
 
         # Set timezone information
         df.index = df.index.tz_localize(
@@ -1710,7 +1700,6 @@ class Dataset:
             df = df[~df.index.get_level_values("name").isnull()]
         self._construct_dataset(df)
 
-
     def _construct_dataset(
         self,
         df,
@@ -1720,7 +1709,6 @@ class Dataset:
         fixed_freq_series=None,
         update_full_metadf=True,
     ):
-
         """
         Helper function to construct the Dataset class from a IO dataframe.
 
@@ -1757,13 +1745,11 @@ class Dataset:
 
         """
 
-
         # Convert dataframe to dataset attributes
         self._initiate_df_attribute(dataframe=df, update_metadf=update_full_metadf)
 
         # Apply quality control on Import resolution
         self._apply_qc_on_import()
-
 
         if fixed_freq_series is None:
             freq_series = get_freqency_series(
@@ -1784,7 +1770,6 @@ class Dataset:
                 freq_series_import = fixed_freq_series
             freq_series = fixed_freq_series
 
-
         # add import frequencies to metadf (after import qc!)
         self.metadf["assumed_import_frequency"] = freq_series_import
 
@@ -1793,7 +1778,6 @@ class Dataset:
         # Remove gaps and missing from the observations AFTER timecoarsening
         self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
-
 
     def _initiate_df_attribute(self, dataframe, update_metadf=True):
         logger.info(
@@ -1814,7 +1798,6 @@ class Dataset:
             metadf = metadf[~metadf.index.duplicated(keep="first")]
 
             self.metadf = metadf_to_gdf(metadf)
-
 
     def _apply_qc_on_import(self):
         # find missing obs and gaps, and remove them from the df

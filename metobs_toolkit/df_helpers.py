@@ -129,21 +129,20 @@ def multiindexdf_datetime_subsetting(df, starttime, endtime):
     return returndf
 
 
-
 # =============================================================================
 # filters
 # =============================================================================
 def subset_stations(df, stationslist):
-    df = df.loc[df.index.get_level_values(
-                'name').isin(stationslist)]
+    df = df.loc[df.index.get_level_values("name").isin(stationslist)]
 
-    present_stations = df.index.get_level_values('name')
+    present_stations = df.index.get_level_values("name")
     not_present_stations = list(set(stationslist) - set(present_stations))
-    if len(not_present_stations)!=0:
-        print(f'WARNING: The stations: {not_present_stations} not found in the dataframe.')
+    if len(not_present_stations) != 0:
+        print(
+            f"WARNING: The stations: {not_present_stations} not found in the dataframe."
+        )
 
     return df
-
 
 
 def datetime_subsetting(df, starttime, endtime):
@@ -168,7 +167,7 @@ def datetime_subsetting(df, starttime, endtime):
     """
     idx_names = list(df.index.names)
     df = df.reset_index()
-    df = df.set_index('datetime')
+    df = df.set_index("datetime")
     stand_format = "%Y-%m-%d %H:%M:%S"
 
     if isinstance(starttime, type(None)):
@@ -180,7 +179,7 @@ def datetime_subsetting(df, starttime, endtime):
     else:
         endstring = endtime.strftime(stand_format)
 
-    subset =  df[startstring:endstring]
+    subset = df[startstring:endstring]
     subset = subset.reset_index()
     subset = subset.set_index(idx_names)
     return subset
@@ -216,7 +215,6 @@ def conv_applied_qc_to_df(obstypes, ordered_checknames):
 def get_likely_frequency(
     timestamps, method="highest", simplify=True, max_simplify_error="2T"
 ):
-
     """
     Find the most likely observation frequency of a datetimeindex.
 
@@ -245,7 +243,6 @@ def get_likely_frequency(
         "highest",
         "median",
     ], f"The method for frequency estimation ({method}) is not known. Use one of [highest, median]"
-
 
     try:
         pd.to_timedelta(max_simplify_error)
@@ -301,7 +298,6 @@ def get_likely_frequency(
         else:
             assume_freq = simplify_freq
 
-
     if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
         # select the second highest frequency
         assume_freq = abs(
@@ -312,7 +308,6 @@ def get_likely_frequency(
 
 
 def get_freqency_series(df, method="highest", simplify=True, max_simplify_error="2T"):
-
     """
     Find the most likely observation frequency for all stations individually
     based on the df. If an observation has less than two observations, assign
@@ -371,6 +366,5 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
         )
         for prob_station in problematic_stations:
             freqs[prob_station] = assign_med_freq
-
 
     return pd.Series(data=freqs)

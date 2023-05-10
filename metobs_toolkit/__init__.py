@@ -74,4 +74,3 @@ from metobs_toolkit.modeldata import Modeldata
 
 # DO not change this manually!
 __version__ = "0.0.2a1"
-
