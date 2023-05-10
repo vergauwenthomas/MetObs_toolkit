@@ -67,6 +67,10 @@ from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
 from metobs_toolkit.modeldata import Modeldata
 
+# =============================================================================
+# Import extenders
+# =============================================================================
+from metobs_toolkit.dataset_settings_updater import Dataset
 
 # =============================================================================
 # Version

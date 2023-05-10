@@ -6,6 +6,7 @@ The class object for a Vlinder/mocca station
 """
 
 import os
+import copy
 from datetime import datetime
 from pytz import all_timezones, common_timezones
 import logging
@@ -112,88 +113,11 @@ class Dataset:
         self._applied_qc = pd.DataFrame(columns=["obstype", "checkname"])
         self._qc_checked_obstypes = []  # list with qc-checked obstypes
 
-        self.settings = Settings()
+        self.settings = copy.deepcopy(Settings())
 
 
-    def update_settings(
-        self,
-        output_folder=None,
-        input_data_file=None,
-        input_metadata_file=None,
-        data_template_file=None,
-        metadata_template_file=None,
-    ):
-        """
-        Update the most common input-output (IO) settings.
-        (This should be applied before importing the observations.)
-
-        When an update value is None, the specific setting will not be updated.
-
-        Parameters
-        ----------
-        output_folder : string, optional
-            A directory to store the output to. The default is None.
-        input_data_file : string, optional
-            Path to the input data file with observations. The default is None.
-        input_metadata_file : string, optional
-            Path to the input metadata file. The default is None.
-        data_template_file : string, optional
-            Path to the mapper-template csv file to be used on the observations.. The default is None.
-        metadata_template_file : string, optional
-            Path to the mapper-template csv file to be used on the metadata.. The default is None.
-
-        Returns
-        -------
-        None.
-
-        """
-
-        self.settings.update_IO(
-            output_folder=output_folder,
-            input_data_file=input_data_file,
-            input_metadata_file=input_metadata_file,
-            data_template_file=data_template_file,
-            metadata_template_file=metadata_template_file,
-        )
 
 
-    def update_timezone(self, timezonestr):
-        """
-        Change the timezone of the input data. By default the Brussels timezone is assumed.
-        A valid timezonestring is an element of the pytz.all_timezones.
-
-        Parameters
-        ----------
-        timezonestr : string
-            Timezone string of the input observations. Element of pytz.all_timezones.
-
-        Returns
-        -------
-        None.
-
-        """
-
-        self.settings.update_timezone(timezonestr)
-
-    def update_default_name(self, default_name):
-        """
-        Update the default name (the name of the station). This name will be
-        used when no names are found in the observational dataset.
-
-        (All observations are assumed to come from one station.)
-
-        Parameters
-        ----------
-        default_name : string
-            Default name to use when no names are present in the data.
-
-        Returns
-        -------
-        None.
-
-        """
-
-        self.settings.app["default_name"] = str(default_name)
 
     def show_settings(self):
         """
@@ -1378,10 +1302,8 @@ class Dataset:
 
         """
 
-        # Start from input_df !!!!!
-        #   reset self.df, and dataset resolution in metadf
-        #   reset self.outliersdf, gaps, missing
-        #
+
+
         df = self.input_df
 
         self.df = init_multiindexdf()

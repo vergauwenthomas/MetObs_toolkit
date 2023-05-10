@@ -48,7 +48,7 @@ Applying Qualitycontrol
 .. literalinclude:: ../examples/qualitycontrol_example.py
    :language: python
    :linenos:
-   :lines: 41-150
+   :lines: 21-159
 
 Making spatial plots
 ========================
