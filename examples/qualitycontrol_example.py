@@ -70,8 +70,11 @@ qc_settings = sept_2022_all_vlinders.settings.qc[
 ]  # Settings are stored in nested dictionary
 print(qc_settings)
 
-# Changing a setting example:
-qc_settings["persistance"]["temp"]["max_valid_repetitions"] = 6
+# The settings of the QC checks can be updated using this function:
+sept_2022_all_vlinders.update_qc_settings(obstype='temp',
+                                          gross_value_max_value=26.3,
+                                           persis_time_win_to_check='30T' #30 minutes
+                                          )
 
 
 # Quality control checks are always applied on the full dataset Using the apply_quality_control method on the dataset.
