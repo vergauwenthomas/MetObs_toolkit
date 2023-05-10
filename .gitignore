@@ -1,38 +1,31 @@
-#Exclude private information 
+#Exclude private information
 deploy_info
 
 #Exclude temp output
 temp_output/*
 *~lock*
 *.swp
-poetry.lock
+*poetry.lock
+
+
 #Exclude deploy scripts
-*deploy*
+deploiment/*_log
+deploiment/*online* #only for thomas
+deploiment/update_version.sh #only for thomas
 
-#Exclude builds
+
+#Exclude local package builds
 dist/*
-_build/
-_build
-docs/_build/*
 
 
-#exclude proj build (only tar remaining)
-proj/proj-9.0.0/*
+#Exclude local documentation builds
+docs/_*
 
-#logs
+
+
+# exclued logs
 *log
-#exclude data
-examples/*.csv 
-examples/testdata.csv
 
-
-#Exclude development scripts for testing
-development/*
-
-#Exclude physiographic data
-physiography/*
-#Exclude virtual environments
-.nox/
 
 # pychache
 *__pycache__*
