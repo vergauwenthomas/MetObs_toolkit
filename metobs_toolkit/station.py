@@ -18,6 +18,7 @@ class Station(dataset.Dataset):
         gaps,
         missing_obs,
         gapfilldf,
+        missing_fill_df,
         metadf,
         data_template,
         settings,
@@ -30,6 +31,7 @@ class Station(dataset.Dataset):
         self.gaps = gaps
         self.missing_obs = missing_obs
         self.gapfilldf = gapfilldf
+        self.missing_fill_df = missing_fill_df
         self.metadf = metadf
         self.data_template = data_template
         self.settings = settings

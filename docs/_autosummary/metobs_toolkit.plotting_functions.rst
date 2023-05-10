@@ -15,7 +15,10 @@ metobs\_toolkit.plotting\_functions
       :toctree:
       :nosignatures:
    
+      diurnal_plot
       geospatial_plot
+      make_cat_colormapper
+      map_obstype
       qc_stats_pie
       timeseries_plot
    

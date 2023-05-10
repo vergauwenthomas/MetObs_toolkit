@@ -453,7 +453,7 @@ def gee_extract_timeseries(
     # df to featurecollection
     # =============================================================================
 
-    ee_fc = _df_to_features_point_collection(metadf, loncolname, latcolname)
+    ee_fc = _df_to_features_point_collection(metadf)
 
     # =============================================================================
     # extract raster values

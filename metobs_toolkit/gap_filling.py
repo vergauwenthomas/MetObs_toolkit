@@ -15,6 +15,10 @@ from metobs_toolkit.df_helpers import (
     format_outliersdf_to_doubleidx,
 )
 
+# def interpolate_missing_obs(missing_ob, obsdf, outliersdf, obstype, method):
+#     # 1 get trailing and leading obs
+
+
 
 # =============================================================================
 # Gap fillers

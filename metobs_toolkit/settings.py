@@ -29,6 +29,7 @@ class Settings:
         self.app = {}
         self.qc = {}
         self.gap = {}
+        self.missing_obs = {}
         self.templates = {}
         self.gee = {}
         self.IO = {
@@ -169,17 +170,22 @@ class Settings:
         :rtype: No return
         """
         logger.debug("Updating gap settings.")
-        from .settings_files.gaps_settings import (
+        from .settings_files.gaps_and_missing_settings import (
             gaps_settings,
             gaps_info,
             gaps_fill_settings,
             gaps_fill_info,
+            missing_obs_fill_settings,
+            missing_obs_fill_info
         )
 
         self.gap["gaps_settings"] = gaps_settings
         self.gap["gaps_info"] = gaps_info
         self.gap["gaps_fill_settings"] = gaps_fill_settings
         self.gap["gaps_fill_info"] = gaps_fill_info
+
+        self.missing_obs['missing_obs_fill_settings'] = missing_obs_fill_settings
+        self.missing_obs['missing_obs_fill_info'] = missing_obs_fill_info
 
     def _update_templates(self):
         """

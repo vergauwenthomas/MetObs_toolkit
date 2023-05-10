@@ -26,6 +26,7 @@
    :template: custom-module-template.rst
    :recursive:
 
+   metobs_toolkit.analysis
    metobs_toolkit.convertors
    metobs_toolkit.data_import
    metobs_toolkit.dataset
