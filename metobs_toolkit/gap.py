@@ -23,7 +23,12 @@ from metobs_toolkit.gap_filling import (
     make_era_bias_correction,
 )
 
-from metobs_toolkit.df_helpers import format_outliersdf_to_doubleidx
+from metobs_toolkit.df_helpers import (
+    format_outliersdf_to_doubleidx,
+    get_likely_frequency,
+)
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +77,10 @@ class Gap:
         self.gapfill_technique = None
 
     def __str__(self):
-        return f"Gap instance: {self.name}: {self.startgap} --> {self.endgap} applied fill technique: {self.gapfill_technique}"
+        return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}"
+    def __repr__(self):
+        return self.__str__()
+
 
     def to_df(self):
         """
@@ -259,6 +267,16 @@ class Gap_collection:
             Gap(sta, row["start_gap"], row["end_gap"]) for sta, row in gapsdf.iterrows()
         ]
 
+    def __str__(self):
+        if not bool(self.list):
+            return f'Empty gap collection'
+        longstring = ''
+        for gap in self.list:
+            longstring += str(gap) + '\n'
+        return f"Gap collection for: \n {longstring}"
+    def __repr__(self):
+        return self.__str__()
+
     def to_df(self):
         gaps_names = []
         gaps_startdt = []
@@ -416,10 +434,11 @@ class Gap_collection:
 
             gapdf = gapfill_series.to_frame().reset_index()
             gapdf["name"] = gap.name
-            gapdf.index = pd.MultiIndex.from_arrays(
-                arrays=[gapdf["name"].values, gapdf["datetime"].values],
-                names=["name", "datetime"],
-            )
+            gapdf = gapdf.set_index(['name', 'datetime'])
+            # gapdf.index = pd.MultiIndex.from_arrays(
+            #     arrays=[gapdf["name"].values, gapdf["datetime"].values],
+            #     names=["name", "datetime"],
+            # )
 
             # Update gap
             gap.gapfill_technique = "interpolation"
@@ -518,28 +537,6 @@ class Gap_collection:
 # =============================================================================
 
 
-def get_freqency_series(df):
-    freqs = {}
-    for station in df.index.get_level_values(level="name").unique():
-        timestamps = df.xs(station, level="name").index
-        freqs[station] = get_likely_frequency(timestamps)
-    return pd.Series(data=freqs)
-
-
-def get_likely_frequency(timestamps):
-    assume_freq = abs(timestamps.to_series().diff().value_counts().index).sort_values(
-        ascending=True
-    )[0]
-
-    if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
-        # select the second highest frequency
-        assume_freq = abs(
-            timestamps.to_series().diff().value_counts().index
-        ).sort_values(ascending=True)[1]
-
-    return assume_freq
-
-
 def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
     if where == "before":
         diff = refdt - (series_of_dt[series_of_dt < refdt])
@@ -594,20 +591,20 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
     for station in stationnames:
         # find missing timestamps
         timestamps = df.xs(station, level="name").index
-        likely_freq = get_likely_frequency(timestamps)
+        likely_freq = get_likely_frequency(timestamps, method="highest", simplify=False)
+
 
         assert likely_freq.seconds > 0, f"The frequency is not positive!"
 
         station_freqs[station] = likely_freq
 
-        missing_datetimeseries = (
-            pd.date_range(
-                start=timestamps.min(), end=timestamps.max(), freq=likely_freq
-            )
-            .difference(timestamps)
-            .to_series()
-            .diff()
-        )
+        missing_datetimeseries = (pd.date_range(start=timestamps.min(),
+                                               end=timestamps.max(),
+                                               freq=likely_freq)
+                                  .difference(timestamps)
+                                  .to_series()
+                                  .diff())
+
 
         if missing_datetimeseries.empty:
             continue

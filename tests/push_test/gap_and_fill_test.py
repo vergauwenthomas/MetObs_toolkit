@@ -7,6 +7,8 @@ Created on Fri Oct 28 08:18:09 2022
 """
 
 import sys, os
+import pandas as pd
+
 
 from pathlib import Path
 
@@ -63,6 +65,20 @@ assert list(missingobs.index.unique()) == [
     "vlinder03",
 ], f"Only missing obs assumed in vl01, vl02, vl03. Tlkit found missing obs for these {list(missingobs.index.unique())}"
 
+#%% Test linear interpolation on missing obs
+dataset.fill_missing_obs_linear()
+
+solution = {'temp': {('vlinder03',
+   pd.Timestamp('2022-10-07 11:00:00+0200', tz='Europe/Brussels')): 15.333333333333334,
+  ('vlinder03',
+   pd.Timestamp('2022-10-07 12:00:00+0200', tz='Europe/Brussels')): 16.566666666666666},
+ 'temp_final_label': {('vlinder03',
+   pd.Timestamp('2022-10-07 11:00:00+0200', tz='Europe/Brussels')): 'missing_obs_interpolation',
+  ('vlinder03',
+   pd.Timestamp('2022-10-07 12:00:00+0200', tz='Europe/Brussels')): 'missing_obs_interpolation'}}
+
+
+assert dataset.missing_fill_df.eq(pd.DataFrame(solution)).all().all(), 'something wrong with the missing obs fill!'
 
 # %% Test functions on gaps
 
@@ -109,6 +125,20 @@ assert (
 assert (
     gapsfilldf["diff"]
 ).sum() < 1e-5, f"Tlk interpolation differs from manual: \n {gapsfilldf}"
+
+
+#%% Test if filled values are present in the combined df
+
+comb_df = dataset.combine_all_to_obsspace()
+
+comb_gaps = comb_df.loc[dataset.gapfilldf.index]
+comb_missing = comb_df.loc[dataset.missing_fill_df.index]
+
+assert comb_gaps['temp'].eq(dataset.gapfilldf['temp']).all(), 'Something wrong with the filled gaps in the combined df'
+assert comb_missing['temp'].eq(dataset.missing_fill_df['temp']).all(), 'Something wrong with the filled missing in the combined df'
+
+
+
 
 # %%
 # ------------------ ERA debias fill

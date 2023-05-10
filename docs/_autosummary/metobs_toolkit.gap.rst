@@ -15,8 +15,6 @@ metobs\_toolkit.gap
       :toctree:
       :nosignatures:
    
-      get_freqency_series
-      get_likely_frequency
       missing_timestamp_and_gap_check
    
    

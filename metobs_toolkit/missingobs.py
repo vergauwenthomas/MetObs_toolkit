@@ -9,8 +9,10 @@ Created on Mon Mar 13 16:12:41 2023
 
 import pandas as pd
 import numpy as np
+from datetime import datetime, timedelta
 import logging
 
+from metobs_toolkit.gap import _find_closes_occuring_date
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +24,48 @@ logger = logging.getLogger(__name__)
 
 
 class Missingob_collection:
+    """ Class object handling a set of missing observations. """
     def __init__(self, missing_obs_series):
+
+        missing_obs_series.name = 'datetime'
+        missing_obs_series.index.name = 'name'
+        missing_idx = missing_obs_series.reset_index()
+        missing_idx = missing_idx.set_index(['name', 'datetime'])
+
         self.series = missing_obs_series
+        self.idx = missing_idx.index
+
+        # gap fill (only for conventional saving)
+        self.fill_df = pd.DataFrame()
+        self.fill_technique = None
+
+    def __str__(self):
+        if self.series.empty:
+            return f'Empty missing observations.'
+        if not self.fill_df.empty:
+            return f'Missing observations with filled ({self.fill_technique}) \
+                values: \n {self.fill_df} \n Original missing observations on import: \n {self.idx}'
+
+        return f'Missing observations: \n {self.series}'
+    def __repr__(self):
+        return self.__str__()
+
 
     def get_station_missingobs(self, name):
+        """
+        Get the missing observations of a specific station.
+
+        Parameters
+        ----------
+        name : str
+            The name of the station to extract the missing observation from.
+
+        Returns
+        -------
+        Metobs_toolkit.Missingob_collection
+            A subset of the missing observations from a specific station.
+
+        """
         if name in self.series.index:
             return Missingob_collection(self.series.loc[[name]])
         else:
@@ -35,6 +75,22 @@ class Missingob_collection:
             return Missingob_collection(series)
 
     def remove_missing_from_obs(self, obsdf):
+        """
+        Drop the missing observation records from an observational dataframe, if
+        they are present.
+
+        Parameters
+        ----------
+        obsdf : pandas.DataFrame
+            Multiindex observational dataframe.
+
+        Returns
+        -------
+        obsdf : pandas.DataFrame
+            Multiindex observational dataframe without records linked to missing
+            observations.
+
+        """
         # Normally there are no missing records in the obsdf
         missing_multiidx = pd.MultiIndex.from_arrays(
             arrays=[self.series.index.to_list(), self.series.to_list()],
@@ -44,6 +100,77 @@ class Missingob_collection:
         obsdf = obsdf.drop(index=missing_multiidx, errors="ignore")
 
         return obsdf
+
+    def interpolate_missing(self, obsdf, resolutionseries, obstype='temp', method='time'):
+        """
+        Fill the missing observations using an interpolation method.
+
+        The "fill_df" and "fill_technique" attributes will be updated.
+
+        Parameters
+        ----------
+        obsdf : Metobs_toolkit.Dataset.df
+            The observations that can be used for the interpolation.
+        resolutionseries : pd.Series
+            The dataset resolution series for all stations..
+        obstype : element of Metobs_toolkit.observational_types, optional
+            Select which observation type you wish to interpolate. The default is 'temp'.
+        method : valid input for pandas.DataFrame.interpolate method arg, optional
+            Which interpolation method to use. The default is 'time'.
+
+        Returns
+        -------
+        None.
+
+        """
+        # create fill column for the obstype
+        self.fill_df[obstype] = np.nan
+        self.fill_technique = 'interpolate'
+        # locate the missing observation in observation space
+        missing_obsspace = self.get_missing_indx_in_obs_space(obsdf, resolutionseries)
+
+        # Set index for df fill attribute
+        self.fill_df = pd.DataFrame(index=missing_obsspace)
+
+
+        for staname, missingdt in missing_obsspace:
+            staobs = obsdf.xs(staname, level='name')[obstype]
+            # exclude nan values because they are no good leading/trailing
+            staobs = staobs[~staobs.isnull()]
+
+            # find leading and trailing datetimes
+            leading_dt = missingdt - timedelta(
+                seconds=_find_closes_occuring_date(
+                    refdt = missingdt,
+                    series_of_dt = staobs.index,
+                    where='before')
+                )
+            trailing_dt = missingdt + timedelta(
+                seconds=_find_closes_occuring_date(
+                    refdt = missingdt,
+                    series_of_dt = staobs.index,
+                    where='after')
+                )
+
+            # extract the values and combine them in a dataframe
+            leading_val = staobs.loc[leading_dt]
+            trailing_val = staobs.loc[trailing_dt]
+
+            stadf = pd.DataFrame(
+                index=[leading_dt, missingdt, trailing_dt],
+                data={obstype: [leading_val, np.nan, trailing_val]}
+            )
+
+
+            # interpolate the missing obs
+            stadf['interp'] = stadf[obstype].interpolate(
+                                                method=method,
+                )
+
+            self.fill_df.loc[(staname, missingdt), obstype] = stadf.loc[missingdt, 'interp']
+
+
+
 
     def get_missing_indx_in_obs_space(self, obsdf, resolutionseries):
         """
@@ -104,3 +231,5 @@ class Missingob_collection:
             missing_obsspace = missing_obsspace.append(sta_missing_idx)
 
         return missing_obsspace
+
+
