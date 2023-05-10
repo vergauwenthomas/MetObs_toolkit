@@ -29,7 +29,6 @@ from metobs_toolkit.df_helpers import (
 )
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -78,9 +77,9 @@ class Gap:
 
     def __str__(self):
         return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}"
+
     def __repr__(self):
         return self.__str__()
-
 
     def to_df(self):
         """
@@ -269,11 +268,12 @@ class Gap_collection:
 
     def __str__(self):
         if not bool(self.list):
-            return f'Empty gap collection'
-        longstring = ''
+            return f"Empty gap collection"
+        longstring = ""
         for gap in self.list:
-            longstring += str(gap) + '\n'
+            longstring += str(gap) + "\n"
         return f"Gap collection for: \n {longstring}"
+
     def __repr__(self):
         return self.__str__()
 
@@ -434,7 +434,7 @@ class Gap_collection:
 
             gapdf = gapfill_series.to_frame().reset_index()
             gapdf["name"] = gap.name
-            gapdf = gapdf.set_index(['name', 'datetime'])
+            gapdf = gapdf.set_index(["name", "datetime"])
             # gapdf.index = pd.MultiIndex.from_arrays(
             #     arrays=[gapdf["name"].values, gapdf["datetime"].values],
             #     names=["name", "datetime"],
@@ -593,18 +593,18 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
         timestamps = df.xs(station, level="name").index
         likely_freq = get_likely_frequency(timestamps, method="highest", simplify=False)
 
-
         assert likely_freq.seconds > 0, f"The frequency is not positive!"
 
         station_freqs[station] = likely_freq
 
-        missing_datetimeseries = (pd.date_range(start=timestamps.min(),
-                                               end=timestamps.max(),
-                                               freq=likely_freq)
-                                  .difference(timestamps)
-                                  .to_series()
-                                  .diff())
-
+        missing_datetimeseries = (
+            pd.date_range(
+                start=timestamps.min(), end=timestamps.max(), freq=likely_freq
+            )
+            .difference(timestamps)
+            .to_series()
+            .diff()
+        )
 
         if missing_datetimeseries.empty:
             continue

@@ -104,10 +104,15 @@ class Settings:
         self.time_settings["timezone"] = res_settings["timezone"]
 
         # Freq estimation
-        self.time_settings['freq_estimation_method'] = res_settings["freq_estimation_method"]
-        self.time_settings['freq_estimation_simplify'] = bool(res_settings["freq_estimation_simplify"])
-        self.time_settings['freq_estimation_simplify_error'] = res_settings["freq_estimation_simplify_error"]
-
+        self.time_settings["freq_estimation_method"] = res_settings[
+            "freq_estimation_method"
+        ]
+        self.time_settings["freq_estimation_simplify"] = bool(
+            res_settings["freq_estimation_simplify"]
+        )
+        self.time_settings["freq_estimation_simplify_error"] = res_settings[
+            "freq_estimation_simplify_error"
+        ]
 
     def _update_app_settings(self):
         """
@@ -176,7 +181,7 @@ class Settings:
             gaps_fill_settings,
             gaps_fill_info,
             missing_obs_fill_settings,
-            missing_obs_fill_info
+            missing_obs_fill_info,
         )
 
         self.gap["gaps_settings"] = gaps_settings
@@ -184,8 +189,8 @@ class Settings:
         self.gap["gaps_fill_settings"] = gaps_fill_settings
         self.gap["gaps_fill_info"] = gaps_fill_info
 
-        self.missing_obs['missing_obs_fill_settings'] = missing_obs_fill_settings
-        self.missing_obs['missing_obs_fill_info'] = missing_obs_fill_info
+        self.missing_obs["missing_obs_fill_settings"] = missing_obs_fill_settings
+        self.missing_obs["missing_obs_fill_info"] = missing_obs_fill_info
 
     def _update_templates(self):
         """

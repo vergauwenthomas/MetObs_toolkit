@@ -59,14 +59,10 @@ gaps_fill_info = {
 # =============================================================================
 #  Missing obs filling settings
 # =============================================================================
-missing_obs_fill_settings={
-    'linear': {'method': 'time'}
-
-}
+missing_obs_fill_settings = {"linear": {"method": "time"}}
 
 missing_obs_fill_info = {
     "label_columnname": "final_label",
     "label": {"linear": "missing_obs_interpolation"},
     "numeric_flag": 23,
-
 }

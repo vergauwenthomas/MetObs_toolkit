@@ -115,10 +115,6 @@ class Dataset:
 
         self.settings = copy.deepcopy(Settings())
 
-
-
-
-
     def show_settings(self):
         """
         A function that prints out all the settings, structured per thematic.
@@ -177,7 +173,9 @@ class Dataset:
             sta_gapfill = init_multiindexdf()
 
         try:
-            sta_missingfill = self.missing_fill_df.xs(stationname, level="name", drop_level=False)
+            sta_missingfill = self.missing_fill_df.xs(
+                stationname, level="name", drop_level=False
+            )
         except KeyError:
             sta_missingfill = init_multiindexdf()
 
@@ -188,7 +186,7 @@ class Dataset:
             gaps=sta_gaps,
             missing_obs=sta_missingobs,
             gapfilldf=sta_gapfill,
-            missing_fill_df = sta_missingfill,
+            missing_fill_df=sta_missingfill,
             metadf=sta_metadf,
             data_template=self.data_template,
             settings=self.settings,
@@ -508,28 +506,26 @@ class Dataset:
             "label"
         ]["linear"]
 
-    def fill_missing_obs_linear(self, obstype='temp'):
+    def fill_missing_obs_linear(self, obstype="temp"):
         # TODO logging
-        fill_settings = self.settings.missing_obs['missing_obs_fill_settings']['linear']
-        fill_info = self.settings.missing_obs['missing_obs_fill_info']
-
-
+        fill_settings = self.settings.missing_obs["missing_obs_fill_settings"]["linear"]
+        fill_info = self.settings.missing_obs["missing_obs_fill_info"]
 
         # fill missing obs
         self.missing_obs.interpolate_missing(
-                                            obsdf=self.df,
-                                            resolutionseries=self.metadf["dataset_resolution"],
-                                            obstype=obstype,
-                                            method=fill_settings["method"],
+            obsdf=self.df,
+            resolutionseries=self.metadf["dataset_resolution"],
+            obstype=obstype,
+            method=fill_settings["method"],
         )
         missing_fill_df = self.missing_obs.fill_df
-        missing_fill_df[obstype+'_' + fill_info["label_columnname"]] = fill_info["label"]["linear"]
+        missing_fill_df[obstype + "_" + fill_info["label_columnname"]] = fill_info[
+            "label"
+        ]["linear"]
 
         # Update attribute
 
         self.missing_fill_df = missing_fill_df
-
-
 
     def get_analysis(self):
         """
@@ -542,11 +538,12 @@ class Dataset:
 
         """
 
-        return Analysis(obsdf = self.df,
-                        metadf = self.metadf,
-                        settings = self.settings,
-                        data_template=self.data_template)
-
+        return Analysis(
+            obsdf=self.df,
+            metadf=self.metadf,
+            settings=self.settings,
+            data_template=self.data_template,
+        )
 
     def fill_gaps_era5(
         self, modeldata, method="debias", obstype="temp", overwrite=True
@@ -1038,7 +1035,6 @@ class Dataset:
         gapsfilldf = self.gapfilldf.copy()
         gapsdf = gapsdf.drop(gapsfilldf.index, errors="ignore")
 
-
         # add missing observations if they occure in observation space
         missingidx = self.missing_obs.get_missing_indx_in_obs_space(
             self.df, self.metadf["dataset_resolution"]
@@ -1046,8 +1042,6 @@ class Dataset:
         missingdf = missingidx.to_frame()
         missingfilldf = self.missing_fill_df.copy()
         missingdf = missingdf.drop(missingfilldf.index, errors="ignore")
-
-
 
         # initiate default values for gaps and missing that are not filled
         for col in df_and_outl.columns:
@@ -1070,7 +1064,6 @@ class Dataset:
                 default_value_gap = "not checked"
                 default_value_missing = "not checked"
 
-
             gapsdf[col] = default_value_gap
             missingdf[col] = default_value_missing
             if not col in gapsfilldf.columns:
@@ -1081,13 +1074,14 @@ class Dataset:
         # sort columns
         column_order = df_and_outl.columns.to_list()
         gapsdf = gapsdf[column_order]
-        gapsfilldf=gapsfilldf[column_order]
+        gapsfilldf = gapsfilldf[column_order]
         missingdf = missingdf[column_order]
         missingfilldf = missingfilldf[column_order]
 
         # Merge all together
-        comb_df = pd.concat([df_and_outl, gapsdf, missingdf,
-                             gapsfilldf, missingfilldf]).sort_index()
+        comb_df = pd.concat(
+            [df_and_outl, gapsdf, missingdf, gapsfilldf, missingfilldf]
+        ).sort_index()
 
         return comb_df
 
@@ -1263,7 +1257,6 @@ class Dataset:
         self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
-
     def sync_observations(self, tollerance, verbose=True):
         """
         Simplify and syncronize the observation timestamps along different stations.
@@ -1301,8 +1294,6 @@ class Dataset:
             A dataframe containing the original observations with original timestamps and the corresponding target timestamps.
 
         """
-
-
 
         df = self.input_df
 
@@ -1388,15 +1379,12 @@ class Dataset:
                 # possibility 1: record is mapped crrectly
                 correct_mapped = mergedstadf[~mergedstadf["target_datetime"].isnull()]
 
-
                 # possibility2: records that ar not mapped to target
                 # not_mapped_records =mergedstadf[mergedstadf['target_datetime'].isnull()]
-
 
                 # possibilyt 3 : no suitable candidates found for the target
                 # these will be cached by the missing and gap check
                 # no_record_candidates = target_records[~target_records.isin(mergedstadf['target_datetime'])].values
-
 
                 merged_df = pd.concat([merged_df, correct_mapped])
                 if verbose:
@@ -1437,7 +1425,6 @@ class Dataset:
         freq_estimation_simplify=None,
         freq_estimation_simplify_error=None,
     ):
-
         """
         Read observations from a csv file as defined in the
         Settings.input_file. The input file columns should have a template
@@ -1500,7 +1487,6 @@ class Dataset:
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         if freq_estimation_method is None:
-
             freq_estimation_method = self.settings.time_settings[
                 "freq_estimation_method"
             ]
@@ -1519,7 +1505,6 @@ class Dataset:
                 obstype in observation_types
             ), f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
 
-
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
@@ -1527,7 +1512,6 @@ class Dataset:
             long_format=long_format,
             obstype=obstype,  # only relevant in wide format
         )
-
 
         # Set timezone information
         df.index = df.index.tz_localize(
@@ -1674,7 +1658,6 @@ class Dataset:
             df = df[~df.index.get_level_values("name").isnull()]
         self._construct_dataset(df)
 
-
     def _construct_dataset(
         self,
         df,
@@ -1684,7 +1667,6 @@ class Dataset:
         fixed_freq_series=None,
         update_full_metadf=True,
     ):
-
         """
         Helper function to construct the Dataset class from a IO dataframe.
 
@@ -1721,13 +1703,11 @@ class Dataset:
 
         """
 
-
         # Convert dataframe to dataset attributes
         self._initiate_df_attribute(dataframe=df, update_metadf=update_full_metadf)
 
         # Apply quality control on Import resolution
         self._apply_qc_on_import()
-
 
         if fixed_freq_series is None:
             freq_series = get_freqency_series(
@@ -1748,7 +1728,6 @@ class Dataset:
                 freq_series_import = fixed_freq_series
             freq_series = fixed_freq_series
 
-
         # add import frequencies to metadf (after import qc!)
         self.metadf["assumed_import_frequency"] = freq_series_import
 
@@ -1757,7 +1736,6 @@ class Dataset:
         # Remove gaps and missing from the observations AFTER timecoarsening
         self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
-
 
     def _initiate_df_attribute(self, dataframe, update_metadf=True):
         logger.info(
@@ -1778,7 +1756,6 @@ class Dataset:
             metadf = metadf[~metadf.index.duplicated(keep="first")]
 
             self.metadf = metadf_to_gdf(metadf)
-
 
     def _apply_qc_on_import(self):
         # find missing obs and gaps, and remove them from the df

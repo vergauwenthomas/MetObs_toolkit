@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -11,10 +10,11 @@ import pandas as pd
 
 import metobs_toolkit.dataset as dataset
 from metobs_toolkit import observation_types
+
 logger = logging.getLogger(__name__)
 
-class Dataset(dataset.Dataset):
 
+class Dataset(dataset.Dataset):
     def update_settings(
         self,
         output_folder=None,
@@ -56,7 +56,6 @@ class Dataset(dataset.Dataset):
             metadata_template_file=metadata_template_file,
         )
 
-
     def update_timezone(self, timezonestr):
         """
         Change the timezone of the input data. By default the Brussels timezone is assumed.
@@ -95,12 +94,16 @@ class Dataset(dataset.Dataset):
 
         self.settings.app["default_name"] = str(default_name)
 
-
-
-    def update_gap_and_missing_fill_settings(self, gap_interpolation_method=None, gap_interpolation_max_consec_fill=None,
-                                             gap_debias_prefered_leading_period_hours=None, gap_debias_prefered_trailing_period_hours=None,
-                                             gap_debias_minimum_leading_period_hours=None, gap_debias_minimum_trailing_period_hours=None,
-                                             missing_obs_interpolation_method=None):
+    def update_gap_and_missing_fill_settings(
+        self,
+        gap_interpolation_method=None,
+        gap_interpolation_max_consec_fill=None,
+        gap_debias_prefered_leading_period_hours=None,
+        gap_debias_prefered_trailing_period_hours=None,
+        gap_debias_minimum_leading_period_hours=None,
+        gap_debias_minimum_trailing_period_hours=None,
+        missing_obs_interpolation_method=None,
+    ):
         """
         Update the settings on the filling methods for missing observations and gaps.
 
@@ -137,50 +140,87 @@ class Dataset(dataset.Dataset):
 
         # Gap linear interpolation
         if not gap_interpolation_method is None:
-            logger.info(f' The gap interpolation method is updated: \
-        {self.settings.gap["gaps_fill_settings"]["linear"]["method"]} --> {str(gap_interpolation_method)}')
-            self.settings.gap["gaps_fill_settings"]["linear"]["method"] = str(gap_interpolation_method)
+            logger.info(
+                f' The gap interpolation method is updated: \
+        {self.settings.gap["gaps_fill_settings"]["linear"]["method"]} --> {str(gap_interpolation_method)}'
+            )
+            self.settings.gap["gaps_fill_settings"]["linear"]["method"] = str(
+                gap_interpolation_method
+            )
 
         if not gap_interpolation_max_consec_fill is None:
-            logger.info(f' The gap max number of consecutive interpolations is updated: \
-        {self.settings.gap["gaps_fill_settings"]["linear"]["max_consec_fill"]} --> {abs(int(gap_interpolation_max_consec_fill))}')
-            self.settings.gap["gaps_fill_settings"]["linear"]["max_consec_fill"] = abs(int(gap_interpolation_max_consec_fill))
-
+            logger.info(
+                f' The gap max number of consecutive interpolations is updated: \
+        {self.settings.gap["gaps_fill_settings"]["linear"]["max_consec_fill"]} --> {abs(int(gap_interpolation_max_consec_fill))}'
+            )
+            self.settings.gap["gaps_fill_settings"]["linear"]["max_consec_fill"] = abs(
+                int(gap_interpolation_max_consec_fill)
+            )
 
         # Gap debias fill
         if not gap_debias_prefered_leading_period_hours is None:
-            logger.info(f' The size of the prefered leading period for debias gapfill is updated: \
-        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_leading_sample_duration_hours"]} --> {abs(int(gap_debias_prefered_leading_period_hours))}')
-            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_leading_sample_duration_hours"] = abs(int(gap_debias_prefered_leading_period_hours))
+            logger.info(
+                f' The size of the prefered leading period for debias gapfill is updated: \
+        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_leading_sample_duration_hours"]} --> {abs(int(gap_debias_prefered_leading_period_hours))}'
+            )
+            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"][
+                "prefered_leading_sample_duration_hours"
+            ] = abs(int(gap_debias_prefered_leading_period_hours))
 
         if not gap_debias_prefered_trailing_period_hours is None:
-            logger.info(f' The size of the prefered trailing period for debias gapfill is updated: \
-        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_trailing_sample_duration_hours"]} --> {abs(int(gap_debias_prefered_trailing_period_hours))}')
-            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_trailing_sample_duration_hours"] = abs(int(gap_debias_prefered_trailing_period_hours))
+            logger.info(
+                f' The size of the prefered trailing period for debias gapfill is updated: \
+        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_trailing_sample_duration_hours"]} --> {abs(int(gap_debias_prefered_trailing_period_hours))}'
+            )
+            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"][
+                "prefered_trailing_sample_duration_hours"
+            ] = abs(int(gap_debias_prefered_trailing_period_hours))
 
         if not gap_debias_minimum_leading_period_hours is None:
-            logger.info(f' The minimum size of the leading period for debias gapfill is updated: \
-        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_leading_sample_duration_hours"]} --> {abs(int(gap_debias_minimum_leading_period_hours))}')
-            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_leading_sample_duration_hours"] = abs(int(gap_debias_minimum_leading_period_hours))
+            logger.info(
+                f' The minimum size of the leading period for debias gapfill is updated: \
+        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_leading_sample_duration_hours"]} --> {abs(int(gap_debias_minimum_leading_period_hours))}'
+            )
+            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"][
+                "minimum_leading_sample_duration_hours"
+            ] = abs(int(gap_debias_minimum_leading_period_hours))
 
         if not gap_debias_minimum_trailing_period_hours is None:
-            logger.info(f' The minimum size of the trailing period for debias gapfill is updated: \
-        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_trailing_sample_duration_hours"]} --> {abs(int(gap_debias_minimum_trailing_period_hours))}')
-            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_trailing_sample_duration_hours"] = abs(int(gap_debias_minimum_trailing_period_hours))
+            logger.info(
+                f' The minimum size of the trailing period for debias gapfill is updated: \
+        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_trailing_sample_duration_hours"]} --> {abs(int(gap_debias_minimum_trailing_period_hours))}'
+            )
+            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"][
+                "minimum_trailing_sample_duration_hours"
+            ] = abs(int(gap_debias_minimum_trailing_period_hours))
 
         # Missing obs interpolation
         if not missing_obs_interpolation_method is None:
-            logger.info(f' The missing observations interpolation method is updated: \
-        {self.settings.missing_obs["missing_obs_fill_settings"]["linear"]["method"]} --> {str(missing_obs_interpolation_method)}')
-            self.settings.missing_obs['missing_obs_fill_settings']['linear']['method'] = str(missing_obs_interpolation_method)
+            logger.info(
+                f' The missing observations interpolation method is updated: \
+        {self.settings.missing_obs["missing_obs_fill_settings"]["linear"]["method"]} --> {str(missing_obs_interpolation_method)}'
+            )
+            self.settings.missing_obs["missing_obs_fill_settings"]["linear"][
+                "method"
+            ] = str(missing_obs_interpolation_method)
 
-
-
-    def update_qc_settings(self, obstype='temp', gapsize_in_records=None, dupl_timestamp_keep=None, persis_time_win_to_check=None, persis_min_num_obs=None,
-                            rep_max_valid_repetitions=None, gross_value_min_value=None, gross_value_max_value=None,
-                            win_var_max_increase_per_sec=None, win_var_max_decrease_per_sec=None, win_var_time_win_to_check=None,
-                            win_var_min_num_obs=None, step_max_increase_per_sec=None, step_max_decrease_per_sec=None):
-
+    def update_qc_settings(
+        self,
+        obstype="temp",
+        gapsize_in_records=None,
+        dupl_timestamp_keep=None,
+        persis_time_win_to_check=None,
+        persis_min_num_obs=None,
+        rep_max_valid_repetitions=None,
+        gross_value_min_value=None,
+        gross_value_max_value=None,
+        win_var_max_increase_per_sec=None,
+        win_var_max_decrease_per_sec=None,
+        win_var_time_win_to_check=None,
+        win_var_min_num_obs=None,
+        step_max_increase_per_sec=None,
+        step_max_decrease_per_sec=None,
+    ):
         """
         Update the QC settings for the specified observation type.
 
@@ -224,6 +264,7 @@ class Dataset(dataset.Dataset):
         The gap defenition is independend of the observation type, and is thus set for
         all the observation types.
         """
+
         def is_timedelta(timedeltastr):
             try:
                 pd.to_timedelta(timedeltastr)
@@ -231,82 +272,140 @@ class Dataset(dataset.Dataset):
             except:
                 return False
 
-        assert obstype in observation_types, f'{obstype} is not a known observation type'
+        assert (
+            obstype in observation_types
+        ), f"{obstype} is not a known observation type"
 
         # Gap defenition
         if not gapsize_in_records is None:
-            logger.info(f' The defenition of a gap (=gapsize) is updated: \
-        {self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]} --> {abs(int(gapsize_in_records))}')
-            self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"] = abs(int(gapsize_in_records))
+            logger.info(
+                f' The defenition of a gap (=gapsize) is updated: \
+        {self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]} --> {abs(int(gapsize_in_records))}'
+            )
+            self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"] = abs(
+                int(gapsize_in_records)
+            )
 
         # Gross value check
         if not gross_value_max_value is None:
-            logger.info(f'Maximal value for gross value check updated: \
-        {self.settings.qc["qc_check_settings"]["gross_value"][obstype]["max_value"]} --> {float(gross_value_max_value)}')
-            self.settings.qc['qc_check_settings']["gross_value"][obstype]['max_value'] = float(gross_value_max_value)
+            logger.info(
+                f'Maximal value for gross value check updated: \
+        {self.settings.qc["qc_check_settings"]["gross_value"][obstype]["max_value"]} --> {float(gross_value_max_value)}'
+            )
+            self.settings.qc["qc_check_settings"]["gross_value"][obstype][
+                "max_value"
+            ] = float(gross_value_max_value)
 
         if not gross_value_min_value is None:
-            logger.info(f'Manimal value for gross value check updated: \
-        {self.settings.qc["qc_check_settings"]["gross_value"][obstype]["min_value"]} --> {float(gross_value_min_value)}')
-            self.settings.qc['qc_check_settings']["gross_value"][obstype]['min_value'] = float(gross_value_min_value)
+            logger.info(
+                f'Manimal value for gross value check updated: \
+        {self.settings.qc["qc_check_settings"]["gross_value"][obstype]["min_value"]} --> {float(gross_value_min_value)}'
+            )
+            self.settings.qc["qc_check_settings"]["gross_value"][obstype][
+                "min_value"
+            ] = float(gross_value_min_value)
 
         # Duplicate check
         if not dupl_timestamp_keep is None:
-            logger.info(f'Setting to keep (True) are remove (False) duplicate timestamps updated: \
-        {self.settings.qc["qc_check_settings"]["duplicated_timestamp"]["keep"]} -->  {bool(dupl_timestamp_keep)}')
-            self.settings.qc['qc_check_settings']["duplicated_timestamp"]['keep'] = bool(dupl_timestamp_keep)
+            logger.info(
+                f'Setting to keep (True) are remove (False) duplicate timestamps updated: \
+        {self.settings.qc["qc_check_settings"]["duplicated_timestamp"]["keep"]} -->  {bool(dupl_timestamp_keep)}'
+            )
+            self.settings.qc["qc_check_settings"]["duplicated_timestamp"][
+                "keep"
+            ] = bool(dupl_timestamp_keep)
 
         # Persistance check
         if not persis_time_win_to_check is None:
             if is_timedelta(str(persis_time_win_to_check)):
-                logger.info(f'Time window size for persistance check updated:\
-                {self.settings.qc["qc_check_settings"]["persistance"][obstype]["time_window_to_check"]}--> {str(persis_time_win_to_check)}')
-                self.settings.qc['qc_check_settings']["persistance"][obstype]['time_window_to_check'] = str(persis_time_win_to_check)
+                logger.info(
+                    f'Time window size for persistance check updated:\
+                {self.settings.qc["qc_check_settings"]["persistance"][obstype]["time_window_to_check"]}--> {str(persis_time_win_to_check)}'
+                )
+                self.settings.qc["qc_check_settings"]["persistance"][obstype][
+                    "time_window_to_check"
+                ] = str(persis_time_win_to_check)
             else:
-                logger.warning(f' {str(persis_time_win_to_check)} is not a valid timedelta string. No update on this setting.')
+                logger.warning(
+                    f" {str(persis_time_win_to_check)} is not a valid timedelta string. No update on this setting."
+                )
 
         if not persis_min_num_obs is None:
-            logger.info(f'Minimal window members for persistance check updated:\
-            {self.settings.qc["qc_check_settings"]["persistance"][obstype]["min_num_obs"]} --> {abs(int(persis_min_num_obs))}')
-            self.settings.qc['qc_check_settings']["persistance"][obstype]['min_num_obs'] = abs(int(persis_min_num_obs))
+            logger.info(
+                f'Minimal window members for persistance check updated:\
+            {self.settings.qc["qc_check_settings"]["persistance"][obstype]["min_num_obs"]} --> {abs(int(persis_min_num_obs))}'
+            )
+            self.settings.qc["qc_check_settings"]["persistance"][obstype][
+                "min_num_obs"
+            ] = abs(int(persis_min_num_obs))
 
         # Repetitions check
         if not rep_max_valid_repetitions is None:
-            logger.info(f'Maximal valid repetitions for repetitions check updated: \
-                        {self.settings.qc["qc_check_settings"]["repetitions"][obstype]["max_valid_repetitions"]} --> {abs(int(rep_max_valid_repetitions))}')
-            self.settings.qc['qc_check_settings']["repetitions"][obstype]['max_valid_repetitions'] = abs(int(rep_max_valid_repetitions))
+            logger.info(
+                f'Maximal valid repetitions for repetitions check updated: \
+                        {self.settings.qc["qc_check_settings"]["repetitions"][obstype]["max_valid_repetitions"]} --> {abs(int(rep_max_valid_repetitions))}'
+            )
+            self.settings.qc["qc_check_settings"]["repetitions"][obstype][
+                "max_valid_repetitions"
+            ] = abs(int(rep_max_valid_repetitions))
 
         # Window variation check
         if not win_var_max_increase_per_sec is None:
-            logger.info(f'Maximal increase per second for window variation check updated:\
-                        {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["max_increase_per_second"]} --> {abs(float(win_var_max_increase_per_sec))}')
-            self.settings.qc['qc_check_settings']["window_variation"][obstype]['max_increase_per_second'] = abs(float(win_var_max_increase_per_sec))
+            logger.info(
+                f'Maximal increase per second for window variation check updated:\
+                        {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["max_increase_per_second"]} --> {abs(float(win_var_max_increase_per_sec))}'
+            )
+            self.settings.qc["qc_check_settings"]["window_variation"][obstype][
+                "max_increase_per_second"
+            ] = abs(float(win_var_max_increase_per_sec))
 
         if not win_var_max_decrease_per_sec is None:
-            logger.info(f'Maximal decrease per second for window variation check updated:\
-                        {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["max_decrease_per_second"] } --> {abs(float(win_var_max_decrease_per_sec))}')
-            self.settings.qc['qc_check_settings']["window_variation"][obstype]['max_decrease_per_second'] = abs(float(win_var_max_decrease_per_sec))
+            logger.info(
+                f'Maximal decrease per second for window variation check updated:\
+                        {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["max_decrease_per_second"] } --> {abs(float(win_var_max_decrease_per_sec))}'
+            )
+            self.settings.qc["qc_check_settings"]["window_variation"][obstype][
+                "max_decrease_per_second"
+            ] = abs(float(win_var_max_decrease_per_sec))
 
         if not win_var_time_win_to_check is None:
             if is_timedelta(str(win_var_time_win_to_check)):
-                logger.info(f'Time window for window variation check updated:\
-                            {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["time_window_to_check"]} --> {str(win_var_time_win_to_check)}')
-                self.settings.qc['qc_check_settings']["window_variation"][obstype]['time_window_to_check'] = str(win_var_time_win_to_check)
+                logger.info(
+                    f'Time window for window variation check updated:\
+                            {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["time_window_to_check"]} --> {str(win_var_time_win_to_check)}'
+                )
+                self.settings.qc["qc_check_settings"]["window_variation"][obstype][
+                    "time_window_to_check"
+                ] = str(win_var_time_win_to_check)
             else:
-                logger.warning(f' {str(persis_time_win_to_check)} is not a valid timedelta string. No update on this setting.')
+                logger.warning(
+                    f" {str(persis_time_win_to_check)} is not a valid timedelta string. No update on this setting."
+                )
 
         if not win_var_min_num_obs is None:
-            logger.info(f'Minimal window members for window variation check updated:\
-                         {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["min_window_members"]}--> {abs(int(win_var_min_num_obs))}')
-            self.settings.qc['qc_check_settings']["window_variation"][obstype]['min_window_members'] = abs(int(win_var_min_num_obs))
+            logger.info(
+                f'Minimal window members for window variation check updated:\
+                         {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["min_window_members"]}--> {abs(int(win_var_min_num_obs))}'
+            )
+            self.settings.qc["qc_check_settings"]["window_variation"][obstype][
+                "min_window_members"
+            ] = abs(int(win_var_min_num_obs))
 
         # Step check
         if not step_max_increase_per_sec is None:
-            logger.info(f'Maximal increase per second for step check updated:\
-                        {self.settings.qc["qc_check_settings"]["step"][obstype]["max_increase_per_second"]}--> {abs(float(step_max_increase_per_sec))}')
-            self.settings.qc['qc_check_settings']["step"][obstype]['max_increase_per_second'] = abs(float(step_max_increase_per_sec))
+            logger.info(
+                f'Maximal increase per second for step check updated:\
+                        {self.settings.qc["qc_check_settings"]["step"][obstype]["max_increase_per_second"]}--> {abs(float(step_max_increase_per_sec))}'
+            )
+            self.settings.qc["qc_check_settings"]["step"][obstype][
+                "max_increase_per_second"
+            ] = abs(float(step_max_increase_per_sec))
 
         if not step_max_decrease_per_sec is None:
-            logger.info(f'Maximal decrease per second for step check updated:\
-                       {self.settings.qc["qc_check_settings"]["step"][obstype]["max_decrease_per_second"]} --> {-1.0 * abs(float(step_max_decrease_per_sec))}')
-            self.settings.qc['qc_check_settings']["step"][obstype]['max_decrease_per_second'] = -1.0 * abs(float(step_max_decrease_per_sec))
+            logger.info(
+                f'Maximal decrease per second for step check updated:\
+                       {self.settings.qc["qc_check_settings"]["step"][obstype]["max_decrease_per_second"]} --> {-1.0 * abs(float(step_max_decrease_per_sec))}'
+            )
+            self.settings.qc["qc_check_settings"]["step"][obstype][
+                "max_decrease_per_second"
+            ] = -1.0 * abs(float(step_max_decrease_per_sec))
