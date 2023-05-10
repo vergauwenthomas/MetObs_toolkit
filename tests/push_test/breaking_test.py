@@ -48,26 +48,18 @@ max_valid_repetitions = 5  # Maximal number of repetitions that is allowed
 min_value = -15.0  # Minimal allowed value
 max_value = 29.0  # Maximal allowed value
 
-max_increase_per_second = (
-    8.0 / 3600.0
-)  # Maximal allowed increase per second (for window variation check)
-max_decrease_per_second = (
-    10.0 / 3600.0
-)  # Maximal allowed decrease per second (for window variation check)
+max_increase_per_second =  8.0 / 3600.0  # Maximal allowed increase per second (for window variation check)
+max_decrease_per_second = 10.0 / 3600.0 # Maximal allowed decrease per second (for window variation check)
 time_window_to_check = "1h"  # Use this format as example: "1h20min50s"
 min_window_members = 3  # Minimal number of records in window to perform check
 
-max_increase_per_second_step = (
-    8.0 / 3600.0
-)  # Maximal allowed increase per second (for step check)
-max_decrease_per_second_step = (
-    -10.0 / 3600.0
-)  # Maximal allowed increase per second (for step check)
+max_increase_per_second_step = 8.0 / 3600.0 # Maximal allowed increase per second (for step check)
+max_decrease_per_second_step = -10.0 / 3600.0 # Maximal allowed increase per second (for step check)
 
-dataset_coarsened.update_qc_settings(obstype='temp', dupl_timestamp_keep=dupl_dropping, persis_time_win_to_check=persistance_time_window_to_check, persis_min_num_obs=min_num_obs,
-                                     rep_max_valid_repetitions=max_valid_repetitions, gross_value_min_value=min_value, gross_value_max_value=max_value,
-                                     win_var_max_increase_per_sec=max_increase_per_second, win_var_max_decrease_per_sec=max_decrease_per_second, win_var_time_win_to_check=time_window_to_check,
-                                     win_var_min_num_obs=min_window_members, step_max_increase_per_sec=max_increase_per_second_step, step_max_decrease_per_sec=max_decrease_per_second_step)
+dataset_coarsened.update_qc_settings(obstype='temp',gapsize_in_records=minimal_gapsize, dupl_timestamp_keep=dupl_dropping, persis_time_win_to_check=persistance_time_window_to_check, persis_min_num_obs=min_num_obs,
+                                      rep_max_valid_repetitions=max_valid_repetitions, gross_value_min_value=min_value, gross_value_max_value=max_value,
+                                      win_var_max_increase_per_sec=max_increase_per_second, win_var_max_decrease_per_sec=max_decrease_per_second, win_var_time_win_to_check=time_window_to_check,
+                                      win_var_min_num_obs=min_window_members, step_max_increase_per_sec=max_increase_per_second_step, step_max_decrease_per_sec=max_decrease_per_second_step)
 
 
 #dataset_coarsened.settings.gap["gaps_settings"]["gaps_finder"][
@@ -126,10 +118,10 @@ dataset_coarsened.apply_quality_control()
 # %%
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdata, data_template_file=template_file)
-dataset.update_qc_settings(obstype='temp', dupl_timestamp_keep=dupl_dropping, persis_time_win_to_check=persistance_time_window_to_check, persis_min_num_obs=min_num_obs,
-                                     rep_max_valid_repetitions=max_valid_repetitions, gross_value_min_value=min_value,
-                                     win_var_max_increase_per_sec=max_increase_per_second, win_var_max_decrease_per_sec=max_decrease_per_second, win_var_time_win_to_check=time_window_to_check,
-                                     win_var_min_num_obs=min_window_members, step_max_increase_per_sec=max_increase_per_second_step, step_max_decrease_per_sec=max_decrease_per_second_step)
+dataset.update_qc_settings(obstype='temp', gapsize_in_records=minimal_gapsize, dupl_timestamp_keep=dupl_dropping, persis_time_win_to_check=persistance_time_window_to_check, persis_min_num_obs=min_num_obs,
+                                      rep_max_valid_repetitions=max_valid_repetitions, gross_value_min_value=min_value,
+                                      win_var_max_increase_per_sec=max_increase_per_second, win_var_max_decrease_per_sec=max_decrease_per_second, win_var_time_win_to_check=time_window_to_check,
+                                      win_var_min_num_obs=min_window_members, step_max_increase_per_sec=max_increase_per_second_step, step_max_decrease_per_sec=max_decrease_per_second_step)
 
 dataset.import_data_from_file()
 dataset.apply_quality_control()
@@ -138,6 +130,11 @@ dataset.apply_quality_control()
 _ = dataset.get_qc_stats()
 
 dataset.make_plot(stationnames=["Fictional"], colorby="label", show_outliers=True)
+
+#%% Debug
+
+combdf = dataset.combine_all_to_obsspace()
+
 
 
 # %% Compare manual and toolkit labeling
