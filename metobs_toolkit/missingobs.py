@@ -39,6 +39,15 @@ class Missingob_collection:
         self.fill_df = pd.DataFrame()
         self.fill_technique = None
 
+    def __add__(self, other):
+        comb_series = pd.concat([self.series, other.series])
+        self.series = comb_series
+        comb_idx = comb_series.reset_index()
+        comb_idx = comb_idx.set_index(['name', 'datetime'])
+        self.idx = comb_idx.index
+        return self
+
+
     def __str__(self):
         if self.series.empty:
             return f'Empty missing observations.'

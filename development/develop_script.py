@@ -41,5 +41,13 @@ dataset.update_settings(input_data_file=testdatafile,
                         output_folder='/home/thoverga/Documents'
                         )
 
+dataset.import_data_from_file()
+dataset.coarsen_time_resolution()
+dataset.apply_quality_control()
+#%%
+import copy
+testdataset =copy.deepcopy(dataset)
 
 
+
+testdataset.update_gaps_and_missing_from_outliers(n_gapsize=None)

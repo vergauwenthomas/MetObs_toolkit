@@ -267,6 +267,10 @@ class Gap_collection:
             Gap(sta, row["start_gap"], row["end_gap"]) for sta, row in gapsdf.iterrows()
         ]
 
+    def __add__(self, other):
+        self.list.extend(other.list)
+        return self
+
     def __str__(self):
         if not bool(self.list):
             return f'Empty gap collection'
@@ -276,6 +280,22 @@ class Gap_collection:
         return f"Gap collection for: \n {longstring}"
     def __repr__(self):
         return self.__str__()
+
+    def _add_gaplist(self, gaplist):
+        """
+        Add a list of gap elements to the Gap_collection
+
+        Parameters
+        ----------
+        gaplist : list
+            list of gaps.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.list.extend(gaplist)
 
     def to_df(self):
         gaps_names = []
