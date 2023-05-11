@@ -43,3 +43,5 @@ dataset.update_settings(input_data_file=testdatafile,
 
 
 
+dataset.import_data_from_file()
+print(dataset)
