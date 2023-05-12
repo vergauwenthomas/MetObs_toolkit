@@ -8,7 +8,7 @@ The class object for a Vlinder/mocca station
 import os
 import copy
 from datetime import datetime
-from pytz import all_timezones, common_timezones
+import pytz
 import logging
 import pandas as pd
 import numpy as np
@@ -446,6 +446,10 @@ class Dataset:
         Modl : metobs_toolkit.Modeldata
             The extracted modeldata for period and a set of stations.
 
+        NOTE
+        ------
+        Only 2mT extraction of ERA5 is implemented at the moment.
+
         """
 
         Modl = Modeldata(modelname)
@@ -463,9 +467,14 @@ class Dataset:
         else:
             metadf = self.metadf
 
+        # Convert to UTC
+        startdt_utc = startdt.astimezone(pytz.utc)
+        enddt_utc = enddt.astimezone(pytz.utc)
+
+
         # fill modell with data
         if modelname == "ERA5_hourly":
-            Modl.get_ERA5_data(metadf, startdt, enddt)
+            Modl.get_ERA5_data(metadf, startdt_utc, enddt_utc)
 
             return Modl
         else:

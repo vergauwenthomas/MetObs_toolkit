@@ -48,6 +48,7 @@ dataset.apply_quality_control()
 import copy
 testdataset =copy.deepcopy(dataset)
 
+era = testdataset.get_modeldata()
 
 
-# testdataset.update_gaps_and_missing_from_outliers(n_gapsize=None)
+
