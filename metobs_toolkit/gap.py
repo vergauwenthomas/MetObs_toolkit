@@ -478,6 +478,11 @@ class Gap_collection:
             data=[], index=expanded_gabsidx_obsspace, dtype=object
         )
 
+        # Convert modeldata to the same timzone as the data
+        targettz = dataset.df.index.get_level_values('datetime').tz.zone
+        eraModelData._conv_to_timezone(targettz)
+
+
         for gap in self.list:
             # avoid passing full dataset around
             station = dataset.get_station(gap.name)

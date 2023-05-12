@@ -48,5 +48,20 @@ dataset.apply_quality_control()
 import copy
 testdataset =copy.deepcopy(dataset)
 
-era = testdataset.get_modeldata()
+# era = testdataset.get_modeldata()
+
+modelfile = '/home/thoverga/Downloads/era5_data_(3).csv'
+
+era = metobs_toolkit.Modeldata('era5')
+era.set_model_from_csv(csvpath=modelfile,
+                       )
+
+
+#%%
+dataset.fill_gaps_era5(modeldata=era,
+                       )
+#%%
+
+
+
 
