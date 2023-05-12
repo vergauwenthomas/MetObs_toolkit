@@ -77,7 +77,8 @@ class Gap:
         self.gapfill_technique = None
 
     def __str__(self):
-        return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}"
+        duration = self.endgap - self.startgap
+        return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}, duration: {duration}"
     def __repr__(self):
         return self.__str__()
 
