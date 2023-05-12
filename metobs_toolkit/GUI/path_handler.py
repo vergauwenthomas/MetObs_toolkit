@@ -37,6 +37,14 @@ tlk_default_template = os.path.join(TLK_dir, 'data_templates',
 # Helper functions
 # =============================================================================
 
+def make_dir(dir_path):
+    if os.path.isdir(dir_path):
+        return
+    else:
+        os.mkdir(dir_path)
+        return
+
+
 def file_exist(filepath):
     if os.path.isfile(filepath):
         return True
@@ -61,6 +69,7 @@ def list_csv_filenames(folderpath):
 
 
 def clear_dir(directory):
+    make_dir(directory)
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
         try:
