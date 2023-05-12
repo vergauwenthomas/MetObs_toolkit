@@ -29,6 +29,7 @@ class Settings:
         self.app = {}
         self.qc = {}
         self.gap = {}
+        self.missing_obs = {}
         self.templates = {}
         self.gee = {}
         self.IO = {
@@ -102,6 +103,12 @@ class Settings:
         self.time_settings["resample_limit"] = res_settings["limit"]
         self.time_settings["timezone"] = res_settings["timezone"]
 
+        # Freq estimation
+        self.time_settings['freq_estimation_method'] = res_settings["freq_estimation_method"]
+        self.time_settings['freq_estimation_simplify'] = bool(res_settings["freq_estimation_simplify"])
+        self.time_settings['freq_estimation_simplify_error'] = res_settings["freq_estimation_simplify_error"]
+
+
     def _update_app_settings(self):
         """
         Update prefered display, print, plot and staticinfo settings of self using the default settings templates.
@@ -118,7 +125,6 @@ class Settings:
         from .settings_files.default_formats_settings import (
             static_fields,
             categorical_fields,
-            observation_types,
             location_info,
         )
 
@@ -140,8 +146,6 @@ class Settings:
         # fields without timeevolution
         self.app["static_fields"] = static_fields
         self.app["categorical_fields"] = categorical_fields  # wind and lcz
-        # order of all possible observations
-        self.app["observation_types"] = observation_types
         self.app["location_info"] = location_info  # all possible metadata
 
         # 5. default name (when station name is not present in dataset)
@@ -166,17 +170,22 @@ class Settings:
         :rtype: No return
         """
         logger.debug("Updating gap settings.")
-        from .settings_files.gaps_settings import (
+        from .settings_files.gaps_and_missing_settings import (
             gaps_settings,
             gaps_info,
             gaps_fill_settings,
             gaps_fill_info,
+            missing_obs_fill_settings,
+            missing_obs_fill_info
         )
 
         self.gap["gaps_settings"] = gaps_settings
         self.gap["gaps_info"] = gaps_info
         self.gap["gaps_fill_settings"] = gaps_fill_settings
         self.gap["gaps_fill_info"] = gaps_fill_info
+
+        self.missing_obs['missing_obs_fill_settings'] = missing_obs_fill_settings
+        self.missing_obs['missing_obs_fill_info'] = missing_obs_fill_info
 
     def _update_templates(self):
         """

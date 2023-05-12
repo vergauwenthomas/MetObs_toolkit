@@ -6,7 +6,9 @@ Created on Thu Oct  6 13:25:02 2022
 """
 
 #%%
+
 import metobs_toolkit
+
 import os
 import sys
 from pathlib import Path
@@ -25,48 +27,4 @@ metobs_toolkit.launch_gui()
 
 #%% % Import
 
-
-# testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_okt_small.csv')
-# testdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'testdata_breaking.csv')
-
-
-# template = os.path.join(str(lib_folder), 'tests', 'test_data',  'template_breaking.csv')
-
-# static_data = os.path.join(
-#     str(lib_folder), 'static_data', 'vlinder_metadata.csv')
-
-
-
-# # #% Setup dataset
-
-# dataset = metobs_toolkit.Dataset()
-# dataset.update_settings(input_data_file=testdatafile,
-#                         # input_metadata_file=static_data,
-#                         data_template_file= template,
-#                         output_folder='/home/thoverga/Documents'
-#                         )
-
-
-# dataset.import_data_from_file()
-# dataset.apply_quality_control()
-
-
-
-#%%
-# sta = dataset.get_station('Fictional')
-
-# import matplotlib.pyplot as plt
-
-# fig, ax = plt.subplots()
-
-# sta.make_plot(ax=ax)
-
-
-
-# dataset.import_data_from_file()
-# dataset.apply_quality_control(gross_value=True,
-#                               persistance=False)
-
-
-# dataset.get_qc_stats('temp', make_plot=True)
 

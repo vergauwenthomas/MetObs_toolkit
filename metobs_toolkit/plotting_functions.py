@@ -12,6 +12,8 @@ import math
 import numpy as np
 import geopandas as gpd
 from datetime import datetime
+
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
@@ -20,6 +22,73 @@ import matplotlib.gridspec as gridspec
 from metobs_toolkit.geometry_functions import find_largest_extent
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+
+# =============================================================================
+# Helpers
+# =============================================================================
+
+def map_obstype(obstype, template):
+    return template[obstype].to_dict()
+
+
+
+
+def make_cat_colormapper(catlist, cmapname):
+    """
+    Create a dictionary {cat : color} for a list of categorical values.
+
+    If the colormap has more colors than the catlist, optimal color distance is
+    done. If a colormap has less colors than unique categories, the categories are grourped.
+
+    Parameters
+    ----------
+    catlist : list
+        List of categorical values.
+    cmapname : str
+        Matplotlib.colormaps name.
+
+    Returns
+    -------
+    colordict : dict
+        {cat: color} where the color is a RGBalpha tuple.
+
+    """
+
+    catlist = list(set(catlist)) #get unique categories
+
+    cmap = matplotlib.colormaps[cmapname]
+
+    # check number of colors in the cmap
+    if cmap.N < len(catlist):
+        print(f'Warning: colormap: {cmapname}, is not well suited to color {len(catlist)} categories. ')
+        same_col_n_groups = np.ceil(len(catlist) / cmap.N)
+
+        # group cateogries and color them by group
+        colordict = {}
+        col_idx = -1
+        _cat_index = 0
+        for cat in catlist:
+            if _cat_index%same_col_n_groups == 0:
+                col_idx += 1
+            colordict[cat] = cmap(int(col_idx))
+            _cat_index += 1
+        return colordict
+
+    # check if the colormap can be decreased (and thus increasing the colordistance)
+    num_increase = np.floor(cmap.N / len(catlist))
+
+    i = 0
+    colordict = {}
+    for cat in catlist:
+        colordict[cat] = cmap(int(i))
+        i = i + num_increase
+    return colordict
+
+
+
+# =============================================================================
+# Plotters
+# =============================================================================
 
 def geospatial_plot(
     plotdf,
@@ -331,6 +400,77 @@ def timeseries_plot(
 
     return ax
 
+def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
+                 colorby, lcz_dict, data_template, obstype,
+                 show_zero_horizontal=False):
+    # init figure
+    fig, ax = plt.subplots(figsize=plot_settings["figsize"])
+
+    if colorby == 'lcz':
+        present_lczs = list(set(lcz_dict.values()))
+
+        # select colormap
+        if len(present_lczs) <= plot_settings['n_cat_max']:
+            cmap = plot_settings['cmap_categorical']
+        else:
+            cmap = plot_settings['cmap_continious']
+
+        colordict = make_cat_colormapper(catlist=present_lczs,
+                                         cmapname=cmap)
+
+
+        # Make plot per lcz
+        custom_handles = []
+
+        for lcz_cat  in present_lczs:
+            stations = [sta for sta in diurnaldf.columns if lcz_dict[sta] == lcz_cat]
+            diurnaldf[stations].plot(ax=ax, title=title, color=colordict[lcz_cat], legend=False)
+
+            # add legend item
+            custom_handles.append(
+                Line2D([0], [0], color=colordict[lcz_cat], label=lcz_cat, lw=4)
+            )
+
+        ax.legend(handles=custom_handles)
+
+
+
+
+    if colorby == 'name':
+        # which colormap to use:
+        if diurnaldf.shape[1] <= plot_settings['n_cat_max']:
+            cmap = plot_settings['cmap_categorical']
+        else:
+            cmap = plot_settings['cmap_continious']
+
+        diurnaldf.plot(ax=ax, title=title, cmap=cmap)
+
+
+
+    if not errorbandsdf is None:
+        # Extract colorscheme from the plot
+        col_sheme = {line.get_label(): line.get_color() for line in ax.get_lines()}
+
+        for sta in errorbandsdf.columns:
+            ax.fill_between(errorbandsdf.index,
+                             diurnaldf[sta] - errorbandsdf[sta],
+                             diurnaldf[sta] + errorbandsdf[sta],
+                             alpha=plot_settings['alpha_error_bands'],
+                             color=col_sheme[sta],
+                             )
+
+    if show_zero_horizontal:
+        ax.axhline(y=0., color='black', linestyle='--')
+    # Styling attributes
+
+
+
+    ax.set_ylabel(map_obstype(obstype, data_template)['orig_name'])
+    ax.xaxis.set_major_formatter('{x:.0f} h')
+    ax.set_xlabel(f'Hours (timezone: {tzstr})')
+
+
+    plt.show()
 
 def _make_pie_from_freqs(
     freq_dict, colormapper, ax, plot_settings, radius, labelsize=10

@@ -8,23 +8,27 @@ This package is designed for handling meteorological observations for urban or n
 
 How to use this toolkit
 =======================
-
-To use this package you can install is using pip:
+In order to use the package python 3.7 or higher is required.
+To install the package one can use pip:
 
 .. code-block:: console
-
-   pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple metobs_toolkit --upgrade
+I   
+   pip3 install metobs-toolkit
 
 .. note::
 
-   This is temporary on testpypi, it will be transfered to pypi.
-
+   For now this is a development version, so to install you need to specify the latest version explicitly: pip3 install metobs-toolkit==0.0.2ax (where x is the latest version).
+   
+.. note::
+   To install the package in a notebook, one has to add ! in front of the pip install command.
 
 and import it in python
 
 .. code-block:: python
 
-   import vlinder_toolkit
-
+   import metobs_toolkit
+   
+   #Check your version
+   metobs_toolkit.__version__
 
 

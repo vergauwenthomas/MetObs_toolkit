@@ -1,4 +1,4 @@
-metobs\_toolkit.station.Station
+﻿metobs\_toolkit.station.Station
 ===============================
 
 .. currentmodule:: metobs_toolkit.station
@@ -21,7 +21,9 @@ metobs\_toolkit.station.Station
       ~Station.combine_all_to_obsspace
       ~Station.fill_gaps_era5
       ~Station.fill_gaps_linear
+      ~Station.fill_missing_obs_linear
       ~Station.get_altitude
+      ~Station.get_analysis
       ~Station.get_landcover
       ~Station.get_lcz
       ~Station.get_modeldata
@@ -33,10 +35,8 @@ metobs\_toolkit.station.Station
       ~Station.make_plot
       ~Station.show
       ~Station.show_settings
-      ~Station.update_default_name
+      ~Station.sync_observations
       ~Station.update_outliersdf
-      ~Station.update_settings
-      ~Station.update_timezone
       ~Station.write_to_csv
    
    

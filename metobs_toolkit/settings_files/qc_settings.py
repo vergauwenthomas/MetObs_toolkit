@@ -38,8 +38,7 @@ check_settings = {
             "max_increase_per_second": 8.0 / 3600.0,
             "max_decrease_per_second": -10.0 / 3600.0,
         }
-    },
-    "internal_consistency": {"temp": {"b": 18.678, "c": 257.14, "d": 234.5}},
+    }
 }
 
 

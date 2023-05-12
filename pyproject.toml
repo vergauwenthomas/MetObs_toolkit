@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "MetObs-toolkit"
-version = "0.0.1"
+version = "0.0.2a2"
 description = "A Meteorological observations toolkit for scientists"
 authors = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 maintainers = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
@@ -22,6 +22,7 @@ pyproj = "~3.4"
 mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
 PyQt5 = "^5.15.0"
+
 
 
 [tool.poetry.group.dev.dependencies]

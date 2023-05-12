@@ -1,4 +1,4 @@
-metobs\_toolkit.dataset.Dataset
+﻿metobs\_toolkit.dataset.Dataset
 ===============================
 
 .. currentmodule:: metobs_toolkit.dataset
@@ -21,7 +21,9 @@ metobs\_toolkit.dataset.Dataset
       ~Dataset.combine_all_to_obsspace
       ~Dataset.fill_gaps_era5
       ~Dataset.fill_gaps_linear
+      ~Dataset.fill_missing_obs_linear
       ~Dataset.get_altitude
+      ~Dataset.get_analysis
       ~Dataset.get_landcover
       ~Dataset.get_lcz
       ~Dataset.get_modeldata
@@ -33,10 +35,8 @@ metobs\_toolkit.dataset.Dataset
       ~Dataset.make_plot
       ~Dataset.show
       ~Dataset.show_settings
-      ~Dataset.update_default_name
+      ~Dataset.sync_observations
       ~Dataset.update_outliersdf
-      ~Dataset.update_settings
-      ~Dataset.update_timezone
       ~Dataset.write_to_csv
    
    

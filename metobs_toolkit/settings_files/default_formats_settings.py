@@ -31,19 +31,6 @@ static_fields = [
 categorical_fields = ["wind_direction", "lcz"]
 
 
-observation_types = [
-    "temp",
-    "radiation_temp",
-    "humidity",
-    "precip",
-    "precip_sum",
-    "wind_speed",
-    "wind_gust",
-    "wind_direction",
-    "pressure",
-    "pressure_at_sea_level",
-]
-
 location_info = ["network", "lat", "lon", "lcz", "call_name", "location"]
 
 
@@ -118,6 +105,27 @@ plot_settings["color_mapper"] = {
     # Aggregated
     "outlier": "#f20000",
 }
+
+
+# =============================================================================
+# Diurnal plot settings
+# =============================================================================
+
+plot_settings["diurnal"] = {
+    "figsize": (10,10),
+    'alpha_error_bands': 0.3,
+    'cmap_continious' : "viridis", #if many stations are present, best to use continious rather than categorical
+
+    'n_cat_max': 20, #when less or equal categories are detected, use the categorical col mapping
+    'cmap_categorical': "tab20",
+
+
+
+
+
+}
+
+
 
 
 print_settings = {"fmt_datetime": "%d/%m/%Y %H:%M:%S", "max_print_per_line": "40"}

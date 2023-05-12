@@ -5,20 +5,21 @@ deploy_info
 temp_output/*
 *~lock*
 *.swp
-.spyproject
-poetry.lock
+*poetry.lock
+
+
 #Exclude deploy scripts
-*deploy*
+deploiment/*_log
+deploiment/*online* #only for thomas
+deploiment/update_version.sh #only for thomas
+deploiment/*
 
-#Exclude builds
+#Exclude local package builds
 dist/*
-_build/
-_build
-docs/_build/*
 
 
-#exclude proj build (only tar remaining)
-proj/proj-9.0.0/*
+#Exclude local documentation builds
+docs/_*
 
 #logs
 *log
@@ -26,14 +27,9 @@ proj/proj-9.0.0/*
 examples/*.csv
 examples/testdata.csv
 
+# exclued logs
+*log
 
-#Exclude development scripts for testing
-development/*
-
-#Exclude physiographic data
-physiography/*
-#Exclude virtual environments
-.nox/
 
 # pychache
 *__pycache__*
