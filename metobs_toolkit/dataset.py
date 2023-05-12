@@ -243,33 +243,33 @@ class Dataset:
         This function creates a timeseries plot for the dataset. The variable observation type
         is plotted for all stationnames from a starttime to an endtime.
 
+        All styling attributes are extracted from the Settings.
 
-         All styling attributes are extracted from the Settings.
+        Parameters
+        ----------
 
-         Parameters
-         ----------
-         stationnames : list, optional
-             A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
-         obstype : string, optional
+        stationnames : list, optional
+            A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
+        obstype : string, optional
              Fieldname to visualise. This can be an observation or station
              attribute. The default is 'temp'.
-         colorby : 'label' or 'name', optional
+        colorby : 'label' or 'name', optional
              Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label. 'name' will color by each station, defaults to 'name'.
-         starttime : datetime.datetime, optional
+        starttime : datetime.datetime, optional
              Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
-         endtime : datetime.datetime, optional
+        endtime : datetime.datetime, optional
              Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
-         title : string, optional
+        title : string, optional
              Title of the figure, if None a default title is generated. The default is None.
-         legend : bool, optional
+        legend : bool, optional
              I True, a legend is added to the plot. The default is True.
-         show_outliers : bool, optional
+        show_outliers : bool, optional
              If true the observations labeld as outliers will be included in the plot, defaults to True
 
 
-         Returns
-         -------
-         axis : matplotlib.pyplot.axes
+        Returns
+        -------
+        axis : matplotlib.pyplot.axes
              The timeseries axes of the plot is returned.
 
         """
@@ -894,16 +894,17 @@ class Dataset:
             is True.. The default is True.
          step : Bool, optional
             If True the step check is applied if False not. The default is True.
-        internal_consistency : Bool, optional
+         internal_consistency : Bool, optional
             If True the internal consistency check is applied if False not. The
             default is True.
-        qc_info: Bool, optional
+         qc_info: Bool, optional
             If True info about the quality control is printed if False not. The
             default is True.
          ignore_val : numeric, optional
              Values to ignore in the quality checks. The default is np.nan.
 
          Returns
+         ---------
 
          None.
 

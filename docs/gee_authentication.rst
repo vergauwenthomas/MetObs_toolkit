@@ -14,9 +14,9 @@ There are two methods that are used to download the GEE data:
 
 This script will help you how to setup your personal google earth engine authentication.
 This is needed because the GEE (google earth engine) can only be used, if you
-    * have a google developers account (free of charge)
-    * Create a cloud project on your developers account (sufficient free credits for these applications)
-        * enable the GEE API on your project
+* have a google developers account (free of charge)
+* Create a cloud project on your developers account (sufficient free credits for these applications)
+* enable the GEE API on your project
 
 
 Here is a step-by-step guide on how to do this.
@@ -38,12 +38,12 @@ Setup of a google developpers account
 
 A google developpers account is linked to your (regular) google account.
 
-1. open a browser, login to google with your account.
-2. Go to this website, to create a developers account: https://developers.google.com/
-    A. Click on the tree vertical dots --> hit start
-    B. Fill in your name and (optional) affiliations --> hit next
-    C. (optinal) select your intersts --> hit next
-    D. (optional) confirm newsletter subscription --> hit next
+#. open a browser, login to google with your account.
+#. Go to this website, to create a developers account: https://developers.google.com/
+   #. Click on the tree vertical dots --> hit start
+   #. Fill in your name and (optional) affiliations --> hit next
+   #. (optinal) select your intersts --> hit next
+   #. (optional) confirm newsletter subscription --> hit next
 
 
 Done, you have setup a google developers account
@@ -56,9 +56,9 @@ You need a cloud project to make use of the Google API's. The API's that are use
 the toolkit have quite a lot of free credentials, so you do not need to worry about
 paying for these services.
 
-1. Create a cloud project: https://console.cloud.google.com/projectcreate?pli=1
-    A. Choose a project name and select No organisation. --> hit create
-    B. (It can take a few seconds to create your project, in the "Cloud overview" you should see your project appear.)
+#. Create a cloud project: https://console.cloud.google.com/projectcreate?pli=1
+   #. Choose a project name and select No organisation. --> hit create
+   #. (It can take a few seconds to create your project, in the "Cloud overview" you should see your project appear.)
 
 
 
@@ -66,15 +66,16 @@ paying for these services.
 =============================================================================
 In the last step you need to enable the use of some API's on you project.
 
-1. Go to your project platform page: https://console.cloud.google.com/
-2. Click on "APIs & Services"
-3. Click at the top on "+ ENABLE APIS AND SERVICES"
+#. Go to your project platform page: https://console.cloud.google.com/
+#. Click on "APIs & Services"
+#. Click at the top on "+ ENABLE APIS AND SERVICES"
 
-    A. Search for the 'Google Earth Engine API', click on it --> hit ENABLE
-    B. Register your GEE project: https://code.earthengine.google.com/register
-        i. hit "Use with a cloud project" --> hit "Unpaid usage" and select 'Academia & Research'
-        ii. Select "Choose an existing Google CLoud Project" --> select your project --> hit "CONTINUE TO SUMMARY"
-        iii. hit "CONFIRM AND CONTINUE"
+   #. Search for the 'Google Earth Engine API', click on it --> hit ENABLE
+   #. Register your GEE project: https://code.earthengine.google.com/register
+
+      #. hit "Use with a cloud project" --> hit "Unpaid usage" and select 'Academia & Research'
+      #. Select "Choose an existing Google CLoud Project" --> select your project --> hit "CONTINUE TO SUMMARY"
+      #. hit "CONFIRM AND CONTINUE"
 
 
 
@@ -82,6 +83,7 @@ Test your GEE acces
 =============================================================================
 
 .. code-block:: python
+
     import metobs_toolkit
 
     # Use the demo files, and extract LCZ from GEE

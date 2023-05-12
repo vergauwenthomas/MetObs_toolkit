@@ -185,6 +185,7 @@ class Dataset(dataset.Dataset):
         Update the QC settings for the specified observation type.
 
         If a argument value is None, the default settings will not be updated.
+
         Parameters
         ----------
         gapsize_in_records : int (> 0), optional
@@ -223,6 +224,7 @@ class Dataset(dataset.Dataset):
         -------
         The gap defenition is independend of the observation type, and is thus set for
         all the observation types.
+
         """
         def is_timedelta(timedeltastr):
             try:

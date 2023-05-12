@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.station.Station
+metobs\_toolkit.station.Station
 ===============================
 
 .. currentmodule:: metobs_toolkit.station
@@ -36,6 +36,7 @@
       ~Station.show
       ~Station.show_settings
       ~Station.sync_observations
+      ~Station.update_gaps_and_missing_from_outliers
       ~Station.update_outliersdf
       ~Station.write_to_csv
    

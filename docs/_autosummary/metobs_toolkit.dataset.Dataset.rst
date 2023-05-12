@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.dataset.Dataset
+metobs\_toolkit.dataset.Dataset
 ===============================
 
 .. currentmodule:: metobs_toolkit.dataset
@@ -36,6 +36,7 @@
       ~Dataset.show
       ~Dataset.show_settings
       ~Dataset.sync_observations
+      ~Dataset.update_gaps_and_missing_from_outliers
       ~Dataset.update_outliersdf
       ~Dataset.write_to_csv
    

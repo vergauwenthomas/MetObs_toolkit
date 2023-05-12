@@ -44,7 +44,6 @@
    metobs_toolkit.qc_statistics
    metobs_toolkit.settings
    metobs_toolkit.station
-   metobs_toolkit.test
    metobs_toolkit.writing_files
 
 
