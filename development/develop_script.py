@@ -50,5 +50,3 @@ testdataset =copy.deepcopy(dataset)
 
 era = testdataset.get_modeldata()
 
-
-

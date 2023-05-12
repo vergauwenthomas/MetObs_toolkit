@@ -7,16 +7,17 @@ Welcome to MetObs-Toolkit's documentation!
 
    intro
    examples
+   gee_authentication
    metobs_toolkit
-   
+
 MetObs toolkit Documentation
 =============================
-   
+
 .. autosummary::
    :toctree: _autosummary
    :template: custom-module-template.rst
-   :recursive:   
-   
+   :recursive:
+
    metobs_toolkit
 
 
