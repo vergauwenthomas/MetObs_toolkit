@@ -95,7 +95,10 @@ class Gap:
 
         """
         return pd.DataFrame(
-            index=[self.name], data={"start_gap": self.startgap, "end_gap": self.endgap}
+            index=[self.name],
+            data={"start_gap": self.startgap,
+                  "end_gap": self.endgap,
+                  "duration": self.endgap - self.startgap}
         )
 
     def update_leading_trailing_obs(self, obsdf, outliersdf):
@@ -309,9 +312,12 @@ class Gap_collection:
 
         df = pd.DataFrame(
             index=pd.Index(gaps_names),
-            data={"start_gap": gaps_startdt, "end_gap": gaps_enddt},
+            data={"start_gap": gaps_startdt,
+                  "end_gap": gaps_enddt},
         )
         df.index.name = "name"
+
+        df['duration'] = df['end_gap'] - df['start_gap']
 
         return df
 

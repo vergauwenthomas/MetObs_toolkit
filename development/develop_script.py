@@ -44,23 +44,32 @@ dataset.update_settings(input_data_file=testdatafile,
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
 dataset.apply_quality_control()
+
 #%%
-import copy
-testdataset =copy.deepcopy(dataset)
 
-# era = testdataset.get_modeldata()
-
-modelfile = '/home/thoverga/Downloads/era5_data_(3).csv'
-
-era = metobs_toolkit.Modeldata('era5')
-era.set_model_from_csv(csvpath=modelfile,
-                       )
+dataset.update_gaps_and_missing_from_outliers()
+print(dataset.gaps.to_df())
 
 
 #%%
-dataset.fill_gaps_era5(modeldata=era,
-                       )
+# import copy
+# testdataset =copy.deepcopy(dataset)
+
+# # era = testdataset.get_modeldata()
+
+# modelfile = '/home/thoverga/Downloads/era5_data_(3).csv'
+
+# era = metobs_toolkit.Modeldata('era5')
+# era.set_model_from_csv(csvpath=modelfile,
+#                        )
+
+
 #%%
+# dataset.fill_gaps_era5(modeldata=era,
+#                        )
+#%%
+
+
 
 
 
