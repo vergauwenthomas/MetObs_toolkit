@@ -54,9 +54,11 @@ from metobs_toolkit.missingobs import Missingob_collection
 
 from metobs_toolkit.gap import (
     Gap,
-    Gap_collection,
+    remove_gaps_from_obs,
     missing_timestamp_and_gap_check,
-    _gap_collection_from_list_of_gaps
+    get_gaps_indx_in_obs_space,
+    get_station_gaps,
+    apply_interpolate_gaps
 )
 
 
@@ -100,7 +102,7 @@ class Dataset:
         self.outliersdf = init_triple_multiindexdf()
 
         self.missing_obs = None  # becomes a Missingob_collection after import
-        self.gaps = None  # becomes a gap_collection after import
+        self.gaps = None  # becomes a list of gaps
 
         self.gapfilldf = init_multiindexdf()
         self.missing_fill_df = init_multiindexdf()
@@ -171,7 +173,7 @@ class Dataset:
         except KeyError:
             sta_outliers = init_multiindexdf()
 
-        sta_gaps = self.gaps.get_station_gaps(stationname)
+        sta_gaps = get_station_gaps(self.gaps, stationname)
         sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
 
         try:
@@ -545,7 +547,7 @@ class Dataset:
         ]
 
         # find only groups with final label as an outlier
-        new_gapsdf = pd.DataFrame()
+        gaps = []
         new_gaps_idx = init_multiindex()
         for group_idx in outlier_groups.index:
             groupdf = grouped.get_group(group_idx)
@@ -554,12 +556,11 @@ class Dataset:
                 #no gap candidates
                 continue
             else:
+                gap =Gap(name=groupdf.index.get_level_values('name')[0],
+                         startdt=groupdf.index.get_level_values('datetime').min(),
+                         enddt=groupdf.index.get_level_values('datetime').max())
 
-                new_gapsdf = pd.concat([new_gapsdf,
-                                        pd.DataFrame(data={'start_gap': [groupdf.index.get_level_values('datetime').min()],
-                                                           'end_gap': [groupdf.index.get_level_values('datetime').max()]},
-                                                     index=[groupdf.index.get_level_values('name')[0]])])
-
+                gaps.append(gap)
 
                 new_gaps_idx = new_gaps_idx.union(groupdf.index, sort=False)
 
@@ -574,12 +575,9 @@ class Dataset:
         # Create missing obs
         new_missing_collection = Missingob_collection(missing_obs_series)
 
-        # to gapcollection
-        new_gapsdf.index.name='name'
-        new_gapcollection = Gap_collection(new_gapsdf)
-        # update self
 
-        self.gaps = self.gaps + new_gapcollection
+        # update self
+        self.gaps.extend(gaps)
         self.missing_obs = self.missing_obs + new_missing_collection
 
     # =============================================================================
@@ -702,7 +700,8 @@ class Dataset:
         fill_info = self.settings.gap["gaps_fill_info"]
 
         # fill gaps
-        self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
+        self.gapfilldf[obstype] = apply_interpolate_gaps(
+            gapslist=self.gaps,
             obsdf=self.df,
             outliersdf=self.outliersdf,
             dataset_res=self.metadf["dataset_resolution"],
@@ -1238,9 +1237,11 @@ class Dataset:
         # =============================================================================
 
         # add gaps observations and fill with default values
-        gapsidx = self.gaps.get_gaps_indx_in_obs_space(
-            self.df, self.outliersdf, self.metadf["dataset_resolution"]
-        )
+        gapsidx = get_gaps_indx_in_obs_space(self.gaps,
+                                             self.df,
+                                             self.outliersdf,
+                                             self.metadf["dataset_resolution"])
+
         gapsdf = gapsidx.to_frame()
 
         # add gapfill and remove the filled records from gaps
@@ -1469,7 +1470,7 @@ class Dataset:
         # Remove gaps and missing from the observatios
         # most gaps and missing are already removed but when increasing timeres,
         # some records should be removed as well.
-        self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
+        self.df = remove_gaps_from_obs(gaplist = self.gaps, obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
 
@@ -1964,7 +1965,7 @@ class Dataset:
         self.metadf["dataset_resolution"] = freq_series
 
         # Remove gaps and missing from the observations AFTER timecoarsening
-        self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
+        self.df = remove_gaps_from_obs(gaplist = self.gaps, obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
 
@@ -1991,14 +1992,14 @@ class Dataset:
 
     def _apply_qc_on_import(self):
         # find missing obs and gaps, and remove them from the df
-        self.df, missing_obs, gaps_df = missing_timestamp_and_gap_check(
+        self.missing_obs, self.gaps = missing_timestamp_and_gap_check(
             df=self.df,
             gapsize_n=self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"],
         )
 
         # Create gaps and missing obs objects
-        self.gaps = Gap_collection(gaps_df)
-        self.missing_obs = Missingob_collection(missing_obs)
+        # self.gaps = gaps_list
+        # self.missing_obs = Missingob_collection(missing_obs)
 
         # Perform QC checks on original observation frequencies
         self.df, dup_outl_df = duplicate_timestamp_check(

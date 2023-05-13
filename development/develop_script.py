@@ -48,35 +48,50 @@ dataset.apply_quality_control()
 #%%
 
 dataset.update_gaps_and_missing_from_outliers()
-print(dataset.gaps.to_df())
-
-#%%
-import pandas as pd
-from metobs_toolkit.gap import _gap_collection_from_list_of_gaps
 
 
-import copy
-testdataset =copy.deepcopy(dataset)
+print(dataset.gaps)
+sta = dataset.get_station('vlinder01')
 
-# era = testdataset.get_modeldata()
 
-modelfile = '/home/thoverga/Downloads/era5_data__(3).csv'
+dataset.fill_gaps_linear('temp')
 
-era = metobs_toolkit.Modeldata('era5')
-era.set_model_from_csv(csvpath=modelfile,
-                        )
+for gap in dataset.gaps:
+    gap.get_info()
 
-#%%
-dataset.update_gap_and_missing_fill_settings(gap_debias_minimum_leading_period_hours=10,
-                                              gap_debias_minimum_trailing_period_hours=0,
-                                              gap_debias_prefered_leading_period_hours=30,
-                                              gap_debias_prefered_trailing_period_hours=30)
+
+
+
 
 
 
-test = dataset.fill_gaps_automatic(modeldata=era,
-                            obstype='temp',
-                            max_interpolate_duration_str='4H')
+#%%
+# import pandas as pd
+# from metobs_toolkit.gap import _gap_collection_from_list_of_gaps
+
+
+# import copy
+# testdataset =copy.deepcopy(dataset)
+
+# # era = testdataset.get_modeldata()
+
+# modelfile = '/home/thoverga/Downloads/era5_data__(3).csv'
+
+# era = metobs_toolkit.Modeldata('era5')
+# era.set_model_from_csv(csvpath=modelfile,
+#                         )
+
+# #%%
+# dataset.update_gap_and_missing_fill_settings(gap_debias_minimum_leading_period_hours=10,
+#                                               gap_debias_minimum_trailing_period_hours=0,
+#                                               gap_debias_prefered_leading_period_hours=30,
+#                                               gap_debias_prefered_trailing_period_hours=30)
+
+
+
+# test = dataset.fill_gaps_automatic(modeldata=era,
+#                             obstype='temp',
+#                             max_interpolate_duration_str='4H')
 
 
 
