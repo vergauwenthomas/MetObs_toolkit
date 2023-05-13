@@ -65,6 +65,7 @@ class Gap:
         self.name = name
         self.startgap = startdt  # in IO space
         self.endgap = enddt  # in IO space
+        self.duration = enddt - startdt
 
         # computed attributes
         self.leading_timestamp = None  # last ob_dt before gap in datset space
@@ -77,8 +78,7 @@ class Gap:
         self.gapfill_technique = None
 
     def __str__(self):
-        duration = self.endgap - self.startgap
-        return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}, duration: {duration}"
+        return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}, duration: {self.duration}"
     def __repr__(self):
         return self.__str__()
 
@@ -98,7 +98,7 @@ class Gap:
             index=[self.name],
             data={"start_gap": self.startgap,
                   "end_gap": self.endgap,
-                  "duration": self.endgap - self.startgap}
+                  "duration": self.duration}
         )
 
     def update_leading_trailing_obs(self, obsdf, outliersdf):
@@ -340,7 +340,7 @@ class Gap_collection:
         gapdf = self.to_df()
 
         if name in gapdf.index:
-            return Gap_collection(gapdf.loc[name])
+            return Gap_collection(gapdf.loc[[name]])
         else:
             return Gap_collection(pd.DataFrame())
 
@@ -480,6 +480,7 @@ class Gap_collection:
         expanded_gabsidx_obsspace = pd.MultiIndex(
             levels=[["name"], ["datetime"]], codes=[[], []], names=["name", "datetime"]
         )
+
         filled_gaps_series = pd.Series(
             data=[], index=expanded_gabsidx_obsspace, dtype=object
         )
@@ -490,6 +491,7 @@ class Gap_collection:
 
 
         for gap in self.list:
+            print(f' Era5 gapfill for {gap}')
             # avoid passing full dataset around
             station = dataset.get_station(gap.name)
 
@@ -503,7 +505,7 @@ class Gap_collection:
             # get leading and trailing period
             leading_obs, trailing_obs = gap.get_leading_trailing_debias_periods(
                 obstype=obstype,
-                station=dataset.get_station(gap.name),
+                station=station,
                 debias_periods=debias_settings["debias_period"],
             )
             # check if leading/trailing is valid
@@ -562,6 +564,40 @@ class Gap_collection:
 
         filled_gaps_series.name = obstype
         return filled_gaps_series
+
+# =============================================================================
+# Helpers
+# =============================================================================
+def _gap_collection_from_list_of_gaps(gaplist):
+    """
+    Construct a metobs_toolkit.Gap_collection from a list of metobs_toolkit.Gap's.
+
+    Parameters
+    ----------
+    gaplist : list
+        list of metobs_toolkit.Gap elements.
+
+    Returns
+    -------
+    metobs_toolkit.Gap_collection
+
+    """
+    stations=[]
+    starts = []
+    ends = []
+    for gap in gaplist:
+        stations.append(gap.name)
+        starts.append(gap.startgap)
+        ends.append(gap.endgap)
+
+    df = pd.DataFrame(data={'start_gap': starts,
+                            'end_gap': ends},
+                      index=stations)
+    df.index.name = 'name'
+
+    return Gap_collection(df)
+
+
 
 
 # =============================================================================
@@ -700,3 +736,4 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
     df = df.sort_index()
 
     return df, missing_timestamp_series, gap_df
+

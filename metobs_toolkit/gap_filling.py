@@ -167,6 +167,7 @@ def create_leading_trailing_debias_periods(
     # Select all leading and all trailing obs
     leading_period = obs[obs["datetime"] < gap.startgap]
     trailing_period = obs[obs["datetime"] > gap.endgap]
+    print(f'   {leading_period.shape[0]} leading records, {trailing_period.shape[0]} trailing records.')
 
     # some derived integers
     poss_shrinkage_leading = leading_period.shape[0] - debias_min_sample_size_leading

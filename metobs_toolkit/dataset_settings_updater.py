@@ -100,7 +100,7 @@ class Dataset(dataset.Dataset):
     def update_gap_and_missing_fill_settings(self, gap_interpolation_method=None, gap_interpolation_max_consec_fill=None,
                                              gap_debias_prefered_leading_period_hours=None, gap_debias_prefered_trailing_period_hours=None,
                                              gap_debias_minimum_leading_period_hours=None, gap_debias_minimum_trailing_period_hours=None,
-                                             missing_obs_interpolation_method=None):
+                                             automatic_max_interpolation_duration_str=None, missing_obs_interpolation_method=None):
         """
         Update the settings on the filling methods for missing observations and gaps.
 
@@ -126,6 +126,10 @@ class Dataset(dataset.Dataset):
         gap_debias_minimum_trailing_period_hours : int, optional
             The minimum size of the trailing period for calculating hourly
             biasses wrt the model. The default is None.
+        automatic_max_interpolation_duration_str : Timedelta or str, optional
+            Maximum duration to apply interpolation for gapfill when using the
+            automatic gapfill method. Gaps with longer durations will be filled
+            using debiased modeldata. The default is None.
         missing_obs_interpolation_method : str, optional
             The interpolation method to pass to numpy.interpolate. The default is None.
 
@@ -168,6 +172,15 @@ class Dataset(dataset.Dataset):
         {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_trailing_sample_duration_hours"]} --> {abs(int(gap_debias_minimum_trailing_period_hours))}')
             self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_trailing_sample_duration_hours"] = abs(int(gap_debias_minimum_trailing_period_hours))
 
+        # Gapfill automatic
+        if not automatic_max_interpolation_duration_str is None:
+            if is_timedelta(str(automatic_max_interpolation_duration_str)):
+                logger.info(f' The maximum interpolation duration for automatic gapfill is updated: \
+            {self.settings.gap["gaps_fill_settings"]["automatic"]["max_interpolation_duration_str"]} --> {str(automatic_max_interpolation_duration_str)}')
+                self.settings.gap["gaps_fill_settings"]["automatic"]["max_interpolation_duration_str"] = str(automatic_max_interpolation_duration_str)
+            else:
+                logger.warning(f' {str(automatic_max_interpolation_duration_str)} is not a valid timedelta string. No update on this setting.')
+
         # Missing obs interpolation
         if not missing_obs_interpolation_method is None:
             logger.info(f' The missing observations interpolation method is updated: \
@@ -193,7 +206,7 @@ class Dataset(dataset.Dataset):
             greater or equal to this number, on the input frequencies. The default is None.
         dupl_timestamp_keep : bool, optional
             Setting that determines to keep, or remove duplicated timestamps. The default is None.
-        persis_time_win_to_check : Timedelta or str, optional
+        persis_time_win_to_check :automatic_max_interpolation_duration_str
             Time window for persistance check. The default is None.
         persis_min_num_obs : int (> 0), optional
             Minimal window members for persistance check. The default is None.
@@ -226,12 +239,7 @@ class Dataset(dataset.Dataset):
         all the observation types.
 
         """
-        def is_timedelta(timedeltastr):
-            try:
-                pd.to_timedelta(timedeltastr)
-                return True
-            except:
-                return False
+
 
         assert obstype in observation_types, f'{obstype} is not a known observation type'
 
@@ -312,3 +320,14 @@ class Dataset(dataset.Dataset):
             logger.info(f'Maximal decrease per second for step check updated:\
                        {self.settings.qc["qc_check_settings"]["step"][obstype]["max_decrease_per_second"]} --> {-1.0 * abs(float(step_max_decrease_per_sec))}')
             self.settings.qc['qc_check_settings']["step"][obstype]['max_decrease_per_second'] = -1.0 * abs(float(step_max_decrease_per_sec))
+
+
+# =============================================================================
+# dtype check functions
+# =============================================================================
+def is_timedelta(timedeltastr):
+    try:
+        pd.to_timedelta(timedeltastr)
+        return True
+    except:
+        return False

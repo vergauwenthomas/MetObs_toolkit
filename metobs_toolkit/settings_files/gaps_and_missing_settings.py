@@ -47,6 +47,7 @@ gaps_fill_settings = {
             "minimum_trailing_sample_duration_hours": 24,
         }
     },
+    "autmatic":{'max_interpolation_duration_str': '5H'}
 }
 
 
