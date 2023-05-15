@@ -55,7 +55,7 @@ dataset.fill_missing_obs_linear()
 
 #%%
 
-test = dataset.write_to_csv(obstype = 'temp')
+test = dataset.write_to_csv(obstype = 'temp', use_tlk_obsnames=False)
 
 print(test)
 

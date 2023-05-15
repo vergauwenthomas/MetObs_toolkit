@@ -920,12 +920,11 @@ class Dataset:
         # Map obstypes columns
         if not use_tlk_obsnames:
             mapper = self.data_template.transpose()['orig_name'].to_dict()
-            mergedf['new_names'] = mergedf.index.get_level_values('obstype').to_series().map(mapper)
             mergedf = mergedf.reset_index()
+            mergedf['new_names'] = mergedf['obstype'].map(mapper)
             mergedf = mergedf.drop(columns=['obstype'])
             mergedf = mergedf.rename(columns={'new_names': 'obstype'})
             mergedf = mergedf.set_index(['name', 'datetime', 'obstype'])
-
 
 
         mergedf = mergedf.unstack('obstype')
