@@ -832,11 +832,14 @@ class Dataset:
 
     def write_to_csv(
         self,
+        obstype=None,
         filename=None,
         include_outliers=True,
-        include_gapfill=True,
+        include_fill_values=True,
         add_final_labels=True,
         use_tlk_obsnames=True,
+        overwrite_outliers_by_gaps_and_missing=True,
+        seperate_metadata_file = True
     ):
         """
         Write the dataset to a file where the observations, metadata and
@@ -850,19 +853,30 @@ class Dataset:
 
         Parameters
         ----------
+        obstype : string, optional
+            Specify an observation type to subset all observations to. If None,
+            all available observation types are writen to file. The default is
+            None.
         filename : string, optional
             The name of the output csv file. If none, a standard-filename
             is generated based on the period of data. The default is None.
         include_outliers : bool, optional
             If True, the outliers will be present in the csv file. The default is True.
-        include_gapfill : bool, optional
-            If True, the filled gap values will be present in the csv file. The default is True.
+        include_fill_values : bool, optional
+            If True, the filled gap and missing observation values will be
+            present in the csv file. The default is True.
         add_final_labels : bool, optional
             If True, a column is added containing the final label of an observation. The default is True.
         use_tlk_obsnames : bool, optional
             If True, the standard naming of the metobs_toolkit is used, else
             the original names for obstypes is used. The default is True.
-
+        overwrite_outliers_by_gaps_and_missing : bool, optional
+            If the gaps and missing observations are updated using outliers,
+            interpret these records as gaps/missing outliers if True. Else these
+            will be interpreted as outliers. The default is True.
+        seperate_metadata_file : bool, optional
+            If true, the metadat is writen to a seperate file, else the metadata
+            is merged to the observation in one file. The default is True.
         Returns
         -------
         None.
@@ -881,70 +895,45 @@ class Dataset:
             {self.settings.IO["output_folder"]} is not found. '
 
         # combine all dataframes
-        mergedf = self.combine_all_to_obsspace()  # with outliers
+        mergedf = self.combine_all_to_obsspace(
+            overwrite_outliers_by_gaps_and_missing=overwrite_outliers_by_gaps_and_missing)  # with outliers
+        # Unstack mergedf
+        # remove duplicates
+        mergedf = mergedf[~mergedf.index.duplicated(keep='first')]
 
-        # select which columns to keep
-        if include_outliers:
-            if not add_final_labels:
-                _fin_cols = [
-                    col for col in mergedf.columns if col.endswith("_final_label")
-                ]
-                mergedf = mergedf.drop(columns=_fin_cols)
+        # drop outliers if required
+        if not include_outliers:
+            outlier_labels = [var['outlier_flag'] for var in self.settings.qc['qc_checks_info']]
+            mergedf = mergedf[~mergedf['label'].isin(outlier_labels)]
 
-        else:  # exclude outliers
-            if add_final_labels:
-                cols_to_keep = [
-                    col for col in mergedf.columns if col in observation_types
-                ]
-                cols_to_keep.extend(
-                    [col for col in mergedf.columns if col.endswith("_final_label")]
-                )
-                mergedf = mergedf[cols_to_keep]
 
-        if not include_gapfill:
-            # locate all filled values
-            filled_df = init_multiindexdf()
-            final_columns = [
-                col for col in mergedf.columns if col.endswith("_final_label")
-            ]
-            for final_column in final_columns:
-                filled_df = pd.concat(
-                    [
-                        filled_df,
-                        mergedf.loc[
-                            mergedf[final_column]
-                            == self.settings.gaps["gaps_fill_info"]["label"]
-                        ],
-                    ]
-                )
+        # drop fill values if required
+        if not include_fill_values:
+            fill_labels = ['gap fill', 'missing observation fill'] #toolkit representation labels
+            mergedf = mergedf[~mergedf['toolkit_representation'].isin(fill_labels)]
 
-            # drop filled values from mergedf
-            mergedf = mergedf.drop(filled_df.index, errors="ignore")
+        if not obstype is None:
+            mergedf = mergedf.xs(obstype, level='obstype', drop_level=False)
 
-            # fill with numpy nan
-            nan_columns = {
-                col: np.nan for col in mergedf.columns if col in observation_types
-            }
-            filled_df = filled_df.assign(**nan_columns)
-            # rename label
-            filled_df = filled_df.replace(
-                {
-                    self.settings.gaps["gaps_fill_info"]["label"]: self.settings.gaps[
-                        "gaps_info"
-                    ]["gap"]["outlier_flag"]
-                }
-            )
-            # add to mergedf
-            mergedf = pd.concat([mergedf, filled_df]).sort_index()
 
-        present_obstypes = [col for col in observation_types if col in mergedf.columns]
 
         # Map obstypes columns
         if not use_tlk_obsnames:
-            # TODO
-            print("not implemented yet")
+            mapper = self.data_template.transpose()['orig_name'].to_dict()
+            mergedf['new_names'] = mergedf.index.get_level_values('obstype').to_series().map(mapper)
+            mergedf = mergedf.reset_index()
+            mergedf = mergedf.drop(columns=['obstype'])
+            mergedf = mergedf.rename(columns={'new_names': 'obstype'})
+            mergedf = mergedf.set_index(['name', 'datetime', 'obstype'])
 
-        # TODO Convert units if needed.
+
+
+        mergedf = mergedf.unstack('obstype')
+
+        # to one level for the columns
+        mergedf.columns = [' : '.join(col).strip() for col in mergedf.columns.values]
+
+
 
         # columns to write
         write_dataset_to_csv(
@@ -953,8 +942,9 @@ class Dataset:
             filename=filename,
             outputfolder=self.settings.IO["output_folder"],
             location_info=self.settings.app["location_info"],
-            observation_types=present_obstypes,
+            seperate_metadata_file=seperate_metadata_file,
         )
+
 
     # =============================================================================
     #     Quality control

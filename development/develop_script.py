@@ -53,25 +53,23 @@ dataset.fill_missing_obs_linear()
 
 
 
+#%%
 
+test = dataset.write_to_csv(obstype = 'temp')
+
+print(test)
 
 
 
 
 #%%
-import pandas as pd
 
-combdf = dataset.combine_all_to_obsspace()
+# comb_df = dataset.combine_all_to_obsspace()
+# comb_df = comb_df[~comb_df.index.duplicated(keep='first')]
+# comb_df.unstack('obstype')
 
-
-test = combdf.xs('temp', level='obstype')
-dubs = test[test.index.duplicated()]
-
-print(f' duplicates: {dubs}')
-
-
-print('5379 == > ',test.shape)
-
+# # to one level for the columns
+# comb_df.columns = [' : '.join(col).strip() for col in comb_df.columns.values]
 
 
 
