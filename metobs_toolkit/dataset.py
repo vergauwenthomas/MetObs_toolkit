@@ -548,17 +548,13 @@ class Dataset:
         mergedf = self.combine_all_to_obsspace()
 
         mergedf = mergedf.xs(obstype, level='obstype')
-        # mergedf = mergedf[[obstype, obstype+'_final_label']]
+
 
         # ignore labels
         possible_outlier_labels = [vals['outlier_flag'] for vals in self.settings.qc['qc_checks_info'].values()]
-        # ignore_labels = ['ok',
-        #                  self.settings.gap['gaps_info']['gap']['outlier_flag'],
-        #                  self.settings.gap['gaps_info']['missing_timestamp']['outlier_flag']]
+
 
         # create groups when the final label changes
-        # persistance_filter = ((mergedf[obstype+'_final_label'].shift() != mergedf[obstype+'_final_label'])).cumsum()
-        # grouped = mergedf.groupby(['name', persistance_filter])
         persistance_filter = ((mergedf['label'].shift() != mergedf['label'])).cumsum()
         grouped = mergedf.groupby(['name', persistance_filter])
 
@@ -1268,174 +1264,6 @@ class Dataset:
 
 
 
-    # def combine_all_to_obsspace(self, repr_outl_as_nan=False):
-    #     """
-    #     Combine observations, outliers, gaps and missing timesteps to one
-    #     dataframe in the resolution of the dataset. Final quality labels are
-    #     calculated for all checked obstypes.
-
-    #     If an observation value exist for an outlier, it will be used in the
-    #     corresponding obstype column.
-
-    #     Returns
-
-    #     comb_df : pandas.DataFrame()
-    #         Multi index dataframe with observations and labels.
-
-    #     """
-
-    #     # =============================================================================
-    #     # Unstack outliers to regular multiindex
-    #     # =============================================================================
-    #     outliersdf = self.outliersdf
-
-    #     # remove duplicate indixes (needed for update)
-    #     outliersdf = outliersdf[~outliersdf.index.duplicated(keep="first")]
-
-    #     if not outliersdf.empty:
-    #         outliersdf_values = outliersdf["value"].unstack()  # for later use
-    #         # convert to wide df with labels
-    #         outliersdf = outliersdf["label"].unstack()
-
-    #         # convert to final label names for columns
-    #         outliersdf = outliersdf.rename(
-    #             columns={col: col + "_final_label" for col in outliersdf.columns}
-    #         )
-
-    #     else:
-    #         outliersdf = init_multiindexdf()
-    #         outliersdf_values = init_multiindexdf()  # for later use
-    #         outliercolumns = [
-    #             col + "_final_label" for col in self.df if col in observation_types
-    #         ]
-    #         for column in outliercolumns:
-    #             outliersdf[column] = "not checked"
-
-    #     # # add representation
-    #     outliersdf['toolkit_representation'] = 'outlier'
-
-
-    #     # =============================================================================
-    #     # Combine observations and outliers
-    #     # =============================================================================
-    #     # get observations
-    #     df = self.df
-    #     df['toolkit_representation'] = 'observation'
-
-    #     # 0. make shure there is a final column for each obstype in the df,
-    #     # if qc did not found any outliers, then there is apriori no final label column
-    #     present_obstypes = [col for col in observation_types if col in df.columns]
-    #     for presen_obstype in present_obstypes:
-    #         final_label = presen_obstype + "_final_label"
-    #         if not final_label in outliersdf.columns:
-    #             outliersdf[final_label] = np.nan
-
-
-    #     # 1. Merge the label columns
-    #     df_and_outl = df.merge(
-    #         outliersdf, how="outer", left_index=True, right_index=True,
-    #         suffixes=('_obs', '_outl')
-    #     )
-
-    #     # make two columns of toolkit represetnation into one
-    #     df_and_outl['toolkit_representation_obs'] = df_and_outl['toolkit_representation_obs'].fillna(df_and_outl['toolkit_representation_outl'])
-    #     df_and_outl = df_and_outl.drop(columns=['toolkit_representation_outl'])
-    #     df_and_outl = df_and_outl.rename(columns={'toolkit_representation_obs': 'toolkit_representation'})
-    #     # 2. fill the missing labels
-
-    #     # split between obstype that are checked by qc and obstypes that are not checked
-    #     checked_cols = [col + "_final_label" for col in list(set(self._qc_checked_obstypes))]
-    #     not_checked_cols = [col
-    #         for col in df_and_outl.columns
-    #         if ((col.endswith("_final_label")) and (not col in checked_cols))
-    #     ]
-
-    #     # if obstype checked, and value is nan --> label ok
-    #     df_and_outl[checked_cols] = df_and_outl[checked_cols].fillna("ok")
-    #     # if obstype is not checked and label is missing --> label 'not checked'
-    #     df_and_outl[not_checked_cols] = df_and_outl[not_checked_cols].fillna(
-    #         "not checked"
-    #     )
-
-    #     # 3. Update the values if needed
-    #     if not repr_outl_as_nan:
-    #         # Merge obs and outliers, where obs values will be updated by outliers
-    #         df_and_outl.update(
-    #             other=outliersdf_values, join="left", overwrite=True, errors="ignore"
-    #         )
-
-    #     # =============================================================================
-    #     # Make gaps, gapsfill and missing dataframes
-    #     # =============================================================================
-
-    #     # add gaps observations and fill with default values
-    #     gapsidx = self.gaps.get_gaps_indx_in_obs_space(
-    #         self.df, self.outliersdf, self.metadf["dataset_resolution"]
-    #     )
-    #     gapsdf = gapsidx.to_frame()
-    #     gapsdf['toolkit_representation'] = 'gap'
-
-    #     # add gapfill and remove the filled records from gaps
-    #     gapsfilldf = self.gapfilldf.copy()
-    #     gapsdf = gapsdf.drop(gapsfilldf.index, errors="ignore")
-
-    #     gapsfilldf['toolkit_representation'] = 'gap filled'
-
-    #     # add missing observations if they occure in observation space
-    #     missingidx = self.missing_obs.get_missing_indx_in_obs_space(
-    #         self.df, self.metadf["dataset_resolution"]
-    #     )
-    #     missingdf = missingidx.to_frame()
-    #     missingfilldf = self.missing_fill_df.copy()
-    #     missingdf = missingdf.drop(missingfilldf.index, errors="ignore")
-
-    #     missingdf['toolkit_representation'] = 'missing observation'
-    #     missingfilldf['toolkit_representation'] = 'missing observation filled'
-
-    #     # initiate default values for gaps and missing that are not filled
-    #     for col in df_and_outl.columns:
-    #         if col in observation_types:
-    #             default_value_gap = np.nan  # nan for observations
-    #             default_value_missing = np.nan
-
-    #         elif col.endswith("_final_label"):
-    #             # 'gap' for final label
-    #             default_value_gap = self.settings.gap["gaps_info"]["gap"][
-    #                 "outlier_flag"
-    #             ]
-
-    #             # 'is_missing_timestamp' for final label
-    #             default_value_missing = self.settings.gap["gaps_info"][
-    #                 "missing_timestamp"
-    #             ]["outlier_flag"]
-
-    #         elif col == 'toolkit_representation':
-    #             continue #are already initialized
-
-    #         else:
-    #             default_value_gap = "not checked"
-    #             default_value_missing = "not checked"
-
-
-    #         gapsdf[col] = default_value_gap
-    #         missingdf[col] = default_value_missing
-    #         if not col in gapsfilldf.columns:
-    #             gapsfilldf[col] = default_value_gap
-    #         if not col in missingfilldf.columns:
-    #             missingfilldf[col] = default_value_missing
-
-    #     # sort columns
-    #     column_order = df_and_outl.columns.to_list()
-    #     gapsdf = gapsdf[column_order]
-    #     gapsfilldf=gapsfilldf[column_order]
-    #     missingdf = missingdf[column_order]
-    #     missingfilldf = missingfilldf[column_order]
-
-    #     # Merge all together
-    #     comb_df = pd.concat([df_and_outl, gapsdf, missingdf,
-    #                          gapsfilldf, missingfilldf]).sort_index()
-
-    #     return comb_df
 
     def get_qc_stats(self, obstype="temp", stationnames=None, make_plot=True):
         """
