@@ -46,7 +46,7 @@ dataset.coarsen_time_resolution()
 dataset.apply_quality_control()
 
 dataset.fill_gaps_linear()
-dataset.update_gaps_and_missing_from_outliers()
+
 dataset.fill_missing_obs_linear()
 
 
@@ -54,10 +54,9 @@ dataset.fill_missing_obs_linear()
 
 
 #%%
+dataset.update_gaps_and_missing_from_outliers()
+test = dataset.get_qc_stats()
 
-test = dataset.write_to_csv(obstype = 'temp', use_tlk_obsnames=False)
-
-print(test)
 
 
 

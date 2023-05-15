@@ -1452,8 +1452,8 @@ class Dataset:
         comb_df = self.combine_all_to_obsspace()
 
         # subset to relevant columnt
-        relev_columns = [obstype, obstype + "_final_label"]
-        comb_df = comb_df[relev_columns]
+        comb_df = comb_df.xs(obstype, level='obstype')[['label']]
+
 
         # compute freq statistics
         final_freq, outl_freq, specific_freq = get_freq_statistics(
