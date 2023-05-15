@@ -197,7 +197,7 @@ for man_label, tlk_label in manual_to_tlkit_label_map.items():
     )
 
     man_idx = man_df[man_df["flags"] == man_label].index.sort_values()
-    tlk_idx = tlk_df[tlk_df["temp_final_label"] == tlk_label].index.sort_values()
+    tlk_idx = tlk_df[tlk_df["label"] == tlk_label].xs('temp', level='obstype').index.sort_values()
 
     if not tlk_idx.equals(man_idx):
         print(f"ERROR: wrong labels for {tlk_label}")
@@ -223,7 +223,7 @@ print(f" Testing equality of the {tlk_label} with the manual labeling ({man_labe
 man_df_no_duplic = man_df[~man_df.index.duplicated(keep="first")]
 
 man_idx = man_df_no_duplic[man_df_no_duplic["flags"] == man_label].index.sort_values()
-tlk_idx = tlk_df[tlk_df["temp_final_label"] == tlk_label].index.sort_values()
+tlk_idx = tlk_df[tlk_df["label"] == tlk_label].xs('temp', level='obstype').index.sort_values()
 
 if not tlk_idx.equals(man_idx):
     print(f"ERROR: wrong labels for {tlk_label}")

@@ -19,6 +19,7 @@ metobs\_toolkit.station.Station
       ~Station.apply_quality_control
       ~Station.coarsen_time_resolution
       ~Station.combine_all_to_obsspace
+      ~Station.fill_gaps_automatic
       ~Station.fill_gaps_era5
       ~Station.fill_gaps_linear
       ~Station.fill_missing_obs_linear

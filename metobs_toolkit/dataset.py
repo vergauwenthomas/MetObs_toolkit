@@ -1260,6 +1260,9 @@ class Dataset:
         # =============================================================================
 
         combdf = pd.concat([df, outliersdf, gapsdf, gapsfilldf, missingdf, missingfilldf]).sort_index()
+
+        # To be shure?
+        combdf = combdf[~combdf.index.duplicated(keep='first')]
         return combdf
 
 

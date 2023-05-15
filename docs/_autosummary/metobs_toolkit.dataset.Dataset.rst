@@ -19,6 +19,7 @@ metobs\_toolkit.dataset.Dataset
       ~Dataset.apply_quality_control
       ~Dataset.coarsen_time_resolution
       ~Dataset.combine_all_to_obsspace
+      ~Dataset.fill_gaps_automatic
       ~Dataset.fill_gaps_era5
       ~Dataset.fill_gaps_linear
       ~Dataset.fill_missing_obs_linear

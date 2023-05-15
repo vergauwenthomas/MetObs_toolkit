@@ -155,9 +155,9 @@ assert (ngaps == 5) & (ngaps_orig == 2), 'Something wrong with the update gaps a
 
 
 # check if the mergedf does not contain them as duplicates
-comb2 = dataset.combine_all_to_obsspace()
+comb2 = dataset2.combine_all_to_obsspace()
 
-assert (comb2.index.duplicated().any()), 'duplicated indexes in comb df after the outliers updated to gaps/missing'
+assert comb2[comb2.index.duplicated()].shape[0] == 0, 'duplicated indexes in comb df after the outliers updated to gaps/missing'
 
 
 # %%
