@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import geopandas as gpd
 import itertools
+from metobs_toolkit import observation_types
 
 
 def init_multiindex():
@@ -61,6 +62,56 @@ def format_outliersdf_to_doubleidx(outliersdf):
         return outliersdf.droplevel("obstype")
     else:
         return outliersdf
+
+def value_labeled_doubleidxdf_to_triple_idxdf(df,value_col_name='value', label_col_name = 'label'):
+    """
+    This function converts a double index dataframe with an 'obstype' column,
+    and a 'obstype_final_label' column to a triple index dataframe where the
+    obstype values are added to the index.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe with ['name', 'datetime'] as index and two columns: [obstype, obstype_final_label].
+        Where obstype is an observation type.
+    value_col_name : str, optional
+        Name of the column for the values. The default is 'value'.
+    label_col_name : str, optional
+        Name of the column for the labels. The default is 'label'.
+
+    Returns
+    -------
+    values : pd.DataFrame()
+        Dataframe with a ['name', 'datetime', obstype] index and two columnd:
+            [value_col_name, label_col_name]
+
+    """
+    if df.empty:
+        return df
+
+    present_obstypes = [col for col in df.columns if col in observation_types]
+
+    # get all values in triple index form
+    values = (df[present_obstypes].stack(dropna=False)
+              .reset_index()
+              .rename(columns={'level_2': 'obstype', 0: value_col_name})
+              .set_index(['name', 'datetime', 'obstype']))
+
+
+    # make a triple label dataframe
+    labelsdf = pd.DataFrame()
+    for obstype in present_obstypes:
+        subdf = df.loc[:, [obstype+'_final_label']]
+        subdf['obstype'] = obstype
+        subdf = subdf.reset_index()
+        subdf = subdf.set_index(['name', 'datetime', 'obstype'])
+        subdf = subdf.rename(columns={obstype+'_final_label': label_col_name})
+
+        labelsdf = pd.concat([labelsdf, subdf])
+
+    values[label_col_name] = labelsdf[label_col_name]
+
+    return values
 
 
 def remove_outliers_from_obs(obsdf, outliersdf):

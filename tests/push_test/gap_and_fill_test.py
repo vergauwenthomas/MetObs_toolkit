@@ -5,7 +5,7 @@ Created on Fri Oct 28 08:18:09 2022
 
 @author: thoverga
 """
-
+import copy
 import sys, os
 import pandas as pd
 
@@ -130,14 +130,34 @@ assert (
 #%% Test if filled values are present in the combined df
 
 comb_df = dataset.combine_all_to_obsspace()
+comb_df = comb_df.xs('temp', level='obstype')
+
 
 comb_gaps = comb_df.loc[dataset.gapfilldf.index]
 comb_missing = comb_df.loc[dataset.missing_fill_df.index]
 
-assert comb_gaps['temp'].eq(dataset.gapfilldf['temp']).all(), 'Something wrong with the filled gaps in the combined df'
-assert comb_missing['temp'].eq(dataset.missing_fill_df['temp']).all(), 'Something wrong with the filled missing in the combined df'
+assert comb_gaps['value'].eq(dataset.gapfilldf['temp']).all(), 'Something wrong with the filled gaps in the combined df'
+assert comb_missing['value'].eq(dataset.missing_fill_df['temp']).all(), 'Something wrong with the filled missing in the combined df'
+
+#%% Test the update of outliers to gaps
+nobs_orig = len(dataset.missing_obs.idx)
+ngaps_orig = len(dataset.gaps.list)
+
+dataset2 = copy.deepcopy(dataset)
+dataset2.apply_quality_control()
+dataset2.update_gaps_and_missing_from_outliers(obstype='temp', n_gapsize = 10)
+
+nobs = len(dataset2.missing_obs.idx)
+ngaps = len(dataset2.gaps.list)
+
+assert (nobs == 29) & (nobs_orig == 26), 'Something wrong with the update gaps and missing from outliers'
+assert (ngaps == 5) & (ngaps_orig == 2), 'Something wrong with the update gaps and missing from outliers'
 
 
+# check if the mergedf does not contain them as duplicates
+comb2 = dataset.combine_all_to_obsspace()
+
+assert (comb2.index.duplicated().any()), 'duplicated indexes in comb df after the outliers updated to gaps/missing'
 
 
 # %%
