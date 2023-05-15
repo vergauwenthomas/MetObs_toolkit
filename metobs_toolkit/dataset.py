@@ -240,6 +240,7 @@ class Dataset:
         title=None,
         legend=True,
         show_outliers=True,
+        show_filled = True,
     ):
         """
         This function creates a timeseries plot for the dataset. The variable observation type
@@ -267,6 +268,9 @@ class Dataset:
              I True, a legend is added to the plot. The default is True.
         show_outliers : bool, optional
              If true the observations labeld as outliers will be included in the plot, defaults to True
+        show_filled : bool, optional
+             If true the filled values for gaps and missing observations will
+             be included in the plot, defaults to True
 
 
         Returns
@@ -281,14 +285,31 @@ class Dataset:
         # combine all dataframes
         mergedf = self.combine_all_to_obsspace()
 
+        # subset to obstype
+        mergedf = mergedf.xs(obstype, level='obstype')
+
         # Subset on stationnames
         if not stationnames is None:
-            mergedf = mergedf.loc[
-                mergedf.index.get_level_values("name").isin(stationnames)
-            ]
+            mergedf = mergedf.reset_index()
+            mergedf = mergedf.loc[mergedf['name'].isin(stationnames)]
+            mergedf = mergedf.set_index(['name', 'datetime'])
+
 
         # Subset on start and endtime
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
+
+        # remove outliers if required
+        if not show_outliers:
+            outlier_labels = [var['outlier_flag'] for var in self.settings.qc['qc_checks_info'].values()]
+            mergedf = mergedf[~mergedf['label'].isin(outlier_labels)]
+
+        # remove filled values if required
+        if not show_filled:
+            fill_labels = ['gap fill', 'missing observation fill'] #toolkit representation labels
+            mergedf = mergedf[~mergedf['toolkit_representation'].isin(fill_labels)]
+
+
+
 
         # Get plot styling attributes
         if title is None:
@@ -312,34 +333,32 @@ class Dataset:
                     + str(stationnames)
                 )
 
-        if (obstype + "_final_label" not in mergedf.columns) & (
-            (colorby == "label") | (show_outliers)
-        ):
-            # user whant outier information but no QC is applied on this obstype
-            print(
-                f" No quality control is applied on {obstype}! \
-                  No outlier information is available."
-            )
-            print(
-                'Colorby is set to "name" and show_outliers \
-                  is set to False.'
-            )
-            colorby = "name"
-            show_outliers = False
+        # if (obstype + "_final_label" not in mergedf.columns) & (
+        #     (colorby == "label") | (show_outliers)
+        # ):
+        #     # user whant outier information but no QC is applied on this obstype
+        #     print(
+        #         f" No quality control is applied on {obstype}! \
+        #           No outlier information is available."
+        #     )
+        #     print(
+        #         'Colorby is set to "name" and show_outliers \
+        #           is set to False.'
+        #     )
+        #     colorby = "name"
+        #     show_outliers = False
 
         # Make plot
         ax = timeseries_plot(
             mergedf=mergedf,
-            obstype=obstype,
+            # obstype=obstype,
             title=title,
             xlabel="Timestamp",
             ylabel=self.data_template[obstype]["orig_name"],
             colorby=colorby,
             show_legend=legend,
             show_outliers=show_outliers,
-            plot_settings=self.settings.app["plot_settings"],
-            gap_settings=self.settings.gap,
-            qc_info_settings=self.settings.qc["qc_checks_info"],
+            settings = self.settings
         )
 
         return ax

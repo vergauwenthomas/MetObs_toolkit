@@ -54,12 +54,27 @@ dataset.fill_missing_obs_linear()
 
 
 #%%
-dataset.update_gaps_and_missing_from_outliers()
-test = dataset.get_qc_stats()
+from datetime import datetime
+tstart = datetime(2022, 10,9)
+enddt = datetime(2022, 10, 10)
 
 
 
+# comb = dataset.combine_all_to_obsspace()
 
+test = dataset.make_plot(colorby='label')
+
+# dataset.update_gaps_and_missing_from_outliers()
+# test = dataset.get_qc_stats()
+
+# settings = dataset.settings
+
+
+# gap_fill_labels= [ val for val in settings.gap['gaps_fill_info']['label'].values()]
+
+# missing_fill_labels = [ val for val in settings.missing_obs['missing_obs_fill_info']['label'].values()]
+
+# gap_fill_labels.extend(missing_fill_labels)
 
 #%%
 
