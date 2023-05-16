@@ -1,6 +1,6 @@
 {
     "target_time_resolution": "60T",
-    "timezone":"Europe/Brussels",
+    "timezone":"UTC",
     "method": "nearest",
     "limit": 1,
     "freq_estimation_method": "highest",

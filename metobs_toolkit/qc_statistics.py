@@ -19,11 +19,7 @@ logger = logging.getLogger(__name__)
 def get_freq_statistics(comb_df, obstype, checks_info, gaps_info, applied_qc_order):
     outlier_labels = [qc["outlier_flag"] for qc in checks_info.values()]
 
-    if not obstype + "_final_label" in comb_df.columns:
-        print(f"Final observation label for {obstype} is not computed!")
-        return (None, None, None)
-
-    final_counts = comb_df[obstype + "_final_label"].value_counts()
+    final_counts = comb_df['label'].value_counts()
 
     # add missing labels
     # QC labels

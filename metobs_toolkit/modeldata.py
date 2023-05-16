@@ -5,6 +5,7 @@ Created on Wed Mar 22 13:50:17 2023
 
 @author: thoverga
 """
+
 import pandas as pd
 
 from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
@@ -31,7 +32,17 @@ class Modeldata:
     def __repr__(self):
         return f"ModelData instance: {self.modelname} model data of {list(self.df.columns)}"
 
-    # def _conv_to_timezone(self, tz):
+    def _conv_to_timezone(self, tzstr):
+        # get tzstr by datetimindex.tz.zone
+
+
+        df=self.df
+        df['datetime_utc'] = df.index.get_level_values('datetime').tz_convert(tzstr)
+        df = df.reset_index()
+        df = df.drop(columns=['datetime'])
+        df = df.rename(columns={'datetime_utc': 'datetime'})
+        df = df.set_index(['name', 'datetime'])
+        self.df = df
 
     def get_ERA5_data(self, metadf, startdt, enddt, obstype="temp"):
         # startdt and enddt IN UTC FORMAT!!!!!

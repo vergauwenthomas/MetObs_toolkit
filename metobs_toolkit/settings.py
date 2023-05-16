@@ -246,21 +246,19 @@ class Settings:
         Update some settings that are relevent before data is imported. The self
         object will be updated.
 
-
         :param output_folder: a directory to store the output to, defaults to None.
         :type output_folder: String, optional
         :param input_data_file: Path to the input data file, defaults to None.
         :type input_data_file: String, optional
         :param input_metadata_file: Path to the input metadata file, defaults to None
         :type input_metadata_file: String, optional
-        :param data_template_file: Path to the mapper-template csv file to be used on the observations.
-        If not given, the default template is used.
+        :param data_template_file: Path to the mapper-template csv file to be used on the observations. If not given, the default template is used.
         :type data_template_file: String, optional
-        :param metadata_template_file: Path to the mapper-template csv file to be used on the metadata.
-        If not given, the default template is used.
+        :param metadata_template_file: Path to the mapper-template csv file to be used on the metadata. If not given, the default template is used.
         :type metadata_template_file: String, optional
         :return: No return
         :rtype: No return
+
         """
 
         logger.info("Updating settings with input: ")

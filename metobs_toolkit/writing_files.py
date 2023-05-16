@@ -10,7 +10,7 @@ import os
 
 
 def write_dataset_to_csv(
-    df, metadf, filename, outputfolder, location_info, observation_types
+    df, metadf, filename, outputfolder, location_info, seperate_metadata_file,
 ):
     """
     Write the dataset to a file where the observations, metadata and (if available)
@@ -38,27 +38,28 @@ def write_dataset_to_csv(
 
     """
 
-    # make column ordering 'datetime', 'name', obs, QC, Qc final metadata
-    write_cols = ["datetime", "name"]
-    write_cols.extend([col for col in df.columns if col in observation_types])
-    write_cols.extend([col for col in df.columns if col.endswith("_label")])
-    write_cols.extend(location_info)  # metadata
+
 
     df = df.reset_index()
 
-    # merge metadata
-    df = df.merge(metadf, how="left", left_on="name", right_index=True)
-
-    # subset and order columns
-    df = df[write_cols]
-
-    # find observation type that are not present
-    ignore_obstypes = [col for col in observation_types if df[col].isnull().all()]
-    df = df.drop(columns=ignore_obstypes)
 
     # find metadata that are not present
-    ignore_metadat = [col for col in location_info if df[col].isnull().all()]
-    df = df.drop(columns=ignore_metadat)
+    ignore_metadat = [col for col in location_info if metadf[col].isnull().all()]
+
+
+    if not seperate_metadata_file:
+        # merge metadata
+        df = df.merge(metadf, how="left", left_on="name", right_index=True)
+        df = df.drop(columns=ignore_metadat)
+    else:
+        metadf = metadf.reset_index()
+        metadf = metadf.drop(columns=ignore_metadat)
+        metadatafile = os.path.join(outputfolder, "metadata_file.csv")
+        print(f"write metadata to file: {metadatafile}")
+        metadf.to_csv(path_or_buf=metadatafile, sep=";", na_rep="NaN", index=False)
+
+
+
 
     df = df.sort_values(["name", "datetime"])
 

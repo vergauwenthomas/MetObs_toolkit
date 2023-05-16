@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.missingobs.Missingob\_collection
+metobs\_toolkit.missingobs.Missingob\_collection
 ================================================
 
 .. currentmodule:: metobs_toolkit.missingobs

@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.dataset.Dataset
+metobs\_toolkit.dataset.Dataset
 ===============================
 
 .. currentmodule:: metobs_toolkit.dataset
@@ -19,6 +19,7 @@
       ~Dataset.apply_quality_control
       ~Dataset.coarsen_time_resolution
       ~Dataset.combine_all_to_obsspace
+      ~Dataset.fill_gaps_automatic
       ~Dataset.fill_gaps_era5
       ~Dataset.fill_gaps_linear
       ~Dataset.fill_missing_obs_linear
@@ -36,6 +37,7 @@
       ~Dataset.show
       ~Dataset.show_settings
       ~Dataset.sync_observations
+      ~Dataset.update_gaps_and_missing_from_outliers
       ~Dataset.update_outliersdf
       ~Dataset.write_to_csv
    
