@@ -135,8 +135,7 @@ class Dataset:
     *{n_obs_tot} observation records \n \
     *{n_outl} records labeled as outliers \n \
     *{len(self.gaps.list)} gaps \n \
-    *{self.missing_obs.series.shape[0]} missing observations \n" +
-                add_info)
+    *{self.missing_obs.series.shape[0]} missing observations \n" + add_info)
 
     def __repr__(self):
         return self.__str__()
