@@ -242,6 +242,22 @@ def _spatial_plot(
     return ax
 
 
+def sorting_function(label_vec, custom_handles, number_of_labels_types=3):
+    # TODO: clean this up? rewrite to better code?
+    sorted_vec = []            
+    # group 1, 2, 3
+    for i in range(1, number_of_labels_types+1): # loop over the type of labels
+        for l in range(len(label_vec)): #loop over the length of the label_vec
+            if label_vec[l] == i:
+                sorted_vec.append(l) 
+                # makes a vector of same size as label_vec
+                # but with the right order of permutations. 
+    sorted_handles = [custom_handles[i] for i in sorted_vec] 
+    # reordering the custom handles to put 1 at the front    
+    
+    return sorted_handles
+
+
 def timeseries_plot(
     mergedf,
     # obstype,
@@ -279,6 +295,8 @@ def timeseries_plot(
 
 
     custom_handles = [] #add legend items to it
+    label_vec=[] # add type of label
+    
 
     if colorby == "label":
         # iterate over label groups
@@ -288,6 +306,7 @@ def timeseries_plot(
         legenddict = {}
         for outl_label, groupdf in outl_groups:
             outl_color = col_mapper[outl_label]
+            
 
             # plot data for the 'ok' group
             if outl_label == ok_group_label:  # ok data as lines
@@ -313,6 +332,7 @@ def timeseries_plot(
                 # add legend handl
                 custom_handles.append(
                     Line2D([0], [0], color=outl_color, label="ok", lw=4))
+                label_vec.append(1)
 
 
 
@@ -345,6 +365,7 @@ def timeseries_plot(
                         lw=1,
                         linestyle="--",)
                     )
+                label_vec.append(2)
 
             else:  # outliers as scatters
                 plotdf = groupdf['value']
@@ -368,24 +389,38 @@ def timeseries_plot(
                         label=outl_label,
                         lw=1,)
                     )
+                label_vec.append(3)
             legenddict[outl_label] = outl_color
 
         # make legend
         if show_legend:
             # TODO: sort items
-            # # sort legend items
-            # sorted_handles = []
-            # # group 1, 2, 3
-            # sorted_handles.append([item[1] for item in custom_handles if item[0] == 1])
-            # sorted_handles.append([item[1] for item in custom_handles if item[0] == 2])
-            # sorted_handles.append([item[1] for item in custom_handles if item[0] == 3])
-            ax.legend(handles=custom_handles)
+            # sort legend items
+            custom_handles = sorting_function(label_vec, custom_handles)
+            #ax.legend(handles=custom_handles)
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0 + box.height * 0.2,
+                 box.width, box.height * 0.95])
+            ax.legend(handles=custom_handles, loc='upper center',
+                bbox_to_anchor=(0.5, -0.2),
+                fancybox=True, shadow=True,
+                ncol=plot_settings["time_series"]["legend_n_columns"])
+            
 
     elif colorby == "name":
         plotdf = mergedf.reset_index().pivot(
             index="datetime", columns="name", values='value'
         )
-        ax = plotdf.plot(kind="line", legend=show_legend, ax=ax)
+        #ax = plotdf.plot(kind="line", legend=show_legend, ax=ax)
+        ax = plotdf.plot(kind="line", legend=False, ax=ax)
+        if show_legend == True:
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0 + box.height * 0.2,
+                 box.width, box.height * 0.95])
+            ax.legend(plotdf.columns.values.tolist(), loc='upper center',
+                bbox_to_anchor=(0.5, -0.2),
+                fancybox=True, shadow=True,
+                ncol=plot_settings["time_series"]["legend_n_columns"])
 
     # Set title
     ax.set_title(title)
@@ -427,8 +462,14 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
             custom_handles.append(
                 Line2D([0], [0], color=colordict[lcz_cat], label=lcz_cat, lw=4)
             )
-
-        ax.legend(handles=custom_handles)
+            
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0 + box.height * 0.2,
+             box.width, box.height * 0.95])
+        ax.legend(handles=custom_handles, loc='upper center',
+            bbox_to_anchor=(0.5, -0.1),
+            fancybox=True, shadow=True,
+            ncol=plot_settings["legend_n_columns"])
 
 
 
@@ -440,7 +481,14 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
         else:
             cmap = plot_settings['cmap_continious']
 
-        diurnaldf.plot(ax=ax, title=title, cmap=cmap)
+        diurnaldf.plot(ax=ax, title=title, legend=False, cmap=cmap)
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0 + box.height * 0.2,
+                 box.width, box.height * 0.95])
+        ax.legend(diurnaldf.columns.values.tolist(), loc='upper center',
+                bbox_to_anchor=(0.5, -0.1),
+                fancybox=True, shadow=True,
+                ncol=plot_settings["legend_n_columns"])
 
 
 
