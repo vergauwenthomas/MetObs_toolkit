@@ -308,9 +308,6 @@ class Dataset:
             fill_labels = ['gap fill', 'missing observation fill'] #toolkit representation labels
             mergedf = mergedf[~mergedf['toolkit_representation'].isin(fill_labels)]
 
-
-
-
         # Get plot styling attributes
         if title is None:
             if stationnames is None:
@@ -333,20 +330,6 @@ class Dataset:
                     + str(stationnames)
                 )
 
-        # if (obstype + "_final_label" not in mergedf.columns) & (
-        #     (colorby == "label") | (show_outliers)
-        # ):
-        #     # user whant outier information but no QC is applied on this obstype
-        #     print(
-        #         f" No quality control is applied on {obstype}! \
-        #           No outlier information is available."
-        #     )
-        #     print(
-        #         'Colorby is set to "name" and show_outliers \
-        #           is set to False.'
-        #     )
-        #     colorby = "name"
-        #     show_outliers = False
 
         # Make plot
         ax = timeseries_plot(

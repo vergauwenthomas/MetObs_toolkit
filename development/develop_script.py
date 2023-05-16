@@ -48,9 +48,11 @@ dataset.apply_quality_control()
 dataset.fill_gaps_linear()
 
 dataset.fill_missing_obs_linear()
+dataset.update_gaps_and_missing_from_outliers()
 
 
-
+test = dataset.get_station('vlinder01')
+print(test.missing_obs)
 
 
 #%%
@@ -62,7 +64,7 @@ enddt = datetime(2022, 10, 10)
 
 # comb = dataset.combine_all_to_obsspace()
 
-test = dataset.make_plot(colorby='label', show_outliers=False, stationnames=['vlinder01', 'vlinder02'], starttime=tstart)
+# test = dataset.make_plot(colorby='label', show_outliers=False, stationnames=['vlinder01', 'vlinder02'], starttime=tstart)
 
 # dataset.update_gaps_and_missing_from_outliers()
 # test = dataset.get_qc_stats()
