@@ -507,5 +507,4 @@ dependencies:
       - trove-classifiers==2023.4.25
       - urlfetch==1.2.2
       - virtualenv==20.21.1
-      - vlinder-toolkit==0.4.19
 prefix: /home/thoverga/anaconda3/envs/metobs_dev_env

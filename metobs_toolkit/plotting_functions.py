@@ -244,55 +244,61 @@ def _spatial_plot(
 
 def timeseries_plot(
     mergedf,
-    obstype,
+    # obstype,
     title,
     xlabel,
     ylabel,
     colorby,
     show_legend,
     show_outliers,
-    plot_settings,
-    gap_settings,
-    qc_info_settings,
+    settings,
 ):
-    # plot_settings = plot_settings['time_series']
+
+    plot_settings = settings.app["plot_settings"]
+
 
     # init figure
     fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
 
-    # subbset and cleanup data
-
+    # get data ready
     mergedf = mergedf[~mergedf.index.duplicated()]
     init_idx = mergedf.index
 
-    if not show_outliers:
-        if obstype + "_final_label" in mergedf.columns:
-            # remove outliers from plotting data
-            mergedf = mergedf[mergedf[obstype + "_final_label"] == "ok"]
-            mergedf = mergedf[[obstype, obstype + "_final_label"]]
-        else:
-            # no final label available, so plot all data
-            mergedf = mergedf[[obstype]]
+    # define different groups (different plotting styles)
+
+    # ok group
+    ok_group_label = 'ok'
+
+    # filled value groups
+    fill_labels= [ val for val in settings.gap['gaps_fill_info']['label'].values()]
+    missing_fill_labels = [ val for val in settings.missing_obs['missing_obs_fill_info']['label'].values()]
+    fill_labels.extend(missing_fill_labels)
+
+    # outlier groups
+    # Catching with an else
+
+
+    custom_handles = [] #add legend items to it
 
     if colorby == "label":
         # iterate over label groups
-        col_mapper = _all_possible_labels_colormapper(
-            plot_settings, qc_info_settings, gap_settings
-        )  # get color mapper
-        outl_groups = mergedf.groupby(obstype + "_final_label")
+        col_mapper = _all_possible_labels_colormapper(settings) # get color mapper
+
+        outl_groups = mergedf.groupby('label')
         legenddict = {}
         for outl_label, groupdf in outl_groups:
             outl_color = col_mapper[outl_label]
 
-            # plot data
-            if outl_label == "ok":  # ok data as lines
+            # plot data for the 'ok' group
+            if outl_label == ok_group_label:  # ok data as lines
                 # add init_idx andf fill with nans (to avoid matplotlib interpolation)
                 fill_idx = init_idx.to_frame().drop(groupdf.index)
                 groupdf = pd.concat([groupdf, fill_idx])
                 groupdf = groupdf.drop(columns=["name", "datetime"], errors="ignore")
                 groupdf.sort_index()
+
                 plotdf = groupdf.reset_index().pivot(
-                    index="datetime", columns="name", values=obstype
+                    index="datetime", columns="name", values='value'
                 )  # long to wide
 
                 ax = plotdf.plot(
@@ -304,15 +310,21 @@ def timeseries_plot(
                     linewidth=plot_settings["time_series"]["linewidth"],
                 )
 
-            elif outl_label in list(
-                gap_settings["gaps_fill_info"]["label"].items()
-            ):  # fill gaps as dashed lines
+                # add legend handl
+                custom_handles.append(
+                    Line2D([0], [0], color=outl_color, label="ok", lw=4))
+
+
+
+            # plot filled data
+            elif outl_label in  fill_labels:  # fill gaps as dashed lines
+
                 fill_idx = init_idx.to_frame().drop(groupdf.index)
                 groupdf = pd.concat([groupdf, fill_idx])
                 groupdf = groupdf.drop(columns=["name", "datetime"], errors="ignore")
                 groupdf.sort_index()
                 plotdf = groupdf.reset_index().pivot(
-                    index="datetime", columns="name", values=obstype
+                    index="datetime", columns="name", values='value'
                 )  # long to wide
 
                 ax = plotdf.plot(
@@ -321,18 +333,27 @@ def timeseries_plot(
                     color=outl_color,
                     ax=ax,
                     legend=False,
-                    zorder=plot_settings["dashedzorder"],
-                    linewidth=plot_settings["linewidth"],
+                    zorder=plot_settings['time_series']["dashedzorder"],
+                    linewidth=plot_settings['time_series']["linewidth"],
                 )
 
+                # add legend handle
+                custom_handles.append(
+                    Line2D([0],[0],
+                        color=outl_color,
+                        label=f"filled value ({outl_label})",
+                        lw=1,
+                        linestyle="--",)
+                    )
+
             else:  # outliers as scatters
-                plotdf = groupdf[obstype]
+                plotdf = groupdf['value']
                 plotdf.index = plotdf.index.droplevel("name")
                 plotdf = plotdf.reset_index()
                 ax = plotdf.plot(
                     kind="scatter",
                     x="datetime",
-                    y=obstype,
+                    y='value',
                     ax=ax,
                     color=outl_color,
                     legend=False,
@@ -340,51 +361,29 @@ def timeseries_plot(
                     s=plot_settings["time_series"]["scattersize"],
                 )
 
+                # add legend handle
+                custom_handles.append(
+                    Line2D([0],[0], marker="o", color="w",
+                        markerfacecolor=outl_color,
+                        label=outl_label,
+                        lw=1,)
+                    )
             legenddict[outl_label] = outl_color
 
         # make legend
         if show_legend:
-            custom_handles = []
-            # add ok label at the top
-            if "ok" in legenddict.keys():
-                custom_handles.append(
-                    Line2D([0], [0], color=legenddict["ok"], label="ok", lw=4)
-                )
-                del legenddict["ok"]  # remove ok key
-
-            for gapfillmethod, label in gap_settings["gaps_fill_info"]["label"].items():
-                if label in legenddict.keys():
-                    custom_handles.append(
-                        Line2D(
-                            [0],
-                            [0],
-                            color=legenddict[gap_settings["gap_fill_info"]["label"]],
-                            label=f"gap filled ({gapfillmethod})",
-                            lw=4,
-                            linestyle="--",
-                        )
-                    )
-                    del legenddict[label]  # remove key
-
-            custom_scatters = [
-                Line2D(
-                    [0],
-                    [0],
-                    marker="o",
-                    color="w",
-                    markerfacecolor=col,
-                    label=lab,
-                    lw=1,
-                )
-                for lab, col in legenddict.items()
-            ]
-
-            custom_handles.extend(custom_scatters)
+            # TODO: sort items
+            # # sort legend items
+            # sorted_handles = []
+            # # group 1, 2, 3
+            # sorted_handles.append([item[1] for item in custom_handles if item[0] == 1])
+            # sorted_handles.append([item[1] for item in custom_handles if item[0] == 2])
+            # sorted_handles.append([item[1] for item in custom_handles if item[0] == 3])
             ax.legend(handles=custom_handles)
 
     elif colorby == "name":
         plotdf = mergedf.reset_index().pivot(
-            index="datetime", columns="name", values=obstype
+            index="datetime", columns="name", values='value'
         )
         ax = plotdf.plot(kind="line", legend=show_legend, ax=ax)
 
@@ -514,8 +513,16 @@ def _outl_value_to_colormapper(plot_settings, qc_check_info):
     return outl_col_mapper
 
 
-def _all_possible_labels_colormapper(plot_settings, qc_info_settings, gap_settings):
+def _all_possible_labels_colormapper(settings):
     """Make color mapper for all LABELVALUES to colors."""
+
+
+    plot_settings = settings.app["plot_settings"]
+    gap_settings = settings.gap
+    qc_info_settings = settings.qc["qc_checks_info"]
+    missing_obs_settings = settings.missing_obs['missing_obs_fill_info']
+
+
     color_defenitions = plot_settings["color_mapper"]
 
     mapper = dict()
@@ -536,9 +543,17 @@ def _all_possible_labels_colormapper(plot_settings, qc_info_settings, gap_settin
         gap_settings["gaps_info"]["missing_timestamp"]["outlier_flag"]
     ] = color_defenitions["missing_timestamp"]
 
-    # add gapfill
+    # add fill for gaps
     for method, label in gap_settings["gaps_fill_info"]["label"].items():
         mapper[label] = color_defenitions[method]
+
+    # add fill for missing
+    for method, label in missing_obs_settings['label'].items():
+        mapper[label] = color_defenitions[method]
+
+
+
+
 
     return mapper
 

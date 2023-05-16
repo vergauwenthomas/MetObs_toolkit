@@ -65,6 +65,7 @@ class Gap:
         self.name = name
         self.startgap = startdt  # in IO space
         self.endgap = enddt  # in IO space
+        self.duration = enddt - startdt
 
         # computed attributes
         self.leading_timestamp = None  # last ob_dt before gap in datset space
@@ -75,9 +76,10 @@ class Gap:
         # gap fill (only for conventional saving)
         self.gapfill_values = None
         self.gapfill_technique = None
+        self.gapfill_info = None #only for the user
 
     def __str__(self):
-        return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}"
+        return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}, duration: {self.duration}"
     def __repr__(self):
         return self.__str__()
 
@@ -94,7 +96,10 @@ class Gap:
 
         """
         return pd.DataFrame(
-            index=[self.name], data={"start_gap": self.startgap, "end_gap": self.endgap}
+            index=[self.name],
+            data={"start_gap": self.startgap,
+                  "end_gap": self.endgap,
+                  "duration": self.duration}
         )
 
     def update_leading_trailing_obs(self, obsdf, outliersdf):
@@ -231,7 +236,7 @@ class Gap:
 
         outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
-        gapfill_series = interpolate_gap(
+        gapfill_series, self.gapfill_info = interpolate_gap(
             gap=self,
             obsdf=obsdf,
             outliersdf=outliersdf,
@@ -267,6 +272,10 @@ class Gap_collection:
             Gap(sta, row["start_gap"], row["end_gap"]) for sta, row in gapsdf.iterrows()
         ]
 
+    def __add__(self, other):
+        self.list.extend(other.list)
+        return self
+
     def __str__(self):
         if not bool(self.list):
             return f'Empty gap collection'
@@ -276,6 +285,22 @@ class Gap_collection:
         return f"Gap collection for: \n {longstring}"
     def __repr__(self):
         return self.__str__()
+
+    def _add_gaplist(self, gaplist):
+        """
+        Add a list of gap elements to the Gap_collection
+
+        Parameters
+        ----------
+        gaplist : list
+            list of gaps.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.list.extend(gaplist)
 
     def to_df(self):
         gaps_names = []
@@ -288,9 +313,12 @@ class Gap_collection:
 
         df = pd.DataFrame(
             index=pd.Index(gaps_names),
-            data={"start_gap": gaps_startdt, "end_gap": gaps_enddt},
+            data={"start_gap": gaps_startdt,
+                  "end_gap": gaps_enddt},
         )
         df.index.name = "name"
+
+        df['duration'] = df['end_gap'] - df['start_gap']
 
         return df
 
@@ -313,7 +341,7 @@ class Gap_collection:
         gapdf = self.to_df()
 
         if name in gapdf.index:
-            return Gap_collection(gapdf.loc[name])
+            return Gap_collection(gapdf.loc[[name]])
         else:
             return Gap_collection(pd.DataFrame())
 
@@ -422,7 +450,8 @@ class Gap_collection:
         )
 
         for gap in self.list:
-            gapfill_series = interpolate_gap(
+            print(f'Interpolation gapfill for {gap}.')
+            gapfill_series, gap.gagapfill_info = interpolate_gap(
                 gap=gap,
                 obsdf=obsdf,
                 outliersdf=outliersdf,
@@ -435,10 +464,6 @@ class Gap_collection:
             gapdf = gapfill_series.to_frame().reset_index()
             gapdf["name"] = gap.name
             gapdf = gapdf.set_index(['name', 'datetime'])
-            # gapdf.index = pd.MultiIndex.from_arrays(
-            #     arrays=[gapdf["name"].values, gapdf["datetime"].values],
-            #     names=["name", "datetime"],
-            # )
 
             # Update gap
             gap.gapfill_technique = "interpolation"
@@ -453,11 +478,18 @@ class Gap_collection:
         expanded_gabsidx_obsspace = pd.MultiIndex(
             levels=[["name"], ["datetime"]], codes=[[], []], names=["name", "datetime"]
         )
+
         filled_gaps_series = pd.Series(
             data=[], index=expanded_gabsidx_obsspace, dtype=object
         )
 
+        # Convert modeldata to the same timzone as the data
+        targettz = dataset.df.index.get_level_values('datetime').tz.zone
+        eraModelData._conv_to_timezone(targettz)
+
+
         for gap in self.list:
+            print(f' Era5 gapfill for {gap}')
             # avoid passing full dataset around
             station = dataset.get_station(gap.name)
 
@@ -471,7 +503,7 @@ class Gap_collection:
             # get leading and trailing period
             leading_obs, trailing_obs = gap.get_leading_trailing_debias_periods(
                 obstype=obstype,
-                station=dataset.get_station(gap.name),
+                station=station,
                 debias_periods=debias_settings["debias_period"],
             )
             # check if leading/trailing is valid
@@ -513,7 +545,7 @@ class Gap_collection:
             gap_model = eraModelData.interpolate_modeldata(gap.exp_gap_idx)
 
             # apply bias correction
-            filled_gap_series = make_era_bias_correction(
+            filled_gap_series, fill_info = make_era_bias_correction(
                 leading_model=leading_model,
                 trailing_model=trailing_model,
                 gap_model=gap_model,
@@ -525,11 +557,46 @@ class Gap_collection:
             # Update gap
             gap.gapfill_technique = "debias era5 gapfill"
             gap.gapfill_values = filled_gap_series
+            gap.gapfill_info = fill_info
 
             filled_gaps_series = pd.concat([filled_gaps_series, filled_gap_series])
 
         filled_gaps_series.name = obstype
         return filled_gaps_series
+
+# =============================================================================
+# Helpers
+# =============================================================================
+def _gap_collection_from_list_of_gaps(gaplist):
+    """
+    Construct a metobs_toolkit.Gap_collection from a list of metobs_toolkit.Gap's.
+
+    Parameters
+    ----------
+    gaplist : list
+        list of metobs_toolkit.Gap elements.
+
+    Returns
+    -------
+    metobs_toolkit.Gap_collection
+
+    """
+    stations=[]
+    starts = []
+    ends = []
+    for gap in gaplist:
+        stations.append(gap.name)
+        starts.append(gap.startgap)
+        ends.append(gap.endgap)
+
+    df = pd.DataFrame(data={'start_gap': starts,
+                            'end_gap': ends},
+                      index=stations)
+    df.index.name = 'name'
+
+    return Gap_collection(df)
+
+
 
 
 # =============================================================================
@@ -668,3 +735,4 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
     df = df.sort_index()
 
     return df, missing_timestamp_series, gap_df
+
