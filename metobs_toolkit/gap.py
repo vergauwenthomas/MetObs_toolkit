@@ -76,6 +76,7 @@ class Gap:
         # gap fill (only for conventional saving)
         self.gapfill_values = None
         self.gapfill_technique = None
+        self.gapfill_info = None #only for the user
 
     def __str__(self):
         return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}, duration: {self.duration}"
@@ -235,7 +236,7 @@ class Gap:
 
         outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
-        gapfill_series = interpolate_gap(
+        gapfill_series, self.gapfill_info = interpolate_gap(
             gap=self,
             obsdf=obsdf,
             outliersdf=outliersdf,
@@ -449,7 +450,8 @@ class Gap_collection:
         )
 
         for gap in self.list:
-            gapfill_series = interpolate_gap(
+            print(f'Interpolation gapfill for {gap}.')
+            gapfill_series, gap.gagapfill_info = interpolate_gap(
                 gap=gap,
                 obsdf=obsdf,
                 outliersdf=outliersdf,
@@ -462,10 +464,6 @@ class Gap_collection:
             gapdf = gapfill_series.to_frame().reset_index()
             gapdf["name"] = gap.name
             gapdf = gapdf.set_index(['name', 'datetime'])
-            # gapdf.index = pd.MultiIndex.from_arrays(
-            #     arrays=[gapdf["name"].values, gapdf["datetime"].values],
-            #     names=["name", "datetime"],
-            # )
 
             # Update gap
             gap.gapfill_technique = "interpolation"
@@ -547,7 +545,7 @@ class Gap_collection:
             gap_model = eraModelData.interpolate_modeldata(gap.exp_gap_idx)
 
             # apply bias correction
-            filled_gap_series = make_era_bias_correction(
+            filled_gap_series, fill_info = make_era_bias_correction(
                 leading_model=leading_model,
                 trailing_model=trailing_model,
                 gap_model=gap_model,
@@ -559,6 +557,7 @@ class Gap_collection:
             # Update gap
             gap.gapfill_technique = "debias era5 gapfill"
             gap.gapfill_values = filled_gap_series
+            gap.gapfill_info = fill_info
 
             filled_gaps_series = pd.concat([filled_gaps_series, filled_gap_series])
 

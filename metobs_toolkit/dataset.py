@@ -490,6 +490,8 @@ class Dataset:
         of these outliers for a station, larger than n_gapsize than this will
         be interpreted as a gap.
 
+        The outliers are not removed.
+
         Parameters
         ----------
         obstype : str, optional
@@ -585,14 +587,36 @@ class Dataset:
         self.gaps = self.gaps + new_gapcollection
         self.missing_obs = self.missing_obs + new_missing_collection
 
-    # =============================================================================
-    #   Gap Filling
-    # =============================================================================
+
 
 
     def fill_gaps_automatic(self, modeldata, obstype='temp',
                             max_interpolate_duration_str=None,
                             overwrite=True):
+        """
+        Fill gaps using an automatic decision on which method to use to fill.
+        For small gaps (gap_duration <= max_interpolate_duration_str) interpolation
+        is applied, for larger gaps the model debias method is used.
+
+        Parameters
+        ----------
+        modeldata : metobs_toolkit.Modeldata
+            The ERA5 Modeldata instance containing observations for the periods
+            gaps and the leading/trailing periods..
+        obstype : str, optional
+            Observation type to fill the gaps for. The default is 'temp'.
+        max_interpolate_duration_str : timedelta or timedeltastring, optional
+            A time indication (like '5H') to indicate the maximum gapsize to use
+            interpolation for. If None, the default settings will be used. The default is None.
+        overwrite : bool, optional
+            If True, present gapfill values will be overwritten. The default is True.
+
+        Returns
+        -------
+        comb_df : TYPE
+            DESCRIPTION.
+
+        """
 
         # Validate input
         # check if modeldata is available
@@ -681,7 +705,8 @@ class Dataset:
 
         # combine both fill df's
         comb_df = pd.concat([filldf_interp, filldf_debias])
-        print("done")
+        if overwrite:
+            self.gapfilldf = comb_df
         return comb_df
 
 
