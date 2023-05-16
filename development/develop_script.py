@@ -216,3 +216,5 @@ enddt = datetime(2022, 10, 10)
 
 
 
+dataset.import_data_from_file()
+print(dataset)
