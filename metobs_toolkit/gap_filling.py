@@ -378,7 +378,7 @@ def make_era_bias_correction(leading_model, trailing_model,
      )
 
     gap_model = gap_model.set_index(['name', 'datetime'])
-    # TODO: if not hourly biases are computed --> use no debiassing
+
     # Idea: if BOTH leadin and trailing (hourly) biases is available, than use
     # use the debias corection (even if it is for a part of the gap!).
     # If either one or both are missing, than no bias correction is applied

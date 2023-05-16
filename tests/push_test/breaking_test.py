@@ -258,10 +258,10 @@ man_gapsdf = man_gapsdf.set_index("name")
 
 # Set timezone
 man_gapsdf["start_gap"] = pd.to_datetime(man_gapsdf["start_gap"]).dt.tz_localize(
-    tz="Europe/Brussels"
+    tz="UTC"
 )
 man_gapsdf["end_gap"] = pd.to_datetime(man_gapsdf["end_gap"]).dt.tz_localize(
-    tz="Europe/Brussels"
+    tz="UTC"
 )
 
 
@@ -322,7 +322,7 @@ man_missing_timestamps_df = pd.DataFrame(
 # set timezone
 man_missing_timestamps_df["datetime"] = pd.to_datetime(
     man_missing_timestamps_df["datetime"]
-).dt.tz_localize(tz="Europe/Brussels")
+).dt.tz_localize(tz="UTC")
 
 # get index
 man_missing_timestamps_idx = pd.MultiIndex.from_frame(

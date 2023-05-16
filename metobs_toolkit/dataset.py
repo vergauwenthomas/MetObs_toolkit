@@ -334,7 +334,6 @@ class Dataset:
         # Make plot
         ax = timeseries_plot(
             mergedf=mergedf,
-            # obstype=obstype,
             title=title,
             xlabel="Timestamp",
             ylabel=self.data_template[obstype]["orig_name"],
