@@ -254,18 +254,18 @@
 <span class="linenos">38</span>
 <span class="linenos">39</span><span class="c1"># aggregated</span>
 <span class="linenos">40</span><span class="n">agg_landcover</span> <span class="o">=</span> <span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">get_landcover</span><span class="p">(</span>
-<span class="linenos">41</span>    <span class="n">buffer</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">aggregate</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># in meters</span>
-<span class="linenos">42</span><span class="p">)</span>
-<span class="linenos">43</span>
-<span class="linenos">44</span><span class="nb">print</span><span class="p">(</span><span class="n">agg_landcover</span><span class="p">)</span>
+<span class="linenos">41</span>    <span class="n">buffers</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">250</span><span class="p">],</span> <span class="c1"># in meters</span>
+<span class="linenos">42</span>    <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="linenos">43</span>    <span class="n">aggregate</span><span class="o">=</span><span class="kc">True</span>
+<span class="linenos">44</span><span class="p">)</span>
 <span class="linenos">45</span>
-<span class="linenos">46</span><span class="c1"># (the metadata is updated as well)</span>
-<span class="linenos">47</span><span class="nb">print</span><span class="p">(</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">metadf</span><span class="p">)</span>
-<span class="linenos">48</span>
-<span class="linenos">49</span>
-<span class="linenos">50</span><span class="c1"># one can also extract the elevation for all stations from a DEM dataset. The syntax is the same</span>
-<span class="linenos">51</span><span class="c1"># as for the LCZ</span>
-<span class="linenos">52</span>
+<span class="linenos">46</span><span class="nb">print</span><span class="p">(</span><span class="n">agg_landcover</span><span class="p">)</span>
+<span class="linenos">47</span>
+<span class="linenos">48</span><span class="c1"># (the metadata is updated as well)</span>
+<span class="linenos">49</span><span class="nb">print</span><span class="p">(</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">metadf</span><span class="p">)</span>
+<span class="linenos">50</span>
+<span class="linenos">51</span>
+<span class="linenos">52</span><span class="c1"># one can also extract the elevation for all stations from a DEM dataset. The syntax is the same</span>
 </pre></div>
 </div>
 </section>
