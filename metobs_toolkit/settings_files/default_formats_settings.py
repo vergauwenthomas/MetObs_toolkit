@@ -47,6 +47,7 @@ plot_settings["time_series"] = {
     "scattersize": 4,  # for outliers
     "scatterzorder": 2,  # for outliers
     "dashedzorder": 2,  # for gapfills
+    "legend_n_columns": 5, # for the number of columns in the plot
 }
 # =============================================================================
 # Spatial plot settings
@@ -118,6 +119,7 @@ plot_settings["diurnal"] = {
 
     'n_cat_max': 20, #when less or equal categories are detected, use the categorical col mapping
     'cmap_categorical': "tab20",
+    "legend_n_columns": 5,
 
 
 

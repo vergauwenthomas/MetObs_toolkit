@@ -82,13 +82,14 @@ aug_2020_all_vlinders.make_plot(
 favorite_station = aug_2020_all_vlinders.get_station(stationname="vlinder02")
 favorite_station.apply_quality_control()
 
+
 # Possible obstypes to plot:
 # 'temp','radiation_temp','humidity','precip','precip_sum','wind_speed',
 # 'wind_gust','wind_direction','pressure','pressure_at_sea_level'
 
 
 favorite_station.make_plot(
-    obstype="temp", colorby="label", title=None
+    obstype="temp", colorby="label", legend=True, title=None
 )  # if title=None, a title will be generated
 
 # Nan values will be not shown in the plot
