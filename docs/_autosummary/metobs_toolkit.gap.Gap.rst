@@ -17,7 +17,7 @@ metobs\_toolkit.gap.Gap
       :nosignatures:
    
       ~Gap.apply_interpolate_gap
-      ~Gap.get_leading_trailing_debias_periods
+      ~Gap.get_info
       ~Gap.to_df
       ~Gap.update_gaps_indx_in_obs_space
       ~Gap.update_leading_trailing_obs

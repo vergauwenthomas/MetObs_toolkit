@@ -25,7 +25,6 @@ import sys
 
 sys.path.append(str(main_folder))
 
-
 import metobs_toolkit
 
 

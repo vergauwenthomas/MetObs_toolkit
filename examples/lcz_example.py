@@ -81,7 +81,9 @@ aug_2020_all_vlinders.make_geo_plot(obstype="lcz")
 
 # aggregated
 agg_landcover = aug_2020_all_vlinders.get_landcover(
-    buffer=250, aggregate=True  # in meters
+    buffers=[100, 250], # in meters
+    overwrite=True,
+    aggregate=True
 )
 
 print(agg_landcover)

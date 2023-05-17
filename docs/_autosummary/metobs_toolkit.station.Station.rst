@@ -25,6 +25,7 @@ metobs\_toolkit.station.Station
       ~Station.fill_missing_obs_linear
       ~Station.get_altitude
       ~Station.get_analysis
+      ~Station.get_gaps_df
       ~Station.get_landcover
       ~Station.get_lcz
       ~Station.get_modeldata

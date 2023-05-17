@@ -54,9 +54,14 @@ from metobs_toolkit.missingobs import Missingob_collection
 
 from metobs_toolkit.gap import (
     Gap,
-    Gap_collection,
+    remove_gaps_from_obs,
     missing_timestamp_and_gap_check,
-    _gap_collection_from_list_of_gaps
+    get_gaps_indx_in_obs_space,
+    get_station_gaps,
+    apply_interpolate_gaps,
+    make_gapfill_df,
+    apply_debias_era5_gapfill,
+    gaps_to_df,
 )
 
 
@@ -101,7 +106,7 @@ class Dataset:
         self.outliersdf = init_triple_multiindexdf()
 
         self.missing_obs = None  # becomes a Missingob_collection after import
-        self.gaps = None  # becomes a gap_collection after import
+        self.gaps = None  # becomes a list of gaps
 
         self.gapfilldf = init_multiindexdf()
         self.missing_fill_df = init_multiindexdf()
@@ -121,6 +126,28 @@ class Dataset:
 
 
 
+    def __str__(self):
+        if self.df.empty:
+            return f"Empty instance of a Dataset."
+        add_info = ''
+        n_stations = self.df.index.get_level_values('name').unique().shape[0]
+        n_obs_tot = self.df.shape[0]
+        n_outl = self.outliersdf.shape[0]
+
+        if ((not self.metadf['lat'].isnull().all()) &
+            (not self.metadf['lon'].isnull().all())):
+            add_info += '     *Coordinates are available for all stations. \n'
+
+
+        return (f"Dataset instance containing: \n \
+    *{n_stations} stations \n \
+    *{n_obs_tot} observation records \n \
+    *{n_outl} records labeled as outliers \n \
+    *{len(self.gaps)} gaps \n \
+    *{self.missing_obs.series.shape[0]} missing observations \n" + add_info)
+
+    def __repr__(self):
+        return self.__str__()
 
 
     def show_settings(self):
@@ -172,7 +199,7 @@ class Dataset:
         except KeyError:
             sta_outliers = init_multiindexdf()
 
-        sta_gaps = self.gaps.get_station_gaps(stationname)
+        sta_gaps = get_station_gaps(self.gaps, stationname)
         sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
 
         try:
@@ -241,6 +268,7 @@ class Dataset:
         legend=True,
         show_outliers=True,
         show_filled = True,
+        _ax=None, #needed for GUI, not recommended use
     ):
         """
         This function creates a timeseries plot for the dataset. The variable observation type
@@ -340,7 +368,8 @@ class Dataset:
             colorby=colorby,
             show_legend=legend,
             show_outliers=show_outliers,
-            settings = self.settings
+            settings = self.settings,
+            _ax = _ax
         )
 
         return ax
@@ -530,7 +559,6 @@ class Dataset:
 
         # combine to one dataframe
         mergedf = self.combine_all_to_obsspace()
-
         mergedf = mergedf.xs(obstype, level='obstype')
 
 
@@ -549,7 +577,8 @@ class Dataset:
         ]
 
         # find only groups with final label as an outlier
-        new_gapsdf = pd.DataFrame()
+        gaps = []
+        # new_gapsdf = pd.DataFrame()
         new_gaps_idx = init_multiindex()
         for group_idx in outlier_groups.index:
             groupdf = grouped.get_group(group_idx)
@@ -558,12 +587,15 @@ class Dataset:
                 #no gap candidates
                 continue
             else:
+                gap =Gap(name=groupdf.index.get_level_values('name')[0],
+                         startdt=groupdf.index.get_level_values('datetime').min(),
+                         enddt=groupdf.index.get_level_values('datetime').max())
 
-                new_gapsdf = pd.concat([new_gapsdf,
-                                        pd.DataFrame(data={'start_gap': [groupdf.index.get_level_values('datetime').min()],
-                                                           'end_gap': [groupdf.index.get_level_values('datetime').max()]},
-                                                     index=[groupdf.index.get_level_values('name')[0]])])
-
+                gaps.append(gap)
+                # new_gapsdf = pd.concat([new_gapsdf,
+                #                         pd.DataFrame(data={'start_gap': [groupdf.index.get_level_values('datetime').min()],
+                #                                            'end_gap': [groupdf.index.get_level_values('datetime').max()]},
+                #                                      index=[groupdf.index.get_level_values('name')[0]])])
 
                 new_gaps_idx = new_gaps_idx.union(groupdf.index, sort=False)
 
@@ -573,49 +605,147 @@ class Dataset:
         new_missing_obs = mergedf[mergedf['label'].isin(possible_outlier_labels)].index
         new_missing_obs = new_missing_obs.drop(new_gaps_idx.to_numpy(), errors='ignore')
 
+
         # to series
         missing_obs_series = new_missing_obs.to_frame().reset_index(drop=True).set_index('name')['datetime']
         # Create missing obs
         new_missing_collection = Missingob_collection(missing_obs_series)
 
-        # to gapcollection
-        new_gapsdf.index.name='name'
-        new_gapcollection = Gap_collection(new_gapsdf)
-        # update self
 
-        self.gaps = self.gaps + new_gapcollection
+
+        # update self
+        self.gaps.extend(gaps)
         self.missing_obs = self.missing_obs + new_missing_collection
 
 
+
+    # =============================================================================
+    #   Gap Filling
+    # =============================================================================
+
+    # def fill_gaps_automatic(self, modeldata, obstype='temp',
+    #                         max_interpolate_duration_str=None,
+    #                         overwrite=True):
+    #     """
+    #     Fill gaps using an automatic decision on which method to use to fill.
+    #     For small gaps (gap_duration <= max_interpolate_duration_str) interpolation
+    #     is applied, for larger gaps the model debias method is used.
+
+    #     Parameters
+    #     ----------
+    #     modeldata : metobs_toolkit.Modeldata
+    #         The ERA5 Modeldata instance containing observations for the periods
+    #         gaps and the leading/trailing periods..
+    #     obstype : str, optional
+    #         Observation type to fill the gaps for. The default is 'temp'.
+    #     max_interpolate_duration_str : timedelta or timedeltastring, optional
+    #         A time indication (like '5H') to indicate the maximum gapsize to use
+    #         interpolation for. If None, the default settings will be used. The default is None.
+    #     overwrite : bool, optional
+    #         If True, present gapfill values will be overwritten. The default is True.
+
+    #     Returns
+    #     -------
+    #     comb_df : TYPE
+    #         DESCRIPTION.
+
+    #     """
+
+    #     # Validate input
+    #     # check if modeldata is available
+    #     if modeldata is None:
+    #         print(
+    #             "The dataset has no modeldate. Use the set_modeldata() function to add modeldata."
+    #         )
+    #         return None
+
+    #     # check if obstype is present in eramodel
+    #     assert (
+    #         obstype in modeldata.df.columns
+    #     ), f"{obstype} is not present in the modeldate: {modeldata}"
+
+    #     # check if all station are present in eramodeldata
+    #     stations = self.gaps.to_df().index.unique().to_list()
+    #     assert all(
+    #         [sta in modeldata.df.index.get_level_values("name") for sta in stations]
+    #     ), f"Not all stations with gaps are in the modeldata!"
+
+    #     if not self.gapfilldf.empty:
+    #         if overwrite:
+    #             print("Gapfilldf will be overwritten!")
+    #             self.gapfilldf = init_multiindexdf()
+    #         else:
+    #             print('Gapfilldf is not empty, set "overwrite=True" to overwrite it!')
+    #             print("CANCEL gap fill with ERA5")
+    #             return
+
+    #     if max_interpolate_duration_str is None:
+    #         max_interpolate_duration_str = self.settings.gap["gaps_fill_settings"]["automatic"]["max_interpolation_duration_str"]
+
+    #     fill_info = self.settings.gap["gaps_fill_info"]
+
+    #     # select the method to apply gapfill per gap
+    #     interpolate_gaps = []
+    #     debias_gaps = []
+
+    #     for gap in self.gaps.list:
+    #         if gap.duration <= pd.to_timedelta(max_interpolate_duration_str):
+    #             interpolate_gaps.append(gap)
+    #         else:
+    #             debias_gaps.append(gap)
+
+
+    #     # convert to Gap_collection
+    #     interpolate_gap_collection = _gap_collection_from_list_of_gaps(interpolate_gaps)
+    #     debias_gap_collection =_gap_collection_from_list_of_gaps(debias_gaps)
+
+
+    #     #1  Fill by interpolation
+
+    #     filldf_interp = init_multiindexdf()
+
+    #     fill_settings_interp = self.settings.gap["gaps_fill_settings"]["linear"]
+
+
+    #     filldf_interp[obstype] = interpolate_gap_collection.apply_interpolate_gaps(
+    #                         obsdf=self.df,
+    #                         outliersdf=self.outliersdf,
+    #                         dataset_res=self.metadf["dataset_resolution"],
+    #                         obstype=obstype,
+    #                         method=fill_settings_interp["method"],
+    #                         max_consec_fill=fill_settings_interp["max_consec_fill"],
+    #                         )
+
+    #     # add label column
+    #     filldf_interp[obstype + "_" + fill_info["label_columnname"]] = fill_info["label"]["linear"]
+
+
+    #     #2 Fill by debias
+    #     filldf_debias = init_multiindexdf()
+
+    #     fill_settings_debias = self.settings.gap["gaps_fill_settings"]["model_debias"]
+
+
+    #     apply_debias_era5_gapfill(gapslist = self.gaps
+    #                               dataset=self,
+    #                               eraModelData=modeldata,
+    #                               obstype=obstype,
+    #                               debias_settings=fill_settings_debias)
+
+    #     # add label column
+    #     filldf_debias[obstype + "_" + fill_info["label_columnname"]] = fill_info["label"]["model_debias"]
+
+
+    #     # combine both fill df's
+    #     comb_df = pd.concat([filldf_interp, filldf_debias])
+    #     if overwrite:
+    #         self.gapfilldf = comb_df
+    #     return comb_df
 
 
     def fill_gaps_automatic(self, modeldata, obstype='temp',
                             max_interpolate_duration_str=None,
                             overwrite=True):
-        """
-        Fill gaps using an automatic decision on which method to use to fill.
-        For small gaps (gap_duration <= max_interpolate_duration_str) interpolation
-        is applied, for larger gaps the model debias method is used.
-
-        Parameters
-        ----------
-        modeldata : metobs_toolkit.Modeldata
-            The ERA5 Modeldata instance containing observations for the periods
-            gaps and the leading/trailing periods..
-        obstype : str, optional
-            Observation type to fill the gaps for. The default is 'temp'.
-        max_interpolate_duration_str : timedelta or timedeltastring, optional
-            A time indication (like '5H') to indicate the maximum gapsize to use
-            interpolation for. If None, the default settings will be used. The default is None.
-        overwrite : bool, optional
-            If True, present gapfill values will be overwritten. The default is True.
-
-        Returns
-        -------
-        comb_df : TYPE
-            DESCRIPTION.
-
-        """
 
         # Validate input
         # check if modeldata is available
@@ -631,7 +761,8 @@ class Dataset:
         ), f"{obstype} is not present in the modeldate: {modeldata}"
 
         # check if all station are present in eramodeldata
-        stations = self.gaps.to_df().index.unique().to_list()
+        # stations = self.gaps.to_df().index.unique().to_list()
+        stations = list(set([gap.name for gap in self.gaps]))
         assert all(
             [sta in modeldata.df.index.get_level_values("name") for sta in stations]
         ), f"Not all stations with gaps are in the modeldata!"
@@ -654,52 +785,43 @@ class Dataset:
         interpolate_gaps = []
         debias_gaps = []
 
-        for gap in self.gaps.list:
+        for gap in self.gaps:
             if gap.duration <= pd.to_timedelta(max_interpolate_duration_str):
                 interpolate_gaps.append(gap)
             else:
                 debias_gaps.append(gap)
 
-
-        # convert to Gap_collection
-        interpolate_gap_collection = _gap_collection_from_list_of_gaps(interpolate_gaps)
-        debias_gap_collection =_gap_collection_from_list_of_gaps(debias_gaps)
-
-
         #1  Fill by interpolation
-
-        filldf_interp = init_multiindexdf()
 
         fill_settings_interp = self.settings.gap["gaps_fill_settings"]["linear"]
 
 
-        filldf_interp[obstype] = interpolate_gap_collection.apply_interpolate_gaps(
+        apply_interpolate_gaps(
+                            gapslist=interpolate_gaps,
                             obsdf=self.df,
                             outliersdf=self.outliersdf,
                             dataset_res=self.metadf["dataset_resolution"],
+                            gapfill_settings=self.settings.gap['gaps_fill_info'],
                             obstype=obstype,
                             method=fill_settings_interp["method"],
                             max_consec_fill=fill_settings_interp["max_consec_fill"],
                             )
 
-        # add label column
-        filldf_interp[obstype + "_" + fill_info["label_columnname"]] = fill_info["label"]["linear"]
-
+        filldf_interp = make_gapfill_df(interpolate_gaps)
 
         #2 Fill by debias
-        filldf_debias = init_multiindexdf()
 
         fill_settings_debias = self.settings.gap["gaps_fill_settings"]["model_debias"]
 
 
-        filldf_debias[obstype] = debias_gap_collection.apply_debias_era5_gapfill(
+        apply_debias_era5_gapfill(gapslist=debias_gaps,
                                         dataset=self,
                                         eraModelData=modeldata,
                                         obstype=obstype,
                                         debias_settings=fill_settings_debias)
 
         # add label column
-        filldf_debias[obstype + "_" + fill_info["label_columnname"]] = fill_info["label"]["model_debias"]
+        filldf_debias = make_gapfill_df(debias_gaps)
 
 
         # combine both fill df's
@@ -709,7 +831,7 @@ class Dataset:
         return comb_df
 
 
-    def fill_gaps_linear(self, obstype="temp"):
+    def fill_gaps_linear(self, obstype="temp", overwrite=True):
         """
         Fill the gaps using linear interpolation.
 
@@ -729,19 +851,25 @@ class Dataset:
         fill_info = self.settings.gap["gaps_fill_info"]
 
         # fill gaps
-        self.gapfilldf[obstype] = self.gaps.apply_interpolate_gaps(
+        apply_interpolate_gaps(
+            gapslist=self.gaps,
             obsdf=self.df,
             outliersdf=self.outliersdf,
             dataset_res=self.metadf["dataset_resolution"],
+            gapfill_settings=self.settings.gap['gaps_fill_info'],
             obstype=obstype,
             method=fill_settings["method"],
             max_consec_fill=fill_settings["max_consec_fill"],
         )
 
-        # add label column
-        self.gapfilldf[obstype + "_" + fill_info["label_columnname"]] = fill_info[
-            "label"
-        ]["linear"]
+        # get gapfilldf
+        gapfilldf = make_gapfill_df(self.gaps)
+
+        if overwrite:
+            self.gapfilldf = gapfilldf
+
+        return gapfilldf
+
 
     def fill_missing_obs_linear(self, obstype='temp'):
         # TODO logging
@@ -763,6 +891,19 @@ class Dataset:
         # Update attribute
 
         self.missing_fill_df = missing_fill_df
+
+    def get_gaps_df(self):
+        """
+        List all gaps into an overview dataframe.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame with stationnames as index, and the start, end and duretion
+            of the gaps as columns.
+
+        """
+        return gaps_to_df(self.gaps)
 
 
 
@@ -805,7 +946,8 @@ class Dataset:
 
         Returns
         -------
-        None.
+        Gapfilldf : pandas.DataFrame
+            A dataframe containing all gap filled values and the use method.
 
         """
 
@@ -822,35 +964,32 @@ class Dataset:
             obstype in modeldata.df.columns
         ), f"{obstype} is not present in the modeldate: {modeldata}"
         # check if all station are present in eramodeldata
-        stations = self.gaps.to_df().index.unique().to_list()
+        # stations = self.gaps.to_df().index.unique().to_list()
+        stations = list(set([gap.name for gap in self.gaps]))
         assert all(
             [sta in modeldata.df.index.get_level_values("name") for sta in stations]
         ), f"Not all stations with gaps are in the modeldata!"
 
-        if not self.gapfilldf.empty:
-            if overwrite:
-                print("Gapfilldf will be overwritten!")
-                self.gapfilldf = init_multiindexdf()
-            else:
-                print('Gapfilldf is not empty, set "overwrite=True" to overwrite it!')
-                print("CANCEL gap fill with ERA5")
-                return
 
         if method == "debias":
-            test = self.gaps.apply_debias_era5_gapfill(
-                dataset=self,
-                eraModelData=modeldata,
-                obstype=obstype,
-                debias_settings=self.settings.gap["gaps_fill_settings"]["model_debias"],
-            )
 
-            self.gapfilldf[obstype] = test
-            # add label column
-            self.gapfilldf[obstype + "_" + fill_info["label_columnname"]] = fill_info[
-                "label"
-            ]["model_debias"]
+            fill_settings_debias = self.settings.gap["gaps_fill_settings"]["model_debias"]
+
+
+            apply_debias_era5_gapfill(gapslist=self.gaps,
+                                            dataset=self,
+                                            eraModelData=modeldata,
+                                            obstype=obstype,
+                                            debias_settings=fill_settings_debias)
+
+            # get fill df
+            filldf = make_gapfill_df(self.gaps)
         else:
             print("not implemented yet")
+
+        if overwrite:
+            self.gapfilldf = filldf
+        return filldf
 
     def write_to_csv(
         self,
@@ -1207,9 +1346,10 @@ class Dataset:
         gapsfilldf = value_labeled_doubleidxdf_to_triple_idxdf(gapsfilldf)
         gapsfilldf['toolkit_representation'] = 'gap fill'
 
-        gapsidx = self.gaps.get_gaps_indx_in_obs_space(
-            self.df, self.outliersdf, self.metadf["dataset_resolution"]
-        )
+        gapsidx = get_gaps_indx_in_obs_space(gapslist=self.gaps,
+                                             obsdf = self.df,
+                                             outliersdf = self.outliersdf,
+                                             resolutionseries=self.metadf["dataset_resolution"])
 
         gapsdf = pd.DataFrame(index=gapsidx, columns=present_obstypes)
         gapsdf = gapsdf.stack(dropna=False).reset_index().rename(columns={'level_2': 'obstype', 0: 'value'}).set_index(['name', 'datetime', 'obstype'])
@@ -1444,7 +1584,7 @@ class Dataset:
         # Remove gaps and missing from the observatios
         # most gaps and missing are already removed but when increasing timeres,
         # some records should be removed as well.
-        self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
+        self.df = remove_gaps_from_obs(gaplist = self.gaps, obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
 
@@ -1939,7 +2079,7 @@ class Dataset:
         self.metadf["dataset_resolution"] = freq_series
 
         # Remove gaps and missing from the observations AFTER timecoarsening
-        self.df = self.gaps.remove_gaps_from_obs(obsdf=self.df)
+        self.df = remove_gaps_from_obs(gaplist = self.gaps, obsdf=self.df)
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
 
@@ -1966,14 +2106,14 @@ class Dataset:
 
     def _apply_qc_on_import(self):
         # find missing obs and gaps, and remove them from the df
-        self.df, missing_obs, gaps_df = missing_timestamp_and_gap_check(
+        self.missing_obs, self.gaps = missing_timestamp_and_gap_check(
             df=self.df,
             gapsize_n=self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"],
         )
 
         # Create gaps and missing obs objects
-        self.gaps = Gap_collection(gaps_df)
-        self.missing_obs = Missingob_collection(missing_obs)
+        # self.gaps = gaps_list
+        # self.missing_obs = Missingob_collection(missing_obs)
 
         # Perform QC checks on original observation frequencies
         self.df, dup_outl_df = duplicate_timestamp_check(
@@ -2050,26 +2190,77 @@ class Dataset:
         )
         return altitude_series
 
-    def get_landcover(self, buffer=100, aggregate=True):
+    def get_landcover(self, buffers=[100], aggregate=True, overwrite=True, gee_map='worldcover'):
+        """
+        Extract the landcover fractions in a buffer with a specific radius for
+        all stations. If an aggregation scheme is define, one can choose to
+        aggregate the landcoverclasses.
+
+        The landcover fractions will be added to the Dataset.metadf if overwrite
+        is True. Presented as seperate columns where each column represent the
+        landcovertype and corresponding buffer.
+
+
+
+
+        Parameters
+        ----------
+        buffers : num, optional
+            The list of buffer radia in dataset units (meters for ESA worldcover) . The default is 100.
+        aggregate : bool, optional
+            If True, the classes will be aggregated with the corresponding
+            aggregation scheme. The default is True.
+        overwrite : bool, optional
+            If True, the Datset.metadf will be updated with the generated
+            landcoverfractions. The default is True.
+        gee_map : str, optional
+            The name of the dataset to use. This name should be present in the
+            settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
+            scheme should included as well. The default is 'worldcover'
+
+        Returns
+        -------
+        frac_df : pandas.DataFrame
+            A Dataframe with index: name, buffer_radius and the columns are the
+            fractions.
+
+        """
         # connect to gee
         connect_to_gee()
 
-        # Extract landcover fractions for all stations
-        lc_frac_df = lc_fractions_extractor(
-            metadf=self.metadf,
-            mapinfo=self.settings.gee["gee_dataset_info"]["worldcover"],
-            buffer=buffer,
-            agg=aggregate,
-        )
+        df_list = []
+        for buffer in buffers:
 
-        # remove columns if they exists
-        self.metadf = self.metadf.drop(
-            columns=list(lc_frac_df.columns), errors="ignore"
-        )
+            print(f'Extracting landcover from {gee_map} with buffer radius = {buffer}')
+            # Extract landcover fractions for all stations
+            lc_frac_df, buffer = lc_fractions_extractor(
+                metadf=self.metadf,
+                mapinfo=self.settings.gee["gee_dataset_info"][gee_map],
+                buffer=buffer,
+                agg=aggregate,
+            )
 
-        # update metadf
-        self.metadf = self.metadf.merge(
-            lc_frac_df, how="left", left_index=True, right_index=True
-        )
+            # add buffer to the index
+            lc_frac_df['buffer_radius'] = buffer
+            lc_frac_df = lc_frac_df.reset_index().set_index(['name', 'buffer_radius'])
+            lc_frac_df = lc_frac_df.sort_index()
 
-        return lc_frac_df
+            # add to the list
+            df_list.append(lc_frac_df)
+
+
+        # concat all df for different buffers to one
+        frac_df = pd.concat(df_list)
+        frac_df = frac_df.sort_index()
+
+
+        if overwrite:
+
+            for buf in frac_df.index.get_level_values('buffer_radius').unique():
+                buf_df = frac_df.xs(buf, level='buffer_radius')
+                buf_df.columns= [col + f'_{int(buf)}m' for col in buf_df.columns]
+
+                # overwrite the columns or add them if they did not exist
+                self.metadf[buf_df.columns] = buf_df
+
+        return frac_df

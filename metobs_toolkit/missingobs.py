@@ -12,7 +12,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import logging
 
-from metobs_toolkit.gap import _find_closes_occuring_date
+from metobs_toolkit.df_helpers import _find_closes_occuring_date
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +45,10 @@ class Missingob_collection:
 
     def __add__(self, other):
         comb_series = pd.concat([self.series, other.series])
+
         comb_series = comb_series.drop_duplicates()
         comb_series = comb_series.sort_index()
+
         self.series = comb_series
         comb_idx = comb_series.reset_index()
         comb_idx = comb_idx.set_index(['name', 'datetime'])

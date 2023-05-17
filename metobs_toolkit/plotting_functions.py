@@ -268,13 +268,17 @@ def timeseries_plot(
     show_legend,
     show_outliers,
     settings,
+    _ax=None #needed for GUI, not recommended use
 ):
 
     plot_settings = settings.app["plot_settings"]
 
 
-    # init figure
-    fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
+    if isinstance(_ax, type(None)):
+        # init figure
+        fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
+    else:
+        ax=_ax
 
     # get data ready
     mergedf = mergedf[~mergedf.index.duplicated()]

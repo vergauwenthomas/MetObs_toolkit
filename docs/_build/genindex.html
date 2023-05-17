@@ -46,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Using the GUI</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_autosummary/metobs_toolkit.html">metobs_toolkit</a></li>
@@ -105,10 +106,14 @@
 </li>
       <li><a href="_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis">Analysis (class in metobs_toolkit.analysis)</a>
 </li>
+      <li><a href="_autosummary/metobs_toolkit.gap.apply_debias_era5_gapfill.html#metobs_toolkit.gap.apply_debias_era5_gapfill">apply_debias_era5_gapfill() (in module metobs_toolkit.gap)</a>
+</li>
       <li><a href="_autosummary/metobs_toolkit.gap.Gap.html#metobs_toolkit.gap.Gap.apply_interpolate_gap">apply_interpolate_gap() (metobs_toolkit.gap.Gap method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_autosummary/metobs_toolkit.gap.apply_interpolate_gaps.html#metobs_toolkit.gap.apply_interpolate_gaps">apply_interpolate_gaps() (in module metobs_toolkit.gap)</a>
+</li>
       <li><a href="_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.apply_quality_control">apply_quality_control() (metobs_toolkit.dataset.Dataset method)</a>
 
       <ul>
@@ -195,14 +200,6 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.fill_gaps_automatic">fill_gaps_automatic() (metobs_toolkit.dataset.Dataset method)</a>
-
-      <ul>
-        <li><a href="_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_automatic">(metobs_toolkit.dataset_settings_updater.Dataset method)</a>
-</li>
-        <li><a href="_autosummary/metobs_toolkit.station.Station.html#metobs_toolkit.station.Station.fill_gaps_automatic">(metobs_toolkit.station.Station method)</a>
-</li>
-      </ul></li>
       <li><a href="_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.fill_gaps_era5">fill_gaps_era5() (metobs_toolkit.dataset.Dataset method)</a>
 
       <ul>
@@ -211,8 +208,6 @@
         <li><a href="_autosummary/metobs_toolkit.station.Station.html#metobs_toolkit.station.Station.fill_gaps_era5">(metobs_toolkit.station.Station method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.fill_gaps_linear">fill_gaps_linear() (metobs_toolkit.dataset.Dataset method)</a>
 
       <ul>
@@ -221,6 +216,8 @@
         <li><a href="_autosummary/metobs_toolkit.station.Station.html#metobs_toolkit.station.Station.fill_gaps_linear">(metobs_toolkit.station.Station method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/metobs_toolkit.data_import.find_compatible_templatefor.html#metobs_toolkit.data_import.find_compatible_templatefor">find_compatible_templatefor() (in module metobs_toolkit.data_import)</a>
 </li>
       <li><a href="_autosummary/metobs_toolkit.geometry_functions.find_largest_extent.html#metobs_toolkit.geometry_functions.find_largest_extent">find_largest_extent() (in module metobs_toolkit.geometry_functions)</a>
@@ -235,7 +232,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/metobs_toolkit.gap.Gap.html#metobs_toolkit.gap.Gap">Gap (class in metobs_toolkit.gap)</a>
 </li>
-      <li><a href="_autosummary/metobs_toolkit.gap.Gap_collection.html#metobs_toolkit.gap.Gap_collection">Gap_collection (class in metobs_toolkit.gap)</a>
+      <li><a href="_autosummary/metobs_toolkit.gap.gaps_to_df.html#metobs_toolkit.gap.gaps_to_df">gaps_to_df() (in module metobs_toolkit.gap)</a>
 </li>
       <li><a href="_autosummary/metobs_toolkit.landcover_functions.gee_extract_timeseries.html#metobs_toolkit.landcover_functions.gee_extract_timeseries">gee_extract_timeseries() (in module metobs_toolkit.landcover_functions)</a>
 </li>
@@ -261,14 +258,22 @@
 </li>
       <li><a href="_autosummary/metobs_toolkit.df_helpers.get_freqency_series.html#metobs_toolkit.df_helpers.get_freqency_series">get_freqency_series() (in module metobs_toolkit.df_helpers)</a>
 </li>
-      <li><a href="_autosummary/metobs_toolkit.gap.Gap_collection.html#metobs_toolkit.gap.Gap_collection.get_gaps_indx_in_obs_space">get_gaps_indx_in_obs_space() (metobs_toolkit.gap.Gap_collection method)</a>
+      <li><a href="_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.get_gaps_df">get_gaps_df() (metobs_toolkit.dataset.Dataset method)</a>
+
+      <ul>
+        <li><a href="_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset_settings_updater.Dataset.get_gaps_df">(metobs_toolkit.dataset_settings_updater.Dataset method)</a>
 </li>
+        <li><a href="_autosummary/metobs_toolkit.station.Station.html#metobs_toolkit.station.Station.get_gaps_df">(metobs_toolkit.station.Station method)</a>
+</li>
+      </ul></li>
+      <li><a href="_autosummary/metobs_toolkit.gap.get_gaps_indx_in_obs_space.html#metobs_toolkit.gap.get_gaps_indx_in_obs_space">get_gaps_indx_in_obs_space() (in module metobs_toolkit.gap)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/metobs_toolkit.df_helpers.get_likely_frequency.html#metobs_toolkit.df_helpers.get_likely_frequency">get_likely_frequency() (in module metobs_toolkit.df_helpers)</a>
 </li>
       <li><a href="_autosummary/metobs_toolkit.missingobs.Missingob_collection.html#metobs_toolkit.missingobs.Missingob_collection.get_missing_indx_in_obs_space">get_missing_indx_in_obs_space() (metobs_toolkit.missingobs.Missingob_collection method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.get_modeldata">get_modeldata() (metobs_toolkit.dataset.Dataset method)</a>
 
       <ul>
@@ -297,7 +302,7 @@
         <li><a href="_autosummary/metobs_toolkit.station.Station.html#metobs_toolkit.station.Station.get_station">(metobs_toolkit.station.Station method)</a>
 </li>
       </ul></li>
-      <li><a href="_autosummary/metobs_toolkit.gap.Gap_collection.html#metobs_toolkit.gap.Gap_collection.get_station_gaps">get_station_gaps() (metobs_toolkit.gap.Gap_collection method)</a>
+      <li><a href="_autosummary/metobs_toolkit.gap.get_station_gaps.html#metobs_toolkit.gap.get_station_gaps">get_station_gaps() (in module metobs_toolkit.gap)</a>
 </li>
       <li><a href="_autosummary/metobs_toolkit.missingobs.Missingob_collection.html#metobs_toolkit.missingobs.Missingob_collection.get_station_missingobs">get_station_missingobs() (metobs_toolkit.missingobs.Missingob_collection method)</a>
 </li>
@@ -367,10 +372,12 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_autosummary/metobs_toolkit.landcover_functions.lc_fractions_extractor.html#metobs_toolkit.landcover_functions.lc_fractions_extractor">lc_fractions_extractor() (in module metobs_toolkit.landcover_functions)</a>
+      <li><a href="_autosummary/metobs_toolkit.gui_launcher.launch_gui.html#metobs_toolkit.gui_launcher.launch_gui">launch_gui() (in module metobs_toolkit.gui_launcher)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_autosummary/metobs_toolkit.landcover_functions.lc_fractions_extractor.html#metobs_toolkit.landcover_functions.lc_fractions_extractor">lc_fractions_extractor() (in module metobs_toolkit.landcover_functions)</a>
+</li>
       <li><a href="_autosummary/metobs_toolkit.landcover_functions.lcz_extractor.html#metobs_toolkit.landcover_functions.lcz_extractor">lcz_extractor() (in module metobs_toolkit.landcover_functions)</a>
 </li>
   </ul></td>
@@ -382,6 +389,8 @@
       <li><a href="_autosummary/metobs_toolkit.plotting_functions.make_cat_colormapper.html#metobs_toolkit.plotting_functions.make_cat_colormapper">make_cat_colormapper() (in module metobs_toolkit.plotting_functions)</a>
 </li>
       <li><a href="_autosummary/metobs_toolkit.gap_filling.make_era_bias_correction.html#metobs_toolkit.gap_filling.make_era_bias_correction">make_era_bias_correction() (in module metobs_toolkit.gap_filling)</a>
+</li>
+      <li><a href="_autosummary/metobs_toolkit.gap.make_gapfill_df.html#metobs_toolkit.gap.make_gapfill_df">make_gapfill_df() (in module metobs_toolkit.gap)</a>
 </li>
       <li><a href="_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.make_geo_plot">make_geo_plot() (metobs_toolkit.dataset.Dataset method)</a>
 
@@ -476,6 +485,13 @@
 </li>
       </ul></li>
       <li>
+    metobs_toolkit.gui_launcher
+
+      <ul>
+        <li><a href="_autosummary/metobs_toolkit.gui_launcher.html#module-metobs_toolkit.gui_launcher">module</a>
+</li>
+      </ul></li>
+      <li>
     metobs_toolkit.landcover_functions
 
       <ul>
@@ -496,6 +512,8 @@
         <li><a href="_autosummary/metobs_toolkit.modeldata.html#module-metobs_toolkit.modeldata">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     metobs_toolkit.plotting_functions
 
@@ -503,8 +521,6 @@
         <li><a href="_autosummary/metobs_toolkit.plotting_functions.html#module-metobs_toolkit.plotting_functions">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     metobs_toolkit.printing
 
@@ -577,6 +593,8 @@
 </li>
         <li><a href="_autosummary/metobs_toolkit.geometry_functions.html#module-metobs_toolkit.geometry_functions">metobs_toolkit.geometry_functions</a>
 </li>
+        <li><a href="_autosummary/metobs_toolkit.gui_launcher.html#module-metobs_toolkit.gui_launcher">metobs_toolkit.gui_launcher</a>
+</li>
         <li><a href="_autosummary/metobs_toolkit.landcover_functions.html#module-metobs_toolkit.landcover_functions">metobs_toolkit.landcover_functions</a>
 </li>
         <li><a href="_autosummary/metobs_toolkit.missingobs.html#module-metobs_toolkit.missingobs">metobs_toolkit.missingobs</a>
@@ -626,7 +644,7 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_autosummary/metobs_toolkit.gap.Gap_collection.html#metobs_toolkit.gap.Gap_collection.remove_gaps_from_obs">remove_gaps_from_obs() (metobs_toolkit.gap.Gap_collection method)</a>
+      <li><a href="_autosummary/metobs_toolkit.gap.remove_gaps_from_obs.html#metobs_toolkit.gap.remove_gaps_from_obs">remove_gaps_from_obs() (in module metobs_toolkit.gap)</a>
 </li>
       <li><a href="_autosummary/metobs_toolkit.missingobs.Missingob_collection.html#metobs_toolkit.missingobs.Missingob_collection.remove_missing_from_obs">remove_missing_from_obs() (metobs_toolkit.missingobs.Missingob_collection method)</a>
 </li>

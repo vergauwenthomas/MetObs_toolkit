@@ -21,7 +21,11 @@ dist/*
 #Exclude local documentation builds
 docs/_*
 
-
+#logs
+*log
+#exclude data
+examples/*.csv
+examples/testdata.csv
 
 # exclued logs
 *log
@@ -33,3 +37,10 @@ docs/_*
 *.pyc
 .vscode
 *tempCodeRunnerFile.py
+
+#GUI stuff
+GUI/tmp
+GUI/cache
+
+#Documentation (build online)
+docs/_build

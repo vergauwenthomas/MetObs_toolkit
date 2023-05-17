@@ -267,7 +267,7 @@ man_gapsdf["end_gap"] = pd.to_datetime(man_gapsdf["end_gap"]).dt.tz_localize(
 
 # %%
 
-tlk_gapsdf = dataset.gaps.to_df()
+tlk_gapsdf = dataset.get_gaps_df()
 tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
 
 
