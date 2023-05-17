@@ -44,14 +44,23 @@ dataset.update_settings(input_data_file=testdatafile,
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
 dataset.apply_quality_control()
+# #%%
+# from datetime import datetime
+# starttime = datetime(2022, 10, 7)
+# endtime = datetime(2022, 10, 9)
 
+# dataset.make_plot(obstype='temp',colorby='name', starttime=starttime, endtime=endtime)
+# print(dataset)
 
 #%%
 
 
 
+dataset.update_gaps_and_missing_from_outliers()
 
+combdf = dataset.combine_all_to_obsspace()
 
+# dataset.fill_gaps_linear('temp')
 
 
 erafile = '/home/thoverga/Downloads/era5_data__(3).csv'
@@ -72,13 +81,110 @@ dataset.update_gap_and_missing_fill_settings(
 
 
 dataset.get_station('vlinder01').make_plot()
-comb_df = dataset.fill_gaps_automatic(era5model,
-                              max_interpolate_duration_str='5H')
+# comb_df = dataset.fill_gaps_automatic(era5model,
+#                               max_interpolate_duration_str='5H')
 
 
-dataset.get_station('vlinder01').make_plot(colorby='label')
+dataset.fill_gaps_era5(era5model)
+
+
 
 print(dataset.gapfilldf)
+#%%
+
+
+#%%
+
+# dataset.update_gaps_and_missing_from_outliers()
+
+
+# print(dataset.gaps)
+# sta = dataset.get_station('vlinder01')
+
+
+# dataset.fill_gaps_linear('temp')
+
+# for gap in dataset.gaps:
+#     gap.get_info()
+
+
+
+
+
+
+
+#%%
+# import pandas as pd
+# from metobs_toolkit.gap import _gap_collection_from_list_of_gaps
+
+
+# import copy
+# testdataset =copy.deepcopy(dataset)
+
+# # era = testdataset.get_modeldata()
+
+# modelfile = '/home/thoverga/Downloads/era5_data__(3).csv'
+
+# era = metobs_toolkit.Modeldata('era5')
+# era.set_model_from_csv(csvpath=modelfile,
+#                         )
+
+# #%%
+# dataset.update_gap_and_missing_fill_settings(gap_debias_minimum_leading_period_hours=10,
+#                                               gap_debias_minimum_trailing_period_hours=0,
+#                                               gap_debias_prefered_leading_period_hours=30,
+#                                               gap_debias_prefered_trailing_period_hours=30)
+
+
+
+# test = dataset.fill_gaps_automatic(modeldata=era,
+#                             obstype='temp',
+#                             max_interpolate_duration_str='4H')
+
+
+
+
+
+
+#%%
+# dataset.fill_gaps_era5(modeldata=era,
+#                        )
+#%%
+
+
+
+#%%
+
+
+
+
+
+
+
+# erafile = '/home/thoverga/Downloads/era5_data__(3).csv'
+# era5model = metobs_toolkit.Modeldata('ERA5')
+# era5model.set_model_from_csv(erafile)
+
+
+# print(dataset.gaps)
+
+
+# dataset.update_gap_and_missing_fill_settings(
+#             gap_debias_prefered_leading_period_hours=12,
+#             gap_debias_prefered_trailing_period_hours=12,
+#             gap_debias_minimum_leading_period_hours=1,
+#             gap_debias_minimum_trailing_period_hours=10)
+
+
+
+
+# dataset.get_station('vlinder01').make_plot()
+# comb_df = dataset.fill_gaps_era5(era5model)
+
+
+# dataset.get_station('vlinder01').make_plot(colorby='label')
+
+# print(dataset.gapfilldf)
 
 
 # dataset.fill_gaps_linear()
@@ -213,8 +319,3 @@ enddt = datetime(2022, 10, 10)
 
 
 
-
-
-
-dataset.import_data_from_file()
-print(dataset)

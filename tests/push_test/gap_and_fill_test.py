@@ -45,7 +45,7 @@ dataset.update_settings(
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
 # %% Basic tests on the gaps
-gapsdf = dataset.gaps.to_df()
+gapsdf = dataset.get_gaps_df()
 # check if two gaps are found
 assert (
     gapsdf.shape[0] == 2
@@ -85,17 +85,23 @@ solution = {'temp': {('vlinder03',
 assert dataset.missing_fill_df.equals(pd.DataFrame(solution)), 'something wrong with the missing obs fill!'
 
 # %% Test functions on gaps
+from metobs_toolkit.gap import (get_station_gaps,
+                                get_gaps_indx_in_obs_space,
+                                remove_gaps_from_obs)
 
-stagap = dataset.gaps.get_station_gaps("vlinder01")
+get_station_gaps(dataset.gaps,'vlinder01')
 
-dataset.gaps.remove_gaps_from_obs(dataset.df)
 
-dataset.gaps.get_gaps_indx_in_obs_space(
+dataset.gaps[0].get_info()
+
+remove_gaps_from_obs(dataset.gaps, dataset.df)
+
+get_gaps_indx_in_obs_space(dataset.gaps,
     dataset.df, dataset.outliersdf, dataset.metadf["dataset_resolution"]
 )
 
 
-dataset.gaps.list[0].update_leading_trailing_obs(dataset.df, dataset.outliersdf)
+dataset.gaps[0].update_leading_trailing_obs(dataset.df, dataset.outliersdf)
 
 # %% Test gapfilling
 
@@ -145,14 +151,14 @@ assert comb_missing['value'].eq(dataset.missing_fill_df['temp']).all(), 'Somethi
 
 #%% Test the update of outliers to gaps
 nobs_orig = len(dataset.missing_obs.idx)
-ngaps_orig = len(dataset.gaps.list)
+ngaps_orig = len(dataset.gaps)
 
 dataset2 = copy.deepcopy(dataset)
 dataset2.apply_quality_control()
 dataset2.update_gaps_and_missing_from_outliers(obstype='temp', n_gapsize = 10)
 
 nobs = len(dataset2.missing_obs.idx)
-ngaps = len(dataset2.gaps.list)
+ngaps = len(dataset2.gaps)
 
 assert (nobs == 29) & (nobs_orig == 26), 'Something wrong with the update gaps and missing from outliers'
 assert (ngaps == 5) & (ngaps_orig == 2), 'Something wrong with the update gaps and missing from outliers'
