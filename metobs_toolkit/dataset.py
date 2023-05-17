@@ -2190,26 +2190,77 @@ class Dataset:
         )
         return altitude_series
 
-    def get_landcover(self, buffer=100, aggregate=True):
+    def get_landcover(self, buffers=[100], aggregate=True, overwrite=True, gee_map='worldcover'):
+        """
+        Extract the landcover fractions in a buffer with a specific radius for
+        all stations. If an aggregation scheme is define, one can choose to
+        aggregate the landcoverclasses.
+
+        The landcover fractions will be added to the Dataset.metadf if overwrite
+        is True. Presented as seperate columns where each column represent the
+        landcovertype and corresponding buffer.
+
+
+
+
+        Parameters
+        ----------
+        buffers : num, optional
+            The list of buffer radia in dataset units (meters for ESA worldcover) . The default is 100.
+        aggregate : bool, optional
+            If True, the classes will be aggregated with the corresponding
+            aggregation scheme. The default is True.
+        overwrite : bool, optional
+            If True, the Datset.metadf will be updated with the generated
+            landcoverfractions. The default is True.
+        gee_map : str, optional
+            The name of the dataset to use. This name should be present in the
+            settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
+            scheme should included as well. The default is 'worldcover'
+
+        Returns
+        -------
+        frac_df : pandas.DataFrame
+            A Dataframe with index: name, buffer_radius and the columns are the
+            fractions.
+
+        """
         # connect to gee
         connect_to_gee()
 
-        # Extract landcover fractions for all stations
-        lc_frac_df = lc_fractions_extractor(
-            metadf=self.metadf,
-            mapinfo=self.settings.gee["gee_dataset_info"]["worldcover"],
-            buffer=buffer,
-            agg=aggregate,
-        )
+        df_list = []
+        for buffer in buffers:
 
-        # remove columns if they exists
-        self.metadf = self.metadf.drop(
-            columns=list(lc_frac_df.columns), errors="ignore"
-        )
+            print(f'Extracting landcover from {gee_map} with buffer radius = {buffer}')
+            # Extract landcover fractions for all stations
+            lc_frac_df, buffer = lc_fractions_extractor(
+                metadf=self.metadf,
+                mapinfo=self.settings.gee["gee_dataset_info"][gee_map],
+                buffer=buffer,
+                agg=aggregate,
+            )
 
-        # update metadf
-        self.metadf = self.metadf.merge(
-            lc_frac_df, how="left", left_index=True, right_index=True
-        )
+            # add buffer to the index
+            lc_frac_df['buffer_radius'] = buffer
+            lc_frac_df = lc_frac_df.reset_index().set_index(['name', 'buffer_radius'])
+            lc_frac_df = lc_frac_df.sort_index()
 
-        return lc_frac_df
+            # add to the list
+            df_list.append(lc_frac_df)
+
+
+        # concat all df for different buffers to one
+        frac_df = pd.concat(df_list)
+        frac_df = frac_df.sort_index()
+
+
+        if overwrite:
+
+            for buf in frac_df.index.get_level_values('buffer_radius').unique():
+                buf_df = frac_df.xs(buf, level='buffer_radius')
+                buf_df.columns= [col + f'_{int(buf)}m' for col in buf_df.columns]
+
+                # overwrite the columns or add them if they did not exist
+                self.metadf[buf_df.columns] = buf_df
+
+        return frac_df

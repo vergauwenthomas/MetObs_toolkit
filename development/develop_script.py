@@ -7,7 +7,7 @@ Created on Thu Oct  6 13:25:02 2022
 
 #%%
 
-import metobs_toolkit
+# import metobs_toolkit
 
 import os
 import sys
@@ -25,8 +25,24 @@ import metobs_toolkit
 
 
 #%%
-metobs_toolkit.launch_gui()
 
 
 
+# Make an empty dataset
+dataset = metobs_toolkit.Dataset()
 
+# Add the demo data files to the dataset settings
+dataset.update_settings(input_data_file = metobs_toolkit.demo_datafile,
+                        input_metadata_file = metobs_toolkit.demo_metadatafile,
+                        data_template_file = metobs_toolkit.demo_template,
+                        metadata_template_file = metobs_toolkit.demo_template # Contains also the metadata mapping
+                        )
+
+# Load the data from the demo data files
+dataset.import_data_from_file()
+
+dataset.coarsen_time_resolution()
+#%%
+
+
+test = dataset.get_landcover(buffers=[200, 500], overwrite=False, aggregate=False)
