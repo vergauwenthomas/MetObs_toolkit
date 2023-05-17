@@ -12,7 +12,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import logging
 
-# from metobs_toolkit.gap import _find_closes_occuring_date
+from metobs_toolkit.df_helpers import _find_closes_occuring_date
 
 logger = logging.getLogger(__name__)
 

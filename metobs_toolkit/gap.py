@@ -26,6 +26,7 @@ from metobs_toolkit.gap_filling import (
 from metobs_toolkit.df_helpers import (
     format_outliersdf_to_doubleidx,
     get_likely_frequency,
+    _find_closes_occuring_date
 )
 
 from metobs_toolkit.df_helpers import init_multiindex, init_multiindexdf
@@ -455,18 +456,18 @@ def remove_gaps_from_obs(gaplist, obsdf):
 # =============================================================================
 
 
-def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
-    if where == "before":
-        diff = refdt - (series_of_dt[series_of_dt < refdt])
-    elif where == "after":
-        diff = (series_of_dt[series_of_dt > refdt]) - refdt
+# def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
+#     if where == "before":
+#         diff = refdt - (series_of_dt[series_of_dt < refdt])
+#     elif where == "after":
+#         diff = (series_of_dt[series_of_dt > refdt]) - refdt
 
-    if diff.empty:
-        # no occurences before of after
+#     if diff.empty:
+#         # no occurences before of after
 
-        return np.nan
-    else:
-        return min(diff).total_seconds()
+#         return np.nan
+#     else:
+#         return min(diff).total_seconds()
 
 
 

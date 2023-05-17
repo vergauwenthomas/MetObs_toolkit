@@ -113,6 +113,18 @@ def value_labeled_doubleidxdf_to_triple_idxdf(df,value_col_name='value', label_c
 
     return values
 
+def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
+    if where == "before":
+        diff = refdt - (series_of_dt[series_of_dt < refdt])
+    elif where == "after":
+        diff = (series_of_dt[series_of_dt > refdt]) - refdt
+
+    if diff.empty:
+        # no occurences before of after
+
+        return np.nan
+    else:
+        return min(diff).total_seconds()
 
 def remove_outliers_from_obs(obsdf, outliersdf):
     # TODO this function can only be used with care!!!
