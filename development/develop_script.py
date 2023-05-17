@@ -45,4 +45,4 @@ dataset.coarsen_time_resolution()
 #%%
 
 
-test = dataset.get_landcover(buffers=[200, 500], overwrite=False, aggregate=False)
+dataset.make_plot()
