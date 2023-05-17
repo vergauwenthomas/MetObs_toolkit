@@ -17,8 +17,8 @@ vlinders_metadatafile = os.path.join(
 )
 
 
-import sys
-sys.path.append(str(main_folder))
+# import sys
+# sys.path.append(str(main_folder))
 
 
 import metobs_toolkit
@@ -34,7 +34,7 @@ import metobs_toolkit
 aug_2020_all_vlinders = metobs_toolkit.Dataset()
 aug_2020_all_vlinders.update_settings(
     input_data_file=testdata_file,  # A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
-    output_folder="C:/Users/andre/Desktop/test/",
+    output_folder="/home/$USER/output/",
     input_metadata_file=vlinders_metadatafile,
 )
 
@@ -81,13 +81,7 @@ aug_2020_all_vlinders.make_plot(
 # To plot timeseries for one station you can use the make_plot function on the station object:
 favorite_station = aug_2020_all_vlinders.get_station(stationname="vlinder02")
 favorite_station.apply_quality_control()
-analysis = aug_2020_all_vlinders.get_analysis()
-analysis.get_diurnal_statistics(obstype='temp', stations=None,
-                           startdt=None, enddt=None, plot=True, colorby='name',
-                           errorbands=True, verbose=False)
 
-analysis.get_diurnal_statistics_with_reference(obstype='temp', refstation='vlinder01', tollerance='30T', stations=None,
-                           startdt=None, enddt=None, plot=True, colorby='name', errorbands=False, verbose=False)
 
 # Possible obstypes to plot:
 # 'temp','radiation_temp','humidity','precip','precip_sum','wind_speed',
