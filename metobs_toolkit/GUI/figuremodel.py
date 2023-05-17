@@ -8,7 +8,7 @@ Created on Thu Apr 27 12:41:38 2023
 
 import sys, os
 import matplotlib
-matplotlib.use('Qt5Agg')
+# matplotlib.use('Qt5Agg')
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 

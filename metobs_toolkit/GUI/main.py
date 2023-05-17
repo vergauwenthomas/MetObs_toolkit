@@ -12,10 +12,11 @@ Created on Mon Mar 20 09:47:48 2023
 import sys
 sys.path.insert(0, '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit')
 import metobs_toolkit
-# END DEBUG
+
 
 import os, sys
 from pathlib import Path
+import matplotlib
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog, QMainWindow
 from PyQt5.uic import loadUi
@@ -327,6 +328,7 @@ def main():
 
 
 if __name__ == '__main__':
+    matplotlib.use('Qt5Agg') #in protector because server runners do not support this, when this module is imported from the __init__
     app=QApplication(sys.argv)
 
     widget = main()
