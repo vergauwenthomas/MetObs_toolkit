@@ -63,7 +63,10 @@ def format_outliersdf_to_doubleidx(outliersdf):
     else:
         return outliersdf
 
-def value_labeled_doubleidxdf_to_triple_idxdf(df,value_col_name='value', label_col_name = 'label'):
+
+def value_labeled_doubleidxdf_to_triple_idxdf(
+    df, value_col_name="value", label_col_name="label"
+):
     """
     This function converts a double index dataframe with an 'obstype' column,
     and a 'obstype_final_label' column to a triple index dataframe where the
@@ -92,26 +95,29 @@ def value_labeled_doubleidxdf_to_triple_idxdf(df,value_col_name='value', label_c
     present_obstypes = [col for col in df.columns if col in observation_types]
 
     # get all values in triple index form
-    values = (df[present_obstypes].stack(dropna=False)
-              .reset_index()
-              .rename(columns={'level_2': 'obstype', 0: value_col_name})
-              .set_index(['name', 'datetime', 'obstype']))
-
+    values = (
+        df[present_obstypes]
+        .stack(dropna=False)
+        .reset_index()
+        .rename(columns={"level_2": "obstype", 0: value_col_name})
+        .set_index(["name", "datetime", "obstype"])
+    )
 
     # make a triple label dataframe
     labelsdf = pd.DataFrame()
     for obstype in present_obstypes:
-        subdf = df.loc[:, [obstype+'_final_label']]
-        subdf['obstype'] = obstype
+        subdf = df.loc[:, [obstype + "_final_label"]]
+        subdf["obstype"] = obstype
         subdf = subdf.reset_index()
-        subdf = subdf.set_index(['name', 'datetime', 'obstype'])
-        subdf = subdf.rename(columns={obstype+'_final_label': label_col_name})
+        subdf = subdf.set_index(["name", "datetime", "obstype"])
+        subdf = subdf.rename(columns={obstype + "_final_label": label_col_name})
 
         labelsdf = pd.concat([labelsdf, subdf])
 
     values[label_col_name] = labelsdf[label_col_name]
 
     return values
+
 
 def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
     if where == "before":
@@ -125,6 +131,7 @@ def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
         return np.nan
     else:
         return min(diff).total_seconds()
+
 
 def remove_outliers_from_obs(obsdf, outliersdf):
     # TODO this function can only be used with care!!!
@@ -192,21 +199,20 @@ def multiindexdf_datetime_subsetting(df, starttime, endtime):
     return returndf
 
 
-
 # =============================================================================
 # filters
 # =============================================================================
 def subset_stations(df, stationslist):
-    df = df.loc[df.index.get_level_values(
-                'name').isin(stationslist)]
+    df = df.loc[df.index.get_level_values("name").isin(stationslist)]
 
-    present_stations = df.index.get_level_values('name')
+    present_stations = df.index.get_level_values("name")
     not_present_stations = list(set(stationslist) - set(present_stations))
-    if len(not_present_stations)!=0:
-        print(f'WARNING: The stations: {not_present_stations} not found in the dataframe.')
+    if len(not_present_stations) != 0:
+        print(
+            f"WARNING: The stations: {not_present_stations} not found in the dataframe."
+        )
 
     return df
-
 
 
 def datetime_subsetting(df, starttime, endtime):
@@ -231,7 +237,7 @@ def datetime_subsetting(df, starttime, endtime):
     """
     idx_names = list(df.index.names)
     df = df.reset_index()
-    df = df.set_index('datetime')
+    df = df.set_index("datetime")
     stand_format = "%Y-%m-%d %H:%M:%S"
 
     if isinstance(starttime, type(None)):
@@ -243,7 +249,7 @@ def datetime_subsetting(df, starttime, endtime):
     else:
         endstring = endtime.strftime(stand_format)
 
-    subset =  df[startstring:endstring]
+    subset = df[startstring:endstring]
     subset = subset.reset_index()
     subset = subset.set_index(idx_names)
     return subset
@@ -279,7 +285,6 @@ def conv_applied_qc_to_df(obstypes, ordered_checknames):
 def get_likely_frequency(
     timestamps, method="highest", simplify=True, max_simplify_error="2T"
 ):
-
     """
     Find the most likely observation frequency of a datetimeindex.
 
@@ -308,7 +313,6 @@ def get_likely_frequency(
         "highest",
         "median",
     ], f"The method for frequency estimation ({method}) is not known. Use one of [highest, median]"
-
 
     try:
         pd.to_timedelta(max_simplify_error)
@@ -364,7 +368,6 @@ def get_likely_frequency(
         else:
             assume_freq = simplify_freq
 
-
     if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
         # select the second highest frequency
         assume_freq = abs(
@@ -375,7 +378,6 @@ def get_likely_frequency(
 
 
 def get_freqency_series(df, method="highest", simplify=True, max_simplify_error="2T"):
-
     """
     Find the most likely observation frequency for all stations individually
     based on the df. If an observation has less than two observations, assign
@@ -434,6 +436,5 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
         )
         for prob_station in problematic_stations:
             freqs[prob_station] = assign_med_freq
-
 
     return pd.Series(data=freqs)

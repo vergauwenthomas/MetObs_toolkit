@@ -19,7 +19,6 @@ from metobs_toolkit.df_helpers import (
 #     # 1 get trailing and leading obs
 
 
-
 # =============================================================================
 # Gap fillers
 # =============================================================================
@@ -40,39 +39,36 @@ def interpolate_gap(
 
     # 2 check if there is a trailing and leading gap
     if gap.startgap == gap.leading_timestamp:
-        message =f"No leading timestamp found for gap {gap}"
+        message = f"No leading timestamp found for gap {gap}"
         print(message)
-        gap.gapfill_errormessage[obstype]=message
+        gap.gapfill_errormessage[obstype] = message
         return empty_interp
 
     if gap.endgap == gap.trailing_timestamp:
         message = f"No trailing timestamp found for gap {gap}"
         print(message)
-        gap.gapfill_errormessage[obstype]=message
+        gap.gapfill_errormessage[obstype] = message
         return empty_interp
-
 
     # 3. Get leading and trailing val
     if not bool(gap.leading_val):
         # empty dict --> no value in the obs
-        message =f"No cadidate for leading {obstype} observation found for {gap}"
+        message = f"No cadidate for leading {obstype} observation found for {gap}"
         print(message)
-        gap.gapfill_errormessage[obstype]=message
+        gap.gapfill_errormessage[obstype] = message
         return empty_interp
 
     if not bool(gap.trailing_val):
         # empty dict --> no value in the obs
-        message =f"No cadidate for trailing {obstype} observation found for {gap}"
+        message = f"No cadidate for trailing {obstype} observation found for {gap}"
         print(message)
-        gap.gapfill_errormessage[obstype]=message
+        gap.gapfill_errormessage[obstype] = message
         return empty_interp
-
 
     leading_dt = gap.leading_timestamp
     leading_val = gap.leading_val[obstype]
     trailing_dt = gap.trailing_timestamp
     trailing_val = gap.trailing_val[obstype]
-
 
     # # 3 check both leading and trailing are in obs, and look for alternative leading/trailing if the original is an outlier.
     # sta_obs = obsdf.xs(gap.name, level="name")
@@ -143,7 +139,6 @@ def interpolate_gap(
     # update gapfill info
     gap.gapfill_info = gaps_series.to_frame()
 
-
     return gaps_fill_series
 
 
@@ -194,7 +189,9 @@ def create_leading_trailing_debias_periods(
     # Select all leading and all trailing obs
     leading_period = obs[obs["datetime"] < gap.startgap]
     trailing_period = obs[obs["datetime"] > gap.endgap]
-    print(f'   {leading_period.shape[0]} leading records, {trailing_period.shape[0]} trailing records.')
+    print(
+        f"   {leading_period.shape[0]} leading records, {trailing_period.shape[0]} trailing records."
+    )
 
     # some derived integers
     poss_shrinkage_leading = leading_period.shape[0] - debias_min_sample_size_leading
@@ -362,10 +359,10 @@ def get_time_specific_biases(model, obs, obstype, period):
     return biases
 
 
-def make_era_bias_correction(leading_model, trailing_model,
-                             gap_model, leading_obs, trailing_obs,
-                             obstype):
-    error_message = ''
+def make_era_bias_correction(
+    leading_model, trailing_model, gap_model, leading_obs, trailing_obs, obstype
+):
+    error_message = ""
     # 1. get lead timestamp biases
     lead_biases = get_time_specific_biases(
         model=leading_model, obs=leading_obs, obstype=obstype, period="lead"
@@ -387,7 +384,6 @@ def make_era_bias_correction(leading_model, trailing_model,
     gap_model["minutes"] = gap_model.index.get_level_values("datetime").minute
     gap_model["seconds"] = gap_model.index.get_level_values("datetime").second
 
-
     # testing
     gap_model = gap_model.reset_index()
 
@@ -398,26 +394,26 @@ def make_era_bias_correction(leading_model, trailing_model,
     )
 
     gap_model = gap_model.merge(
-         right=trail_biases[["hours", "minutes", "seconds", obstype + "_bias_trail"]],
-         how="left",
-         on=["hours", "minutes", "seconds"],
-     )
+        right=trail_biases[["hours", "minutes", "seconds", obstype + "_bias_trail"]],
+        how="left",
+        on=["hours", "minutes", "seconds"],
+    )
 
-    gap_model = gap_model.set_index(['name', 'datetime'])
+    gap_model = gap_model.set_index(["name", "datetime"])
 
     # Idea: if BOTH leadin and trailing (hourly) biases is available, than use
     # use the debias corection (even if it is for a part of the gap!).
     # If either one or both are missing, than no bias correction is applied
-    no_debias = gap_model[(gap_model[obstype + '_bias_lead'].isnull()) |
-                          (gap_model[obstype + '_bias_trail'].isnull())].index
-    error_message =f'WARNING!, No debias possible for these gap records: {no_debias},the gap will be filled by model data without bias correction. '
+    no_debias = gap_model[
+        (gap_model[obstype + "_bias_lead"].isnull())
+        | (gap_model[obstype + "_bias_trail"].isnull())
+    ].index
+    error_message = f"WARNING!, No debias possible for these gap records: {no_debias},the gap will be filled by model data without bias correction. "
     print(error_message)
 
-
     # set weights to zero if not debias correction can be applied on that record
-    gap_model.loc[no_debias, obstype+'_bias_trail'] = 0.
-    gap_model.loc[no_debias, obstype+'_bias_lead'] = 0.
-
+    gap_model.loc[no_debias, obstype + "_bias_trail"] = 0.0
+    gap_model.loc[no_debias, obstype + "_bias_lead"] = 0.0
 
     # 5. compute the debiased fill value
     # leave this dataframe for debugging

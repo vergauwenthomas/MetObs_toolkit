@@ -10,9 +10,6 @@ import metobs_toolkit
 
 is_succesfull = metobs_toolkit.launch_gui()
 if is_succesfull:
-    sys.exit() #normal exit
+    sys.exit()  # normal exit
 else:
-    sys.exit('Problem launching GUI!')
-
-
-
+    sys.exit("Problem launching GUI!")

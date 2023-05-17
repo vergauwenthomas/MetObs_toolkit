@@ -38,7 +38,7 @@ check_settings = {
             "max_increase_per_second": 8.0 / 3600.0,
             "max_decrease_per_second": -10.0 / 3600.0,
         }
-    }
+    },
 }
 
 

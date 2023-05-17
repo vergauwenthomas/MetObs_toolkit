@@ -27,10 +27,9 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 # Helpers
 # =============================================================================
 
+
 def map_obstype(obstype, template):
     return template[obstype].to_dict()
-
-
 
 
 def make_cat_colormapper(catlist, cmapname):
@@ -54,13 +53,15 @@ def make_cat_colormapper(catlist, cmapname):
 
     """
 
-    catlist = list(set(catlist)) #get unique categories
+    catlist = list(set(catlist))  # get unique categories
 
     cmap = matplotlib.colormaps[cmapname]
 
     # check number of colors in the cmap
     if cmap.N < len(catlist):
-        print(f'Warning: colormap: {cmapname}, is not well suited to color {len(catlist)} categories. ')
+        print(
+            f"Warning: colormap: {cmapname}, is not well suited to color {len(catlist)} categories. "
+        )
         same_col_n_groups = np.ceil(len(catlist) / cmap.N)
 
         # group cateogries and color them by group
@@ -68,7 +69,7 @@ def make_cat_colormapper(catlist, cmapname):
         col_idx = -1
         _cat_index = 0
         for cat in catlist:
-            if _cat_index%same_col_n_groups == 0:
+            if _cat_index % same_col_n_groups == 0:
                 col_idx += 1
             colordict[cat] = cmap(int(col_idx))
             _cat_index += 1
@@ -85,10 +86,10 @@ def make_cat_colormapper(catlist, cmapname):
     return colordict
 
 
-
 # =============================================================================
 # Plotters
 # =============================================================================
+
 
 def geospatial_plot(
     plotdf,
@@ -252,17 +253,15 @@ def timeseries_plot(
     show_legend,
     show_outliers,
     settings,
-    _ax=None #needed for GUI, not recommended use
+    _ax=None,  # needed for GUI, not recommended use
 ):
-
     plot_settings = settings.app["plot_settings"]
-
 
     if isinstance(_ax, type(None)):
         # init figure
         fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
     else:
-        ax=_ax
+        ax = _ax
 
     # get data ready
     mergedf = mergedf[~mergedf.index.duplicated()]
@@ -271,24 +270,25 @@ def timeseries_plot(
     # define different groups (different plotting styles)
 
     # ok group
-    ok_group_label = 'ok'
+    ok_group_label = "ok"
 
     # filled value groups
-    fill_labels= [ val for val in settings.gap['gaps_fill_info']['label'].values()]
-    missing_fill_labels = [ val for val in settings.missing_obs['missing_obs_fill_info']['label'].values()]
+    fill_labels = [val for val in settings.gap["gaps_fill_info"]["label"].values()]
+    missing_fill_labels = [
+        val for val in settings.missing_obs["missing_obs_fill_info"]["label"].values()
+    ]
     fill_labels.extend(missing_fill_labels)
 
     # outlier groups
     # Catching with an else
 
-
-    custom_handles = [] #add legend items to it
+    custom_handles = []  # add legend items to it
 
     if colorby == "label":
         # iterate over label groups
-        col_mapper = _all_possible_labels_colormapper(settings) # get color mapper
+        col_mapper = _all_possible_labels_colormapper(settings)  # get color mapper
 
-        outl_groups = mergedf.groupby('label')
+        outl_groups = mergedf.groupby("label")
         legenddict = {}
         for outl_label, groupdf in outl_groups:
             outl_color = col_mapper[outl_label]
@@ -302,7 +302,7 @@ def timeseries_plot(
                 groupdf.sort_index()
 
                 plotdf = groupdf.reset_index().pivot(
-                    index="datetime", columns="name", values='value'
+                    index="datetime", columns="name", values="value"
                 )  # long to wide
 
                 ax = plotdf.plot(
@@ -316,19 +316,17 @@ def timeseries_plot(
 
                 # add legend handl
                 custom_handles.append(
-                    Line2D([0], [0], color=outl_color, label="ok", lw=4))
-
-
+                    Line2D([0], [0], color=outl_color, label="ok", lw=4)
+                )
 
             # plot filled data
-            elif outl_label in  fill_labels:  # fill gaps as dashed lines
-
+            elif outl_label in fill_labels:  # fill gaps as dashed lines
                 fill_idx = init_idx.to_frame().drop(groupdf.index)
                 groupdf = pd.concat([groupdf, fill_idx])
                 groupdf = groupdf.drop(columns=["name", "datetime"], errors="ignore")
                 groupdf.sort_index()
                 plotdf = groupdf.reset_index().pivot(
-                    index="datetime", columns="name", values='value'
+                    index="datetime", columns="name", values="value"
                 )  # long to wide
 
                 ax = plotdf.plot(
@@ -337,27 +335,30 @@ def timeseries_plot(
                     color=outl_color,
                     ax=ax,
                     legend=False,
-                    zorder=plot_settings['time_series']["dashedzorder"],
-                    linewidth=plot_settings['time_series']["linewidth"],
+                    zorder=plot_settings["time_series"]["dashedzorder"],
+                    linewidth=plot_settings["time_series"]["linewidth"],
                 )
 
                 # add legend handle
                 custom_handles.append(
-                    Line2D([0],[0],
+                    Line2D(
+                        [0],
+                        [0],
                         color=outl_color,
                         label=f"filled value ({outl_label})",
                         lw=1,
-                        linestyle="--",)
+                        linestyle="--",
                     )
+                )
 
             else:  # outliers as scatters
-                plotdf = groupdf['value']
+                plotdf = groupdf["value"]
                 plotdf.index = plotdf.index.droplevel("name")
                 plotdf = plotdf.reset_index()
                 ax = plotdf.plot(
                     kind="scatter",
                     x="datetime",
-                    y='value',
+                    y="value",
                     ax=ax,
                     color=outl_color,
                     legend=False,
@@ -367,11 +368,16 @@ def timeseries_plot(
 
                 # add legend handle
                 custom_handles.append(
-                    Line2D([0],[0], marker="o", color="w",
+                    Line2D(
+                        [0],
+                        [0],
+                        marker="o",
+                        color="w",
                         markerfacecolor=outl_color,
                         label=outl_label,
-                        lw=1,)
+                        lw=1,
                     )
+                )
             legenddict[outl_label] = outl_color
 
         # make legend
@@ -387,7 +393,7 @@ def timeseries_plot(
 
     elif colorby == "name":
         plotdf = mergedf.reset_index().pivot(
-            index="datetime", columns="name", values='value'
+            index="datetime", columns="name", values="value"
         )
         ax = plotdf.plot(kind="line", legend=show_legend, ax=ax)
 
@@ -401,31 +407,41 @@ def timeseries_plot(
 
     return ax
 
-def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
-                 colorby, lcz_dict, data_template, obstype,
-                 show_zero_horizontal=False):
+
+def diurnal_plot(
+    diurnaldf,
+    errorbandsdf,
+    title,
+    tzstr,
+    plot_settings,
+    colorby,
+    lcz_dict,
+    data_template,
+    obstype,
+    show_zero_horizontal=False,
+):
     # init figure
     fig, ax = plt.subplots(figsize=plot_settings["figsize"])
 
-    if colorby == 'lcz':
+    if colorby == "lcz":
         present_lczs = list(set(lcz_dict.values()))
 
         # select colormap
-        if len(present_lczs) <= plot_settings['n_cat_max']:
-            cmap = plot_settings['cmap_categorical']
+        if len(present_lczs) <= plot_settings["n_cat_max"]:
+            cmap = plot_settings["cmap_categorical"]
         else:
-            cmap = plot_settings['cmap_continious']
+            cmap = plot_settings["cmap_continious"]
 
-        colordict = make_cat_colormapper(catlist=present_lczs,
-                                         cmapname=cmap)
-
+        colordict = make_cat_colormapper(catlist=present_lczs, cmapname=cmap)
 
         # Make plot per lcz
         custom_handles = []
 
-        for lcz_cat  in present_lczs:
+        for lcz_cat in present_lczs:
             stations = [sta for sta in diurnaldf.columns if lcz_dict[sta] == lcz_cat]
-            diurnaldf[stations].plot(ax=ax, title=title, color=colordict[lcz_cat], legend=False)
+            diurnaldf[stations].plot(
+                ax=ax, title=title, color=colordict[lcz_cat], legend=False
+            )
 
             # add legend item
             custom_handles.append(
@@ -434,44 +450,38 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
 
         ax.legend(handles=custom_handles)
 
-
-
-
-    if colorby == 'name':
+    if colorby == "name":
         # which colormap to use:
-        if diurnaldf.shape[1] <= plot_settings['n_cat_max']:
-            cmap = plot_settings['cmap_categorical']
+        if diurnaldf.shape[1] <= plot_settings["n_cat_max"]:
+            cmap = plot_settings["cmap_categorical"]
         else:
-            cmap = plot_settings['cmap_continious']
+            cmap = plot_settings["cmap_continious"]
 
         diurnaldf.plot(ax=ax, title=title, cmap=cmap)
-
-
 
     if not errorbandsdf is None:
         # Extract colorscheme from the plot
         col_sheme = {line.get_label(): line.get_color() for line in ax.get_lines()}
 
         for sta in errorbandsdf.columns:
-            ax.fill_between(errorbandsdf.index,
-                             diurnaldf[sta] - errorbandsdf[sta],
-                             diurnaldf[sta] + errorbandsdf[sta],
-                             alpha=plot_settings['alpha_error_bands'],
-                             color=col_sheme[sta],
-                             )
+            ax.fill_between(
+                errorbandsdf.index,
+                diurnaldf[sta] - errorbandsdf[sta],
+                diurnaldf[sta] + errorbandsdf[sta],
+                alpha=plot_settings["alpha_error_bands"],
+                color=col_sheme[sta],
+            )
 
     if show_zero_horizontal:
-        ax.axhline(y=0., color='black', linestyle='--')
+        ax.axhline(y=0.0, color="black", linestyle="--")
     # Styling attributes
 
-
-
-    ax.set_ylabel(map_obstype(obstype, data_template)['orig_name'])
-    ax.xaxis.set_major_formatter('{x:.0f} h')
-    ax.set_xlabel(f'Hours (timezone: {tzstr})')
-
+    ax.set_ylabel(map_obstype(obstype, data_template)["orig_name"])
+    ax.xaxis.set_major_formatter("{x:.0f} h")
+    ax.set_xlabel(f"Hours (timezone: {tzstr})")
 
     plt.show()
+
 
 def _make_pie_from_freqs(
     freq_dict, colormapper, ax, plot_settings, radius, labelsize=10
@@ -520,12 +530,10 @@ def _outl_value_to_colormapper(plot_settings, qc_check_info):
 def _all_possible_labels_colormapper(settings):
     """Make color mapper for all LABELVALUES to colors."""
 
-
     plot_settings = settings.app["plot_settings"]
     gap_settings = settings.gap
     qc_info_settings = settings.qc["qc_checks_info"]
-    missing_obs_settings = settings.missing_obs['missing_obs_fill_info']
-
+    missing_obs_settings = settings.missing_obs["missing_obs_fill_info"]
 
     color_defenitions = plot_settings["color_mapper"]
 
@@ -552,12 +560,8 @@ def _all_possible_labels_colormapper(settings):
         mapper[label] = color_defenitions[method]
 
     # add fill for missing
-    for method, label in missing_obs_settings['label'].items():
+    for method, label in missing_obs_settings["label"].items():
         mapper[label] = color_defenitions[method]
-
-
-
-
 
     return mapper
 
