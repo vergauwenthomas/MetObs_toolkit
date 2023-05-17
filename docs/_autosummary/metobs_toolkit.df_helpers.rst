@@ -29,6 +29,7 @@ metobs\_toolkit.df\_helpers
       multiindexdf_datetime_subsetting
       remove_outliers_from_obs
       subset_stations
+      value_labeled_doubleidxdf_to_triple_idxdf
    
    
 

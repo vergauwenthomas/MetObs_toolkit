@@ -15,7 +15,13 @@ metobs\_toolkit.gap
       :toctree:
       :nosignatures:
    
+      apply_debias_era5_gapfill
+      apply_interpolate_gaps
+      get_gaps_indx_in_obs_space
+      get_station_gaps
+      make_gapfill_df
       missing_timestamp_and_gap_check
+      remove_gaps_from_obs
    
    
 
@@ -29,7 +35,6 @@ metobs\_toolkit.gap
       :nosignatures:
    
       Gap
-      Gap_collection
    
    
 

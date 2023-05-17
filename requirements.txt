@@ -154,8 +154,8 @@ contourpy==1.0.7 ; python_version >= "3.9" and python_version < "4.0" \
 cycler==0.11.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:3a27e95f763a428a739d2add979fa7494c912a32c17c4c38c4d5f082cad165a3 \
     --hash=sha256:9c87405839a19696e837b3b818fed3f5f69f16f1eec1a1ad77e043dcea9c772f
-earthengine-api==0.1.352 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:caa66e659e3a3b51d1c658836821bdc80cd5599e799b96b43e59c2944ef9b851
+earthengine-api==0.1.353 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:57d7806972c1395e035efbff38e4bccc4f0176f33eaa9046a39801928cc0361f
 fiona==1.9.3 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:00628c5a3dd7e9bc037ba0487fc3b9f7163107e0a9794bd4c32c471ab65f3a45 \
     --hash=sha256:0e9141bdb8031419ed2f04c6da02ae12c3044a81987065e05ff40f39cc35e042 \
@@ -177,9 +177,9 @@ fiona==1.9.3 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:e661deb7a8722839bd27eae74f63f0e480559774cc755598dfa6c51bdf18be3d \
     --hash=sha256:ee9b2ec9f0fb4b3798d607a94a5586b403fc27fea06e3e7ac2924c0785d4df61 \
     --hash=sha256:f1fcadad17b00d342532dc51a47128005f8ced01a320fa6b72c8ef669edf3057
-fonttools==4.39.3 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:64c0c05c337f826183637570ac5ab49ee220eec66cf50248e8df527edfa95aeb \
-    --hash=sha256:9234b9f57b74e31b192c3fc32ef1a40750a8fbc1cd9837a7b7bfc4ca4a5c51d7
+fonttools==4.39.4 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:106caf6167c4597556b31a8d9175a3fdc0356fdcd70ab19973c3b0d4c893c461 \
+    --hash=sha256:dba8d7cdb8e2bac1b3da28c5ed5960de09e59a2fe7e63bb73f5a59e57b0430d2
 geopandas==0.9.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:63972ab4dc44c4029f340600dcb83264eb8132dd22b104da0b654bef7f42630a \
     --hash=sha256:79f6e557ba0dba76eec44f8351b1c6b42a17c38f5f08fef347e98fe4dae563c7
@@ -192,9 +192,9 @@ google-api-python-client==2.86.0 ; python_version >= "3.9" and python_version < 
 google-auth-httplib2==0.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:31e49c36c6b5643b57e82617cb3e021e3e1d2df9da63af67252c02fa9c1f4a10 \
     --hash=sha256:a07c39fd632becacd3f07718dfd6021bf396978f03ad3ce4321d060015cc30ac
-google-auth==2.17.3 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:ce311e2bc58b130fddf316df57c9b3943c2a7b4f6ec31de9663a9333e4064efc \
-    --hash=sha256:f586b274d3eb7bd932ea424b1c702a30e0393a2e2bc4ca3eae8263ffd8be229f
+google-auth==2.18.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:c66b488a8b005b23ccb97b1198b6cece516c91869091ac5b7c267422db2733c7 \
+    --hash=sha256:ef3f3a67fa54d421a1c155864570f9a8de9179cedc937bda496b7a8ca338e936
 google-cloud-core==2.3.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:8417acf6466be2fa85123441696c4badda48db314c607cf1e5d543fa8bdc22fe \
     --hash=sha256:b9529ee7047fd8d4bf4a2182de619154240df17fbe60ead399078c1ae152af9a
@@ -405,9 +405,9 @@ matplotlib==3.7.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:f67bfdb83a8232cb7a92b869f9355d677bce24485c460b19d01970b64b2ed476 \
     --hash=sha256:f883a22a56a84dba3b588696a2b8a1ab0d2c3d41be53264115c71b0a942d8fdb \
     --hash=sha256:fbdeeb58c0cf0595efe89c05c224e0a502d1aa6a8696e68a73c3efc6bc354304
-munch==2.5.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:2d735f6f24d4dba3417fa448cae40c6e896ec1fdab6cdb5e6510999758a4dbd2 \
-    --hash=sha256:6f44af89a2ce4ed04ff8de41f70b226b984db10a91dcc7b9ac2efc1c77022fdd
+munch==3.0.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:0e4108418cfea898dcad01ff9569c30ff58f01d6f699331d04364f51623627c0 \
+    --hash=sha256:5284603030c00906d9d64d8108728c004fbeb91fc1c1e4caca342bc48f2a6dfd
 mysql-connector-python==8.0.33 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:0004426e964856148e1cde31e9b8be63ae3013715b048ff0f2ede69a6ddd36f7 \
     --hash=sha256:016662c6252f2c5f47805d9168187be1316d0c1d7109f9fe668482c3d6e5711d \
@@ -437,7 +437,7 @@ mysql-connector-python==8.0.33 ; python_version >= "3.9" and python_version < "4
 networkx==3.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:4f33f68cb2afcf86f28a45f43efc27a9386b535d567d2127f8f61d51dec58d36 \
     --hash=sha256:de346335408f84de0eada6ff9fafafff9bcda11f0a0dfaa931133debb146ab61
-numpy==1.24.3 ; python_version < "4.0" and python_version >= "3.9" \
+numpy==1.24.3 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:0ec87a7084caa559c36e0a2309e4ecb1baa03b687201d0a847c8b0ed476a7187 \
     --hash=sha256:1a7d6acc2e7524c9955e5c903160aa4ea083736fde7e91276b0e5d98e6332812 \
     --hash=sha256:202de8f38fc4a45a3eea4b63e2f376e5f2dc64ef0fa692838e31a808520efaf7 \
