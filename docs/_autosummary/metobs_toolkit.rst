@@ -35,6 +35,7 @@
    metobs_toolkit.gap
    metobs_toolkit.gap_filling
    metobs_toolkit.geometry_functions
+   metobs_toolkit.gui_launcher
    metobs_toolkit.landcover_functions
    metobs_toolkit.missingobs
    metobs_toolkit.modeldata

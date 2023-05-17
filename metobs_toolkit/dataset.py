@@ -268,6 +268,7 @@ class Dataset:
         legend=True,
         show_outliers=True,
         show_filled = True,
+        _ax=None, #needed for GUI, not recommended use
     ):
         """
         This function creates a timeseries plot for the dataset. The variable observation type
@@ -367,7 +368,8 @@ class Dataset:
             colorby=colorby,
             show_legend=legend,
             show_outliers=show_outliers,
-            settings = self.settings
+            settings = self.settings,
+            _ax = _ax
         )
 
         return ax

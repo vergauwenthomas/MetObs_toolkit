@@ -1,0 +1,3 @@
+varname,template column name,format,dtype,units,description
+datetime,Tijd,%Y-%m-%d %H:%M:%S,object,,
+temp,MolenhofWeer - Temperatuur (°C),,float64,Celcius,2mT

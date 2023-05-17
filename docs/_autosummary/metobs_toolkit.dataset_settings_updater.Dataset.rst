@@ -1,7 +1,7 @@
-metobs\_toolkit.dataset.Dataset
-===============================
+metobs\_toolkit.dataset\_settings\_updater.Dataset
+==================================================
 
-.. currentmodule:: metobs_toolkit.dataset
+.. currentmodule:: metobs_toolkit.dataset_settings_updater
 
 .. autoclass:: Dataset
    :members:
@@ -38,8 +38,13 @@ metobs\_toolkit.dataset.Dataset
       ~Dataset.show
       ~Dataset.show_settings
       ~Dataset.sync_observations
+      ~Dataset.update_default_name
+      ~Dataset.update_gap_and_missing_fill_settings
       ~Dataset.update_gaps_and_missing_from_outliers
       ~Dataset.update_outliersdf
+      ~Dataset.update_qc_settings
+      ~Dataset.update_settings
+      ~Dataset.update_timezone
       ~Dataset.write_to_csv
    
    

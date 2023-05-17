@@ -1,0 +1,8 @@
+varname,template column name,format,dtype,units,description
+_date,Datum,%Y-%m-%d,object,,
+_time,Tijd (UTC),%H:%M:%S,object,,
+name,Vlinder,,object,,
+lat,lat,,object,,
+lon,lon,,object,,
+temp,Temperatuur,,float64,Celcius,2mT
+radiation_temp,Globe Temperatuur,,float64,Celcius,Blackglobe temperature
