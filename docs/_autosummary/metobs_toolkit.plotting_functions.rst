@@ -20,6 +20,7 @@ metobs\_toolkit.plotting\_functions
       make_cat_colormapper
       map_obstype
       qc_stats_pie
+      sorting_function
       timeseries_plot
    
    

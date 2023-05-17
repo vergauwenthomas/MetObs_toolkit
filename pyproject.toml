@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "MetObs-toolkit"
-version = "0.0.2a4"
+version = "0.0.2a5"
 description = "A Meteorological observations toolkit for scientists"
 authors = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 maintainers = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]

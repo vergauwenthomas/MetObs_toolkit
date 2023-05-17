@@ -458,49 +458,49 @@
 <span class="linenos">37</span><span class="n">favorite_station</span> <span class="o">=</span> <span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">stationname</span><span class="o">=</span><span class="s2">&quot;vlinder02&quot;</span><span class="p">)</span>
 <span class="linenos">38</span><span class="n">favorite_station</span><span class="o">.</span><span class="n">apply_quality_control</span><span class="p">()</span>
 <span class="linenos">39</span>
-<span class="linenos">40</span><span class="c1"># Possible obstypes to plot:</span>
-<span class="linenos">41</span><span class="c1"># &#39;temp&#39;,&#39;radiation_temp&#39;,&#39;humidity&#39;,&#39;precip&#39;,&#39;precip_sum&#39;,&#39;wind_speed&#39;,</span>
-<span class="linenos">42</span><span class="c1"># &#39;wind_gust&#39;,&#39;wind_direction&#39;,&#39;pressure&#39;,&#39;pressure_at_sea_level&#39;</span>
-<span class="linenos">43</span>
+<span class="linenos">40</span>
+<span class="linenos">41</span><span class="c1"># Possible obstypes to plot:</span>
+<span class="linenos">42</span><span class="c1"># &#39;temp&#39;,&#39;radiation_temp&#39;,&#39;humidity&#39;,&#39;precip&#39;,&#39;precip_sum&#39;,&#39;wind_speed&#39;,</span>
+<span class="linenos">43</span><span class="c1"># &#39;wind_gust&#39;,&#39;wind_direction&#39;,&#39;pressure&#39;,&#39;pressure_at_sea_level&#39;</span>
 <span class="linenos">44</span>
-<span class="linenos">45</span><span class="n">favorite_station</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span>
-<span class="linenos">46</span>    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span> <span class="n">colorby</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span>
-<span class="linenos">47</span><span class="p">)</span>  <span class="c1"># if title=None, a title will be generated</span>
-<span class="linenos">48</span>
-<span class="linenos">49</span><span class="c1"># Nan values will be not shown in the plot</span>
-<span class="linenos">50</span>
-<span class="linenos">51</span><span class="c1"># If you want to compair multiple stations by a timeseries you can use the make_plot function on the dataset:</span>
-<span class="linenos">52</span>
-<span class="linenos">53</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span>
-<span class="linenos">54</span>    <span class="n">stationnames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;vlinder02&quot;</span><span class="p">,</span> <span class="s2">&quot;vlinder05&quot;</span><span class="p">,</span> <span class="s2">&quot;vlinder07&quot;</span><span class="p">],</span>
-<span class="linenos">55</span>    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;humidity&quot;</span><span class="p">,</span>
-<span class="linenos">56</span>    <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-<span class="linenos">57</span>    <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="linenos">45</span>
+<span class="linenos">46</span><span class="n">favorite_station</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span>
+<span class="linenos">47</span>    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span> <span class="n">colorby</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span>
+<span class="linenos">48</span><span class="p">)</span>  <span class="c1"># if title=None, a title will be generated</span>
+<span class="linenos">49</span>
+<span class="linenos">50</span><span class="c1"># Nan values will be not shown in the plot</span>
+<span class="linenos">51</span>
+<span class="linenos">52</span><span class="c1"># If you want to compair multiple stations by a timeseries you can use the make_plot function on the dataset:</span>
+<span class="linenos">53</span>
+<span class="linenos">54</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span>
+<span class="linenos">55</span>    <span class="n">stationnames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;vlinder02&quot;</span><span class="p">,</span> <span class="s2">&quot;vlinder05&quot;</span><span class="p">,</span> <span class="s2">&quot;vlinder07&quot;</span><span class="p">],</span>
+<span class="linenos">56</span>    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;humidity&quot;</span><span class="p">,</span>
+<span class="linenos">57</span>    <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 </pre></div>
 </div>
 </section>
 <section id="id1">
 <h2><a class="toc-backref" href="#id10" role="doc-backlink">Making spatial plots</a><a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1"># If you do not specify a start and endtime, all available timestamps are used.</span>
-<span class="linenos"> 2</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="p">)</span>
+<span class="linenos"> 2</span><span class="c1"># If you do not specify a start and endtime, all available timestamps are used.</span>
 <span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="c1"># =============================================================================</span>
-<span class="linenos"> 5</span><span class="c1"># Geospatial plots</span>
-<span class="linenos"> 6</span><span class="c1"># =============================================================================</span>
-<span class="linenos"> 7</span>
-<span class="linenos"> 8</span><span class="c1"># geospatial plots can be made for a given moment (datetimeinstance) by</span>
-<span class="linenos"> 9</span><span class="c1"># applying the make_geo_plot() on a dataset object:</span>
-<span class="linenos">10</span>
-<span class="linenos">11</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">make_geo_plot</span><span class="p">(</span>
-<span class="linenos">12</span>    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
-<span class="linenos">13</span>    <span class="n">timeinstance</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>  <span class="c1"># 2022/09/06 00:00:00</span>
-<span class="linenos">14</span>    <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-<span class="linenos">15</span>    <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="linenos">16</span>    <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># value corresponding to the minimum of the colorscheme</span>
-<span class="linenos">17</span>    <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-<span class="linenos">18</span><span class="p">)</span>  <span class="c1"># value corresponding to the maximum of the colorscheme</span>
-<span class="linenos">19</span>
-<span class="linenos">20</span><span class="c1"># Notes:</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="c1"># =============================================================================</span>
+<span class="linenos"> 6</span><span class="c1"># Geospatial plots</span>
+<span class="linenos"> 7</span><span class="c1"># =============================================================================</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="c1"># geospatial plots can be made for a given moment (datetimeinstance) by</span>
+<span class="linenos">10</span><span class="c1"># applying the make_geo_plot() on a dataset object:</span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">make_geo_plot</span><span class="p">(</span>
+<span class="linenos">13</span>    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+<span class="linenos">14</span>    <span class="n">timeinstance</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>  <span class="c1"># 2022/09/06 00:00:00</span>
+<span class="linenos">15</span>    <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="linenos">16</span>    <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="linenos">17</span>    <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># value corresponding to the minimum of the colorscheme</span>
+<span class="linenos">18</span>    <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="linenos">19</span><span class="p">)</span>  <span class="c1"># value corresponding to the maximum of the colorscheme</span>
+<span class="linenos">20</span>
 </pre></div>
 </div>
 </section>
