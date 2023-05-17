@@ -25,6 +25,7 @@ metobs\_toolkit.dataset.Dataset
       ~Dataset.fill_missing_obs_linear
       ~Dataset.get_altitude
       ~Dataset.get_analysis
+      ~Dataset.get_gaps_df
       ~Dataset.get_landcover
       ~Dataset.get_lcz
       ~Dataset.get_modeldata

@@ -9,6 +9,14 @@ metobs\_toolkit.dataset\_settings\_updater
 
    
    
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      is_timedelta
+   
    
 
    

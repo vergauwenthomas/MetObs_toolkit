@@ -19,11 +19,13 @@ metobs\_toolkit.dataset\_settings\_updater.Dataset
       ~Dataset.apply_quality_control
       ~Dataset.coarsen_time_resolution
       ~Dataset.combine_all_to_obsspace
+      ~Dataset.fill_gaps_automatic
       ~Dataset.fill_gaps_era5
       ~Dataset.fill_gaps_linear
       ~Dataset.fill_missing_obs_linear
       ~Dataset.get_altitude
       ~Dataset.get_analysis
+      ~Dataset.get_gaps_df
       ~Dataset.get_landcover
       ~Dataset.get_lcz
       ~Dataset.get_modeldata
@@ -38,6 +40,7 @@ metobs\_toolkit.dataset\_settings\_updater.Dataset
       ~Dataset.sync_observations
       ~Dataset.update_default_name
       ~Dataset.update_gap_and_missing_fill_settings
+      ~Dataset.update_gaps_and_missing_from_outliers
       ~Dataset.update_outliersdf
       ~Dataset.update_qc_settings
       ~Dataset.update_settings

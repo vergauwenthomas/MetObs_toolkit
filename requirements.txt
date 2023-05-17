@@ -659,12 +659,11 @@ pyqt5-sip==12.12.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:e0241b62f5ca9aaff1037f12e6f5ed68168e7200e14e73f05b632381cee0ff4b \
     --hash=sha256:eee684532876775e1d0fa20d4aae1b568aaa6c732d74e6657ee832e427d46947 \
     --hash=sha256:f5ac060219c127a5b9009a4cfe33086e36c6bb8e26c0b757b31a6c04d29d630d
-pyqt5==5.15.9 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:883ba5c8a348be78c8be6a3d3ba014c798e679503bce00d76c666c2dc6afe828 \
-    --hash=sha256:dc41e8401a90dc3e2b692b411bd5492ab559ae27a27424eed4bd3915564ec4c0 \
-    --hash=sha256:dd5ce10e79fbf1df29507d2daf99270f2057cdd25e4de6fbf2052b46c652e3a5 \
-    --hash=sha256:e030d795df4cbbfcf4f38b18e2e119bcc9e177ef658a5094b87bb16cac0ce4c5 \
-    --hash=sha256:e45c5cc15d4fd26ab5cb0e5cdba60691a3e9086411f8e3662db07a5a4222a696
+pyqt5==5.12.2 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:06cb9a1ea1289ca2b2d81f9a2da44a05029d5b4d36fa47b6a0c0b9027ff03fef \
+    --hash=sha256:44b263f395045eb5bba34f4df2d269e07b1e073fd359645b022943dd1accadfd \
+    --hash=sha256:bb4ec5583baa18f741ec6c229489dc1910290d4ce4d6756a2ea062f7bf6456e6 \
+    --hash=sha256:c168a8883bbe7877809c3239c5dcfb9e8de5fe7e8e828c8add7e4f77cc8fc02a
 python-dateutil==2.8.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9

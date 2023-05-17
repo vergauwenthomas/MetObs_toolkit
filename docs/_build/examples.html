@@ -118,95 +118,95 @@
 <span class="linenos"> 6</span>
 <span class="linenos"> 7</span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">main_folder</span><span class="p">))</span>
 <span class="linenos"> 8</span>
-<span class="linenos"> 9</span>
-<span class="linenos">10</span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
-<span class="linenos">11</span>
+<span class="linenos"> 9</span><span class="kn">import</span> <span class="nn">PyQt5</span>
+<span class="linenos">10</span><span class="kn">from</span> <span class="nn">PyQt5</span> <span class="kn">import</span> <span class="n">QtWidgets</span>
+<span class="linenos">11</span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
 <span class="linenos">12</span>
-<span class="linenos">13</span><span class="c1"># =============================================================================</span>
-<span class="linenos">14</span><span class="c1"># Dataset</span>
-<span class="linenos">15</span><span class="c1"># =============================================================================</span>
-<span class="linenos">16</span>
-<span class="linenos">17</span><span class="c1"># A dataset is a collection of all observational data. Most of the methods are</span>
-<span class="linenos">18</span><span class="c1"># applied directly on a dataset. Always start by initializing a dataset object:</span>
-<span class="linenos">19</span>
-<span class="linenos">20</span><span class="n">aug_2020_all_vlinders</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
-<span class="linenos">21</span>
-<span class="linenos">22</span><span class="c1"># All default observationtypes present in the MetObs toolkit can be shown by:</span>
-<span class="linenos">23</span><span class="nb">print</span><span class="p">(</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">observation_types</span><span class="p">)</span>
-<span class="linenos">24</span>
+<span class="linenos">13</span>
+<span class="linenos">14</span><span class="c1"># =============================================================================</span>
+<span class="linenos">15</span><span class="c1"># Dataset</span>
+<span class="linenos">16</span><span class="c1"># =============================================================================</span>
+<span class="linenos">17</span>
+<span class="linenos">18</span><span class="c1"># A dataset is a collection of all observational data. Most of the methods are</span>
+<span class="linenos">19</span><span class="c1"># applied directly on a dataset. Always start by initializing a dataset object:</span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="n">aug_2020_all_vlinders</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span><span class="c1"># All default observationtypes present in the MetObs toolkit can be shown by:</span>
+<span class="linenos">24</span><span class="nb">print</span><span class="p">(</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">observation_types</span><span class="p">)</span>
 <span class="linenos">25</span>
-<span class="linenos">26</span><span class="c1"># we created an dataset and stored in under the variable &#39;aug_2020_all_vlinder&#39;.</span>
-<span class="linenos">27</span><span class="c1"># The show function prints out an overview of data in the dataset:</span>
-<span class="linenos">28</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="linenos">29</span>
-<span class="linenos">30</span><span class="c1"># =============================================================================</span>
-<span class="linenos">31</span><span class="c1"># Importing data</span>
-<span class="linenos">32</span><span class="c1"># =============================================================================</span>
-<span class="linenos">33</span>
-<span class="linenos">34</span><span class="c1"># To import data, you must specify where your data (and additional templates) are.</span>
-<span class="linenos">35</span><span class="c1"># All this information is stored in the Settings of a dataset. To get an overview</span>
-<span class="linenos">36</span><span class="c1"># of all the settings:</span>
-<span class="linenos">37</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">show_settings</span><span class="p">()</span>
-<span class="linenos">38</span>
-<span class="linenos">39</span><span class="c1"># you can see that the settings contain default values. But there are no default</span>
-<span class="linenos">40</span><span class="c1"># values for where your data is. So you have to update the settings.</span>
-<span class="linenos">41</span>
+<span class="linenos">26</span>
+<span class="linenos">27</span><span class="c1"># we created an dataset and stored in under the variable &#39;aug_2020_all_vlinder&#39;.</span>
+<span class="linenos">28</span><span class="c1"># The show function prints out an overview of data in the dataset:</span>
+<span class="linenos">29</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="linenos">30</span>
+<span class="linenos">31</span><span class="c1"># =============================================================================</span>
+<span class="linenos">32</span><span class="c1"># Importing data</span>
+<span class="linenos">33</span><span class="c1"># =============================================================================</span>
+<span class="linenos">34</span>
+<span class="linenos">35</span><span class="c1"># To import data, you must specify where your data (and additional templates) are.</span>
+<span class="linenos">36</span><span class="c1"># All this information is stored in the Settings of a dataset. To get an overview</span>
+<span class="linenos">37</span><span class="c1"># of all the settings:</span>
+<span class="linenos">38</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">show_settings</span><span class="p">()</span>
+<span class="linenos">39</span>
+<span class="linenos">40</span><span class="c1"># you can see that the settings contain default values. But there are no default</span>
+<span class="linenos">41</span><span class="c1"># values for where your data is. So you have to update the settings.</span>
 <span class="linenos">42</span>
-<span class="linenos">43</span><span class="c1"># Start by updating the settings of your dataset so it knows here the data files are:</span>
-<span class="linenos">44</span>
+<span class="linenos">43</span>
+<span class="linenos">44</span><span class="c1"># Start by updating the settings of your dataset so it knows here the data files are:</span>
 <span class="linenos">45</span>
-<span class="linenos">46</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span>
-<span class="linenos">47</span>    <span class="n">input_data_file</span><span class="o">=</span><span class="n">testdata_file</span><span class="p">,</span>  <span class="c1"># A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php</span>
-<span class="linenos">48</span>    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metadata</span><span class="p">,</span>
-<span class="linenos">49</span>    <span class="n">output_folder</span><span class="o">=</span><span class="s2">&quot;/home/$USER/output/&quot;</span><span class="p">,</span>
-<span class="linenos">50</span>    <span class="n">data_template_file</span><span class="o">=</span><span class="n">templatefile</span><span class="p">,</span>
-<span class="linenos">51</span>    <span class="n">metadata_template_file</span><span class="o">=</span><span class="n">templatefile</span><span class="p">,</span>
+<span class="linenos">46</span>
+<span class="linenos">47</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span>
+<span class="linenos">48</span>    <span class="n">input_data_file</span><span class="o">=</span><span class="n">testdata_file</span><span class="p">,</span>  <span class="c1"># A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php</span>
+<span class="linenos">49</span>    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metadata</span><span class="p">,</span>
+<span class="linenos">50</span>    <span class="n">output_folder</span><span class="o">=</span><span class="s2">&quot;/home/$USER/output/&quot;</span><span class="p">,</span>
+<span class="linenos">51</span>    <span class="n">data_template_file</span><span class="o">=</span><span class="n">templatefile</span><span class="p">,</span>
 </pre></div>
 </div>
 </section>
 <section id="extracting-a-station">
 <h2><a class="toc-backref" href="#id4" role="doc-backlink">Extracting a Station</a><a class="headerlink" href="#extracting-a-station" title="Permalink to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1"># We need to specify the start-moment and end-moment for this period. To do this we need to import the datetime module (base python module)</span>
-<span class="linenos"> 2</span><span class="c1"># from datetime import datetime</span>
-<span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="c1"># To get the data it is a simple as:</span>
-<span class="linenos"> 5</span><span class="c1"># sept_2022_all_vlinders.import_data_from_database(start_datetime=datetime(2022, 9,1), # 2022/09/01 00:00:00</span>
-<span class="linenos"> 6</span><span class="c1">#  end_datetime=datetime(2022,9,2,12,45)) #2022/09/25 12:45:00</span>
-<span class="linenos"> 7</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span>
+<span class="linenos"> 2</span><span class="c1"># We need to specify the start-moment and end-moment for this period. To do this we need to import the datetime module (base python module)</span>
+<span class="linenos"> 3</span><span class="c1"># from datetime import datetime</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="c1"># To get the data it is a simple as:</span>
+<span class="linenos"> 6</span><span class="c1"># sept_2022_all_vlinders.import_data_from_database(start_datetime=datetime(2022, 9,1), # 2022/09/01 00:00:00</span>
+<span class="linenos"> 7</span><span class="c1">#  end_datetime=datetime(2022,9,2,12,45)) #2022/09/25 12:45:00</span>
 <span class="linenos"> 8</span>
-<span class="linenos"> 9</span><span class="c1"># =============================================================================</span>
-<span class="linenos">10</span><span class="c1"># Analysing one station</span>
-<span class="linenos">11</span><span class="c1"># =============================================================================</span>
-<span class="linenos">12</span>
-<span class="linenos">13</span><span class="c1"># if you are interested in one station, you can extract all the info for that one station from the dataset by:</span>
-<span class="linenos">14</span>
-<span class="linenos">15</span><span class="n">favorite_station</span> <span class="o">=</span> <span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">stationname</span><span class="o">=</span><span class="s2">&quot;vlinder02&quot;</span><span class="p">)</span>
-<span class="linenos">16</span>
-<span class="linenos">17</span><span class="c1"># the variable favorite_station now contains all info about that station. If you would like to have the observation in a tabular form (pandas dataframe):</span>
-<span class="linenos">18</span>
-<span class="linenos">19</span><span class="n">observations</span> <span class="o">=</span> <span class="n">favorite_station</span><span class="o">.</span><span class="n">df</span>
-<span class="linenos">20</span>
-<span class="linenos">21</span><span class="nb">print</span><span class="p">(</span><span class="n">observations</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
-<span class="linenos">22</span>
+<span class="linenos"> 9</span>
+<span class="linenos">10</span><span class="c1"># =============================================================================</span>
+<span class="linenos">11</span><span class="c1"># Analysing one station</span>
+<span class="linenos">12</span><span class="c1"># =============================================================================</span>
+<span class="linenos">13</span>
+<span class="linenos">14</span><span class="c1"># if you are interested in one station, you can extract all the info for that one station from the dataset by:</span>
+<span class="linenos">15</span>
+<span class="linenos">16</span><span class="n">favorite_station</span> <span class="o">=</span> <span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">stationname</span><span class="o">=</span><span class="s2">&quot;vlinder02&quot;</span><span class="p">)</span>
+<span class="linenos">17</span>
+<span class="linenos">18</span><span class="c1"># the variable favorite_station now contains all info about that station. If you would like to have the observation in a tabular form (pandas dataframe):</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span><span class="n">observations</span> <span class="o">=</span> <span class="n">favorite_station</span><span class="o">.</span><span class="n">df</span>
+<span class="linenos">21</span>
+<span class="linenos">22</span><span class="nb">print</span><span class="p">(</span><span class="n">observations</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 <span class="linenos">23</span>
 </pre></div>
 </div>
 </section>
 <section id="writing-to-a-file">
 <h2><a class="toc-backref" href="#id5" role="doc-backlink">Writing to a file</a><a class="headerlink" href="#writing-to-a-file" title="Permalink to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span>
-<span class="linenos"> 2</span><span class="c1"># You can extract attributes from the station:</span>
-<span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">favorite_station</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;temp&quot;</span><span class="p">]</span>
-<span class="linenos"> 5</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="n">favorite_station</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">)</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="c1"># You can extract attributes from the station:</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">favorite_station</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;temp&quot;</span><span class="p">]</span>
 <span class="linenos"> 6</span>
-<span class="linenos"> 7</span><span class="c1"># =============================================================================</span>
-<span class="linenos"> 8</span><span class="c1"># Writing to a file</span>
-<span class="linenos"> 9</span><span class="c1"># =============================================================================</span>
-<span class="linenos">10</span>
-<span class="linenos">11</span><span class="c1"># to write the dataset to a file, specify an outputfolder first. The data will be written there.</span>
-<span class="linenos">12</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span><span class="n">output_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
-<span class="linenos">13</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="c1"># =============================================================================</span>
+<span class="linenos"> 9</span><span class="c1"># Writing to a file</span>
+<span class="linenos">10</span><span class="c1"># =============================================================================</span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="c1"># to write the dataset to a file, specify an outputfolder first. The data will be written there.</span>
+<span class="linenos">13</span><span class="n">aug_2020_all_vlinders</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span><span class="n">output_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
 <span class="linenos">14</span>
 </pre></div>
 </div>
