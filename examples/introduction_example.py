@@ -25,8 +25,6 @@ import sys
 
 sys.path.append(str(main_folder))
 
-import PyQt5
-from PyQt5 import QtWidgets
 import metobs_toolkit
 
 
