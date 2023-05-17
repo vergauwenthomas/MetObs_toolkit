@@ -19,8 +19,45 @@ from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 import matplotlib.gridspec as gridspec
 
+import geemap.foliumap as foliumap
+import folium
+
 from metobs_toolkit.geometry_functions import find_largest_extent
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+from metobs_toolkit.landcover_functions import get_ee_obj
+
+
+
+def folium_plot(mapinfo, band, vis_params, labelnames, layername,
+                basemap='SATELLITE', showmap=True, legendname=None,
+                legendpos='bottomleft'):
+    # get the ee.Image
+    im = get_ee_obj(mapinfo, band)
+
+    # make plot
+    MAP = foliumap.Map()
+    if basemap:
+        MAP.add_basemap(basemap)
+    MAP.add_layer(im, vis_params, layername)
+    if legendname:
+        MAP.add_legend(title=legendname,labels=labelnames, colors=vis_params.get('palette'), position=legendpos)
+    if showmap==True:
+        display(MAP)
+    return MAP
+
+
+
+def add_stations_to_folium_map(Map, metadf):
+
+    points = metadf['geometry'].to_crs("epsg:4326")
+    for station, point in points.items():
+        folium.Marker(location=[ point.y, point.x ],
+                      fill_color='#43d9de',
+                      popup=station,
+                      radius=8 ).add_to( Map )
+
+    return Map
 
 
 # =============================================================================
@@ -244,17 +281,17 @@ def _spatial_plot(
 
 def sorting_function(label_vec, custom_handles, number_of_labels_types=3):
     # TODO: clean this up? rewrite to better code?
-    sorted_vec = []            
+    sorted_vec = []
     # group 1, 2, 3
     for i in range(1, number_of_labels_types+1): # loop over the type of labels
         for l in range(len(label_vec)): #loop over the length of the label_vec
             if label_vec[l] == i:
-                sorted_vec.append(l) 
+                sorted_vec.append(l)
                 # makes a vector of same size as label_vec
-                # but with the right order of permutations. 
-    sorted_handles = [custom_handles[i] for i in sorted_vec] 
-    # reordering the custom handles to put 1 at the front    
-    
+                # but with the right order of permutations.
+    sorted_handles = [custom_handles[i] for i in sorted_vec]
+    # reordering the custom handles to put 1 at the front
+
     return sorted_handles
 
 
@@ -300,7 +337,7 @@ def timeseries_plot(
 
     custom_handles = [] #add legend items to it
     label_vec=[] # add type of label
-    
+
 
     if colorby == "label":
         # iterate over label groups
@@ -310,7 +347,7 @@ def timeseries_plot(
         legenddict = {}
         for outl_label, groupdf in outl_groups:
             outl_color = col_mapper[outl_label]
-            
+
 
             # plot data for the 'ok' group
             if outl_label == ok_group_label:  # ok data as lines
@@ -409,7 +446,7 @@ def timeseries_plot(
                 bbox_to_anchor=(0.5, -0.2),
                 fancybox=True, shadow=True,
                 ncol=plot_settings["time_series"]["legend_n_columns"])
-            
+
 
     elif colorby == "name":
         plotdf = mergedf.reset_index().pivot(
@@ -466,7 +503,7 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
             custom_handles.append(
                 Line2D([0], [0], color=colordict[lcz_cat], label=lcz_cat, lw=4)
             )
-            
+
         box = ax.get_position()
         ax.set_position([box.x0, box.y0 + box.height * 0.2,
              box.width, box.height * 0.95])

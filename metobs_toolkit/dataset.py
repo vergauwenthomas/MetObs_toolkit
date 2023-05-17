@@ -28,12 +28,15 @@ from metobs_toolkit.landcover_functions import (
     lcz_extractor,
     height_extractor,
     lc_fractions_extractor,
+    _validate_metadf
 )
 
 from metobs_toolkit.plotting_functions import (
     geospatial_plot,
     timeseries_plot,
     qc_stats_pie,
+    folium_plot,
+    add_stations_to_folium_map,
 )
 
 from metobs_toolkit.qc_checks import (
@@ -2264,3 +2267,93 @@ class Dataset:
                 self.metadf[buf_df.columns] = buf_df
 
         return frac_df
+
+    def make_gee_plot(self, gee_map, show_stations=True, show=True, save=False):
+        """
+        Make an interactive plot of a google earth dataset. The location of the
+        stations can be plotted on top of it.
+
+        Parameters
+        ----------
+        gee_map : str, optional
+            The name of the dataset to use. This name should be present in the
+            settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
+            scheme should included as well. The default is 'worldcover'
+        show_stations : bool, optional
+            If True, the stations will be plotted as markers. The default is True.
+        show : bool, optional
+            Display the plot. (Not all consoles support this) The default is True.
+        save : bool, optional
+            If True, the map will be saved as an html file in the output_folder
+            as defined in the settings. The default is False.
+
+        Returns
+        -------
+        Map : geemap.foliumap.Map
+            The folium Map instance.
+
+        Note
+        -------
+        If you execute this function with show = True, outside a notebook then
+        it is possible that the map will not appear because of backend compatibility
+        or settings.
+
+        It is better to use the save=True, and open the html file with a browser.
+
+        """
+
+        # Connect to GEE
+        connect_to_gee()
+
+        # get the mapinfo
+        mapinfo = self.settings.gee["gee_dataset_info"][gee_map]
+
+
+        #Read in covers, numbers and labels
+        covernum = list(mapinfo['colorscheme'].keys())
+        colors =list(mapinfo['colorscheme'].values())
+        covername = [mapinfo['categorical_mapper'][covnum] for covnum in covernum]
+
+
+
+        # create visparams
+        vis_params ={
+            'min': min(covernum),
+            'max': max(covernum),
+            'palette': colors #hex colors!
+            }
+
+        if 'band_of_use' in mapinfo:
+            band=mapinfo['band_of_use']
+        else:
+            band=None
+
+        Map = folium_plot(mapinfo = mapinfo,
+                          band = band,
+                          vis_params = vis_params,
+                          labelnames = covername,
+                          layername = gee_map,
+                          showmap = show,
+                          )
+        if show_stations:
+            if not _validate_metadf(self.metadf):
+                print('Not enough coordinates information is provided to plot the stations.')
+            else:
+                Map = add_stations_to_folium_map(Map = Map,
+                                                 metadf = self.metadf)
+
+
+
+
+        # Save if needed
+        if save:
+            if self.settings.IO['output_folder'] is None:
+                print('WARNING: The outputfolder is not set up, use the update_settings to specify the output_folder.')
+
+            else:
+                filename = f'gee_{gee_map}_figure.html'
+                filepath = os.path.join(self.settings.IO['output_folder'], filename)
+                print(f'Gee Map will be save at {filepath}')
+                Map.save(filepath)
+
+        return Map
