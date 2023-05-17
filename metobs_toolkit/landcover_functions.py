@@ -52,7 +52,7 @@ def lcz_extractor(metadf, mapinfo):
 
 def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
     # make return in case something went wrong
-    default_return = pd.DataFrame(index=metadf.index)
+    default_return = (pd.DataFrame(index=metadf.index), buffer)
 
     # test if metadata is suitable
     if not _validate_metadf(metadf):
@@ -67,27 +67,22 @@ def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
 
     # apply aggregation if required
     if agg:
-        print("aggregateion")
+        print(f"Using aggregation scheme: {mapinfo['aggregation']}")
         agg_df = pd.DataFrame()
         for agg_name, agg_classes in mapinfo["aggregation"].items():
             present_agg_classes = [
                 str(num) for num in agg_classes if str(num) in freqs_df.columns
             ]
-            agg_df[agg_name + "_" + str(buffer) + "m"] = freqs_df[
-                present_agg_classes
-            ].sum(axis=1)
+            agg_df[agg_name] = freqs_df[present_agg_classes].sum(axis=1)
 
-        return agg_df
+        return agg_df, buffer
 
     else:
         # map numeric classes to human
-        mapper = {
-            str(num): human + "_" + str(buffer) + "m"
-            for num, human in mapinfo["categorical_mapper"].items()
-        }
+        mapper = {str(num): human for num, human in mapinfo["categorical_mapper"].items()}
         freqs_df = freqs_df.rename(columns=mapper)
 
-        return freqs_df
+        return freqs_df, buffer
 
 
 def height_extractor(metadf, mapinfo):
