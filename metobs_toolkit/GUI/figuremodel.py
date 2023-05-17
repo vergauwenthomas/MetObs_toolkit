@@ -65,7 +65,7 @@ class MplCanvas(FigureCanvasQTAgg):
                                            colorby=colorby,
                                            starttime=None,
                                            endtime=None,
-                                           ax=self.axes,
+                                           _ax=self.axes,
                                            title=None,
                                            legend=False,
                                            show_outliers=show_outliers)

@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.station.Station
+metobs\_toolkit.station.Station
 ===============================
 
 .. currentmodule:: metobs_toolkit.station
@@ -19,6 +19,7 @@
       ~Station.apply_quality_control
       ~Station.coarsen_time_resolution
       ~Station.combine_all_to_obsspace
+      ~Station.fill_gaps_automatic
       ~Station.fill_gaps_era5
       ~Station.fill_gaps_linear
       ~Station.fill_missing_obs_linear
@@ -36,6 +37,7 @@
       ~Station.show
       ~Station.show_settings
       ~Station.sync_observations
+      ~Station.update_gaps_and_missing_from_outliers
       ~Station.update_outliersdf
       ~Station.write_to_csv
    

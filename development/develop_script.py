@@ -25,6 +25,5 @@ import metobs_toolkit
 metobs_toolkit.launch_gui()
 
 
-#%% % Import
 
 

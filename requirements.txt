@@ -405,9 +405,9 @@ matplotlib==3.7.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:f67bfdb83a8232cb7a92b869f9355d677bce24485c460b19d01970b64b2ed476 \
     --hash=sha256:f883a22a56a84dba3b588696a2b8a1ab0d2c3d41be53264115c71b0a942d8fdb \
     --hash=sha256:fbdeeb58c0cf0595efe89c05c224e0a502d1aa6a8696e68a73c3efc6bc354304
-munch==2.5.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:2d735f6f24d4dba3417fa448cae40c6e896ec1fdab6cdb5e6510999758a4dbd2 \
-    --hash=sha256:6f44af89a2ce4ed04ff8de41f70b226b984db10a91dcc7b9ac2efc1c77022fdd
+munch==3.0.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:0e4108418cfea898dcad01ff9569c30ff58f01d6f699331d04364f51623627c0 \
+    --hash=sha256:5284603030c00906d9d64d8108728c004fbeb91fc1c1e4caca342bc48f2a6dfd
 mysql-connector-python==8.0.33 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:0004426e964856148e1cde31e9b8be63ae3013715b048ff0f2ede69a6ddd36f7 \
     --hash=sha256:016662c6252f2c5f47805d9168187be1316d0c1d7109f9fe668482c3d6e5711d \

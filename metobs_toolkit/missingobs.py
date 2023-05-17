@@ -12,7 +12,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import logging
 
-from metobs_toolkit.gap import _find_closes_occuring_date
+from metobs_toolkit.df_helpers import _find_closes_occuring_date
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,10 @@ class Missingob_collection:
 
         missing_obs_series.name = 'datetime'
         missing_obs_series.index.name = 'name'
+
+        missing_obs_series = missing_obs_series.drop_duplicates()
+        missing_obs_series = missing_obs_series.sort_index()
+
         missing_idx = missing_obs_series.reset_index()
         missing_idx = missing_idx.set_index(['name', 'datetime'])
 
@@ -38,6 +42,19 @@ class Missingob_collection:
         # gap fill (only for conventional saving)
         self.fill_df = pd.DataFrame()
         self.fill_technique = None
+
+    def __add__(self, other):
+        comb_series = pd.concat([self.series, other.series])
+
+        comb_series = comb_series.drop_duplicates()
+        comb_series = comb_series.sort_index()
+
+        self.series = comb_series
+        comb_idx = comb_series.reset_index()
+        comb_idx = comb_idx.set_index(['name', 'datetime'])
+        self.idx = comb_idx.index
+        return self
+
 
     def __str__(self):
         if self.series.empty:
@@ -137,20 +154,25 @@ class Missingob_collection:
             staobs = obsdf.xs(staname, level='name')[obstype]
             # exclude nan values because they are no good leading/trailing
             staobs = staobs[~staobs.isnull()]
-
+            print(f'staname: {staname}, missingdt: {missingdt}')
             # find leading and trailing datetimes
-            leading_dt = missingdt - timedelta(
-                seconds=_find_closes_occuring_date(
-                    refdt = missingdt,
-                    series_of_dt = staobs.index,
-                    where='before')
-                )
-            trailing_dt = missingdt + timedelta(
-                seconds=_find_closes_occuring_date(
-                    refdt = missingdt,
-                    series_of_dt = staobs.index,
-                    where='after')
-                )
+            leading_seconds =_find_closes_occuring_date(refdt = missingdt,
+                                                        series_of_dt = staobs.index,
+                                                        where='before')
+            if np.isnan(leading_seconds):
+                logger.warn(f'missing obs: {staname}, at {missingdt} does not have a leading timestamp.')
+                continue
+
+            leading_dt = missingdt - timedelta(seconds=leading_seconds)
+
+            trailing_seconds =_find_closes_occuring_date(
+                                                    refdt = missingdt,
+                                                    series_of_dt = staobs.index,
+                                                    where='after')
+            if np.isnan(trailing_seconds):
+                logger.warn(f'missing obs: {staname}, at {missingdt} does not have a trailing timestamp.')
+                continue
+            trailing_dt = missingdt + timedelta(seconds=trailing_seconds)
 
             # extract the values and combine them in a dataframe
             leading_val = staobs.loc[leading_dt]

@@ -125,11 +125,14 @@ print(sept_2022_all_vlinders.df.columns)
 # After applying the Quality control each observations (that is checked) has a set of qc-labels.
 # To create One column with the final label (based on the labels for each check), you can call the
 # combine_all_to_obsspace, which will combine observations, outliers gaps and missing timestamps,
-# and add a final-qc-label column per obstype:
+# and add a label column per obstype:
 
 outliers_sept_2022_all_vlinders = sept_2022_all_vlinders.combine_all_to_obsspace()
 
-print(outliers_sept_2022_all_vlinders["temp_final_label"].head())
+print(outliers_sept_2022_all_vlinders.head())
+
+# or select a specific observation type using pandas
+print(outliers_sept_2022_all_vlinders.xs('temp', level='obstype'))
 
 # (When writing a dataset to file, there is an attribute 'add_final_labels'. When
 #  True, the final labels are computed and added to the file.)

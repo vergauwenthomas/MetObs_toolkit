@@ -117,7 +117,10 @@ def height_extractor(metadf, mapinfo):
 def _datetime_to_gee_datetime(datetime):
     # covert to UTC!
     utcdt = datetime.astimezone(pytz.utc)
-    return ee.Date(utcdt.strftime("%Y-%m-%dT%H:%M:%S"))
+    print(utcdt.replace(tzinfo=None))
+    return ee.Date(utcdt.replace(tzinfo=None))
+    # print(f'formaat:   {utcdt.strftime("%Y-%m-%dT%H:%M:%S")}')
+    # return ee.Date(utcdt.strftime("%Y-%m-%dT%H:%M:%S"))
 
 
 def get_ee_obj(mapinfo, band=None):
@@ -466,6 +469,8 @@ def gee_extract_timeseries(
         )
         return feature
 
+    print(f'startdtfilter: { _datetime_to_gee_datetime(startdt).getInfo()}')
+    print(f'enddtfilter: { _datetime_to_gee_datetime(enddt).getInfo()}')
     raster = get_ee_obj(mapinfo, bandname)  # dataset
     results = (
         raster.filter(

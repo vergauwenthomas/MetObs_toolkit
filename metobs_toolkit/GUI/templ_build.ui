@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -1292,7 +1292,7 @@
    </widget>
    <widget class="QWidget" name="tab_2">
     <attribute name="title">
-     <string>name of tab2</string>
+     <string>Import data</string>
     </attribute>
     <widget class="QComboBox" name="select_temp">
      <property name="enabled">
@@ -1300,7 +1300,7 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>20</x>
        <y>40</y>
        <width>111</width>
        <height>25</height>
@@ -1422,7 +1422,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>600</y>
+       <y>660</y>
        <width>171</width>
        <height>25</height>
       </rect>
@@ -1556,10 +1556,10 @@
     <widget class="QTextEdit" name="prompt">
      <property name="geometry">
       <rect>
-       <x>90</x>
+       <x>20</x>
        <y>460</y>
-       <width>911</width>
-       <height>121</height>
+       <width>981</width>
+       <height>191</height>
       </rect>
      </property>
     </widget>
@@ -1904,7 +1904,7 @@
      <property name="geometry">
       <rect>
        <x>210</x>
-       <y>600</y>
+       <y>660</y>
        <width>171</width>
        <height>25</height>
       </rect>
@@ -1956,7 +1956,7 @@
      <property name="geometry">
       <rect>
        <x>800</x>
-       <y>600</y>
+       <y>660</y>
        <width>161</width>
        <height>25</height>
       </rect>
@@ -1969,7 +1969,7 @@
      <property name="geometry">
       <rect>
        <x>800</x>
-       <y>640</y>
+       <y>700</y>
        <width>161</width>
        <height>25</height>
       </rect>
@@ -1980,6 +1980,9 @@
     </widget>
    </widget>
    <widget class="QWidget" name="tab_3">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <attribute name="title">
      <string>Page</string>
     </attribute>

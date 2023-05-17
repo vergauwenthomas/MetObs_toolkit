@@ -292,8 +292,10 @@ class MainWindow(QDialog):
 
     def make_figure(self):
         self.tswindow.set_dataset(self.dataset)
-
+        print(self.dataset)
+        print('tswindow set')
         self.tswindow.make_plot()
+        print('plot made')
         self.tswindow.show()
 
 
