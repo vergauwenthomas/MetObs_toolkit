@@ -8,6 +8,7 @@ Welcome to MetObs-Toolkit's documentation!
    intro
    examples
    gee_authentication
+   gui
 
 
 MetObs toolkit Documentation
