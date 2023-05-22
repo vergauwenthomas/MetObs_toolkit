@@ -33,6 +33,7 @@ metobs\_toolkit.station.Station
       ~Station.get_station
       ~Station.import_data_from_database
       ~Station.import_data_from_file
+      ~Station.make_gee_plot
       ~Station.make_geo_plot
       ~Station.make_plot
       ~Station.show

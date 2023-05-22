@@ -2315,7 +2315,6 @@ class Dataset:
         covername = [mapinfo['categorical_mapper'][covnum] for covnum in covernum]
 
 
-
         # create visparams
         vis_params ={
             'min': min(covernum),

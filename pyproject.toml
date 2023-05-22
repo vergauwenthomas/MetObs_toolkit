@@ -20,9 +20,11 @@ geopandas = "^0.9.0"
 pyproj = "~3.4"
 mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
+geemap = '^0.20.0'
 PyQt5 = "=5.12.2" #Technical: this version is the latest to build from source
 pyqt5-sip = "^12.12.1"
 pyqt5-qt5 = "^5.15.2"
+
 
 
 
