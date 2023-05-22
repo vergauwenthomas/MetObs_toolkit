@@ -1304,9 +1304,44 @@ class Dataset:
 
     def combine_all_to_obsspace(self, repr_outl_as_nan=False,
                                 overwrite_outliers_by_gaps_and_missing=True):
+        
+        """
+         Combine all observations, outliers, missing observations and gaps into
+         one Dataframe. All observation types are combined an a label is added
+         in a serperate column. 
 
-        # TODO: docstring
-        # TODO: what to do with repr_outl_as_nan
+         When gaps and missing records are updated from outliers one has to choice
+         to represent these records as outliers or gaps. There can not be duplicates
+         in the return dataframe. 
+
+         By default the observation values of the outliers are saved, one can 
+         choice to use these values or NaN's.
+         following checks!
+
+        
+
+         Parameters
+         ----------
+         repr_outl_as_nan : bool, optional
+             If True, Nan's are use for the values of the outliers. The
+             default is False.
+         overwrite_outliers_by_gaps_and_missing : Bool, optional
+             If True, records that are labeld as gap/missing and outlier are
+             labeled as gaps/missing. This has only effect when the gaps/missing
+             observations are updated from the outliers. The default
+             is True.
+
+         Returns
+         ---------
+         combdf : pandas.DataFrame()
+            A dataframe containing a continious time resolution of records, where each
+            record is labeld. 
+
+        """
+
+
+
+
         # TODO: label values from settings not hardcoding
 
         # =============================================================================
@@ -1315,7 +1350,7 @@ class Dataset:
 
         outliersdf = self.outliersdf
         outliersdf['toolkit_representation'] = 'outlier'
-
+        # TODO: use the repr_outl_as_nan argumenten here
         # =============================================================================
         # Stack observations
         # =============================================================================
@@ -2152,6 +2187,23 @@ class Dataset:
     # =============================================================================
 
     def get_lcz(self):
+        """
+        Function to extract the Local CLimate zones (LCZ) from the 
+        wudapt global LCZ map on the Google engine for all stations.
+
+        A 'LCZ' column will be added to the metadf, and series is returned.
+
+        Returns
+        -------
+        lcz_series : pandas.Series()
+            A series with the stationnames as index and the LCZ as values.
+
+        """
+
+
+
+
+
         # connect to gee
         connect_to_gee()
 
