@@ -120,11 +120,12 @@ def wide_to_long(df, template, obstype):
 
 def wide_to_long(df, template, obstype):
     print("Converting wide data to long")
-    mapped_colnames = [val["varname"] for val in template.values()]
+    # mapped_colnames = [val["varname"] for val in template.values()]
+    mapped_colnames = [mapped_col for mapped_col in template.keys()]
     data_colnames = [col for col in df.columns if not col in mapped_colnames]
     longdf = pd.melt(
         df,
-        id_vars=["Tijd"],
+        id_vars=["datetime"],
         value_vars=data_colnames,
         var_name="name",
         value_name=obstype,
@@ -170,26 +171,15 @@ def import_data_from_csv(input_file, template_file, long_format, obstype):
 
     # validate template
     template = read_csv_template(template_file, long_format, obstype)
-    # convert wide data to long if needed
-    if not long_format:
-        df, template = wide_to_long(df, template, obstype)
-
-    check_template_compatibility(template, df.columns)
 
 
-
-    for key, value in template.items():
-        if value["dtype"] == "float64":
-            df[key] = pd.to_numeric(df[key], errors="coerce")
+    # make datatime column (needed before long wide conversion)
 
     # rename columns to toolkit attriute names
     df = df.rename(columns=compress_dict(template, "varname"))
 
     # COnvert template to package-space
     invtemplate = template_to_package_space(template)
-
-    # format columns
-    # df = df.astype(dtype=compress_dict(template, 'dtype'))
 
     if "datetime" in df.columns:
         df["datetime"] = pd.to_datetime(
@@ -204,6 +194,45 @@ def import_data_from_csv(input_file, template_file, long_format, obstype):
             df["_date"] + " " + df["_time"], format=datetime_fmt
         )
         df = df.drop(columns=["_date", "_time"])
+
+
+
+
+
+    # convert wide data to long if needed
+    if not long_format:
+        df, template = wide_to_long(df, template, obstype)
+
+    check_template_compatibility(template, df.columns)
+
+
+
+    for key, value in template.items():
+        if value["dtype"] == "float64":
+            df[key] = pd.to_numeric(df[key], errors="coerce")
+
+    # rename columns to toolkit attriute names
+    # df = df.rename(columns=compress_dict(template, "varname"))
+
+    # COnvert template to package-space
+    # invtemplate = template_to_package_space(template)
+
+    # format columns
+    # df = df.astype(dtype=compress_dict(template, 'dtype'))
+
+    # if "datetime" in df.columns:
+    #     df["datetime"] = pd.to_datetime(
+    #         df["datetime"], format=invtemplate["datetime"]["format"]
+    #     )
+
+    # else:
+    #     datetime_fmt = (
+    #         invtemplate["_date"]["format"] + " " + invtemplate["_time"]["format"]
+    #     )
+    #     df["datetime"] = pd.to_datetime(
+    #         df["_date"] + " " + df["_time"], format=datetime_fmt
+    #     )
+    #     df = df.drop(columns=["_date", "_time"])
 
     # Set datetime index
     df = df.set_index("datetime", drop=True, verify_integrity=False)

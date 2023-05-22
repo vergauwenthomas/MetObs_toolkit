@@ -26,22 +26,26 @@ import metobs_toolkit
 
 #%%
 
+file = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/debug_wide.csv"
+file_template ="/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/debug_wide_template.csv"
+file_metadata = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/debug_wide_metadata.csv"
 
 
 # Make an empty dataset
 dataset = metobs_toolkit.Dataset()
 
 # Add the demo data files to the dataset settings
-dataset.update_settings(input_data_file = metobs_toolkit.demo_datafile,
-                        input_metadata_file = metobs_toolkit.demo_metadatafile,
-                        data_template_file = metobs_toolkit.demo_template,
-                        metadata_template_file = metobs_toolkit.demo_template # Contains also the metadata mapping
+dataset.update_settings(input_data_file = file,
+                        input_metadata_file = file_metadata,
+                        data_template_file = file_template,
+                        # metadata_template_file = metobs_toolkit.demo_template # Contains also the metadata mapping
                         )
 
 # Load the data from the demo data files
-dataset.import_data_from_file()
+dataset.import_data_from_file(long_format=False,
+                              obstype='temp')
 
-dataset.coarsen_time_resolution()
+# dataset.coarsen_time_resolution()
 #%%
 
 

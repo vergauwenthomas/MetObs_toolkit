@@ -1,0 +1,11 @@
+varname,template column name,units,description,dtype,format
+lon,lon,,,object,
+lat,lat,,,object,
+name,station,,,object,
+_date,Datum_dummy,,,object,%Y-%m-%d
+_time,Tijd (UTC),,,object,%H:%M:%S
+,,,,,
+temp,,,,,
+,,,,,
+humidity,,,,,
+wind_speed,,,,,
