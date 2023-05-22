@@ -1,11 +1,11 @@
-varname,template column name,units,description,dtype,format
-name,station,,,object,
-,,,,,
-,,,,,
-_date,date,,,object,%Y-%m-%d
-_time,time,,,object,%H:%M:%S
-,,,,,
-temp,temperature,Celcius,2m-temperature,float64,
-flags,qc_flags,,,object,
-humidity,humidity,,,float64,
-wind_speed,windspeed,,,float64,
+varname,template column name,units,description,format
+name,station,,,
+,,,,
+,,,,
+_date,date,,,%Y-%m-%d
+_time,time,,,%H:%M:%S
+,,,,
+temp,temperature,Celcius,2m-temperature,
+flags,qc_flags,,,
+humidity,humidity,,,
+wind_speed,windspeed,,,

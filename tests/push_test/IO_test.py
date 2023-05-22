@@ -83,7 +83,7 @@ dataset.update_settings(input_data_file=widedatafile,
 
 
 
-dataset.import_data_from_file(long_format=False, obstype='temp')
+dataset.import_data_from_file(long_format=False, obstype='temp', obstype_description='2mT', obstype_units='Celcius')
 
 assert dataset.df.shape == (597, 1), 'Shape of unsynced widedata is not correct.'
 

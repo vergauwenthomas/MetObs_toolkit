@@ -1304,21 +1304,21 @@ class Dataset:
 
     def combine_all_to_obsspace(self, repr_outl_as_nan=False,
                                 overwrite_outliers_by_gaps_and_missing=True):
-        
+
         """
          Combine all observations, outliers, missing observations and gaps into
          one Dataframe. All observation types are combined an a label is added
-         in a serperate column. 
+         in a serperate column.
 
          When gaps and missing records are updated from outliers one has to choice
          to represent these records as outliers or gaps. There can not be duplicates
-         in the return dataframe. 
+         in the return dataframe.
 
-         By default the observation values of the outliers are saved, one can 
+         By default the observation values of the outliers are saved, one can
          choice to use these values or NaN's.
          following checks!
 
-        
+
 
          Parameters
          ----------
@@ -1335,7 +1335,7 @@ class Dataset:
          ---------
          combdf : pandas.DataFrame()
             A dataframe containing a continious time resolution of records, where each
-            record is labeld. 
+            record is labeld.
 
         """
 
@@ -1792,6 +1792,11 @@ class Dataset:
         self,
         long_format=True,
         obstype=None,
+
+        obstype_dtype = None,
+        obstype_units = None,
+        obstype_description = None,
+
         freq_estimation_method=None,
         freq_estimation_simplify=None,
         freq_estimation_simplify_error=None,
@@ -1885,6 +1890,8 @@ class Dataset:
             template_file=self.settings.templates["data_template_file"],
             long_format=long_format,
             obstype=obstype,  # only relevant in wide format
+            obstype_units = obstype_units, # only relevant in wide format
+            obstype_description = obstype_description, # only relevant in wide format
         )
 
 
@@ -2188,7 +2195,7 @@ class Dataset:
 
     def get_lcz(self):
         """
-        Function to extract the Local CLimate zones (LCZ) from the 
+        Function to extract the Local CLimate zones (LCZ) from the
         wudapt global LCZ map on the Google engine for all stations.
 
         A 'LCZ' column will be added to the metadf, and series is returned.

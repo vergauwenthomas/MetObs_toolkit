@@ -14,6 +14,8 @@ from mysql.connector import errorcode
 from metobs_toolkit.df_helpers import init_multiindexdf
 from metobs_toolkit.data_templates.import_templates import read_csv_template
 
+from metobs_toolkit import observation_types
+
 
 def template_to_package_space(specific_template):
     returndict = {
@@ -64,15 +66,27 @@ def compress_dict(nested_dict, valuesname):
 
 
 def check_template_compatibility(template, df_columns):
+    # ignore datetime from df_columns because this is already mapped
+
+    df_columns = [col for col in df_columns if col != 'datetime']
     # test if all df_columns are in template keys
-    if not all(col in template.keys() for col in df_columns):
-        unmapped = list(set(df_columns) - set(template.keys()))
+    template_defaults = [item['varname'] for item in template.values()]
+    template_defaults = [default for default in template_defaults if default != 'datetime']
+    if not all(col in template_defaults for col in df_columns):
+        unmapped = list(set(df_columns) - set(template_defaults))
         print(
             f"WARNING! The following columns are not pressent in the template,\
               and cannot be mapped: {unmapped}"
         )
 
-    if len(list(set(df_columns) - set(template.keys()))) == len(df_columns):
+    # if not all(col in template.keys() for col in df_columns):
+    #     unmapped = list(set(df_columns) - set(template.keys()))
+    #     print(
+    #         f"WARNING! The following columns are not pressent in the template,\
+    #           and cannot be mapped: {unmapped}"
+    #     )
+
+    if len(list(set(df_columns) - set(template_defaults))) == len(df_columns):
         sys.exit(
             f"Fatal: The given template does not match with any of the data columns."
         )
@@ -112,7 +126,7 @@ def wide_to_long(df, template, obstype):
     template[obstype] = template['_wide_dummy']
     del template['_wide_dummy']
 
-    template['name'] = {'varname': 'name', 'dtype':'object'}
+    template['name'] = {'varname': 'name'}
 
     return longdf, template
 
@@ -135,13 +149,14 @@ def wide_to_long(df, template, obstype):
     template[obstype] = template["_wide_dummy"]
     del template["_wide_dummy"]
 
-    template["name"] = {"varname": "name", "dtype": "object"}
+    template["name"] = {"varname": "name"}
 
     return longdf, template
 
 
 
-def import_data_from_csv(input_file, template_file, long_format, obstype):
+def import_data_from_csv(input_file, template_file, long_format, obstype,
+                         obstype_units, obstype_description):
     common_seperators = [";", ",", "    ", "."]
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
     for sep in common_seperators:
@@ -171,6 +186,14 @@ def import_data_from_csv(input_file, template_file, long_format, obstype):
 
     # validate template
     template = read_csv_template(template_file, long_format, obstype)
+
+    if not long_format:
+        template[obstype] = {}
+        template[obstype]['varname'] = obstype
+        if not obstype_units is None:
+            template[obstype]['units'] = obstype_units
+        if not obstype_description is None:
+            template[obstype]['description'] = obstype_description
 
 
     # make datatime column (needed before long wide conversion)
@@ -203,36 +226,10 @@ def import_data_from_csv(input_file, template_file, long_format, obstype):
     if not long_format:
         df, template = wide_to_long(df, template, obstype)
 
+
     check_template_compatibility(template, df.columns)
 
 
-
-    for key, value in template.items():
-        if value["dtype"] == "float64":
-            df[key] = pd.to_numeric(df[key], errors="coerce")
-
-    # rename columns to toolkit attriute names
-    # df = df.rename(columns=compress_dict(template, "varname"))
-
-    # COnvert template to package-space
-    # invtemplate = template_to_package_space(template)
-
-    # format columns
-    # df = df.astype(dtype=compress_dict(template, 'dtype'))
-
-    # if "datetime" in df.columns:
-    #     df["datetime"] = pd.to_datetime(
-    #         df["datetime"], format=invtemplate["datetime"]["format"]
-    #     )
-
-    # else:
-    #     datetime_fmt = (
-    #         invtemplate["_date"]["format"] + " " + invtemplate["_time"]["format"]
-    #     )
-    #     df["datetime"] = pd.to_datetime(
-    #         df["_date"] + " " + df["_time"], format=datetime_fmt
-    #     )
-    #     df = df.drop(columns=["_date", "_time"])
 
     # Set datetime index
     df = df.set_index("datetime", drop=True, verify_integrity=False)
@@ -242,6 +239,17 @@ def import_data_from_csv(input_file, template_file, long_format, obstype):
     for column in df.columns:
         if not (column in invtemplate.keys()):
             df = df.drop(columns=[column])
+
+
+    # map dtypes:
+    # use default dtypes
+
+    for col in df.columns:
+        if col in observation_types:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        if col in ['lon', 'lat']:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
 
     # add template to the return
 
@@ -309,7 +317,9 @@ def import_data_from_db(db_settings, start_datetime, end_datetime):
     template = template_to_package_space(db_settings["vlinder_db_meta_template"])
 
     # format columns
-    metadata = metadata.astype(dtype=compress_dict(template, "dtype"))
+    for col in metadata.columns:
+        if col in ['lon', 'lat']:
+            metadata[col] = pd.to_numeric(metadata[col], errors='coerce')
 
     # =============================================================================
     # Read observations data
@@ -380,9 +390,11 @@ def import_data_from_db(db_settings, start_datetime, end_datetime):
     obsdata = obsdata[list(db_settings["vlinder_db_obs_template"])]
 
     # format columns
-    obsdata = obsdata.astype(
-        dtype=compress_dict(db_settings["vlinder_db_obs_template"], "dtype")
-    )
+    for col in obsdata.columns:
+        if col in observation_types:
+            obsdata[col] = pd.to_numeric(obsdata[col], errors='coerce')
+        if col in ['lon', 'lat']:
+            obsdata[col] = pd.to_numeric(obsdata[col], errors='coerce')
 
     # rename columns to standards
     obsdata = obsdata.rename(
