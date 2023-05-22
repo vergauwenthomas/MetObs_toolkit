@@ -40,7 +40,7 @@ def readfile(filepath):
     df=pd.DataFrame()
     for sep in common_seperators:
         try:
-            df = pd.read_csv(filepath, sep=sep, engine='python')
+            df = pd.read_csv(filepath)
         except:
             pass
 

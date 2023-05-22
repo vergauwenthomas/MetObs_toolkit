@@ -1,0 +1,11 @@
+varname,template column name,format,dtype,units,description
+datetime,datetime,%Y-%m-%d %H:%M:%S,object,,
+name,name,,object,,
+lat,lat,,object,,
+lon,lon,,object,,
+location,community_name,,object,,
+temp,temp,,float64,K,2mT
+humidity,humidity_relative,,float64,%,Relative humidity
+precip,precip_quantity_1hour,,float64,l/hour x m²,Precipitation intensity
+wind_speed,wind_speed,,float64,m/s,Average wind speed
+pressure_at_sea_level,pressure_station_level,,float64,Pa,Pressure at sealevel

@@ -82,7 +82,7 @@ def import_metadata_from_csv(input_file, template_file):
     common_seperators = [";", ",", "    ", "."]
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
     for sep in common_seperators:
-        df = pd.read_csv(input_file, sep=sep)
+        df = pd.read_csv(input_file)
         assert not df.empty, "Dataset is empty!"
 
         if len(df.columns) > 1:
@@ -144,7 +144,7 @@ def import_data_from_csv(input_file, template_file, long_format, obstype):
     common_seperators = [";", ",", "    ", "."]
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
     for sep in common_seperators:
-        df = pd.read_csv(input_file, sep=sep)
+        df = pd.read_csv(input_file)
         assert not df.empty, "Dataset is empty!"
 
         if len(df.columns) > 1:

@@ -182,12 +182,15 @@ def load_dataset(main):
     data_file = main.data_file_T_2.text()
     metadata_file = main.metadata_file_T_2.text()
     template_name =str(main.select_temp.currentText())+'.csv'
+    print(template_name)
 
     template_file = main.template_dict[template_name]
+    print(template_file)
 
     # Basic checks
-    for file in [data_file, metadata_file, template_file]:
+    for file in [data_file,  template_file]: #metadata_file,
         if not path_handler.file_exist(file):
+            print('xd')
             Error(f'{file} does not exist!')
             return
 

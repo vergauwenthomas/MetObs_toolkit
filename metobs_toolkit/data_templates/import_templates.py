@@ -27,7 +27,7 @@ default_template_file = os.path.join(
 def read_csv_template(file, data_long_format=True, obstype=None):
     common_seperators = [";", ",", "    ", "."]
     for sep in common_seperators:
-        templ = pd.read_csv(file, sep=sep)
+        templ = pd.read_csv(file)
         assert not templ.empty, "Template is empty!"
 
         if len(templ.columns) > 1:
