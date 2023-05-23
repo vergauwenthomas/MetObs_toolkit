@@ -66,30 +66,31 @@ def compress_dict(nested_dict, valuesname):
 
 
 def check_template_compatibility(template, df_columns):
-    # ignore datetime from df_columns because this is already mapped
+    # ignore datetime because this is already mapped
+    present_cols = [col for col in df_columns if col != 'datetime']
+    assumed_cols = [key for key in template.keys() if key != 'datetime']
 
-    df_columns = [col for col in df_columns if col != 'datetime']
-    # test if all df_columns are in template keys
-    template_defaults = [item['varname'] for item in template.values()]
-    template_defaults = [default for default in template_defaults if default != 'datetime']
-    if not all(col in template_defaults for col in df_columns):
-        unmapped = list(set(df_columns) - set(template_defaults))
+    # in mapper but not in df
+    unmapped_assumed = [templ_var for templ_var in assumed_cols if not templ_var in present_cols]
+
+    if len(unmapped_assumed) > 0:
         print(
-            f"WARNING! The following columns are not pressent in the template,\
-              and cannot be mapped: {unmapped}"
+            f"WARNING! The following columns are not present in the data,\
+              and cannot be mapped: {unmapped_assumed}"
         )
 
-    # if not all(col in template.keys() for col in df_columns):
-    #     unmapped = list(set(df_columns) - set(template.keys()))
-    #     print(
-    #         f"WARNING! The following columns are not pressent in the template,\
-    #           and cannot be mapped: {unmapped}"
-    #     )
+    # in df but not in mapper
+    unmapped_appearing = [col for col in present_cols if col not in assumed_cols]
+    if len(unmapped_appearing) > 0:
+        print(
+            f"WARNING! The following columns in the data cannot be mapped with the template: {unmapped_appearing}.")
 
-    if len(list(set(df_columns) - set(template_defaults))) == len(df_columns):
+    # check if at least one column is mapped
+    if len(list(set(present_cols) - set(assumed_cols))) == len(present_cols):
         sys.exit(
-            f"Fatal: The given template does not match with any of the data columns."
+            f"Fatal: The given template: {assumed_cols} does not match with any of the data columns: {present_cols}."
         )
+
 
 
 def import_metadata_from_csv(input_file, template_file):
@@ -114,53 +115,43 @@ def import_metadata_from_csv(input_file, template_file):
     df = df.rename(columns=compress_dict(template, "varname"))
 
     return df
-def wide_to_long(df, template, obstype):
 
-    print('Converting wide data to long')
-    mapped_colnames = [val['varname'] for val in template.values()]
-    data_colnames = [col for col in df.columns if not col in mapped_colnames]
-    longdf = pd.melt(df, id_vars=['Tijd'], value_vars=data_colnames,
-                   var_name='name', value_name=obstype)
-
-    # update template
-    template[obstype] = template['_wide_dummy']
-    del template['_wide_dummy']
-
-    template['name'] = {'varname': 'name'}
-
-    return longdf, template
 
 
 
 def wide_to_long(df, template, obstype):
-    print("Converting wide data to long")
-    # mapped_colnames = [val["varname"] for val in template.values()]
-    mapped_colnames = [mapped_col for mapped_col in template.keys()]
-    data_colnames = [col for col in df.columns if not col in mapped_colnames]
+
+    # the df is assumed to have one datetime column, and the others represent
+    # stations with their obstype values
+
+    stationnames = df.columns.to_list()
+    stationnames.remove('datetime')
+
     longdf = pd.melt(
         df,
         id_vars=["datetime"],
-        value_vars=data_colnames,
+        value_vars=stationnames,
         var_name="name",
         value_name=obstype,
     )
 
-    # update template
-    template[obstype] = template["_wide_dummy"]
-    del template["_wide_dummy"]
+    # # update template
+    # template[obstype] = template["_wide_dummy"]
+    # del template["_wide_dummy"]
 
-    template["name"] = {"varname": "name"}
+    # add name to the template
+    template["name"] = {"varname": "name", "dtype": "object"}
 
     return longdf, template
 
+def _read_csv_file(path):
+    """ a helper function to read in csv data files, try multiple seperators, and
+        remove header text. """
 
-
-def import_data_from_csv(input_file, template_file, long_format, obstype,
-                         obstype_units, obstype_description):
     common_seperators = [";", ",", "    ", "."]
-    assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
+    assert not isinstance(path, type(None)), "Specify input file in the settings!"
     for sep in common_seperators:
-        df = pd.read_csv(input_file, sep=sep)
+        df = pd.read_csv(path, sep=sep)
         assert not df.empty, "Dataset is empty!"
 
         if len(df.columns) > 1:
@@ -183,67 +174,98 @@ def import_data_from_csv(input_file, template_file, long_format, obstype,
         df = df.iloc[rows_to_skip:, :]
         df = df.rename(columns=df.iloc[0]).iloc[1:, :]
     df.index = range(len(df))
+    return df
 
-    # validate template
+def _remove_keys_from_dict(dictionary, keys):
+    for key in keys:
+        dictionary.pop(key, None)
+    return dictionary
+
+
+def import_data_from_csv(input_file, template_file,
+                         long_format, obstype,
+                         obstype_units, obstype_description):
+
+    """ Wrapper data import function for long and wide"""
+
+    # 1. Read data into df
+    df = _read_csv_file(input_file)
+
+    # 2. Read template
     template = read_csv_template(template_file, long_format, obstype)
-
-    if not long_format:
-        template[obstype] = {}
-        template[obstype]['varname'] = obstype
-        if not obstype_units is None:
-            template[obstype]['units'] = obstype_units
-        if not obstype_description is None:
-            template[obstype]['description'] = obstype_description
-
-
-    # make datatime column (needed before long wide conversion)
-
-    # rename columns to toolkit attriute names
-    df = df.rename(columns=compress_dict(template, "varname"))
-
-    # COnvert template to package-space
     invtemplate = template_to_package_space(template)
 
-    if "datetime" in df.columns:
-        df["datetime"] = pd.to_datetime(
-            df["datetime"], format=invtemplate["datetime"]["format"]
-        )
+    # 3. Make datetime column (needed for wide to long conversion)
+    if ('datetime' in invtemplate.keys()):
 
-    else:
+        df = df.rename(columns={invtemplate['datetime']['orig_name'] : 'datetime'})
+        df['datetime'] = pd.to_datetime(df["datetime"],
+                                        format=invtemplate["datetime"]["format"])
+
+        inv_temp_remove_keys = ['datetime']
+        temp_remove_keys = [invtemplate['datetime']['orig_name']]
+    elif (('_date' in invtemplate.keys()) & ('_time' in invtemplate.keys())):
+
         datetime_fmt = (
             invtemplate["_date"]["format"] + " " + invtemplate["_time"]["format"]
         )
         df["datetime"] = pd.to_datetime(
-            df["_date"] + " " + df["_time"], format=datetime_fmt
+            df[invtemplate['_date']['orig_name']] + " " + df[invtemplate['_time']['orig_name']], format=datetime_fmt
         )
-        df = df.drop(columns=["_date", "_time"])
+        df = df.drop(columns=[invtemplate['_date']['orig_name'], invtemplate['_time']['orig_name']])
+
+        inv_temp_remove_keys = ['_time', '_date']
+        temp_remove_keys = [invtemplate['_date']['orig_name'],
+                            invtemplate['_time']['orig_name']]
+    else:
+        sys.exit('Impossible to map the dataset to a datetime column, verify your template please.')
+
+    # 3.b Remove the datetime keys from the template
+
+    invtemplate = _remove_keys_from_dict(invtemplate, inv_temp_remove_keys)
+    template = _remove_keys_from_dict(template, temp_remove_keys)
 
 
 
-
-
-    # convert wide data to long if needed
+    # 4. convert wide data to long if needed
     if not long_format:
+
+        template[obstype] = {}
+        invtemplate[obstype] = {}
+        template[obstype]['varname'] = obstype
+        invtemplate[obstype]['orig_name'] = obstype #use default as orig name
+        if not obstype_units is None:
+            template[obstype]['units'] = obstype_units
+            invtemplate[obstype]['units'] = obstype_units
+        if not obstype_description is None:
+            template[obstype]['description'] = obstype_description
+            invtemplate[obstype]['description'] = obstype_description
+
         df, template = wide_to_long(df, template, obstype)
 
 
+    # 5. check compatibility
     check_template_compatibility(template, df.columns)
 
 
+    # 6. map to default name space
+    df = df.rename(columns=compress_dict(template, "varname"))
 
-    # Set datetime index
-    df = df.set_index("datetime", drop=True, verify_integrity=False)
-    # TODO implement timezone settings
-
-    # Keep only columns as defined in the template
-    for column in df.columns:
-        if not (column in invtemplate.keys()):
-            df = df.drop(columns=[column])
+    # 7. Keep only columns as defined in the template
+    cols_to_keep = list(invtemplate.keys())
+    cols_to_keep.append('datetime')
+    cols_to_keep.append('name')
+    cols_to_keep = list(set(cols_to_keep))
+    df = df.loc[:,df.columns.isin(cols_to_keep)]
 
 
-    # map dtypes:
-    # use default dtypes
 
+    # 8. Set index
+    df = df.reset_index()
+    df = df.drop(columns=['index'], errors='ignore')
+    df = df.set_index('datetime')
+
+    # 8. map to numeric dtypes
     for col in df.columns:
         if col in observation_types:
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -252,8 +274,149 @@ def import_data_from_csv(input_file, template_file, long_format, obstype,
 
 
     # add template to the return
-
     return df, invtemplate
+
+
+
+
+# def import_long_data_from_csv(input_file, template_file):
+#     # Read csv file
+#     df = _read_csv_file(input_file)
+
+#     # validate template
+#     template = read_csv_template(template_file, long_format, obstype)
+#     # convert wide data to long if needed
+#     if not long_format:
+#         df, template = wide_to_long(df, template, obstype)
+
+#     check_template_compatibility(template, df.columns)
+
+
+
+#     # if not long_format:
+#     #    template[obstype] = {}
+#     #    template[obstype]['varname'] = obstype
+#     #    if not obstype_units is None:
+#     #        template[obstype]['units'] = obstype_units
+#     #    if not obstype_description is None:
+#     #        template[obstype]['description'] = obstype_description
+
+
+#     # make datatime column (needed before long wide conversion)
+
+#     # rename columns to toolkit attriute names
+#     df = df.rename(columns=compress_dict(template, "varname"))
+
+#     # COnvert template to package-space
+#     invtemplate = template_to_package_space(template)
+
+
+#     # make datetime column
+#     if "datetime" in df.columns:
+#         df["datetime"] = pd.to_datetime(
+#             df["datetime"], format=invtemplate["datetime"]["format"]
+#         )
+
+#     else:
+#         datetime_fmt = (
+#             invtemplate["_date"]["format"] + " " + invtemplate["_time"]["format"]
+#         )
+#         df["datetime"] = pd.to_datetime(
+#             df["_date"] + " " + df["_time"], format=datetime_fmt
+#         )
+#         df = df.drop(columns=["_date", "_time"])
+
+
+
+
+
+#     # convert wide data to long if needed
+#     if not long_format:
+#         df, template = wide_to_long(df, template, obstype)
+
+
+#     check_template_compatibility(template, df.columns)
+
+
+
+#     # Set datetime index
+#     df = df.set_index("datetime", drop=True, verify_integrity=False)
+#     # TODO implement timezone settings
+
+#     # Keep only columns as defined in the template
+#     for column in df.columns:
+#         if not (column in invtemplate.keys()):
+#             df = df.drop(columns=[column])
+
+
+#     # map dtypes:
+#     # use default dtypes
+
+#     for col in df.columns:
+#         if col in observation_types:
+#             df[col] = pd.to_numeric(df[col], errors='coerce')
+#         if col in ['lon', 'lat']:
+#             df[col] = pd.to_numeric(df[col], errors='coerce')
+
+
+#     # add template to the return
+#     return df, invtemplate
+
+
+# def import_wide_data_from_csv(input_file, template_file, long_format, obstype):
+#     # Read csv file
+#     df = _read_csv_file(input_file)
+
+#     # validate template
+#     template = read_csv_template(template_file, long_format, obstype)
+#     # convert wide data to long if needed
+#     if not long_format:
+#         df, template = wide_to_long(df, template, obstype)
+
+#     check_template_compatibility(template, df.columns)
+
+
+
+#     for key, value in template.items():
+#         if value["dtype"] == "float64":
+#             df[key] = pd.to_numeric(df[key], errors="coerce")
+
+#     # rename columns to toolkit attriute names
+#     df = df.rename(columns=compress_dict(template, "varname"))
+
+#     # COnvert template to package-space
+#     invtemplate = template_to_package_space(template)
+
+#     # format columns
+#     # df = df.astype(dtype=compress_dict(template, 'dtype'))
+
+#     if "datetime" in df.columns:
+#         df["datetime"] = pd.to_datetime(
+#             df["datetime"], format=invtemplate["datetime"]["format"]
+#         )
+
+#     else:
+#         datetime_fmt = (
+#             invtemplate["_date"]["format"] + " " + invtemplate["_time"]["format"]
+#         )
+#         df["datetime"] = pd.to_datetime(
+#             df["_date"] + " " + df["_time"], format=datetime_fmt
+#         )
+#         df = df.drop(columns=["_date", "_time"])
+
+#     # Set datetime index
+#     df = df.set_index("datetime", drop=True, verify_integrity=False)
+#     # TODO implement timezone settings
+
+#     # Keep only columns as defined in the template
+#     for column in df.columns:
+#         if not (column in invtemplate.keys()):
+#             df = df.drop(columns=[column])
+
+#     # add template to the return
+
+#     return df, invtemplate
+
 
 
 # %%
@@ -317,9 +480,7 @@ def import_data_from_db(db_settings, start_datetime, end_datetime):
     template = template_to_package_space(db_settings["vlinder_db_meta_template"])
 
     # format columns
-    for col in metadata.columns:
-        if col in ['lon', 'lat']:
-            metadata[col] = pd.to_numeric(metadata[col], errors='coerce')
+    metadata = metadata.astype(dtype=compress_dict(template, "dtype"))
 
     # =============================================================================
     # Read observations data
@@ -390,11 +551,9 @@ def import_data_from_db(db_settings, start_datetime, end_datetime):
     obsdata = obsdata[list(db_settings["vlinder_db_obs_template"])]
 
     # format columns
-    for col in obsdata.columns:
-        if col in observation_types:
-            obsdata[col] = pd.to_numeric(obsdata[col], errors='coerce')
-        if col in ['lon', 'lat']:
-            obsdata[col] = pd.to_numeric(obsdata[col], errors='coerce')
+    obsdata = obsdata.astype(
+        dtype=compress_dict(db_settings["vlinder_db_obs_template"], "dtype")
+    )
 
     # rename columns to standards
     obsdata = obsdata.rename(

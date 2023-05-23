@@ -12,13 +12,11 @@ from pathlib import Path
 
 
 lib_folder = Path(__file__).resolve().parents[2]
-# sys.path.append(str(lib_folder))
+sys.path.insert(0, str(lib_folder))
 
 
 import metobs_toolkit
-
-
-# %% define inputfiles
+print(metobs_toolkit.__version__)
 
 
 # %% import data from file (long standard format)
@@ -40,11 +38,6 @@ dataset.show()
 station = dataset.get_station("vlinder02")
 
 
-ax = station.make_plot()
-
-ax = dataset.make_plot()
-
-
 # %% import default dataset.
 
 
@@ -61,11 +54,11 @@ dataset.show_settings()
 dataset.import_data_from_file()
 
 assert dataset.df.shape == (120957, 10), 'Shape of demo data is not correct.'
-# dataset.show()
 
 
 
-#%% Import wide dataset + syncronize
+
+#%% Import wide dataset (Multiple stations) + syncronize
 
 widedatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_data.csv')
 widetemplate = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template.csv')
@@ -83,7 +76,8 @@ dataset.update_settings(input_data_file=widedatafile,
 
 
 
-dataset.import_data_from_file(long_format=False, obstype='temp', obstype_description='2mT', obstype_units='Celcius')
+dataset.import_data_from_file(long_format=False,
+                              obstype='temp', obstype_description='2mT', obstype_unit='Celcius')
 
 assert dataset.df.shape == (597, 1), 'Shape of unsynced widedata is not correct.'
 
@@ -91,7 +85,36 @@ assert dataset.df.shape == (597, 1), 'Shape of unsynced widedata is not correct.
 test = dataset.sync_observations(tollerance='5T', verbose=True)
 
 
-assert dataset.df.shape == (180, 1), 'Shape after syncronizing widedata is not correct.'
+assert dataset.df.shape == (182, 1), 'Shape after syncronizing widedata is not correct.'
 
-assert dataset.missing_obs.series.shape == (18,), 'Number of missing obs after sync wide data not correct'
+assert dataset.missing_obs.series.shape == (15,), 'Number of missing obs after sync wide data not correct'
 
+#%% import wide dataset (One station)
+
+singlestationdatafile = os.path.join(str(lib_folder), 'tests', 'test_data',  'single_station.csv')
+singlestationtemplate = os.path.join(str(lib_folder), 'tests', 'test_data',  'single_station_template.csv')
+singlestationmetadata = os.path.join(str(lib_folder), 'tests', 'test_data',  'single_station_metadata.csv')
+
+
+
+
+# #% Setup dataset
+
+dataset_single = metobs_toolkit.Dataset()
+dataset_single.update_settings(input_data_file=singlestationdatafile,
+                        input_metadata_file=singlestationmetadata,
+                        data_template_file= singlestationtemplate,
+                        metadata_template_file=singlestationtemplate
+                        )
+
+
+
+dataset_single.import_data_from_file(long_format=True)
+
+assert dataset_single.df.shape == (13, 2), 'Shape singlestation dataset is not correct.'
+
+assert dataset_single.df.index.get_level_values('name')[0] == 'whats_the_name', 'The single station name in the metadata is not set for the data.'
+
+assert dataset_single.metadf.shape == (1,9), 'Shape metadf for single station is not correct'
+
+assert dataset_single.metadf['lat'].iloc[0] ==2.51558, 'Metadf latitde is not merged correct.'

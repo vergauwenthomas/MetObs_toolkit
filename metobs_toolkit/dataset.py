@@ -307,8 +307,10 @@ class Dataset:
              The timeseries axes of the plot is returned.
 
         """
-
-        logger.info(f"Make {obstype}-timeseries plot for {stationnames}")
+        if stationnames is None:
+            logger.info(f"Make {obstype}-timeseries plot for all stations")
+        else:
+            logger.info(f"Make {obstype}-timeseries plot for {stationnames}")
 
         # combine all dataframes
         mergedf = self.combine_all_to_obsspace()
@@ -1788,13 +1790,15 @@ class Dataset:
             ).set_index(["name", "datetime"])
             return _total_verbose_df
 
+
+
     def import_data_from_file(
         self,
         long_format=True,
         obstype=None,
 
         obstype_dtype = None,
-        obstype_units = None,
+        obstype_unit = None,
         obstype_description = None,
 
         freq_estimation_method=None,
@@ -1883,16 +1887,17 @@ class Dataset:
                 obstype in observation_types
             ), f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
 
-
         # Read observations into pandas dataframe
+
         df, template = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
             template_file=self.settings.templates["data_template_file"],
             long_format=long_format,
             obstype=obstype,  # only relevant in wide format
-            obstype_units = obstype_units, # only relevant in wide format
+            obstype_units = obstype_unit, # only relevant in wide format
             obstype_description = obstype_description, # only relevant in wide format
         )
+
 
 
         # Set timezone information
@@ -1910,13 +1915,7 @@ class Dataset:
         # drop Nat datetimes if present
         df = df.loc[pd.notnull(df.index)]
 
-        if not "name" in df.columns:
-            logger.warning(
-                f'No station names find in the observations! \
-                           Assume the dataset is for ONE station with the \
-                         default name: {self.settings.app["default_name"]}.'
-            )
-            df["name"] = str(self.settings.app["default_name"])
+
 
         if self.settings.IO["input_metadata_file"] is None:
             print(
@@ -1927,6 +1926,17 @@ class Dataset:
                 "No metadata file is defined,\
                     no metadata attributes can be set!"
             )
+
+            # if no metadata is given, and no stationname found, assume one station
+            # with default name
+            if not "name" in df.columns:
+                logger.warning(
+                    f'No station names find in the observations! \
+                               Assume the dataset is for ONE station with the \
+                             default name: {self.settings.app["default_name"]}.'
+                )
+                df["name"] = str(self.settings.app["default_name"])
+
         else:
             logger.info(
                 f'Importing metadata from file:\
@@ -1936,6 +1946,24 @@ class Dataset:
                 input_file=self.settings.IO["input_metadata_file"],
                 template_file=self.settings.templates["metadata_template_file"],
             )
+
+
+            # in dataset of one station, the name is most often not present!
+            if not "name" in df.columns:
+                logger.warning(f'No station names find in the observations!' )
+
+                # If there is ONE name in the metadf, than we use that name for
+                # the df, else we use the default name
+                if (('name' in meta_df.columns) & (meta_df.shape[0] == 1)):
+                    name = meta_df['name'].iloc[0]
+                    df['name'] = name
+                    logger.warning(f'One stationname found in the metadata: {name}, this name is used for the data.')
+                else:
+                    df["name"] = str(self.settings.app["default_name"])
+                    logger.warning(
+                        f'Assume the dataset is for ONE station with the \
+                        default name: {self.settings.app["default_name"]}.')
+
 
             # merge additional metadata to observations
             meta_cols = [

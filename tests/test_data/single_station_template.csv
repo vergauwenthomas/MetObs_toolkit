@@ -5,7 +5,7 @@ name,station,,,
 _date,Datum_dummy,,,%Y-%m-%d
 _time,Tijd (UTC),,,%H:%M:%S
 ,,,,
-temp,,,,
+temp,temperature air,,the 2m temperature passive,
 ,,,,
 humidity,,,,
-wind_speed,,,,
+wind_speed,windspeed air,,the 2m windspeed,

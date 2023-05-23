@@ -18,11 +18,10 @@ lib_folder = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(lib_folder))
 
 
-
 import metobs_toolkit
 
 
-#%%
+#%% WIDE
 
 file = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/debug_wide.csv"
 file_template ="/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/debug_wide_template.csv"
@@ -41,10 +40,30 @@ dataset.update_settings(input_data_file = file,
 # Load the data from the demo data files
 dataset.import_data_from_file(long_format=False,
                               obstype='temp',
-                              obstype_dtype='float')
+                              obstype_dtype='float',
+                              obstype_description='oijmojoijomm',
+                              obstype_unit='Celcius')
 
+print(dataset.data_template)
 # dataset.coarsen_time_resolution()
+#%% Long
+
+file = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/vlinderdata_small.csv"
+# file_template ="/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/debug_wide_template.csv"
+file_metadata = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/static_data/vlinder_metadata.csv"
+
+# Make an empty dataset
+dataset_long = metobs_toolkit.Dataset()
+
+# Add the demo data files to the dataset settings
+dataset_long.update_settings(input_data_file = file,
+                        input_metadata_file = file_metadata,
+                        # data_template_file = file_template,
+                        # metadata_template_file = file_template, # Contains also the metadata mapping
+                        )
+
+# Load the data from the demo data files
+dataset_long.import_data_from_file(long_format=True)
+
 #%%
-
-
-dataset.make_plot()
+# dataset.make_plot()

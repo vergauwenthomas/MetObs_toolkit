@@ -317,15 +317,23 @@ def get_likely_frequency(
             f'{max_simplify_error} is not valid timeindication. Example: "5T" indicates 5 minutes.'
         )
 
-    freqdist = abs(timestamps.to_series().diff().value_counts().index).sort_values(
-        ascending=True
-    )
+    # freqdist = abs(timestamps.to_series().diff().value_counts()).sort_values(
+    #     ascending=True
+    # )
+    freqs_blacklist = [pd.Timedelta(0), np.nan] #avoid a zero frequency
+
+
+    freqs = timestamps.to_series().diff()
+    freqs = freqs[~freqs.isin(freqs_blacklist)]
+
+
 
     if method == "highest":
-        assume_freq = freqdist[0]  # highest frequency
+
+        assume_freq = freqs.min()  # highest frequency
 
     elif method == "median":
-        assume_freq = freqdist.median()
+        assume_freq = freqs.median()
 
     if simplify:
         simplify_freq = None
