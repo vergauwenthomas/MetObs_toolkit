@@ -16,6 +16,32 @@ import itertools
 from metobs_toolkit import observation_types
 
 
+
+def xs_save(df, key, level, drop_level=True):
+    """ wrapper on pandas xs, but returns an empty df when key is not found """
+    try:
+        return df.xs(key, level=level, drop_level=drop_level)
+    except KeyError:
+        # create empty df with same columns and index names
+        columns = df.columns
+        names = list(df.index.names)
+        if drop_level:
+            names.remove(level)
+
+        levels = [[name] for name in names]
+        codes = [[] for name in names]
+        idx = pd.MultiIndex(
+                            levels=levels,
+                            codes=codes,
+                            names=names,
+                            )
+
+
+    return pd.DataFrame(index=idx, columns=columns)
+
+
+
+
 def init_multiindex():
     return pd.MultiIndex(
         levels=[["name"], ["datetime"]], codes=[[], []], names=["name", "datetime"]
@@ -317,15 +343,23 @@ def get_likely_frequency(
             f'{max_simplify_error} is not valid timeindication. Example: "5T" indicates 5 minutes.'
         )
 
-    freqdist = abs(timestamps.to_series().diff().value_counts().index).sort_values(
-        ascending=True
-    )
+    # freqdist = abs(timestamps.to_series().diff().value_counts()).sort_values(
+    #     ascending=True
+    # )
+    freqs_blacklist = [pd.Timedelta(0), np.nan] #avoid a zero frequency
+
+
+    freqs = timestamps.to_series().diff()
+    freqs = freqs[~freqs.isin(freqs_blacklist)]
+
+
 
     if method == "highest":
-        assume_freq = freqdist[0]  # highest frequency
+
+        assume_freq = freqs.min()  # highest frequency
 
     elif method == "median":
-        assume_freq = freqdist.median()
+        assume_freq = freqs.median()
 
     if simplify:
         simplify_freq = None

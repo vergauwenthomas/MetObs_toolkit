@@ -1,8 +1,8 @@
-varname,template column name,units,description,dtype,format
-,,,,,
-,,,,,
-datetime,Tijd,,,object,%Y-%m-%d %H:%M:%S
-,,,,,
-,,,,,
-,,,,,
-temp,,Celcius,2m-temperature,float64,
+varname,template column name,units,description,format
+,,,,
+,,,,
+datetime,Tijd,,,%Y-%m-%d %H:%M:%S
+,,,,
+,,,,
+,,,,
+temp,,,,
