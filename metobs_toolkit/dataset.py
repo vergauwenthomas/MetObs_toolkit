@@ -1515,8 +1515,9 @@ class Dataset:
 
     def update_outliersdf(self, add_to_outliersdf):
         """V5"""
-
+        print(f'init: {self.outliersdf}')
         self.outliersdf = pd.concat([self.outliersdf, add_to_outliersdf])
+        print(f'na update: {self.outliersdf}')
 
     # =============================================================================
     #     importing data

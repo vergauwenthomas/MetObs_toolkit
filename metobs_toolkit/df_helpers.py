@@ -16,6 +16,32 @@ import itertools
 from metobs_toolkit import observation_types
 
 
+
+def xs_save(df, key, level, drop_level=True):
+    """ wrapper on pandas xs, but returns an empty df when key is not found """
+    try:
+        return df.xs(key, level=level, drop_level=drop_level)
+    except KeyError:
+        # create empty df with same columns and index names
+        columns = df.columns
+        names = list(df.index.names)
+        if drop_level:
+            names.remove(level)
+
+        levels = [[name] for name in names]
+        codes = [[] for name in names]
+        idx = pd.MultiIndex(
+                            levels=levels,
+                            codes=codes,
+                            names=names,
+                            )
+
+
+    return pd.DataFrame(index=idx, columns=columns)
+
+
+
+
 def init_multiindex():
     return pd.MultiIndex(
         levels=[["name"], ["datetime"]], codes=[[], []], names=["name", "datetime"]
