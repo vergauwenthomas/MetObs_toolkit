@@ -265,9 +265,9 @@ def make_template_build(main):
                                 'map_fmt': 'format'})
         return df
 
-    mapdf = pd.concat([to_dataframe(dtmapper,'object'),
-                       to_dataframe(metamapper,'object'),
-                       to_dataframe(obsmapper,'float64')])
+    mapdf = pd.concat([to_dataframe(dtmapper),
+                       to_dataframe(metamapper),
+                       to_dataframe(obsmapper)])
     mapdf = mapdf.reset_index(drop=True)
 
     # 3. check if mapping is valid
