@@ -69,6 +69,7 @@ from metobs_toolkit.modeldata import Modeldata
 
 # import GUI
 from metobs_toolkit.gui_launcher import launch_gui
+from metobs_toolkit.data_templates.template_build_prompt import build_template_prompt
 
 # =============================================================================
 # Import extenders
