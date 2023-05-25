@@ -15,7 +15,9 @@ metobs\_toolkit.plotting\_functions
       :toctree:
       :nosignatures:
    
+      add_stations_to_folium_map
       diurnal_plot
+      folium_plot
       geospatial_plot
       make_cat_colormapper
       map_obstype

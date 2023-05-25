@@ -33,6 +33,7 @@ metobs\_toolkit.dataset\_settings\_updater.Dataset
       ~Dataset.get_station
       ~Dataset.import_data_from_database
       ~Dataset.import_data_from_file
+      ~Dataset.make_gee_plot
       ~Dataset.make_geo_plot
       ~Dataset.make_plot
       ~Dataset.show

@@ -99,3 +99,14 @@ print(aug_2020_all_vlinders.metadf)
 altitude = aug_2020_all_vlinders.get_altitude()
 
 print(altitude)  # altitude in meters
+
+# =============================================================================
+# Interactive plotting a GEE dataset
+# =============================================================================
+
+# To make an interactive plot of a GEE dataset one can use the following function:
+
+aug_2020_all_vlinders.make_gee_plot(gee_map = 'worldcover',
+                                    show_stations = True,
+                                    save=False,
+                                    )
