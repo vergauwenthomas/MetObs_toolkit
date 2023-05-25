@@ -442,7 +442,7 @@ def build_template_prompt():
             gapsize = int(input(' What is the minimum number of consecutive missing records to define as a gap? (default=40) : '))
             gaps_update = True
 
-
+        print('\n\n ========= RUN THIS CODE ========= \n\n')
 
         print('\n#1. Define the paths to your files: \n')
         print(f'data_file = "{datafilepath}"')
