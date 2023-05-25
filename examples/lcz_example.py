@@ -109,4 +109,4 @@ print(altitude)  # altitude in meters
 aug_2020_all_vlinders.make_gee_plot(gee_map = 'worldcover',
                                     show_stations = True,
                                     save=False,
-                                    show=True)
+                                    )

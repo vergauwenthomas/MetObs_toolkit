@@ -30,7 +30,7 @@ from metobs_toolkit.landcover_functions import get_ee_obj
 
 
 def folium_plot(mapinfo, band, vis_params, labelnames, layername,
-                basemap='SATELLITE', showmap=True, legendname=None,
+                basemap='SATELLITE', legendname=None,
                 legendpos='bottomleft'):
     # get the ee.Image
     im = get_ee_obj(mapinfo, band)
@@ -42,8 +42,7 @@ def folium_plot(mapinfo, band, vis_params, labelnames, layername,
     MAP.add_layer(im, vis_params, layername)
     if legendname:
         MAP.add_legend(title=legendname,labels=labelnames, colors=vis_params.get('palette'), position=legendpos)
-    if showmap==True:
-        display(MAP)
+
     return MAP
 
 

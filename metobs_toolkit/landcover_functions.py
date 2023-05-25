@@ -154,7 +154,8 @@ def _validate_metadf(metadf):
     :rtype: Bool
 
     """
-
+    if metadf.empty:
+        return False
     if metadf["geometry"].x.isnull().values.all():
         return False
     if metadf["geometry"].y.isnull().values.all():

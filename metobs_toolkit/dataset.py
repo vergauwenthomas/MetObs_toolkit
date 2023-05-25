@@ -2268,7 +2268,7 @@ class Dataset:
 
         return frac_df
 
-    def make_gee_plot(self, gee_map, show_stations=True, show=True, save=False):
+    def make_gee_plot(self, gee_map, show_stations=True, save=False):
         """
         Make an interactive plot of a google earth dataset. The location of the
         stations can be plotted on top of it.
@@ -2332,7 +2332,8 @@ class Dataset:
                           vis_params = vis_params,
                           labelnames = covername,
                           layername = gee_map,
-                          showmap = show,
+                          legendname=f'{gee_map} covers',
+                          # showmap = show,
                           )
         if show_stations:
             if not _validate_metadf(self.metadf):
@@ -2354,5 +2355,3 @@ class Dataset:
                 filepath = os.path.join(self.settings.IO['output_folder'], filename)
                 print(f'Gee Map will be save at {filepath}')
                 Map.save(filepath)
-
-        return Map
