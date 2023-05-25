@@ -20,32 +20,32 @@ not_mapable='NO MAPPING'
 
 Obs_map_values = {
 
-     'temp':{'units': ['K', 'Celcius'], 'description':'2mT', 'dtype':'object'},
-     'radiation_temp':{'units': ['K', 'Celcius'], 'description':'Blackglobe temperature', 'dtype':'float64'},
-     'humidity':{'units': ['%'], 'description':'Relative humidity', 'dtype':'float64'},
-     'precip':{'units': ['l/hour x m²'], 'description':'Precipitation intensity', 'dtype':'float64'},
-     'precip_sum':{'units': ['l/m²', 'Celcius'], 'description':'Precipitation cumulated', 'dtype':'float64'},
-     'wind_speed':{'units': ['m/s'], 'description':'Average wind speed', 'dtype':'float64'},
-     'wind_gust':{'units': ['m/s'], 'description':'Wind gust', 'dtype':'float64'},
-     'wind_direction':{'units': ['°'], 'description':'Wind direction (from north CW)', 'dtype':'float64'},
-     'pressure':{'units': ['Pa'], 'description':'Air pressure', 'dtype':'float64'},
-     'pressure_at_sea_level':{'units': ['Pa'], 'description':'Pressure at sealevel', 'dtype':'float64'}
+     'temp':{'units': ['K', 'Celcius'], 'description':'2mT'},
+     'radiation_temp':{'units': ['K', 'Celcius'], 'description':'Blackglobe temperature'},
+     'humidity':{'units': ['%'], 'description':'Relative humidity'},
+     'precip':{'units': ['l/hour x m²'], 'description':'Precipitation intensity'},
+     'precip_sum':{'units': ['l/m²', 'Celcius'], 'description':'Precipitation cumulated'},
+     'wind_speed':{'units': ['m/s'], 'description':'Average wind speed'},
+     'wind_gust':{'units': ['m/s'], 'description':'Wind gust'},
+     'wind_direction':{'units': ['°'], 'description':'Wind direction (from north CW)'},
+     'pressure':{'units': ['Pa'], 'description':'Air pressure'},
+     'pressure_at_sea_level':{'units': ['Pa'], 'description':'Pressure at sealevel'}
 
     }
 
 Dt_map_values = {
-    'datetime': {'format':'%Y-%m-%d %H:%M:%S', 'dtype': object},
-    '_date':{'format':'%Y-%m-%d', 'dtype': object},
-    '_time':{'format':'%H:%M:%S', 'dtype': object},
+    'datetime': {'format':'%Y-%m-%d %H:%M:%S'},
+    '_date':{'format':'%Y-%m-%d'},
+    '_time':{'format':'%H:%M:%S'},
     }
 
 Meta_map_values = {
-    'name': {'description': 'Station name/ID', 'dtype':'object'},
-    'lat':{'description': 'Latitude', 'dtype':'float64'},
-    'lon':{'description': 'Longitude', 'dtype':'float64'},
-    'location':{'description': 'Location identifier', 'dtype':'object'},
-    'call_name':{'description': 'Pseudo name of station', 'dtype':'object'},
-    'network':{'description': 'Name of the network', 'dtype':'object'}
+    'name': {'description': 'Station name/ID'},
+    'lat':{'description': 'Latitude'},
+    'lon':{'description': 'Longitude' },
+    'location':{'description': 'Location identifier'},
+    'call_name':{'description': 'Pseudo name of station'},
+    'network':{'description': 'Name of the network'}
     }
 
 # =============================================================================
@@ -254,7 +254,7 @@ def make_template_build(main):
     metamapper['network'] = get_meta_map(main.network_col_CB)
 
     # 2. Convert to a dataframe
-    def to_dataframe(mapper, dtype):
+    def to_dataframe(mapper):
         df = pd.DataFrame(mapper).transpose()
         df.index.name = 'varname'
         df = df.dropna(axis = 0, how = 'all')
@@ -263,12 +263,11 @@ def make_template_build(main):
                                 'map_unit': 'units',
                                 'map_desc': 'description',
                                 'map_fmt': 'format'})
-        df['dtype'] = dtype
         return df
 
-    mapdf = pd.concat([to_dataframe(dtmapper,'object'),
-                       to_dataframe(metamapper,'object'),
-                       to_dataframe(obsmapper,'float64')])
+    mapdf = pd.concat([to_dataframe(dtmapper),
+                       to_dataframe(metamapper),
+                       to_dataframe(obsmapper)])
     mapdf = mapdf.reset_index(drop=True)
 
     # 3. check if mapping is valid

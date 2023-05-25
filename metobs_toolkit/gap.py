@@ -29,7 +29,7 @@ from metobs_toolkit.df_helpers import (
     _find_closes_occuring_date
 )
 
-from metobs_toolkit.df_helpers import init_multiindex, init_multiindexdf
+from metobs_toolkit.df_helpers import init_multiindex, init_multiindexdf, xs_save
 
 from metobs_toolkit.missingobs import Missingob_collection
 
@@ -175,10 +175,12 @@ class Gap:
         if obs_only:
             sta_comb = sta_obs
         else:
+
             outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
             # combine timestamps of observations and outliers
-            sta_outl = outliersdf.xs(self.name, level="name").index
+            # sta_outl = outliersdf.xs(self.name, level="name").index
+            sta_outl = xs_save(outliersdf, self.name, level="name").index
             sta_comb = sta_obs.append(sta_outl)
 
         # find minimium timediff before

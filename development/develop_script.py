@@ -18,10 +18,23 @@ lib_folder = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(lib_folder))
 
 
-
-
-
 import metobs_toolkit
+
+
+
+#%%
+# data Ian
+# datafile = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/WBGTdata_totaal.csv'
+
+# data Wout
+datafile = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/Outdoor_module_Netatmo_Sara_new.csv'
+metafile ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/metadata_Outdoor_module_Netatmo_Sara_new.csv'
+
+
+
+# metobs_toolkit.build_template_prompt()
+
+
 
 
 # Make an empty dataset
@@ -34,12 +47,4 @@ dataset.update_settings(input_data_file = metobs_toolkit.demo_datafile,
                         metadata_template_file = metobs_toolkit.demo_template, # Contains also the metadata mapping
                         output_folder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/development'
                         )
-
-# Load the data from the demo data files
-dataset.import_data_from_file()
-
-# dataset.coarsen_time_resolution()
-
-
-test = dataset.make_gee_plot('worldcover', save=True, show=False)
 

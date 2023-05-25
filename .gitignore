@@ -26,7 +26,7 @@ docs/_*
 #exclude data
 examples/*.csv
 examples/testdata.csv
-
+tests/test_data/testdata_testday
 # exclued logs
 *log
 
