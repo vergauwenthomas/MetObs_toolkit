@@ -24,17 +24,17 @@ logger = logging.getLogger(__name__)
 
 
 class Missingob_collection:
-    """ Class object handling a set of missing observations. """
-    def __init__(self, missing_obs_series):
+    """Class object handling a set of missing observations."""
 
-        missing_obs_series.name = 'datetime'
-        missing_obs_series.index.name = 'name'
+    def __init__(self, missing_obs_series):
+        missing_obs_series.name = "datetime"
+        missing_obs_series.index.name = "name"
 
         missing_obs_series = missing_obs_series.drop_duplicates()
         missing_obs_series = missing_obs_series.sort_index()
 
         missing_idx = missing_obs_series.reset_index()
-        missing_idx = missing_idx.set_index(['name', 'datetime'])
+        missing_idx = missing_idx.set_index(["name", "datetime"])
 
         self.series = missing_obs_series
         self.idx = missing_idx.index
@@ -51,22 +51,21 @@ class Missingob_collection:
 
         self.series = comb_series
         comb_idx = comb_series.reset_index()
-        comb_idx = comb_idx.set_index(['name', 'datetime'])
+        comb_idx = comb_idx.set_index(["name", "datetime"])
         self.idx = comb_idx.index
         return self
 
-
     def __str__(self):
         if self.series.empty:
-            return f'Empty missing observations.'
+            return f"Empty missing observations."
         if not self.fill_df.empty:
-            return f'Missing observations with filled ({self.fill_technique}) \
-                values: \n {self.fill_df} \n Original missing observations on import: \n {self.idx}'
+            return f"Missing observations with filled ({self.fill_technique}) \
+                values: \n {self.fill_df} \n Original missing observations on import: \n {self.idx}"
 
-        return f'Missing observations: \n {self.series}'
+        return f"Missing observations: \n {self.series}"
+
     def __repr__(self):
         return self.__str__()
-
 
     def get_station_missingobs(self, name):
         """
@@ -118,7 +117,9 @@ class Missingob_collection:
 
         return obsdf
 
-    def interpolate_missing(self, obsdf, resolutionseries, obstype='temp', method='time'):
+    def interpolate_missing(
+        self, obsdf, resolutionseries, obstype="temp", method="time"
+    ):
         """
         Fill the missing observations using an interpolation method.
 
@@ -142,35 +143,37 @@ class Missingob_collection:
         """
         # create fill column for the obstype
         self.fill_df[obstype] = np.nan
-        self.fill_technique = 'interpolate'
+        self.fill_technique = "interpolate"
         # locate the missing observation in observation space
         missing_obsspace = self.get_missing_indx_in_obs_space(obsdf, resolutionseries)
 
         # Set index for df fill attribute
         self.fill_df = pd.DataFrame(index=missing_obsspace)
 
-
         for staname, missingdt in missing_obsspace:
-            staobs = obsdf.xs(staname, level='name')[obstype]
+            staobs = obsdf.xs(staname, level="name")[obstype]
             # exclude nan values because they are no good leading/trailing
             staobs = staobs[~staobs.isnull()]
-            print(f'staname: {staname}, missingdt: {missingdt}')
+            print(f"staname: {staname}, missingdt: {missingdt}")
             # find leading and trailing datetimes
-            leading_seconds =_find_closes_occuring_date(refdt = missingdt,
-                                                        series_of_dt = staobs.index,
-                                                        where='before')
+            leading_seconds = _find_closes_occuring_date(
+                refdt=missingdt, series_of_dt=staobs.index, where="before"
+            )
             if np.isnan(leading_seconds):
-                logger.warn(f'missing obs: {staname}, at {missingdt} does not have a leading timestamp.')
+                logger.warn(
+                    f"missing obs: {staname}, at {missingdt} does not have a leading timestamp."
+                )
                 continue
 
             leading_dt = missingdt - timedelta(seconds=leading_seconds)
 
-            trailing_seconds =_find_closes_occuring_date(
-                                                    refdt = missingdt,
-                                                    series_of_dt = staobs.index,
-                                                    where='after')
+            trailing_seconds = _find_closes_occuring_date(
+                refdt=missingdt, series_of_dt=staobs.index, where="after"
+            )
             if np.isnan(trailing_seconds):
-                logger.warn(f'missing obs: {staname}, at {missingdt} does not have a trailing timestamp.')
+                logger.warn(
+                    f"missing obs: {staname}, at {missingdt} does not have a trailing timestamp."
+                )
                 continue
             trailing_dt = missingdt + timedelta(seconds=trailing_seconds)
 
@@ -180,19 +183,17 @@ class Missingob_collection:
 
             stadf = pd.DataFrame(
                 index=[leading_dt, missingdt, trailing_dt],
-                data={obstype: [leading_val, np.nan, trailing_val]}
+                data={obstype: [leading_val, np.nan, trailing_val]},
             )
 
-
             # interpolate the missing obs
-            stadf['interp'] = stadf[obstype].interpolate(
-                                                method=method,
-                )
+            stadf["interp"] = stadf[obstype].interpolate(
+                method=method,
+            )
 
-            self.fill_df.loc[(staname, missingdt), obstype] = stadf.loc[missingdt, 'interp']
-
-
-
+            self.fill_df.loc[(staname, missingdt), obstype] = stadf.loc[
+                missingdt, "interp"
+            ]
 
     def get_missing_indx_in_obs_space(self, obsdf, resolutionseries):
         """
@@ -253,5 +254,3 @@ class Missingob_collection:
             missing_obsspace = missing_obsspace.append(sta_missing_idx)
 
         return missing_obsspace
-
-

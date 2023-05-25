@@ -81,9 +81,7 @@ aug_2020_all_vlinders.make_geo_plot(obstype="lcz")
 
 # aggregated
 agg_landcover = aug_2020_all_vlinders.get_landcover(
-    buffers=[100, 250], # in meters
-    overwrite=True,
-    aggregate=True
+    buffers=[100, 250], overwrite=True, aggregate=True  # in meters
 )
 
 print(agg_landcover)
@@ -106,7 +104,8 @@ print(altitude)  # altitude in meters
 
 # To make an interactive plot of a GEE dataset one can use the following function:
 
-aug_2020_all_vlinders.make_gee_plot(gee_map = 'worldcover',
-                                    show_stations = True,
-                                    save=False,
-                                    )
+aug_2020_all_vlinders.make_gee_plot(
+    gee_map="worldcover",
+    show_stations=True,
+    save=False,
+)

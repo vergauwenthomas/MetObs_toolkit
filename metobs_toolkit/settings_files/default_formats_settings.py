@@ -47,7 +47,7 @@ plot_settings["time_series"] = {
     "scattersize": 4,  # for outliers
     "scatterzorder": 2,  # for outliers
     "dashedzorder": 2,  # for gapfills
-    "legend_n_columns": 5, # for the number of columns in the plot
+    "legend_n_columns": 5,  # for the number of columns in the plot
 }
 # =============================================================================
 # Spatial plot settings
@@ -113,21 +113,13 @@ plot_settings["color_mapper"] = {
 # =============================================================================
 
 plot_settings["diurnal"] = {
-    "figsize": (10,10),
-    'alpha_error_bands': 0.3,
-    'cmap_continious' : "viridis", #if many stations are present, best to use continious rather than categorical
-
-    'n_cat_max': 20, #when less or equal categories are detected, use the categorical col mapping
-    'cmap_categorical': "tab20",
+    "figsize": (10, 10),
+    "alpha_error_bands": 0.3,
+    "cmap_continious": "viridis",  # if many stations are present, best to use continious rather than categorical
+    "n_cat_max": 20,  # when less or equal categories are detected, use the categorical col mapping
+    "cmap_categorical": "tab20",
     "legend_n_columns": 5,
-
-
-
-
-
 }
-
-
 
 
 print_settings = {"fmt_datetime": "%d/%m/%Y %H:%M:%S", "max_print_per_line": "40"}
