@@ -12,7 +12,10 @@ import numpy as np
 from datetime import datetime, timedelta
 import logging
 
-from metobs_toolkit.df_helpers import _find_closes_occuring_date
+from metobs_toolkit.df_helpers import (
+    _find_closes_occuring_date,
+    xs_save,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +154,7 @@ class Missingob_collection:
 
 
         for staname, missingdt in missing_obsspace:
-            staobs = obsdf.xs(staname, level='name')[obstype]
+            staobs = xs_save(obsdf, staname, level='name')[obstype]
             # exclude nan values because they are no good leading/trailing
             staobs = staobs[~staobs.isnull()]
             print(f'staname: {staname}, missingdt: {missingdt}')
@@ -229,8 +232,8 @@ class Missingob_collection:
                 sta_missing = pd.Series(data=[sta_missing], index=[sta], dtype=object)
 
             # Get start, end and frequency of the observation in obs space
-            startdt = obsdf.xs(sta, level="name").index.min()
-            enddt = obsdf.xs(sta, level="name").index.max()
+            startdt = xs_save(obsdf, sta, level="name").index.min()
+            enddt = xs_save(obsdf, sta, level="name").index.max()
             obs_freq = resolutionseries.loc[sta]
 
             # Make datetimerange

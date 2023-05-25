@@ -70,7 +70,7 @@ from metobs_toolkit.gap import (
 
 from metobs_toolkit.df_helpers import (
     multiindexdf_datetime_subsetting,
-    remove_outliers_from_obs,
+    # remove_outliers_from_obs,
     init_multiindex,
     init_multiindexdf,
     init_triple_multiindexdf,
@@ -78,6 +78,7 @@ from metobs_toolkit.df_helpers import (
     conv_applied_qc_to_df,
     get_freqency_series,
     value_labeled_doubleidxdf_to_triple_idxdf,
+    xs_save
 )
 
 from metobs_toolkit.analysis import Analysis
@@ -319,7 +320,7 @@ class Dataset:
         mergedf = self.combine_all_to_obsspace()
 
         # subset to obstype
-        mergedf = mergedf.xs(obstype, level='obstype')
+        mergedf = xs_save(mergedf, obstype, level='obstype')
 
         # Subset on stationnames
         if not stationnames is None:
@@ -433,7 +434,7 @@ class Dataset:
         logger.info(f"Make {obstype}-geo plot at {timeinstance}")
 
         # subset to timeinstance
-        plotdf = self.df.xs(timeinstance, level="datetime")
+        plotdf = xs_save(self.df, timeinstance, level="datetime")
 
         # merge metadata
         plotdf = plotdf.merge(
@@ -564,7 +565,7 @@ class Dataset:
 
         # combine to one dataframe
         mergedf = self.combine_all_to_obsspace()
-        mergedf = mergedf.xs(obstype, level='obstype')
+        mergedf = xs_save(mergedf, obstype, level='obstype')
 
 
         # ignore labels
@@ -1079,7 +1080,7 @@ class Dataset:
             mergedf = mergedf[~mergedf['toolkit_representation'].isin(fill_labels)]
 
         if not obstype is None:
-            mergedf = mergedf.xs(obstype, level='obstype', drop_level=False)
+            mergedf = xs_save(mergedf, obstype, level='obstype', drop_level=False)
 
 
 
@@ -1489,7 +1490,7 @@ class Dataset:
         comb_df = self.combine_all_to_obsspace()
 
         # subset to relevant columnt
-        comb_df = comb_df.xs(obstype, level='obstype')[['label']]
+        comb_df = xs_save(comb_df, obstype, level='obstype')[['label']]
 
 
         # compute freq statistics
@@ -2347,7 +2348,7 @@ class Dataset:
         if overwrite:
 
             for buf in frac_df.index.get_level_values('buffer_radius').unique():
-                buf_df = frac_df.xs(buf, level='buffer_radius')
+                buf_df = xs_save(frac_df, buf, level='buffer_radius')
                 buf_df.columns= [col + f'_{int(buf)}m' for col in buf_df.columns]
 
                 # overwrite the columns or add them if they did not exist

@@ -439,7 +439,7 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
     problematic_stations = []
     freqs = {}
     for station in df.index.get_level_values(level="name").unique():
-        subdf = df.xs(station, level="name")
+        subdf = xs_save(df, station, level="name")
         # remove rows with all obstype nans
         subdf = subdf.dropna(axis=0, how="all")
 

@@ -8,7 +8,7 @@ Created on Wed Mar 22 13:50:17 2023
 
 import pandas as pd
 
-from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
+from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf, xs_save
 
 from metobs_toolkit.landcover_functions import connect_to_gee, gee_extract_timeseries
 
@@ -107,8 +107,8 @@ class Modeldata:
         recordsdf.index = to_multiidx
         # iterate over stations check to avoid extrapolation is done per stations
         for sta in recordsdf.index.get_level_values("name").unique():
-            sta_recordsdf = recordsdf.xs(sta, level="name", drop_level=False)
-            sta_moddf = self.df.xs(sta, level="name", drop_level=False)
+            sta_recordsdf = xs_save(recordsdf, sta, level="name", drop_level=False)
+            sta_moddf = xs_save(self.df, sta, level="name", drop_level=False)
 
             # convert modeldata to timezone of observations
             sta_moddf = conv_tz_multiidxdf(

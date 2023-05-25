@@ -16,6 +16,7 @@ from metobs_toolkit.df_helpers import (
     init_multiindex,
     init_multiindexdf,
     init_triple_multiindexdf,
+    xs_save
 )
 
 
@@ -129,7 +130,7 @@ def invalid_input_check(df, checks_info):
         for sta in outl_stations:
             # apply check per station
             outl_idx = (
-                df.xs(sta, level="name", drop_level=False)[obstype]
+                xs_save(df, sta, level="name", drop_level=False)[obstype]
                 .isnull()
                 .loc[lambda x: x]
                 .index
@@ -511,7 +512,7 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
     list_of_outliers = []
 
     for name in input_series.index.droplevel("datetime").unique():
-        subdata = input_series.xs(name, level="name", drop_level=False)
+        subdata = xs_save(input_series, name, level="name", drop_level=False)
 
         time_diff = subdata.index.get_level_values("datetime").to_series().diff()
         time_diff.index = subdata.index  # back to multiindex
