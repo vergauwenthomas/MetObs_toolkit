@@ -4,7 +4,6 @@
 name = "appnope"
 version = "0.1.3"
 description = "Disable App Nap on macOS >= 10.9"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -16,7 +15,6 @@ files = [
 name = "asttokens"
 version = "2.2.1"
 description = "Annotate AST trees with source code positions"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -52,7 +50,6 @@ tests-no-zope = ["cloudpickle", "hypothesis", "mypy (>=1.1.1)", "pympler", "pyte
 name = "backcall"
 version = "0.2.0"
 description = "Specifications for callback functions passed in to an API"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -64,7 +61,6 @@ files = [
 name = "bqplot"
 version = "0.12.39"
 description = "Interactive plotting for the Jupyter notebook, using d3.js and ipywidgets."
-category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -83,7 +79,6 @@ traittypes = ">=0.0.6"
 name = "branca"
 version = "0.6.0"
 description = "Generate complex HTML+JS pages with Python"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -163,10 +158,6 @@ files = [
 name = "cffi"
 version = "1.15.1"
 description = "Foreign Function Interface for Python calling C code."
-<<<<<<< HEAD
-category = "main"
-=======
->>>>>>> master
 optional = false
 python-versions = "*"
 files = [
@@ -401,7 +392,6 @@ files = [
 name = "colour"
 version = "0.1.5"
 description = "converts and manipulates various color representation (HSL, RVB, web, X11, ...)"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -416,7 +406,6 @@ test = ["nose"]
 name = "comm"
 version = "0.1.3"
 description = "Jupyter Python Comm implementation, for usage in ipykernel, xeus-python etc."
-category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -573,7 +562,6 @@ files = [
 name = "debugpy"
 version = "1.6.7"
 description = "An implementation of the Debug Adapter Protocol for Python"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -601,7 +589,6 @@ files = [
 name = "decorator"
 version = "5.1.1"
 description = "Decorators for Humans"
-category = "main"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -716,7 +703,6 @@ requests = "*"
 name = "eerepr"
 version = "0.0.4"
 description = "Code Editor-style reprs for Earth Engine data in a Jupyter notebook."
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -734,7 +720,6 @@ dev = ["black", "hatch", "ipykernel", "isort", "jupyterlab", "pytest", "pytest-c
 name = "executing"
 version = "1.2.0"
 description = "Get the currently executing AST node of a frame, and other information"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -808,7 +793,6 @@ test = ["Fiona[s3]", "pytest (>=7)", "pytest-cov", "pytz"]
 name = "folium"
 version = "0.14.0"
 description = "Make beautiful maps with Leaflet.js & Python"
-category = "main"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -854,7 +838,6 @@ woff = ["brotli (>=1.0.1)", "brotlicffi (>=0.8.0)", "zopfli (>=0.1.4)"]
 name = "future"
 version = "0.18.3"
 description = "Clean single-source support for Python 3 and 2"
-category = "main"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 files = [
@@ -865,7 +848,6 @@ files = [
 name = "geemap"
 version = "0.20.7"
 description = "A Python package for interactive mapping using Google Earth Engine and ipyleaflet"
-category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -906,7 +888,6 @@ vector = ["geopandas", "osmnx"]
 name = "geocoder"
 version = "1.38.1"
 description = "Geocoder is a simple and consistent geocoding library."
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -962,13 +943,13 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0dev)"]
 
 [[package]]
 name = "google-api-python-client"
-version = "2.86.0"
+version = "2.87.0"
 description = "Google API Client Library for Python"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-api-python-client-2.86.0.tar.gz", hash = "sha256:3ca4e93821f4e9ac29b91ab0d9df168b42c8ad0fb8bff65b8c2ccb2d462b0464"},
-    {file = "google_api_python_client-2.86.0-py2.py3-none-any.whl", hash = "sha256:0f320190ab9d5bd2fdb0cb894e8e53bb5e17d4888ee8dc4d26ba65ce378409e2"},
+    {file = "google-api-python-client-2.87.0.tar.gz", hash = "sha256:bbea5869877c822d12d318943833d988497b3a18b9ca2386967118074db676f3"},
+    {file = "google_api_python_client-2.87.0-py2.py3-none-any.whl", hash = "sha256:29b52232b159be72a79890b6d9f703cf6d8ebbec0ef6371c5670c1abeca5a9f9"},
 ]
 
 [package.dependencies]
@@ -1271,7 +1252,6 @@ files = [
 name = "ipyevents"
 version = "2.0.1"
 description = "A custom widget for returning mouse and keyboard events to Python"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -1290,7 +1270,6 @@ test = ["nbval", "pytest", "pytest-cov"]
 name = "ipyfilechooser"
 version = "0.6.0"
 description = "Python file chooser widget for use in Jupyter/IPython in conjunction with ipywidgets"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -1305,7 +1284,6 @@ ipywidgets = "*"
 name = "ipykernel"
 version = "6.23.1"
 description = "IPython Kernel for Jupyter"
-category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -1319,7 +1297,7 @@ comm = ">=0.1.1"
 debugpy = ">=1.6.5"
 ipython = ">=7.23.1"
 jupyter-client = ">=6.1.12"
-jupyter-core = ">=4.12,<5.0.0 || >=5.1.0"
+jupyter-core = ">=4.12,<5.0.dev0 || >=5.1.dev0"
 matplotlib-inline = ">=0.1"
 nest-asyncio = "*"
 packaging = "*"
@@ -1339,7 +1317,6 @@ test = ["flaky", "ipyparallel", "pre-commit", "pytest (>=7.0)", "pytest-asyncio"
 name = "ipyleaflet"
 version = "0.17.2"
 description = "A Jupyter widget for dynamic Leaflet maps"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1357,7 +1334,6 @@ xyzservices = ">=2021.8.1"
 name = "ipython"
 version = "8.13.2"
 description = "IPython: Productive Interactive Computing"
-category = "main"
 optional = false
 python-versions = ">=3.9"
 files = [
@@ -1397,7 +1373,6 @@ test-extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.21)", "pa
 name = "ipytree"
 version = "0.2.2"
 description = "A Tree Widget using jsTree"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -1412,7 +1387,6 @@ ipywidgets = ">=7.5.0,<9"
 name = "ipywidgets"
 version = "8.0.6"
 description = "Jupyter interactive widgets"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1452,7 +1426,6 @@ testing = ["flake8 (<5)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-chec
 name = "jedi"
 version = "0.18.2"
 description = "An autocompletion tool for Python that can be used for text editors."
-category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -1487,7 +1460,6 @@ trio = ["async_generator", "trio"]
 name = "jinja2"
 version = "3.1.2"
 description = "A very fast and expressive template engine."
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1535,7 +1507,6 @@ format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-
 name = "jupyter-client"
 version = "8.2.0"
 description = "Jupyter protocol implementation and client libraries"
-category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -1545,7 +1516,7 @@ files = [
 
 [package.dependencies]
 importlib-metadata = {version = ">=4.8.3", markers = "python_version < \"3.10\""}
-jupyter-core = ">=4.12,<5.0.0 || >=5.1.0"
+jupyter-core = ">=4.12,<5.0.dev0 || >=5.1.dev0"
 python-dateutil = ">=2.8.2"
 pyzmq = ">=23.0"
 tornado = ">=6.2"
@@ -1559,7 +1530,6 @@ test = ["coverage", "ipykernel (>=6.14)", "mypy", "paramiko", "pre-commit", "pyt
 name = "jupyter-core"
 version = "5.3.0"
 description = "Jupyter core package. A base package on which Jupyter projects rely."
-category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -1580,7 +1550,6 @@ test = ["ipykernel", "pre-commit", "pytest", "pytest-cov", "pytest-timeout"]
 name = "jupyterlab-widgets"
 version = "3.0.7"
 description = "Jupyter interactive widgets for JupyterLab"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1726,7 +1695,6 @@ tests = ["codecov", "geopandas", "libpysal", "networkx", "palettable", "pytest",
 name = "markupsafe"
 version = "2.1.2"
 description = "Safely add untrusted strings to HTML/XML markup."
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1848,7 +1816,6 @@ python-dateutil = ">=2.7"
 name = "matplotlib-inline"
 version = "0.1.6"
 description = "Inline Matplotlib backend for Jupyter"
-category = "main"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -1988,7 +1955,6 @@ gssapi = ["gssapi (>=1.6.9,<=1.8.2)"]
 name = "nest-asyncio"
 version = "1.5.6"
 description = "Patch asyncio to allow nested event loops"
-category = "main"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -2114,7 +2080,6 @@ test = ["hypothesis (>=5.5.3)", "pytest (>=6.0)", "pytest-xdist (>=1.31)"]
 name = "parso"
 version = "0.8.3"
 description = "A Python Parser"
-category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -2130,10 +2095,6 @@ testing = ["docopt", "pytest (<6.0.0)"]
 name = "pexpect"
 version = "4.8.0"
 description = "Pexpect allows easy control of interactive console applications."
-<<<<<<< HEAD
-category = "main"
-=======
->>>>>>> master
 optional = false
 python-versions = "*"
 files = [
@@ -2148,7 +2109,6 @@ ptyprocess = ">=0.5"
 name = "pickleshare"
 version = "0.7.5"
 description = "Tiny 'shelve'-like database with concurrency support"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -2253,10 +2213,6 @@ testing = ["pytest", "pytest-cov"]
 name = "platformdirs"
 version = "3.5.1"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-<<<<<<< HEAD
-category = "main"
-=======
->>>>>>> master
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2272,7 +2228,6 @@ test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.3.1)", "pytest-
 name = "plotly"
 version = "5.14.1"
 description = "An open-source, interactive data visualization library for Python"
-category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -2355,7 +2310,6 @@ poetry-core = ">=1.3.0,<2.0.0"
 name = "prompt-toolkit"
 version = "3.0.38"
 description = "Library for building powerful interactive command lines in Python"
-category = "main"
 optional = false
 python-versions = ">=3.7.0"
 files = [
@@ -2401,7 +2355,6 @@ files = [
 name = "psutil"
 version = "5.9.5"
 description = "Cross-platform lib for process and system monitoring in Python."
-category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 files = [
@@ -2428,10 +2381,6 @@ test = ["enum34", "ipaddress", "mock", "pywin32", "wmi"]
 name = "ptyprocess"
 version = "0.7.0"
 description = "Run a subprocess in a pseudo terminal"
-<<<<<<< HEAD
-category = "main"
-=======
->>>>>>> master
 optional = false
 python-versions = "*"
 files = [
@@ -2443,7 +2392,6 @@ files = [
 name = "pure-eval"
 version = "0.2.2"
 description = "Safely evaluate AST nodes without side effects"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -2483,10 +2431,6 @@ pyasn1 = ">=0.4.6,<0.6.0"
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
-<<<<<<< HEAD
-category = "main"
-=======
->>>>>>> master
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 files = [
@@ -2498,7 +2442,6 @@ files = [
 name = "pygments"
 version = "2.15.1"
 description = "Pygments is a syntax highlighting package written in Python."
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2527,7 +2470,6 @@ diagrams = ["jinja2", "railroad-diagrams"]
 name = "pyperclip"
 version = "1.8.2"
 description = "A cross-platform clipboard module for Python. (Only handles plain text for now.)"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -2694,7 +2636,6 @@ files = [
 name = "python-box"
 version = "7.0.1"
 description = "Advanced Python dictionaries with dot notation access"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2754,7 +2695,6 @@ files = [
 name = "pywin32"
 version = "306"
 description = "Python for Window Extensions"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -2789,7 +2729,6 @@ files = [
 name = "pyzmq"
 version = "25.0.2"
 description = "Python bindings for 0MQ"
-category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -2983,7 +2922,6 @@ full = ["numpy"]
 name = "ratelim"
 version = "0.1.6"
 description = "Makes it easy to respect rate limits."
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -3127,7 +3065,6 @@ test = ["asv", "gmpy2", "mpmath", "pytest", "pytest-cov", "pytest-xdist", "sciki
 name = "scooby"
 version = "0.7.2"
 description = "A Great Dane turned Python environment detective"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -3233,7 +3170,6 @@ files = [
 name = "stack-data"
 version = "0.6.2"
 description = "Extract data from python stack frames and tracebacks for informative displays"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -3253,7 +3189,6 @@ tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 name = "tenacity"
 version = "8.2.2"
 description = "Retry code until it succeeds"
-category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -3301,7 +3236,6 @@ files = [
 name = "tornado"
 version = "6.3.2"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
-category = "main"
 optional = false
 python-versions = ">= 3.8"
 files = [
@@ -3322,7 +3256,6 @@ files = [
 name = "traitlets"
 version = "5.9.0"
 description = "Traitlets Python configuration system"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -3338,7 +3271,6 @@ test = ["argcomplete (>=2.0)", "pre-commit", "pytest", "pytest-mock"]
 name = "traittypes"
 version = "0.2.1"
 description = "Scipy trait types"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -3354,25 +3286,24 @@ test = ["numpy", "pandas", "pytest", "xarray"]
 
 [[package]]
 name = "trove-classifiers"
-version = "2023.5.22"
+version = "2023.5.24"
 description = "Canonical source for classifiers on PyPI (pypi.org)."
 optional = false
 python-versions = "*"
 files = [
-    {file = "trove-classifiers-2023.5.22.tar.gz", hash = "sha256:0c7669400ea1ce940eeb5af069d1d0fcb7de1caa796ca2df4a326247aba8e8c6"},
-    {file = "trove_classifiers-2023.5.22-py3-none-any.whl", hash = "sha256:f255deaf58d98a5a6fc857986cb10ecb265bace3083aca360a4db50f897a5396"},
+    {file = "trove-classifiers-2023.5.24.tar.gz", hash = "sha256:fd5a1546283be941f47540a135bdeae8fb261380a6a204d9c18012f2a1b0ceae"},
+    {file = "trove_classifiers-2023.5.24-py3-none-any.whl", hash = "sha256:d9d7ae14fb90bf3d50bef99c3941b176b5326509e6e9037e622562d6352629d0"},
 ]
 
 [[package]]
 name = "typing-extensions"
-version = "4.5.0"
+version = "4.6.1"
 description = "Backported and Experimental Type Hints for Python 3.7+"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "typing_extensions-4.5.0-py3-none-any.whl", hash = "sha256:fb33085c39dd998ac16d1431ebc293a8b3eedd00fd4a32de0ff79002c19511b4"},
-    {file = "typing_extensions-4.5.0.tar.gz", hash = "sha256:5cb5f4a79139d699607b3ef622a1dedafa84e115ab0024e0d9c044a9479ca7cb"},
+    {file = "typing_extensions-4.6.1-py3-none-any.whl", hash = "sha256:6bac751f4789b135c43228e72de18637e9a6c29d12777023a703fd1a6858469f"},
+    {file = "typing_extensions-4.6.1.tar.gz", hash = "sha256:558bc0c4145f01e6405f4a5fdbd82050bd221b119f4bf72a961a1cfd471349d6"},
 ]
 
 [[package]]
@@ -3426,7 +3357,6 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.3)", "coverage-enable-subprocess
 name = "wcwidth"
 version = "0.2.6"
 description = "Measures the displayed width of unicode strings in a terminal"
-category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -3449,7 +3379,6 @@ files = [
 name = "widgetsnbextension"
 version = "4.0.7"
 description = "Jupyter interactive widgets for Jupyter Notebook"
-category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -3543,14 +3472,13 @@ cffi = ">=1.0"
 
 [[package]]
 name = "xyzservices"
-version = "2023.2.0"
+version = "2023.5.0"
 description = "Source of XYZ tiles providers"
-category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "xyzservices-2023.2.0-py3-none-any.whl", hash = "sha256:8d29c4d7c33b0ad63f54744ec90f68c5a65d7c0d7e498b624b7c076c1d926998"},
-    {file = "xyzservices-2023.2.0.tar.gz", hash = "sha256:3342bba410d7941290eed0e58a2e5aadb0f7b97863ec4283b283c406ee723a28"},
+    {file = "xyzservices-2023.5.0-py3-none-any.whl", hash = "sha256:53b923518d1f7ba22ee77c955c1da34716524bf1910737b097d3208f893af0fe"},
+    {file = "xyzservices-2023.5.0.tar.gz", hash = "sha256:f0ffaeb7f1c090cff98de6e9a5d4c1c3dde5a8c30f98044dc1e12b11d4576ebc"},
 ]
 
 [[package]]
