@@ -1,7 +1,0 @@
-varname,template column name,format,units,description
-_date,Datum,%Y-%m-%d,,
-_time,Tijd (UTC),%H:%M:%S,,
-name,Vlinder,,,
-lat,lat,,,
-lon,lon,,,
-temp,Temperatuur,,Celcius,2mT
