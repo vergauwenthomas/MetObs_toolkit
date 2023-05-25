@@ -171,7 +171,7 @@ class Gap:
 
         """
 
-        sta_obs = obsdf.xs(self.name, level="name").index
+        sta_obs = xs_save(obsdf, self.name, level="name").index
         if obs_only:
             sta_comb = sta_obs
         else:
@@ -179,7 +179,6 @@ class Gap:
             outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
             # combine timestamps of observations and outliers
-            # sta_outl = outliersdf.xs(self.name, level="name").index
             sta_outl = xs_save(outliersdf, self.name, level="name").index
             sta_comb = sta_obs.append(sta_outl)
 
@@ -434,7 +433,7 @@ def remove_gaps_from_obs(gaplist, obsdf):
     # Create index for gaps records in the obsdf
     expanded_gabsidx = init_multiindex()
     for gap in gaplist:
-        sta_records = obsdf.xs(gap.name, level="name").index  # filter by name
+        sta_records = xs_save(obsdf, gap.name, level="name").index  # filter by name
 
         gaps_dt = sta_records[
             (sta_records >= gap.startgap)
@@ -593,8 +592,8 @@ def apply_interpolate_gaps(gapslist, obsdf, outliersdf, dataset_res, gapfill_set
     for gap in gapslist:
         gapfill_series = interpolate_gap(
                         gap=gap,
-                        obsdf=obsdf.xs(gap.name, level='name', drop_level=False),
-                        outliersdf=outliersdf.xs(gap.name, level='name', drop_level=False),
+                        obsdf=xs_save(obsdf, gap.name, level='name', drop_level=False),
+                        outliersdf=xs_save(outliersdf, gap.name, level='name', drop_level=False),
                         dataset_res=dataset_res.loc[gap.name],
                         obstype=obstype,
                         method=method,
@@ -662,7 +661,7 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
     stationnames = df.index.get_level_values(level="name").unique()
     for station in stationnames:
         # find missing timestamps
-        timestamps = df.xs(station, level="name").index
+        timestamps = xs_save(df, station, level="name").index
         likely_freq = get_likely_frequency(timestamps, method="highest", simplify=False)
 
 
