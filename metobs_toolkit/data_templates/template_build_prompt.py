@@ -102,7 +102,8 @@ def build_template_prompt():
         template_dict['datetime']['orig_name'] = col_option_input(columnnames)
         columnnames.remove(template_dict['datetime']['orig_name'])
 
-        template_dict['datetime']['format'] = input('Type your datetime format (ex. %Y-%m-%d %H:%M:%S) : ')
+        example = data[template_dict['datetime']['orig_name']].iloc[0]
+        template_dict['datetime']['format'] = input(f'Type your datetime format (ex. %Y-%m-%d %H:%M:%S), (your first timestamp: {example}) : ')
 
     else:
         # Date mapping
@@ -110,16 +111,18 @@ def build_template_prompt():
         print('Which column represents the DATES : ')
         template_dict['_date']['orig_name'] = col_option_input(columnnames)
         columnnames.remove(template_dict['_date']['orig_name'])
-        template_dict['_date']['format'] = input('Type your date format (ex. %Y-%m-%d) : ')
+        example = data[template_dict['_date']['orig_name']].iloc[0]
+        template_dict['_date']['format'] = input(f'Type your date format (ex. %Y-%m-%d), (your first timestamp: {example}) : ')
         print(' \n')
 
         # Time mapping
         template_dict['_time'] = {}
         print('Which column represents the TIMES : ')
         template_dict['_time']['orig_name'] = col_option_input(columnnames)
-        columnnames.remove(template_dict['_time']['orig_name'])
 
-        template_dict['_time']['format'] = input('Type your time format (ex. %H:%M:%S) : ')
+        columnnames.remove(template_dict['_time']['orig_name'])
+        example = data[template_dict['_time']['orig_name']].iloc[0]
+        template_dict['_time']['format'] = input(f'Type your time format (ex. %H:%M:%S), (your first timestamp: {example}) : ')
 
     # Obstype mapping in long format:
     obstype_desc = {
@@ -381,8 +384,13 @@ def build_template_prompt():
     # =============================================================================
 
     print('\n ------ Saving the template ----- \n')
-    save_dir = input('Give a directory where to save the template (as template.csv) : ')
-
+    is_dir = False
+    while is_dir==False:
+        save_dir = input('Give a directory where to save the template (as template.csv) : ')
+        if os.path.isdir(save_dir):
+            is_dir = True
+        else:
+            print(f'{save_dir} is not a directory, try again.')
     template_dict.update(metatemplate_dict) #this is why name in data and metadata should have the same mapping !!
 
 
