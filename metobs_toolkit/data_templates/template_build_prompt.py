@@ -105,14 +105,17 @@ def build_template_prompt():
         example = data[template_dict['datetime']['orig_name']].iloc[0]
         template_dict['datetime']['format'] = input(f'Type your datetime format (ex. %Y-%m-%d %H:%M:%S), (your first timestamp: {example}) : ')
 
+
     else:
         # Date mapping
         template_dict['_date'] = {}
         print('Which column represents the DATES : ')
         template_dict['_date']['orig_name'] = col_option_input(columnnames)
         columnnames.remove(template_dict['_date']['orig_name'])
+
         example = data[template_dict['_date']['orig_name']].iloc[0]
         template_dict['_date']['format'] = input(f'Type your date format (ex. %Y-%m-%d), (your first timestamp: {example}) : ')
+
         print(' \n')
 
         # Time mapping
@@ -391,6 +394,7 @@ def build_template_prompt():
             is_dir = True
         else:
             print(f'{save_dir} is not a directory, try again.')
+
     template_dict.update(metatemplate_dict) #this is why name in data and metadata should have the same mapping !!
 
 
@@ -443,6 +447,7 @@ def build_template_prompt():
             gaps_update = True
 
         print('\n\n ========= RUN THIS CODE ========= \n\n')
+
 
         print('\n#1. Define the paths to your files: \n')
         print(f'data_file = "{datafilepath}"')
