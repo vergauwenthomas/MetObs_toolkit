@@ -57,7 +57,8 @@ class Missingob_collection:
         comb_idx = comb_idx.set_index(['name', 'datetime'])
         self.idx = comb_idx.index
         return self
-
+    def __len__(self):
+        return self.series.shape[0]
 
     def __str__(self):
         if self.series.empty:
