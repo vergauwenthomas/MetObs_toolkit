@@ -98,7 +98,6 @@ class Gap:
         print(f'  * End gap: {self.endgap} \n')
         print(f'  * Duration gap: {self.duration} \n')
         print(f'\n ---- Gap fill info ----- \n')
-        print(f'DEBUG: {self.gapfill_technique} ')
         obstypes = self.gapfill_df.columns.to_list()
         obstypes = [obs for obs in obstypes if obs in observation_types]
         if self.gapfill_df.empty:
