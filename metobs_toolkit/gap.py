@@ -29,6 +29,7 @@ from metobs_toolkit.df_helpers import (
     _find_closes_occuring_date
 )
 
+from metobs_toolkit import observation_types
 from metobs_toolkit.df_helpers import init_multiindex, init_multiindexdf, xs_save
 
 from metobs_toolkit.missingobs import Missingob_collection
@@ -97,11 +98,12 @@ class Gap:
         print(f'  * End gap: {self.endgap} \n')
         print(f'  * Duration gap: {self.duration} \n')
         print(f'\n ---- Gap fill info ----- \n')
-
+        print(f'DEBUG: {self.gapfill_technique} ')
         obstypes = self.gapfill_df.columns.to_list()
+        obstypes = [obs for obs in obstypes if obs in observation_types]
         if self.gapfill_df.empty:
             print ('(No gapfill applied)')
-        elif self.gapfill_technique == 'interpolation':
+        elif self.gapfill_technique == 'gap_interpolation':
             for obstype in obstypes:
                 print(f'  * On observation type: {obstype}')
                 print(f'  * Technique: {self.gapfill_technique} \n')
@@ -112,7 +114,7 @@ class Gap:
                     print(f'  * Gapfill message: {self.gapfill_errormessage[obstype]} \n')
 
 
-        elif self.gapfill_technique == "debias gapfill":
+        elif self.gapfill_technique == "gap_debiased_era5":
             for obstype in obstypes:
                 print(f'  * On observation type: {obstype}')
                 print(f'  * Technique: {self.gapfill_technique} \n')
@@ -207,12 +209,12 @@ class Gap:
         try:
             self.leading_val = obsdf.loc[(self.name, self.leading_timestamp)].to_dict()
         except KeyError:
-            print('LEADING VAL NOT IN OBSDF --> THIS IS NOT WHAT YOU WHANT I THINK ; FIX THIS')
+            print('Warning. Leading value not found in the observations')
             self.leading_val = {}
         try:
             self.trailing_val = obsdf.loc[(self.name, self.trailing_timestamp)].to_dict()
         except KeyError:
-            print('LEADING VAL NOT IN OBSDF --> THIS IS NOT WHAT YOU WHANT I THINK ; FIX THIS')
+            print('Warning. Trailing value not found in the observations')
             self.trailing_val = {}
 
 

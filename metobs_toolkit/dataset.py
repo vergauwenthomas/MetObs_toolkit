@@ -201,7 +201,7 @@ class Dataset:
                 stationname, level="name", drop_level=False
             )
         except KeyError:
-            sta_outliers = init_multiindexdf()
+            sta_outliers = init_triple_multiindexdf()
 
         sta_gaps = get_station_gaps(self.gaps, stationname)
         sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
@@ -369,7 +369,6 @@ class Dataset:
         ax = timeseries_plot(
             mergedf=mergedf,
             title=title,
-            xlabel="Timestamp",
             ylabel=self.data_template[obstype]["orig_name"],
             colorby=colorby,
             show_legend=legend,
@@ -1168,8 +1167,8 @@ class Dataset:
         """
 
         if repetitions:
-            print("Applying the repetitions-check on all stations.")
-            logger.info("Applying repetitions check on the full dataset")
+            print("Applying the repetitions-check.")
+            logger.info("Applying repetitions check.")
 
             obsdf, outl_df = repetitions_check(
                 obsdf=self.df,
@@ -1195,8 +1194,8 @@ class Dataset:
             )
 
         if gross_value:
-            print("Applying the gross-value-check on all stations.")
-            logger.info("Applying gross value check on the full dataset")
+            print("Applying the gross-value-check.")
+            logger.info("Applying gross value check.")
 
             obsdf, outl_df = gross_value_check(
                 obsdf=self.df,
@@ -1222,8 +1221,8 @@ class Dataset:
             )
 
         if persistance:
-            print("Applying the persistance-check on all stations.")
-            logger.info("Applying persistance check on the full dataset")
+            print("Applying the persistance-check.")
+            logger.info("Applying persistance check.")
 
             obsdf, outl_df = persistance_check(
                 station_frequencies=self.metadf["dataset_resolution"],
@@ -1250,8 +1249,8 @@ class Dataset:
             )
 
         if step:
-            print("Applying the step-check on all stations.")
-            logger.info("Applying step-check on the full dataset")
+            print("Applying the step-check.")
+            logger.info("Applying step-check.")
 
             obsdf, outl_df = step_check(
                 obsdf=self.df,
@@ -1275,8 +1274,8 @@ class Dataset:
             )
 
         if window_variation:
-            print("Applying the window variation-check on all stations.")
-            logger.info("Applying window variation-check on the full dataset")
+            print("Applying the window variation-check.")
+            logger.info("Applying window variation-check.")
 
             obsdf, outl_df = window_variation_check(
                 station_frequencies=self.metadf["dataset_resolution"],

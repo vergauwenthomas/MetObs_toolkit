@@ -298,7 +298,6 @@ def timeseries_plot(
     mergedf,
     # obstype,
     title,
-    xlabel,
     ylabel,
     colorby,
     show_legend,
@@ -434,15 +433,14 @@ def timeseries_plot(
 
         # make legend
         if show_legend:
-            # TODO: sort items
             # sort legend items
             custom_handles = sorting_function(label_vec, custom_handles)
             #ax.legend(handles=custom_handles)
             box = ax.get_position()
             ax.set_position([box.x0, box.y0 + box.height * 0.2,
-                 box.width, box.height * 0.95])
+                 box.width, box.height * 0.85])
             ax.legend(handles=custom_handles, loc='upper center',
-                bbox_to_anchor=(0.5, -0.2),
+                bbox_to_anchor=(0.5, -0.25),
                 fancybox=True, shadow=True,
                 ncol=plot_settings["time_series"]["legend_n_columns"])
 
@@ -456,18 +454,18 @@ def timeseries_plot(
         if show_legend == True:
             box = ax.get_position()
             ax.set_position([box.x0, box.y0 + box.height * 0.2,
-                 box.width, box.height * 0.95])
+                 box.width, box.height * 0.88])
             ax.legend(plotdf.columns.values.tolist(), loc='upper center',
                 bbox_to_anchor=(0.5, -0.2),
                 fancybox=True, shadow=True,
                 ncol=plot_settings["time_series"]["legend_n_columns"])
 
     # Set title
+    print(f'title = {title}')
     ax.set_title(title)
     # ax.legend().set_title('')
 
     # Set x and y labels
-    ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
     return ax
