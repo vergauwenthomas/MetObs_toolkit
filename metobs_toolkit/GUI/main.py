@@ -310,7 +310,6 @@ def main():
         widget = QtWidgets.QStackedWidget()
         widget.addWidget(mainwindow)
         widget.show()
-        # return widget
         succesfull=True
     except:
         print('Failing !')
