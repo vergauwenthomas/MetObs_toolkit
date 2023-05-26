@@ -141,11 +141,11 @@ def build_template_prompt():
         'pressure' : "pressure (measured pressure)",
         'pressure_at_sea_level' : "pressure_at_sea_level (altitude corrected pressure)"}
     inv_obstype_desc = {val: key for key, val in obstype_desc.items()}
-
+    obstype_options=list(obstype_desc.values())
     if (format_option == 1) | (format_option == 3):
         # long format
         print('What do the following columns represent: \n')
-        obstype_options=list(obstype_desc.values())
+
         for col in columnnames:
 
             contin = input(f'  add column {col} to the template? (y/n) ')
@@ -185,21 +185,39 @@ def build_template_prompt():
     if format_option == 2:
         print('Does these columns represent stations: ')
         for col in columnnames:
-            print(f'  col')
+            print(f'  {col}')
         cont = input('(y/n) ')
         if cont!='y':
 
             print('\n In a Wide-format, REMOVE THE COLUMNS that do not represent differnt satations, before proceding! \n')
 
         print('What observation type does you data represent : ')
+        obstype_options.remove(obstype_desc['name'])
         desc_return = col_option_input(obstype_options)
         if desc_return is None:
             print('This is not an option, select an observation type.')
             sys.exit('invalid obstype for wide dataset, see last message. ')
         wide_obstype = inv_obstype_desc[desc_return]
 
+        if wide_obstype == 'temp':
+            _unit_num = input(' In Celcius (1), or Kelvin (2) : ')
+            units = {1:'Celcius', 2: 'Kelvin'}[int(_unit_num)]
+
+            print(units)
+
+        else:
+            units = input(' What are the units : ')
 
 
+        description = input('Some more details on the observation : ')
+
+        # update template
+        template_dict[wide_obstype] = {
+            'units': units,
+            'description': description
+            }
+
+    print(template_dict)
     # =============================================================================
     # Map metadatafile
     # =============================================================================
@@ -489,7 +507,10 @@ def build_template_prompt():
         print('your_dataset.import_data_from_file(')
         if format_option == 2:
             print('    long_format=False,')
-            print(f'    obstype={wide_obstype},')
+            print(f'    obstype="{wide_obstype}",')
+            print(f'    obstype_unit="{template_dict[wide_obstype]["units"]}",')
+            print(f'    obstype_description="{template_dict[wide_obstype]["description"]}",')
+
         else:
             print('    long_format=True,')
 
