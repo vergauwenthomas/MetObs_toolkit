@@ -8,10 +8,6 @@ Created on Mon Mar 20 09:47:48 2023
 
 # command: designer in terminal to open the desinger tool
 
-# DEBUG
-import sys
-sys.path.insert(0, '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit')
-import metobs_toolkit
 
 
 import os, sys
@@ -314,11 +310,10 @@ def main():
         widget = QtWidgets.QStackedWidget()
         widget.addWidget(mainwindow)
         widget.show()
-
+        # return widget
         succesfull=True
-        print('einde succes')
     except:
-        print('begin fail')
+        print('Failing !')
         # sys.exit('Something went wrong in the GUI')
         succesfull=False
         pass
