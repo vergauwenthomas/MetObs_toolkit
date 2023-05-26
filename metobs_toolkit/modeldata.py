@@ -47,6 +47,13 @@ class Modeldata:
     def get_ERA5_data(self, metadf, startdt, enddt, obstype="temp"):
         # startdt and enddt IN UTC FORMAT!!!!!
 
+        # Subset metadf to stations with coordinates
+        no_coord_meta = metadf[metadf[['lat','lon']].isna().any(axis=1)]
+        if not no_coord_meta.empty:
+            print(f'WARNING. Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}')
+            metadf = metadf[~metadf[['lat','lon']].isna().any(axis=1)]
+
+
         era_mapinfo = self.mapinfo["ERA5_hourly"]
         # Connect to Gee
         connect_to_gee()
