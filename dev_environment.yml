@@ -267,7 +267,6 @@ dependencies:
   - pyperclip=1.8.2=pyhd8ed1ab_2
   - pyproject_hooks=1.0.0=pyhd8ed1ab_0
   - pyqt=5.15.7=py39h6a678d5_1
-  - pyqtwebengine=5.15.7=py39h6a678d5_1
   - pyrsistent=0.19.3=py39h72bdee0_0
   - pyshp=2.3.1=pyhd8ed1ab_0
   - pysocks=1.7.1=pyha2e5f31_6
@@ -400,7 +399,6 @@ dependencies:
       - joblib==1.2.0
       - jupyterlab-widgets==3.0.7
       - mapclassify==2.5.0
-      - metobs-toolkit==0.1.1a0
       - mysql-connector-python==8.0.33
       - networkx==3.1
       - pandas==1.5.3
@@ -412,6 +410,8 @@ dependencies:
       - pyqt5==5.12.2
       - pyqt5-qt5==5.15.2
       - pyqt5-sip==12.12.1
+      - pyqtwebengine==5.12.1
+      - pyqtwebengine-qt5==5.15.2
       - scikit-learn==1.2.2
       - scipy==1.9.3
       - shapely==2.0.1
