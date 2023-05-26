@@ -74,48 +74,6 @@ def interpolate_gap(
     trailing_val = gap.trailing_val[obstype]
 
 
-    # # 3 check both leading and trailing are in obs, and look for alternative leading/trailing if the original is an outlier.
-    # sta_obs = obsdf.xs(gap.name, level="name")
-
-    # # leading
-    # if gap.leading_timestamp in sta_obs.index:
-    #     # leading found in obs
-    #     leading_dt = gap.leading_timestamp
-    #     leading_val = sta_obs.loc[gap.leading_timestamp, obstype]
-    # else:
-    #     # look for last observation before leading timestamp
-    #     delta_dt = (
-    #         gap.leading_timestamp - sta_obs.index[sta_obs.index < gap.leading_timestamp]
-    #     )
-    #     if delta_dt.empty:
-    #         print(
-    #             f"No cadidate for leading {obstype} observation found for {gap.name} with gap: {gap.startgap} --> {gap.endgap}"
-    #         )
-    #         return empty_interp
-
-    #     leading_dt = gap.leading_timestamp - delta_dt.min()
-    #     leading_val = sta_obs.loc[leading_dt, obstype]
-
-    # # trailing
-    # if gap.trailing_timestamp in sta_obs.index:
-    #     # leading found in obs
-    #     trailing_dt = gap.trailing_timestamp
-    #     trailing_val = sta_obs.loc[gap.trailing_timestamp, obstype]
-    # else:
-    #     # look for last observation before leading timestamp
-    #     delta_dt = (
-    #         sta_obs.index[sta_obs.index > gap.trailing_timestamp]
-    #         - gap.trailing_timestamp
-    #     )
-    #     if delta_dt.empty:
-    #         print(
-    #             f"No cadidate for trailing {obstype} observation found for {gap.name} with gap: {gap.startgap} --> {gap.endgap}"
-    #         )
-    #         return empty_interp
-    #     # TODO: settings restrictions on maximum delta_dt ??
-    #     trailing_dt = gap.trailing_timestamp + delta_dt.min()
-    #     trailing_val = sta_obs.loc[trailing_dt, obstype]
-
     # Make interpolation series
     gaps_series = pd.Series(data=np.nan, index=gap.exp_gap_idx.droplevel("name"))
     gaps_series = pd.concat(
@@ -140,9 +98,22 @@ def interpolate_gap(
     gaps_fill_series = gaps_series[gap.exp_gap_idx.droplevel("name")]
     gaps_fill_series.name = obstype
 
-    # update gapfill info
-    gap.gapfill_info = gaps_series.to_frame()
+    # update gapfill info (for the user)
+    gapfill_df = gaps_series.to_frame()
+    gapfill_df = gapfill_df.reset_index()
+    gapfill_df = gapfill_df.rename(columns={0: obstype,
+                                            'index': 'datetime'})
+    gapfill_df = gapfill_df.set_index('datetime')
 
+    gapfill_df['label'] = 'interpolation'
+    gapfill_df.loc[leading_dt, 'label'] = 'leading observation'
+    gapfill_df.loc[trailing_dt, 'label'] = 'trailing observation'
+    gapfill_df['name'] = gap.name
+
+    gapfill_df = gapfill_df.reset_index()
+    gapfill_df = gapfill_df.set_index(['name', 'datetime'])
+
+    gap.gapfill_info = gapfill_df
 
     return gaps_fill_series
 
@@ -421,12 +392,19 @@ def make_era_bias_correction(leading_model, trailing_model,
 
     # 5. compute the debiased fill value
     # leave this dataframe for debugging
-    gap_model[obstype + "_fill"] = gap_model[obstype] - (
+    gap_model[obstype + "_debiased_value"] = gap_model[obstype] - (
         (gap_model["lead_weight"] * gap_model[obstype + "_bias_lead"])
         + (gap_model["trail_weight"] * gap_model[obstype + "_bias_trail"])
     )
 
+    # 7. format gapmodel
+    gap_model['time'] = (gap_model['hours'].astype(str).str.zfill(2) + ':' +
+                         gap_model['minutes'].astype(str).str.zfill(2) + ':' +
+                         gap_model['seconds'].astype(str).str.zfill(2))
+    gap_model = gap_model.rename(columns={obstype: f'{obstype}_model_value'})
+
+
     # 6. make returen
-    returnseries = gap_model[obstype + "_fill"]
+    returnseries = gap_model[obstype + "_debiased_value"]
     returnseries.name = obstype
     return returnseries, gap_model, error_message

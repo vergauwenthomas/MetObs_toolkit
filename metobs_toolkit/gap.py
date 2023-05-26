@@ -82,7 +82,7 @@ class Gap:
         # gap fill (only for conventional saving)
         self.gapfill_df = pd.DataFrame() #index: datetime, columns: obstypes, values: fill_values
         self.gapfill_technique = None #will become a string
-        self.gapfill_info = None #only for the user
+        self.gapfill_info = None # detailed infomation on the gapfill technique (only for the user)
         self.gapfill_errormessage = {} #keys are obstypes
 
 
@@ -111,7 +111,9 @@ class Gap:
                 print(f'  * Filled values: {self.gapfill_df[obstype]} \n')
                 if obstype in self.gapfill_errormessage:
                     print(f'  * Gapfill message: {self.gapfill_errormessage[obstype]} \n')
-
+                if not self.gapfill_info is None:
+                    print(f'  * Gapfill info: {self.gapfill_info.head()} \n')
+                    print(f'    (Extract the gapfill info dataframe by using the .gapfill_info attribute) \n')
 
         elif self.gapfill_technique == "gap_debiased_era5":
             for obstype in obstypes:
@@ -122,6 +124,10 @@ class Gap:
                 print(f'  * Filled values: {self.gapfill_df[obstype]} \n')
                 if obstype in self.gapfill_errormessage:
                     print(f'  * Gapfill message: {self.gapfill_errormessage[obstype]} \n')
+                if not self.gapfill_info is None:
+                    print(f'  * Gapfill info: {self.gapfill_info.head()} \n')
+                    print(f'    (Extract the gapfill info dataframe by using the .gapfill_info attribute) \n')
+
         else:
             print('technique not implemented in yet in show')
 
@@ -491,7 +497,7 @@ def apply_debias_era5_gapfill(
 
         for gap in gapslist:
             print(f' Era5 gapfill for {gap}')
-            gap.gapfill_technique = "debias gapfill"
+            gap.gapfill_technique = gapfill_settings['label']['model_debias']
 
             # avoid passing full dataset around
             station = dataset.get_station(gap.name)
