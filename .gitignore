@@ -39,8 +39,8 @@ tests/test_data/testdata_testday
 *tempCodeRunnerFile.py
 
 #GUI stuff
-GUI/tmp
-GUI/cache
+GUI/tmp/*
+GUI/cache/*
 
 #Documentation (build online)
 docs/_build
