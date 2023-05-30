@@ -389,7 +389,7 @@ class Dataset:
 
     def make_geo_plot(
         self,
-        obstype="temp",
+        variable="temp",
         title=None,
         timeinstance=None,
         legend=True,
@@ -410,9 +410,9 @@ class Dataset:
 
         Parameters
         ----------
-        obstype : string, optional
-            Fieldname to visualise. This can be an observation or station
-            attribute. The default is 'temp'.
+        variable : string, optional
+            Fieldname to visualise. This can be an observation type or station
+            or 'lcz'. The default is 'temp'.
         title : string, optional
             Title of the figure, if None a default title is generated. The default is None.
         timeinstance : datetime.datetime, optional
@@ -438,7 +438,26 @@ class Dataset:
         if timeinstance is None:
             timeinstance = self.df.index.get_level_values("datetime").min()
 
-        logger.info(f"Make {obstype}-geo plot at {timeinstance}")
+        logger.info(f"Make {variable}-geo plot at {timeinstance}")
+
+
+        # check coordinates if available
+        if self.metadf['lat'].isnull().any():
+            _sta = self.metadf[self.metadf['lat'].isnull()]['lat']
+            print(f'Error: Stations without coordinates detected: {_sta}')
+            return None
+        if self.metadf['lon'].isnull().any():
+            _sta = self.metadf[self.metadf['lon'].isnull()]['lon']
+            print(f'Error: Stations without coordinates detected: {_sta}')
+            return None
+
+        # Check if LCZ if available
+        if variable == 'lcz':
+            if self.metadf['lcz'].isnull().any():
+                _sta = self.metadf[self.metadf['lcz'].isnull()]['lcz']
+                print(f'Error: Stations without lcz detected: {_sta}')
+                return None
+
 
         # subset to timeinstance
         plotdf = xs_save(self.df, timeinstance, level="datetime")
@@ -450,7 +469,7 @@ class Dataset:
 
         axis = geospatial_plot(
             plotdf=plotdf,
-            variable=obstype,
+            variable=variable,
             timeinstance=timeinstance,
             title=title,
             legend=legend,

@@ -172,7 +172,11 @@ class Analysis():
                                     starttime=startdt,
                                     endtime=enddt)
 
-
+        # check if lcz is available if required
+        if colorby == 'lcz':
+            if self.metadf['lcz'].isnull().any():
+                print("ERROR: Not all stations have a LCZ. Update the LCZ's first or use colorby='name'. ")
+                return None
 
         # Get hours for all records
         obsdf = obsdf.reset_index()
@@ -308,6 +312,11 @@ class Analysis():
                                     starttime=startdt,
                                     endtime=enddt)
 
+        # check if lcz is available if required
+        if colorby == 'lcz':
+            if self.metadf['lcz'].isnull().any():
+                print("ERROR: Not all stations have a LCZ. Update the LCZ's first or use colorby='name'. ")
+                return None
 
         obsdf = obsdf[obstype].reset_index()
 
