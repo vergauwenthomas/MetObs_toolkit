@@ -139,6 +139,7 @@ def geospatial_plot(
     static_fields,
     display_name_mapper,
     world_boundaries_map,
+    data_template
 ):
     # Load default plot settings
     default_settings = plotsettings["spatial_geo"]
@@ -150,7 +151,6 @@ def geospatial_plot(
     ignored_stations = plotdf[plotdf["geometry"].isnull()]
     plotdf = plotdf[~plotdf["geometry"].isnull()]
     if plotdf.empty:
-        # logger.error(f'No coordinate data found, geoplot can not be made. Plotdf: {plotdf}')
         print(f"No coordinate data found, geoplot can not be made. Plotdf: {plotdf}")
         return
 
@@ -160,10 +160,18 @@ def geospatial_plot(
             f"No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!"
         )
 
+    # make legend/colorbar title
+    try:
+        templ_map = map_obstype(variable, data_template)
+        legend_title = f'{templ_map["orig_name"]} ({templ_map["units"]})'
+    except KeyError:
+        legend_title = variable
+
     # make color scheme for field
     if variable in categorical_fields:
         is_categorical = True
         if variable == "lcz":
+            legend_title = 'LCZ'
             # use all available LCZ categories
             use_quantiles = False
         else:
@@ -197,6 +205,7 @@ def geospatial_plot(
         figsize=default_settings["figsize"],
         extent=use_extent,
         title=title,
+        legend_title=legend_title,
         vmin=vmin,
         vmax=vmax,
     )
@@ -215,10 +224,11 @@ def _spatial_plot(
     figsize,
     extent,
     title,
+    legend_title,
     vmin,
     vmax,
 ):
-    # TODO: docstring + beter positionion of the lengends + fix size of pies
+    # TODO: docstring + beter positionion of the lengends
 
     gdf = gpd.GeoDataFrame(gdf)
     fig, ax = plt.subplots(1, 1, figsize=figsize)
@@ -234,12 +244,14 @@ def _spatial_plot(
             vmax = gdf[variable].max()
 
     if is_categorical:
-        legend_kwds = {"loc": "best"}
+        # categorical legend
+        legend_kwds = {"loc": "best", 'title': legend_title}
         vmin = None
         vmax = None
         cax = None
     else:
-        legend_kwds = None
+        # colorbar
+        legend_kwds = {'label': legend_title}
         divider = make_axes_locatable(ax)
 
         cax = divider.append_axes("right", size="5%", pad=0.1)

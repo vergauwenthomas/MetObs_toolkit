@@ -49,11 +49,12 @@ dataset.import_data_from_file()
 
 #%%
 
-
+dataset.get_lcz()
 # sta = dataset.get_station('vlinder01')
 # sta.make_plot()
 
-# dataset.make_plot()
+dataset.make_geo_plot(obstype='temp')
+
 #%%
 
 
