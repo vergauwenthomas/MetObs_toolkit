@@ -53,5 +53,5 @@ dataset.get_station("vlinder05").make_plot()
 # %% Make spatial plot
 dataset.make_geo_plot()
 dataset.make_geo_plot(
-    obstype="wind_direction", timeinstance=datetime(2022, 9, 5, 12, 0)
+    variable="wind_direction", timeinstance=datetime(2022, 9, 5, 12, 0)
 )

@@ -153,7 +153,7 @@ print(outliers_sept_2022_all_vlinders.xs('temp', level='obstype'))
 
 qc_statistics = sept_2022_all_vlinders.get_qc_stats(
     obstype="temp",
-    stationnames=None,  # or 'station_A' or list of stationnames ['station_A', 'station_B']
+    stationname=None,  # or 'station_A'
     make_plot=True,
 )
 
@@ -175,11 +175,11 @@ favorite_station = sept_2022_all_vlinders.get_station(stationname="vlinder10")
 # 'wind_gust','wind_direction','pressure','pressure_at_sea_level'
 
 favorite_station.make_plot(
-    obstype="temp", title=None
+    obstype="temp", colorby='label', title=None
 )  # if title=None, a title will be generated
 
 # You can see the effect of the quality control where the values are replaced when the observation was flagged as outlier.
-# Since Nan values are not shown in the plotting, the effect of the QC can be seen by missing observations and gaps.
+# Since Nan values are not shown in the plotting, use colorby='label' to see the outlier observations.
 
 
 # If you want to compair multiple stations by a timeseries you can use the make_plot function on the dataset:

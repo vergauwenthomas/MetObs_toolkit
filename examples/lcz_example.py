@@ -67,7 +67,7 @@ print(aug_2020_all_vlinders.metadf.head())
 # You can recompute the lcz for all stations by calling the get_lcz function on the metadata.
 
 # To make a geospatial map of the LCZ of all stations:
-aug_2020_all_vlinders.make_geo_plot(obstype="lcz")
+aug_2020_all_vlinders.make_geo_plot(variable="lcz")
 
 # =============================================================================
 # Other physiography
