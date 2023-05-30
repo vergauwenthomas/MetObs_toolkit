@@ -1365,7 +1365,7 @@ class Dataset:
 
 
 
-    def get_qc_stats(self, obstype="temp", stationnames=None, make_plot=True):
+    def get_qc_stats(self, obstype="temp", stationname=None, make_plot=True):
         """
         Compute frequency statistics on the qc labels for an observationtype.
         The output is a dataframe containing the frequency statistics presented
@@ -1378,11 +1378,11 @@ class Dataset:
 
         Parameters
 
-        obstype : Str, optional
+        obstype : str, optional
             Observation type to analyse the QC labels on. The default is
             'temp'.
-        stationnames : List, Str, optional
-            Stationname(s) to subset the quality labels on. If None, all
+        stationname : str, optional
+            Stationname to subset the quality labels on. If None, all
             stations are used. The default is None.
         make_plot : Bool, optional
             If True, a plot with piecharts is generated. The default is True.
@@ -1401,6 +1401,13 @@ class Dataset:
         # subset to relevant columnt
         comb_df = xs_save(comb_df, obstype, level='obstype')[['label']]
 
+        # subset to stationnames
+        if not stationname is None:
+            assert stationname in comb_df.index.get_level_values('name'), f' stationnames: {stationname} is not a list.'
+
+            comb_df = comb_df.loc[stationname]
+
+
 
         # compute freq statistics
         final_freq, outl_freq, specific_freq = get_freq_statistics(
@@ -1414,6 +1421,13 @@ class Dataset:
         if any([stat is None for stat in [final_freq, outl_freq, specific_freq]]):
             return None
 
+        # make title
+        if stationname is None:
+            title='Label frequency statistics on all stations.'
+        else:
+            title=f'Label frequency statistics for {stationname}'
+
+
         if make_plot:
             # make pie plots
             qc_stats_pie(
@@ -1422,6 +1436,7 @@ class Dataset:
                 specific_stats=specific_freq,
                 plot_settings=self.settings.app["plot_settings"],
                 qc_check_info=self.settings.qc["qc_checks_info"],
+                title=title,
             )
 
         return (final_freq, outl_freq, specific_freq)

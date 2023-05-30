@@ -45,25 +45,27 @@ dataset.update_settings(input_data_file = metobs_toolkit.demo_datafile,
 
 dataset.import_data_from_file()
 
+dataset.coarsen_time_resolution()
+
+
+dataset.apply_quality_control()
+
+#%%
+qc_statistics = dataset.get_qc_stats(
+    obstype="temp",
+    stationname="vlinder01",  # or 'station_A' or list of stationnames ['station_A', 'station_B']
+    make_plot=True,
+)
+
+
+qc_statistics = dataset.get_qc_stats(
+    obstype="temp",
+    stationname="vlinder05",  # or 'station_A' or list of stationnames ['station_A', 'station_B']
+    make_plot=True,
+)
+
 
 
 #%%
+# dataset.make_plot(stationnames=['vlinder01', 'vlinder05'], colorby='label')
 
-# dataset.get_lcz()
-# sta = dataset.get_station('vlinder01')
-# sta.make_plot()
-
-# dataset.make_geo_plot(variable='lcz')
-
-#%%
-
-
-analy = dataset.get_analysis()
-analy.get_aggregated_diurnal_statistics(obstype='temp',
-                                        stations=None,
-                                        startdt=None,
-                                        enddt=None,
-                                        plot=True,
-                                        # colorby='lcz',
-                                        errorbands=False,
-                                        verbose=True)

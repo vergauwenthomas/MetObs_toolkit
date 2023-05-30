@@ -592,6 +592,8 @@ def _make_pie_from_freqs(
         )
         stats = pd.concat([stats, no_oc_df])
 
+    # Remove zero occurence labels (they clutter up the lables in the pies)
+    stats = stats[stats['freq'] != 0]
     # Make pie
     patches, text = ax.pie(
         stats["freq"],
@@ -663,9 +665,8 @@ def _all_possible_labels_colormapper(settings):
     return mapper
 
 
-def qc_stats_pie(
-    final_stats, outlier_stats, specific_stats, plot_settings, qc_check_info
-):
+def qc_stats_pie(final_stats, outlier_stats, specific_stats, plot_settings,
+                 qc_check_info, title):
     # restore rcParams
     plt.rcParams = plt.rcParamsDefault
 
@@ -772,6 +773,8 @@ def qc_stats_pie(
         axlist.append(ax)
         i += 1
 
+
+
     # Make pie plots
     specific_df.plot.pie(
         subplots=True,
@@ -782,6 +785,7 @@ def qc_stats_pie(
         radius=plot_settings["pie_charts"]["radius_small"],
         textprops={"fontsize": textsize_small_pies},
         ax=axlist,
+        colors=[spec_col_mapper[col] for col in specific_df.index]
     )
 
     # Specific styling setings per pie
@@ -790,6 +794,9 @@ def qc_stats_pie(
         ax.yaxis.set_visible(False)  # ignore the default pandas title
 
     fig.subplots_adjust(hspace=0.7)
+    fig.suptitle(title,
+                 # fontsize=30,
+                 )
     plt.show()
 
     return
