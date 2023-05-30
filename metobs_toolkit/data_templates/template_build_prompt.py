@@ -57,6 +57,22 @@ def col_option_input(columns):
 
 
 
+def yes_no_ques(text):
+    valid_input = False
+
+    while valid_input == False:
+        prompt = input(f' {text}. (y/n) : ')
+
+        if (prompt == 'y') | (prompt == 'Y'):
+            valid_input = True
+            return True
+        elif (prompt == 'n') | (prompt == 'N'):
+            valid_input=True
+            return False
+        else:
+            print(f' {prompt} is not y or n, give a suitable answer.')
+
+
 
 
 
@@ -148,9 +164,10 @@ def build_template_prompt():
 
         for col in columnnames:
 
-            contin = input(f'  add column {col} to the template? (y/n) ')
-            if contin != 'y':
+            contin = yes_no_ques(f'add column {col} to the template?')
+            if contin is False:
                 continue
+
 
             print(f'\n {col} : ')
 
@@ -186,10 +203,11 @@ def build_template_prompt():
         print('Does these columns represent stations: ')
         for col in columnnames:
             print(f'  {col}')
-        cont = input('(y/n) ')
-        if cont!='y':
-
+        cont = yes_no_ques('')
+        if cont is False:
             print('\n In a Wide-format, REMOVE THE COLUMNS that do not represent differnt satations, before proceding! \n')
+        else:
+            stationnames = columnnames
 
         print('What observation type does you data represent : ')
         obstype_options.remove(obstype_desc['name'])
@@ -224,8 +242,8 @@ def build_template_prompt():
 
     print('\n \n *******      Meta Data File   ***********')
     metatemplate_dict = {}
-    meta_avail = input('The metadata contains metadata for each station, where each column represent a metadata type. \n Do you have a metadatafile? (y/n) ')
-    if meta_avail == 'y':
+    meta_avail = yes_no_ques('The metadata contains metadata for each station, where each column represent a metadata type. \n Do you have a metadatafile?')
+    if meta_avail:
         metadatafilepath = input('Give the full path to your metadata file : ')
         print(' ... opening the metadata file ...')
         metadata = _read_csv_file(metadatafilepath)
@@ -246,14 +264,14 @@ def build_template_prompt():
         meta_options=list(meta_desc.values())
         for col in metacolumnnames:
 
-            contin = input(f'  add {col} to the template? (y/n) ')
-            if contin != 'y':
+            contin = yes_no_ques(f'add {col} to the template?')
+            if contin is False:
                 continue
 
             print(f'\n {col} : ')
-            desc_return =col_option_input(meta_options)
+            desc_return = col_option_input(meta_options)
             if desc_return is None:
-                continue #when enter x
+                continue  #when enter x
             metatype = inv_meta_desc[desc_return]
 
             # check if the name column is equalt in the data template to avoid creating
@@ -263,8 +281,8 @@ def build_template_prompt():
                     if not col == template_dict['name']['orig_name']:
                         print(f'WARNING, the "name" column in the datafile is different than in the metadatafile! \
     Rename in your metadatafile : {col} ---> {template_dict["name"]["orig_name"]}')
-                        cont = input ('Renaming done? (y/n) ')
-                        if cont != 'y':
+                        cont = yes_no_ques('Renaming done?')
+                        if cont is False:
                             sys.exit(f'Please rename {col} ---> {template_dict["name"]["orig_name"]} in your metadata file.')
 
             metatemplate_dict[metatype] = {'orig_name': col}
@@ -364,7 +382,12 @@ def build_template_prompt():
             print(f'Error! There is no metadata column containing the station names in the template! Add this column to the metadatafile of the template.')
             sys.exit('Template invalid, see last message. ')
 
-
+        print (' *  ... checking metadata name duplicates... ')
+        stanames_metadata = metadata[metatemplate_dict['name']['orig_name']]
+        if stanames_metadata.duplicated().any():
+            dubs = stanames_metadata[stanames_metadata.duplicated()]
+            print(f'Error! There are duplicated names present in the metadatafile {dubs}. Remove the duplicates manually.')
+            sys.exit('Template invalid, see last message. ')
 
         # test if all stationnames are present in the metadata
         print (' *  ... checking compatible station names ... ')
@@ -378,13 +401,23 @@ def build_template_prompt():
 
 
         if ((format_option == 2)):
-            stanames_data = data[template_dict['name']['orig_name']].unique().to_list()
-            stanames_metadata = metadata[metatemplate_dict['name']['orig_name']].unique().to_list()
+            # 1. no duplicates in stationnames
+            if not (len(stationnames) == len(set(stationnames))):
+                print(f'Error! Duplicated station names found in the columns of the dataset: {stationnames}')
+                sys.exit('Template invalid, see last message. ')
 
-            unmapped = [sta for sta in stanames_data if not sta in stanames_metadata]
-            print(f'Warning! The following stations are found in the data, but not in the metadata: {unmapped}')
 
+            # 2. check if all stationname in the data are defined in the metadata,
+            # If there are no mapped stationnames give error, else give warning
+            stanames_metadata = metadata[metatemplate_dict['name']['orig_name']].to_list()
+            unmapped = [staname for staname in stationnames if not staname in stanames_metadata]
 
+            if (len(unmapped) == len(stationnames)):
+                print(f'Error! None of the stationnames in the dataset ({stationnames}), are found in the metadataset ({stanames_metadata}).')
+                sys.exit('Template invalid, see last message. ')
+
+            if (len(unmapped) < len(stationnames)):
+                print(f'Warning! The following stations are present in the data but not in the metadata: {unmapped}')
 
 
 
@@ -434,22 +467,23 @@ def build_template_prompt():
     # =============================================================================
     # Tips for the user
     # =============================================================================
-    apply_tips = input("Do you want some help creating your Dataset? (y/n) : ")
-    if apply_tips == 'y':
+
+    apply_tips = yes_no_ques("Do you want some help creating your Dataset?")
+    if apply_tips is True:
 
         print('\n ------ How to use the template ----- ')
 
         print('(Some questions will be asked that are case-specific) \n')
-        tzchange = input(' Are the timestamps in UTC? (y/n) : ')
+        tzchange = yes_no_ques('Are the timestamps in UTC?')
         tz_update = False
-        if tzchange != 'y':
+        if tzchange is False:
             print('Select a timezone: ')
             tzstring = col_option_input(pytz.all_timezones)
             tz_update = True
 
-        output_change = input(' Do you plan to save images to a direcory? (y/n) : ')
+        output_change = yes_no_ques('Do you plan to save images to a direcory?')
         output_update = False
-        if output_change == 'y':
+        if output_change is True:
             output_folder = input(' Give the path of your output direcory : ')
             output_update = True
 
@@ -458,9 +492,10 @@ def build_template_prompt():
             staname = input(' What is the name of your station : ')
             staname_update=True
 
-        gaps_change = input(' Do you want to use the default gaps defenition? (y/n) : ')
+
+        gaps_change = yes_no_ques('Do you want to use the default gaps defenition?')
         gaps_update = False
-        if gaps_change != 'y':
+        if gaps_change is False:
             gapsize = int(input(' What is the minimum number of consecutive missing records to define as a gap? (default=40) : '))
             gaps_update = True
 
