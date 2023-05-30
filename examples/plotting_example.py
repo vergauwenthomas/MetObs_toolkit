@@ -113,7 +113,7 @@ aug_2020_all_vlinders.make_plot(
 # applying the make_geo_plot() on a dataset object:
 
 aug_2020_all_vlinders.make_geo_plot(
-    obstype="temp",
+    variable="temp",
     timeinstance=datetime(2022, 9, 6),  # 2022/09/06 00:00:00
     title=None,
     legend=True,
