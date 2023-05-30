@@ -69,35 +69,53 @@ assert list(missingobs.index.unique()) == [
     "vlinder03",
 ], f"Only missing obs assumed in vl01, vl02, vl03. Tlkit found missing obs for these {list(missingobs.index.unique())}"
 
-#%% Test linear interpolation on missing obs
+# %% Test linear interpolation on missing obs
 dataset.fill_missing_obs_linear()
 
-solution = {'temp': {('vlinder03',
-   pd.Timestamp('2022-10-07 11:00:00+0000', tz='UTC')): 15.333333333333334,
-  ('vlinder03',
-   pd.Timestamp('2022-10-07 12:00:00+0000', tz='UTC')): 16.566666666666666},
- 'temp_final_label': {('vlinder03',
-   pd.Timestamp('2022-10-07 11:00:00+0000', tz='UTC')): 'missing_obs_interpolation',
-  ('vlinder03',
-   pd.Timestamp('2022-10-07 12:00:00+0000', tz='UTC')): 'missing_obs_interpolation'}}
+solution = {
+    "temp": {
+        (
+            "vlinder03",
+            pd.Timestamp("2022-10-07 11:00:00+0000", tz="UTC"),
+        ): 15.333333333333334,
+        (
+            "vlinder03",
+            pd.Timestamp("2022-10-07 12:00:00+0000", tz="UTC"),
+        ): 16.566666666666666,
+    },
+    "temp_final_label": {
+        (
+            "vlinder03",
+            pd.Timestamp("2022-10-07 11:00:00+0000", tz="UTC"),
+        ): "missing_obs_interpolation",
+        (
+            "vlinder03",
+            pd.Timestamp("2022-10-07 12:00:00+0000", tz="UTC"),
+        ): "missing_obs_interpolation",
+    },
+}
 
 
-assert dataset.missing_fill_df.equals(pd.DataFrame(solution)), 'something wrong with the missing obs fill!'
+assert dataset.missing_fill_df.equals(
+    pd.DataFrame(solution)
+), "something wrong with the missing obs fill!"
 
 # %% Test functions on gaps
-from metobs_toolkit.gap import (get_station_gaps,
-                                get_gaps_indx_in_obs_space,
-                                remove_gaps_from_obs)
+from metobs_toolkit.gap import (
+    get_station_gaps,
+    get_gaps_indx_in_obs_space,
+    remove_gaps_from_obs,
+)
 
-get_station_gaps(dataset.gaps,'vlinder01')
+get_station_gaps(dataset.gaps, "vlinder01")
 
 
 dataset.gaps[0].get_info()
 
 remove_gaps_from_obs(dataset.gaps, dataset.df)
 
-get_gaps_indx_in_obs_space(dataset.gaps,
-    dataset.df, dataset.outliersdf, dataset.metadf["dataset_resolution"]
+get_gaps_indx_in_obs_space(
+    dataset.gaps, dataset.df, dataset.outliersdf, dataset.metadf["dataset_resolution"]
 )
 
 
@@ -137,37 +155,47 @@ assert (
 ).sum() < 1e-5, f"Tlk interpolation differs from manual: \n {gapsfilldf}"
 
 
-#%% Test if filled values are present in the combined df
+# %% Test if filled values are present in the combined df
 
 comb_df = dataset.combine_all_to_obsspace()
-comb_df = comb_df.xs('temp', level='obstype')
+comb_df = comb_df.xs("temp", level="obstype")
 
 
 comb_gaps = comb_df.loc[dataset.gapfilldf.index]
 comb_missing = comb_df.loc[dataset.missing_fill_df.index]
 
-assert comb_gaps['value'].eq(dataset.gapfilldf['temp']).all(), 'Something wrong with the filled gaps in the combined df'
-assert comb_missing['value'].eq(dataset.missing_fill_df['temp']).all(), 'Something wrong with the filled missing in the combined df'
+assert (
+    comb_gaps["value"].eq(dataset.gapfilldf["temp"]).all()
+), "Something wrong with the filled gaps in the combined df"
+assert (
+    comb_missing["value"].eq(dataset.missing_fill_df["temp"]).all()
+), "Something wrong with the filled missing in the combined df"
 
-#%% Test the update of outliers to gaps
+# %% Test the update of outliers to gaps
 nobs_orig = len(dataset.missing_obs.idx)
 ngaps_orig = len(dataset.gaps)
 
 dataset2 = copy.deepcopy(dataset)
 dataset2.apply_quality_control()
-dataset2.update_gaps_and_missing_from_outliers(obstype='temp', n_gapsize = 10)
+dataset2.update_gaps_and_missing_from_outliers(obstype="temp", n_gapsize=10)
 
 nobs = len(dataset2.missing_obs.idx)
 ngaps = len(dataset2.gaps)
 
-assert (nobs == 29) & (nobs_orig == 26), 'Something wrong with the update gaps and missing from outliers'
-assert (ngaps == 5) & (ngaps_orig == 2), 'Something wrong with the update gaps and missing from outliers'
+assert (nobs == 29) & (
+    nobs_orig == 26
+), "Something wrong with the update gaps and missing from outliers"
+assert (ngaps == 5) & (
+    ngaps_orig == 2
+), "Something wrong with the update gaps and missing from outliers"
 
 
 # check if the mergedf does not contain them as duplicates
 comb2 = dataset2.combine_all_to_obsspace()
 
-assert comb2[comb2.index.duplicated()].shape[0] == 0, 'duplicated indexes in comb df after the outliers updated to gaps/missing'
+assert (
+    comb2[comb2.index.duplicated()].shape[0] == 0
+), "duplicated indexes in comb df after the outliers updated to gaps/missing"
 
 
 # %%
@@ -197,169 +225,291 @@ era.set_model_from_csv(era_datafile, "ERA5_hourly", obstype)
 
 assert era.df.shape[0] == 5348, "Something wrong with importing era data from csv."
 
-#%%
-output = dataset.fill_gaps_automatic(era, max_interpolate_duration_str='5H')
+# %%
+output = dataset.fill_gaps_automatic(era, max_interpolate_duration_str="5H")
 
-checked = {'temp': {('vlinder01',
-   pd.Timestamp('2022-10-06 17:00:00+0000', tz='UTC')): 15.760000000000002,
-  ('vlinder01', pd.Timestamp('2022-10-06 17:30:00+0000', tz='UTC')): 15.22,
-  ('vlinder01', pd.Timestamp('2022-10-06 18:00:00+0000', tz='UTC')): 14.68,
-  ('vlinder01', pd.Timestamp('2022-10-06 18:30:00+0000', tz='UTC')): 14.14,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 19:00:00+0000', tz='UTC')): 13.600000000000001,
-  ('vlinder01', pd.Timestamp('2022-10-06 19:30:00+0000', tz='UTC')): 13.06,
-  ('vlinder01', pd.Timestamp('2022-10-06 20:00:00+0000', tz='UTC')): 12.52,
-  ('vlinder01', pd.Timestamp('2022-10-06 20:30:00+0000', tz='UTC')): 11.98,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 21:00:00+0000', tz='UTC')): 11.440000000000001,
-  ('vlinder01', pd.Timestamp('2022-10-04 02:00:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 02:30:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 03:00:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 03:30:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 04:00:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 04:30:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 05:00:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 05:30:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 06:00:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 06:30:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 07:00:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 07:30:00+0000', tz='UTC')): np.nan,
-  ('vlinder01', pd.Timestamp('2022-10-04 08:00:00+0000', tz='UTC')): np.nan},
- 'temp_final_label': {('vlinder01',
-   pd.Timestamp('2022-10-06 17:00:00+0000', tz='UTC')): 'gap_interpolation',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 17:30:00+0000', tz='UTC')): 'gap_interpolation',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 18:00:00+0000', tz='UTC')): 'gap_interpolation',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 18:30:00+0000', tz='UTC')): 'gap_interpolation',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 19:00:00+0000', tz='UTC')): 'gap_interpolation',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 19:30:00+0000', tz='UTC')): 'gap_interpolation',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 20:00:00+0000', tz='UTC')): 'gap_interpolation',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 20:30:00+0000', tz='UTC')): 'gap_interpolation',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 21:00:00+0000', tz='UTC')): 'gap_interpolation',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 02:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 02:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 03:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 03:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 04:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 04:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 05:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 05:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 06:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 06:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 07:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 07:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 08:00:00+0000', tz='UTC')): 'gap_debiased_era5'}}
+checked = {
+    "temp": {
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 17:00:00+0000", tz="UTC"),
+        ): 15.760000000000002,
+        ("vlinder01", pd.Timestamp("2022-10-06 17:30:00+0000", tz="UTC")): 15.22,
+        ("vlinder01", pd.Timestamp("2022-10-06 18:00:00+0000", tz="UTC")): 14.68,
+        ("vlinder01", pd.Timestamp("2022-10-06 18:30:00+0000", tz="UTC")): 14.14,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 19:00:00+0000", tz="UTC"),
+        ): 13.600000000000001,
+        ("vlinder01", pd.Timestamp("2022-10-06 19:30:00+0000", tz="UTC")): 13.06,
+        ("vlinder01", pd.Timestamp("2022-10-06 20:00:00+0000", tz="UTC")): 12.52,
+        ("vlinder01", pd.Timestamp("2022-10-06 20:30:00+0000", tz="UTC")): 11.98,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 21:00:00+0000", tz="UTC"),
+        ): 11.440000000000001,
+        ("vlinder01", pd.Timestamp("2022-10-04 02:00:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 02:30:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 03:00:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 03:30:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 04:00:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 04:30:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 05:00:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 05:30:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 06:00:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 06:30:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 07:00:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 07:30:00+0000", tz="UTC")): np.nan,
+        ("vlinder01", pd.Timestamp("2022-10-04 08:00:00+0000", tz="UTC")): np.nan,
+    },
+    "temp_final_label": {
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 17:00:00+0000", tz="UTC"),
+        ): "gap_interpolation",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 17:30:00+0000", tz="UTC"),
+        ): "gap_interpolation",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 18:00:00+0000", tz="UTC"),
+        ): "gap_interpolation",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 18:30:00+0000", tz="UTC"),
+        ): "gap_interpolation",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 19:00:00+0000", tz="UTC"),
+        ): "gap_interpolation",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 19:30:00+0000", tz="UTC"),
+        ): "gap_interpolation",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 20:00:00+0000", tz="UTC"),
+        ): "gap_interpolation",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 20:30:00+0000", tz="UTC"),
+        ): "gap_interpolation",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 21:00:00+0000", tz="UTC"),
+        ): "gap_interpolation",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 02:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 02:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 03:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 03:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 04:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 04:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 05:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 05:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 06:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 06:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 07:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 07:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 08:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+    },
+}
 
 checkeddf = pd.DataFrame(checked)
 
 
-assert checkeddf.equals(output), 'something wrong with the automatic gapfill'
+assert checkeddf.equals(output), "something wrong with the automatic gapfill"
 
 
-#%%
+# %%
 # # Fill gaps using era5 data:
 dataset.fill_gaps_era5(modeldata=era, method="debias", obstype="temp", overwrite=True)
 
 
-
 # validate
 
-checked = {'temp': {('vlinder01', pd.Timestamp('2022-10-04 02:00:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 02:30:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 03:00:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 03:30:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 04:00:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 04:30:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 05:00:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 05:30:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 06:00:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 06:30:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 07:00:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 07:30:00+0000', tz='UTC')): -1.0,
-  ('vlinder01', pd.Timestamp('2022-10-04 08:00:00+0000', tz='UTC')): -1.0,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 17:00:00+0000', tz='UTC')): 14.719558715820341,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 17:30:00+0000', tz='UTC')): 14.105651664733898,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 18:00:00+0000', tz='UTC')): 13.523644638061523,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 18:30:00+0000', tz='UTC')): 13.272471523284917,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 19:00:00+0000', tz='UTC')): 12.417074584960952,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 19:30:00+0000', tz='UTC')): 12.083017063140879,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 20:00:00+0000', tz='UTC')): 12.194173049926757,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 20:30:00+0000', tz='UTC')): 11.708401107788086,
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 21:00:00+0000', tz='UTC')): 11.562461853027344},
- 'temp_final_label': {('vlinder01',
-   pd.Timestamp('2022-10-04 02:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 02:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 03:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 03:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 04:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 04:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 05:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 05:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 06:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 06:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 07:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 07:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-04 08:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 17:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 17:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 18:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 18:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 19:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 19:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 20:00:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 20:30:00+0000', tz='UTC')): 'gap_debiased_era5',
-  ('vlinder01',
-   pd.Timestamp('2022-10-06 21:00:00+0000', tz='UTC')): 'gap_debiased_era5'}}
-
+checked = {
+    "temp": {
+        ("vlinder01", pd.Timestamp("2022-10-04 02:00:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 02:30:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 03:00:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 03:30:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 04:00:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 04:30:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 05:00:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 05:30:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 06:00:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 06:30:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 07:00:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 07:30:00+0000", tz="UTC")): -1.0,
+        ("vlinder01", pd.Timestamp("2022-10-04 08:00:00+0000", tz="UTC")): -1.0,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 17:00:00+0000", tz="UTC"),
+        ): 14.719558715820341,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 17:30:00+0000", tz="UTC"),
+        ): 14.105651664733898,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 18:00:00+0000", tz="UTC"),
+        ): 13.523644638061523,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 18:30:00+0000", tz="UTC"),
+        ): 13.272471523284917,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 19:00:00+0000", tz="UTC"),
+        ): 12.417074584960952,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 19:30:00+0000", tz="UTC"),
+        ): 12.083017063140879,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 20:00:00+0000", tz="UTC"),
+        ): 12.194173049926757,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 20:30:00+0000", tz="UTC"),
+        ): 11.708401107788086,
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 21:00:00+0000", tz="UTC"),
+        ): 11.562461853027344,
+    },
+    "temp_final_label": {
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 02:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 02:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 03:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 03:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 04:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 04:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 05:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 05:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 06:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 06:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 07:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 07:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-04 08:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 17:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 17:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 18:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 18:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 19:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 19:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 20:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 20:30:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+        (
+            "vlinder01",
+            pd.Timestamp("2022-10-06 21:00:00+0000", tz="UTC"),
+        ): "gap_debiased_era5",
+    },
+}
 
 
 checkeddf = pd.DataFrame(checked)

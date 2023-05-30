@@ -40,7 +40,6 @@ def read_csv_template(file, data_long_format=True, obstype=None):
         # Drop variables that are not present in templ
         templ = templ[templ["template column name"].notna()]
 
-
     # create dictionary from templframe
     templ = templ.set_index("template column name")
 

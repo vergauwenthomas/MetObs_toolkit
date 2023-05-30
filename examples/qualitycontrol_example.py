@@ -71,10 +71,11 @@ qc_settings = sept_2022_all_vlinders.settings.qc[
 print(qc_settings)
 
 # The settings of the QC checks can be updated using this function:
-sept_2022_all_vlinders.update_qc_settings(obstype='temp',
-                                          gross_value_max_value=26.3,
-                                           persis_time_win_to_check='30T' #30 minutes
-                                          )
+sept_2022_all_vlinders.update_qc_settings(
+    obstype="temp",
+    gross_value_max_value=26.3,
+    persis_time_win_to_check="30T",  # 30 minutes
+)
 
 
 # Quality control checks are always applied on the full dataset Using the apply_quality_control method on the dataset.
@@ -132,7 +133,7 @@ outliers_sept_2022_all_vlinders = sept_2022_all_vlinders.combine_all_to_obsspace
 print(outliers_sept_2022_all_vlinders.head())
 
 # or select a specific observation type using pandas
-print(outliers_sept_2022_all_vlinders.xs('temp', level='obstype'))
+print(outliers_sept_2022_all_vlinders.xs("temp", level="obstype"))
 
 # (When writing a dataset to file, there is an attribute 'add_final_labels'. When
 #  True, the final labels are computed and added to the file.)
