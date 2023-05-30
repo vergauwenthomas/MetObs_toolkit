@@ -461,6 +461,7 @@ class Dataset:
             static_fields=self.settings.app["static_fields"],
             display_name_mapper=self.settings.app["display_name_mapper"],
             world_boundaries_map=self.settings.app["world_boundary_map"],
+            data_template=self.data_template
         )
 
         return axis
