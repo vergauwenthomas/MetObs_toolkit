@@ -237,8 +237,7 @@ class Analysis():
 
         return hourly_avg
 
-    def get_diurnal_statistics_with_reference(self, obstype='temp',
-                                              refstation=None,
+    def get_diurnal_statistics_with_reference(self, refstation, obstype='temp',
                                               tollerance='30T', stations=None,
                                               startdt=None, enddt=None,
                                               plot=True, title=None,
@@ -256,11 +255,10 @@ class Analysis():
 
         Parameters
         ----------
+        refstation : str,
+            Name of the station to use as a reference.
         obstype : str, optional
             Element of the metobs_toolkit.observation_types The default is 'temp'.
-        refstation : str, optional
-            Name of the station to use as a reference. If None, or not in the observations, no reference is
-            used the 'get_diurnal_statistics()' is called with the same arguments. The default is None.
         tollerance : Timedelta or str, optional
             The tollerance string or object representing the maximum translation in time to find a reference
             observation for each observation. Ex: '5T' is 5 minuts, '1H', is one hour. The default is '30T'.
@@ -296,33 +294,14 @@ class Analysis():
 
 
         obsdf = self.df
-        # Check if refstation is a valid station
-        if not refstation in obsdf.index.get_level_values('name').unique():
-            print(f'WARNING: refstation {refstation} is not found in the dataframe. Continue diurnal statistics without reference.')
-            return_val = self.get_diurnal_statistics(obstype=obstype,
-                                       stations=stations,
-                                       startdt=startdt,
-                                       enddt=enddt,
-                                       colorby=colorby,
-                                       plot=plot,
-                                       title=None, #to indicate something went wrong
-                                       y_label=y_label,
-                                       legend=legend,
-                                       errorbands=errorbands,
-                                       verbose=verbose,
-                                       )
-            return return_val
-
 
         # Filter stations
         if not stations is None:
             if isinstance(stations, str):
                 stations = [stations]
-
-            if not refstation is None:
                 stations.append(refstation)
-
             obsdf = subset_stations(obsdf, stations)
+
 
         # Filter datetimes
         obsdf = datetime_subsetting(df=obsdf,
