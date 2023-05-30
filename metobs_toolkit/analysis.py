@@ -237,8 +237,14 @@ class Analysis():
 
         return hourly_avg
 
-    def get_diurnal_statistics_with_reference(self, obstype='temp', refstation=None, tollerance='30T', stations=None,
-                               startdt=None, enddt=None, plot=True, colorby='name', errorbands=False, verbose=False):
+    def get_diurnal_statistics_with_reference(self, obstype='temp',
+                                              refstation=None,
+                                              tollerance='30T', stations=None,
+                                              startdt=None, enddt=None,
+                                              plot=True, title=None,
+                                              y_label=None, legend=True,
+                                              colorby='name', errorbands=False,
+                                              verbose=False):
         """
         Create an average diurnal cycle for the observation differences of a reference station.
 
@@ -266,10 +272,16 @@ class Analysis():
             The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
         plot : bool, optional
             If True, a diurnal plot is made. The default is True.
+        title : string, optional
+             Title of the figure, if None a default title is generated. The default is None.
+        y_label : string, optional
+             y-axes label of the figure, if None a default label is generated. The default is None.
+        legend : bool, optional
+             I True, a legend is added to the plot. The default is True.
         colorby : 'name' or 'lcz', optional
             If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
         errorbands : bool, optional
-            If True, the std is representd in the plot by colored bands. The default is False.
+            If True, the std is representd in the plot by colored bands. The upper bound represents +1 x std, the lower bound -1 x std. The default is False.
         verbose : True, optional
             If True, the dataframse with aggregation information are returned . The default is False.
 
@@ -293,6 +305,9 @@ class Analysis():
                                        enddt=enddt,
                                        colorby=colorby,
                                        plot=plot,
+                                       title=None, #to indicate something went wrong
+                                       y_label=y_label,
+                                       legend=legend,
                                        errorbands=errorbands,
                                        verbose=verbose,
                                        )
@@ -363,11 +378,10 @@ class Analysis():
                 lcz_dict = None
 
             # generate title
-            startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
-            enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
-
-
-            title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdtstr} - {enddtstr}'
+            if title is None:
+                startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
+                enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
+                title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdtstr} - {enddtstr}'
 
 
             # generate errorbands df
@@ -390,6 +404,8 @@ class Analysis():
                          lcz_dict = lcz_dict,
                          data_template=self.data_template,
                          obstype = obstype,
+                         y_label = y_label,
+                         legend=legend,
                          show_zero_horizontal = True)
 
 
@@ -399,8 +415,12 @@ class Analysis():
         return hourly_avg
 
 
-    def get_aggregated_diurnal_statistics(self, obstype='temp', stations=None, aggregation=['lcz', 'datetime'], aggregation_method='mean',
-                               startdt=None, enddt=None, plot=True, errorbands=False, verbose=False):
+    def get_aggregated_diurnal_statistics(self, obstype='temp', stations=None,
+                                          aggregation=['lcz', 'datetime'],
+                                          aggregation_method='mean',
+                                          startdt=None, enddt=None, plot=True,
+                                          title=None, y_label=None, legend=True,
+                                          errorbands=False, verbose=False):
 
         """
         Create an average diurnal cycle for an aggregated categorie. A commen
@@ -426,6 +446,12 @@ class Analysis():
             The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
         plot : bool, optional
             If True, a diurnal plot is made. The default is True.
+        title : string, optional
+             Title of the figure, if None a default title is generated. The default is None.
+        y_label : string, optional
+             y-axes label of the figure, if None a default label is generated. The default is None.
+        legend : bool, optional
+             I True, a legend is added to the plot. The default is True.
         errorbands : bool, optional
             If True, the std is representd in the plot by colored bands. The default is False.
         verbose : True, optional
@@ -487,10 +513,10 @@ class Analysis():
         if plot:
 
             # generate title
-            startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
-            enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
-
-            title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
+            if title is None:
+                startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
+                enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
+                title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
 
 
 
@@ -513,7 +539,9 @@ class Analysis():
                          colorby = 'name',
                          lcz_dict = None,
                          data_template=self.data_template,
-                         obstype=obstype)
+                         obstype=obstype,
+                         y_label = y_label,
+                         legend=legend)
 
 
         if verbose:

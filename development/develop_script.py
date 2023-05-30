@@ -58,4 +58,4 @@ dataset.import_data_from_file()
 
 
 analy = dataset.get_analysis()
-analy.get_diurnal_statistics()
+analy.get_aggregated_diurnal_statistics( title='hhoi', legend=False)
