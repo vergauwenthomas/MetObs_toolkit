@@ -368,8 +368,10 @@ class Dataset:
                 )
         # create y label
         if y_label is None:
-
-            y_label = f'{self.data_template[obstype]["orig_name"]} ({self.data_template[obstype]["units"]}) \n {self.data_template[obstype]["description"]}'
+            try:
+                y_label = f'{self.data_template[obstype]["orig_name"]} ({self.data_template[obstype]["units"]}) \n {self.data_template[obstype]["description"]}'
+            except KeyError:
+                y_label = obstype
 
         # Make plot
         ax = timeseries_plot(
