@@ -269,6 +269,7 @@ class Dataset:
         starttime=None,
         endtime=None,
         title=None,
+        y_label=None,
         legend=True,
         show_outliers=True,
         show_filled = True,
@@ -296,6 +297,8 @@ class Dataset:
              Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
         title : string, optional
              Title of the figure, if None a default title is generated. The default is None.
+        y_label : string, optional
+             y-axes label of the figure, if None a default label is generated. The default is None.
         legend : bool, optional
              I True, a legend is added to the plot. The default is True.
         show_outliers : bool, optional
@@ -347,29 +350,32 @@ class Dataset:
             if stationnames is None:
                 if self._istype == "Dataset":
                     title = (
-                        self.settings.app["display_name_mapper"][obstype]
+                        self.data_template[obstype]["orig_name"]
                         + " for all stations. "
                     )
                 elif self._istype == "Station":
                     title = (
-                        self.settings.app["display_name_mapper"][obstype]
+                        self.data_template[obstype]["orig_name"]
                         + " of "
                         + self.name
                     )
 
             else:
                 title = (
-                    self.settings.app["display_name_mapper"][obstype]
+                    self.data_template[obstype]["orig_name"]
                     + " for stations: "
                     + str(stationnames)
                 )
+        # create y label
+        if y_label is None:
 
+            y_label = f'{self.data_template[obstype]["orig_name"]} ({self.data_template[obstype]["units"]}) \n {self.data_template[obstype]["description"]}'
 
         # Make plot
         ax = timeseries_plot(
             mergedf=mergedf,
             title=title,
-            ylabel=self.data_template[obstype]["orig_name"],
+            ylabel=y_label,
             colorby=colorby,
             show_legend=legend,
             show_outliers=show_outliers,
