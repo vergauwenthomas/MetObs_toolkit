@@ -471,8 +471,8 @@ def timeseries_plot(
     return ax
 
 def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
-                 colorby, lcz_dict, data_template, obstype,
-                 show_zero_horizontal=False):
+                 colorby, lcz_dict, data_template, obstype, y_label,
+                 legend, show_zero_horizontal=False):
     # init figure
     fig, ax = plt.subplots(figsize=plot_settings["figsize"])
 
@@ -500,14 +500,14 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
             custom_handles.append(
                 Line2D([0], [0], color=colordict[lcz_cat], label=lcz_cat, lw=4)
             )
-
-        box = ax.get_position()
-        ax.set_position([box.x0, box.y0 + box.height * 0.2,
-             box.width, box.height * 0.95])
-        ax.legend(handles=custom_handles, loc='upper center',
-            bbox_to_anchor=(0.5, -0.1),
-            fancybox=True, shadow=True,
-            ncol=plot_settings["legend_n_columns"])
+        if legend:
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0 + box.height * 0.2,
+                 box.width, box.height * 0.95])
+            ax.legend(handles=custom_handles, loc='upper center',
+                bbox_to_anchor=(0.5, -0.1),
+                fancybox=True, shadow=True,
+                ncol=plot_settings["legend_n_columns"])
 
 
 
@@ -520,13 +520,14 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
             cmap = plot_settings['cmap_continious']
 
         diurnaldf.plot(ax=ax, title=title, legend=False, cmap=cmap)
-        box = ax.get_position()
-        ax.set_position([box.x0, box.y0 + box.height * 0.2,
-                 box.width, box.height * 0.95])
-        ax.legend(diurnaldf.columns.values.tolist(), loc='upper center',
-                bbox_to_anchor=(0.5, -0.1),
-                fancybox=True, shadow=True,
-                ncol=plot_settings["legend_n_columns"])
+        if legend:
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0 + box.height * 0.2,
+                     box.width, box.height * 0.88])
+            ax.legend(diurnaldf.columns.values.tolist(), loc='upper center',
+                    bbox_to_anchor=(0.5, -0.2),
+                    fancybox=True, shadow=True,
+                    ncol=plot_settings["legend_n_columns"])
 
 
 
@@ -546,9 +547,15 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
         ax.axhline(y=0., color='black', linestyle='--')
     # Styling attributes
 
+    # y-label
+    if y_label is None:
+        templ_map = map_obstype(obstype, data_template)
+        try:
+            y_label = f'{templ_map["orig_name"]} ({templ_map["units"]}) \n {templ_map["description"]}'
+        except KeyError:
+            y_label = f'{templ_map["orig_name"]}'
 
-
-    ax.set_ylabel(map_obstype(obstype, data_template)['orig_name'])
+    ax.set_ylabel(y_label)
     ax.xaxis.set_major_formatter('{x:.0f} h')
     ax.set_xlabel(f'Hours (timezone: {tzstr})')
 

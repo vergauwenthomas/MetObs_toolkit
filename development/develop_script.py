@@ -50,5 +50,12 @@ dataset.import_data_from_file()
 #%%
 
 
-sta = dataset.get_station('vlinder01')
-sta.make_plot()
+# sta = dataset.get_station('vlinder01')
+# sta.make_plot()
+
+# dataset.make_plot()
+#%%
+
+
+analy = dataset.get_analysis()
+analy.get_diurnal_statistics()

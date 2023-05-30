@@ -116,8 +116,10 @@ class Analysis():
     #   Analyse method
     # =============================================================================
     def get_diurnal_statistics(self, obstype='temp', stations=None,
-                               startdt=None, enddt=None, plot=True, colorby='name',
-                               errorbands=False, verbose=False):
+                               startdt=None, enddt=None, plot=True,
+                               title=None, y_label=None, legend=True,
+                               colorby='name', errorbands=False,
+                               verbose=False):
         """
         Create an average diurnal cycle for the observations.
 
@@ -136,6 +138,12 @@ class Analysis():
             The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
         plot : bool, optional
             If True, a diurnal plot is made. The default is True.
+        title : string, optional
+             Title of the figure, if None a default title is generated. The default is None.
+        y_label : string, optional
+             y-axes label of the figure, if None a default label is generated. The default is None.
+        legend : bool, optional
+             I True, a legend is added to the plot. The default is True.
         colorby : 'name' or 'lcz', optional
             If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
         errorbands : bool, optional
@@ -193,11 +201,11 @@ class Analysis():
                 lcz_dict = None
 
             # generate title
-            startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
-            enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
+            if title is None:
+                startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
+                enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
 
-            title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
-
+                title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
 
 
             # generate errorbands df
@@ -219,7 +227,9 @@ class Analysis():
                          colorby = colorby,
                          lcz_dict = lcz_dict,
                          data_template=self.data_template,
-                         obstype=obstype)
+                         obstype=obstype,
+                         y_label = y_label,
+                         legend=legend)
 
 
         if verbose:
@@ -277,7 +287,7 @@ class Analysis():
         # Check if refstation is a valid station
         if not refstation in obsdf.index.get_level_values('name').unique():
             print(f'WARNING: refstation {refstation} is not found in the dataframe. Continue diurnal statistics without reference.')
-            self.get_diurnal_statistic(obstype=obstype,
+            return_val = self.get_diurnal_statistics(obstype=obstype,
                                        stations=stations,
                                        startdt=startdt,
                                        enddt=enddt,
@@ -285,7 +295,9 @@ class Analysis():
                                        plot=plot,
                                        errorbands=errorbands,
                                        verbose=verbose,
-                                       data_template=self.data_template)
+                                       )
+            return return_val
+
 
         # Filter stations
         if not stations is None:
