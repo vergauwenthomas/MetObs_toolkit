@@ -1732,6 +1732,8 @@ class Dataset:
         freq_estimation_method=None,
         freq_estimation_simplify=None,
         freq_estimation_simplify_error=None,
+        kwargs_data_read = {},
+        kwargs_metadata_read = {},
     ):
 
         """
@@ -1785,6 +1787,12 @@ class Dataset:
             stored in the
             Dataset.settings.time_settings['freq_estimation_simplify_error'] is
             used. The default is None.
+        kwargs_data_read : dict, optional
+            Keyword arguments collected in a dictionary to pass to the
+            pandas.read_csv() function on the data file. The default is {}.
+        kwargs_metadata_read : dict, optional
+            Keyword arguments collected in a dictionary to pass to the
+            pandas.read_csv() function on the metadata file. The default is {}.
 
         Returns
         -------
@@ -1824,6 +1832,7 @@ class Dataset:
             obstype=obstype,  # only relevant in wide format
             obstype_units = obstype_unit, # only relevant in wide format
             obstype_description = obstype_description, # only relevant in wide format
+            kwargs_data_read = kwargs_data_read
         )
 
 
@@ -1873,6 +1882,7 @@ class Dataset:
             meta_df = import_metadata_from_csv(
                 input_file=self.settings.IO["input_metadata_file"],
                 template_file=self.settings.templates["metadata_template_file"],
+                kwargs_metadata_read = kwargs_metadata_read,
             )
 
 

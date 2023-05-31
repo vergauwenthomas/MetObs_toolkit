@@ -93,15 +93,21 @@ def check_template_compatibility(template, df_columns):
 
 
 
-def import_metadata_from_csv(input_file, template_file):
-    common_seperators = [";", ",", "    ", "."]
-    assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
-    for sep in common_seperators:
-        df = pd.read_csv(input_file, sep=sep)
-        assert not df.empty, "Dataset is empty!"
+def import_metadata_from_csv(input_file, template_file, kwargs_metadata_read):
 
-        if len(df.columns) > 1:
-            break
+
+    assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
+
+    if bool(kwargs_metadata_read):
+        df = pd.read_csv(filepath_or_buffer=input_file, **kwargs_metadata_read)
+    else:
+        common_seperators = [None, ";", ",", "    ", "."]
+        for sep in common_seperators:
+            df = pd.read_csv(input_file, sep=sep)
+            assert not df.empty, "Dataset is empty!"
+
+            if len(df.columns) > 1:
+                break
 
     assert (
         len(df.columns) > 1
@@ -144,18 +150,21 @@ def wide_to_long(df, template, obstype):
 
     return longdf, template
 
-def _read_csv_file(path):
+def _read_csv_file(path, kwargsdict):
     """ a helper function to read in csv data files, try multiple seperators, and
         remove header text. """
 
-    common_seperators = [";", ",", "    ", "."]
-    assert not isinstance(path, type(None)), "Specify input file in the settings!"
-    for sep in common_seperators:
-        df = pd.read_csv(path, sep=sep)
-        assert not df.empty, "Dataset is empty!"
+    if bool(kwargsdict):
+        df = pd.read_csv(filepath_or_buffer=path, **kwargsdict)
+    else:
+        common_seperators = [None, ";", ",", "    ", "."]
+        assert not isinstance(path, type(None)), "Specify input file in the settings!"
+        for sep in common_seperators:
+            df = pd.read_csv(path, sep=sep)
+            assert not df.empty, "Dataset is empty!"
 
-        if len(df.columns) > 1:
-            break
+            if len(df.columns) > 1:
+                break
 
     assert (
         len(df.columns) > 1
@@ -184,12 +193,13 @@ def _remove_keys_from_dict(dictionary, keys):
 
 def import_data_from_csv(input_file, template_file,
                          long_format, obstype,
-                         obstype_units, obstype_description):
+                         obstype_units, obstype_description,
+                         kwargs_data_read):
 
     """ Wrapper data import function for long and wide"""
 
     # 1. Read data into df
-    df = _read_csv_file(input_file)
+    df = _read_csv_file(input_file, kwargs_data_read)
 
     # 2. Read template
     template = read_csv_template(template_file, long_format, obstype)

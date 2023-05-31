@@ -27,6 +27,13 @@ import metobs_toolkit
 # metafile ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Latlon_stations_Amsterdam.csv'
 
 
+from metobs_toolkit.data_import import debug_kwargs
+
+
+test = debug_kwargs(kwargsdict={'filepath_or_buffer':'/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Latlon_stations_Amsterdam.csv'})
+
+
+
 
 # # metobs_toolkit.build_template_prompt()
 
