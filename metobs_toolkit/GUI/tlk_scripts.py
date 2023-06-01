@@ -186,7 +186,7 @@ def load_dataset(main):
     template_file = main.template_dict[template_name]
 
     # Basic checks
-    for file in [data_file, metadata_file, template_file]:
+    for file in [data_file, template_file]:
         if not path_handler.file_exist(file):
             Error(f'{file} does not exist!')
             return
