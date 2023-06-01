@@ -16,7 +16,7 @@ from metobs_toolkit.df_helpers import (
     init_multiindex,
     init_multiindexdf,
     init_triple_multiindexdf,
-    xs_save
+    xs_save,
 )
 
 

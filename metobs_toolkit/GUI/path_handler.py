@@ -11,31 +11,32 @@ import shutil
 from pathlib import Path
 
 
-
 # =============================================================================
 # Main folders
 # =============================================================================
 
-GUI_dir = str( Path(__file__).resolve().parents[0])
+GUI_dir = str(Path(__file__).resolve().parents[0])
 
-TLK_dir = str( Path(__file__).resolve().parents[1])
+TLK_dir = str(Path(__file__).resolve().parents[1])
 
 
 # =============================================================================
 # Derived locations
 # =============================================================================
 
-TMP_dir = os.path.join(GUI_dir, 'tmp')
+TMP_dir = os.path.join(GUI_dir, "tmp")
 
-CACHE_dir = os.path.join(GUI_dir, 'cache')
+CACHE_dir = os.path.join(GUI_dir, "cache")
 # toolkit location of templates
-tlk_default_template = os.path.join(TLK_dir, 'data_templates',
-                                    'template_defaults', 'default_template.csv')
+tlk_default_template = os.path.join(
+    TLK_dir, "data_templates", "template_defaults", "default_template.csv"
+)
 
 
 # =============================================================================
 # Helper functions
 # =============================================================================
+
 
 def make_dir(dir_path):
     if os.path.isdir(dir_path):
@@ -57,13 +58,15 @@ def file_exist(filepath):
 def copy_file(filepath, targetpath):
     shutil.copyfile(filepath, targetpath)
 
+
 def list_csv_filenames(folderpath):
     all_stuff = os.listdir(folderpath)
-    all_files = [file for file in all_stuff if os.path.isfile(os.path.join(
-                                                folderpath, file))]
+    all_files = [
+        file for file in all_stuff if os.path.isfile(os.path.join(folderpath, file))
+    ]
 
-    filenames =[file for file in all_files if file.endswith('.csv')]
-    filepaths =[os.path.join(folderpath, file) for file in filenames]
+    filenames = [file for file in all_files if file.endswith(".csv")]
+    filepaths = [os.path.join(folderpath, file) for file in filenames]
 
     return filenames, filepaths
 
@@ -78,5 +81,4 @@ def clear_dir(directory):
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
-
+            print("Failed to delete %s. Reason: %s" % (file_path, e))

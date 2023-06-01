@@ -35,24 +35,24 @@ class Modeldata:
     def _conv_to_timezone(self, tzstr):
         # get tzstr by datetimindex.tz.zone
 
-
-        df=self.df
-        df['datetime_utc'] = df.index.get_level_values('datetime').tz_convert(tzstr)
+        df = self.df
+        df["datetime_utc"] = df.index.get_level_values("datetime").tz_convert(tzstr)
         df = df.reset_index()
-        df = df.drop(columns=['datetime'])
-        df = df.rename(columns={'datetime_utc': 'datetime'})
-        df = df.set_index(['name', 'datetime'])
+        df = df.drop(columns=["datetime"])
+        df = df.rename(columns={"datetime_utc": "datetime"})
+        df = df.set_index(["name", "datetime"])
         self.df = df
 
     def get_ERA5_data(self, metadf, startdt, enddt, obstype="temp"):
         # startdt and enddt IN UTC FORMAT!!!!!
 
         # Subset metadf to stations with coordinates
-        no_coord_meta = metadf[metadf[['lat','lon']].isna().any(axis=1)]
+        no_coord_meta = metadf[metadf[["lat", "lon"]].isna().any(axis=1)]
         if not no_coord_meta.empty:
-            print(f'WARNING. Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}')
-            metadf = metadf[~metadf[['lat','lon']].isna().any(axis=1)]
-
+            print(
+                f"WARNING. Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}"
+            )
+            metadf = metadf[~metadf[["lat", "lon"]].isna().any(axis=1)]
 
         era_mapinfo = self.mapinfo["ERA5_hourly"]
         # Connect to Gee

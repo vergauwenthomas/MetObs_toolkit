@@ -6,10 +6,11 @@ Launcher for GUI
 @author: thoverga
 """
 
-#remove this
+# remove this
 from metobs_toolkit.GUI.main import main
+
 
 def launch_gui():
     from metobs_toolkit.GUI.main import main
-    main()
 
+    main()
