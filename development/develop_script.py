@@ -41,7 +41,12 @@ dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
 
 dataset.get_altitude()
-obs, outl = dataset.apply_titan_buddy_check()
+dataset.apply_titan_buddy_check()
+dataset.make_plot(colorby='label')
+
+
+
+
 
 #%%
 

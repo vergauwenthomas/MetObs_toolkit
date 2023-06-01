@@ -640,6 +640,9 @@ def _all_possible_labels_colormapper(settings):
         plot_settings=plot_settings, qc_check_info=qc_info_settings
     )
     mapper.update(outl_col_mapper)
+
+
+
     # get 'ok' and 'not checked'
     mapper["ok"] = color_defenitions["ok"]
     mapper["not checked"] = color_defenitions["not checked"]
