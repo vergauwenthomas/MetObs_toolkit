@@ -1228,8 +1228,22 @@ class Dataset:
                                            titan_specific_labeler = self.settings.qc['titan_specific_labeler']['titan_buddy_check'])
 
 
+        # update the dataset and outliers
+        self.df = obsdf
+        if not outliersdf.empty:
+            self.outliersdf = pd.concat([self.outliersdf, outliersdf])
 
-        # TODO: update self
+        # add this check to the applied checks
+        self._applied_qc = pd.concat(
+            [
+                self._applied_qc,
+                conv_applied_qc_to_df(
+                    obstypes=obstype, ordered_checknames="titan_buddy_check"
+                ),
+            ],
+            ignore_index=True,
+        )
+
         # add colors for this type of outlier
         # set back default values
         # test qc stats + timeseries + combine all etc
