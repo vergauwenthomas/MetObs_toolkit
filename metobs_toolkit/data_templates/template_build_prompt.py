@@ -90,7 +90,7 @@ def build_template_prompt():
 
     datafilepath = input('Give the full path to your data file : ')
     print(' ... opening the data file ...')
-    data = _read_csv_file(datafilepath)
+    data = _read_csv_file(datafilepath, {})
     columnnames = data.columns.to_list()
 
 
@@ -246,7 +246,7 @@ def build_template_prompt():
     if meta_avail:
         metadatafilepath = input('Give the full path to your metadata file : ')
         print(' ... opening the metadata file ...')
-        metadata = _read_csv_file(metadatafilepath)
+        metadata = _read_csv_file(metadatafilepath, {})
         metacolumnnames = metadata.columns.to_list()
 
 
