@@ -35,12 +35,12 @@ def isvalidfile(filepath, filetype=None):
 
 
 def readfile(filepath):
-    common_seperators = [';',',','    ','.']
+    common_seperators = [None, ';',',','    ','.']
 
     df=pd.DataFrame()
     for sep in common_seperators:
         try:
-            df = pd.read_csv(filepath, sep=sep, engine='python')
+            df = pd.read_csv(filepath_or_buffer=filepath, sep=sep)
         except:
             pass
 
