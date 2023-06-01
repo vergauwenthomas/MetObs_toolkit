@@ -158,10 +158,14 @@ class Settings:
         :rtype: No return
         """
         logger.debug("Updating QC settings.")
-        from .settings_files.qc_settings import check_settings, checks_info
+        from .settings_files.qc_settings import (check_settings, checks_info,
+                                                 titan_check_settings,
+                                                 titan_specific_labeler)
 
         self.qc["qc_check_settings"] = check_settings
         self.qc["qc_checks_info"] = checks_info
+        self.qc['titan_check_settings'] = titan_check_settings
+        self.qc['titan_specific_labeler'] = titan_specific_labeler
 
     def _update_gap_settings(self):
         """

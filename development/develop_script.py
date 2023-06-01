@@ -20,17 +20,8 @@ sys.path.insert(0,str(lib_folder))
 import metobs_toolkit
 
 
-#%%
 
 
-# file = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Amsterdam_D2222z6together.csv'
-metafile ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Latlon_stations_Amsterdam.csv'
-
-
-
-
-
-# # metobs_toolkit.build_template_prompt()
 
 
 #%%
@@ -49,24 +40,59 @@ dataset.import_data_from_file()
 
 dataset.coarsen_time_resolution()
 
-
-dataset.apply_quality_control()
+dataset.get_altitude()
+obs, outl = dataset.apply_titan_buddy_check()
 
 #%%
-qc_statistics = dataset.get_qc_stats(
-    obstype="temp",
-    stationname="vlinder01",  # or 'station_A' or list of stationnames ['station_A', 'station_B']
-    make_plot=True,
-)
+
+# import numpy as np
+# import titanlib
+# # Set up some fake data
+# lats = [60,60.1,60.2]
+# lons = [10,10,10]
+# elevs = [0,0,0]
+# temp_obs = [0, 1, -111]
+# points = titanlib.Points(lats, lons, elevs)
+
+# radius = np.full(points.size(), 5000)
+# num_min = np.full(points.size(), 5)
+# num_min = 5
+# threshold = 2
+# max_elev_diff = 200
+# elev_gradient = -0.0065
+# min_std = 1
+# num_iterations = 5
+
+# flags = titanlib.buddy_check(
+#     points,
+#     temp_obs,
+#     radius,
+#     num_min,
+#     threshold,
+#     max_elev_diff,
+#     elev_gradient,
+#     min_std,
+#     num_iterations,
+# )
 
 
-qc_statistics = dataset.get_qc_stats(
-    obstype="temp",
-    stationname="vlinder05",  # or 'station_A' or list of stationnames ['station_A', 'station_B']
-    make_plot=True,
-)
+
+# def create_titanlib_points_series(dataset, obstype, datetime):
+#     import titanlib
+
+#     # Set up some fake data
+#     lats = [60,60.1,60.2]
+#     lons = [10,10,10]
+#     elevs = [0,0,0]
+#     obs = [0, 1, -111]
+#     points = titanlib.Points(lats, lons, elevs)
 
 
+
+
+# dataset.apply_quality_control()
+
+#%%
 
 #%%
 # dataset.make_plot(stationnames=['vlinder01', 'vlinder05'], colorby='label')

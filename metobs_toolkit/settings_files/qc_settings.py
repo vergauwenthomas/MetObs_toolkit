@@ -41,6 +41,30 @@ check_settings = {
     }
 }
 
+titan_check_settings = {
+    'titan_buddy_check': {
+            # 'radius': 5000, #	vec	m	Search radius
+            # 'num_min': 5, #	int		The minimum number of buddies a station can have
+            'radius': 50000, #	vec	m	Search radius
+            'num_min': 2, #	int		The minimum number of buddies a station can have
+            # 'threshold': 2.5, #	float	σ	the variance threshold for flagging a station
+            'threshold': 1.5, #	float	σ	the variance threshold for flagging a station
+            'max_elev_diff': 200, #	float	m	the maximum difference in elevation for a buddy (if negative will not check for heigh difference)
+            'elev_gradient': -0.0065, #	float	ou/m	linear elevation gradient with height
+            'min_std': 1.0, #	float		If the standard deviation of values in a neighborhood are less than min_std, min_std will be used instead
+            'num_iterations': 1 #int		The number of iterations to perform
+                }
+
+    }
+
+# how to map the numeric output of titan to a 'ok' or outlier label
+titan_specific_labeler = {
+    'titan_buddy_check': {
+        'ok' : [0],
+        'outl': [1]
+        }
+
+}
 
 # Information on the sequence of checks and if they are applied on all observations seperatly.
 
@@ -88,6 +112,11 @@ checks_info = {
     "window_variation": {
         "outlier_flag": "in window variation outlier group",
         "numeric_flag": 8,
+        "apply_on": "obstype",
+    },
+    "titan_buddy_check": {
+        "outlier_flag": "buddy check outlier",
+        "numeric_flag": 9,
         "apply_on": "obstype",
     },
 }

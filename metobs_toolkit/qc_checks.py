@@ -10,6 +10,7 @@ import sys
 import pandas as pd
 import numpy as np
 import logging
+import titanlib
 
 
 from metobs_toolkit.df_helpers import (
@@ -703,3 +704,86 @@ def get_outliers_in_daterange(input_data, date, name, time_window, station_freq)
     intersection = outlier_sub_df.index.intersection(input_data.dropna().index).values
 
     return intersection
+
+
+# =============================================================================
+# Titan checks
+# =============================================================================
+
+def create_titanlib_points_dict(obsdf, metadf, obstype):
+    obs = obsdf[[obstype]]
+    obs = obs.reset_index()
+
+    # merge metadata
+    obs = obs.merge(right = metadf[['lat', 'lon','altitude']],
+                    how = 'left',
+                    left_on='name',
+                    right_index=True)
+
+    dt_grouper = obs.groupby('datetime')
+
+
+    points_dict = {}
+    for dt, group in dt_grouper:
+
+        check_group = group[~group[obstype].isnull()]
+
+        points_dict[dt] = {
+            'values': check_group[obstype].to_numpy(),
+            'names': check_group['name'].to_numpy(),
+            'lats': check_group['lat'].to_numpy(),
+            'lons': check_group['lon'].to_numpy(),
+            'elev': check_group['altitude'].to_numpy(),
+            'ignore_names': group[group[obstype].isnull()]['name'].to_numpy()
+        }
+
+    return points_dict
+
+def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
+
+
+
+    # Create points_dict
+    pointsdict = create_titanlib_points_dict(obsdf, metadf, obstype)
+
+    df_list = []
+    for dt, point in pointsdict.items():
+        obs = list(point['values'])
+        titan_points = titanlib.Points(np.asarray(point['lats']),
+                                       np.asarray(point['lons']),
+                                       np.asarray(point['elev']))
+
+
+        num_labels = titanlib.buddy_check(
+                titan_points,
+                np.asarray(obs),
+                np.asarray([checks_settings['radius']] * len(obs)), #same radius for all stations
+                np.asarray([checks_settings['num_min']] * len(obs)), #same min neighbours for all stations
+                checks_settings['threshold'],
+                checks_settings['max_elev_diff'],
+                checks_settings['elev_gradient'],
+                checks_settings['min_std'],
+                checks_settings['num_iterations'])
+
+        labels = pd.Series(num_labels, name='num_label').to_frame()
+        labels['name'] = point['names']
+        labels['datetime'] = dt
+        df_list.append(labels)
+
+    checkeddf = pd.concat(df_list)
+
+    #Convert to toolkit format
+    outliersdf = checkeddf[checkeddf['num_label'].isin(titan_specific_labeler['outl'])]
+
+    outliersdf = outliersdf.set_index(['name', 'datetime'])
+
+
+    obsdf, outliersdf = make_outlier_df_for_check(station_dt_list=outliersdf.index,
+                                                  obsdf = obsdf,
+                                                  obstype=obstype,
+                                                  flag = checks_info["titan_buddy_check"]['outlier_flag'])
+
+
+    return obsdf, outliersdf
+
+

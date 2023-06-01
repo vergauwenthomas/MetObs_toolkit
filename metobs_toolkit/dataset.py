@@ -47,6 +47,7 @@ from metobs_toolkit.qc_checks import (
     step_check,
     window_variation_check,
     invalid_input_check,
+    titan_buddy_check,
 )
 
 
@@ -1215,6 +1216,27 @@ class Dataset:
         self._qc_checked_obstypes = list(set(self._qc_checked_obstypes))
         self.outliersdf = self.outliersdf.sort_index()
 
+    def apply_titan_buddy_check(self, obstype='temp'):
+        # TODO: what if elevation is not availabl
+
+
+        obsdf, outliersdf = titan_buddy_check(obsdf = self.df,
+                                           metadf = self.metadf,
+                                           obstype = obstype,
+                                           checks_info = self.settings.qc["qc_checks_info"],
+                                           checks_settings = self.settings.qc['titan_check_settings']['titan_buddy_check'],
+                                           titan_specific_labeler = self.settings.qc['titan_specific_labeler']['titan_buddy_check'])
+
+
+
+        # TODO: update self
+        # add colors for this type of outlier
+        # set back default values
+        # test qc stats + timeseries + combine all etc
+        # write test
+
+
+        return obsdf, outliersdf
 
 
     def combine_all_to_obsspace(self, repr_outl_as_nan=False,
