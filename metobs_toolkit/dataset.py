@@ -48,6 +48,7 @@ from metobs_toolkit.qc_checks import (
     window_variation_check,
     invalid_input_check,
     titan_buddy_check,
+    titan_sct_resistant_check
 )
 
 
@@ -1226,6 +1227,42 @@ class Dataset:
                                            checks_info = self.settings.qc["qc_checks_info"],
                                            checks_settings = self.settings.qc['titan_check_settings']['titan_buddy_check'],
                                            titan_specific_labeler = self.settings.qc['titan_specific_labeler']['titan_buddy_check'])
+
+
+        # update the dataset and outliers
+        self.df = obsdf
+        if not outliersdf.empty:
+            self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+
+        # add this check to the applied checks
+        self._applied_qc = pd.concat(
+            [
+                self._applied_qc,
+                conv_applied_qc_to_df(
+                    obstypes=obstype, ordered_checknames="titan_buddy_check"
+                ),
+            ],
+            ignore_index=True,
+        )
+
+        # add colors for this type of outlier
+        # set back default values
+        # test qc stats + timeseries + combine all etc
+        # write test
+
+
+        return obsdf, outliersdf
+    
+    def apply_titan_sct_resistant_check(self, obstype='temp'):
+        # TODO: what if elevation is not availabl
+
+
+        obsdf, outliersdf = titan_sct_resistant_check(obsdf = self.df,
+                                           metadf = self.metadf,
+                                           obstype = obstype,
+                                           checks_info = self.settings.qc["qc_checks_info"],
+                                           checks_settings = self.settings.qc['titan_check_settings']['titan_sct_resistant_check'],
+                                           titan_specific_labeler = self.settings.qc['titan_specific_labeler']['titan_sct_resistant_check'])
 
 
         # update the dataset and outliers

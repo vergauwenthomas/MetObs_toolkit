@@ -786,4 +786,63 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
 
     return obsdf, outliersdf
 
+def titan_sct_resistant_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
+    
+    # Create points_dict
+    pointsdict = create_titanlib_points_dict(obsdf, metadf, obstype)
+
+    df_list = []
+    for dt, point in pointsdict.items():
+        obs = list(point['values'])
+        titan_points = titanlib.Points(np.asarray(point['lats']),
+                                       np.asarray(point['lons']),
+                                       np.asarray(point['elev']))
+        
+        
+        flags, scores = titanlib.sct_resistant_check(
+                titan_points,
+                np.asarray(obs),
+                np.asarray(1 * len(obs)), 
+                np.asarray(0 * len(obs)), 
+                'MedianOuterCircle',
+                checks_settings['num_min_outer'],
+                checks_settings['num_max_outer'],
+                checks_settings['inner_radius'],
+                checks_settings['outer_radius'],
+                checks_settings['num_iterations'],
+                checks_settings['num_min_prof'],
+                checks_settings['min_elev_diff'],
+                checks_settings['min_horizontal_scale'],
+                checks_settings['max_horizontal_scale'],
+                checks_settings['kth_closest_obs_horizontal_scale'],
+                checks_settings['vertical_scale'], 
+                obs - 20, obs + 20, obs - 1, obs  + 1,
+                np.asarray(1 * len(obs))*0.5,
+                np.asarray(1 * len(obs))*16,
+                np.asarray(1 * len(obs))*16,
+                checks_settings['debug'],
+                checks_settings['basic']
+                )
+        
+        labels = pd.Series(flags, name='num_label').to_frame()
+        labels['name'] = point['names']
+        labels['datetime'] = dt
+        df_list.append(labels)
+    
+    checkeddf = pd.concat(df_list)
+
+    #Convert to toolkit format
+    outliersdf = checkeddf[checkeddf['num_label'].isin(titan_specific_labeler['outl'])]
+
+    outliersdf = outliersdf.set_index(['name', 'datetime'])
+
+
+    obsdf, outliersdf = make_outlier_df_for_check(station_dt_list=outliersdf.index,
+                                                  obsdf = obsdf,
+                                                  obstype=obstype,
+                                                  flag = checks_info["titan_sct_resistant_check"]['outlier_flag'])
+
+
+    return obsdf, outliersdf
+
 

@@ -42,8 +42,9 @@ dataset.coarsen_time_resolution()
 
 dataset.get_altitude()
 dataset.apply_titan_buddy_check()
+dataset.apply_titan_sct_resistant_check()
 dataset.make_plot(colorby='label')
-print("test")
+
 
 
 

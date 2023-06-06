@@ -53,6 +53,22 @@ titan_check_settings = {
             'elev_gradient': -0.0065, #	float	ou/m	linear elevation gradient with height
             'min_std': 1.0, #	float		If the standard deviation of values in a neighborhood are less than min_std, min_std will be used instead
             'num_iterations': 1 #int		The number of iterations to perform
+                },
+    
+    'titan_sct_resistant_check': {
+            'num_min_outer':3, #	int	    Minimal points in outer circle
+            'num_max_outer':10, #	int	    Maximal points in outer circle
+            'inner_radius':20000, #  int      Radius of inner circle
+            'outer_radius':50000, #  int      Radius of outer circle
+            'num_iterations':10, #   int   Number of iterations
+            'num_min_prof':1, #   int 
+            'min_elev_diff':100, #   int    Minimal elevation difference
+            'min_horizontal_scale':250, #  int  Minimal horizontal scale
+            'max_horizontal_scale':100000, #  int  Maximal horizontal scale
+            'kth_closest_obs_horizontal_scale':2, #  int  Number of closest observations to consider
+            'vertical_scale':200, #  int  The vertical scale
+            'basic':True, #  bool  Basic mode
+            'debug':True #  bool  Debug mode
                 }
 
     }
@@ -60,6 +76,11 @@ titan_check_settings = {
 # how to map the numeric output of titan to a 'ok' or outlier label
 titan_specific_labeler = {
     'titan_buddy_check': {
+        'ok' : [0],
+        'outl': [1]
+        },
+    
+    'titan_sct_resistant_check': {
         'ok' : [0],
         'outl': [1]
         }
@@ -119,4 +140,9 @@ checks_info = {
         "numeric_flag": 9,
         "apply_on": "obstype",
     },
+    "titan_sct_resistant_check": {
+        "outlier_flag": "sct resistant check outlier",
+        "numeric_flag": 10,
+        "apply_on": "obstype",
+    }
 }
