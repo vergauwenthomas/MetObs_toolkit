@@ -22,7 +22,29 @@ class Analysis():
         self.settings = settings
         self.data_template = data_template
 
+    def __str__(self):
+        if self.df.empty:
+            return f"Empty Analysis instance."
+        add_info = ''
+        n_stations = self.df.index.get_level_values('name').unique().shape[0]
+        n_obs_tot = self.df.shape[0]
 
+
+        if ((not self.metadf['lat'].isnull().all()) &
+            (not self.metadf['lon'].isnull().all())):
+            add_info += '     *Coordinates are available for all stations. \n'
+
+        if (not self.metadf['lcz'].isnull().all()):
+            add_info += "     *LCZ's are available for all stations. \n"
+
+
+
+        return (f"Dataset instance containing: \n \
+    *{n_stations} stations \n \
+    *{n_obs_tot} observation records \n{add_info}" )
+
+    def __repr__(self):
+        return self.__str__()
 
     # =============================================================================
     #     Setters
@@ -59,6 +81,60 @@ class Analysis():
     # =============================================================================
 
 
+    # def aggregate_df(self, df, agg=['lcz', 'datetime'], method='mean'):
+    #     """
+    #     Aggregate observations to a (list of) categories.
+
+    #     The output will be a dataframe that is aggregated to one, or more categories.
+    #     A commen example is aggregating to LCZ's.
+
+
+    #     Parameters
+    #     ----------
+    #     df : pandas.DataFrame
+    #         The observations to aggregate.
+    #     agg : list, optional
+    #         The list of columnnames to aggregate to. If 'lcz' is included, the
+    #         lcz information is extracted from the Analysis.metadf. The default is ['lcz', 'datetime'].
+    #     method : str, optional
+    #         list of functions and/or function names, e.g. [np.sum, 'mean']. The default is 'mean'.
+
+    #     Returns
+    #     -------
+    #     pandas.DataFrame
+    #         A dataframe with the agg columns as an index. The values are the aggregated values.
+
+    #     Note
+    #     -------
+    #     Present columns that ar non-numeric and are not in the agg list are not present in the return,
+    #     since these values cannot be aggregated.
+
+    #     """
+    #     df = df.reset_index()
+
+    #     # merge relevant info to the df for aggregation
+
+    #     if 'lcz' in agg:
+    #         if not 'lcz' in self.metadf:
+    #             print('Warning: Aggregation to LCZ not possible because no LCZ information found.')
+    #             return df
+    #         else:
+    #             df = pd.merge(df, self.metadf[['lcz']],
+    #                               how='left', left_on='name',
+    #                               right_index=True)
+
+    #     # check if not all values are Nan
+    #     for agg_name in agg:
+    #         assert df[agg_name].isnull().all() == False, f'Aggregation to {agg_name} not possible because no valid values found for {agg_name}.'
+
+    #     # Aggregate the df
+    #     agg_df = df.groupby(agg).agg(method, numeric_only=True)
+    #     # sort index
+    #     agg_df = agg_df.reset_index()
+    #     agg_df = agg_df.set_index(agg)
+    #     return agg_df
+
+
     def aggregate_df(self, df, agg=['lcz', 'datetime'], method='mean'):
         """
         Aggregate observations to a (list of) categories.
@@ -90,20 +166,49 @@ class Analysis():
         """
         df = df.reset_index()
 
-        # merge relevant info to the df for aggregation
+        time_agg_keys = ['minute', 'hour', 'month', 'year', 'day_of_year',
+                         'week_of_year', 'season']
 
-        if 'lcz' in agg:
-            if not 'lcz' in self.metadf:
-                print('Warning: Aggregation to LCZ not possible because no LCZ information found.')
-                return df
-            else:
-                df = pd.merge(df, self.metadf[['lcz']],
-                                  how='left', left_on='name',
-                                  right_index=True)
+        # scan trough the metadf for aggregation keys
+        for agg_key in agg:
+            if agg_key not in df.columns:
+                # look in metadf
+                if agg_key in self.metadf.columns:
+                    df = pd.merge(df, self.metadf[[agg_key]],
+                                      how='left', left_on='name',
+                                      right_index=True)
+
+
+
+
+        # Check if all agg keys are present or defined:
+        possible_agg_keys = time_agg_keys
+        possible_agg_keys.extend(list(df.columns))
+        unmapped = [agg_key for agg_key in agg if agg_key not in possible_agg_keys]
+        assert len(unmapped) == 0, f'cannot aggregate to unknown labels: {unmapped}.'
+        # define time aggregations
+
+        if 'minute' in agg:
+            df['minute'] = df['datetime'].dt.minute
+        if 'hour' in agg:
+            df['hour'] = df['datetime'].dt.hour
+        if 'month' in agg:
+            df['month'] = df['datetime'].dt.month_name()
+        if 'year' in agg:
+            df['year'] = df['datetime'].dt.year
+        if 'day_of_year' in agg:
+            df['day_of_year'] = df['datetime'].dt.day_of_year
+        if 'week_of_year' in agg:
+            df['week_of_year'] = df['datetime'].dt.week_of_year
+        if 'season' in agg:
+            df['season'] = get_seasons(df['datetime'])
+
 
         # check if not all values are Nan
         for agg_name in agg:
             assert df[agg_name].isnull().all() == False, f'Aggregation to {agg_name} not possible because no valid values found for {agg_name}.'
+
+
 
         # Aggregate the df
         agg_df = df.groupby(agg).agg(method, numeric_only=True)
@@ -111,6 +216,7 @@ class Analysis():
         agg_df = agg_df.reset_index()
         agg_df = agg_df.set_index(agg)
         return agg_df
+
 
     # =============================================================================
     #   Analyse method
@@ -177,6 +283,8 @@ class Analysis():
             if self.metadf['lcz'].isnull().any():
                 print("ERROR: Not all stations have a LCZ. Update the LCZ's first or use colorby='name'. ")
                 return None
+
+
 
         # Get hours for all records
         obsdf = obsdf.reset_index()
@@ -424,8 +532,11 @@ class Analysis():
         stations : list, optional
             List of station names to use. If None, all present stations will be used. The default is None.
         aggregation : list, optional
-            List of variables to aggregate to. "datetime" is added to this list if it is not present,
-            becaus else there is no time evolution.
+            List of variables to aggregate to. These variables should either a
+            categorical observation type, a categorical column in the metadf or
+            a time aggregation. All possible time aggreagetions are: ['minute',
+            'hour', 'month', 'year', 'day_of_year',
+            'week_of_year', 'season']. The default is ['lcz', 'datetime'].
         aggregation_method : str, optional
             Which (numpy) function is used to aggregate the observations. The default is 'mean'.
         startdt : datetime.datetime, optional
@@ -488,7 +599,6 @@ class Analysis():
         groupby_list.remove('datetime')
 
         # for plot titles
-        return obsdf
         startdt = obsdf['datetime'].dropna().min()
         enddt = obsdf['datetime'].dropna().max()
 
@@ -504,7 +614,7 @@ class Analysis():
             if title is None:
                 startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
                 enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
-                title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
+                title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr} grouped by {groupby_list}'
 
 
 
@@ -536,4 +646,42 @@ class Analysis():
             return hourly_avg, stats
 
         return hourly_avg
+
+
+
+
+
+def get_seasons(datetimeseries,
+                start_day_spring = '01/03' ,
+                start_day_summer = '01/06',
+                start_day_autumn = '01/09',
+                start_day_winter = '01/12'):
+
+    """ Convert a datetimeseries to a season label (i.g. categorical). """
+
+
+    spring_startday = datetime.strptime(start_day_spring, '%d/%m')
+    summer_startday = datetime.strptime(start_day_summer, '%d/%m')
+    autumn_startday = datetime.strptime(start_day_autumn, '%d/%m')
+    winter_startday = datetime.strptime(start_day_winter, '%d/%m')
+
+
+    seasons = pd.Series(index=['spring', 'summer', 'autumn', 'winter'],
+                        data=[spring_startday, summer_startday, autumn_startday, winter_startday],
+                        name='startdt').to_frame()
+    seasons['day_of_year'] = seasons['startdt'].dt.day_of_year - 1
+
+    bins = [0]
+    bins.extend(seasons['day_of_year'].to_list())
+    bins.append(366)
+
+    labels = ['winter', 'spring', 'summer', 'autumn', 'winter']
+
+
+
+    return pd.cut(x = datetimeseries.dt.day_of_year,
+                  bins = bins,
+                  labels=labels,
+                  ordered=False,
+                  )
 
