@@ -45,7 +45,7 @@ plot_settings["time_series"] = {
     "linewidth": 2,  #
     "linezorder": 1,  # for ok obs
     "scattersize": 4,  # for outliers
-    "scatterzorder": 2,  # for outliers
+    "scatterzorder": 3,  # for outliers
     "dashedzorder": 2,  # for gapfills
     "legend_n_columns": 5, # for the number of columns in the plot
 }
