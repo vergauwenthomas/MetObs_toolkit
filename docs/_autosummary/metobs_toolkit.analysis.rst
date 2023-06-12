@@ -9,6 +9,14 @@ metobs\_toolkit.analysis
 
    
    
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      get_seasons
+   
    
 
    

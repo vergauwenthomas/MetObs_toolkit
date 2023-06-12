@@ -81,58 +81,42 @@ class Analysis():
     # =============================================================================
 
 
-    # def aggregate_df(self, df, agg=['lcz', 'datetime'], method='mean'):
-    #     """
-    #     Aggregate observations to a (list of) categories.
+    def apply_filter(self, expression):
+        """
+        Method to filter an Analysis by a user definde string expression. This
+        can be used to filter the observation to specific meteorological conditions
+        (i.e. low windspeeds, high humidity, cold temperatures, ...)
 
-    #     The output will be a dataframe that is aggregated to one, or more categories.
-    #     A commen example is aggregating to LCZ's.
+        The filter expression contains only columns present in the Analysis.df
+        and/or the Analysis.metadf.
+
+        A New Analysis object is returned.
+
+        Parameters
+        ----------
+
+        expression : str
+            A filter expression using columnnames present in either df or metadf,
+            number and expressions like <, >, ==, >=, *, +, .... Multiple filters
+            can be combine to one expression by using & (AND) and | (OR).
+
+        Returns
+        -------
+        filtered_analysis : metobs_toolkit.Analysis
+            The filtered Analysis.
+
+        """
+
+        child_df, child_metadf = filter_data(df = self.df,
+                                             metadf = self.metadf,
+                                             quarry_str = expression)
+
+        return Analysis(obsdf=child_df,
+                        metadf = child_metadf,
+                        settings = self.settings,
+                        data_template = self.data_template)
 
 
-    #     Parameters
-    #     ----------
-    #     df : pandas.DataFrame
-    #         The observations to aggregate.
-    #     agg : list, optional
-    #         The list of columnnames to aggregate to. If 'lcz' is included, the
-    #         lcz information is extracted from the Analysis.metadf. The default is ['lcz', 'datetime'].
-    #     method : str, optional
-    #         list of functions and/or function names, e.g. [np.sum, 'mean']. The default is 'mean'.
-
-    #     Returns
-    #     -------
-    #     pandas.DataFrame
-    #         A dataframe with the agg columns as an index. The values are the aggregated values.
-
-    #     Note
-    #     -------
-    #     Present columns that ar non-numeric and are not in the agg list are not present in the return,
-    #     since these values cannot be aggregated.
-
-    #     """
-    #     df = df.reset_index()
-
-    #     # merge relevant info to the df for aggregation
-
-    #     if 'lcz' in agg:
-    #         if not 'lcz' in self.metadf:
-    #             print('Warning: Aggregation to LCZ not possible because no LCZ information found.')
-    #             return df
-    #         else:
-    #             df = pd.merge(df, self.metadf[['lcz']],
-    #                               how='left', left_on='name',
-    #                               right_index=True)
-
-    #     # check if not all values are Nan
-    #     for agg_name in agg:
-    #         assert df[agg_name].isnull().all() == False, f'Aggregation to {agg_name} not possible because no valid values found for {agg_name}.'
-
-    #     # Aggregate the df
-    #     agg_df = df.groupby(agg).agg(method, numeric_only=True)
-    #     # sort index
-    #     agg_df = agg_df.reset_index()
-    #     agg_df = agg_df.set_index(agg)
-    #     return agg_df
 
 
     def aggregate_df(self, df, agg=['lcz', 'datetime'], method='mean'):
@@ -685,3 +669,70 @@ def get_seasons(datetimeseries,
                   ordered=False,
                   )
 
+
+
+
+
+
+
+def filter_data(df, metadf, quarry_str):
+    """
+    Function to filter a dataframe by a user definde string expression. This
+    can be used to filter the observation to specific meteorological conditions
+    (i.e. low windspeeds, high humidity, cold temperatures, ...)
+
+    The filter expression contains only columns present in the df and/or the
+    metadf.
+
+    The filtered df and metadf are returned
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The dataframe containing all the observations to be filterd.
+    metadf : pandas.DataFrame
+        The dataframe containig all the metadata per station.
+    quarry_str : str
+        A filter expression using columnnames present in either df or metadf,
+        number and expressions like <, >, ==, >=, *, +, .... Multiple filters
+        can be combine to one expression by using & (AND) and | (OR).
+
+    Returns
+    -------
+    filter_df : pandas.DataFrame
+        The filtered df.
+    filter_metadf : pandas.DataFrame
+        The filtered metadf.
+
+    """
+
+
+    # save index order and names for reconstruction
+    df_init_idx = list(df.index.names)
+    metadf_init_idx = list(metadf.index.names)
+
+    # easyer for sperationg them
+    df = df.reset_index()
+    metadf = metadf.reset_index()
+
+
+    # save columns orders
+    df_init_cols = df.columns
+    metadf_init_cols = metadf.columns
+
+    # merge together on name
+
+    mergedf = df.merge(metadf, how='left', on='name')
+
+    #apply filter
+    filtered = mergedf.query(expr=quarry_str)
+
+    # split to df and metadf
+    filter_df = filtered[df_init_cols]
+    filter_metadf = filtered[metadf_init_cols]
+
+    # set indexes
+    filter_df = filter_df.set_index(df_init_idx)
+    filter_metadf = filter_metadf.set_index(metadf_init_idx)
+
+    return filter_df, filter_metadf

@@ -40,161 +40,148 @@ dataset.import_data_from_file()
 
 dataset.coarsen_time_resolution()
 
-dataset.get_lcz()
+dataset.get_landcover()
 
 #%%
-
-
-
 
 anal = dataset.get_analysis()
 
 
-anal.get_aggregated_diurnal_statistics(aggregation=['season', 'name'])
-
+new_anal = anal.apply_filter('temp < 15.2')
 
 
 #%%
-# from datetime import datetime
+
+import matplotlib.pyplot as plt
+# import seaborn as sns
+import numpy as np
 
 
-# def get_seasons(datetimeseries,
-#                 start_day_spring = '01/03' ,
-#                 start_day_summer = '01/06',
-#                 start_day_autumn = '01/09',
-#                 start_day_winter = '01/12'):
-
-#     spring_startday = datetime.strptime(start_day_spring, '%d/%m')
-#     summer_startday = datetime.strptime(start_day_summer, '%d/%m')
-#     autumn_startday = datetime.strptime(start_day_autumn, '%d/%m')
-#     winter_startday = datetime.strptime(start_day_winter, '%d/%m')
+hour = 5
+obstype = 'temp'
+buffer_rad = 100
 
 
-#     seasons = pd.Series(index=['spring', 'summer', 'autumn', 'winter'],
-#                         data=[spring_startday, summer_startday, autumn_startday, winter_startday],
-#                         name='startdt').to_frame()
-#     seasons['day_of_year'] = seasons['startdt'].dt.day_of_year - 1
+def filter_data(df, metadf, quarry_str):
+    """
+    Function to filter a dataframe by a user definde string expression. This
+    can be used to filter the observation to specific meteorological conditions
+    (i.e. low windspeeds, high humidity, cold temperatures, ...)
 
-#     bins = [0]
-#     bins.extend(seasons['day_of_year'].to_list())
-#     bins.append(366)
+    The filter expression contains only columns present in the df and/or the
+    metadf.
 
-#     labels = ['winter', 'spring', 'summer', 'autumn', 'winter']
+    The filtered df and metadf are returned
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The dataframe containing all the observations to be filterd.
+    metadf : pandas.DataFrame
+        The dataframe containig all the metadata per station.
+    quarry_str : str
+        A filter expression using columnnames present in either df or metadf,
+        number and expressions like <, >, ==, >=, *, +, .... Multiple filters
+        can be combine to one expression by using & (AND) and | (OR).
+
+    Returns
+    -------
+    filter_df : pandas.DataFrame
+        The filtered df.
+    filter_metadf : pandas.DataFrame
+        The filtered metadf.
+
+    """
 
 
+    # save index order and names for reconstruction
+    df_init_idx = list(df.index.names)
+    metadf_init_idx = list(metadf.index.names)
 
-#     return pd.cut(x = datetimeseries.dt.day_of_year,
-#                   bins = bins,
-#                   labels=labels,
-#                   ordered=False,
-#                   )
-
-
-
-
-# def aggregate_df(analysis, df, agg=['lcz', 'datetime'], method='mean'):
-#     """
-#     Aggregate observations to a (list of) categories.
-
-#     The output will be a dataframe that is aggregated to one, or more categories.
-#     A commen example is aggregating to LCZ's.
+    # easyer for sperationg them
+    df = df.reset_index()
+    metadf = metadf.reset_index()
 
 
-#     Parameters
-#     ----------
-#     df : pandas.DataFrame
-#         The observations to aggregate.
-#     agg : list, optional
-#         The list of columnnames to aggregate to. If 'lcz' is included, the
-#         lcz information is extracted from the Analysis.metadf. The default is ['lcz', 'datetime'].
-#     method : str, optional
-#         list of functions and/or function names, e.g. [np.sum, 'mean']. The default is 'mean'.
+    # save columns orders
+    df_init_cols = df.columns
+    metadf_init_cols = metadf.columns
 
-#     Returns
-#     -------
-#     pandas.DataFrame
-#         A dataframe with the agg columns as an index. The values are the aggregated values.
+    # merge together on name
 
-#     Note
-#     -------
-#     Present columns that ar non-numeric and are not in the agg list are not present in the return,
-#     since these values cannot be aggregated.
+    mergedf = df.merge(metadf, how='left', on='name')
 
-#     """
-#     df = df.reset_index()
+    #apply filter
+    filtered = mergedf.query(expr=quarry_str)
 
-#     time_agg_keys = ['minute', 'hour', 'month', 'year', 'day_of_year',
-#                      'week_of_year', 'season']
+    # split to df and metadf
+    filter_df = filtered[df_init_cols]
+    filter_metadf = filtered[metadf_init_cols]
 
-#     # scan trough the metadf for aggregation keys
-#     for agg_key in agg:
-#         if agg_key not in df.columns:
-#             # look in metadf
-#             if agg_key in analysis.metadf.columns:
-#                 df = pd.merge(df, analysis.metadf[[agg_key]],
-#                                   how='left', left_on='name',
-#                                   right_index=True)
+    # set indexes
+    filter_df = filter_df.set_index(df_init_idx)
+    filter_metadf = filter_metadf.set_index(metadf_init_idx)
+
+    return filter_df, filter_metadf
 
 
 
 
-#     # Check if all agg keys are present or defined:
-#     possible_agg_keys = time_agg_keys
-#     possible_agg_keys.extend(list(df.columns))
-#     unmapped = [agg_key for agg_key in agg if agg_key not in possible_agg_keys]
-#     assert len(unmapped) == 0, f'cannot aggregate to unknown labels: {unmapped}.'
-#     # define time aggregations
-#     #1. minute
-#     if 'minute' in agg:
-#         df['minute'] = df['datetime'].dt.minute
-#     if 'hour' in agg:
-#         df['hour'] = df['datetime'].dt.hour
-#     if 'month' in agg:
-#         df['month'] = df['datetime'].dt.month_name()
-#     if 'year' in agg:
-#         df['year'] = df['datetime'].dt.year
-#     if 'day_of_year' in agg:
-#         df['day_of_year'] = df['datetime'].dt.day_of_year
-#     if 'week_of_year' in agg:
-#         df['week_of_year'] = df['datetime'].dt.week_of_year
-#     if 'season' in agg:
-#         df['season'] = get_seasons(df['datetime'])
-
-
-#     # check if not all values are Nan
-#     for agg_name in agg:
-#         assert df[agg_name].isnull().all() == False, f'Aggregation to {agg_name} not possible because no valid values found for {agg_name}.'
+testdf, testmetadf = filter_data(anal.df,
+                                 anal.metadf,
+                                 '16.2 < temp < 18.3 & humidity < 70.0')
 
 
 
+# def get_lc_correlation_matrix()
 
 
-#     # Aggregate the df
-#     agg_df = df.groupby(agg).agg(method, numeric_only=True)
-#     # sort index
-#     agg_df = agg_df.reset_index()
-#     agg_df = agg_df.set_index(agg)
-#     return agg_df
-
-
-
-# test = aggregate_df(analysis = anal,
-#                     df = anal.df,
-#                     agg=['lcz', 'month'] )
-
-
-
-
-# #%%
-
-
-
-
-
+# # get data
 # df = anal.df.reset_index()
+# df = df[df['datetime'].dt.hour == hour]
+# df = df[[obstype, 'name']]
 
-# df['season'] = get_seasons(df['datetime'])
+# # get landcover data
+# landcover_cols = [col for col in anal.metadf.columns if col.endswith(f'_{buffer_rad}m')]
+# lc_df = anal.metadf[landcover_cols]
 
+
+# # merge together
+# df = df.merge(lc_df, how='left', left_on='name', right_index = True)
+
+
+
+
+# #
+# # Correlation between different variables
+# #
+# corr = df.corr(method='pearson')
+# #
+# # Set up the matplotlib plot configuration
+# #
+# f, ax = plt.subplots(figsize=(12, 10))
+# #
+# # Generate a mask for upper traingle
+# #
+# mask = np.triu(np.ones_like(corr, dtype=bool))
+# #
+# # Configure a custom diverging colormap
+# #
+# cmap = sns.diverging_palette(230, 20, as_cmap=True)
+# #
+# # Draw the heatmap
+# #
+# sns.heatmap(corr, annot=True, mask = mask, cmap=cmap)
+
+
+
+
+# from scipy.stats import pearsonr
+# import numpy as np
+# rho = df.corr()
+# pval = df.corr(method=lambda x, y: pearsonr(x, y)[1]) - np.eye(*rho.shape)
+# p = pval.applymap(lambda x: ''.join(['*' for t in [.05, .01, .001] if x<=t]))
+# rho.round(2).astype(str) + p
 
 
 
