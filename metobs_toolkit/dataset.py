@@ -1076,140 +1076,178 @@ class Dataset:
 
         """
 
+        def can_qc_be_applied(applied_df, obstype, checkname):
+            """ test if the check is already performed on self """
+            return not applied_df[(applied_df['obstype'] == obstype) & (applied_df['checkname'] == checkname)].shape[0] > 0
+
+
         if repetitions:
             print("Applying the repetitions-check.")
             logger.info("Applying repetitions check.")
+            apliable = can_qc_be_applied(self._applied_qc, obstype, "repetitions")
 
-            obsdf, outl_df = repetitions_check(
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            if apliable:
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                obsdf, outl_df = repetitions_check(
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
 
-            # add this check to the applied checks
-            self._applied_qc = pd.concat(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames="repetitions"
-                    ),
-                ],
-                ignore_index=True,
-            )
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(
+                            obstypes=obstype, ordered_checknames="repetitions"
+                        ),
+                    ],
+                    ignore_index=True,
+                )
+            else:
+                print(f'ERROR: The repetitions check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if gross_value:
             print("Applying the gross-value-check.")
             logger.info("Applying gross value check.")
 
-            obsdf, outl_df = gross_value_check(
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            apliable = can_qc_be_applied(self._applied_qc, obstype, "gross_value")
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+            if apliable:
 
-            # add this check to the applied checks
-            self._applied_qc = pd.concat(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames="gross_value"
-                    ),
-                ],
-                ignore_index=True,
-            )
+                obsdf, outl_df = gross_value_check(
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
+
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(
+                            obstypes=obstype, ordered_checknames="gross_value"
+                        ),
+                    ],
+                    ignore_index=True,
+                )
+
+            else:
+                print(f'ERROR: The gross_value check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if persistance:
             print("Applying the persistance-check.")
             logger.info("Applying persistance check.")
 
-            obsdf, outl_df = persistance_check(
-                station_frequencies=self.metadf["dataset_resolution"],
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            apliable = can_qc_be_applied(self._applied_qc, obstype, "persistance")
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+            if apliable:
 
-            # add this check to the applied checks
-            self._applied_qc = pd.concat(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames="persistance"
-                    ),
-                ],
-                ignore_index=True,
-            )
+                obsdf, outl_df = persistance_check(
+                    station_frequencies=self.metadf["dataset_resolution"],
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
+
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(
+                            obstypes=obstype, ordered_checknames="persistance"
+                        ),
+                    ],
+                    ignore_index=True,
+                )
+
+            else:
+                 print(f'ERROR: The persistance check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if step:
             print("Applying the step-check.")
             logger.info("Applying step-check.")
 
-            obsdf, outl_df = step_check(
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            apliable = can_qc_be_applied(self._applied_qc, obstype, "step")
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+            if apliable:
 
-            # add this check to the applied checks
-            self._applied_qc = pd.concat(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(obstypes=obstype, ordered_checknames="step"),
-                ],
-                ignore_index=True,
-            )
+                obsdf, outl_df = step_check(
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
+
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(obstypes=obstype, ordered_checknames="step"),
+                    ],
+                    ignore_index=True,
+                )
+
+            else:
+                 print(f'ERROR: The step check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if window_variation:
             print("Applying the window variation-check.")
             logger.info("Applying window variation-check.")
 
-            obsdf, outl_df = window_variation_check(
-                station_frequencies=self.metadf["dataset_resolution"],
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            apliable = can_qc_be_applied(self._applied_qc, obstype, "window_variation")
+            if apliable:
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                obsdf, outl_df = window_variation_check(
+                    station_frequencies=self.metadf["dataset_resolution"],
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
 
-            # add this check to the applied checks
-            self._applied_qc = pd.concat(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames="window_variation"
-                    ),
-                ],
-                ignore_index=True,
-            )
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(
+                            obstypes=obstype, ordered_checknames="window_variation"
+                        ),
+                    ],
+                    ignore_index=True,
+                )
+
+            else:
+                 print(f'ERROR: The window_variation check can NOT be applied on {obstype} because it was already applied on this observation type!')
+
 
         self._qc_checked_obstypes.append(obstype)
         self._qc_checked_obstypes = list(set(self._qc_checked_obstypes))
@@ -1499,8 +1537,19 @@ class Dataset:
             f"Coarsening the timeresolution to {freq} using \
                     the {method}-method (with limit={limit})."
         )
+
+        # test if coarsening the resolution is valid for the dataset
+        # 1. If resolution-dep-qc is applied --> coarsening is not valid and will result in a broken dataset
+
+        if self._applied_qc[~self._applied_qc['checkname']
+                            .isin(["duplicated_timestamp", "invalid_input"])
+                            ].shape[0] > 0:
+            print('WARNING: Coarsening time resolution is not possible because quality control checks that are resolution depening are already performed on the Dataset.')
+            print('(Apply coarsening_time_resolution BEFORE applying quality control.)')
+            return
+
+
         # TODO: implement buffer method
-        # TODO: implement startdt point
         df = self.df.reset_index()
 
         if origin is None:

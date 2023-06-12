@@ -350,12 +350,33 @@ def timeseries_plot(
 
 
     if colorby == "label":
-        # iterate over label groups
+
+        legenddict = {} # iterate over label groups
         col_mapper = _all_possible_labels_colormapper(settings) # get color mapper
 
         outl_groups = mergedf.groupby('label')
-        legenddict = {}
-        for outl_label, groupdf in outl_groups:
+
+         # TODO: make proper fix proper fix for this issue
+         # (issue: all scatters added to the axis in advance of the lines are not shown
+         #          in the plot. zorder does not seem to have any inpact??)
+
+
+         # poorsman fix (sorting the labels in advance)
+        iterate_labels = []
+        present_labels = list(outl_groups.groups.keys())
+        if ok_group_label in present_labels:
+            iterate_labels.append('ok')
+
+        present_fills = [lab for lab in present_labels if lab in fill_labels]
+        iterate_labels.extend(present_fills)
+
+        present_outl = [lab for lab in present_labels if lab not in iterate_labels]
+        iterate_labels.extend(present_outl)
+
+        for outl_label in iterate_labels:
+            groupdf = outl_groups.get_group(outl_label)
+        # end poormans fix
+        # for outl_label, groupdf in outl_groups:
             outl_color = col_mapper[outl_label]
 
 
@@ -371,7 +392,8 @@ def timeseries_plot(
                     index="datetime", columns="name", values='value'
                 )  # long to wide
 
-                ax = plotdf.plot(
+
+                plotdf.plot(
                     kind="line",
                     color=outl_color,
                     ax=ax,
@@ -379,6 +401,7 @@ def timeseries_plot(
                     zorder=plot_settings["time_series"]["linezorder"],
                     linewidth=plot_settings["time_series"]["linewidth"],
                 )
+
 
                 # add legend handl
                 custom_handles.append(
@@ -398,7 +421,8 @@ def timeseries_plot(
                     index="datetime", columns="name", values='value'
                 )  # long to wide
 
-                ax = plotdf.plot(
+
+                plotdf.plot(
                     kind="line",
                     style="--",
                     color=outl_color,
@@ -422,7 +446,8 @@ def timeseries_plot(
                 plotdf = groupdf['value']
                 plotdf.index = plotdf.index.droplevel("name")
                 plotdf = plotdf.reset_index()
-                ax = plotdf.plot(
+
+                plotdf.plot(
                     kind="scatter",
                     x="datetime",
                     y='value',
@@ -442,7 +467,6 @@ def timeseries_plot(
                     )
                 label_vec.append(3)
             legenddict[outl_label] = outl_color
-
         # make legend
         if show_legend:
             # sort legend items
@@ -461,8 +485,8 @@ def timeseries_plot(
         plotdf = mergedf.reset_index().pivot(
             index="datetime", columns="name", values='value'
         )
-        #ax = plotdf.plot(kind="line", legend=show_legend, ax=ax)
-        ax = plotdf.plot(kind="line", legend=False, ax=ax)
+
+        plotdf.plot(kind="line", legend=False, ax=ax)
         if show_legend == True:
             box = ax.get_position()
             ax.set_position([box.x0, box.y0 + box.height * 0.2,
@@ -473,7 +497,6 @@ def timeseries_plot(
                 ncol=plot_settings["time_series"]["legend_n_columns"])
 
     # Set title
-    print(f'title = {title}')
     ax.set_title(title)
     # ax.legend().set_title('')
 
