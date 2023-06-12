@@ -1218,8 +1218,6 @@ class Dataset:
         self.outliersdf = self.outliersdf.sort_index()
 
     def apply_titan_buddy_check(self, obstype='temp'):
-        # TODO: what if elevation is not availabl
-
 
         obsdf, outliersdf = titan_buddy_check(obsdf = self.df,
                                            metadf = self.metadf,
@@ -1245,17 +1243,9 @@ class Dataset:
             ignore_index=True,
         )
 
-        # add colors for this type of outlier
-        # set back default values
-        # test qc stats + timeseries + combine all etc
-        # write test
-
-
         return obsdf, outliersdf
     
     def apply_titan_sct_resistant_check(self, obstype='temp'):
-        # TODO: what if elevation is not availabl
-
 
         obsdf, outliersdf = titan_sct_resistant_check(obsdf = self.df,
                                            metadf = self.metadf,
@@ -1275,17 +1265,11 @@ class Dataset:
             [
                 self._applied_qc,
                 conv_applied_qc_to_df(
-                    obstypes=obstype, ordered_checknames="titan_buddy_check"
+                    obstypes=obstype, ordered_checknames="titan_sct_resistant_check"
                 ),
             ],
             ignore_index=True,
         )
-
-        # add colors for this type of outlier
-        # set back default values
-        # test qc stats + timeseries + combine all etc
-        # write test
-
 
         return obsdf, outliersdf
 

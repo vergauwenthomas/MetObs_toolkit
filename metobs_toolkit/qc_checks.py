@@ -740,8 +740,44 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
     return points_dict
 
 def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
+    
+    """
+    The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for 
+    buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the 
+    (absolute value of the) difference between the observations and the average of the neighbours 
+    normalized by the standard deviation in the circle is greater than a predefined threshold.
 
 
+    Parameters
+    
+    obsdf: Pandas.DataFrame
+        The dataframe containing the observations
+    
+    metadf: Pandas.DataFrame
+        The dataframe containing the metadata (e.g. latitude, longitude...)
+    
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'
+        
+    checks_info: Dictionary
+        Dictionary with the names of the outlier flags for each check
+    
+    checks_settings: Dictionary
+        Dictionary with the settings for each check
+        
+    titan_specific_labeler: Dictionary
+        Dictionary that maps numeric flags to 'ok' or 'outlier' flags for each titan check
+    
+    
+    """
+    
+    try:
+        alt = metadf['altitude']
+    except:
+        print(f"Cannot find altitude of weather stations. Check is skipped!")
+        logger.warning(
+            f"Cannot find altitude of weather stations. Check is skipped!"
+        )
 
     # Create points_dict
     pointsdict = create_titanlib_points_dict(obsdf, metadf, obstype)
@@ -787,6 +823,43 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
     return obsdf, outliersdf
 
 def titan_sct_resistant_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
+    
+    """
+    The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the 
+    nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation 
+    (OI) to compute an expected value for each observation. The background for the OI is computed from 
+    a general vertical profile of observations in the area.
+
+    Parameters
+    
+    obsdf: Pandas.DataFrame
+        The dataframe containing the observations
+    
+    metadf: Pandas.DataFrame
+        The dataframe containing the metadata (e.g. latitude, longitude...)
+    
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'
+        
+    checks_info: Dictionary
+        Dictionary with the names of the outlier flags for each check
+    
+    checks_settings: Dictionary
+        Dictionary with the settings for each check
+        
+    titan_specific_labeler: Dictionary
+        Dictionary that maps numeric flags to 'ok' or 'outlier' flags for each titan check
+    
+    
+    """
+    
+    try:
+        alt = metadf['altitude']
+    except:
+        print(f"Cannot find altitude of weather stations. Check is skipped!")
+        logger.warning(
+            f"Cannot find altitude of weather stations. Check is skipped!"
+        )
     
     # Create points_dict
     pointsdict = create_titanlib_points_dict(obsdf, metadf, obstype)
