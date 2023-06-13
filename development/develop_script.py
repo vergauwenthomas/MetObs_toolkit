@@ -67,21 +67,23 @@ import numpy as np
 
 
 
-def get_lc_correlation_matrices(anal, obstype='temp', groupby_labels=['hour']):
+def get_lc_correlation_matrices(anal, obstype=['temp'], groupby_labels=['hour']):
 
 
-    # TODO: docstring
+
     # TODO: visualisation ??
 
+    if not isinstance(obstype, list):
+        obstype = [obstype]
 
     # get data
-    df = anal.df[[obstype]].reset_index()
+    df = anal.df[obstype].reset_index()
     df = _make_time_derivatives(df, groupby_labels)
 
     # subset columns
     relev_columns = [label for label in groupby_labels] #to avoid deep copy import
     relev_columns.append('name')
-    relev_columns.append(obstype)
+    relev_columns.extend(obstype)
     df = df[relev_columns]
 
     # find landcover columnnames in the metadf
@@ -132,10 +134,10 @@ def get_lc_correlation_matrices(anal, obstype='temp', groupby_labels=['hour']):
 
     return cor_dict
 
-test = get_lc_correlation_matrices(anal, groupby_labels=['hour'])
+test = get_lc_correlation_matrices(anal,obstype=['temp', 'humidity'], groupby_labels=['hour'])
 
+df = test[5]['combined_matrix']
 #%%
 
-keylist = list(test.keys())
 
 

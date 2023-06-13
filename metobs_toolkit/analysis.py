@@ -621,7 +621,7 @@ class Analysis():
 
         return hourly_avg
 
-    def get_lc_correlation_matrices(self, obstype='temp', groupby_labels=['hour']):
+    def get_lc_correlation_matrices(self, obstype=['temp'], groupby_labels=['hour']):
         """
         A method to compute the Pearson correlation between an obervation type
         and present landcover fractions in the metadf.
@@ -641,8 +641,8 @@ class Analysis():
         Parameters
         ----------
 
-        obstype : str, optional
-            The observation type to compute the correlations on. The default is 'temp'.
+        obstype : str, or list optional
+            The observation type(s) to compute the correlations on. The default is ['temp'].
         groupby_labels : list, optional
             List of variables to form one group, resulting in one correlation.
             These variables should either a categorical observation type, a categorical column in the metadf or
@@ -660,15 +660,18 @@ class Analysis():
         # TODO: docstring
         # TODO: visualisation ??
 
+        # conv to list if str is given
+        if not isinstance(obstype, list):
+            obstype = [obstype]
 
         # get data
-        df = self.df[[obstype]].reset_index()
+        df = self.df[obstype].reset_index()
         df = _make_time_derivatives(df, groupby_labels)
 
         # subset columns
         relev_columns = [label for label in groupby_labels] #to avoid deep copy import
         relev_columns.append('name')
-        relev_columns.append(obstype)
+        relev_columns.extend(obstype)
         df = df[relev_columns]
 
         # find landcover columnnames in the metadf
