@@ -7,6 +7,8 @@ Created on Tue Mar 28 15:35:07 2023
 """
 from datetime import datetime
 import pandas as pd
+import numpy as np
+from scipy.stats import pearsonr
 
 from metobs_toolkit.plotting_functions import diurnal_plot
 
@@ -170,22 +172,10 @@ class Analysis():
         possible_agg_keys.extend(list(df.columns))
         unmapped = [agg_key for agg_key in agg if agg_key not in possible_agg_keys]
         assert len(unmapped) == 0, f'cannot aggregate to unknown labels: {unmapped}.'
-        # define time aggregations
 
-        if 'minute' in agg:
-            df['minute'] = df['datetime'].dt.minute
-        if 'hour' in agg:
-            df['hour'] = df['datetime'].dt.hour
-        if 'month' in agg:
-            df['month'] = df['datetime'].dt.month_name()
-        if 'year' in agg:
-            df['year'] = df['datetime'].dt.year
-        if 'day_of_year' in agg:
-            df['day_of_year'] = df['datetime'].dt.day_of_year
-        if 'week_of_year' in agg:
-            df['week_of_year'] = df['datetime'].dt.week_of_year
-        if 'season' in agg:
-            df['season'] = get_seasons(df['datetime'])
+
+        # make time-derivate columns if required
+        df = _make_time_derivatives(df, agg)
 
 
         # check if not all values are Nan
@@ -631,7 +621,126 @@ class Analysis():
 
         return hourly_avg
 
+    def get_lc_correlation_matrices(self, obstype='temp', groupby_labels=['hour']):
+        """
+        A method to compute the Pearson correlation between an obervation type
+        and present landcover fractions in the metadf.
 
+        The correlations are computed per group ad defined by unique combinations
+        of the groupby_labels.
+
+        A dictionary is returnd where each key represents a unique combination of
+        the groupby_labels. The value is a dictionary with the following keys
+        and values:
+            * cor matrix: the Pearson correlation matrix
+            * significance matrix: the significance (p-)values of the correlations.
+            * combined_matrix: A human readable combination of the correlations
+            and their p values. Indicate by *, ** or *** representing p-values
+            < 0.05, 0.01 and 0.001 respectively.
+
+        Parameters
+        ----------
+
+        obstype : str, optional
+            The observation type to compute the correlations on. The default is 'temp'.
+        groupby_labels : list, optional
+            List of variables to form one group, resulting in one correlation.
+            These variables should either a categorical observation type, a categorical column in the metadf or
+            a time aggregation. All possible time aggreagetions are: ['minute',
+            'hour', 'month', 'year', 'day_of_year',
+            'week_of_year', 'season']. The default is ['lcz', 'datetime'].. The default is ['hour'].
+
+        Returns
+        -------
+        cor_dict : dict
+            A nested dictionary with unique combinations of groupby values.
+
+        """
+
+        # TODO: docstring
+        # TODO: visualisation ??
+
+
+        # get data
+        df = self.df[[obstype]].reset_index()
+        df = _make_time_derivatives(df, groupby_labels)
+
+        # subset columns
+        relev_columns = [label for label in groupby_labels] #to avoid deep copy import
+        relev_columns.append('name')
+        relev_columns.append(obstype)
+        df = df[relev_columns]
+
+        # find landcover columnnames in the metadf
+        lc_columns = [col for col in self.metadf.columns if (('_' in col ) & (col.endswith('m')))]
+
+        # get landcover data
+        lc_df = self.metadf[lc_columns]
+
+        if lc_df.empty:
+            print('WARNING: No landcover columns found in the metadf. Landcover correlations cannot be computed.')
+            return None
+
+
+        # merge together
+        df = df.merge(lc_df, how='left', left_on='name', right_index = True)
+
+        # remove name column if it is not explicit in the groupby labels
+        if 'name' not in groupby_labels:
+            df = df.drop(columns=['name'])
+
+        # create return
+        cor_dict = {}
+
+        #Iterate over all groups
+
+        # avoid futur pandas warning for groupby labels of len==1
+        if len(groupby_labels) == 1:
+            groups = df.groupby(groupby_labels[0])
+        else:
+            groups = df.groupby(groupby_labels)
+
+
+        for group_lab, groupdf in groups:
+
+            # drop groupby labels
+            groupdf = groupdf.drop(columns=groupby_labels, errors='ignore')
+
+            rho = groupdf.corr(method='pearson')
+            pval = groupdf.corr(method=lambda x, y: pearsonr(x, y)[1]) - np.eye(*rho.shape)
+            # represent p values by stars
+            p_stars = pval.applymap(lambda x: ''.join(['*' for t in [.05, .01, .001] if x<=t]))
+
+            cor_dict[group_lab] = {'cor matrix': rho,
+                                   'significance matrix': pval,
+                                   'combined_matrix': rho.astype(str) +' ' +  p_stars}
+
+        return cor_dict
+
+
+
+
+
+def _make_time_derivatives(df, required):
+    """ construct time derivated columns if required.
+        datetime must be a column."""
+
+    if 'minute' in required:
+        df['minute'] = df['datetime'].dt.minute
+    if 'hour' in required:
+        df['hour'] = df['datetime'].dt.hour
+    if 'month' in required:
+        df['month'] = df['datetime'].dt.month_name()
+    if 'year' in required:
+        df['year'] = df['datetime'].dt.year
+    if 'day_of_year' in required:
+        df['day_of_year'] = df['datetime'].dt.day_of_year
+    if 'week_of_year' in required:
+        df['week_of_year'] = df['datetime'].dt.week_of_year
+    if 'season' in required:
+        df['season'] = get_seasons(df['datetime'])
+
+    return df
 
 
 

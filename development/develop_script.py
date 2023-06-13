@@ -49,139 +49,93 @@ anal = dataset.get_analysis()
 
 new_anal = anal.apply_filter('temp < 15.2')
 
+import copy
+
+backup = copy.deepcopy(anal)
 
 #%%
 
 import matplotlib.pyplot as plt
 # import seaborn as sns
 import numpy as np
-
-
-hour = 5
-obstype = 'temp'
-buffer_rad = 100
-
-
-def filter_data(df, metadf, quarry_str):
-    """
-    Function to filter a dataframe by a user definde string expression. This
-    can be used to filter the observation to specific meteorological conditions
-    (i.e. low windspeeds, high humidity, cold temperatures, ...)
-
-    The filter expression contains only columns present in the df and/or the
-    metadf.
-
-    The filtered df and metadf are returned
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The dataframe containing all the observations to be filterd.
-    metadf : pandas.DataFrame
-        The dataframe containig all the metadata per station.
-    quarry_str : str
-        A filter expression using columnnames present in either df or metadf,
-        number and expressions like <, >, ==, >=, *, +, .... Multiple filters
-        can be combine to one expression by using & (AND) and | (OR).
-
-    Returns
-    -------
-    filter_df : pandas.DataFrame
-        The filtered df.
-    filter_metadf : pandas.DataFrame
-        The filtered metadf.
-
-    """
-
-
-    # save index order and names for reconstruction
-    df_init_idx = list(df.index.names)
-    metadf_init_idx = list(metadf.index.names)
-
-    # easyer for sperationg them
-    df = df.reset_index()
-    metadf = metadf.reset_index()
-
-
-    # save columns orders
-    df_init_cols = df.columns
-    metadf_init_cols = metadf.columns
-
-    # merge together on name
-
-    mergedf = df.merge(metadf, how='left', on='name')
-
-    #apply filter
-    filtered = mergedf.query(expr=quarry_str)
-
-    # split to df and metadf
-    filter_df = filtered[df_init_cols]
-    filter_metadf = filtered[metadf_init_cols]
-
-    # set indexes
-    filter_df = filter_df.set_index(df_init_idx)
-    filter_metadf = filter_metadf.set_index(metadf_init_idx)
-
-    return filter_df, filter_metadf
+from metobs_toolkit.analysis import _make_time_derivatives
 
 
 
-
-testdf, testmetadf = filter_data(anal.df,
-                                 anal.metadf,
-                                 '16.2 < temp < 18.3 & humidity < 70.0')
+from scipy.stats import pearsonr
+import numpy as np
 
 
 
-# def get_lc_correlation_matrix()
+def get_lc_correlation_matrices(anal, obstype='temp', groupby_labels=['hour']):
 
 
-# # get data
-# df = anal.df.reset_index()
-# df = df[df['datetime'].dt.hour == hour]
-# df = df[[obstype, 'name']]
-
-# # get landcover data
-# landcover_cols = [col for col in anal.metadf.columns if col.endswith(f'_{buffer_rad}m')]
-# lc_df = anal.metadf[landcover_cols]
+    # TODO: docstring
+    # TODO: visualisation ??
 
 
-# # merge together
-# df = df.merge(lc_df, how='left', left_on='name', right_index = True)
+    # get data
+    df = anal.df[[obstype]].reset_index()
+    df = _make_time_derivatives(df, groupby_labels)
+
+    # subset columns
+    relev_columns = [label for label in groupby_labels] #to avoid deep copy import
+    relev_columns.append('name')
+    relev_columns.append(obstype)
+    df = df[relev_columns]
+
+    # find landcover columnnames in the metadf
+    lc_columns = [col for col in anal.metadf.columns if (('_' in col ) & (col.endswith('m')))]
+
+    # get landcover data
+    lc_df = anal.metadf[lc_columns]
+
+    if lc_df.empty:
+        print('WARNING: No landcover columns found in the metadf. Landcover correlations cannot be computed.')
+        return None
+
+
+    # merge together
+    df = df.merge(lc_df, how='left', left_on='name', right_index = True)
+
+    # remove name column if it is not explicit in the groupby labels
+    if 'name' not in groupby_labels:
+        df = df.drop(columns=['name'])
+
+    # create return
+    cor_dict = {}
+
+    #Iterate over all groups
+
+    # avoid futur pandas warning for groupby labels of len==1
+    if len(groupby_labels) == 1:
+        groups = df.groupby(groupby_labels[0])
+    else:
+        groups = df.groupby(groupby_labels)
+
+
+    for group_lab, groupdf in groups:
+
+        # drop groupby labels
+        groupdf = groupdf.drop(columns=groupby_labels, errors='ignore')
+
+        rho = groupdf.corr(method='pearson')
+        pval = groupdf.corr(method=lambda x, y: pearsonr(x, y)[1]) - np.eye(*rho.shape)
+        # represent p values by stars
+        p_stars = pval.applymap(lambda x: ''.join(['*' for t in [.05, .01, .001] if x<=t]))
+
+        cor_dict[group_lab] = {'cor matrix': rho,
+                               'significance matrix': pval,
+                               'combined_matrix': rho.astype(str) +' ' +  p_stars}
 
 
 
+    return cor_dict
 
-# #
-# # Correlation between different variables
-# #
-# corr = df.corr(method='pearson')
-# #
-# # Set up the matplotlib plot configuration
-# #
-# f, ax = plt.subplots(figsize=(12, 10))
-# #
-# # Generate a mask for upper traingle
-# #
-# mask = np.triu(np.ones_like(corr, dtype=bool))
-# #
-# # Configure a custom diverging colormap
-# #
-# cmap = sns.diverging_palette(230, 20, as_cmap=True)
-# #
-# # Draw the heatmap
-# #
-# sns.heatmap(corr, annot=True, mask = mask, cmap=cmap)
+test = get_lc_correlation_matrices(anal, groupby_labels=['hour'])
 
+#%%
 
-
-
-# from scipy.stats import pearsonr
-# import numpy as np
-# rho = df.corr()
-# pval = df.corr(method=lambda x, y: pearsonr(x, y)[1]) - np.eye(*rho.shape)
-# p = pval.applymap(lambda x: ''.join(['*' for t in [.05, .01, .001] if x<=t]))
-# rho.round(2).astype(str) + p
-
+keylist = list(test.keys())
 
 
