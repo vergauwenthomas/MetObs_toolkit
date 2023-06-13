@@ -12,6 +12,7 @@ import pytz
 import logging
 import pandas as pd
 import numpy as np
+import pickle
 
 
 from metobs_toolkit.settings import Settings
@@ -152,6 +153,84 @@ class Dataset:
 
     def __repr__(self):
         return self.__str__()
+
+    def save_dataset(self, outputfolder=None, filename='saved_dataset.pkl'):
+        """
+        Method to save a Dataset instance to a (pickle) file.
+
+        Parameters
+        ----------
+        outputfolder : str or None, optional
+            The path to the folder to save the file. If None, the outputfolder
+            from the Settings is used. The default is None.
+        filename : str, optional
+            The name of the output file. The default is 'saved_dataset.pkl'.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # check if outputfolder is known and exists
+        if outputfolder is None:
+            outputfolder = self.settings.IO['output_folder']
+            assert not outputfolder is None, 'No outputfolder is given, and no outputfolder is found in the settings.'
+
+        assert os.path.isdir(outputfolder), f'{outputfolder} is not a directory!'
+
+        # check file extension in the filename:
+        if filename[-4:] != '.pkl':
+            filename += '.pkl'
+
+        full_path = os.path.join(outputfolder, filename)
+
+        # check if file exists
+        assert not os.path.isfile(full_path), f'{full_path} is already a file!'
+
+        with open(full_path, 'wb') as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+        print(f'Dataset saved in {full_path}')
+
+
+    def import_dataset(self, folder_path=None, filename='saved_dataset.pkl'):
+        """
+        Method to import a Dataset instance from a (pickle) file.
+
+        Parameters
+        ----------
+        folder_path : str or None, optional
+            The path to the folder to save the file. If None, the outputfolder
+            from the Settings is used. The default is None.
+        filename : str, optional
+            The name of the output file. The default is 'saved_dataset.pkl'.
+
+        Returns
+        -------
+        metobs_toolkit.Dataset
+            The Dataset instance.
+
+        """
+
+        # check if folder_path is known and exists
+        if folder_path is None:
+            folder_path = self.settings.IO['output_folder']
+            assert not folder_path is None, 'No folder_path is given, and no outputfolder is found in the settings.'
+
+        assert os.path.isdir(folder_path), f'{folder_path} is not a directory!'
+
+        full_path = os.path.join(folder_path, filename)
+
+        # check if file exists
+        assert os.path.isfile(full_path), f'{full_path} does not exist.'
+
+        with open(full_path, 'rb') as inp:
+            dataset = pickle.load(inp)
+
+        return dataset
+
+
 
 
     def show_settings(self):
