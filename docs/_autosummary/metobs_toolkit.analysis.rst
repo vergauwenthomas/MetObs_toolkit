@@ -15,6 +15,7 @@ metobs\_toolkit.analysis
       :toctree:
       :nosignatures:
    
+      filter_data
       get_seasons
    
    

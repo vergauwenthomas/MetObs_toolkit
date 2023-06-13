@@ -634,7 +634,7 @@ class Analysis():
         and values:
             * cor matrix: the Pearson correlation matrix
             * significance matrix: the significance (p-)values of the correlations.
-            * combined_matrix: A human readable combination of the correlations
+            * combined matrix: A human readable combination of the correlations
             and their p values. Indicate by *, ** or *** representing p-values
             < 0.05, 0.01 and 0.001 respectively.
 
@@ -716,7 +716,7 @@ class Analysis():
 
             cor_dict[group_lab] = {'cor matrix': rho,
                                    'significance matrix': pval,
-                                   'combined_matrix': rho.astype(str) +' ' +  p_stars}
+                                   'combined matrix': rho.astype(str) +' ' +  p_stars}
 
         return cor_dict
 

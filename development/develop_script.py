@@ -128,7 +128,7 @@ def get_lc_correlation_matrices(anal, obstype=['temp'], groupby_labels=['hour'])
 
         cor_dict[group_lab] = {'cor matrix': rho,
                                'significance matrix': pval,
-                               'combined_matrix': rho.astype(str) +' ' +  p_stars}
+                               'combined matrix': rho.astype(str) +' ' +  p_stars}
 
 
 
@@ -136,8 +136,36 @@ def get_lc_correlation_matrices(anal, obstype=['temp'], groupby_labels=['hour'])
 
 test = get_lc_correlation_matrices(anal,obstype=['temp', 'humidity'], groupby_labels=['hour'])
 
-df = test[5]['combined_matrix']
+
 #%%
+
+import matplotlib.pyplot as plt
+
+cor =test[5]
+
+
+# make heatmap of cor
+
+fig, ax = plt.subplots(figsize=(8,8))
+im = ax.imshow(cor['cor matrix'], interpolation='nearest')
+fig.colorbar(im, orientation='vertical', fraction = 0.05)
+
+# Show all ticks and label them with the dataframe column name
+ax.set_xticklabels(cor['cor matrix'].columns, rotation=65, fontsize=15)
+ax.set_yticklabels(cor['cor matrix'].index, rotation=0, fontsize=15)
+
+# Loop over data dimensions and create text annotations
+for i in range(len(cor['cor matrix'].columns)-1):
+    for j in range(len(cor['cor matrix'].index)-1):
+        text = ax.text(j, i,
+                       f'{cor["combined matrix"].to_numpy()[i, j]:.2f}',
+                       # round(pear_corr.to_numpy()[i, j], 2),
+                       # ha="center", va="center", color="black",
+                       )
+
+plt.show()
+
+
 
 
 
