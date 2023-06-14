@@ -33,9 +33,11 @@ metobs\_toolkit.station.Station
       ~Station.get_station
       ~Station.import_data_from_database
       ~Station.import_data_from_file
+      ~Station.import_dataset
       ~Station.make_gee_plot
       ~Station.make_geo_plot
       ~Station.make_plot
+      ~Station.save_dataset
       ~Station.show
       ~Station.show_settings
       ~Station.sync_observations

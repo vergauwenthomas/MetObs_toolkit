@@ -22,6 +22,8 @@ metobs\_toolkit.analysis.Analysis
       ~Analysis.get_diurnal_statistics
       ~Analysis.get_diurnal_statistics_with_reference
       ~Analysis.get_lc_correlation_matrices
+      ~Analysis.plot_correlation_heatmap
+      ~Analysis.plot_correlation_variation
       ~Analysis.subset_period
    
    

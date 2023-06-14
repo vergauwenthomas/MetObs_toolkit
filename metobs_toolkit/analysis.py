@@ -8,6 +8,7 @@ Created on Tue Mar 28 15:35:07 2023
 from datetime import datetime
 import pandas as pd
 import numpy as np
+import copy
 from scipy.stats import pearsonr
 
 from metobs_toolkit.plotting_functions import (diurnal_plot,
@@ -146,7 +147,7 @@ class Analysis():
 
 
 
-    def aggregate_df(self, df, agg=['lcz', 'datetime'], method='mean'):
+    def aggregate_df(self, df=None, agg=['lcz', 'hour'], method='mean'):
         """
         Aggregate observations to a (list of) categories.
 
@@ -156,8 +157,9 @@ class Analysis():
 
         Parameters
         ----------
-        df : pandas.DataFrame
-            The observations to aggregate.
+        df : pandas.DataFrame or None
+            The observations to aggregate. If None, the df attribute of the
+            Analysis instance is used. The default is None.
         agg : list, optional
             The list of columnnames to aggregate to. If 'lcz' is included, the
             lcz information is extracted from the Analysis.metadf. The default is ['lcz', 'datetime'].
@@ -171,10 +173,13 @@ class Analysis():
 
         Note
         -------
-        Present columns that ar non-numeric and are not in the agg list are not present in the return,
-        since these values cannot be aggregated.
+        Present columns that ar non-numeric and are not in the agg list, are
+        not present in the return, since these values cannot be aggregated.
 
         """
+
+        if df is None:
+            df = copy.deepcopy(self.df)
         df = df.reset_index()
 
         time_agg_keys = ['minute', 'hour', 'month', 'year', 'day_of_year',

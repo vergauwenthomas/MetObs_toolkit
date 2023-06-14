@@ -44,9 +44,16 @@ dataset.update_settings(input_data_file = metobs_toolkit.demo_datafile,
 dataset.import_data_from_file()
 
 # dataset.coarsen_time_resolution()
-
+dataset.get_altitude()
 dataset.get_landcover()
 dataset.get_lcz()
+
+
+
+dataset.save_dataset(outputfolder='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data',
+                     filename='tests_dataset')
+
+
 
 #%%
 # outputfolder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkitss'
