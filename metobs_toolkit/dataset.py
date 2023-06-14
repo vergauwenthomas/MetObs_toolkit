@@ -739,9 +739,47 @@ class Dataset:
 
     def fill_gaps_automatic(self, modeldata, obstype='temp',
                             max_interpolate_duration_str=None,
-                            overwrite=True):
+                            overwrite_fill=False):
+        """
+        Fill the gaps by using linear interpolation or debiased modeldata. The
+        method that is applied to perform the gapfill will be determined by the
+        duration of the gap.
 
-        # Validate input
+        When the duration of a gap is smaller or equal than
+        max_interpolation_duration, the linear interpolation method is applied
+        else the debiased modeldata method.
+
+
+        Parameters
+        ----------
+        modeldata : metobs_toolkit.Modeldata
+            The modeldata to use for the gapfill. This model data should the required
+            timeseries to fill all gaps present in the dataset.
+        obstype : String, optional
+            Name of the observationtype you want to apply gap filling on. The
+            modeldata must contain this observation type as well. The
+            default is 'temp'.
+        max_interpolate_duration_str : Timedelta or str, optional
+            Maximum duration to apply interpolation for gapfill when using the
+            automatic gapfill method. Gaps with longer durations will be filled
+            using debiased modeldata. The default is None.
+        overwrite_fill: bool, optional
+            If a gap has already filled values, the interpolation of this gap
+            is skipped if overwrite_fill is False. If set to True, the gapfill
+            values and info will be overwitten. The default is False.
+
+        Returns
+        -------
+        comb_df : TYPE
+            gapfilldf : pandas.DataFrame
+                A dataframe containing all the filled records.
+
+        """
+
+
+
+        #  ----------- Validate ----------------------------------------
+
         # check if modeldata is available
         if modeldata is None:
             print(
@@ -761,21 +799,14 @@ class Dataset:
             [sta in modeldata.df.index.get_level_values("name") for sta in stations]
         ), f"Not all stations with gaps are in the modeldata!"
 
-        if not self.gapfilldf.empty:
-            if overwrite:
-                print("Gapfilldf will be overwritten!")
-                self.gapfilldf = init_multiindexdf()
-            else:
-                print('Gapfilldf is not empty, set "overwrite=True" to overwrite it!')
-                print("CANCEL gap fill with ERA5")
-                return
+
 
         if max_interpolate_duration_str is None:
             max_interpolate_duration_str = self.settings.gap["gaps_fill_settings"]["automatic"]["max_interpolation_duration_str"]
 
         fill_info = self.settings.gap["gaps_fill_info"]
 
-        # select the method to apply gapfill per gap
+        #  ------------select the method to apply gapfill per gap ----------
         interpolate_gaps = []
         debias_gaps = []
 
@@ -785,7 +816,7 @@ class Dataset:
             else:
                 debias_gaps.append(gap)
 
-        #1  Fill by interpolation
+        #1   ---------------Fill by interpolation ---------------------
 
         fill_settings_interp = self.settings.gap["gaps_fill_settings"]["linear"]
 
@@ -799,11 +830,12 @@ class Dataset:
                             obstype=obstype,
                             method=fill_settings_interp["method"],
                             max_consec_fill=fill_settings_interp["max_consec_fill"],
+                            overwrite_fill=overwrite_fill,
                             )
 
         filldf_interp = make_gapfill_df(interpolate_gaps)
 
-        #2 Fill by debias
+        #2  --------------  Fill by debias -----------------------------
 
         fill_settings_debias = self.settings.gap["gaps_fill_settings"]["model_debias"]
 
@@ -812,7 +844,8 @@ class Dataset:
                                         dataset=self,
                                         eraModelData=modeldata,
                                         obstype=obstype,
-                                        debias_settings=fill_settings_debias)
+                                        debias_settings=fill_settings_debias,
+                                        overwrite_fill=overwrite_fill)
 
         # add label column
         filldf_debias = make_gapfill_df(debias_gaps)
@@ -820,47 +853,61 @@ class Dataset:
 
         # combine both fill df's
         comb_df = pd.concat([filldf_interp, filldf_debias])
-        if overwrite:
-            self.gapfilldf = comb_df
+
+        # update attr
+        self.gapfilldf = comb_df
+
         return comb_df
 
 
-    def fill_gaps_linear(self, obstype="temp", overwrite=True):
+    def fill_gaps_linear(self, obstype="temp", overwrite_fill=False):
         """
         Fill the gaps using linear interpolation.
+
+        The gapsfilldf attribute of the Datasetinstance will be updated if
+        the gaps are not filled yet or if overwrite_fill is set to True.
 
         Parameters
         ----------
         obstype : string, optional
             Fieldname to visualise. This can be an observation or station
             attribute. The default is 'temp'.
+        overwrite_fill: bool, optional
+            If a gap has already filled values, the interpolation of this gap
+            is skipped if overwrite_fill is False. If set to True, the gapfill
+            values and info will be overwitten. The default is False.
 
         Returns
         -------
-        None.
+        gapfilldf : pandas.DataFrame
+            A dataframe containing all the filled records.
+
 
         """
+
+
         # TODO logging
         fill_settings = self.settings.gap["gaps_fill_settings"]["linear"]
         fill_info = self.settings.gap["gaps_fill_info"]
 
         # fill gaps
         apply_interpolate_gaps(
-            gapslist=self.gaps,
-            obsdf=self.df,
-            outliersdf=self.outliersdf,
-            dataset_res=self.metadf["dataset_resolution"],
-            gapfill_settings=self.settings.gap['gaps_fill_info'],
-            obstype=obstype,
-            method=fill_settings["method"],
-            max_consec_fill=fill_settings["max_consec_fill"],
+                gapslist=self.gaps,
+                obsdf=self.df,
+                outliersdf=self.outliersdf,
+                dataset_res=self.metadf["dataset_resolution"],
+                gapfill_settings=self.settings.gap['gaps_fill_info'],
+                obstype=obstype,
+                method=fill_settings["method"],
+                max_consec_fill=fill_settings["max_consec_fill"],
+                overwrite_fill = overwrite_fill,
         )
 
         # get gapfilldf
         gapfilldf = make_gapfill_df(self.gaps)
 
-        if overwrite:
-            self.gapfilldf = gapfilldf
+        # update attr
+        self.gapfilldf = gapfilldf
 
         return gapfilldf
 
@@ -919,7 +966,7 @@ class Dataset:
 
 
     def fill_gaps_era5(
-        self, modeldata, method="debias", obstype="temp", overwrite=True
+        self, modeldata, method="debias", obstype="temp", overwrite_fill=False
     ):
         """
         Fill the gaps using a metobs_toolkit.Modeldata object.
@@ -932,11 +979,14 @@ class Dataset:
             timeseries to fill all gaps present in the dataset.
         method : 'debias', optional
             Specify which method to use. The default is 'debias'.
-        obstype : TYPE, optional
-            Fieldname to visualise. This can be an observation or station
-            attribute. The default is 'temp'.
-        overwrite : bool, optional
-            If True, the Dataset.Gapfilldf will be overwritten. The default is True.
+        obstype : String, optional
+           Name of the observationtype you want to apply gap filling on. The
+           modeldata must contain this observation type as well. The
+           default is 'temp'.
+        overwrite_fill: bool, optional
+            If a gap has already filled values, the interpolation of this gap
+            is skipped if overwrite_fill is False. If set to True, the gapfill
+            values and info will be overwitten. The default is False.
 
         Returns
         -------
@@ -974,15 +1024,17 @@ class Dataset:
                                             dataset=self,
                                             eraModelData=modeldata,
                                             obstype=obstype,
-                                            debias_settings=fill_settings_debias)
+                                            debias_settings=fill_settings_debias,
+                                            overwrite_fill=overwrite_fill)
 
             # get fill df
             filldf = make_gapfill_df(self.gaps)
         else:
             print("not implemented yet")
 
-        if overwrite:
-            self.gapfilldf = filldf
+        # update attribute
+        self.gapfilldf = filldf
+
         return filldf
 
     def write_to_csv(

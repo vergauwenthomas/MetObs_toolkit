@@ -43,38 +43,24 @@ dataset.update_settings(input_data_file = metobs_toolkit.demo_datafile,
 # Load the data from the demo data files
 dataset.import_data_from_file()
 
-# dataset.coarsen_time_resolution()
-dataset.get_altitude()
-dataset.get_landcover()
-dataset.get_lcz()
-
-
-
-dataset.save_dataset(outputfolder='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data',
-                     filename='tests_dataset')
-
-
+dataset.coarsen_time_resolution()
+dataset.apply_quality_control()
+dataset.update_gaps_and_missing_from_outliers(n_gapsize=4)
 
 #%%
-# outputfolder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkitss'
-dataset.save_dataset()
+modeldata = metobs_toolkit.Modeldata('era5')
 
-anal = dataset.get_analysis()
-
-
-# anal = anal.apply_filter('lcz == "Compact midrise"')
-
-anal.get_lc_correlation_matrices(obstype=['temp', 'humidity'], groupby_labels=['hour'])
-
-
-anal.plot_correlation_variation()
-
-
+modeldata.set_model_from_csv(csvpath='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/era5_data.csv')
 
 
 #%%
 
 
+
+gapfilldf1 = dataset.fill_gaps_linear()
+
+#%%
+gapfilldf2 = dataset.fill_gaps_automatic(modeldata, overwrite_fill=True)
 
 
 
