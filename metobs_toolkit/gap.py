@@ -481,7 +481,7 @@ def remove_gaps_from_obs(gaplist, obsdf):
 
 def apply_debias_era5_gapfill(
         gapslist, dataset, eraModelData, debias_settings, obstype="temp",
-    ):
+        overwrite_fill=False):
 
         gapfill_settings = dataset.settings.gap['gaps_fill_info']
         expanded_gabsidx_obsspace = init_multiindex()
@@ -496,6 +496,10 @@ def apply_debias_era5_gapfill(
 
 
         for gap in gapslist:
+            if (not overwrite_fill) & (not gap.gapfill_df.empty):
+                print(f'WARNING: Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite.')
+                continue
+
             print(f' Era5 gapfill for {gap}')
             gap.gapfill_technique = gapfill_settings['label']['model_debias']
 
@@ -592,11 +596,15 @@ def apply_debias_era5_gapfill(
 
 def apply_interpolate_gaps(gapslist, obsdf, outliersdf, dataset_res, gapfill_settings,
                            obstype="temp", method="time", max_consec_fill=100,
+                           overwrite_fill=False,
                            ):
 
     """ No return, only update the gaps instances attributes"""
 
     for gap in gapslist:
+        if (not overwrite_fill) & (not gap.gapfill_df.empty):
+            print(f'WARNING: Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite.')
+            continue
         gapfill_series = interpolate_gap(
                         gap=gap,
                         obsdf=xs_save(obsdf, gap.name, level='name', drop_level=False),

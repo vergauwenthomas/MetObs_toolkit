@@ -462,9 +462,9 @@ joblib==1.2.0 ; python_version >= "3.9" and python_version < "4.0" \
 jupyter-client==8.2.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:9fe233834edd0e6c0aa5f05ca2ab4bdea1842bfd2d8a932878212fc5301ddaf0 \
     --hash=sha256:b18219aa695d39e2ad570533e0d71fb7881d35a873051054a84ee2a17c4b7389
-jupyter-core==5.3.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:6db75be0c83edbf1b7c9f91ec266a9a24ef945da630f3120e1a0046dc13713fc \
-    --hash=sha256:d4201af84559bc8c70cead287e1ab94aeef3c512848dde077b7684b54d67730d
+jupyter-core==5.3.1 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:5ba5c7938a7f97a6b0481463f7ff0dbac7c15ba48cf46fa4035ca6e838aa1aba \
+    --hash=sha256:ae9036db959a71ec1cac33081eeb040a79e681f08ab68b0883e9a676c7a90dce
 jupyterlab-widgets==3.0.7 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:c3a50ed5bf528a0c7a869096503af54702f86dda1db469aee1c92dc0c01b43ca \
     --hash=sha256:c73f8370338ec19f1bec47254752d6505b03601cbd5a67e6a0b184532f73a459
