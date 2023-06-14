@@ -34,24 +34,31 @@ dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file = metobs_toolkit.demo_datafile,
                         input_metadata_file = metobs_toolkit.demo_metadatafile,
                         data_template_file = metobs_toolkit.demo_template,
-                        metadata_template_file = metobs_toolkit.demo_template # Contains also the metadata mapping
+                        metadata_template_file = metobs_toolkit.demo_template, # Contains also the metadata mapping
+                        output_folder='/home/thoverga/Documents/VLINDER_github/MetObs_toolkitss'
                         )
+
+
 
 # Load the data from the demo data files
 dataset.import_data_from_file()
 
-dataset.coarsen_time_resolution()
+# dataset.coarsen_time_resolution()
 
 dataset.get_landcover()
 dataset.get_lcz()
 
 #%%
+# outputfolder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkitss'
+dataset.save_dataset()
 
 anal = dataset.get_analysis()
+
 
 # anal = anal.apply_filter('lcz == "Compact midrise"')
 
 anal.get_lc_correlation_matrices(obstype=['temp', 'humidity'], groupby_labels=['hour'])
+
 
 anal.plot_correlation_variation()
 
