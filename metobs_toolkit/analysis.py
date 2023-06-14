@@ -10,7 +10,9 @@ import pandas as pd
 import numpy as np
 from scipy.stats import pearsonr
 
-from metobs_toolkit.plotting_functions import diurnal_plot
+from metobs_toolkit.plotting_functions import (diurnal_plot,
+                                               heatmap_plot,
+                                               correlation_scatter)
 
 from metobs_toolkit.df_helpers import (init_multiindexdf,
                                         datetime_subsetting,
@@ -23,6 +25,11 @@ class Analysis():
         self.metadf = metadf
         self.settings = settings
         self.data_template = data_template
+
+        # analysis objects
+        self.lc_cor_dict = {}
+        self._lc_cor_obstype = None
+        self._lc_groupby_labels = None
 
     def __str__(self):
         if self.df.empty:
@@ -39,9 +46,13 @@ class Analysis():
         if (not self.metadf['lcz'].isnull().all()):
             add_info += "     *LCZ's are available for all stations. \n"
 
+        if bool(self.lc_cor_dict):
+            add_info += f"     *landcover correlations are computed on group: {self._lc_groupby_labels}  \n"
 
 
-        return (f"Dataset instance containing: \n \
+
+
+        return (f"Analysis instance containing: \n \
     *{n_stations} stations \n \
     *{n_obs_tot} observation records \n{add_info}" )
 
@@ -98,14 +109,28 @@ class Analysis():
         ----------
 
         expression : str
-            A filter expression using columnnames present in either df or metadf,
-            number and expressions like <, >, ==, >=, *, +, .... Multiple filters
+            A filter expression using columnnames present in either df or metadf.
+            The following timestamp derivatives can be used as well: [minute, hour,
+            month, year, day_of_year, week_of_year, season]. The quarry_str may
+            contain number and expressions like <, >, ==, >=, *, +, .... Multiple filters
             can be combine to one expression by using & (AND) and | (OR).
 
         Returns
         -------
         filtered_analysis : metobs_toolkit.Analysis
             The filtered Analysis.
+
+
+        Note
+        -------
+        All timestamp derivative values are numeric except for 'season',
+        possible values are ['winter', 'spring', 'summer', 'autumn'].
+
+        Note
+        ------
+        Make shure to use " of ' to indicate string values in the expression if
+        needed.
+
 
         """
 
@@ -621,12 +646,16 @@ class Analysis():
 
         return hourly_avg
 
+    # =============================================================================
+    # Correlations analysis
+    # =============================================================================
+
     def get_lc_correlation_matrices(self, obstype=['temp'], groupby_labels=['hour']):
         """
         A method to compute the Pearson correlation between an obervation type
         and present landcover fractions in the metadf.
 
-        The correlations are computed per group ad defined by unique combinations
+        The correlations are computed per group as defined by unique combinations
         of the groupby_labels.
 
         A dictionary is returnd where each key represents a unique combination of
@@ -637,6 +666,8 @@ class Analysis():
             * combined matrix: A human readable combination of the correlations
             and their p values. Indicate by *, ** or *** representing p-values
             < 0.05, 0.01 and 0.001 respectively.
+
+        This dictionary is also stored as a lc_cor_dict attribute.
 
         Parameters
         ----------
@@ -657,16 +688,23 @@ class Analysis():
 
         """
 
-        # TODO: docstring
-        # TODO: visualisation ??
-
-        # conv to list if str is given
         if not isinstance(obstype, list):
             obstype = [obstype]
 
         # get data
         df = self.df[obstype].reset_index()
         df = _make_time_derivatives(df, groupby_labels)
+
+        for group_lab in groupby_labels:
+            if group_lab in self.metadf.columns:
+                df = df.merge(self.metadf[[group_lab]],
+                              how='left',
+                              left_on='name',
+                              right_index=True)
+
+        for group_lab in groupby_labels:
+            assert group_lab in df.columns, f'"{group_lab}" is found in the observations of possible groupby_labels.'
+
 
         # subset columns
         relev_columns = [label for label in groupby_labels] #to avoid deep copy import
@@ -714,33 +752,134 @@ class Analysis():
             # represent p values by stars
             p_stars = pval.applymap(lambda x: ''.join(['*' for t in [.05, .01, .001] if x<=t]))
 
+            # combined human readable df
+            comb_df = pd.DataFrame(index=rho.index)
+            for col in rho.columns:
+                comb_df[col] = rho[col].apply(lambda x: f"{x:.02f}") + ' ' + p_stars[col]
+
             cor_dict[group_lab] = {'cor matrix': rho,
                                    'significance matrix': pval,
-                                   'combined matrix': rho.astype(str) +' ' +  p_stars}
+                                   'combined matrix': comb_df}
+
+
+        # Update attribute
+        self.lc_cor_dict = cor_dict
+        self._lc_cor_obstype = obstype
+        self._lc_groupby_labels = groupby_labels
 
         return cor_dict
 
 
+    def plot_correlation_heatmap(self, groupby_value=None, title=None):
+        """
+        Make a heatmap plot af a correaltion matrix. To specify which correlation
+        matrix to plot, specify the group value using the groupby_value argument.
+
+        All possible groupby_values are the keys of the lc_cor_dict attribute.
+
+        Parameters
+        ----------
+        groupby_value : str, num, None, optional
+            A groupby value to indicate which correlation matrix to visualise.
+            If None is given, the first groupby value that is present is
+            chosen.The default is None.
+        title : str, optional
+            Title of the figure. If None, a default title is constructed.The
+            default is None.
+
+        Returns
+        -------
+        None.
+
+        Note
+        ------
+        To list all possible groupby_values, one can use
+        ` print(Analysis_instance.lc_cor_dict.keys())`
+
+        """
+        # check if there are correlation matrices
+        assert bool(self.lc_cor_dict), 'No correlation matrices found, use the metod get_lc_correlation_matrices first.'
+
+        if groupby_value is None:
+            groupby_value = list(self.lc_cor_dict.keys())[0]
+            print('WARNING: No groupby_value is given, so the first groupby value (={groupby_value}) will be used!')
+            print(f'INFO: The correlations are computed over {self._lc_groupby_labels} with the following unique values: {list(self.lc_cor_dict.keys())}')
+
+        # check if groupby value exists
+        assert groupby_value in self.lc_cor_dict.keys(), f'{groupby_value} not found as a groupby value. These are all the possible values: {self.lc_cor_dict.keys()}'
+
+
+        if title is None:
+            title = f'Correlation heatmap for group: {self._lc_groupby_labels} = {groupby_value}'
+
+        heatmap_plot(cor_dict = self.lc_cor_dict[groupby_value],
+                     title=title,
+                     heatmap_settings = self.settings.app['plot_settings']['correlation_heatmap'])
+
+
+    def plot_correlation_variation(self, title=None):
+        """
+        Make a scatter plot of the correlations to visualise differences between
+        multiple group values.
+
+        Group values are represented by the horizontal axes, and correlations
+        on the vertical axe.
+
+        All correlations, that are not constant, are plotted as scatters with
+        unique colors.
+
+        The scatter marker indicates the p-value of the correlations.
+
+        Parameters
+        ----------
+        title : str, optional
+            Title of the figure. If None, a default title is constructed. The
+            default is None.
+
+        Returns
+        -------
+        None.
+
+        Note
+        ------
+        If to many possible group values exist, one can use the apply_filter()
+        method to reduce the group values.
+
+        """
+        # TODO docstring
+
+        # check if there are correlation matrices
+        assert bool(self.lc_cor_dict), 'No correlation matrices found, use the metod get_lc_correlation_matrices first.'
+
+        if title is None:
+            title = f'Correlation scatter for group: {self._lc_groupby_labels}'
+
+
+        correlation_scatter(full_cor_dict = self.lc_cor_dict,
+                            groupby_labels = self._lc_groupby_labels,
+                            obstypes =self._lc_cor_obstype,
+                            title=title,
+                            cor_scatter_settings = self.settings.app['plot_settings']['correlation_scatter'])
 
 
 
-def _make_time_derivatives(df, required):
+def _make_time_derivatives(df, required, get_all=False):
     """ construct time derivated columns if required.
         datetime must be a column."""
 
-    if 'minute' in required:
+    if ('minute' in required) | (get_all):
         df['minute'] = df['datetime'].dt.minute
-    if 'hour' in required:
+    if ('hour' in required) | (get_all):
         df['hour'] = df['datetime'].dt.hour
-    if 'month' in required:
+    if ('month' in required) | (get_all):
         df['month'] = df['datetime'].dt.month_name()
-    if 'year' in required:
+    if ('year' in required) | (get_all):
         df['year'] = df['datetime'].dt.year
-    if 'day_of_year' in required:
+    if ('day_of_year' in required) | (get_all):
         df['day_of_year'] = df['datetime'].dt.day_of_year
-    if 'week_of_year' in required:
-        df['week_of_year'] = df['datetime'].dt.week_of_year
-    if 'season' in required:
+    if ('week_of_year' in required) | (get_all):
+        df['week_of_year'] = df['datetime'].dt.isocalendar()['week']
+    if ('season' in required) | (get_all):
         df['season'] = get_seasons(df['datetime'])
 
     return df
@@ -805,8 +944,10 @@ def filter_data(df, metadf, quarry_str):
     metadf : pandas.DataFrame
         The dataframe containig all the metadata per station.
     quarry_str : str
-        A filter expression using columnnames present in either df or metadf,
-        number and expressions like <, >, ==, >=, *, +, .... Multiple filters
+        A filter expression using columnnames present in either df or metadf.
+        The following timestamp derivatives can be used as well: [minute, hour,
+        month, year, day_of_year, week_of_year, season]. The quarry_str may
+        contain number and expressions like <, >, ==, >=, *, +, .... Multiple filters
         can be combine to one expression by using & (AND) and | (OR).
 
     Returns
@@ -827,13 +968,15 @@ def filter_data(df, metadf, quarry_str):
     df = df.reset_index()
     metadf = metadf.reset_index()
 
-
     # save columns orders
     df_init_cols = df.columns
     metadf_init_cols = metadf.columns
 
-    # merge together on name
 
+    # create time derivative columns
+    df = _make_time_derivatives(df, required=' ', get_all=True)
+
+    # merge together on name
     mergedf = df.merge(metadf, how='left', on='name')
 
     #apply filter
