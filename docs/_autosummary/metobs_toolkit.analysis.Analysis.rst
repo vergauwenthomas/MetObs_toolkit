@@ -17,9 +17,13 @@ metobs\_toolkit.analysis.Analysis
       :nosignatures:
    
       ~Analysis.aggregate_df
+      ~Analysis.apply_filter
       ~Analysis.get_aggregated_diurnal_statistics
       ~Analysis.get_diurnal_statistics
       ~Analysis.get_diurnal_statistics_with_reference
+      ~Analysis.get_lc_correlation_matrices
+      ~Analysis.plot_correlation_heatmap
+      ~Analysis.plot_correlation_variation
       ~Analysis.subset_period
    
    

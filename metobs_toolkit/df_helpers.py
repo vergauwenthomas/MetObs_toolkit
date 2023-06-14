@@ -255,23 +255,31 @@ def datetime_subsetting(df, starttime, endtime):
         Subset of the df.
 
     """
+
     idx_names = list(df.index.names)
     df = df.reset_index()
     df = df.set_index('datetime')
-    stand_format = "%Y-%m-%d %H:%M:%S"
 
     if isinstance(starttime, type(None)):
-        startstring = None  # will select from the beginning of the df
+        starttime = df.index.min() # will select from the beginning of the df
     else:
-        startstring = starttime.strftime(stand_format)
-    if isinstance(endtime, type(None)):
-        endstring = None
-    else:
-        endstring = endtime.strftime(stand_format)
+        if starttime.tzinfo is None:
+            # set timezone when unaware
+            starttime = starttime.replace(tzinfo=df.index.tzinfo)
 
-    subset =  df[startstring:endstring]
+    if isinstance(endtime, type(None)):
+        endtime = df.index.max()
+    else:
+        if endtime.tzinfo is None:
+            # set timezone when unaware
+            endtime = endtime.replace(tzinfo=df.index.tzinfo)
+
+
+
+    subset = df[(df.index >= starttime) & (df.index <= endtime)]
     subset = subset.reset_index()
     subset = subset.set_index(idx_names)
+    subset = subset.sort_index()
     return subset
 
 
