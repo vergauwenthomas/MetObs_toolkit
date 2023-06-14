@@ -28,10 +28,16 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from metobs_toolkit.landcover_functions import get_ee_obj
 
 
-
-def folium_plot(mapinfo, band, vis_params, labelnames, layername,
-                basemap='SATELLITE', legendname=None,
-                legendpos='bottomleft'):
+def folium_plot(
+    mapinfo,
+    band,
+    vis_params,
+    labelnames,
+    layername,
+    basemap="SATELLITE",
+    legendname=None,
+    legendpos="bottomleft",
+):
     # get the ee.Image
     im = get_ee_obj(mapinfo, band)
 
@@ -41,20 +47,22 @@ def folium_plot(mapinfo, band, vis_params, labelnames, layername,
         MAP.add_basemap(basemap)
     MAP.add_layer(im, vis_params, layername)
     if legendname:
-        MAP.add_legend(title=legendname,labels=labelnames, colors=vis_params.get('palette'), position=legendpos)
+        MAP.add_legend(
+            title=legendname,
+            labels=labelnames,
+            colors=vis_params.get("palette"),
+            position=legendpos,
+        )
 
     return MAP
 
 
-
 def add_stations_to_folium_map(Map, metadf):
-
-    points = metadf['geometry'].to_crs("epsg:4326")
+    points = metadf["geometry"].to_crs("epsg:4326")
     for station, point in points.items():
-        folium.Marker(location=[ point.y, point.x ],
-                      fill_color='#43d9de',
-                      popup=station,
-                      radius=8 ).add_to( Map )
+        folium.Marker(
+            location=[point.y, point.x], fill_color="#43d9de", popup=station, radius=8
+        ).add_to(Map)
 
     return Map
 
@@ -63,10 +71,9 @@ def add_stations_to_folium_map(Map, metadf):
 # Helpers
 # =============================================================================
 
+
 def map_obstype(obstype, template):
     return template[obstype].to_dict()
-
-
 
 
 def make_cat_colormapper(catlist, cmapname):
@@ -90,13 +97,15 @@ def make_cat_colormapper(catlist, cmapname):
 
     """
 
-    catlist = list(set(catlist)) #get unique categories
+    catlist = list(set(catlist))  # get unique categories
 
     cmap = matplotlib.colormaps[cmapname]
 
     # check number of colors in the cmap
     if cmap.N < len(catlist):
-        print(f'Warning: colormap: {cmapname}, is not well suited to color {len(catlist)} categories. ')
+        print(
+            f"Warning: colormap: {cmapname}, is not well suited to color {len(catlist)} categories. "
+        )
         same_col_n_groups = np.ceil(len(catlist) / cmap.N)
 
         # group cateogries and color them by group
@@ -104,7 +113,7 @@ def make_cat_colormapper(catlist, cmapname):
         col_idx = -1
         _cat_index = 0
         for cat in catlist:
-            if _cat_index%same_col_n_groups == 0:
+            if _cat_index % same_col_n_groups == 0:
                 col_idx += 1
             colordict[cat] = cmap(int(col_idx))
             _cat_index += 1
@@ -121,10 +130,10 @@ def make_cat_colormapper(catlist, cmapname):
     return colordict
 
 
-
 # =============================================================================
 # Plotters
 # =============================================================================
+
 
 def geospatial_plot(
     plotdf,
@@ -139,7 +148,7 @@ def geospatial_plot(
     static_fields,
     display_name_mapper,
     world_boundaries_map,
-    data_template
+    data_template,
 ):
     # Load default plot settings
     default_settings = plotsettings["spatial_geo"]
@@ -171,7 +180,7 @@ def geospatial_plot(
     if variable in categorical_fields:
         is_categorical = True
         if variable == "lcz":
-            legend_title = 'LCZ'
+            legend_title = "LCZ"
             # use all available LCZ categories
             use_quantiles = False
         else:
@@ -245,13 +254,13 @@ def _spatial_plot(
 
     if is_categorical:
         # categorical legend
-        legend_kwds = {"loc": "best", 'title': legend_title}
+        legend_kwds = {"loc": "best", "title": legend_title}
         vmin = None
         vmax = None
         cax = None
     else:
         # colorbar
-        legend_kwds = {'label': legend_title}
+        legend_kwds = {"label": legend_title}
         divider = make_axes_locatable(ax)
 
         cax = divider.append_axes("right", size="5%", pad=0.1)
@@ -294,8 +303,8 @@ def sorting_function(label_vec, custom_handles, number_of_labels_types=3):
     # TODO: clean this up? rewrite to better code?
     sorted_vec = []
     # group 1, 2, 3
-    for i in range(1, number_of_labels_types+1): # loop over the type of labels
-        for l in range(len(label_vec)): #loop over the length of the label_vec
+    for i in range(1, number_of_labels_types + 1):  # loop over the type of labels
+        for l in range(len(label_vec)):  # loop over the length of the label_vec
             if label_vec[l] == i:
                 sorted_vec.append(l)
                 # makes a vector of same size as label_vec
@@ -315,17 +324,15 @@ def timeseries_plot(
     show_legend,
     show_outliers,
     settings,
-    _ax=None #needed for GUI, not recommended use
+    _ax=None,  # needed for GUI, not recommended use
 ):
-
     plot_settings = settings.app["plot_settings"]
-
 
     if isinstance(_ax, type(None)):
         # init figure
         fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
     else:
-        ax=_ax
+        ax = _ax
 
     # get data ready
     mergedf = mergedf[~mergedf.index.duplicated()]
@@ -334,38 +341,36 @@ def timeseries_plot(
     # define different groups (different plotting styles)
 
     # ok group
-    ok_group_label = 'ok'
+    ok_group_label = "ok"
 
     # filled value groups
-    fill_labels= [ val for val in settings.gap['gaps_fill_info']['label'].values()]
-    missing_fill_labels = [ val for val in settings.missing_obs['missing_obs_fill_info']['label'].values()]
+    fill_labels = [val for val in settings.gap["gaps_fill_info"]["label"].values()]
+    missing_fill_labels = [
+        val for val in settings.missing_obs["missing_obs_fill_info"]["label"].values()
+    ]
     fill_labels.extend(missing_fill_labels)
 
     # outlier groups
     # Catching with an else
 
-
-    custom_handles = [] #add legend items to it
-    label_vec=[] # add type of label
-
+    custom_handles = []  # add legend items to it
+    label_vec = []  # add type of label
 
     if colorby == "label":
+        legenddict = {}  # iterate over label groups
+        col_mapper = _all_possible_labels_colormapper(settings)  # get color mapper
 
-        legenddict = {} # iterate over label groups
-        col_mapper = _all_possible_labels_colormapper(settings) # get color mapper
+        outl_groups = mergedf.groupby("label")
 
-        outl_groups = mergedf.groupby('label')
+        # TODO: make proper fix proper fix for this issue
+        # (issue: all scatters added to the axis in advance of the lines are not shown
+        #          in the plot. zorder does not seem to have any inpact??)
 
-         # TODO: make proper fix proper fix for this issue
-         # (issue: all scatters added to the axis in advance of the lines are not shown
-         #          in the plot. zorder does not seem to have any inpact??)
-
-
-         # poorsman fix (sorting the labels in advance)
+        # poorsman fix (sorting the labels in advance)
         iterate_labels = []
         present_labels = list(outl_groups.groups.keys())
         if ok_group_label in present_labels:
-            iterate_labels.append('ok')
+            iterate_labels.append("ok")
 
         present_fills = [lab for lab in present_labels if lab in fill_labels]
         iterate_labels.extend(present_fills)
@@ -375,10 +380,9 @@ def timeseries_plot(
 
         for outl_label in iterate_labels:
             groupdf = outl_groups.get_group(outl_label)
-        # end poormans fix
-        # for outl_label, groupdf in outl_groups:
+            # end poormans fix
+            # for outl_label, groupdf in outl_groups:
             outl_color = col_mapper[outl_label]
-
 
             # plot data for the 'ok' group
             if outl_label == ok_group_label:  # ok data as lines
@@ -389,9 +393,8 @@ def timeseries_plot(
                 groupdf.sort_index()
 
                 plotdf = groupdf.reset_index().pivot(
-                    index="datetime", columns="name", values='value'
+                    index="datetime", columns="name", values="value"
                 )  # long to wide
-
 
                 plotdf.plot(
                     kind="line",
@@ -402,25 +405,21 @@ def timeseries_plot(
                     linewidth=plot_settings["time_series"]["linewidth"],
                 )
 
-
                 # add legend handl
                 custom_handles.append(
-                    Line2D([0], [0], color=outl_color, label="ok", lw=4))
+                    Line2D([0], [0], color=outl_color, label="ok", lw=4)
+                )
                 label_vec.append(1)
 
-
-
             # plot filled data
-            elif outl_label in  fill_labels:  # fill gaps as dashed lines
-
+            elif outl_label in fill_labels:  # fill gaps as dashed lines
                 fill_idx = init_idx.to_frame().drop(groupdf.index)
                 groupdf = pd.concat([groupdf, fill_idx])
                 groupdf = groupdf.drop(columns=["name", "datetime"], errors="ignore")
                 groupdf.sort_index()
                 plotdf = groupdf.reset_index().pivot(
-                    index="datetime", columns="name", values='value'
+                    index="datetime", columns="name", values="value"
                 )  # long to wide
-
 
                 plotdf.plot(
                     kind="line",
@@ -428,29 +427,32 @@ def timeseries_plot(
                     color=outl_color,
                     ax=ax,
                     legend=False,
-                    zorder=plot_settings['time_series']["dashedzorder"],
-                    linewidth=plot_settings['time_series']["linewidth"],
+                    zorder=plot_settings["time_series"]["dashedzorder"],
+                    linewidth=plot_settings["time_series"]["linewidth"],
                 )
 
                 # add legend handle
                 custom_handles.append(
-                    Line2D([0],[0],
+                    Line2D(
+                        [0],
+                        [0],
                         color=outl_color,
                         label=f"filled value ({outl_label})",
                         lw=1,
-                        linestyle="--",)
+                        linestyle="--",
                     )
+                )
                 label_vec.append(2)
 
             else:  # outliers as scatters
-                plotdf = groupdf['value']
+                plotdf = groupdf["value"]
                 plotdf.index = plotdf.index.droplevel("name")
                 plotdf = plotdf.reset_index()
 
                 plotdf.plot(
                     kind="scatter",
                     x="datetime",
-                    y='value',
+                    y="value",
                     ax=ax,
                     color=outl_color,
                     legend=False,
@@ -460,41 +462,55 @@ def timeseries_plot(
 
                 # add legend handle
                 custom_handles.append(
-                    Line2D([0],[0], marker="o", color="w",
+                    Line2D(
+                        [0],
+                        [0],
+                        marker="o",
+                        color="w",
                         markerfacecolor=outl_color,
                         label=outl_label,
-                        lw=1,)
+                        lw=1,
                     )
+                )
                 label_vec.append(3)
             legenddict[outl_label] = outl_color
         # make legend
         if show_legend:
             # sort legend items
             custom_handles = sorting_function(label_vec, custom_handles)
-            #ax.legend(handles=custom_handles)
+            # ax.legend(handles=custom_handles)
             box = ax.get_position()
-            ax.set_position([box.x0, box.y0 + box.height * 0.2,
-                 box.width, box.height * 0.85])
-            ax.legend(handles=custom_handles, loc='upper center',
+            ax.set_position(
+                [box.x0, box.y0 + box.height * 0.2, box.width, box.height * 0.85]
+            )
+            ax.legend(
+                handles=custom_handles,
+                loc="upper center",
                 bbox_to_anchor=(0.5, -0.25),
-                fancybox=True, shadow=True,
-                ncol=plot_settings["time_series"]["legend_n_columns"])
-
+                fancybox=True,
+                shadow=True,
+                ncol=plot_settings["time_series"]["legend_n_columns"],
+            )
 
     elif colorby == "name":
         plotdf = mergedf.reset_index().pivot(
-            index="datetime", columns="name", values='value'
+            index="datetime", columns="name", values="value"
         )
 
         plotdf.plot(kind="line", legend=False, ax=ax)
         if show_legend == True:
             box = ax.get_position()
-            ax.set_position([box.x0, box.y0 + box.height * 0.2,
-                 box.width, box.height * 0.88])
-            ax.legend(plotdf.columns.values.tolist(), loc='upper center',
+            ax.set_position(
+                [box.x0, box.y0 + box.height * 0.2, box.width, box.height * 0.88]
+            )
+            ax.legend(
+                plotdf.columns.values.tolist(),
+                loc="upper center",
                 bbox_to_anchor=(0.5, -0.2),
-                fancybox=True, shadow=True,
-                ncol=plot_settings["time_series"]["legend_n_columns"])
+                fancybox=True,
+                shadow=True,
+                ncol=plot_settings["time_series"]["legend_n_columns"],
+            )
 
     # Set title
     ax.set_title(title)
@@ -505,31 +521,43 @@ def timeseries_plot(
 
     return ax
 
-def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
-                 colorby, lcz_dict, data_template, obstype, y_label,
-                 legend, show_zero_horizontal=False):
+
+def diurnal_plot(
+    diurnaldf,
+    errorbandsdf,
+    title,
+    tzstr,
+    plot_settings,
+    colorby,
+    lcz_dict,
+    data_template,
+    obstype,
+    y_label,
+    legend,
+    show_zero_horizontal=False,
+):
     # init figure
     fig, ax = plt.subplots(figsize=plot_settings["figsize"])
 
-    if colorby == 'lcz':
+    if colorby == "lcz":
         present_lczs = list(set(lcz_dict.values()))
 
         # select colormap
-        if len(present_lczs) <= plot_settings['n_cat_max']:
-            cmap = plot_settings['cmap_categorical']
+        if len(present_lczs) <= plot_settings["n_cat_max"]:
+            cmap = plot_settings["cmap_categorical"]
         else:
-            cmap = plot_settings['cmap_continious']
+            cmap = plot_settings["cmap_continious"]
 
-        colordict = make_cat_colormapper(catlist=present_lczs,
-                                         cmapname=cmap)
-
+        colordict = make_cat_colormapper(catlist=present_lczs, cmapname=cmap)
 
         # Make plot per lcz
         custom_handles = []
 
-        for lcz_cat  in present_lczs:
+        for lcz_cat in present_lczs:
             stations = [sta for sta in diurnaldf.columns if lcz_dict[sta] == lcz_cat]
-            diurnaldf[stations].plot(ax=ax, title=title, color=colordict[lcz_cat], legend=False)
+            diurnaldf[stations].plot(
+                ax=ax, title=title, color=colordict[lcz_cat], legend=False
+            )
 
             # add legend item
             custom_handles.append(
@@ -537,49 +565,55 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
             )
         if legend:
             box = ax.get_position()
-            ax.set_position([box.x0, box.y0 + box.height * 0.2,
-                 box.width, box.height * 0.95])
-            ax.legend(handles=custom_handles, loc='upper center',
+            ax.set_position(
+                [box.x0, box.y0 + box.height * 0.2, box.width, box.height * 0.95]
+            )
+            ax.legend(
+                handles=custom_handles,
+                loc="upper center",
                 bbox_to_anchor=(0.5, -0.1),
-                fancybox=True, shadow=True,
-                ncol=plot_settings["legend_n_columns"])
+                fancybox=True,
+                shadow=True,
+                ncol=plot_settings["legend_n_columns"],
+            )
 
-
-
-
-    if colorby == 'name':
+    if colorby == "name":
         # which colormap to use:
-        if diurnaldf.shape[1] <= plot_settings['n_cat_max']:
-            cmap = plot_settings['cmap_categorical']
+        if diurnaldf.shape[1] <= plot_settings["n_cat_max"]:
+            cmap = plot_settings["cmap_categorical"]
         else:
-            cmap = plot_settings['cmap_continious']
+            cmap = plot_settings["cmap_continious"]
 
         diurnaldf.plot(ax=ax, title=title, legend=False, cmap=cmap)
         if legend:
             box = ax.get_position()
-            ax.set_position([box.x0, box.y0 + box.height * 0.2,
-                     box.width, box.height * 0.88])
-            ax.legend(diurnaldf.columns.values.tolist(), loc='upper center',
-                    bbox_to_anchor=(0.5, -0.2),
-                    fancybox=True, shadow=True,
-                    ncol=plot_settings["legend_n_columns"])
-
-
+            ax.set_position(
+                [box.x0, box.y0 + box.height * 0.2, box.width, box.height * 0.88]
+            )
+            ax.legend(
+                diurnaldf.columns.values.tolist(),
+                loc="upper center",
+                bbox_to_anchor=(0.5, -0.2),
+                fancybox=True,
+                shadow=True,
+                ncol=plot_settings["legend_n_columns"],
+            )
 
     if not errorbandsdf is None:
         # Extract colorscheme from the plot
         col_sheme = {line.get_label(): line.get_color() for line in ax.get_lines()}
 
         for sta in errorbandsdf.columns:
-            ax.fill_between(errorbandsdf.index,
-                             diurnaldf[sta] - errorbandsdf[sta],
-                             diurnaldf[sta] + errorbandsdf[sta],
-                             alpha=plot_settings['alpha_error_bands'],
-                             color=col_sheme[sta],
-                             )
+            ax.fill_between(
+                errorbandsdf.index,
+                diurnaldf[sta] - errorbandsdf[sta],
+                diurnaldf[sta] + errorbandsdf[sta],
+                alpha=plot_settings["alpha_error_bands"],
+                color=col_sheme[sta],
+            )
 
     if show_zero_horizontal:
-        ax.axhline(y=0., color='black', linestyle='--')
+        ax.axhline(y=0.0, color="black", linestyle="--")
     # Styling attributes
 
     # y-label
@@ -591,113 +625,112 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
             y_label = f'{templ_map["orig_name"]}'
 
     ax.set_ylabel(y_label)
-    ax.xaxis.set_major_formatter('{x:.0f} h')
-    ax.set_xlabel(f'Hours (timezone: {tzstr})')
-
+    ax.xaxis.set_major_formatter("{x:.0f} h")
+    ax.set_xlabel(f"Hours (timezone: {tzstr})")
 
     plt.show()
 
 
-
 def heatmap_plot(cor_dict, title, heatmap_settings):
-
     # make heatmap of cor
-    fig, ax = plt.subplots(figsize= heatmap_settings['figsize'])
-    im = ax.imshow(cor_dict['cor matrix'],
-                   interpolation='nearest',
-                   vmin= heatmap_settings['vmin'],
-                   vmax= heatmap_settings['vmax'],
-                   cmap= heatmap_settings['cmap'])
-    fig.colorbar(im, orientation='vertical', fraction = 0.05)
-
-
+    fig, ax = plt.subplots(figsize=heatmap_settings["figsize"])
+    im = ax.imshow(
+        cor_dict["cor matrix"],
+        interpolation="nearest",
+        vmin=heatmap_settings["vmin"],
+        vmax=heatmap_settings["vmax"],
+        cmap=heatmap_settings["cmap"],
+    )
+    fig.colorbar(im, orientation="vertical", fraction=0.05)
 
     # Loop over data dimensions and create text annotations
-    for i in range(len(cor_dict['cor matrix'].columns)):
-        for j in range(len(cor_dict['cor matrix'].index)):
-            text = ax.text(j, i,
-                           cor_dict["combined matrix"].to_numpy()[i, j],
-                            ha="center", va="center", color="black",
-                           )
+    for i in range(len(cor_dict["cor matrix"].columns)):
+        for j in range(len(cor_dict["cor matrix"].index)):
+            text = ax.text(
+                j,
+                i,
+                cor_dict["combined matrix"].to_numpy()[i, j],
+                ha="center",
+                va="center",
+                color="black",
+            )
 
     # styling
     # Show all ticks and label them with the dataframe column name
-    ax.set_xticks(ticks = list(range(cor_dict['cor matrix'].shape[1])),
-                  labels=cor_dict['cor matrix'].columns.to_list(),
-                  rotation=heatmap_settings['x_tick_rot'])
-    ax.set_yticks(ticks = list(range(cor_dict['cor matrix'].shape[0])),
-                  labels=cor_dict['cor matrix'].index.to_list(),
-                  rotation = heatmap_settings['y_tick_rot'])
+    ax.set_xticks(
+        ticks=list(range(cor_dict["cor matrix"].shape[1])),
+        labels=cor_dict["cor matrix"].columns.to_list(),
+        rotation=heatmap_settings["x_tick_rot"],
+    )
+    ax.set_yticks(
+        ticks=list(range(cor_dict["cor matrix"].shape[0])),
+        labels=cor_dict["cor matrix"].index.to_list(),
+        rotation=heatmap_settings["y_tick_rot"],
+    )
 
     ax.set_title(title)
 
     plt.show()
 
-def correlation_scatter(full_cor_dict, groupby_labels, obstypes,title, cor_scatter_settings):
 
-
+def correlation_scatter(
+    full_cor_dict, groupby_labels, obstypes, title, cor_scatter_settings
+):
     # combine all correlation matrices to one with multiindex
     comb_cor_df = pd.DataFrame()
-    comb_p_df =pd.DataFrame()
+    comb_p_df = pd.DataFrame()
     for key, subcordict in full_cor_dict.items():
-
         # if mulitple groupby are given, key is tuple --> conv to string
         if isinstance(key, tuple):
             key = str(key)
         # corelations
-        subdf_cor = subcordict['cor matrix']
+        subdf_cor = subcordict["cor matrix"]
         # make multi index df
-        subdf_cor['group'] = key
-        subdf_cor.index.name = 'categories'
+        subdf_cor["group"] = key
+        subdf_cor.index.name = "categories"
         subdf_cor = subdf_cor[subdf_cor.index.isin(obstypes)]
-        subdf_cor = subdf_cor.reset_index().set_index(['group', 'categories'])
+        subdf_cor = subdf_cor.reset_index().set_index(["group", "categories"])
         comb_cor_df = pd.concat([comb_cor_df, subdf_cor])
 
         # p values
-        subdf_p = subcordict['significance matrix']
+        subdf_p = subcordict["significance matrix"]
         # make multi index df
-        subdf_p['group'] = key
-        subdf_p.index.name = 'categories'
+        subdf_p["group"] = key
+        subdf_p.index.name = "categories"
         subdf_p = subdf_p[subdf_p.index.isin(obstypes)]
-        subdf_p = subdf_p.reset_index().set_index(['group', 'categories'])
+        subdf_p = subdf_p.reset_index().set_index(["group", "categories"])
         comb_p_df = pd.concat([comb_p_df, subdf_p])
-
 
     # create plotdf structure
     plot_cor_df = comb_cor_df.unstack()
-    plot_cor_df.columns = [f'{col[0]} - {col[1]}' for col in plot_cor_df.columns]
+    plot_cor_df.columns = [f"{col[0]} - {col[1]}" for col in plot_cor_df.columns]
     plot_p_df = comb_p_df.unstack()
-    plot_p_df.columns = [f'{col[0]} - {col[1]}' for col in plot_p_df.columns]
-
-
+    plot_p_df.columns = [f"{col[0]} - {col[1]}" for col in plot_p_df.columns]
 
     # Get columns without variation (these will not be plotted)
     const_cols = plot_cor_df.columns[plot_cor_df.nunique() <= 1]
-    print(f' The following correlations are constant for all groups and will not be included in the plot: {const_cols}')
-
+    print(
+        f" The following correlations are constant for all groups and will not be included in the plot: {const_cols}"
+    )
 
     # Subset to the columns that has to be plotted
     plot_cor_df = plot_cor_df.drop(columns=const_cols)
     plot_p_df = plot_p_df.drop(columns=const_cols)
 
-
     # make a colormap for the left over correlations
-    col_mapper = make_cat_colormapper(catlist=plot_cor_df.columns.to_list(),
-                                      cmapname=cor_scatter_settings['cmap'])
-
-
+    col_mapper = make_cat_colormapper(
+        catlist=plot_cor_df.columns.to_list(), cmapname=cor_scatter_settings["cmap"]
+    )
 
     # make figure
-    fig, ax = plt.subplots(figsize=cor_scatter_settings['figsize'])
+    fig, ax = plt.subplots(figsize=cor_scatter_settings["figsize"])
 
     # add the zero line
-    ax.axhline(y=0.0, linestyle='--', linewidth=1, color='black')
+    ax.axhline(y=0.0, linestyle="--", linewidth=1, color="black")
 
     # Define p value bins
-    p_bins = cor_scatter_settings['p_bins'] #[0, .001, 0.01, 0.05, 999]
-    bins_markers =cor_scatter_settings['bins_markers'] #['*', 's', '^', 'x']
-
-
+    p_bins = cor_scatter_settings["p_bins"]  # [0, .001, 0.01, 0.05, 999]
+    bins_markers = cor_scatter_settings["bins_markers"]  # ['*', 's', '^', 'x']
 
     # # iterate over the different corelations to plot
     custom_handles = []
@@ -705,76 +738,70 @@ def correlation_scatter(full_cor_dict, groupby_labels, obstypes,title, cor_scatt
         to_scatter = plot_cor_df[[cor_name]]
 
         # convert p values to markers
-        to_scatter['p-value'] = plot_p_df[cor_name]
-        to_scatter['markers'] = pd.cut(x=to_scatter['p-value'],
-                                        bins=p_bins,
-                                        labels= bins_markers)
+        to_scatter["p-value"] = plot_p_df[cor_name]
+        to_scatter["markers"] = pd.cut(
+            x=to_scatter["p-value"], bins=p_bins, labels=bins_markers
+        )
         to_scatter = to_scatter.reset_index()
 
         # plot per scatter group
-        scatter_groups = to_scatter.groupby('markers')
+        scatter_groups = to_scatter.groupby("markers")
         for marker, markergroup in scatter_groups:
-            markergroup.plot(x='group',
-                            y=cor_name,
-                            kind='scatter',
-                            ax=ax,
-                            s=cor_scatter_settings['scatter_size'],
-                            edgecolors=cor_scatter_settings['scatter_edge_col'],
-                            linewidth=cor_scatter_settings['scatter_edge_line_width'],
-                            color=col_mapper[cor_name],
-                            marker=marker,
-                            ylim=(cor_scatter_settings['ymin'],
-                                  cor_scatter_settings['ymax']))
+            markergroup.plot(
+                x="group",
+                y=cor_name,
+                kind="scatter",
+                ax=ax,
+                s=cor_scatter_settings["scatter_size"],
+                edgecolors=cor_scatter_settings["scatter_edge_col"],
+                linewidth=cor_scatter_settings["scatter_edge_line_width"],
+                color=col_mapper[cor_name],
+                marker=marker,
+                ylim=(cor_scatter_settings["ymin"], cor_scatter_settings["ymax"]),
+            )
 
         # add legend handl for the colors
 
-
-
-        custom_handles.append(Line2D([0], [0],
-                                      color=col_mapper[cor_name],
-                                      label=cor_name,
-                                      lw=4))
+        custom_handles.append(
+            Line2D([0], [0], color=col_mapper[cor_name], label=cor_name, lw=4)
+        )
 
     # add legend handl for the scatter types
     marker_def = list(zip(p_bins[1:], bins_markers))
-    for p_edge,mark in marker_def:
+    for p_edge, mark in marker_def:
         custom_handles.append(
-                Line2D([0],[0],
-                        marker=mark,
-                        color="black",
-                        markerfacecolor='w',
-                        label=f'p < {p_edge}',
-                        lw=1)
-                )
-
+            Line2D(
+                [0],
+                [0],
+                marker=mark,
+                color="black",
+                markerfacecolor="w",
+                label=f"p < {p_edge}",
+                lw=1,
+            )
+        )
 
     # format legend
     box = ax.get_position()
-    ax.set_position([box.x0, box.y0 + box.height * 0.2,
-          box.width, box.height * 0.85])
-    ax.legend(handles=custom_handles,
-              # loc='upper center',
-              bbox_to_anchor=(1, -0.1),
-              fancybox=True, shadow=True,
-              prop={'size': cor_scatter_settings['legend_text_size']},
-              ncol=cor_scatter_settings['legend_ncols'],
-              )
-
+    ax.set_position([box.x0, box.y0 + box.height * 0.2, box.width, box.height * 0.85])
+    ax.legend(
+        handles=custom_handles,
+        # loc='upper center',
+        bbox_to_anchor=(1, -0.1),
+        fancybox=True,
+        shadow=True,
+        prop={"size": cor_scatter_settings["legend_text_size"]},
+        ncol=cor_scatter_settings["legend_ncols"],
+    )
 
     # styling attributes
 
-    ax.set_ylabel('Pearson correlation')
-    ax.set_xlabel(f'Groups of {groupby_labels}')
+    ax.set_ylabel("Pearson correlation")
+    ax.set_xlabel(f"Groups of {groupby_labels}")
 
     ax.set_title(title)
 
-
-
     plt.show()
-
-
-
-
 
 
 def _make_pie_from_freqs(
@@ -796,7 +823,7 @@ def _make_pie_from_freqs(
         stats = pd.concat([stats, no_oc_df])
 
     # Remove zero occurence labels (they clutter up the lables in the pies)
-    stats = stats[stats['freq'] != 0]
+    stats = stats[stats["freq"] != 0]
     # Make pie
     patches, text = ax.pie(
         stats["freq"],
@@ -826,12 +853,10 @@ def _outl_value_to_colormapper(plot_settings, qc_check_info):
 def _all_possible_labels_colormapper(settings):
     """Make color mapper for all LABELVALUES to colors."""
 
-
     plot_settings = settings.app["plot_settings"]
     gap_settings = settings.gap
     qc_info_settings = settings.qc["qc_checks_info"]
-    missing_obs_settings = settings.missing_obs['missing_obs_fill_info']
-
+    missing_obs_settings = settings.missing_obs["missing_obs_fill_info"]
 
     color_defenitions = plot_settings["color_mapper"]
 
@@ -858,18 +883,15 @@ def _all_possible_labels_colormapper(settings):
         mapper[label] = color_defenitions[method]
 
     # add fill for missing
-    for method, label in missing_obs_settings['label'].items():
+    for method, label in missing_obs_settings["label"].items():
         mapper[label] = color_defenitions[method]
-
-
-
-
 
     return mapper
 
 
-def qc_stats_pie(final_stats, outlier_stats, specific_stats, plot_settings,
-                 qc_check_info, title):
+def qc_stats_pie(
+    final_stats, outlier_stats, specific_stats, plot_settings, qc_check_info, title
+):
     # restore rcParams
     plt.rcParams = plt.rcParamsDefault
 
@@ -976,8 +998,6 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats, plot_settings,
         axlist.append(ax)
         i += 1
 
-
-
     # Make pie plots
     specific_df.plot.pie(
         subplots=True,
@@ -988,7 +1008,7 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats, plot_settings,
         radius=plot_settings["pie_charts"]["radius_small"],
         textprops={"fontsize": textsize_small_pies},
         ax=axlist,
-        colors=[spec_col_mapper[col] for col in specific_df.index]
+        colors=[spec_col_mapper[col] for col in specific_df.index],
     )
 
     # Specific styling setings per pie
@@ -997,9 +1017,10 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats, plot_settings,
         ax.yaxis.set_visible(False)  # ignore the default pandas title
 
     fig.subplots_adjust(hspace=0.7)
-    fig.suptitle(title,
-                 # fontsize=30,
-                 )
+    fig.suptitle(
+        title,
+        # fontsize=30,
+    )
     plt.show()
 
     return
