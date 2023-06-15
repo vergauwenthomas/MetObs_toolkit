@@ -625,6 +625,9 @@ def apply_interpolate_gaps(gapslist, obsdf, outliersdf, dataset_res, gapfill_set
 
 
 def make_gapfill_df(gapslist):
+    if not bool(gapslist):
+        # no gaps (will be in automatic gapfill if method is not triggerd)
+        return pd.DataFrame()
     concatlist = []
     for gap in gapslist:
         subgapfill = gap.gapfill_df.reset_index()

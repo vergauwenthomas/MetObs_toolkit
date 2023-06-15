@@ -381,8 +381,9 @@ def make_era_bias_correction(leading_model, trailing_model,
     # If either one or both are missing, than no bias correction is applied
     no_debias = gap_model[(gap_model[obstype + '_bias_lead'].isnull()) |
                           (gap_model[obstype + '_bias_trail'].isnull())].index
-    error_message =f'WARNING!, No debias possible for these gap records: {no_debias},the gap will be filled by model data without bias correction. '
-    print(error_message)
+    if not no_debias.empty:
+        error_message =f'WARNING!, No debias possible for these gap records: {no_debias},the gap will be filled by model data without bias correction. '
+        print(error_message)
 
 
     # set weights to zero if not debias correction can be applied on that record
