@@ -71,9 +71,9 @@ for gap in dataset.gaps:
 
 #%%
 
-sta = dataset.get_station('vlinder01')
-sta.gaps[0].get_info()
-sta.fill_gaps_automatic(model, max_interpolate_duration_str='10H', overwrite_fill=True)
+# sta = dataset.get_station('vlinder01')
+# sta.gaps[0].get_info()
+# sta.fill_gaps_automatic(model, max_interpolate_duration_str='10H', overwrite_fill=True)
 
 
 
@@ -81,12 +81,12 @@ sta.fill_gaps_automatic(model, max_interpolate_duration_str='10H', overwrite_fil
 # sta.fill_gaps_linear()
 # sta.fill_gaps_era5(modeldata=model)
 
-# stanames = dataset.df.index.get_level_values('name').unique().to_list()
+stanames = dataset.df.index.get_level_values('name').unique().to_list()
 
-# for stan in stanames:
-#     sta = dataset.get_station(stan)
-#     print(f' {stan} has these gaps: {sta.gaps}')
-#     sta.fill_gaps_automatic(model, max_interpolate_duration_str='10H')
+for stan in stanames:
+    sta = dataset.get_station(stan)
+    print(f' {stan} has these gaps: {sta.gaps}')
+    sta.fill_gaps_automatic(model, max_interpolate_duration_str='10H')
 
 
 
