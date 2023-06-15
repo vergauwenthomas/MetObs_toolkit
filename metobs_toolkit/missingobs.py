@@ -193,7 +193,7 @@ class Missingob_collection:
             staobs = xs_save(obsdf, staname, level='name')[obstype]
             # exclude nan values because they are no good leading/trailing
             staobs = staobs[~staobs.isnull()]
-            print(f'staname: {staname}, missingdt: {missingdt}')
+
             # find leading and trailing datetimes
             leading_seconds =_find_closes_occuring_date(refdt = missingdt,
                                                         series_of_dt = staobs.index,

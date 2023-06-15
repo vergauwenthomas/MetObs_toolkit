@@ -728,7 +728,6 @@ class Dataset:
         new_missing_collection = Missingob_collection(missing_obs_series)
 
 
-
         # update self
         self.gaps.extend(gaps)
         self.missing_obs = self.missing_obs + new_missing_collection
