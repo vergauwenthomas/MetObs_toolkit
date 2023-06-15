@@ -459,6 +459,39 @@ def remove_gaps_from_obs(gaplist, obsdf):
     obsdf = obsdf.drop(index=expanded_gabsidx)
     return obsdf
 
+def remove_gaps_from_outliers(gaplist, outldf):
+    """
+    Remove station - datetime records that are in the gaps from the outliersdf.
+    This will ignore the observation types! So all outliers of any observation
+    type, that are in a gap period, are removed.
+
+
+
+    Parameters
+    ----------
+    obsdf : pandas.DataFrame()
+        A MultiIndex dataframe with name -- datetime -- as index.
+
+    Returns
+    -------
+    obsdf : pandas.DataFrame()
+        The same dataframe with records inside gaps removed.
+
+    """
+
+
+    # to multiindex
+    outldf = outldf.reset_index().set_index(['name', 'datetime'])
+
+    # remove records inside the gaps
+    suboutldf = remove_gaps_from_obs(gaplist = gaplist,
+                                     obsdf = outldf)
+
+    # restet to triple index
+    outldf = suboutldf.reset_index().set_index(['name', 'datetime', 'obstype'])
+
+    return outldf
+
 # =============================================================================
 # Helpers
 # =============================================================================

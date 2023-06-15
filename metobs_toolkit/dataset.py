@@ -59,6 +59,7 @@ from metobs_toolkit.missingobs import Missingob_collection
 from metobs_toolkit.gap import (
     Gap,
     remove_gaps_from_obs,
+    remove_gaps_from_outliers,
     missing_timestamp_and_gap_check,
     get_gaps_indx_in_obs_space,
     get_station_gaps,
@@ -732,7 +733,12 @@ class Dataset:
         self.gaps.extend(gaps)
         self.missing_obs = self.missing_obs + new_missing_collection
 
-        print(len(self.missing_obs))
+        # remove outliers that are converted to gaps
+        self.outliersdf = remove_gaps_from_outliers(gaplist=gaps,
+                                                    outldf = self.outliersdf)
+
+        # remove outliers that are converted to missing obs
+        self.outliersdf = self.missing_obs.remove_missing_from_outliers(self.outliersdf)
 
 
     # =============================================================================

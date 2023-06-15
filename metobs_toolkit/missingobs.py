@@ -128,6 +128,35 @@ class Missingob_collection:
 
         return obsdf
 
+    def remove_missing_from_outliers(self, outldf):
+        """
+        Drop the missing observation records from an outlier dataframe, if
+        they are present. This will ignore the observation types! So all
+        outliers of any observation type, at an missing timestamp are removed.
+
+        Parameters
+        ----------
+        obsdf : pandas.DataFrame
+            Multiindex (name-datetime-obstype) observational dataframe.
+
+        Returns
+        -------
+        obsdf : pandas.DataFrame
+            Multiindex observational dataframe without records linked to missing
+            observations.
+
+        """
+
+        # to multiindex
+        outldf = outldf.reset_index().set_index(['name', 'datetime'])
+
+        # remove records inside the gaps
+        suboutldf = self.remove_missing_from_obs(obsdf = outldf)
+
+        # reset to triple index
+        outldf = suboutldf.reset_index().set_index(['name', 'datetime', 'obstype'])
+        return outldf
+
     def interpolate_missing(self, obsdf, resolutionseries, obstype='temp', method='time'):
         """
         Fill the missing observations using an interpolation method.

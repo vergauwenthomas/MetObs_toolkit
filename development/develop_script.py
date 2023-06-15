@@ -72,27 +72,91 @@ comb1 = comb1.xs('temp', level='obstype')
 print(f' bfore: {comb1["label"].value_counts()}')
 
 #%%
-dataset.update_gaps_and_missing_from_outliers()
 
-print(len(dataset.missing_obs))
+from metobs_toolkit.gap import remove_gaps_from_outliers
+
+
+print(dataset.outliersdf.shape)
+
+dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
+
+
+print(dataset.outliersdf.shape)
+
 
 #%%
-comb2 = dataset.combine_all_to_obsspace()
-comb2 = comb2.xs('temp', level='obstype')
-print(f' after update: {comb2["label"].value_counts()}')
+
 # #%%
-# dataset.fill_missing_obs_linear()
-
-
-# comb3 = dataset.combine_all_to_obsspace()
-# comb3 = comb3.xs('temp', level='obstype')
+dataset.fill_missing_obs_linear()
 
 
 
-# for df in [comb1, comb2, comb3]:
-#     print(df['label'].value_counts())
-
-# dataset.make_plot(colorby='label')
+dataset.make_plot(colorby='label')
 
 #%%
+# import pandas as pd
+# from metobs_toolkit.df_helpers import init_multiindex, xs_save
 
+# def remove_missing_from_obs(miss, obsdf):
+#     """
+#     Drop the missing observation records from an observational dataframe, if
+#     they are present.
+
+#     Parameters
+#     ----------
+#     obsdf : pandas.DataFrame
+#         Multiindex observational dataframe.
+
+#     Returns
+#     -------
+#     obsdf : pandas.DataFrame
+#         Multiindex observational dataframe without records linked to missing
+#         observations.
+
+#     """
+#     # Normally there are no missing records in the obsdf
+#     missing_multiidx = pd.MultiIndex.from_arrays(
+#         arrays=[miss.series.index.to_list(), miss.series.to_list()],
+#         names=["name", "datetime"],
+#     )
+
+#     obsdf = obsdf.drop(index=missing_multiidx, errors="ignore")
+
+#     return obsdf
+
+
+
+
+# def remove_missing_from_outliers(miss, outldf):
+#     """
+#     Drop the missing observation records from an outlier dataframe, if
+#     they are present. This will ignore the observation types! So all
+#     outliers of any observation type, at an missing timestamp are removed.
+
+#     Parameters
+#     ----------
+#     obsdf : pandas.DataFrame
+#         Multiindex (name-datetime-obstype) observational dataframe.
+
+#     Returns
+#     -------
+#     obsdf : pandas.DataFrame
+#         Multiindex observational dataframe without records linked to missing
+#         observations.
+
+#     """
+
+#     # to multiindex
+#     outldf = outldf.reset_index().set_index(['name', 'datetime'])
+
+#     # remove records inside the gaps
+#     suboutldf = remove_missing_from_obs(miss = miss,
+#                                         obsdf = outldf)
+
+#     # restet to triple index
+#     outldf = suboutldf.reset_index().set_index(['name', 'datetime', 'obstype'])
+#     return outldf
+
+
+
+# test = remove_missing_from_outliers(dataset.missing_obs, dataset.outliersdf)
