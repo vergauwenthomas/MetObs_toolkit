@@ -33,7 +33,10 @@ class Missingob_collection:
         missing_obs_series.name = 'datetime'
         missing_obs_series.index.name = 'name'
 
-        missing_obs_series = missing_obs_series.drop_duplicates()
+        # drop duplicates and sort
+        missing_obs_df = missing_obs_series.reset_index() #needed to find duplicates
+        missing_obs_df = missing_obs_df.drop_duplicates()
+        missing_obs_series = missing_obs_df.set_index('name')['datetime']
         missing_obs_series = missing_obs_series.sort_index()
 
         missing_idx = missing_obs_series.reset_index()
