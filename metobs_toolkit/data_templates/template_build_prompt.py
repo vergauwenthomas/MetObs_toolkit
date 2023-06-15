@@ -73,42 +73,78 @@ def yes_no_ques(text):
             print(f' {prompt} is not y or n, give a suitable answer.')
 
 
+def usr_input_dir(text):
+    """ Prompt question and check if the answer is a directory, return the path
+        if it is a directory, repeat else. """
+    is_dir = False
+    while is_dir==False:
+        inp_dir = input(f'{text} : ')
+        if os.path.isdir(inp_dir):
+            is_dir = True
+        else:
+            print(f'{inp_dir} is not a directory, try again.')
+    return inp_dir
+
+
+def usr_input_file(text):
+    """ Prompt question and check if the answer is a file, return the path
+        if it exists, repeat else. """
+    is_file = False
+    while is_file==False:
+        inp_file = input(f'{text} : ')
+        if os.path.isfile(inp_file):
+            is_file = True
+        else:
+            print(f'{inp_file} is not found, try again.')
+    return inp_file
 
 
 
 
-
-def build_template_prompt():
+def build_template_prompt(debug=False):
     template_dict = {}
     print('This prompt will help to build a template for your data and metadata. Answer the prompt and hit Enter. \n \n')
+
+
+    print(' *******      File locations   *********** \n')
+    datafilepath = usr_input_file('Give the full path to your data file')
+    meta_avail = yes_no_ques('Do you have a file with the metadata?')
+    if meta_avail:
+        metadatafilepath = usr_input_file('Give the full path to your metadata file')
+
 
     # =============================================================================
     # Map data file
     # =============================================================================
 
-    print(' *******      Data File   ***********')
+    print('\n\n *******      Data File   ***********')
 
-    datafilepath = input('Give the full path to your data file : ')
+
+    # datafilepath = usr_input_file('Give the full path to your data file')
     print(' ... opening the data file ...')
     data = _read_csv_file(datafilepath, {})
     columnnames = data.columns.to_list()
 
 
-    format_dict = {1: 'Long format', 2: 'Wide format', 3: 'Single station format'}
 
-    format_option = int(input('How is your dataset structured : \n \
-        1. Long format (station observations are stacked as rows) \n \
-        2. Wide format (columns represent different stations) \n \
-        3. Single station (columns represent observation(s) of one station) \n \
-    (1, 2 or 3) : '))
 
-    print(f' \n... oke, {format_dict[format_option]} selected ...\n')
+    format_dict = {'Long format (station observations are stacked as rows)':1,
+                   'Wide format (columns represent different stations)':2,
+                   'Single station format (columns represent observation(s) of one station)':3}
+
+    print('How is your dataset structured : \n')
+    format_option = col_option_input(format_dict.keys())
+    print(f' \n... oke, {format_option} selected ...\n')
+    format_option = format_dict[format_option]
+    if debug:
+        print(f'format numeric option: {format_option}')
 
     #Datatime mapping
-    datetime_option = int(input(' How are the timestamps represented in your dataset: \n \
-        1. In a single column (ex: 2023/06/07 16:12:30) \n \
-        2. By a column with dates, and another column with times \n \
-      (1 or 2) : '))
+    dt_dict = {'In a single column (ex: 2023/06/07 16:12:30)': 1,
+               'By a column with dates, and another column with times': 2}
+    print('How are the timestamps present in your data file : \n')
+    datetime_option = col_option_input(dt_dict.keys())
+    datetime_option = dt_dict[datetime_option]
 
     if datetime_option ==1:
 
@@ -164,12 +200,12 @@ def build_template_prompt():
 
         for col in columnnames:
 
-            contin = yes_no_ques(f'add column {col} to the template?')
+            contin = yes_no_ques(f'\n add column \033[4m{col}\033[0m to the template?')
             if contin is False:
                 continue
 
 
-            print(f'\n {col} : ')
+            print(f'\n \033[4m{col}\033[0m : ')
 
             desc_return = col_option_input(obstype_options)
             if desc_return is None:
@@ -202,7 +238,7 @@ def build_template_prompt():
     if format_option == 2:
         print('Does these columns represent stations: ')
         for col in columnnames:
-            print(f'  {col}')
+            print(f'  \033[4m{col}\033[0m ')
         cont = yes_no_ques('')
         if cont is False:
             print('\n In a Wide-format, REMOVE THE COLUMNS that do not represent differnt satations, before proceding! \n')
@@ -234,17 +270,21 @@ def build_template_prompt():
             'units': units,
             'description': description
             }
-
-    print(template_dict)
+    if debug:
+        print(f'format option: {format_option}')
+        print(f'template_dict: {template_dict}')
     # =============================================================================
     # Map metadatafile
     # =============================================================================
 
-    print('\n \n *******      Meta Data File   ***********')
+    print('\n \n *******      Meta Data   ***********')
+
     metatemplate_dict = {}
-    meta_avail = yes_no_ques('The metadata contains metadata for each station, where each column represent a metadata type. \n Do you have a metadatafile?')
+
+    # meta_avail = yes_no_ques('The metadata contains metadata for each station, where each column represent a metadata type. \n Do you have a metadatafile?')
     if meta_avail:
-        metadatafilepath = input('Give the full path to your metadata file : ')
+        # metadatafilepath = input('Give the full path to your metadata file : ')
+        # metadatafilepath = usr_input_file('Give the full path to your metadata file')
         print(' ... opening the metadata file ...')
         metadata = _read_csv_file(metadatafilepath, {})
         metacolumnnames = metadata.columns.to_list()
@@ -264,11 +304,11 @@ def build_template_prompt():
         meta_options=list(meta_desc.values())
         for col in metacolumnnames:
 
-            contin = yes_no_ques(f'add {col} to the template?')
+            contin = yes_no_ques(f'add \033[4m{col}\033[0m to the template?')
             if contin is False:
                 continue
 
-            print(f'\n {col} : ')
+            print(f'\n \033[4m{col}\033[0m : ')
             desc_return = col_option_input(meta_options)
             if desc_return is None:
                 continue  #when enter x
@@ -287,10 +327,14 @@ def build_template_prompt():
 
             metatemplate_dict[metatype] = {'orig_name': col}
             meta_options.remove(meta_desc[metatype])
-
+    if debug:
+        print(f'metatemplate_dict : {metatemplate_dict}')
 
     print('\n   ... Oke, that is all the info for the mapping. Now i will do some basic tests to see if the mapping works.')
 
+    # if (not meta_avail) & (format_option == 3):
+    #     prompt_mapping = yes_no_ques('Can you give me the coordinates and the name of the station?')
+    #     if prompt_mapping:
 
     # =============================================================================
     # Apply tests
@@ -376,18 +420,20 @@ def build_template_prompt():
         metadata_test = metadata.iloc[0].to_dict()
 
 
-        # test if name is in the metadat
+        # test if name is in the metadat in a long format
         print (' *  ... checking metadata columns ... ')
-        if ((not 'name' in metatemplate_dict)):
+        if ((not 'name' in metatemplate_dict) & ((format_option in [1, 2]))):
             print(f'Error! There is no metadata column containing the station names in the template! Add this column to the metadatafile of the template.')
             sys.exit('Template invalid, see last message. ')
 
+
         print (' *  ... checking metadata name duplicates... ')
-        stanames_metadata = metadata[metatemplate_dict['name']['orig_name']]
-        if stanames_metadata.duplicated().any():
-            dubs = stanames_metadata[stanames_metadata.duplicated()]
-            print(f'Error! There are duplicated names present in the metadatafile {dubs}. Remove the duplicates manually.')
-            sys.exit('Template invalid, see last message. ')
+        if (format_option in [1, 2]):
+            stanames_metadata = metadata[metatemplate_dict['name']['orig_name']]
+            if stanames_metadata.duplicated().any():
+                dubs = stanames_metadata[stanames_metadata.duplicated()]
+                print(f'Error! There are duplicated names present in the metadatafile {dubs}. Remove the duplicates manually.')
+                sys.exit('Template invalid, see last message. ')
 
         # test if all stationnames are present in the metadata
         print (' *  ... checking compatible station names ... ')
@@ -409,6 +455,7 @@ def build_template_prompt():
 
             # 2. check if all stationname in the data are defined in the metadata,
             # If there are no mapped stationnames give error, else give warning
+
             stanames_metadata = metadata[metatemplate_dict['name']['orig_name']].to_list()
             unmapped = [staname for staname in stationnames if not staname in stanames_metadata]
 
@@ -438,13 +485,14 @@ def build_template_prompt():
     # =============================================================================
 
     print('\n ------ Saving the template ----- \n')
-    is_dir = False
-    while is_dir==False:
-        save_dir = input('Give a directory where to save the template (as template.csv) : ')
-        if os.path.isdir(save_dir):
-            is_dir = True
-        else:
-            print(f'{save_dir} is not a directory, try again.')
+    save_dir = usr_input_dir("Give a directory where to save the template (as template.csv)")
+    # is_dir = False
+    # while is_dir==False:
+    #     save_dir = input('Give a directory where to save the template (as template.csv) : ')
+    #     if os.path.isdir(save_dir):
+    #         is_dir = True
+    #     else:
+    #         print(f'{save_dir} is not a directory, try again.')
 
     template_dict.update(metatemplate_dict) #this is why name in data and metadata should have the same mapping !!
 

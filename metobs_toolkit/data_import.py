@@ -6,7 +6,7 @@ Created on Thu Sep 22 16:24:06 2022
 @author: thoverga
 """
 import sys
-
+import warnings
 import pandas as pd
 
 import mysql.connector
@@ -98,16 +98,18 @@ def import_metadata_from_csv(input_file, template_file, kwargs_metadata_read):
 
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
 
-    if bool(kwargs_metadata_read):
-        df = pd.read_csv(filepath_or_buffer=input_file, **kwargs_metadata_read)
-    else:
-        common_seperators = [None, ";", ",", "    ", "."]
-        for sep in common_seperators:
-            df = pd.read_csv(input_file, sep=sep)
-            assert not df.empty, "Dataset is empty!"
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        if bool(kwargs_metadata_read):
+            df = pd.read_csv(filepath_or_buffer=input_file, **kwargs_metadata_read)
+        else:
+            common_seperators = [None, ";", ",", "    ", "."]
+            for sep in common_seperators:
+                df = pd.read_csv(input_file, sep=sep)
+                assert not df.empty, "Dataset is empty!"
 
-            if len(df.columns) > 1:
-                break
+                if len(df.columns) > 1:
+                    break
 
     assert (
         len(df.columns) > 1
@@ -153,22 +155,24 @@ def wide_to_long(df, template, obstype):
 def _read_csv_file(path, kwargsdict):
     """ a helper function to read in csv data files, try multiple seperators, and
         remove header text. """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
 
-    if bool(kwargsdict):
-        df = pd.read_csv(filepath_or_buffer=path, **kwargsdict)
-    else:
-        common_seperators = [None, ";", ",", "    ", "."]
-        assert not isinstance(path, type(None)), "Specify input file in the settings!"
-        for sep in common_seperators:
-            df = pd.read_csv(path, sep=sep)
-            assert not df.empty, "Dataset is empty!"
+        if bool(kwargsdict):
+            df = pd.read_csv(filepath_or_buffer=path, **kwargsdict)
+        else:
+            common_seperators = [None, ";", ",", "    ", "."]
+            assert not isinstance(path, type(None)), "Specify input file in the settings!"
+            for sep in common_seperators:
+                df = pd.read_csv(path, sep=sep)
+                assert not df.empty, "Dataset is empty!"
 
-            if len(df.columns) > 1:
-                break
+                if len(df.columns) > 1:
+                    break
 
-    assert (
-        len(df.columns) > 1
-    ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
+        assert (
+            len(df.columns) > 1
+        ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
 
     # LINES TO DEAL WITH RANDOM PIECES OF TEXT BEFORE ACTUAL MEASUREMENTS
     if True in df.columns.str.contains(pat="Unnamed"):
