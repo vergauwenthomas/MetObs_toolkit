@@ -2078,6 +2078,9 @@ class Dataset:
                     logger.warning(f'One stationname found in the metadata: {name}, this name is used for the data.')
                 else:
                     df["name"] = str(self.settings.app["default_name"])
+                    # for later merging, we add the name column with the default
+                    # also in the metadf
+                    meta_df['name'] =str(self.settings.app["default_name"])
                     logger.warning(
                         f'Assume the dataset is for ONE station with the \
                         default name: {self.settings.app["default_name"]}.')
