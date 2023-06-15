@@ -246,8 +246,8 @@ debugpy==1.6.7 ; python_version >= "3.9" and python_version < "4.0" \
 decorator==5.1.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:637996211036b6385ef91435e4fae22989472f9d571faba8927ba8253acbc330 \
     --hash=sha256:b8c3f85900b9dc423225913c5aace94729fe1fa9763b38939a95226f02d37186
-earthengine-api==0.1.356 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:cea6f4ad930850eebf2d23faba74f6d1bcb8b24cda87568e380a3f181835502f
+earthengine-api==0.1.357 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:1456d49fd1acde708a3299e063abca3eede7ecd573ee409aeb2f569d44b34286
 eerepr==0.0.4 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:79595fd643e99d91a68041cdba3f5347d5559e6744a34983291a46cada6edbd4 \
     --hash=sha256:920cccbe498b2880f42ed39a2db8945f705b1497523c48b8d392c5380d511926
@@ -324,9 +324,9 @@ geocoder==1.38.1 ; python_version >= "3.9" and python_version < "4.0" \
 geopandas==0.9.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:63972ab4dc44c4029f340600dcb83264eb8132dd22b104da0b654bef7f42630a \
     --hash=sha256:79f6e557ba0dba76eec44f8351b1c6b42a17c38f5f08fef347e98fe4dae563c7
-google-api-core==2.11.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:4b9bb5d5a380a0befa0573b302651b8a9a89262c1730e37bf423cec511804c22 \
-    --hash=sha256:ce222e27b0de0d7bc63eb043b956996d6dccab14cc3b690aaea91c9cc99dc16e
+google-api-core==2.11.1 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:25d29e05a0058ed5f19c61c0a78b1b53adea4d9364b464d014fbda941f6d1c9a \
+    --hash=sha256:d92a5a92dc36dd4f4b9ee4e55528a90e432b059f93aee6ad857f9de8cc7ae94a
 google-api-python-client==2.89.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:0b0c9503df2da92692ffceee88423ca593cbf0b939d879e2c46fbdc1a39cf091 \
     --hash=sha256:272ff339928ac35b1e117d30e5db444fb701803bb748bb29e7bb520be29dea36

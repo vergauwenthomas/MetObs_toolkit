@@ -392,15 +392,16 @@ def timeseries_plot(
                     index="datetime", columns="name", values='value'
                 )  # long to wide
 
-
-                plotdf.plot(
-                    kind="line",
-                    color=outl_color,
-                    ax=ax,
-                    legend=False,
-                    zorder=plot_settings["time_series"]["linezorder"],
-                    linewidth=plot_settings["time_series"]["linewidth"],
-                )
+                for sta_ in plotdf.columns: #needed for non-sychronized datasets
+                # so that dropna can be applied per column.
+                    plotdf[[sta_]].dropna().plot(
+                        kind="line",
+                        color=outl_color,
+                        ax=ax,
+                        legend=False,
+                        zorder=plot_settings["time_series"]["linezorder"],
+                        linewidth=plot_settings["time_series"]["linewidth"],
+                    )
 
 
                 # add legend handl
@@ -421,16 +422,17 @@ def timeseries_plot(
                     index="datetime", columns="name", values='value'
                 )  # long to wide
 
-
-                plotdf.plot(
-                    kind="line",
-                    style="--",
-                    color=outl_color,
-                    ax=ax,
-                    legend=False,
-                    zorder=plot_settings['time_series']["dashedzorder"],
-                    linewidth=plot_settings['time_series']["linewidth"],
-                )
+                for sta_ in plotdf.columns: #needed for non-sychronized datasets
+                # so that dropna can be applied per column.
+                    plotdf[[sta_]].dropna().plot(
+                        kind="line",
+                        style="--",
+                        color=outl_color,
+                        ax=ax,
+                        legend=False,
+                        zorder=plot_settings['time_series']["dashedzorder"],
+                        linewidth=plot_settings['time_series']["linewidth"],
+                    )
 
                 # add legend handle
                 custom_handles.append(
@@ -446,6 +448,7 @@ def timeseries_plot(
                 plotdf = groupdf['value']
                 plotdf.index = plotdf.index.droplevel("name")
                 plotdf = plotdf.reset_index()
+
 
                 plotdf.plot(
                     kind="scatter",

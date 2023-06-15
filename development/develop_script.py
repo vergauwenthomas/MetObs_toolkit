@@ -77,6 +77,64 @@ dataset.apply_quality_control(
 #     make_plot=True,     # Set True to make a plot
 # )
 
-
+#%%
 
 dataset.make_plot(colorby='label')
+
+#%%
+
+
+
+#%%
+
+# import pandas as pd
+# import matplotlib.pyplot as plt
+
+# combdf = dataset.combine_all_to_obsspace()
+# combdf = combdf.xs('temp', level='obstype')
+# mergedf = combdf[~combdf.index.duplicated()]
+# init_idx = mergedf.index
+
+# outl_groups = mergedf.groupby('label')
+
+# outl_label ='ok'
+# groupdf = outl_groups.get_group(outl_label)
+# outl_color = 'blue'
+# plot_settings = dataset.settings.app['plot_settings']
+
+# #%%
+
+
+
+
+
+
+
+
+
+# # add init_idx andf fill with nans (to avoid matplotlib interpolation)
+# fill_idx = init_idx.to_frame().drop(groupdf.index)
+# groupdf = pd.concat([groupdf, fill_idx])
+# groupdf = groupdf.drop(columns=["name", "datetime"], errors="ignore")
+# groupdf.sort_index()
+
+# plotdf = groupdf.reset_index().pivot(
+#     index="datetime", columns="name", values='value'
+# )  # long to wide
+
+# for col in plotdf.columns:
+
+#     plotdf[[col]].dropna().plot(
+#     kind="line",
+#     color=outl_color,
+#     # ax=ax,
+#     legend=False,
+#     zorder=plot_settings["time_series"]["linezorder"],
+#     linewidth=plot_settings["time_series"]["linewidth"],
+#   )
+
+
+
+
+
+
