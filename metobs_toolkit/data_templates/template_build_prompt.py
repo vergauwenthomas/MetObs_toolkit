@@ -199,8 +199,8 @@ def build_template_prompt(debug=False):
         print('What do the following columns represent: \n')
 
         for col in columnnames:
-
             contin = yes_no_ques(f'\n add column {col} to the template?')
+
             if contin is False:
                 continue
 
@@ -239,6 +239,7 @@ def build_template_prompt(debug=False):
         print('Does these columns represent stations: ')
         for col in columnnames:
             print(f'  {col} ')
+
         cont = yes_no_ques('')
         if cont is False:
             print('\n In a Wide-format, REMOVE THE COLUMNS that do not represent differnt satations, before proceding! \n')
