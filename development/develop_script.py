@@ -43,14 +43,6 @@ dataset.update_settings(output_folder=None,
 
 dataset.import_data_from_file()
 
-# dataset.coarsen_time_resolution()
-
-# dataset.apply_quality_control()
-
-
-# dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
-
-
 
 #%%
 
@@ -71,70 +63,36 @@ dataset.apply_quality_control(
 )
 
 
-# qc_statistics = dataset.get_qc_stats(
-#     obstype="temp",     # Specify which observation variable you want to get the statistics for; here we choose temperature
-#     stationname=None,   # None means all stations are plotted. You can also plot a specific station by saying 'station_A'
-#     make_plot=True,     # Set True to make a plot
-# )
 
 #%%
 
-dataset.make_plot(colorby='label')
+# dataset.make_plot(colorby='label')
+comb1 = dataset.combine_all_to_obsspace()
+comb1 = comb1.xs('temp', level='obstype')
+print(f' bfore: {comb1["label"].value_counts()}')
 
 #%%
+dataset.update_gaps_and_missing_from_outliers()
 
-
+print(len(dataset.missing_obs))
 
 #%%
-
-# import pandas as pd
-# import matplotlib.pyplot as plt
-
-# combdf = dataset.combine_all_to_obsspace()
-# combdf = combdf.xs('temp', level='obstype')
-# mergedf = combdf[~combdf.index.duplicated()]
-# init_idx = mergedf.index
-
-# outl_groups = mergedf.groupby('label')
-
-# outl_label ='ok'
-# groupdf = outl_groups.get_group(outl_label)
-# outl_color = 'blue'
-# plot_settings = dataset.settings.app['plot_settings']
-
+comb2 = dataset.combine_all_to_obsspace()
+comb2 = comb2.xs('temp', level='obstype')
+print(f' after update: {comb2["label"].value_counts()}')
 # #%%
+# dataset.fill_missing_obs_linear()
+
+
+# comb3 = dataset.combine_all_to_obsspace()
+# comb3 = comb3.xs('temp', level='obstype')
 
 
 
+# for df in [comb1, comb2, comb3]:
+#     print(df['label'].value_counts())
 
+# dataset.make_plot(colorby='label')
 
-
-
-
-
-# # add init_idx andf fill with nans (to avoid matplotlib interpolation)
-# fill_idx = init_idx.to_frame().drop(groupdf.index)
-# groupdf = pd.concat([groupdf, fill_idx])
-# groupdf = groupdf.drop(columns=["name", "datetime"], errors="ignore")
-# groupdf.sort_index()
-
-# plotdf = groupdf.reset_index().pivot(
-#     index="datetime", columns="name", values='value'
-# )  # long to wide
-
-# for col in plotdf.columns:
-
-#     plotdf[[col]].dropna().plot(
-#     kind="line",
-#     color=outl_color,
-#     # ax=ax,
-#     legend=False,
-#     zorder=plot_settings["time_series"]["linezorder"],
-#     linewidth=plot_settings["time_series"]["linewidth"],
-#   )
-
-
-
-
-
+#%%
 

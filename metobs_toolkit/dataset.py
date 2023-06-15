@@ -687,7 +687,7 @@ class Dataset:
 
         #locate new gaps by size of consecutive the same final label per station
         group_sizes = grouped.size()
-        outlier_groups = group_sizes[
+        large_groups = group_sizes[
             group_sizes > n_gapsize
         ]
 
@@ -695,7 +695,7 @@ class Dataset:
         gaps = []
         # new_gapsdf = pd.DataFrame()
         new_gaps_idx = init_multiindex()
-        for group_idx in outlier_groups.index:
+        for group_idx in large_groups.index:
             groupdf = grouped.get_group(group_idx)
             group_final_label = groupdf['label'].iloc[0]
             if not group_final_label in possible_outlier_labels:
@@ -732,6 +732,7 @@ class Dataset:
         self.gaps.extend(gaps)
         self.missing_obs = self.missing_obs + new_missing_collection
 
+        print(len(self.missing_obs))
 
 
     # =============================================================================

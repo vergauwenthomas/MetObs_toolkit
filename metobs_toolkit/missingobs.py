@@ -33,7 +33,7 @@ class Missingob_collection:
         missing_obs_series.name = 'datetime'
         missing_obs_series.index.name = 'name'
 
-        # drop duplicates and sort
+
         missing_obs_df = missing_obs_series.reset_index() #needed to find duplicates
         missing_obs_df = missing_obs_df.drop_duplicates()
         missing_obs_series = missing_obs_df.set_index('name')['datetime']
@@ -52,7 +52,10 @@ class Missingob_collection:
     def __add__(self, other):
         comb_series = pd.concat([self.series, other.series])
 
-        comb_series = comb_series.drop_duplicates()
+        # drop duplicates and sort
+        comb_df = comb_series.reset_index() #needed to find duplicates
+        comb_df = comb_df.drop_duplicates()
+        comb_series = comb_df.set_index('name')['datetime']
         comb_series = comb_series.sort_index()
 
         self.series = comb_series
