@@ -133,7 +133,10 @@ class Dataset:
 
     def __str__(self):
         if self.df.empty:
-            return f"Empty instance of a Dataset."
+            if self._istype == 'Dataset':
+                return f"Empty instance of a Dataset."
+            else:
+                return f"Empty instance of a Station."
         add_info = ''
         n_stations = self.df.index.get_level_values('name').unique().shape[0]
         n_obs_tot = self.df.shape[0]
