@@ -199,13 +199,13 @@ def build_template_prompt(debug=False):
         print('What do the following columns represent: \n')
 
         for col in columnnames:
+            contin = yes_no_ques(f'\n add column {col} to the template?')
 
-            contin = yes_no_ques(f'\n add column \033[4m{col}\033[0m to the template?')
             if contin is False:
                 continue
 
 
-            print(f'\n \033[4m{col}\033[0m : ')
+            print(f'\n {col} : ')
 
             desc_return = col_option_input(obstype_options)
             if desc_return is None:
@@ -238,7 +238,8 @@ def build_template_prompt(debug=False):
     if format_option == 2:
         print('Does these columns represent stations: ')
         for col in columnnames:
-            print(f'  \033[4m{col}\033[0m ')
+            print(f'  {col} ')
+
         cont = yes_no_ques('')
         if cont is False:
             print('\n In a Wide-format, REMOVE THE COLUMNS that do not represent differnt satations, before proceding! \n')
@@ -304,11 +305,11 @@ def build_template_prompt(debug=False):
         meta_options=list(meta_desc.values())
         for col in metacolumnnames:
 
-            contin = yes_no_ques(f'add \033[4m{col}\033[0m to the template?')
+            contin = yes_no_ques(f'add {col} to the template?')
             if contin is False:
                 continue
 
-            print(f'\n \033[4m{col}\033[0m : ')
+            print(f'\n {col} : ')
             desc_return = col_option_input(meta_options)
             if desc_return is None:
                 continue  #when enter x
