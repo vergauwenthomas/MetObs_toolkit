@@ -43,6 +43,8 @@ plot_settings["time_series"] = {
     # shape
     "figsize": (10, 5),
     "linewidth": 2,  #
+    "linestyle_ok": '-', #solid line
+    "linestyle_fill": '--', #dashedline
     "linezorder": 1,  # for ok obs
     "scattersize": 4,  # for outliers
     "scatterzorder": 3,  # for outliers
@@ -96,7 +98,7 @@ plot_settings["color_mapper"] = {
     "window_variation": "#05f0c9",
     # missing and gap
     "gap": "#f00592",
-    "missing_timestamp": "#e86bb6",
+    "missing_timestamp": "#f78e0c",
     # filling
     "linear": "#d406c6",
     "model_debias": "#6e1868",

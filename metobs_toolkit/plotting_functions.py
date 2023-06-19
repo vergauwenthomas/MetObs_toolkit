@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 import matplotlib.gridspec as gridspec
+import matplotlib.dates as mdates
+from matplotlib.collections import LineCollection
 
 import geemap.foliumap as foliumap
 import folium
@@ -26,6 +28,7 @@ from metobs_toolkit.geometry_functions import find_largest_extent
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from metobs_toolkit.landcover_functions import get_ee_obj
+from metobs_toolkit.df_helpers import xs_save
 
 
 
@@ -290,7 +293,7 @@ def _spatial_plot(
     return ax
 
 
-def sorting_function(label_vec, custom_handles, number_of_labels_types=3):
+def _sorting_function(label_vec, custom_handles, number_of_labels_types=4):
     # TODO: clean this up? rewrite to better code?
     sorted_vec = []
     # group 1, 2, 3
@@ -305,6 +308,37 @@ def sorting_function(label_vec, custom_handles, number_of_labels_types=3):
 
     return sorted_handles
 
+
+
+def _create_linecollection(linedf, colormapper, linestylemapper,
+                          plotsettings, value_col_name='value',
+                          label_col_name='label'):
+
+    # 1. convert datetime to numerics values
+    if linedf.index.name == 'datetime':
+        inxval = mdates.date2num(linedf.index.to_pydatetime())
+    else:
+        linedf = linedf.reset_index()
+        linedf = linedf.set_index('datetime')
+        inxval = mdates.date2num(linedf.index.to_pydatetime())
+
+    # 2. convert df to segments
+    points = np.array([inxval, linedf[value_col_name]]).T.reshape(-1,1,2)
+    segments = np.concatenate([points[:-1],points[1:]], axis=1)
+
+    # 3. get styling info
+    color = linedf[label_col_name].map(colormapper).to_list()
+    linewidth=[plotsettings['time_series']['linewidth']] * linedf.shape[0]
+    zorder = plotsettings['time_series']['linezorder']
+    linestyle = linedf[label_col_name].map(linestylemapper).to_list()
+
+    # 4. Make line collection
+    lc = LineCollection(segments=segments,
+                        colors=color,
+                        linewidths=linewidth,
+                        zorder=zorder,
+                        linestyle=linestyle)
+    return lc
 
 def timeseries_plot(
     mergedf,
@@ -329,148 +363,130 @@ def timeseries_plot(
 
     # get data ready
     mergedf = mergedf[~mergedf.index.duplicated()]
-    init_idx = mergedf.index
-
-    # define different groups (different plotting styles)
-
-    # ok group
-    ok_group_label = 'ok'
-
-    # filled value groups
-    fill_labels= [ val for val in settings.gap['gaps_fill_info']['label'].values()]
-    missing_fill_labels = [ val for val in settings.missing_obs['missing_obs_fill_info']['label'].values()]
-    fill_labels.extend(missing_fill_labels)
-
-    # outlier groups
-    # Catching with an else
-
-
-    custom_handles = [] #add legend items to it
-    label_vec=[] # add type of label
 
 
     if colorby == "label":
 
-        legenddict = {} # iterate over label groups
+        # define different groups (different plotting styles)
+
+        # ok group
+        ok_labels = ['ok']
+
+        # filled value groups
+        fill_labels= [ val for val in settings.gap['gaps_fill_info']['label'].values()]
+        missing_fill_labels = [ val for val in settings.missing_obs['missing_obs_fill_info']['label'].values()]
+        fill_labels.extend(missing_fill_labels)
+
+        # qc outlier labels
+        qc_labels = [val['outlier_flag'] for key, val in settings.qc['qc_checks_info'].items()]
+
+        # no value group
+        no_vals_labels = [settings.gap['gaps_info']['gap']['outlier_flag'],
+                          settings.gap['gaps_info']['missing_timestamp']['outlier_flag']]
+        no_vals_df = mergedf[mergedf['label'].isin(no_vals_labels)]
+
+        # set hight of the vertical lines for no vals
+        vlin_min = mergedf[mergedf['label'] == 'ok']['value'].min()
+        vlin_max = mergedf[mergedf['label'] == 'ok']['value'].max()
+
+        # aggregate groups and make styling mappers
+
         col_mapper = _all_possible_labels_colormapper(settings) # get color mapper
 
-        outl_groups = mergedf.groupby('label')
+        # linestyle mapper
+        line_mapper = {lab: plot_settings['time_series']['linestyle_ok'] for lab in ok_labels}
+        line_mapper.update({lab: plot_settings['time_series']['linestyle_fill'] for lab in fill_labels})
 
-         # TODO: make proper fix proper fix for this issue
-         # (issue: all scatters added to the axis in advance of the lines are not shown
-         #          in the plot. zorder does not seem to have any inpact??)
-
-
-         # poorsman fix (sorting the labels in advance)
-        iterate_labels = []
-        present_labels = list(outl_groups.groups.keys())
-        if ok_group_label in present_labels:
-            iterate_labels.append('ok')
-
-        present_fills = [lab for lab in present_labels if lab in fill_labels]
-        iterate_labels.extend(present_fills)
-
-        present_outl = [lab for lab in present_labels if lab not in iterate_labels]
-        iterate_labels.extend(present_outl)
-
-        for outl_label in iterate_labels:
-            groupdf = outl_groups.get_group(outl_label)
-        # end poormans fix
-        # for outl_label, groupdf in outl_groups:
-            outl_color = col_mapper[outl_label]
+        # line labels
+        line_labels = ['ok']
+        line_labels.extend(fill_labels)
 
 
-            # plot data for the 'ok' group
-            if outl_label == ok_group_label:  # ok data as lines
-                # add init_idx andf fill with nans (to avoid matplotlib interpolation)
-                fill_idx = init_idx.to_frame().drop(groupdf.index)
-                groupdf = pd.concat([groupdf, fill_idx])
-                groupdf = groupdf.drop(columns=["name", "datetime"], errors="ignore")
-                groupdf.sort_index()
+        # -------- Ok and filled observation -------- (lines)
+        linedf = mergedf[mergedf['label'].isin(line_labels)]
 
-                plotdf = groupdf.reset_index().pivot(
-                    index="datetime", columns="name", values='value'
-                )  # long to wide
-
-
-                plotdf.plot(
-                    kind="line",
-                    color=outl_color,
-                    ax=ax,
-                    legend=False,
-                    zorder=plot_settings["time_series"]["linezorder"],
-                    linewidth=plot_settings["time_series"]["linewidth"],
-                )
+        for sta in linedf.index.get_level_values('name').unique():
+            stadf = xs_save(linedf, sta, 'name')
+            sta_line_lc = _create_linecollection(
+                                linedf = stadf,
+                                colormapper = col_mapper,
+                                linestylemapper=line_mapper,
+                                plotsettings =plot_settings)
+            ax.add_collection(sta_line_lc)
 
 
-                # add legend handl
-                custom_handles.append(
-                    Line2D([0], [0], color=outl_color, label="ok", lw=4))
-                label_vec.append(1)
+        # ------ missing obs ------ (vertical lines)
+        missing_df = mergedf[mergedf['label'].isin(no_vals_labels)]
+        missing_df = missing_df.reset_index()
+        ax.vlines(x=missing_df['datetime'].to_numpy(),
+                  ymin=vlin_min,
+                  ymax=vlin_max,
+                  linestyle="--",
+                  color=missing_df['label'].map(col_mapper),
+                  zorder=plot_settings['time_series']["dashedzorder"],
+                  linewidth=plot_settings['time_series']["linewidth"])
 
 
 
-            # plot filled data
-            elif outl_label in  fill_labels:  # fill gaps as dashed lines
+        # ------ outliers ------ (scatters)
+        outlier_df = mergedf[mergedf['label'].isin(qc_labels)]
+        outlier_df = outlier_df.reset_index()
+        outlier_df.plot(
+            kind="scatter",
+            x="datetime",
+            y='value',
+            ax=ax,
+            color=outlier_df['label'].map(col_mapper),
+            legend=False,
+            zorder=plot_settings["time_series"]["scatterzorder"],
+            s=plot_settings["time_series"]["scattersize"],
+        )
 
-                fill_idx = init_idx.to_frame().drop(groupdf.index)
-                groupdf = pd.concat([groupdf, fill_idx])
-                groupdf = groupdf.drop(columns=["name", "datetime"], errors="ignore")
-                groupdf.sort_index()
-                plotdf = groupdf.reset_index().pivot(
-                    index="datetime", columns="name", values='value'
-                )  # long to wide
-
-
-                plotdf.plot(
-                    kind="line",
-                    style="--",
-                    color=outl_color,
-                    ax=ax,
-                    legend=False,
-                    zorder=plot_settings['time_series']["dashedzorder"],
-                    linewidth=plot_settings['time_series']["linewidth"],
-                )
-
-                # add legend handle
-                custom_handles.append(
-                    Line2D([0],[0],
-                        color=outl_color,
-                        label=f"filled value ({outl_label})",
-                        lw=1,
-                        linestyle="--",)
-                    )
-                label_vec.append(2)
-
-            else:  # outliers as scatters
-                plotdf = groupdf['value']
-                plotdf.index = plotdf.index.droplevel("name")
-                plotdf = plotdf.reset_index()
-
-                plotdf.plot(
-                    kind="scatter",
-                    x="datetime",
-                    y='value',
-                    ax=ax,
-                    color=outl_color,
-                    legend=False,
-                    zorder=plot_settings["time_series"]["scatterzorder"],
-                    s=plot_settings["time_series"]["scattersize"],
-                )
-
-                # add legend handle
-                custom_handles.append(
-                    Line2D([0],[0], marker="o", color="w",
-                        markerfacecolor=outl_color,
-                        label=outl_label,
-                        lw=1,)
-                    )
-                label_vec.append(3)
-            legenddict[outl_label] = outl_color
-        # make legend
+        # create legend
         if show_legend:
-            # sort legend items
-            custom_handles = sorting_function(label_vec, custom_handles)
+
+            custom_handles = [] #add legend items to it
+            label_vec=[] # add type of label
+            for label in mergedf['label'].unique():
+                outl_color = col_mapper[label]
+
+                if label in ok_labels:
+                    custom_handles.append(
+                        Line2D([0], [0], color=outl_color, label="ok", lw=4))
+                    label_vec.append(1)
+
+                elif label in fill_labels:
+                    custom_handles.append(
+                        Line2D([0],[0],
+                            color=outl_color,
+                            label=f"filled value ({label})",
+                            lw=1,
+                            linestyle="--",)
+                        )
+                    label_vec.append(2)
+
+                elif label in no_vals_labels:
+                    custom_handles.append(
+                         Line2D([0],[0],
+                             color=outl_color,
+                             label=f"{label}",
+                             lw=1,
+                             linestyle='--',
+                             linewidth=2,
+                             )
+                         )
+                    label_vec.append(3)
+                else:
+                    custom_handles.append(
+                        Line2D([0],[0], marker="o", color="w",
+                            markerfacecolor=outl_color,
+                            label=label,
+                            lw=1,)
+                        )
+                    label_vec.append(4)
+
+
+            custom_handles = _sorting_function(label_vec, custom_handles)
             #ax.legend(handles=custom_handles)
             box = ax.get_position()
             ax.set_position([box.x0, box.y0 + box.height * 0.2,
@@ -481,12 +497,14 @@ def timeseries_plot(
                 ncol=plot_settings["time_series"]["legend_n_columns"])
 
 
+
     elif colorby == "name":
         plotdf = mergedf.reset_index().pivot(
             index="datetime", columns="name", values='value'
         )
+        for sta in plotdf.columns:
+            plotdf[[sta]].dropna().plot(kind="line", legend=False, ax=ax)
 
-        plotdf.plot(kind="line", legend=False, ax=ax)
         if show_legend == True:
             box = ax.get_position()
             ax.set_position([box.x0, box.y0 + box.height * 0.2,
@@ -498,7 +516,6 @@ def timeseries_plot(
 
     # Set title
     ax.set_title(title)
-    # ax.legend().set_title('')
 
     # Set x and y labels
     ax.set_ylabel(ylabel)

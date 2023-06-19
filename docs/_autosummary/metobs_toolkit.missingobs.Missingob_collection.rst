@@ -20,6 +20,7 @@ metobs\_toolkit.missingobs.Missingob\_collection
       ~Missingob_collection.get_station_missingobs
       ~Missingob_collection.interpolate_missing
       ~Missingob_collection.remove_missing_from_obs
+      ~Missingob_collection.remove_missing_from_outliers
    
    
 

@@ -59,6 +59,7 @@ from metobs_toolkit.missingobs import Missingob_collection
 from metobs_toolkit.gap import (
     Gap,
     remove_gaps_from_obs,
+    remove_gaps_from_outliers,
     missing_timestamp_and_gap_check,
     get_gaps_indx_in_obs_space,
     get_station_gaps,
@@ -687,7 +688,7 @@ class Dataset:
 
         #locate new gaps by size of consecutive the same final label per station
         group_sizes = grouped.size()
-        outlier_groups = group_sizes[
+        large_groups = group_sizes[
             group_sizes > n_gapsize
         ]
 
@@ -695,7 +696,7 @@ class Dataset:
         gaps = []
         # new_gapsdf = pd.DataFrame()
         new_gaps_idx = init_multiindex()
-        for group_idx in outlier_groups.index:
+        for group_idx in large_groups.index:
             groupdf = grouped.get_group(group_idx)
             group_final_label = groupdf['label'].iloc[0]
             if not group_final_label in possible_outlier_labels:
@@ -727,11 +728,16 @@ class Dataset:
         new_missing_collection = Missingob_collection(missing_obs_series)
 
 
-
         # update self
         self.gaps.extend(gaps)
         self.missing_obs = self.missing_obs + new_missing_collection
 
+        # remove outliers that are converted to gaps
+        self.outliersdf = remove_gaps_from_outliers(gaplist=gaps,
+                                                    outldf = self.outliersdf)
+
+        # remove outliers that are converted to missing obs
+        self.outliersdf = self.missing_obs.remove_missing_from_outliers(self.outliersdf)
 
 
     # =============================================================================
