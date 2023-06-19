@@ -23,6 +23,7 @@ metobs\_toolkit.gap
       make_gapfill_df
       missing_timestamp_and_gap_check
       remove_gaps_from_obs
+      remove_gaps_from_outliers
    
    
 

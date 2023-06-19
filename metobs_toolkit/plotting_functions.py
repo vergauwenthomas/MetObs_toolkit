@@ -310,7 +310,7 @@ def _sorting_function(label_vec, custom_handles, number_of_labels_types=4):
 
 
 
-def create_linecollection(linedf, colormapper, linestylemapper,
+def _create_linecollection(linedf, colormapper, linestylemapper,
                           plotsettings, value_col_name='value',
                           label_col_name='label'):
 
@@ -407,7 +407,7 @@ def timeseries_plot(
 
         for sta in linedf.index.get_level_values('name').unique():
             stadf = xs_save(linedf, sta, 'name')
-            sta_line_lc = create_linecollection(
+            sta_line_lc = _create_linecollection(
                                 linedf = stadf,
                                 colormapper = col_mapper,
                                 linestylemapper=line_mapper,
