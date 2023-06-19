@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 import matplotlib.gridspec as gridspec
+import matplotlib.dates as mdates
+from matplotlib.collections import LineCollection
 
 import geemap.foliumap as foliumap
 import folium
@@ -306,15 +308,37 @@ def _sorting_function(label_vec, custom_handles, number_of_labels_types=4):
 
     return sorted_handles
 
-def _make_line_plot_df(df, show_labels = []):
-    plotdf = df[df['label'].isin(show_labels)]
-
-    hide_df = df[~df['label'].isin(show_labels)]
-
-    hide_df.loc[hide_df.index, 'value'] = np.nan
-    return pd.concat([plotdf, hide_df]).sort_index()
 
 
+def create_linecollection(linedf, colormapper, linestylemapper,
+                          plotsettings, value_col_name='value',
+                          label_col_name='label'):
+
+    # 1. convert datetime to numerics values
+    if linedf.index.name == 'datetime':
+        inxval = mdates.date2num(linedf.index.to_pydatetime())
+    else:
+        linedf = linedf.reset_index()
+        linedf = linedf.set_index('datetime')
+        inxval = mdates.date2num(linedf.index.to_pydatetime())
+
+    # 2. convert df to segments
+    points = np.array([inxval, linedf[value_col_name]]).T.reshape(-1,1,2)
+    segments = np.concatenate([points[:-1],points[1:]], axis=1)
+
+    # 3. get styling info
+    color = linedf[label_col_name].map(colormapper).to_list()
+    linewidth=[plotsettings['time_series']['linewidth']] * linedf.shape[0]
+    zorder = plotsettings['time_series']['linezorder']
+    linestyle = linedf[label_col_name].map(linestylemapper).to_list()
+
+    # 4. Make line collection
+    lc = LineCollection(segments=segments,
+                        colors=color,
+                        linewidths=linewidth,
+                        zorder=zorder,
+                        linestyle=linestyle)
+    return lc
 
 def timeseries_plot(
     mergedf,
@@ -365,48 +389,31 @@ def timeseries_plot(
         vlin_min = mergedf[mergedf['label'] == 'ok']['value'].min()
         vlin_max = mergedf[mergedf['label'] == 'ok']['value'].max()
 
+        # aggregate groups and make styling mappers
+
         col_mapper = _all_possible_labels_colormapper(settings) # get color mapper
-        line_mapper = {lab: '-' for lab in ok_labels}
-        line_mapper.update({lab:'--' for lab in fill_labels})
-        # outlier groups
-        # Catching with an else
+
+        # linestyle mapper
+        line_mapper = {lab: plot_settings['time_series']['linestyle_ok'] for lab in ok_labels}
+        line_mapper.update({lab: plot_settings['time_series']['linestyle_fill'] for lab in fill_labels})
+
+        # line labels
+        line_labels = ['ok']
+        line_labels.extend(fill_labels)
 
 
-        for sta in mergedf.index.get_level_values('name').unique():
-            stadf = xs_save(mergedf, sta, 'name')
+        # -------- Ok and filled observation -------- (lines)
+        linedf = mergedf[mergedf['label'].isin(line_labels)]
 
-            # ---- ok obs and fill obs ------- (lines)
-            comb_labels = ok_labels
-            comb_labels.extend(fill_labels)
-            sta_df = _make_line_plot_df(df=stadf,
-                                         show_labels=comb_labels)
+        for sta in linedf.index.get_level_values('name').unique():
+            stadf = xs_save(linedf, sta, 'name')
+            sta_line_lc = create_linecollection(
+                                linedf = stadf,
+                                colormapper = col_mapper,
+                                linestylemapper=line_mapper,
+                                plotsettings =plot_settings)
+            ax.add_collection(sta_line_lc)
 
-            # create groups when the final label changes
-            persistance_filter = ((sta_df['label'].shift() != sta_df['label'])).cumsum()
-            grouped = sta_df.groupby([persistance_filter])
-            for _, groupdf in grouped:
-                groupdf.plot(
-                    kind="line",
-                    color=sta_df['label'].map(col_mapper),
-                    ax=ax,
-                    style=line_mapper[sta_df['label'].iloc[0]],
-                    legend=False,
-                    zorder=plot_settings["time_series"]["linezorder"],
-                    linewidth=plot_settings["time_series"]["linewidth"],
-                    )
-
-            # # ------ fill obs ------ (dashed lines)
-            # sta_fill_df = _make_line_plot_df(df=stadf,
-            #                               show_labels=fill_labels)
-            # sta_fill_df.plot(
-            #     kind="line",
-            #     style="--",
-            #     color=sta_fill_df['label'].map(col_mapper),
-            #     ax=ax,
-            #     legend=False,
-            #     zorder=plot_settings["time_series"]["linezorder"]+10.5,
-            #     linewidth=plot_settings["time_series"]["linewidth"],
-            #     )
 
         # ------ missing obs ------ (vertical lines)
         missing_df = mergedf[mergedf['label'].isin(no_vals_labels)]
@@ -437,6 +444,7 @@ def timeseries_plot(
 
         # create legend
         if show_legend:
+
             custom_handles = [] #add legend items to it
             label_vec=[] # add type of label
             for label in mergedf['label'].unique():
