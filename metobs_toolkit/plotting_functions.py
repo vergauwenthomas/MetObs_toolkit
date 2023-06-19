@@ -505,6 +505,66 @@ def timeseries_plot(
 
     return ax
 
+def model_timeseries_plot(
+    df,
+    obstype,
+    title,
+    ylabel,
+    show_legend,
+    settings,
+    _ax=None #needed for GUI, not recommended use
+    ):
+
+    plot_settings = settings.app["plot_settings"]
+
+
+    if isinstance(_ax, type(None)):
+        # init figure
+        fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
+    else:
+        ax=_ax
+
+    # get data ready
+    df = df[~df.index.duplicated()]
+    init_idx = df.index
+
+    # define different groups (different plotting styles)
+
+
+    custom_handles = [] #add legend items to it
+    
+    
+    plotdf = df.reset_index().pivot(
+        index="datetime", columns="name", values=obstype
+    )
+    
+    plotdf.plot(kind="line", legend=False, ax=ax, style='--')
+    if show_legend == True:
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0 + box.height * 0.2,
+            box.width, box.height * 0.8])
+        legend1 = ax.legend(plotdf.columns.values.tolist(),
+            bbox_to_anchor=(0.5, -0.15),
+            fancybox=True, shadow=True,
+            ncol=plot_settings["time_series"]["legend_n_columns"])
+        ax.add_artist(legend1)
+        line_solid = Line2D([], [], color='black', linestyle='--', linewidth=1.5, label=r'model')
+        line_dashed = Line2D([], [], color='black', linestyle='-', linewidth=1.5, label=r'observations')
+        legend2 = ax.legend(handles=[line_solid, line_dashed], bbox_to_anchor=(0.8, -0.15))
+        ax.add_artist(legend2)
+        
+      
+        
+
+    # Set title
+    ax.set_title(title)
+    # ax.legend().set_title('')
+
+    # Set x and y labels
+    ax.set_ylabel(ylabel)
+
+    return ax
+
 def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
                  colorby, lcz_dict, data_template, obstype, y_label,
                  legend, show_zero_horizontal=False):

@@ -35,6 +35,29 @@ metadfile = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_d
 
 
 
+#metobs_toolkit.build_template_prompt(debug=True)
+
+from datetime import datetime
+
+demo_metadata="/home/mivieijra/Documents/CLIMPACTH/toolkit/vlinder_toolkit/metobs_toolkit/datafiles/demo_metadatafile.csv"
+demo_data="/home/mivieijra/Documents/CLIMPACTH/toolkit/vlinder_toolkit/metobs_toolkit/datafiles/demo_datafile.csv"
+demo_template="/home/mivieijra/Documents/CLIMPACTH/toolkit/vlinder_toolkit/metobs_toolkit/datafiles/demo_templatefile.csv"
+
+dataset = metobs_toolkit.Dataset()
+dataset.update_settings(input_data_file=demo_data,  
+    input_metadata_file=demo_metadata,
+    data_template_file=demo_template,
+    metadata_template_file=demo_template)
+
+dataset.import_data_from_file()
 
 
-metobs_toolkit.build_template_prompt(debug=True)
+#%%
+
+
+model_data = metobs_toolkit.Modeldata("ERA5")
+model_data.get_ERA5_data(metadf=dataset.metadf, startdt=datetime(2022, 9, 1), enddt=datetime(2022, 9, 2))
+
+
+#%%
+test = model_data.make_plot(dataset=dataset, starttime=datetime(2022, 9, 1), endtime=datetime(2022, 9, 2))
