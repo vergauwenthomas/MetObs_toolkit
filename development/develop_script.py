@@ -33,9 +33,11 @@ template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/tes
 dataset = metobs_toolkit.Dataset()
 
 dataset.update_settings(output_folder=None,
-                        input_data_file=data_file,
+                        # input_data_file=metobs_toolkit.demo_datafile,
+                        input_data_file = data_file,
                         # input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        data_template_file=template_file,
+                        # data_template_file=metobs_toolkit.demo_template,
+                        data_template_file = template_file,
                         # metadata_template_file=metobs_toolkit.demo_template,
                         )
 
@@ -43,23 +45,73 @@ dataset.update_settings(output_folder=None,
 dataset.import_data_from_file()
 # dataset.coarsen_time_resolution()
 
+dataset.apply_quality_control()
+
+#%%
+# dataset.make_plot(colorby='label')
+# dataset.make_plot(colorby='label')
+
+dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
+dataset.make_plot(colorby='label')
+
+
+dataset.fill_gaps_linear()
+dataset.make_plot(colorby='label')
+
+
+#%%
+
+# from metobs_toolkit.df_helpers import xs_save
+
+
+
+
+# mergedf = dataset.combine_all_to_obsspace()
+# mergedf = mergedf.xs('temp', level='obstype')
+
+# #%%
+
+# import pandas as pd
+# import numpy as np
+
+
+
+# # line_labels = ['ok', 'gap_interpolation', 'gap_debiased_era5', 'missing_obs_interpolation']
+
+# sta = 'vlinder05'
+# # for sta in mergedf.index.get_level_values('name').unique():
+# stadf = xs_save(mergedf, sta, 'name')
+# stadf_idx = stadf.index
+
+# linedf = stadf[stadf['label'].isin(line_labels)]
+# stadf.loc[~stadf.index.isin(linedf.index), 'value'] = np.nan
+
+
+
+
+
+
+
+
+
+
 #%%
 
 
 
 
-dataset.update_qc_settings(obstype='temp',
-                           step_max_decrease_per_sec=0.5,
-                           step_max_increase_per_sec=0.5)
+# dataset.update_qc_settings(obstype='temp',
+#                            step_max_decrease_per_sec=0.5,
+#                            step_max_increase_per_sec=0.5)
 
 
-dataset.apply_quality_control(
-    obstype="temp",         # choose which observations you want to check
-    gross_value=False,       # set True if you want to perform the gross value check
-    persistance=False,       # set True if you want to perform the persistence check
-    step=True,              # set True if you want to perform the spike check
-    window_variation=False,  # set True if you want to perform the window variation check
-)
+# dataset.apply_quality_control(
+#     obstype="temp",         # choose which observations you want to check
+#     gross_value=False,       # set True if you want to perform the gross value check
+#     persistance=False,       # set True if you want to perform the persistence check
+#     step=True,              # set True if you want to perform the spike check
+#     window_variation=False,  # set True if you want to perform the window variation check
+# )
 
 
 
@@ -73,19 +125,19 @@ dataset.apply_quality_control(
 
 #%%
 
-staname = 'n13'
-# print(dataset.outliersdf.shape)
-dataset.make_plot(colorby='label', title='after qc')
-dataset.get_station(staname).make_plot(colorby='label', title='station: after qc')
-dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
-dataset.make_plot(colorby='label', title='after qc updating to gaps and missing')
-dataset.get_station(staname).make_plot(colorby='label', title='station: after qc updateing to gaps and missing')
-dataset.fill_missing_obs_linear()
-dataset.make_plot(colorby='label', title='after fill missing')
-dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing')
-dataset.fill_gaps_linear()
-dataset.make_plot(colorby='label', title='after fill missing and gapsfill')
-dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing and gapsfill')
+# staname = 'n13'
+# # print(dataset.outliersdf.shape)
+# dataset.make_plot(colorby='label', title='after qc')
+# dataset.get_station(staname).make_plot(colorby='label', title='station: after qc')
+# dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
+# dataset.make_plot(colorby='label', title='after qc updating to gaps and missing')
+# dataset.get_station(staname).make_plot(colorby='label', title='station: after qc updateing to gaps and missing')
+# dataset.fill_missing_obs_linear()
+# dataset.make_plot(colorby='label', title='after fill missing')
+# dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing')
+# dataset.fill_gaps_linear()
+# dataset.make_plot(colorby='label', title='after fill missing and gapsfill')
+# dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing and gapsfill')
 
 
 

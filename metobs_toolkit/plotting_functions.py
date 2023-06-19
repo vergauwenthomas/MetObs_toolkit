@@ -330,7 +330,7 @@ def _create_linecollection(linedf, colormapper, linestylemapper,
     color = linedf[label_col_name].map(colormapper).to_list()
     linewidth=[plotsettings['time_series']['linewidth']] * linedf.shape[0]
     zorder = plotsettings['time_series']['linezorder']
-    linestyle = linedf[label_col_name].map(linestylemapper).to_list()
+    linestyle = linedf[label_col_name].map(linestylemapper).fillna('-').to_list()
 
     # 4. Make line collection
     lc = LineCollection(segments=segments,
@@ -385,9 +385,16 @@ def timeseries_plot(
                           settings.gap['gaps_info']['missing_timestamp']['outlier_flag']]
         no_vals_df = mergedf[mergedf['label'].isin(no_vals_labels)]
 
+
+        # get min max value for settings and styling
+
         # set hight of the vertical lines for no vals
         vlin_min = mergedf[mergedf['label'] == 'ok']['value'].min()
         vlin_max = mergedf[mergedf['label'] == 'ok']['value'].max()
+
+        # get min max datetime to set xrange
+        dt_min = mergedf.index.get_level_values('datetime').min()
+        dt_max = mergedf.index.get_level_values('datetime').max()
 
         # aggregate groups and make styling mappers
 
@@ -397,16 +404,24 @@ def timeseries_plot(
         line_mapper = {lab: plot_settings['time_series']['linestyle_ok'] for lab in ok_labels}
         line_mapper.update({lab: plot_settings['time_series']['linestyle_fill'] for lab in fill_labels})
 
+
         # line labels
         line_labels = ['ok']
         line_labels.extend(fill_labels)
 
 
         # -------- Ok and filled observation -------- (lines)
-        linedf = mergedf[mergedf['label'].isin(line_labels)]
 
-        for sta in linedf.index.get_level_values('name').unique():
-            stadf = xs_save(linedf, sta, 'name')
+
+        for sta in mergedf.index.get_level_values('name').unique():
+            stadf = xs_save(mergedf, sta, 'name') #subset to one station
+            linedf = stadf[stadf['label'].isin(line_labels)] #subset all obs that are repr by lines
+
+            # now add the other records, and convert the value to nan to avoid
+            # interpolation in the plot
+            stadf.loc[~stadf.index.isin(linedf.index), 'value'] = np.nan
+
+            # make line collection
             sta_line_lc = _create_linecollection(
                                 linedf = stadf,
                                 colormapper = col_mapper,
@@ -519,6 +534,9 @@ def timeseries_plot(
 
     # Set x and y labels
     ax.set_ylabel(ylabel)
+
+    # set x lim
+    ax.set_xlim(left=dt_min, right=dt_max)
 
     return ax
 
