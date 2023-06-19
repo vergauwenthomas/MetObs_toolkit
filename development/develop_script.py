@@ -59,8 +59,6 @@ dataset.fill_gaps_linear()
 dataset.make_plot(colorby='label')
 
 
-#%%
-
 # from metobs_toolkit.df_helpers import xs_save
 
 
@@ -88,14 +86,28 @@ dataset.make_plot(colorby='label')
 
 
 
-
-
-
+#%%
+# dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
+# dataset.fill_missing_obs_linear()
 
 
 
 
 #%%
+
+staname = 'n13'
+# print(dataset.outliersdf.shape)
+dataset.make_plot(colorby='label', title='after qc')
+dataset.get_station(staname).make_plot(colorby='label', title='station: after qc')
+dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
+dataset.make_plot(colorby='label', title='after qc updating to gaps and missing')
+dataset.get_station(staname).make_plot(colorby='label', title='station: after qc updateing to gaps and missing')
+dataset.fill_missing_obs_linear()
+dataset.make_plot(colorby='label', title='after fill missing')
+dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing')
+dataset.fill_gaps_linear()
+dataset.make_plot(colorby='label', title='after fill missing and gapsfill')
+dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing and gapsfill')
 
 
 
@@ -125,24 +137,11 @@ dataset.make_plot(colorby='label')
 
 #%%
 
-# staname = 'n13'
-# # print(dataset.outliersdf.shape)
-# dataset.make_plot(colorby='label', title='after qc')
-# dataset.get_station(staname).make_plot(colorby='label', title='station: after qc')
-# dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
-# dataset.make_plot(colorby='label', title='after qc updating to gaps and missing')
-# dataset.get_station(staname).make_plot(colorby='label', title='station: after qc updateing to gaps and missing')
-# dataset.fill_missing_obs_linear()
-# dataset.make_plot(colorby='label', title='after fill missing')
-# dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing')
-# dataset.fill_gaps_linear()
-# dataset.make_plot(colorby='label', title='after fill missing and gapsfill')
-# dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing and gapsfill')
 
 
 
 
-#%%
+
 
 # combdf = dataset.combine_all_to_obsspace()
 # #%%

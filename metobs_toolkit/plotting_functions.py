@@ -409,7 +409,7 @@ def timeseries_plot(
         line_labels = ['ok']
         line_labels.extend(fill_labels)
 
-
+        
         # -------- Ok and filled observation -------- (lines)
 
 
