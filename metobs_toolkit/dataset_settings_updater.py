@@ -492,13 +492,9 @@ class Dataset(dataset.Dataset):
 
                     try:
                         old_value=self.settings.qc['titan_check_settings'][checkname][obstype][settings_key]
-
-
-                        print(f'{key.replace("_", " ")} for the TITAN buddy check updated:\
-                                 {old_value}--> {new_val}')
+                        print(f'{key.replace("_", " ")} for the TITAN buddy check updated:  {old_value}--> {new_val}')
                     except KeyError:
-                        print(f'{key.replace("_", " ")} for the TITAN buddy check added:\
-                                 --> {new_val}')
+                        print(f'{key.replace("_", " ")} for the TITAN buddy check added:  --> {new_val}')
 
 
 

@@ -32,17 +32,6 @@ template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/tes
 
 
 
-dataset = metobs_toolkit.Dataset()
-# print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
-
-
-dataset.update_titan_qc_settings(obstype='humidity', sct_tneg = 12.3,
-                                 buddy_readius=2345.6, sct_outer_radius=13200)
-
-
-# print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
-
-
 
 #%%
 
@@ -59,20 +48,20 @@ dataset.update_settings(output_folder=None,
 
 
 dataset.import_data_from_file()
-# dataset.coarsen_time_resolution()
+dataset.coarsen_time_resolution()
 
 # dataset.apply_quality_control()
 
 #%%
 
 
-print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
+# print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
 
 
-dataset.update_titan_qc_settings(obstype='temp', buddy_radius = 1567.2)
+# dataset.update_titan_qc_settings(obstype='temp', buddy_radius = 1567.2)
 
 
-print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
+# print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
 
 
 
@@ -85,11 +74,13 @@ print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
 # dataset.get_altitude()
 
 
+dataset.update_titan_qc_settings(obstype='temp', sct_tneg = 12.3,
+                                 buddy_radius=2345.6, sct_outer_radius=30200)
 
 
 
 dataset.apply_titan_buddy_check(use_constant_altitude=True)
-# dataset.apply_titan_sct_resistant_check()
+# dataset.apply_titan_sct_resistant_check(use_constant_altitude=True)
 # dataset.make_plot(colorby='label')
 
 

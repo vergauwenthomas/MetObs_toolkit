@@ -1522,7 +1522,7 @@ class Dataset:
                                                metadf = self.metadf,
                                                obstype = obstype,
                                                checks_info = self.settings.qc["qc_checks_info"],
-                                               checks_settings = self.settings.qc['titan_check_settings'][checkname],
+                                               checks_settings = self.settings.qc['titan_check_settings'][checkname][obstype],
                                                titan_specific_labeler = self.settings.qc['titan_specific_labeler'][checkname])
 
 

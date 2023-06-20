@@ -799,7 +799,8 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
                 checks_settings['max_elev_diff'],
                 checks_settings['elev_gradient'],
                 checks_settings['min_std'],
-                checks_settings['num_iterations'])
+                checks_settings['num_iterations'],
+                np.full(len(obs), 1)) #check all
 
         labels = pd.Series(num_labels, name='num_label').to_frame()
         labels['name'] = point['names']
@@ -822,7 +823,9 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
 
     return obsdf, outliersdf
 
-def titan_sct_resistant_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
+def titan_sct_resistant_check(obsdf, metadf, obstype,
+                              checks_info, checks_settings,
+                              titan_specific_labeler):
 
     """
     The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
@@ -872,32 +875,32 @@ def titan_sct_resistant_check(obsdf, metadf, obstype, checks_info, checks_settin
                                        np.asarray(point['elev']))
 
 
-        flags, scores = titanlib.sct_resistant_check(
-                titan_points, #points
-                np.asarray(obs), # vlues
-                np.asarray(1 * len(obs)), # obs to check
-                np.asarray(0 * len(obs)), # background values
-                'MedianOuterCircle', #background elab type
-                checks_settings['num_min_outer'], #num min outer
-                checks_settings['num_max_outer'], #num mac outer
-                checks_settings['inner_radius'], #inner radius
-                checks_settings['outer_radius'], #outer radius
-                checks_settings['num_iterations'], #num iterations
-                checks_settings['num_min_prof'], #num min prof
-                checks_settings['min_elev_diff'], # min elev diff
-                checks_settings['min_horizontal_scale'], #min horizontal scale
-                checks_settings['max_horizontal_scale'], # max horizontal scale
-                checks_settings['kth_closest_obs_horizontal_scale'], #kth closest obs horizontal scale
-                checks_settings['vertical_scale'], #vertical scale
-                obs - checks_settings['mina_deviation'], # values mina
-                obs + checks_settings['maxa_deviation'], #values maxa
-                obs - checks_settings['minv_deviation'], #values minv
-                obs  + checks_settings['maxv_deviation'], # values maxv
-                np.asarray(1 * len(obs))*checks_settings['eps2'], #eps2
-                np.asarray(1 * len(obs))*checks_settings['tpos'], #tpos
-                np.asarray(1 * len(obs))*checks_settings['tmin'], #tneg
-                checks_settings['debug'], #debug
-                checks_settings['basic'] #basic
+        flags, scores = titanlib.sct_resistant(
+                points=titan_points, #points
+                values=np.asarray(obs), # vlues
+                obs_to_check=np.full(len(obs), 1), # obs to check (check all)
+                background_values=np.full(len(obs), 0), # background values
+                background_elab_type=titanlib.MedianOuterCircle, #background elab type
+                num_min_outer=checks_settings['num_min_outer'], #num min outer
+                num_max_outer=checks_settings['num_max_outer'], #num mac outer
+                inner_radius=checks_settings['inner_radius'], #inner radius
+                outer_radius=checks_settings['outer_radius'], #outer radius
+                num_iterations=checks_settings['num_iterations'], #num iterations
+                num_min_prof=checks_settings['num_min_prof'], #num min prof
+                min_elev_diff=checks_settings['min_elev_diff'], # min elev diff
+                min_horizontal_scale=checks_settings['min_horizontal_scale'], #min horizontal scale
+                max_horizontal_scale=checks_settings['max_horizontal_scale'], # max horizontal scale
+                kth_closest_obs_horizontal_scale=checks_settings['kth_closest_obs_horizontal_scale'], #kth closest obs horizontal scale
+                vertical_scale=checks_settings['vertical_scale'], #vertical scale
+                value_mina=[x - checks_settings['mina_deviation'] for x in obs], # values mina
+                value_maxa=[x + checks_settings['maxa_deviation'] for x in obs], #values maxa
+                value_minv=[x - checks_settings['minv_deviation'] for x in obs], #values minv
+                value_maxv=[x + checks_settings['maxv_deviation'] for x in obs], # values maxv
+                eps2=np.full(len(obs),checks_settings['eps2']), #eps2
+                tpos=np.full(len(obs),checks_settings['tpos']), #tpos
+                tneg=np.full(len(obs),checks_settings['tneg']), #tneg
+                debug=checks_settings['debug'], #debug
+                basic=checks_settings['basic'] #basic
                 )
 
         labels = pd.Series(flags, name='num_label').to_frame()
