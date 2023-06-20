@@ -116,3 +116,52 @@ assert dataset_single.df.index.get_level_values('name')[0] == 'whats_the_name', 
 assert dataset_single.metadf.shape == (1,9), 'Shape metadf for single station is not correct'
 
 assert dataset_single.metadf['lat'].iloc[0] ==2.51558, 'Metadf latitde is not merged correct.'
+
+#%%
+
+# helper
+
+def del_file(file_path):
+    if os.path.isfile(file_path):
+        os.remove(file_path)
+        print(f"{file_path} deleted.")
+    else:
+        print(f"{file_path} not found.")
+
+
+
+#%% Pickle save and read dataset
+outfolder =os.path.join(str(lib_folder), 'tests', 'test_data')
+file='dataset_IO_test'
+
+
+del_file(os.path.join(outfolder, file+'.pkl'))
+
+
+
+
+# save dataset as pickle
+
+
+dataset.update_default_name('this_is_a_test_name')
+
+dataset.save_dataset(outputfolder=outfolder,
+                     filename=file)
+
+
+
+
+del dataset #remove from kernel
+
+
+# read dataset
+new_dataset = metobs_toolkit.Dataset()
+new_dataset = new_dataset.import_dataset(folder_path=outfolder,
+                           filename=file +'.pkl')
+
+del_file(os.path.join(outfolder, file+'.pkl'))
+
+assert new_dataset.settings.app["default_name"] == 'this_is_a_test_name', 'some attributes are not correctly saved when pickled.'
+
+
+

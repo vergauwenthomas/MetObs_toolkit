@@ -1162,6 +1162,18 @@ tenacity==8.2.2 ; python_version >= "3.9" and python_version < "4.0" \
 threadpoolctl==3.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:8b99adda265feb6773280df41eece7b2e6561b772d21ffd52e372f999024907b \
     --hash=sha256:a335baacfaa4400ae1f0d8e3a58d6674d2f8828e3716bb2802c44955ad391380
+titanlib==0.3.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:215023e1bd0ebfa4651bc9753ffc6f4854cdc18be8a66265f0ec8a34ae178972 \
+    --hash=sha256:2e5f6839a32a1de6c2cb105ae3d1444238a81b97af4f6ec25f682a1242cc863e \
+    --hash=sha256:2ed8d60f769ab10cd04d6c172dd18fe2344ebbbfc7470af94233aa8814b9248c \
+    --hash=sha256:57cdc91a30bbc823335ead746de41963fa034caefbe672e81edb330c0ff3fe0e \
+    --hash=sha256:638cf84cfaacd8486d43f7bb463462c6ad10993c8f6aa33fdb55133dd192c8b9 \
+    --hash=sha256:6b9f64bcd721995d36e0af82d8a4d984128b74dd526e2e4573e332ffe5d1663b \
+    --hash=sha256:75d5507b86e3ed34eba98ca83c2d112bb581883e5b9191020d5629141524778b \
+    --hash=sha256:778291abc76803089d76fea60ad8c44ef529e9098e0d51eb2d3103264f9e3cb0 \
+    --hash=sha256:ce5265d4a2d92589b4513881a4e433ebe53a775b802d0cb272a99dda37c10ed6 \
+    --hash=sha256:cfab5e6c4ca9ae01f9d6fe6b479a7b81d208922b360042a8303a8418d22c2785 \
+    --hash=sha256:fe04554f27b117d0e1d21a68fefaddae3a58e92d2b1af62837154617ed9de703
 tornado==6.3.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:05615096845cf50a895026f749195bf0b10b8909f9be672f50b0fe69cba368e4 \
     --hash=sha256:0c325e66c8123c606eea33084976c832aa4e766b7dff8aedd7587ea44a604cdf \

@@ -23,135 +23,92 @@ import metobs_toolkit
 
 
 
+
 # # data
 # era5_congo_file = '/home/thoverga/Downloads/era5_data_kongo.csv'
 data_file = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/ATHTS01_all.csv'
 # metadata_file = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Kobe/CONGO_meta.csv'
 template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/template.csv'
+
+
+
+
 #%%
 
 dataset = metobs_toolkit.Dataset()
 
 dataset.update_settings(output_folder=None,
-                        # input_data_file=metobs_toolkit.demo_datafile,
-                        input_data_file = data_file,
-                        # input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        # data_template_file=metobs_toolkit.demo_template,
-                        data_template_file = template_file,
-                        # metadata_template_file=metobs_toolkit.demo_template,
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        # input_data_file = data_file,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        data_template_file=metobs_toolkit.demo_template,
+                        # data_template_file = template_file,
+                        metadata_template_file=metobs_toolkit.demo_template,
                         )
 
 
 dataset.import_data_from_file()
-# dataset.coarsen_time_resolution()
+dataset.coarsen_time_resolution()
+
+# dataset.apply_quality_control()
+
+#%%
+
+
+# print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
+
+
+# dataset.update_titan_qc_settings(obstype='temp', buddy_radius = 1567.2)
+
+
+# print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
+
+
+
+
+#%%
+# dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
+# dataset.fill_missing_obs_linear()
+
+
+# dataset.get_altitude()
+
+
+dataset.update_titan_qc_settings(obstype='temp',
+                                 buddy_radius=50000,
+                                 buddy_num_min=3,
+                                 buddy_max_elev_diff=200,
+                                 buddy_threshold=3)
 
 dataset.apply_quality_control()
 
+dataset.apply_titan_buddy_check(use_constant_altitude=True)
+# dataset.apply_titan_sct_resistant_check(use_constant_altitude=True)
+dataset.make_plot(colorby='label')
+
+
+
+
+
 #%%
-# dataset.make_plot(colorby='label')
-# dataset.make_plot(colorby='label')
 
-dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
-dataset.make_plot(colorby='label')
-
-
-dataset.fill_gaps_linear()
-dataset.make_plot(colorby='label')
-
-
-# from metobs_toolkit.df_helpers import xs_save
-
-
-
-
-# mergedf = dataset.combine_all_to_obsspace()
-# mergedf = mergedf.xs('temp', level='obstype')
-
-# #%%
-
-# import pandas as pd
 # import numpy as np
+# import titanlib
+# # Set up some fake data
+# lats = [60,60.1,60.2]
+# lons = [10,10,10]
+# elevs = [0,0,0]
+# temp_obs = [0, 1, -111]
+# points = titanlib.Points(lats, lons, elevs)
 
-
-
-# # line_labels = ['ok', 'gap_interpolation', 'gap_debiased_era5', 'missing_obs_interpolation']
-
-# sta = 'vlinder05'
-# # for sta in mergedf.index.get_level_values('name').unique():
-# stadf = xs_save(mergedf, sta, 'name')
-# stadf_idx = stadf.index
-
-# linedf = stadf[stadf['label'].isin(line_labels)]
-# stadf.loc[~stadf.index.isin(linedf.index), 'value'] = np.nan
-
-
-
-#%%
-# dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
-# dataset.fill_missing_obs_linear()
-
-
-
-
-#%%
-
-staname = 'n13'
-# print(dataset.outliersdf.shape)
-dataset.make_plot(colorby='label', title='after qc')
-dataset.get_station(staname).make_plot(colorby='label', title='station: after qc')
-dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
-dataset.make_plot(colorby='label', title='after qc updating to gaps and missing')
-dataset.get_station(staname).make_plot(colorby='label', title='station: after qc updateing to gaps and missing')
-dataset.fill_missing_obs_linear()
-dataset.make_plot(colorby='label', title='after fill missing')
-dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing')
-dataset.fill_gaps_linear()
-dataset.make_plot(colorby='label', title='after fill missing and gapsfill')
-dataset.get_station(staname).make_plot(colorby='label', title='station: after fill missing and gapsfill')
-
-
-
-
-# dataset.update_qc_settings(obstype='temp',
-#                            step_max_decrease_per_sec=0.5,
-#                            step_max_increase_per_sec=0.5)
-
-
-# dataset.apply_quality_control(
-#     obstype="temp",         # choose which observations you want to check
-#     gross_value=False,       # set True if you want to perform the gross value check
-#     persistance=False,       # set True if you want to perform the persistence check
-#     step=True,              # set True if you want to perform the spike check
-#     window_variation=False,  # set True if you want to perform the window variation check
-# )
-
-
-
-#%%
-# dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
-# dataset.fill_missing_obs_linear()
-
-#%%
-# dataset.make_plot(colorby='label', title='after fill missing')
-
-
-#%%
-
-
-
-
-
-
-
-# combdf = dataset.combine_all_to_obsspace()
-# #%%
-# line_labels = ['ok', 'gap_interpolation', 'gap_debiased_era5', 'missing_obs_interpolation']
-
-# test = combdf[combdf['label'].isin(line_labels)]
-# print(test['label'].value_counts())
-
-
-
+# radius = np.full(points.size(), 5000)
+# num_min = np.full(points.size(), 5)
+# num_min = 5
+# threshold = 2
+# max_elev_diff = 200
+# elev_gradient = -0.0065
+# min_std = 1
+# num_iterations = 5
 
 
 

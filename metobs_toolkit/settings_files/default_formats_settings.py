@@ -96,6 +96,8 @@ plot_settings["color_mapper"] = {
     "repetitions": "#056ff0",
     "step": "#05d4f0",
     "window_variation": "#05f0c9",
+    "titan_buddy_check": '#8300c4',
+    "titan_sct_resistant_check": '#c17fe1',
     # missing and gap
     "gap": "#f00592",
     "missing_timestamp": "#f78e0c",
