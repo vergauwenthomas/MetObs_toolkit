@@ -37,6 +37,10 @@ class Modeldata:
     def __repr__(self):
         return f"ModelData instance: {self.modelname} model data of {list(self.df.columns)}"
 
+    def __str__(self):
+        self.__repr__()
+
+
     def _conv_to_timezone(self, tzstr):
         # get tzstr by datetimindex.tz.zone
 
@@ -58,11 +62,11 @@ class Modeldata:
             print(f'WARNING. Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}')
             metadf = metadf[~metadf[['lat','lon']].isna().any(axis=1)]
 
-        
+
         era_mapinfo = self.mapinfo["ERA5_hourly"]
         # Connect to Gee
         connect_to_gee()
-       
+
         # Get data using GEE
         df = gee_extract_timeseries(
             metadf=metadf,
@@ -158,7 +162,7 @@ class Modeldata:
 
             returndf = pd.concat([returndf, mergedf])
         return returndf
-    
+
     def make_plot(
         self,
         dataset,
@@ -207,14 +211,14 @@ class Modeldata:
             logger.info(f"Make {obstype}-timeseries plot of model data for all stations")
         else:
             logger.info(f"Make {obstype}-timeseries plot of model data for {stationnames}")
-        
+
         model_df = self.df
-        
+
         # subset model to stationnames in dataset/station
         if not dataset is None:
             model_df = model_df.reset_index()
-            
-            
+
+
             if dataset._istype == 'Dataset':
                 # dataset object
                 model_df = model_df.loc[model_df['name'].isin(
@@ -222,9 +226,9 @@ class Modeldata:
             else:
                 # station object
                 model_df = model_df.loc[model_df['name'] == dataset.name]
-                
+
             model_df = model_df.set_index(['name', 'datetime'])
-        
+
         # Subset on stationnames
         if not stationnames is None:
             model_df = model_df.reset_index()
@@ -240,14 +244,14 @@ class Modeldata:
             model_true_field = self.mapinfo[self.modelname]['band_of_use'][obstype]
         except KeyError:
             print (f'No model data available for {obstype}.')
-            
+
         try:
             obs_true_field = dataset.data_template[obstype]
         except KeyError:
             print (f'No observation data available for {obstype}.')
-        
+
         y_label = f'{model_true_field["name"]} ({model_true_field["units"]}) \n {obs_true_field["orig_name"]} ({obs_true_field["units"]})'
-       
+
         # Subset on start and endtime
         model_df = multiindexdf_datetime_subsetting(model_df, starttime, endtime)
 
@@ -255,15 +259,15 @@ class Modeldata:
         stationlist = sorted(list(model_df.index.get_level_values("name").unique()))
         for i in range(5, len(stationlist), 5):
             stationlist.insert(i, "\n")
-        
+
         title = f'{model_true_field["name"]}/{obs_true_field["orig_name"]} for [{", ".join(stationlist)}]'
-  
+
         # check if df is empty
         if model_df.empty:
             print(f'No model data available')
-       
+
         ax = dataset.make_plot(stationnames=stationnames, starttime=starttime, endtime=endtime, title=title, y_label=y_label, legend=False, _ax=None)
-       
+
         # Make plot
         ax = model_timeseries_plot(
             df=model_df,

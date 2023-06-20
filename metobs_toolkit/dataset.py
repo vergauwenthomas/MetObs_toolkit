@@ -393,7 +393,7 @@ class Dataset:
              The timeseries axes of the plot is returned.
 
         """
-       
+
         if stationnames is None:
             logger.info(f"Make {obstype}-timeseries plot for all stations")
         else:
@@ -401,20 +401,18 @@ class Dataset:
 
         # combine all dataframes
         mergedf = self.combine_all_to_obsspace()
-       
+
         # subset to obstype
         mergedf = xs_save(mergedf, obstype, level='obstype')
-       
+
         # Subset on stationnames
         if not stationnames is None:
-            mergedf = mergedf.reset_index()
-            mergedf = mergedf.loc[mergedf['name'].isin(stationnames)]
-            mergedf = mergedf.set_index(['name', 'datetime'])
+            mergedf = mergedf[mergedf.index.get_level_values('name').isin(stationnames)]
 
-       
+
         # Subset on start and endtime
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
-       
+
         # remove outliers if required
         if not show_outliers:
             outlier_labels = [var['outlier_flag'] for var in self.settings.qc['qc_checks_info'].values()]
@@ -452,7 +450,7 @@ class Dataset:
                 y_label = f'{self.data_template[obstype]["orig_name"]} ({self.data_template[obstype]["units"]}) \n {self.data_template[obstype]["description"]}'
             except KeyError:
                 y_label = obstype
-      
+
         # Make plot
         ax = timeseries_plot(
             mergedf=mergedf,
@@ -1443,7 +1441,7 @@ class Dataset:
         # better save than sorry
         present_obstypes = [col for col in df if col in observation_types]
         df = df[present_obstypes]
-        
+
 
         # to tripple index
         df = df.stack(dropna=False).reset_index().rename(columns={'level_2': 'obstype', 0: 'value'}).set_index(['name', 'datetime', 'obstype'])
@@ -1478,7 +1476,7 @@ class Dataset:
         gapsdf['label'] = self.settings.gap['gaps_info']['gap']['outlier_flag']
         gapsdf['toolkit_representation'] = 'gap'
 
-        
+
         # Remove gaps from df
         df = df[~ df.index.isin(gapsdf.index)]
 
@@ -1498,20 +1496,20 @@ class Dataset:
         missingfilldf = self.missing_fill_df.copy()
         missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(missingfilldf)
         missingfilldf['toolkit_representation'] = 'missing observation fill'
-        
+
         # add missing observations if they occure in observation space
         missingidx = self.missing_obs.get_missing_indx_in_obs_space(
             self.df, self.metadf["dataset_resolution"]
         )
-        
+
         missingdf = pd.DataFrame(index=missingidx, columns=present_obstypes)
-       
+
 
         missingdf = missingdf.stack(dropna=False).reset_index().rename(columns={'level_2': 'obstype', 0: 'value'}).set_index(['name', 'datetime', 'obstype'])
 
         missingdf['label'] = self.settings.gap['gaps_info']['missing_timestamp']['outlier_flag']
         missingdf['toolkit_representation'] = 'missing observation'
-        
+
         # Remove missing from df
         df = df[~ df.index.isin(missingdf.index)]
 
@@ -1520,7 +1518,7 @@ class Dataset:
 
         # Remove missingfill values records from the missing
         missingdf = missingdf.drop(index=missingfilldf.index)
-        
+
 
         # =============================================================================
         # combine all
