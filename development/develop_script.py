@@ -35,24 +35,20 @@ template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/tes
 
 #%%
 
-dataset = metobs_toolkit.Dataset()
+# dataset = metobs_toolkit.Dataset()
 
-dataset.update_settings(output_folder=None,
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        # input_data_file = data_file,
-                        # input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        data_template_file=metobs_toolkit.demo_template,
-                        # data_template_file = template_file,
-                        # metadata_template_file=metobs_toolkit.demo_template,
-                        )
+# dataset.update_settings(output_folder=None,
+#                         input_data_file=metobs_toolkit.demo_datafile,
+#                         # input_data_file = data_file,
+#                         # input_metadata_file=metobs_toolkit.demo_metadatafile,
+#                         data_template_file=metobs_toolkit.demo_template,
+#                         # data_template_file = template_file,
+#                         # metadata_template_file=metobs_toolkit.demo_template,
+#                         )
 
 
-dataset.import_data_from_file()
-dataset.coarsen_time_resolution()
-# dataset.apply_quality_control()
-
-# dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
-# dataset.fill_gaps_linear()
+# dataset.import_data_from_file()
+# dataset.coarsen_time_resolution()
 
 
 
@@ -63,12 +59,25 @@ dataset.coarsen_time_resolution()
 model_data = metobs_toolkit.Modeldata("ERA5")
 # model_data.get_ERA5_data(metadf=dataset.metadf, startdt=datetime(2022, 9, 1), enddt=datetime(2022, 9, 2))
 
-model_data.set_model_from_csv('/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/era5_data.csv')
+model_data.add_band_to_gee_dataset(mapname='ERA5_hourly',
+                                   bandname = 'hophop',
+                                   obstype='temp',
+                                   units='idk',
+                                   overwrite=True)
 
 
-#%%
-print(model_data.df.shape)
 
-model_data.make_plot(stationnames=['vlinder01', 'vlinder02'])
+# model_data.list_gee_datasets()
 
-print(model_data.df.shape)
+
+# model_data.set_model_from_csv('/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/era5_data.csv')
+
+
+
+
+
+
+
+
+
+

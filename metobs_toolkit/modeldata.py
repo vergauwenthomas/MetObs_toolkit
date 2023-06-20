@@ -40,6 +40,86 @@ class Modeldata:
     def __str__(self):
         return self.__repr__()
 
+    # def add_gee_dataset(self, name, gee_location, obstype, bandname, units,
+    #                     scale, dynamical, is_image, time_res, credentials=''):
+
+    #     # check if name exists
+    def add_band_to_gee_dataset(self, mapname, bandname, obstype, units, overwrite=False):
+        """
+        A method to add a new band to a available gee dataset.
+
+
+        Parameters
+        ----------
+        mapname : str
+            Mapname of an available GEE dataset to add a band to.
+        bandname : str
+            Name of the dataset band as stored on the GEE.
+        obstype : str
+            The observation type the band corresponds to.
+        units : str
+            The units of the band.
+        overwrite : bool, optional
+            If True, verwrite the exising bandname when the corresponding
+            obstype is already mapped to a bandname. The default is False.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -------
+        To list all available gee dataset, use the .list_gee_dataset() method.
+
+        Note
+        -------
+        Currently no unit conversion is perfomed automatically other than K -->
+        Celcius. This will be implemented in the futur.
+
+        """
+        # check if mapname exists
+        if mapname not in self.mapinfo.keys():
+            print(f'{mapname} is not found in the list of known gee datasets: {list(self.mapinfo.keys())}')
+            return
+
+        if self.mapinfo[mapname]['is_image']:
+            print(f'{mapname} is found as a Image. No bandnames can be added to it.')
+            return
+
+
+        # check if obstype is already mapped if multiple bands exist
+        if not isinstance(self.mapinfo[mapname]['band_of_use'], str):
+            if obstype in self.mapinfo[mapname]['band_of_use'].keys():
+                if not overwrite:
+                    print(f'{obstype} already mapped to a bandname for dataset: {mapname}.')
+                    return
+
+
+        # update the dict
+        new_info = {obstype: {'name' : bandname,
+                              'units' : units}}
+        self.mapinfo[mapname]['band_of_use'].update(new_info)
+
+        print(f'{new_info} is added to the {mapname} bands of use.')
+        return
+
+
+
+    def list_gee_datasets(self):
+        """
+        Print out all the available gee datasets
+
+        Returns
+        -------
+        None.
+
+        """
+        print(f'The following datasets are found: ')
+        for geename, info in self.mapinfo.items():
+            print('\n --------------------------------')
+            print(f'{geename} : \n')
+            print(f'{info}')
+
 
     def _conv_to_timezone(self, tzstr):
         # get tzstr by datetimindex.tz.zone
