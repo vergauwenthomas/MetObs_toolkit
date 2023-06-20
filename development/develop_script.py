@@ -74,14 +74,17 @@ dataset.coarsen_time_resolution()
 # dataset.get_altitude()
 
 
-dataset.update_titan_qc_settings(obstype='temp', sct_tneg = 12.3,
-                                 buddy_radius=2345.6, sct_outer_radius=30200)
+dataset.update_titan_qc_settings(obstype='temp',
+                                 buddy_radius=50000,
+                                 buddy_num_min=3,
+                                 buddy_max_elev_diff=200,
+                                 buddy_threshold=3)
 
-
+dataset.apply_quality_control()
 
 dataset.apply_titan_buddy_check(use_constant_altitude=True)
 # dataset.apply_titan_sct_resistant_check(use_constant_altitude=True)
-# dataset.make_plot(colorby='label')
+dataset.make_plot(colorby='label')
 
 
 

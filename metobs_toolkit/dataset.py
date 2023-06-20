@@ -1224,7 +1224,7 @@ class Dataset:
         if repetitions:
             print("Applying the repetitions-check.")
             logger.info("Applying repetitions check.")
-            apliable = can_qc_be_applied(self._applied_qc, obstype, "repetitions")
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "repetitions")
 
             if apliable:
 
