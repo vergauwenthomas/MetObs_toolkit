@@ -43,6 +43,7 @@ check_settings = {
 
 titan_check_settings = {
     'titan_buddy_check': {
+        'temp':{
             # 'radius': 5000, #	vec	m	Search radius
             # 'num_min': 5, #	int		The minimum number of buddies a station can have
             'radius': 50000, #	vec	m	Search radius
@@ -54,22 +55,32 @@ titan_check_settings = {
             'min_std': 1.0, #	float		If the standard deviation of values in a neighborhood are less than min_std, min_std will be used instead
             'num_iterations': 1 #int		The number of iterations to perform
                 },
-    
+        },
+
     'titan_sct_resistant_check': {
+        'temp':{
             'num_min_outer':3, #	int	    Minimal points in outer circle
             'num_max_outer':10, #	int	    Maximal points in outer circle
             'inner_radius':20000, #  int      Radius of inner circle
             'outer_radius':50000, #  int      Radius of outer circle
             'num_iterations':10, #   int   Number of iterations
-            'num_min_prof':1, #   int 
+            'num_min_prof':5, #   int Minimum number of observations to compute vertical profile
             'min_elev_diff':100, #   int    Minimal elevation difference
             'min_horizontal_scale':250, #  int  Minimal horizontal scale
             'max_horizontal_scale':100000, #  int  Maximal horizontal scale
-            'kth_closest_obs_horizontal_scale':2, #  int  Number of closest observations to consider
+            'kth_closest_obs_horizontal_scale':2, #  int  Number of closest observations to consider in the adaptive estimation of the horizontal decorrelation length
             'vertical_scale':200, #  int  The vertical scale
+            'mina_deviation': 10, # vec Minimum admissible value
+            'maxa_deviation': 10, # vec Maximum admissible value
+            'minv_deviation': 1, # vec Minimum valid value
+            'maxv_deviation': 1, #	vec Maximum valid value
+            'eps2': 0.5, #Ratio of observation error variance to background variance
+            'tpos': 5, #vec Positive deviation allowed
+            'tneg': 8, #vec Negative deviation allowed
             'basic':True, #  bool  Basic mode
             'debug':True #  bool  Debug mode
                 }
+        }
 
     }
 
@@ -79,7 +90,7 @@ titan_specific_labeler = {
         'ok' : [0],
         'outl': [1]
         },
-    
+
     'titan_sct_resistant_check': {
         'ok' : [0],
         'outl': [1]

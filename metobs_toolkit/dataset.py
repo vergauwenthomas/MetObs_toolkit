@@ -12,6 +12,7 @@ import pytz
 import logging
 import pandas as pd
 import numpy as np
+import pickle
 
 
 from metobs_toolkit.settings import Settings
@@ -60,6 +61,7 @@ from metobs_toolkit.missingobs import Missingob_collection
 from metobs_toolkit.gap import (
     Gap,
     remove_gaps_from_obs,
+    remove_gaps_from_outliers,
     missing_timestamp_and_gap_check,
     get_gaps_indx_in_obs_space,
     get_station_gaps,
@@ -134,7 +136,10 @@ class Dataset:
 
     def __str__(self):
         if self.df.empty:
-            return f"Empty instance of a Dataset."
+            if self._istype == 'Dataset':
+                return f"Empty instance of a Dataset."
+            else:
+                return f"Empty instance of a Station."
         add_info = ''
         n_stations = self.df.index.get_level_values('name').unique().shape[0]
         n_obs_tot = self.df.shape[0]
@@ -154,6 +159,84 @@ class Dataset:
 
     def __repr__(self):
         return self.__str__()
+
+    def save_dataset(self, outputfolder=None, filename='saved_dataset.pkl'):
+        """
+        Method to save a Dataset instance to a (pickle) file.
+
+        Parameters
+        ----------
+        outputfolder : str or None, optional
+            The path to the folder to save the file. If None, the outputfolder
+            from the Settings is used. The default is None.
+        filename : str, optional
+            The name of the output file. The default is 'saved_dataset.pkl'.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # check if outputfolder is known and exists
+        if outputfolder is None:
+            outputfolder = self.settings.IO['output_folder']
+            assert not outputfolder is None, 'No outputfolder is given, and no outputfolder is found in the settings.'
+
+        assert os.path.isdir(outputfolder), f'{outputfolder} is not a directory!'
+
+        # check file extension in the filename:
+        if filename[-4:] != '.pkl':
+            filename += '.pkl'
+
+        full_path = os.path.join(outputfolder, filename)
+
+        # check if file exists
+        assert not os.path.isfile(full_path), f'{full_path} is already a file!'
+
+        with open(full_path, 'wb') as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+        print(f'Dataset saved in {full_path}')
+
+
+    def import_dataset(self, folder_path=None, filename='saved_dataset.pkl'):
+        """
+        Method to import a Dataset instance from a (pickle) file.
+
+        Parameters
+        ----------
+        folder_path : str or None, optional
+            The path to the folder to save the file. If None, the outputfolder
+            from the Settings is used. The default is None.
+        filename : str, optional
+            The name of the output file. The default is 'saved_dataset.pkl'.
+
+        Returns
+        -------
+        metobs_toolkit.Dataset
+            The Dataset instance.
+
+        """
+
+        # check if folder_path is known and exists
+        if folder_path is None:
+            folder_path = self.settings.IO['output_folder']
+            assert not folder_path is None, 'No folder_path is given, and no outputfolder is found in the settings.'
+
+        assert os.path.isdir(folder_path), f'{folder_path} is not a directory!'
+
+        full_path = os.path.join(folder_path, filename)
+
+        # check if file exists
+        assert os.path.isfile(full_path), f'{full_path} does not exist.'
+
+        with open(full_path, 'rb') as inp:
+            dataset = pickle.load(inp)
+
+        return dataset
+
+
 
 
     def show_settings(self):
@@ -607,7 +690,7 @@ class Dataset:
 
         #locate new gaps by size of consecutive the same final label per station
         group_sizes = grouped.size()
-        outlier_groups = group_sizes[
+        large_groups = group_sizes[
             group_sizes > n_gapsize
         ]
 
@@ -615,7 +698,7 @@ class Dataset:
         gaps = []
         # new_gapsdf = pd.DataFrame()
         new_gaps_idx = init_multiindex()
-        for group_idx in outlier_groups.index:
+        for group_idx in large_groups.index:
             groupdf = grouped.get_group(group_idx)
             group_final_label = groupdf['label'].iloc[0]
             if not group_final_label in possible_outlier_labels:
@@ -647,11 +730,16 @@ class Dataset:
         new_missing_collection = Missingob_collection(missing_obs_series)
 
 
-
         # update self
         self.gaps.extend(gaps)
         self.missing_obs = self.missing_obs + new_missing_collection
 
+        # remove outliers that are converted to gaps
+        self.outliersdf = remove_gaps_from_outliers(gaplist=gaps,
+                                                    outldf = self.outliersdf)
+
+        # remove outliers that are converted to missing obs
+        self.outliersdf = self.missing_obs.remove_missing_from_outliers(self.outliersdf)
 
 
     # =============================================================================
@@ -662,9 +750,47 @@ class Dataset:
 
     def fill_gaps_automatic(self, modeldata, obstype='temp',
                             max_interpolate_duration_str=None,
-                            overwrite=True):
+                            overwrite_fill=False):
+        """
+        Fill the gaps by using linear interpolation or debiased modeldata. The
+        method that is applied to perform the gapfill will be determined by the
+        duration of the gap.
 
-        # Validate input
+        When the duration of a gap is smaller or equal than
+        max_interpolation_duration, the linear interpolation method is applied
+        else the debiased modeldata method.
+
+
+        Parameters
+        ----------
+        modeldata : metobs_toolkit.Modeldata
+            The modeldata to use for the gapfill. This model data should the required
+            timeseries to fill all gaps present in the dataset.
+        obstype : String, optional
+            Name of the observationtype you want to apply gap filling on. The
+            modeldata must contain this observation type as well. The
+            default is 'temp'.
+        max_interpolate_duration_str : Timedelta or str, optional
+            Maximum duration to apply interpolation for gapfill when using the
+            automatic gapfill method. Gaps with longer durations will be filled
+            using debiased modeldata. The default is None.
+        overwrite_fill: bool, optional
+            If a gap has already filled values, the interpolation of this gap
+            is skipped if overwrite_fill is False. If set to True, the gapfill
+            values and info will be overwitten. The default is False.
+
+        Returns
+        -------
+        comb_df : TYPE
+            gapfilldf : pandas.DataFrame
+                A dataframe containing all the filled records.
+
+        """
+
+
+
+        #  ----------- Validate ----------------------------------------
+
         # check if modeldata is available
         if modeldata is None:
             print(
@@ -684,21 +810,14 @@ class Dataset:
             [sta in modeldata.df.index.get_level_values("name") for sta in stations]
         ), f"Not all stations with gaps are in the modeldata!"
 
-        if not self.gapfilldf.empty:
-            if overwrite:
-                print("Gapfilldf will be overwritten!")
-                self.gapfilldf = init_multiindexdf()
-            else:
-                print('Gapfilldf is not empty, set "overwrite=True" to overwrite it!')
-                print("CANCEL gap fill with ERA5")
-                return
+
 
         if max_interpolate_duration_str is None:
             max_interpolate_duration_str = self.settings.gap["gaps_fill_settings"]["automatic"]["max_interpolation_duration_str"]
 
         fill_info = self.settings.gap["gaps_fill_info"]
 
-        # select the method to apply gapfill per gap
+        #  ------------select the method to apply gapfill per gap ----------
         interpolate_gaps = []
         debias_gaps = []
 
@@ -708,7 +827,7 @@ class Dataset:
             else:
                 debias_gaps.append(gap)
 
-        #1  Fill by interpolation
+        #1   ---------------Fill by interpolation ---------------------
 
         fill_settings_interp = self.settings.gap["gaps_fill_settings"]["linear"]
 
@@ -722,11 +841,12 @@ class Dataset:
                             obstype=obstype,
                             method=fill_settings_interp["method"],
                             max_consec_fill=fill_settings_interp["max_consec_fill"],
+                            overwrite_fill=overwrite_fill,
                             )
 
         filldf_interp = make_gapfill_df(interpolate_gaps)
 
-        #2 Fill by debias
+        #2  --------------  Fill by debias -----------------------------
 
         fill_settings_debias = self.settings.gap["gaps_fill_settings"]["model_debias"]
 
@@ -735,7 +855,8 @@ class Dataset:
                                         dataset=self,
                                         eraModelData=modeldata,
                                         obstype=obstype,
-                                        debias_settings=fill_settings_debias)
+                                        debias_settings=fill_settings_debias,
+                                        overwrite_fill=overwrite_fill)
 
         # add label column
         filldf_debias = make_gapfill_df(debias_gaps)
@@ -743,47 +864,61 @@ class Dataset:
 
         # combine both fill df's
         comb_df = pd.concat([filldf_interp, filldf_debias])
-        if overwrite:
-            self.gapfilldf = comb_df
+
+        # update attr
+        self.gapfilldf = comb_df
+
         return comb_df
 
 
-    def fill_gaps_linear(self, obstype="temp", overwrite=True):
+    def fill_gaps_linear(self, obstype="temp", overwrite_fill=False):
         """
         Fill the gaps using linear interpolation.
+
+        The gapsfilldf attribute of the Datasetinstance will be updated if
+        the gaps are not filled yet or if overwrite_fill is set to True.
 
         Parameters
         ----------
         obstype : string, optional
             Fieldname to visualise. This can be an observation or station
             attribute. The default is 'temp'.
+        overwrite_fill: bool, optional
+            If a gap has already filled values, the interpolation of this gap
+            is skipped if overwrite_fill is False. If set to True, the gapfill
+            values and info will be overwitten. The default is False.
 
         Returns
         -------
-        None.
+        gapfilldf : pandas.DataFrame
+            A dataframe containing all the filled records.
+
 
         """
+
+
         # TODO logging
         fill_settings = self.settings.gap["gaps_fill_settings"]["linear"]
         fill_info = self.settings.gap["gaps_fill_info"]
 
         # fill gaps
         apply_interpolate_gaps(
-            gapslist=self.gaps,
-            obsdf=self.df,
-            outliersdf=self.outliersdf,
-            dataset_res=self.metadf["dataset_resolution"],
-            gapfill_settings=self.settings.gap['gaps_fill_info'],
-            obstype=obstype,
-            method=fill_settings["method"],
-            max_consec_fill=fill_settings["max_consec_fill"],
+                gapslist=self.gaps,
+                obsdf=self.df,
+                outliersdf=self.outliersdf,
+                dataset_res=self.metadf["dataset_resolution"],
+                gapfill_settings=self.settings.gap['gaps_fill_info'],
+                obstype=obstype,
+                method=fill_settings["method"],
+                max_consec_fill=fill_settings["max_consec_fill"],
+                overwrite_fill = overwrite_fill,
         )
 
         # get gapfilldf
         gapfilldf = make_gapfill_df(self.gaps)
 
-        if overwrite:
-            self.gapfilldf = gapfilldf
+        # update attr
+        self.gapfilldf = gapfilldf
 
         return gapfilldf
 
@@ -842,7 +977,7 @@ class Dataset:
 
 
     def fill_gaps_era5(
-        self, modeldata, method="debias", obstype="temp", overwrite=True
+        self, modeldata, method="debias", obstype="temp", overwrite_fill=False
     ):
         """
         Fill the gaps using a metobs_toolkit.Modeldata object.
@@ -855,11 +990,14 @@ class Dataset:
             timeseries to fill all gaps present in the dataset.
         method : 'debias', optional
             Specify which method to use. The default is 'debias'.
-        obstype : TYPE, optional
-            Fieldname to visualise. This can be an observation or station
-            attribute. The default is 'temp'.
-        overwrite : bool, optional
-            If True, the Dataset.Gapfilldf will be overwritten. The default is True.
+        obstype : String, optional
+           Name of the observationtype you want to apply gap filling on. The
+           modeldata must contain this observation type as well. The
+           default is 'temp'.
+        overwrite_fill: bool, optional
+            If a gap has already filled values, the interpolation of this gap
+            is skipped if overwrite_fill is False. If set to True, the gapfill
+            values and info will be overwitten. The default is False.
 
         Returns
         -------
@@ -897,15 +1035,17 @@ class Dataset:
                                             dataset=self,
                                             eraModelData=modeldata,
                                             obstype=obstype,
-                                            debias_settings=fill_settings_debias)
+                                            debias_settings=fill_settings_debias,
+                                            overwrite_fill=overwrite_fill)
 
             # get fill df
             filldf = make_gapfill_df(self.gaps)
         else:
             print("not implemented yet")
 
-        if overwrite:
-            self.gapfilldf = filldf
+        # update attribute
+        self.gapfilldf = filldf
+
         return filldf
 
     def write_to_csv(
@@ -1078,201 +1218,343 @@ class Dataset:
 
         """
 
+
+
+
         if repetitions:
             print("Applying the repetitions-check.")
             logger.info("Applying repetitions check.")
+            apliable = can_qc_be_applied(self._applied_qc, obstype, "repetitions")
 
-            obsdf, outl_df = repetitions_check(
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            if apliable:
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                obsdf, outl_df = repetitions_check(
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
 
-            # add this check to the applied checks
-            self._applied_qc = pd.concat(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames="repetitions"
-                    ),
-                ],
-                ignore_index=True,
-            )
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(
+                            obstypes=obstype, ordered_checknames="repetitions"
+                        ),
+                    ],
+                    ignore_index=True,
+                )
+            else:
+                print(f'ERROR: The repetitions check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if gross_value:
             print("Applying the gross-value-check.")
             logger.info("Applying gross value check.")
 
-            obsdf, outl_df = gross_value_check(
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "gross_value")
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+            if apliable:
 
-            # add this check to the applied checks
-            self._applied_qc = pd.concat(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames="gross_value"
-                    ),
-                ],
-                ignore_index=True,
-            )
+                obsdf, outl_df = gross_value_check(
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
+
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(
+                            obstypes=obstype, ordered_checknames="gross_value"
+                        ),
+                    ],
+                    ignore_index=True,
+                )
+
+            else:
+                print(f'ERROR: The gross_value check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if persistance:
             print("Applying the persistance-check.")
             logger.info("Applying persistance check.")
 
-            obsdf, outl_df = persistance_check(
-                station_frequencies=self.metadf["dataset_resolution"],
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "persistance")
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+            if apliable:
 
-            # add this check to the applied checks
-            self._applied_qc = pd.concat(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames="persistance"
-                    ),
-                ],
-                ignore_index=True,
-            )
+                obsdf, outl_df = persistance_check(
+                    station_frequencies=self.metadf["dataset_resolution"],
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
+
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(
+                            obstypes=obstype, ordered_checknames="persistance"
+                        ),
+                    ],
+                    ignore_index=True,
+                )
+
+            else:
+                 print(f'ERROR: The persistance check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if step:
             print("Applying the step-check.")
             logger.info("Applying step-check.")
 
-            obsdf, outl_df = step_check(
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "step")
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+            if apliable:
 
-            # add this check to the applied checks
-            self._applied_qc = pd.concat(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(obstypes=obstype, ordered_checknames="step"),
-                ],
-                ignore_index=True,
-            )
+                obsdf, outl_df = step_check(
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
+
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(obstypes=obstype, ordered_checknames="step"),
+                    ],
+                    ignore_index=True,
+                )
+
+            else:
+                 print(f'ERROR: The step check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if window_variation:
             print("Applying the window variation-check.")
             logger.info("Applying window variation-check.")
 
-            obsdf, outl_df = window_variation_check(
-                station_frequencies=self.metadf["dataset_resolution"],
-                obsdf=self.df,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["qc_check_settings"],
-            )
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "window_variation")
+            if apliable:
+
+                obsdf, outl_df = window_variation_check(
+                    station_frequencies=self.metadf["dataset_resolution"],
+                    obsdf=self.df,
+                    obstype=obstype,
+                    checks_info=self.settings.qc["qc_checks_info"],
+                    checks_settings=self.settings.qc["qc_check_settings"],
+                )
+
+                # update the dataset and outliers
+                self.df = obsdf
+                if not outl_df.empty:
+                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+
+                # add this check to the applied checks
+                self._applied_qc = pd.concat(
+                    [
+                        self._applied_qc,
+                        conv_applied_qc_to_df(
+                            obstypes=obstype, ordered_checknames="window_variation"
+                        ),
+                    ],
+                    ignore_index=True,
+                )
+
+            else:
+                 print(f'ERROR: The window_variation check can NOT be applied on {obstype} because it was already applied on this observation type!')
+
+
+        self._qc_checked_obstypes.append(obstype)
+        self._qc_checked_obstypes = list(set(self._qc_checked_obstypes))
+        self.outliersdf = self.outliersdf.sort_index()
+
+    def apply_titan_buddy_check(self, obstype='temp', use_constant_altitude=False):
+
+
+        print("Applying the titan buddy check")
+        logger.info("Applying the titan buddy check")
+
+        checkname = 'titan_buddy_check'
+
+        # 1. coordinates are available?
+        if self.metadf['lat'].isnull().any():
+            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+        if self.metadf['lon'].isnull().any():
+            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+
+
+        # set constant altitude if needed:
+
+        # if altitude is already available, save it to restore it after this check
+        restore_altitude = False
+        if (use_constant_altitude):
+            if ('altitulde' in self.metadf.columns):
+                self.metadf['altitude_backup'] = self.metadf['altitude']
+                restore_altitude=True
+
+            self.metadf['altitude'] = 2. #absolut value does not matter
+
+
+        # 2. altitude available?
+        if ((not use_constant_altitude) & ('altitude' not in self.metadf.columns)):
+            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
+            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
+            return
+        if ((not use_constant_altitude) & (self.metadf['lat'].isnull().any())):
+            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
+            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
+            return
+
+        apliable = _can_qc_be_applied(self._applied_qc, obstype, checkname)
+        if apliable:
+            obsdf, outliersdf = titan_buddy_check(obsdf = self.df,
+                                               metadf = self.metadf,
+                                               obstype = obstype,
+                                               checks_info = self.settings.qc["qc_checks_info"],
+                                               checks_settings = self.settings.qc['titan_check_settings'][checkname][obstype],
+                                               titan_specific_labeler = self.settings.qc['titan_specific_labeler'][checkname])
+
 
             # update the dataset and outliers
             self.df = obsdf
-            if not outl_df.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outl_df])
+            if not outliersdf.empty:
+                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
             self._applied_qc = pd.concat(
                 [
                     self._applied_qc,
                     conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames="window_variation"
+                        obstypes=obstype, ordered_checknames=checkname
                     ),
                 ],
                 ignore_index=True,
             )
 
-        self._qc_checked_obstypes.append(obstype)
-        self._qc_checked_obstypes = list(set(self._qc_checked_obstypes))
-        self.outliersdf = self.outliersdf.sort_index()
-
-    def apply_titan_buddy_check(self, obstype='temp'):
-
-        obsdf, outliersdf = titan_buddy_check(obsdf = self.df,
-                                           metadf = self.metadf,
-                                           obstype = obstype,
-                                           checks_info = self.settings.qc["qc_checks_info"],
-                                           checks_settings = self.settings.qc['titan_check_settings']['titan_buddy_check'],
-                                           titan_specific_labeler = self.settings.qc['titan_specific_labeler']['titan_buddy_check'])
+        else:
+            print(f'ERROR: The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
 
 
-        # update the dataset and outliers
-        self.df = obsdf
-        if not outliersdf.empty:
-            self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+        # Revert artificial data that has been added if needed
+        if restore_altitude: #altitude was overwritten, thus revert it
+            self.metadf['altitude'] = self.metadf["altitude_backup"]
+            self.metadf = self.metadf.drop(columns=['altitude_backup'])
 
-        # add this check to the applied checks
-        self._applied_qc = pd.concat(
-            [
-                self._applied_qc,
-                conv_applied_qc_to_df(
-                    obstypes=obstype, ordered_checknames="titan_buddy_check"
-                ),
-            ],
-            ignore_index=True,
-        )
-
-        return obsdf, outliersdf
-    
-    def apply_titan_sct_resistant_check(self, obstype='temp'):
-
-        obsdf, outliersdf = titan_sct_resistant_check(obsdf = self.df,
-                                           metadf = self.metadf,
-                                           obstype = obstype,
-                                           checks_info = self.settings.qc["qc_checks_info"],
-                                           checks_settings = self.settings.qc['titan_check_settings']['titan_sct_resistant_check'],
-                                           titan_specific_labeler = self.settings.qc['titan_specific_labeler']['titan_sct_resistant_check'])
+        elif (use_constant_altitude):
+            # when no alitude was available apriori, remove the fake constant altitude column
+            self.metadf = self.metadf.drop(columns=['altitude'])
 
 
-        # update the dataset and outliers
-        self.df = obsdf
-        if not outliersdf.empty:
-            self.outliersdf = pd.concat([self.outliersdf, outliersdf])
 
-        # add this check to the applied checks
-        self._applied_qc = pd.concat(
-            [
-                self._applied_qc,
-                conv_applied_qc_to_df(
-                    obstypes=obstype, ordered_checknames="titan_sct_resistant_check"
-                ),
-            ],
-            ignore_index=True,
-        )
 
-        return obsdf, outliersdf
 
+    def apply_titan_sct_resistant_check(self, obstype='temp', use_constant_altitude=False):
+
+        print("Applying the titan SCT check")
+        logger.info("Applying the titan SCT check")
+
+
+        checkname ='titan_sct_resistant_check'
+        # check if required metadata is available:
+
+        # 1. coordinates are available?
+        if self.metadf['lat'].isnull().any():
+            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+        if self.metadf['lon'].isnull().any():
+            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+
+
+        # set constant altitude if needed:
+
+        # if altitude is already available, save it to restore it after this check
+        restore_altitude = False
+        if (use_constant_altitude):
+            if ('altitulde' in self.metadf.columns):
+                self.metadf['altitude_backup'] = self.metadf['altitude']
+                restore_altitude=True
+
+            self.metadf['altitude'] = 2. #absolut value does not matter
+
+
+        # 2. altitude available?
+        if ((not use_constant_altitude) & ('altitude' not in self.metadf.columns)):
+            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
+            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
+            return
+        if ((not use_constant_altitude) & (self.metadf['lat'].isnull().any())):
+            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
+            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
+            return
+
+        apliable = _can_qc_be_applied(self._applied_qc, obstype, checkname)
+        if apliable:
+
+            obsdf, outliersdf = titan_sct_resistant_check(obsdf = self.df,
+                                               metadf = self.metadf,
+                                               obstype = obstype,
+                                               checks_info = self.settings.qc["qc_checks_info"],
+                                               checks_settings = self.settings.qc['titan_check_settings'][checkname],
+                                               titan_specific_labeler = self.settings.qc['titan_specific_labeler'][checkname])
+
+
+            # update the dataset and outliers
+            self.df = obsdf
+            if not outliersdf.empty:
+                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+
+            # add this check to the applied checks
+            self._applied_qc = pd.concat(
+                [
+                    self._applied_qc,
+                    conv_applied_qc_to_df(
+                        obstypes=obstype, ordered_checknames=checkname
+                    ),
+                ],
+                ignore_index=True,
+            )
+
+
+        else:
+            print(f'ERROR: The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
+
+
+        # Revert artificial data that has been added if needed
+        if restore_altitude: #altitude was overwritten, thus revert it
+            self.metadf['altitude'] = self.metadf["altitude_backup"]
+            self.metadf = self.metadf.drop(columns=['altitude_backup'])
+
+        elif (use_constant_altitude):
+            # when no alitude was available apriori, remove the fake constant altitude column
+            self.metadf = self.metadf.drop(columns=['altitude'])
 
     def combine_all_to_obsspace(self, repr_outl_as_nan=False,
                                 overwrite_outliers_by_gaps_and_missing=True):
@@ -1556,8 +1838,19 @@ class Dataset:
             f"Coarsening the timeresolution to {freq} using \
                     the {method}-method (with limit={limit})."
         )
+
+        # test if coarsening the resolution is valid for the dataset
+        # 1. If resolution-dep-qc is applied --> coarsening is not valid and will result in a broken dataset
+
+        if self._applied_qc[~self._applied_qc['checkname']
+                            .isin(["duplicated_timestamp", "invalid_input"])
+                            ].shape[0] > 0:
+            print('WARNING: Coarsening time resolution is not possible because quality control checks that are resolution depening are already performed on the Dataset.')
+            print('(Apply coarsening_time_resolution BEFORE applying quality control.)')
+            return
+
+
         # TODO: implement buffer method
-        # TODO: implement startdt point
         df = self.df.reset_index()
 
         if origin is None:
@@ -1955,6 +2248,9 @@ class Dataset:
                     logger.warning(f'One stationname found in the metadata: {name}, this name is used for the data.')
                 else:
                     df["name"] = str(self.settings.app["default_name"])
+                    # for later merging, we add the name column with the default
+                    # also in the metadf
+                    meta_df['name'] =str(self.settings.app["default_name"])
                     logger.warning(
                         f'Assume the dataset is for ONE station with the \
                         default name: {self.settings.app["default_name"]}.')
@@ -2434,3 +2730,8 @@ class Dataset:
                 filepath = os.path.join(self.settings.IO['output_folder'], filename)
                 print(f'Gee Map will be save at {filepath}')
                 Map.save(filepath)
+
+
+def _can_qc_be_applied(applied_df, obstype, checkname):
+    """ test if the check is already performed on self """
+    return not applied_df[(applied_df['obstype'] == obstype) & (applied_df['checkname'] == checkname)].shape[0] > 0

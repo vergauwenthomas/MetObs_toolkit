@@ -16,13 +16,15 @@ metobs\_toolkit.plotting\_functions
       :nosignatures:
    
       add_stations_to_folium_map
+      correlation_scatter
+      create_linecollection
       diurnal_plot
       folium_plot
       geospatial_plot
+      heatmap_plot
       make_cat_colormapper
       map_obstype
       qc_stats_pie
-      sorting_function
       timeseries_plot
    
    

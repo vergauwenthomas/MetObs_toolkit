@@ -740,37 +740,37 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
     return points_dict
 
 def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
-    
+
     """
-    The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for 
-    buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the 
-    (absolute value of the) difference between the observations and the average of the neighbours 
+    The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
+    buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
+    (absolute value of the) difference between the observations and the average of the neighbours
     normalized by the standard deviation in the circle is greater than a predefined threshold.
 
 
     Parameters
-    
+
     obsdf: Pandas.DataFrame
         The dataframe containing the observations
-    
+
     metadf: Pandas.DataFrame
         The dataframe containing the metadata (e.g. latitude, longitude...)
-    
+
     obstype: String, optional
         The observation type that has to be checked. The default is 'temp'
-        
+
     checks_info: Dictionary
         Dictionary with the names of the outlier flags for each check
-    
+
     checks_settings: Dictionary
         Dictionary with the settings for each check
-        
+
     titan_specific_labeler: Dictionary
         Dictionary that maps numeric flags to 'ok' or 'outlier' flags for each titan check
-    
-    
+
+
     """
-    
+
     try:
         alt = metadf['altitude']
     except:
@@ -823,36 +823,36 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
     return obsdf, outliersdf
 
 def titan_sct_resistant_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
-    
+
     """
-    The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the 
-    nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation 
-    (OI) to compute an expected value for each observation. The background for the OI is computed from 
+    The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
+    nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation
+    (OI) to compute an expected value for each observation. The background for the OI is computed from
     a general vertical profile of observations in the area.
 
     Parameters
-    
+
     obsdf: Pandas.DataFrame
         The dataframe containing the observations
-    
+
     metadf: Pandas.DataFrame
         The dataframe containing the metadata (e.g. latitude, longitude...)
-    
+
     obstype: String, optional
         The observation type that has to be checked. The default is 'temp'
-        
+
     checks_info: Dictionary
         Dictionary with the names of the outlier flags for each check
-    
+
     checks_settings: Dictionary
         Dictionary with the settings for each check
-        
+
     titan_specific_labeler: Dictionary
         Dictionary that maps numeric flags to 'ok' or 'outlier' flags for each titan check
-    
-    
+
+
     """
-    
+
     try:
         alt = metadf['altitude']
     except:
@@ -860,7 +860,7 @@ def titan_sct_resistant_check(obsdf, metadf, obstype, checks_info, checks_settin
         logger.warning(
             f"Cannot find altitude of weather stations. Check is skipped!"
         )
-    
+
     # Create points_dict
     pointsdict = create_titanlib_points_dict(obsdf, metadf, obstype)
 
@@ -870,38 +870,41 @@ def titan_sct_resistant_check(obsdf, metadf, obstype, checks_info, checks_settin
         titan_points = titanlib.Points(np.asarray(point['lats']),
                                        np.asarray(point['lons']),
                                        np.asarray(point['elev']))
-        
-        
+
+
         flags, scores = titanlib.sct_resistant_check(
-                titan_points,
-                np.asarray(obs),
-                np.asarray(1 * len(obs)), 
-                np.asarray(0 * len(obs)), 
-                'MedianOuterCircle',
-                checks_settings['num_min_outer'],
-                checks_settings['num_max_outer'],
-                checks_settings['inner_radius'],
-                checks_settings['outer_radius'],
-                checks_settings['num_iterations'],
-                checks_settings['num_min_prof'],
-                checks_settings['min_elev_diff'],
-                checks_settings['min_horizontal_scale'],
-                checks_settings['max_horizontal_scale'],
-                checks_settings['kth_closest_obs_horizontal_scale'],
-                checks_settings['vertical_scale'], 
-                obs - 20, obs + 20, obs - 1, obs  + 1,
-                np.asarray(1 * len(obs))*0.5,
-                np.asarray(1 * len(obs))*16,
-                np.asarray(1 * len(obs))*16,
-                checks_settings['debug'],
-                checks_settings['basic']
+                titan_points, #points
+                np.asarray(obs), # vlues
+                np.asarray(1 * len(obs)), # obs to check
+                np.asarray(0 * len(obs)), # background values
+                'MedianOuterCircle', #background elab type
+                checks_settings['num_min_outer'], #num min outer
+                checks_settings['num_max_outer'], #num mac outer
+                checks_settings['inner_radius'], #inner radius
+                checks_settings['outer_radius'], #outer radius
+                checks_settings['num_iterations'], #num iterations
+                checks_settings['num_min_prof'], #num min prof
+                checks_settings['min_elev_diff'], # min elev diff
+                checks_settings['min_horizontal_scale'], #min horizontal scale
+                checks_settings['max_horizontal_scale'], # max horizontal scale
+                checks_settings['kth_closest_obs_horizontal_scale'], #kth closest obs horizontal scale
+                checks_settings['vertical_scale'], #vertical scale
+                obs - checks_settings['mina_deviation'], # values mina
+                obs + checks_settings['maxa_deviation'], #values maxa
+                obs - checks_settings['minv_deviation'], #values minv
+                obs  + checks_settings['maxv_deviation'], # values maxv
+                np.asarray(1 * len(obs))*checks_settings['eps2'], #eps2
+                np.asarray(1 * len(obs))*checks_settings['tpos'], #tpos
+                np.asarray(1 * len(obs))*checks_settings['tmin'], #tneg
+                checks_settings['debug'], #debug
+                checks_settings['basic'] #basic
                 )
-        
+
         labels = pd.Series(flags, name='num_label').to_frame()
         labels['name'] = point['names']
         labels['datetime'] = dt
         df_list.append(labels)
-    
+
     checkeddf = pd.concat(df_list)
 
     #Convert to toolkit format

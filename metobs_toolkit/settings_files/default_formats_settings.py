@@ -43,9 +43,11 @@ plot_settings["time_series"] = {
     # shape
     "figsize": (10, 5),
     "linewidth": 2,  #
+    "linestyle_ok": '-', #solid line
+    "linestyle_fill": '--', #dashedline
     "linezorder": 1,  # for ok obs
     "scattersize": 4,  # for outliers
-    "scatterzorder": 2,  # for outliers
+    "scatterzorder": 3,  # for outliers
     "dashedzorder": 2,  # for gapfills
     "legend_n_columns": 5, # for the number of columns in the plot
 }
@@ -98,7 +100,7 @@ plot_settings["color_mapper"] = {
     "titan_sct_resistant_check": '#c17fe1',
     # missing and gap
     "gap": "#f00592",
-    "missing_timestamp": "#e86bb6",
+    "missing_timestamp": "#f78e0c",
     # filling
     "linear": "#d406c6",
     "model_debias": "#6e1868",
@@ -123,13 +125,35 @@ plot_settings["diurnal"] = {
     'cmap_categorical': "tab20",
     "legend_n_columns": 5,
 
-
-
-
-
 }
 
+# =============================================================================
+# correlation plot settings
+# =============================================================================
 
+plot_settings["correlation_heatmap"] = {
+    "figsize": (10,10),
+    'vmin': -1,
+    'vmax': 1,
+    'cmap': 'cool',
+    'x_tick_rot': 65,
+    'y_tick_rot': 0,
+}
+
+plot_settings["correlation_scatter"] = {
+    "figsize": (10,10),
+    "p_bins": [0, .001, 0.01, 0.05, 999], #do not change the 0.001,0.01 or 0.05
+    "bins_markers":['*', 's', '^', 'X'],
+    'scatter_size': 40,
+    'scatter_edge_col': 'black',
+    'scatter_edge_line_width': 0.1,
+    'ymin': -1.1,
+    'ymax': 1.1,
+    'cmap': 'tab20',
+    'legend_ncols': 3,
+    'legend_text_size': 7,
+
+}
 
 
 print_settings = {"fmt_datetime": "%d/%m/%Y %H:%M:%S", "max_print_per_line": "40"}

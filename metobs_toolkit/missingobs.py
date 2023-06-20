@@ -33,7 +33,10 @@ class Missingob_collection:
         missing_obs_series.name = 'datetime'
         missing_obs_series.index.name = 'name'
 
-        missing_obs_series = missing_obs_series.drop_duplicates()
+
+        missing_obs_df = missing_obs_series.reset_index() #needed to find duplicates
+        missing_obs_df = missing_obs_df.drop_duplicates()
+        missing_obs_series = missing_obs_df.set_index('name')['datetime']
         missing_obs_series = missing_obs_series.sort_index()
 
         missing_idx = missing_obs_series.reset_index()
@@ -49,7 +52,10 @@ class Missingob_collection:
     def __add__(self, other):
         comb_series = pd.concat([self.series, other.series])
 
-        comb_series = comb_series.drop_duplicates()
+        # drop duplicates and sort
+        comb_df = comb_series.reset_index() #needed to find duplicates
+        comb_df = comb_df.drop_duplicates()
+        comb_series = comb_df.set_index('name')['datetime']
         comb_series = comb_series.sort_index()
 
         self.series = comb_series
@@ -122,6 +128,35 @@ class Missingob_collection:
 
         return obsdf
 
+    def remove_missing_from_outliers(self, outldf):
+        """
+        Drop the missing observation records from an outlier dataframe, if
+        they are present. This will ignore the observation types! So all
+        outliers of any observation type, at an missing timestamp are removed.
+
+        Parameters
+        ----------
+        obsdf : pandas.DataFrame
+            Multiindex (name-datetime-obstype) observational dataframe.
+
+        Returns
+        -------
+        obsdf : pandas.DataFrame
+            Multiindex observational dataframe without records linked to missing
+            observations.
+
+        """
+
+        # to multiindex
+        outldf = outldf.reset_index().set_index(['name', 'datetime'])
+
+        # remove records inside the gaps
+        suboutldf = self.remove_missing_from_obs(obsdf = outldf)
+
+        # reset to triple index
+        outldf = suboutldf.reset_index().set_index(['name', 'datetime', 'obstype'])
+        return outldf
+
     def interpolate_missing(self, obsdf, resolutionseries, obstype='temp', method='time'):
         """
         Fill the missing observations using an interpolation method.
@@ -158,7 +193,7 @@ class Missingob_collection:
             staobs = xs_save(obsdf, staname, level='name')[obstype]
             # exclude nan values because they are no good leading/trailing
             staobs = staobs[~staobs.isnull()]
-            print(f'staname: {staname}, missingdt: {missingdt}')
+
             # find leading and trailing datetimes
             leading_seconds =_find_closes_occuring_date(refdt = missingdt,
                                                         series_of_dt = staobs.index,
