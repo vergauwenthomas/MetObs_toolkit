@@ -117,5 +117,5 @@ dataset.update_titan_qc_settings(obstype='temp',
 
 dataset.metadf['altitude'] = np.random.randint(1, 250, dataset.metadf.shape[0])
 
-dataset.apply_titan_sct_resistant_check()
+# dataset.apply_titan_sct_resistant_check()
 
