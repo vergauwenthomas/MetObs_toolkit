@@ -38,7 +38,7 @@ class Modeldata:
         return f"ModelData instance: {self.modelname} model data of {list(self.df.columns)}"
 
     def __str__(self):
-        self.__repr__()
+        return self.__repr__()
 
 
     def _conv_to_timezone(self, tzstr):
@@ -163,42 +163,51 @@ class Modeldata:
             returndf = pd.concat([returndf, mergedf])
         return returndf
 
-    def make_plot(
-        self,
-        dataset,
-        stationnames=None,
-        obstype="temp",
-        starttime=None,
-        endtime=None,
-        title=None,
-        colorby='label',
-        legend=True,
+    def make_plot(self, obstype="temp", dataset = None, stationnames=None,
+        starttime=None, endtime=None, title=None, show_outliers=True,
+        show_filled=True, legend=True,
         _ax=None, #needed for GUI, not recommended use
         ):
-        """
-        This function creates a timeseries plot for the model data. The variable observation type
-        is plotted for all stationnames from a starttime to an endtime.
 
-        All styling attributes are extracted from the Settings.
+        """
+        This function creates a timeseries plot for the Modeldata. When a
+        metobs_toolkit.Dataset is provided, it is plotted in the same figure.
+
+        The line colors represent the timesries for different locations.
+
+
 
         Parameters
         ----------
-
-        stationnames : list, optional
-            A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
         obstype : string, optional
              Fieldname to visualise. This can be an observation or station
              attribute. The default is 'temp'.
+        dataset : metobs_toolkit.Dataset, optional
+            A Dataset instance with observations plotted in the same figure.
+            Observations are represented by solid line and modeldata by dashed
+            lines. The default is None.
+        stationnames : list, optional
+            A list with stationnames to include in the timeseries. If None is
+            given, all the stations are used, defaults to None.
         starttime : datetime.datetime, optional
-             Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
+             Specifiy the start datetime for the plot. If None is given it will
+             use the start datetime of the dataset, defaults to None.
         endtime : datetime.datetime, optional
-             Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
+             Specifiy the end datetime for the plot. If None is given it will
+             use the end datetime of the dataset, defaults to None.
         title : string, optional
-             Title of the figure, if None a default title is generated. The default is None.
-        y_label : string, optional
-             y-axes label of the figure, if None a default label is generated. The default is None.
-        legend : bool, optional
-             I True, a legend is added to the plot. The default is True.
+             Title of the figure, if None a default title is generated. The
+             default is None.
+        show_outliers : bool, optional
+             If true the observations labeld as outliers will be included in
+             the plot. Only relevent when a dataset is provided. The default
+             is True.
+        show_filled : bool, optional
+             If true the filled values for gaps and missing observations will
+             be included in the plot. Only relevent when a dataset is provided.
+             The default is True.
+         legend : bool, optional
+              If True, a legend is added to the plot. The default is True.
 
 
         Returns
@@ -207,76 +216,113 @@ class Modeldata:
              The timeseries axes of the plot is returned.
 
         """
-        if stationnames is None:
-            logger.info(f"Make {obstype}-timeseries plot of model data for all stations")
-        else:
-            logger.info(f"Make {obstype}-timeseries plot of model data for {stationnames}")
+
+
+        logger.info(f"Make {obstype}-timeseries plot of model data")
+
+        # Basic test
+        if obstype not in self.df.columns:
+            print(f'ERROR: {obstype} is not foud in the modeldata df.')
+            return
+        if self.df.empty:
+            print('ERROR: The modeldata is empty.')
+            return
+        if (not dataset is None):
+            if (obstype not in dataset.df.columns):
+                print(f'ERROR: {obstype} is not foud in the Dataframe df.')
+                return
+
 
         model_df = self.df
 
-        # subset model to stationnames in dataset/station
-        if not dataset is None:
-            model_df = model_df.reset_index()
+        # ------ filter model ------------
 
-
-            if dataset._istype == 'Dataset':
-                # dataset object
-                model_df = model_df.loc[model_df['name'].isin(
-                    dataset.df.index.get_level_values('name').unique())]
-            else:
-                # station object
-                model_df = model_df.loc[model_df['name'] == dataset.name]
-
-            model_df = model_df.set_index(['name', 'datetime'])
+        # Filter on obstype
+        model_df = model_df[[obstype]]
 
         # Subset on stationnames
         if not stationnames is None:
-            model_df = model_df.reset_index()
-            model_df = model_df.loc[model_df['name'].isin(stationnames)]
-            model_df = model_df.set_index(['name', 'datetime'])
-            dataset.df = dataset.df.reset_index()
-            dataset.df = dataset.df.loc[dataset.df['name'].isin(stationnames)]
-            dataset.df = dataset.df.set_index(['name', 'datetime'])
-
-
-        # ylabel tips
-        try:
-            model_true_field = self.mapinfo[self.modelname]['band_of_use'][obstype]
-        except KeyError:
-            print (f'No model data available for {obstype}.')
-
-        try:
-            obs_true_field = dataset.data_template[obstype]
-        except KeyError:
-            print (f'No observation data available for {obstype}.')
-
-        y_label = f'{model_true_field["name"]} ({model_true_field["units"]}) \n {obs_true_field["orig_name"]} ({obs_true_field["units"]})'
+            model_df = model_df[model_df.index.get_level_values('name').isin(stationnames)]
 
         # Subset on start and endtime
         model_df = multiindexdf_datetime_subsetting(model_df, starttime, endtime)
 
-        # fig, ax = plt.subplots()
-        stationlist = sorted(list(model_df.index.get_level_values("name").unique()))
-        for i in range(5, len(stationlist), 5):
-            stationlist.insert(i, "\n")
 
-        title = f'{model_true_field["name"]}/{obs_true_field["orig_name"]} for [{", ".join(stationlist)}]'
+        #  -------- Filter dataset (if available) -----------
+        if not dataset is None:
+            # combine all dataframes
+            mergedf = dataset.combine_all_to_obsspace()
 
-        # check if df is empty
-        if model_df.empty:
-            print(f'No model data available')
+            # subset to obstype
+            mergedf = xs_save(mergedf, obstype, level='obstype')
 
-        ax = dataset.make_plot(stationnames=stationnames, starttime=starttime, endtime=endtime, title=title, y_label=y_label, legend=False, _ax=None)
+            # Subset on stationnames
+            if not stationnames is None:
+                mergedf = mergedf[mergedf.index.get_level_values('name').isin(stationnames)]
 
-        # Make plot
-        ax = model_timeseries_plot(
-            df=model_df,
-            obstype=obstype,
-            title=title,
-            ylabel=y_label,
-            show_legend=legend,
-            settings = dataset.settings,
-            _ax = ax
-        )
+            # Subset on start and endtime
+            mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
+
+
+        # Generate ylabel
+        try:
+            model_true_field_name = self.mapinfo[self.modelname]['band_of_use'][obstype]['name']
+        except KeyError:
+            print (f'No model field name found for {obstype} in {self}.')
+            model_true_field_name = 'Unknown fieldname'
+        y_label = f'{model_true_field_name}'
+
+        if not dataset is None:
+            dataset_obs_orig_name = dataset.data_template[obstype]['orig_name']
+            units = dataset.data_template[obstype]['units']
+
+            y_label = f'{y_label} \n {dataset_obs_orig_name} ({units})'
+
+
+        #Generate title
+        title = f'{self.modelname} : {model_true_field_name}'
+        if not dataset is None:
+            title = f'{title} and {dataset_obs_orig_name} observations.'
+
+
+        # make plot of the observations
+        if not dataset is None:
+            # make plot of the observations
+            ax, col_map = timeseries_plot(mergedf=mergedf,
+                                 title=title,
+                                 ylabel=y_label,
+                                 colorby='name',
+                                 show_legend=legend,
+                                 show_outliers=show_outliers,
+                                 show_filled=show_filled ,
+                                 settings = dataset.settings)
+
+
+            # Make plot of the model on the previous axes
+            ax, col_map = model_timeseries_plot(
+                                    df=model_df,
+                                    obstype=obstype,
+                                    title=title,
+                                    ylabel=y_label,
+                                    settings = self._settings,
+                                    show_primary_legend=False,
+                                    add_second_legend=True,
+                                    _ax = ax,
+                                    colorby_name_colordict=col_map)
+
+
+        else:
+
+            # Make plot of model on empty axes
+            ax, _colmap = model_timeseries_plot(
+                    df=model_df,
+                    obstype=obstype,
+                    title=title,
+                    ylabel=y_label,
+                    settings = self._settings,
+                    show_primary_legend=legend,
+                    add_second_legend=False,
+                    _ax = None
+                    )
 
         return ax

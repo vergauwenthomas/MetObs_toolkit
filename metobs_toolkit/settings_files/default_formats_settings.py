@@ -42,7 +42,10 @@ default_name = "unknown_name"  # used when no station names are available
 plot_settings["time_series"] = {
     # shape
     "figsize": (10, 5),
+    "colormap": 'tab20', #when colorby='name' is used
     "linewidth": 2,  #
+    "linestyle_ok": '-', #solid line
+    "linestyle_fill": '--', #dashedline
     "linezorder": 1,  # for ok obs
     "scattersize": 4,  # for outliers
     "scatterzorder": 3,  # for outliers
@@ -94,9 +97,11 @@ plot_settings["color_mapper"] = {
     "repetitions": "#056ff0",
     "step": "#05d4f0",
     "window_variation": "#05f0c9",
+    "titan_buddy_check": '#8300c4',
+    "titan_sct_resistant_check": '#c17fe1',
     # missing and gap
     "gap": "#f00592",
-    "missing_timestamp": "#e86bb6",
+    "missing_timestamp": "#f78e0c",
     # filling
     "linear": "#d406c6",
     "model_debias": "#6e1868",

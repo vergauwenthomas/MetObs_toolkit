@@ -15,6 +15,7 @@ import numpy as np
 import pickle
 
 
+
 from metobs_toolkit.settings import Settings
 from metobs_toolkit.data_import import (
     import_data_from_csv,
@@ -48,6 +49,8 @@ from metobs_toolkit.qc_checks import (
     step_check,
     window_variation_check,
     invalid_input_check,
+    titan_buddy_check,
+    titan_sct_resistant_check
 )
 
 
@@ -59,6 +62,7 @@ from metobs_toolkit.missingobs import Missingob_collection
 from metobs_toolkit.gap import (
     Gap,
     remove_gaps_from_obs,
+    remove_gaps_from_outliers,
     missing_timestamp_and_gap_check,
     get_gaps_indx_in_obs_space,
     get_station_gaps,
@@ -133,7 +137,10 @@ class Dataset:
 
     def __str__(self):
         if self.df.empty:
-            return f"Empty instance of a Dataset."
+            if self._istype == 'Dataset':
+                return f"Empty instance of a Dataset."
+            else:
+                return f"Empty instance of a Station."
         add_info = ''
         n_stations = self.df.index.get_level_values('name').unique().shape[0]
         n_obs_tot = self.df.shape[0]
@@ -379,12 +386,15 @@ class Dataset:
         y_label : string, optional
              y-axes label of the figure, if None a default label is generated. The default is None.
         legend : bool, optional
-             I True, a legend is added to the plot. The default is True.
+             If True, a legend is added to the plot. The default is True.
         show_outliers : bool, optional
-             If true the observations labeld as outliers will be included in the plot, defaults to True
+             If true the observations labeld as outliers will be included in
+             the plot. This is only true when colorby == 'name'. The default
+             is True.
         show_filled : bool, optional
              If true the filled values for gaps and missing observations will
-             be included in the plot, defaults to True
+             be included in the plot. This is only true when colorby == 'name'.
+             The default is True.
 
 
         Returns
@@ -413,16 +423,6 @@ class Dataset:
         # Subset on start and endtime
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
-        # remove outliers if required
-        if not show_outliers:
-            outlier_labels = [var['outlier_flag'] for var in self.settings.qc['qc_checks_info'].values()]
-            mergedf = mergedf[~mergedf['label'].isin(outlier_labels)]
-
-        # remove filled values if required
-        if not show_filled:
-            fill_labels = ['gap fill', 'missing observation fill'] #toolkit representation labels
-            mergedf = mergedf[~mergedf['toolkit_representation'].isin(fill_labels)]
-
         # Get plot styling attributes
         if title is None:
             if stationnames is None:
@@ -447,18 +447,24 @@ class Dataset:
         # create y label
         if y_label is None:
             try:
-                y_label = f'{self.data_template[obstype]["orig_name"]} ({self.data_template[obstype]["units"]}) \n {self.data_template[obstype]["description"]}'
+                if isinstance(self.data_template[obstype]["description"], str):
+                    description =self.data_template[obstype]["description"]
+                else:
+                    description =''
+
+                y_label = f'{self.data_template[obstype]["orig_name"]} ({self.data_template[obstype]["units"]}) \n {description}'
             except KeyError:
                 y_label = obstype
 
         # Make plot
-        ax = timeseries_plot(
+        ax, _colmap = timeseries_plot(
             mergedf=mergedf,
             title=title,
             ylabel=y_label,
             colorby=colorby,
             show_legend=legend,
             show_outliers=show_outliers,
+            show_filled=show_filled,
             settings = self.settings,
             _ax = _ax
         )
@@ -683,7 +689,7 @@ class Dataset:
 
         #locate new gaps by size of consecutive the same final label per station
         group_sizes = grouped.size()
-        outlier_groups = group_sizes[
+        large_groups = group_sizes[
             group_sizes > n_gapsize
         ]
 
@@ -691,7 +697,7 @@ class Dataset:
         gaps = []
         # new_gapsdf = pd.DataFrame()
         new_gaps_idx = init_multiindex()
-        for group_idx in outlier_groups.index:
+        for group_idx in large_groups.index:
             groupdf = grouped.get_group(group_idx)
             group_final_label = groupdf['label'].iloc[0]
             if not group_final_label in possible_outlier_labels:
@@ -723,11 +729,16 @@ class Dataset:
         new_missing_collection = Missingob_collection(missing_obs_series)
 
 
-
         # update self
         self.gaps.extend(gaps)
         self.missing_obs = self.missing_obs + new_missing_collection
 
+        # remove outliers that are converted to gaps
+        self.outliersdf = remove_gaps_from_outliers(gaplist=gaps,
+                                                    outldf = self.outliersdf)
+
+        # remove outliers that are converted to missing obs
+        self.outliersdf = self.missing_obs.remove_missing_from_outliers(self.outliersdf)
 
 
     # =============================================================================
@@ -1206,15 +1217,13 @@ class Dataset:
 
         """
 
-        def can_qc_be_applied(applied_df, obstype, checkname):
-            """ test if the check is already performed on self """
-            return not applied_df[(applied_df['obstype'] == obstype) & (applied_df['checkname'] == checkname)].shape[0] > 0
+
 
 
         if repetitions:
             print("Applying the repetitions-check.")
             logger.info("Applying repetitions check.")
-            apliable = can_qc_be_applied(self._applied_qc, obstype, "repetitions")
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "repetitions")
 
             if apliable:
 
@@ -1247,7 +1256,7 @@ class Dataset:
             print("Applying the gross-value-check.")
             logger.info("Applying gross value check.")
 
-            apliable = can_qc_be_applied(self._applied_qc, obstype, "gross_value")
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "gross_value")
 
             if apliable:
 
@@ -1281,7 +1290,7 @@ class Dataset:
             print("Applying the persistance-check.")
             logger.info("Applying persistance check.")
 
-            apliable = can_qc_be_applied(self._applied_qc, obstype, "persistance")
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "persistance")
 
             if apliable:
 
@@ -1316,7 +1325,7 @@ class Dataset:
             print("Applying the step-check.")
             logger.info("Applying step-check.")
 
-            apliable = can_qc_be_applied(self._applied_qc, obstype, "step")
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "step")
 
             if apliable:
 
@@ -1348,7 +1357,7 @@ class Dataset:
             print("Applying the window variation-check.")
             logger.info("Applying window variation-check.")
 
-            apliable = can_qc_be_applied(self._applied_qc, obstype, "window_variation")
+            apliable = _can_qc_be_applied(self._applied_qc, obstype, "window_variation")
             if apliable:
 
                 obsdf, outl_df = window_variation_check(
@@ -1382,6 +1391,215 @@ class Dataset:
         self._qc_checked_obstypes.append(obstype)
         self._qc_checked_obstypes = list(set(self._qc_checked_obstypes))
         self.outliersdf = self.outliersdf.sort_index()
+
+    def apply_titan_buddy_check(self, obstype='temp', use_constant_altitude=False):
+        """
+        Apply the TITAN buddy check on the observations.
+
+        The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
+        buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
+        (absolute value of the) difference between the observations and the average of the neighbours
+        normalized by the standard deviation in the circle is greater than a predefined threshold.
+
+        See the [titanlib documentation on the buddy check](https://github.com/metno/titanlib/wiki/Buddy-check)
+        for futher details.
+
+        The observation and outliers attributes will be updated accordingly.
+
+        Parameters
+        ----------
+        obstype : String, optional
+            Name of the observationtype you want to apply the checks on. The
+            default is 'temp'.
+        use_constant_altitude : bool, optional
+            Use a constant altitude for all stations. The default is False.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -------
+        To update the check settings, use the update_titan_qc_settings method
+        of the Dataset class.
+
+        """
+
+        print("Applying the titan buddy check")
+        logger.info("Applying the titan buddy check")
+
+        checkname = 'titan_buddy_check'
+
+        # 1. coordinates are available?
+        if self.metadf['lat'].isnull().any():
+            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+        if self.metadf['lon'].isnull().any():
+            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+
+
+        # set constant altitude if needed:
+
+        # if altitude is already available, save it to restore it after this check
+        restore_altitude = False
+        if (use_constant_altitude):
+            if ('altitulde' in self.metadf.columns):
+                self.metadf['altitude_backup'] = self.metadf['altitude']
+                restore_altitude=True
+
+            self.metadf['altitude'] = 2. #absolut value does not matter
+
+
+        # 2. altitude available?
+        if ((not use_constant_altitude) & ('altitude' not in self.metadf.columns)):
+            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
+            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
+            return
+        if ((not use_constant_altitude) & (self.metadf['altitude'].isnull().any())):
+            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
+            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
+            return
+
+        apliable = _can_qc_be_applied(self._applied_qc, obstype, checkname)
+        if apliable:
+            obsdf, outliersdf = titan_buddy_check(obsdf = self.df,
+                                               metadf = self.metadf,
+                                               obstype = obstype,
+                                               checks_info = self.settings.qc["qc_checks_info"],
+                                               checks_settings = self.settings.qc['titan_check_settings'][checkname][obstype],
+                                               titan_specific_labeler = self.settings.qc['titan_specific_labeler'][checkname])
+
+
+            # update the dataset and outliers
+            self.df = obsdf
+            if not outliersdf.empty:
+                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+
+            # add this check to the applied checks
+            self._applied_qc = pd.concat(
+                [
+                    self._applied_qc,
+                    conv_applied_qc_to_df(
+                        obstypes=obstype, ordered_checknames=checkname
+                    ),
+                ],
+                ignore_index=True,
+            )
+
+        else:
+            print(f'ERROR: The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
+
+
+        # Revert artificial data that has been added if needed
+        if restore_altitude: #altitude was overwritten, thus revert it
+            self.metadf['altitude'] = self.metadf["altitude_backup"]
+            self.metadf = self.metadf.drop(columns=['altitude_backup'])
+
+        elif (use_constant_altitude):
+            # when no alitude was available apriori, remove the fake constant altitude column
+            self.metadf = self.metadf.drop(columns=['altitude'])
+
+
+
+
+
+    def apply_titan_sct_resistant_check(self, obstype='temp'):
+        """
+        Apply the TITAN spatial consistency test (resistant) on the observations.
+
+        The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
+        nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation
+        (OI) to compute an expected value for each observation. The background for the OI is computed from
+        a general vertical profile of observations in the area.
+
+        See the [titanlib documentation on the buddy check](https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant)
+        for futher details.
+
+        The observation and outliers attributes will be updated accordingly.
+
+
+        Parameters
+        ----------
+        obstype : String, optional
+            Name of the observationtype you want to apply the checks on. The
+            default is 'temp'.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -------
+        To update the check settings, use the update_titan_qc_settings method
+        of the Dataset class.
+
+        Note
+        -------
+        This method is a python wrapper on titanlib c++ scripts, and it is prone
+        to segmentation faults. The perfomance of this check is thus not
+        guaranteed!
+
+        """
+
+
+        print("Applying the titan SCT check")
+        logger.info("Applying the titan SCT check")
+
+
+        checkname ='titan_sct_resistant_check'
+        # check if required metadata is available:
+
+        # 1. coordinates are available?
+        if self.metadf['lat'].isnull().any():
+            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+        if self.metadf['lon'].isnull().any():
+            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+
+
+        # 2. altitude available?
+        if ('altitude' not in self.metadf.columns):
+            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
+            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
+            return
+        if (self.metadf['altitude'].isnull().any()):
+            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
+            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
+            return
+
+        apliable = _can_qc_be_applied(self._applied_qc, obstype, checkname)
+        if apliable:
+
+            obsdf, outliersdf = titan_sct_resistant_check(obsdf = self.df,
+                                               metadf = self.metadf,
+                                               obstype = obstype,
+                                               checks_info = self.settings.qc["qc_checks_info"],
+                                               checks_settings = self.settings.qc['titan_check_settings'][checkname][obstype],
+                                               titan_specific_labeler = self.settings.qc['titan_specific_labeler'][checkname])
+
+            print('DONE')
+            # update the dataset and outliers
+            self.df = obsdf
+            if not outliersdf.empty:
+                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+
+            # add this check to the applied checks
+            self._applied_qc = pd.concat(
+                [
+                    self._applied_qc,
+                    conv_applied_qc_to_df(
+                        obstypes=obstype, ordered_checknames=checkname
+                    ),
+                ],
+                ignore_index=True,
+            )
+
+
+        else:
+            print(f'ERROR: The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
+
 
 
 
@@ -1431,7 +1649,7 @@ class Dataset:
         # Stack outliers
         # =============================================================================
 
-        outliersdf = self.outliersdf
+        outliersdf = self.outliersdf.copy()
         outliersdf['toolkit_representation'] = 'outlier'
         # TODO: use the repr_outl_as_nan argumenten here
         # =============================================================================
@@ -2559,3 +2777,8 @@ class Dataset:
                 filepath = os.path.join(self.settings.IO['output_folder'], filename)
                 print(f'Gee Map will be save at {filepath}')
                 Map.save(filepath)
+
+
+def _can_qc_be_applied(applied_df, obstype, checkname):
+    """ test if the check is already performed on self """
+    return not applied_df[(applied_df['obstype'] == obstype) & (applied_df['checkname'] == checkname)].shape[0] > 0
