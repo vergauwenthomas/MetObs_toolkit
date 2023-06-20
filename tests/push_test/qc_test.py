@@ -20,10 +20,11 @@ import metobs_toolkit
 # %% IO testdata
 
 
-
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile)
+dataset.update_settings(
+    input_data_file=metobs_toolkit.demo_datafile,
+    input_metadata_file=metobs_toolkit.demo_metadatafile,
+)
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
 
@@ -54,7 +55,7 @@ test = sta.get_qc_stats(make_plot=True)
 # sta.get_qc_stats(make_plot=True)
 
 
-#%% Apply titan checks
+# %% Apply titan checks
 
 # #  ------ Buddy check --------------
 # dataset.update_titan_qc_settings(obstype='temp',
@@ -62,7 +63,6 @@ test = sta.get_qc_stats(make_plot=True)
 #                                  buddy_num_min=3,
 #                                  buddy_max_elev_diff=200,
 #                                  buddy_threshold=3)
-
 
 
 # dataset.apply_titan_buddy_check(use_constant_altitude=True)
@@ -81,41 +81,38 @@ test = sta.get_qc_stats(make_plot=True)
 
 # assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 'The buddy check did overwrite itself!'
 
-#%%
-
-
+# %%
 
 
 import numpy as np
 
 
-
 #  ------------- SCT check ---------------
-dataset.update_titan_qc_settings(obstype='temp',
-                                sct_basic=True,
-                                sct_eps2=0.5,
-                                sct_inner_radius=20000,
-                                sct_kth_closest_obs_horizontal_scale=2,
-                                sct_max_horizontal_scale=100000,
-                                sct_maxa_deviation=7,
-                                sct_maxv_deviation=0.5,
-                                sct_min_elev_diff=100,
-                                sct_min_horizontal_scale=250,
-                                sct_mina_deviation=7,
-                                sct_minv_deviation=0.7,
-                                sct_num_iterations=2,
-                                sct_num_max_outer=10,
-                                sct_num_min_outer=3,
-                                sct_num_min_prof=1,
-                                sct_outer_radius=50000,
-                                sct_tneg=16,
-                                sct_tpos=16,
-                                sct_vertical_scale=200,
-                                sct_debug=False,
-                                )
+dataset.update_titan_qc_settings(
+    obstype="temp",
+    sct_basic=True,
+    sct_eps2=0.5,
+    sct_inner_radius=20000,
+    sct_kth_closest_obs_horizontal_scale=2,
+    sct_max_horizontal_scale=100000,
+    sct_maxa_deviation=7,
+    sct_maxv_deviation=0.5,
+    sct_min_elev_diff=100,
+    sct_min_horizontal_scale=250,
+    sct_mina_deviation=7,
+    sct_minv_deviation=0.7,
+    sct_num_iterations=2,
+    sct_num_max_outer=10,
+    sct_num_min_outer=3,
+    sct_num_min_prof=1,
+    sct_outer_radius=50000,
+    sct_tneg=16,
+    sct_tpos=16,
+    sct_vertical_scale=200,
+    sct_debug=False,
+)
 
 
-dataset.metadf['altitude'] = np.random.randint(1, 250, dataset.metadf.shape[0])
+dataset.metadf["altitude"] = np.random.randint(1, 250, dataset.metadf.shape[0])
 
 # dataset.apply_titan_sct_resistant_check()
-

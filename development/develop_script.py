@@ -5,7 +5,7 @@ Created on Thu Oct  6 13:25:02 2022
 @author: thoverga
 """
 
-#%%
+# %%
 
 # import metobs_toolkit
 
@@ -15,36 +15,33 @@ from pathlib import Path
 
 
 lib_folder = Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(lib_folder))
+sys.path.insert(0, str(lib_folder))
 
-tmp_pickle=os.path.join(lib_folder, 'development', 'tmp', 'dev_pickle.pkl')
+tmp_pickle = os.path.join(lib_folder, "development", "tmp", "dev_pickle.pkl")
 
 import metobs_toolkit
 
 
-
-
 # # data
 # era5_congo_file = '/home/thoverga/Downloads/era5_data_kongo.csv'
-data_file = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/ATHTS01_all.csv'
+data_file = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/ATHTS01_all.csv"
 # metadata_file = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Kobe/CONGO_meta.csv'
-template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/template.csv'
+template_file = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/template.csv"
 
 
-
-
-#%%
+# %%
 
 dataset = metobs_toolkit.Dataset()
 
-dataset.update_settings(output_folder=None,
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        # input_data_file = data_file,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        data_template_file=metobs_toolkit.demo_template,
-                        # data_template_file = template_file,
-                        metadata_template_file=metobs_toolkit.demo_template,
-                        )
+dataset.update_settings(
+    output_folder=None,
+    input_data_file=metobs_toolkit.demo_datafile,
+    # input_data_file = data_file,
+    input_metadata_file=metobs_toolkit.demo_metadatafile,
+    data_template_file=metobs_toolkit.demo_template,
+    # data_template_file = template_file,
+    metadata_template_file=metobs_toolkit.demo_template,
+)
 
 
 dataset.import_data_from_file()
@@ -52,7 +49,7 @@ dataset.coarsen_time_resolution()
 
 # dataset.apply_quality_control()
 
-#%%
+# %%
 
 
 # print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
@@ -64,9 +61,7 @@ dataset.coarsen_time_resolution()
 # print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
 
 
-
-
-#%%
+# %%
 # dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
 # dataset.fill_missing_obs_linear()
 
@@ -74,23 +69,22 @@ dataset.coarsen_time_resolution()
 # dataset.get_altitude()
 
 
-dataset.update_titan_qc_settings(obstype='temp',
-                                 buddy_radius=50000,
-                                 buddy_num_min=3,
-                                 buddy_max_elev_diff=200,
-                                 buddy_threshold=3)
+dataset.update_titan_qc_settings(
+    obstype="temp",
+    buddy_radius=50000,
+    buddy_num_min=3,
+    buddy_max_elev_diff=200,
+    buddy_threshold=3,
+)
 
 dataset.apply_quality_control()
 
 dataset.apply_titan_buddy_check(use_constant_altitude=True)
 # dataset.apply_titan_sct_resistant_check(use_constant_altitude=True)
-dataset.make_plot(colorby='label')
+dataset.make_plot(colorby="label")
 
 
-
-
-
-#%%
+# %%
 
 # import numpy as np
 # import titanlib
@@ -109,9 +103,3 @@ dataset.make_plot(colorby='label')
 # elev_gradient = -0.0065
 # min_std = 1
 # num_iterations = 5
-
-
-
-
-
-
