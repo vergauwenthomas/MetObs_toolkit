@@ -5,7 +5,7 @@ Created on Thu Oct  6 13:25:02 2022
 @author: thoverga
 """
 
-#%%
+# %%
 
 # import metobs_toolkit
 
@@ -15,25 +15,21 @@ from pathlib import Path
 
 
 lib_folder = Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(lib_folder))
+sys.path.insert(0, str(lib_folder))
 
-tmp_pickle=os.path.join(lib_folder, 'development', 'tmp', 'dev_pickle.pkl')
+tmp_pickle = os.path.join(lib_folder, "development", "tmp", "dev_pickle.pkl")
 
 import metobs_toolkit
 
 
-
-
 # # data
 # era5_congo_file = '/home/thoverga/Downloads/era5_data_kongo.csv'
-data_file = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/ATHTS01_all.csv'
+data_file = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/ATHTS01_all.csv"
 # metadata_file = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Kobe/CONGO_meta.csv'
-template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/template.csv'
+template_file = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/template.csv"
 
 
-
-
-#%%
+# %%
 
 # dataset = metobs_toolkit.Dataset()
 
@@ -51,38 +47,28 @@ template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/tes
 # dataset.coarsen_time_resolution()
 
 
-
-
-#%%
+# %%
 
 
 model_data = metobs_toolkit.Modeldata("ERA5")
 # model_data.get_ERA5_data(metadf=dataset.metadf, startdt=datetime(2022, 9, 1), enddt=datetime(2022, 9, 2))
 
 
-model_data.add_gee_dataset(mapname='worldcover',
-                           gee_location='location/loc/dfmijfe',
-                           obstype='temp',
-                           bandname='temp 2m passive field',
-                           units ='C',
-                           scale = 100,
-                           time_res='1H',
-                           is_image=False,
-                           is_numeric=True,
-                           credentials='bladiblie')
+model_data.add_gee_dataset(
+    mapname="worldcover",
+    gee_location="location/loc/dfmijfe",
+    obstype="temp",
+    bandname="temp 2m passive field",
+    units="C",
+    scale=100,
+    time_res="1H",
+    is_image=False,
+    is_numeric=True,
+    credentials="bladiblie",
+)
 
 
 # model_data.list_gee_datasets()
 
 
 # model_data.set_model_from_csv('/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/era5_data.csv')
-
-
-
-
-
-
-
-
-
-

@@ -20,10 +20,11 @@ import metobs_toolkit
 # %% IO testdata
 
 
-
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile)
+dataset.update_settings(
+    input_data_file=metobs_toolkit.demo_datafile,
+    input_metadata_file=metobs_toolkit.demo_metadatafile,
+)
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
 
@@ -54,39 +55,45 @@ test = sta.get_qc_stats(make_plot=True)
 # sta.get_qc_stats(make_plot=True)
 
 
-#%% Apply titan checks
+# %% Apply titan checks
 
 #  ------ Buddy check --------------
-dataset.update_titan_qc_settings(obstype='temp',
-                                  buddy_radius=50000,
-                                  buddy_num_min=3,
-                                  buddy_max_elev_diff=200,
-                                  buddy_threshold=3)
-
+dataset.update_titan_qc_settings(
+    obstype="temp",
+    buddy_radius=50000,
+    buddy_num_min=3,
+    buddy_max_elev_diff=200,
+    buddy_threshold=3,
+)
 
 
 dataset.apply_titan_buddy_check(use_constant_altitude=True)
 
 
 # count test
-assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 'The buddy check did not perfom good.'
+assert (
+    dataset.outliersdf["label"].value_counts()["buddy check outlier"] == 57
+), "The buddy check did not perfom good."
 
 # test if a check does not overwrite itself
-dataset.update_titan_qc_settings(obstype='temp',
-                                  buddy_radius=80000,
-                                  buddy_num_min=3,
-                                  buddy_max_elev_diff=200,
-                                  buddy_threshold=0.5)
+dataset.update_titan_qc_settings(
+    obstype="temp",
+    buddy_radius=80000,
+    buddy_num_min=3,
+    buddy_max_elev_diff=200,
+    buddy_threshold=0.5,
+)
 dataset.apply_titan_buddy_check(use_constant_altitude=True)
 
-assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 'The buddy check did overwrite itself!'
+assert (
+    dataset.outliersdf["label"].value_counts()["buddy check outlier"] == 57
+), "The buddy check did overwrite itself!"
 
 
-#%%
+# %%
 
 
 # import numpy as np
-
 
 
 # #  ------------- SCT check ---------------
@@ -118,4 +125,3 @@ assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 
 
 
 # dataset.apply_titan_sct_resistant_check()
-

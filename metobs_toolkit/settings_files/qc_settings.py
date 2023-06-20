@@ -38,64 +38,57 @@ check_settings = {
             "max_increase_per_second": 8.0 / 3600.0,
             "max_decrease_per_second": -10.0 / 3600.0,
         }
-    }
+    },
 }
 
 titan_check_settings = {
-    'titan_buddy_check': {
-        'temp':{
+    "titan_buddy_check": {
+        "temp": {
             # 'radius': 5000, #	vec	m	Search radius
             # 'num_min': 5, #	int		The minimum number of buddies a station can have
-            'radius': 50000, #	vec	m	Search radius
-            'num_min': 2, #	int		The minimum number of buddies a station can have
+            "radius": 50000,  # 	vec	m	Search radius
+            "num_min": 2,  # 	int		The minimum number of buddies a station can have
             # 'threshold': 2.5, #	float	σ	the variance threshold for flagging a station
-            'threshold': 1.5, #	float	σ	the variance threshold for flagging a station
-            'max_elev_diff': 200, #	float	m	the maximum difference in elevation for a buddy (if negative will not check for heigh difference)
-            'elev_gradient': -0.0065, #	float	ou/m	linear elevation gradient with height
-            'min_std': 1.0, #	float		If the standard deviation of values in a neighborhood are less than min_std, min_std will be used instead
-            'num_iterations': 1 #int		The number of iterations to perform
-                },
+            "threshold": 1.5,  # 	float	σ	the variance threshold for flagging a station
+            "max_elev_diff": 200,  # 	float	m	the maximum difference in elevation for a buddy (if negative will not check for heigh difference)
+            "elev_gradient": -0.0065,  # 	float	ou/m	linear elevation gradient with height
+            "min_std": 1.0,  # 	float		If the standard deviation of values in a neighborhood are less than min_std, min_std will be used instead
+            "num_iterations": 1,  # int		The number of iterations to perform
         },
-
-    'titan_sct_resistant_check': {
-        'temp':{
-            'num_min_outer':3, #	int	    Minimal points in outer circle
-            'num_max_outer':10, #	int	    Maximal points in outer circle
-            'inner_radius':20000, #  int      Radius of inner circle
-            'outer_radius':50000, #  int      Radius of outer circle
-            'num_iterations':10, #   int   Number of iterations
-            'num_min_prof':5, #   int Minimum number of observations to compute vertical profile
-            'min_elev_diff':100, #   int    Minimal elevation difference
-            'min_horizontal_scale':250, #  int  Minimal horizontal scale
-            'max_horizontal_scale':100000, #  int  Maximal horizontal scale
-            'kth_closest_obs_horizontal_scale':2, #  int  Number of closest observations to consider in the adaptive estimation of the horizontal decorrelation length
-            'vertical_scale':200, #  int  The vertical scale
-            'mina_deviation': 10, # vec Minimum admissible value
-            'maxa_deviation': 10, # vec Maximum admissible value
-            'minv_deviation': 1, # vec Minimum valid value
-            'maxv_deviation': 1, #	vec Maximum valid value
-            'eps2': 0.5, #Ratio of observation error variance to background variance
-            'tpos': 5, #vec Positive deviation allowed
-            'tneg': 8, #vec Negative deviation allowed
-            'basic':True, #  bool  Basic mode
-            'debug':False #  bool  Debug mode
-                }
+    },
+    "titan_sct_resistant_check": {
+        "temp": {
+            "num_min_outer": 3,  # 	int	    Minimal points in outer circle
+            "num_max_outer": 10,  # 	int	    Maximal points in outer circle
+            "inner_radius": 20000,  #  int      Radius of inner circle
+            "outer_radius": 50000,  #  int      Radius of outer circle
+            "num_iterations": 10,  #   int   Number of iterations
+            "num_min_prof": 5,  #   int Minimum number of observations to compute vertical profile
+            "min_elev_diff": 100,  #   int    Minimal elevation difference
+            "min_horizontal_scale": 250,  #  int  Minimal horizontal scale
+            "max_horizontal_scale": 100000,  #  int  Maximal horizontal scale
+            "kth_closest_obs_horizontal_scale": 2,  #  int  Number of closest observations to consider in the adaptive estimation of the horizontal decorrelation length
+            "vertical_scale": 200,  #  int  The vertical scale
+            "mina_deviation": 10,  # vec Minimum admissible value
+            "maxa_deviation": 10,  # vec Maximum admissible value
+            "minv_deviation": 1,  # vec Minimum valid value
+            "maxv_deviation": 1,  # 	vec Maximum valid value
+            "eps2": 0.5,  # Ratio of observation error variance to background variance
+            "tpos": 5,  # vec Positive deviation allowed
+            "tneg": 8,  # vec Negative deviation allowed
+            "basic": True,  #  bool  Basic mode
+            "debug": False,  #  bool  Debug mode
         }
-
-    }
+    },
+}
 
 # how to map the numeric output of titan to a 'ok' or outlier label
 titan_specific_labeler = {
-    'titan_buddy_check': {
-        'ok' : [0],
-        'outl': [1]
-        },
-
-    'titan_sct_resistant_check': {
-        'ok' : [0, -999,11,12], #if obs not checked, or cannot be checked assume ok
-        'outl': [1]
-        }
-
+    "titan_buddy_check": {"ok": [0], "outl": [1]},
+    "titan_sct_resistant_check": {
+        "ok": [0, -999, 11, 12],  # if obs not checked, or cannot be checked assume ok
+        "outl": [1],
+    },
 }
 
 # Information on the sequence of checks and if they are applied on all observations seperatly.
@@ -155,5 +148,5 @@ checks_info = {
         "outlier_flag": "sct resistant check outlier",
         "numeric_flag": 10,
         "apply_on": "obstype",
-    }
+    },
 }

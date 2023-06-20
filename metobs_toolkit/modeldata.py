@@ -9,7 +9,12 @@ Created on Wed Mar 22 13:50:17 2023
 import pandas as pd
 import logging
 
-from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf, xs_save, multiindexdf_datetime_subsetting
+from metobs_toolkit.df_helpers import (
+    init_multiindexdf,
+    conv_tz_multiidxdf,
+    xs_save,
+    multiindexdf_datetime_subsetting,
+)
 
 from metobs_toolkit.landcover_functions import connect_to_gee, gee_extract_timeseries
 
@@ -40,8 +45,19 @@ class Modeldata:
     def __str__(self):
         return self.__repr__()
 
-    def add_gee_dataset(self, mapname, gee_location, obstype, bandname, units,
-                        scale, time_res='1H', is_image=False, is_numeric=True, credentials=''):
+    def add_gee_dataset(
+        self,
+        mapname,
+        gee_location,
+        obstype,
+        bandname,
+        units,
+        scale,
+        time_res="1H",
+        is_image=False,
+        is_numeric=True,
+        credentials="",
+    ):
         """
         Method to add a new gee dataset to the available gee datasets.
 
@@ -88,52 +104,49 @@ class Modeldata:
         """
         # check if mapname exists
         if mapname in self.mapinfo.keys():
-            print(f'{mapname} is found in the list of known gee datasets: {list(self.mapinfo.keys())}, choose a different mapname.')
+            print(
+                f"{mapname} is found in the list of known gee datasets: {list(self.mapinfo.keys())}, choose a different mapname."
+            )
             return
 
-
-
         if is_numeric:
-            val_typ='numeric'
+            val_typ = "numeric"
         else:
-            val_typ = 'categorical'
+            val_typ = "categorical"
 
         if is_image:
-            im_bool=True
+            im_bool = True
         else:
-            im_bool=False
-
-
+            im_bool = False
 
         new_info = {
             mapname: {
-                'location': f'{gee_location}',
-                'usage': 'user defined addition',
-                'band_of_use' :
-                    {f'{obstype}':
-                         {'name': f'{bandname}',
-                          'units': f'{units}'}
-                         },
-                        'value_type': val_typ,
-                        'dynamical': not bool(is_image),
-                        'scale': int(scale),
-                        'is_image':bool(is_image),
-                        'is_imagecollection': not bool(is_image),
-                        'credentials' : f'{credentials}',
-                        }
-                }
+                "location": f"{gee_location}",
+                "usage": "user defined addition",
+                "band_of_use": {
+                    f"{obstype}": {"name": f"{bandname}", "units": f"{units}"}
+                },
+                "value_type": val_typ,
+                "dynamical": not bool(is_image),
+                "scale": int(scale),
+                "is_image": bool(is_image),
+                "is_imagecollection": not bool(is_image),
+                "credentials": f"{credentials}",
+            }
+        }
 
         if not is_image:
-            new_info[mapname]['time_res'] = f'{time_res}'
+            new_info[mapname]["time_res"] = f"{time_res}"
 
         self.mapinfo.update(new_info)
-        print(f'{mapname} is added to the list of available gee dataset with: {new_info}')
+        print(
+            f"{mapname} is added to the list of available gee dataset with: {new_info}"
+        )
         return
 
-
-
-
-    def add_band_to_gee_dataset(self, mapname, bandname, obstype, units, overwrite=False):
+    def add_band_to_gee_dataset(
+        self, mapname, bandname, obstype, units, overwrite=False
+    ):
         """
         A method to add a new band to a available gee dataset.
 
@@ -168,31 +181,30 @@ class Modeldata:
         """
         # check if mapname exists
         if mapname not in self.mapinfo.keys():
-            print(f'{mapname} is not found in the list of known gee datasets: {list(self.mapinfo.keys())}')
+            print(
+                f"{mapname} is not found in the list of known gee datasets: {list(self.mapinfo.keys())}"
+            )
             return
 
-        if self.mapinfo[mapname]['is_image']:
-            print(f'{mapname} is found as a Image. No bandnames can be added to it.')
+        if self.mapinfo[mapname]["is_image"]:
+            print(f"{mapname} is found as a Image. No bandnames can be added to it.")
             return
-
 
         # check if obstype is already mapped if multiple bands exist
-        if not isinstance(self.mapinfo[mapname]['band_of_use'], str):
-            if obstype in self.mapinfo[mapname]['band_of_use'].keys():
+        if not isinstance(self.mapinfo[mapname]["band_of_use"], str):
+            if obstype in self.mapinfo[mapname]["band_of_use"].keys():
                 if not overwrite:
-                    print(f'{obstype} already mapped to a bandname for dataset: {mapname}.')
+                    print(
+                        f"{obstype} already mapped to a bandname for dataset: {mapname}."
+                    )
                     return
 
-
         # update the dict
-        new_info = {obstype: {'name' : bandname,
-                              'units' : units}}
-        self.mapinfo[mapname]['band_of_use'].update(new_info)
+        new_info = {obstype: {"name": bandname, "units": units}}
+        self.mapinfo[mapname]["band_of_use"].update(new_info)
 
-        print(f'{new_info} is added to the {mapname} bands of use.')
+        print(f"{new_info} is added to the {mapname} bands of use.")
         return
-
-
 
     def list_gee_datasets(self):
         """
@@ -203,25 +215,22 @@ class Modeldata:
         None.
 
         """
-        print(f'The following datasets are found: ')
+        print(f"The following datasets are found: ")
         for geename, info in self.mapinfo.items():
-            print('\n --------------------------------')
-            print(f'{geename} : \n')
-            print(f'{info}')
-
+            print("\n --------------------------------")
+            print(f"{geename} : \n")
+            print(f"{info}")
 
     def _conv_to_timezone(self, tzstr):
         # get tzstr by datetimindex.tz.zone
 
-
-        df=self.df
-        df['datetime_utc'] = df.index.get_level_values('datetime').tz_convert(tzstr)
+        df = self.df
+        df["datetime_utc"] = df.index.get_level_values("datetime").tz_convert(tzstr)
         df = df.reset_index()
-        df = df.drop(columns=['datetime'])
-        df = df.rename(columns={'datetime_utc': 'datetime'})
-        df = df.set_index(['name', 'datetime'])
+        df = df.drop(columns=["datetime"])
+        df = df.rename(columns={"datetime_utc": "datetime"})
+        df = df.set_index(["name", "datetime"])
         self.df = df
-
 
     # def get_gee_dataset_data(self)
 
@@ -229,11 +238,12 @@ class Modeldata:
         # startdt and enddt IN UTC FORMAT!!!!!
 
         # Subset metadf to stations with coordinates
-        no_coord_meta = metadf[metadf[['lat','lon']].isna().any(axis=1)]
+        no_coord_meta = metadf[metadf[["lat", "lon"]].isna().any(axis=1)]
         if not no_coord_meta.empty:
-            print(f'WARNING. Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}')
-            metadf = metadf[~metadf[['lat','lon']].isna().any(axis=1)]
-
+            print(
+                f"WARNING. Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}"
+            )
+            metadf = metadf[~metadf[["lat", "lon"]].isna().any(axis=1)]
 
         era_mapinfo = self.mapinfo["ERA5_hourly"]
         # Connect to Gee
@@ -335,12 +345,19 @@ class Modeldata:
             returndf = pd.concat([returndf, mergedf])
         return returndf
 
-    def make_plot(self, obstype="temp", dataset = None, stationnames=None,
-        starttime=None, endtime=None, title=None, show_outliers=True,
-        show_filled=True, legend=True,
-        _ax=None, #needed for GUI, not recommended use
-        ):
-
+    def make_plot(
+        self,
+        obstype="temp",
+        dataset=None,
+        stationnames=None,
+        starttime=None,
+        endtime=None,
+        title=None,
+        show_outliers=True,
+        show_filled=True,
+        legend=True,
+        _ax=None,  # needed for GUI, not recommended use
+    ):
         """
         This function creates a timeseries plot for the Modeldata. When a
         metobs_toolkit.Dataset is provided, it is plotted in the same figure.
@@ -389,21 +406,19 @@ class Modeldata:
 
         """
 
-
         logger.info(f"Make {obstype}-timeseries plot of model data")
 
         # Basic test
         if obstype not in self.df.columns:
-            print(f'ERROR: {obstype} is not foud in the modeldata df.')
+            print(f"ERROR: {obstype} is not foud in the modeldata df.")
             return
         if self.df.empty:
-            print('ERROR: The modeldata is empty.')
+            print("ERROR: The modeldata is empty.")
             return
-        if (not dataset is None):
-            if (obstype not in dataset.df.columns):
-                print(f'ERROR: {obstype} is not foud in the Dataframe df.')
+        if not dataset is None:
+            if obstype not in dataset.df.columns:
+                print(f"ERROR: {obstype} is not foud in the Dataframe df.")
                 return
-
 
         model_df = self.df
 
@@ -414,11 +429,12 @@ class Modeldata:
 
         # Subset on stationnames
         if not stationnames is None:
-            model_df = model_df[model_df.index.get_level_values('name').isin(stationnames)]
+            model_df = model_df[
+                model_df.index.get_level_values("name").isin(stationnames)
+            ]
 
         # Subset on start and endtime
         model_df = multiindexdf_datetime_subsetting(model_df, starttime, endtime)
-
 
         #  -------- Filter dataset (if available) -----------
         if not dataset is None:
@@ -426,75 +442,76 @@ class Modeldata:
             mergedf = dataset.combine_all_to_obsspace()
 
             # subset to obstype
-            mergedf = xs_save(mergedf, obstype, level='obstype')
+            mergedf = xs_save(mergedf, obstype, level="obstype")
 
             # Subset on stationnames
             if not stationnames is None:
-                mergedf = mergedf[mergedf.index.get_level_values('name').isin(stationnames)]
+                mergedf = mergedf[
+                    mergedf.index.get_level_values("name").isin(stationnames)
+                ]
 
             # Subset on start and endtime
             mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
-
         # Generate ylabel
         try:
-            model_true_field_name = self.mapinfo[self.modelname]['band_of_use'][obstype]['name']
+            model_true_field_name = self.mapinfo[self.modelname]["band_of_use"][
+                obstype
+            ]["name"]
         except KeyError:
-            print (f'No model field name found for {obstype} in {self}.')
-            model_true_field_name = 'Unknown fieldname'
-        y_label = f'{model_true_field_name}'
+            print(f"No model field name found for {obstype} in {self}.")
+            model_true_field_name = "Unknown fieldname"
+        y_label = f"{model_true_field_name}"
 
         if not dataset is None:
-            dataset_obs_orig_name = dataset.data_template[obstype]['orig_name']
-            units = dataset.data_template[obstype]['units']
+            dataset_obs_orig_name = dataset.data_template[obstype]["orig_name"]
+            units = dataset.data_template[obstype]["units"]
 
-            y_label = f'{y_label} \n {dataset_obs_orig_name} ({units})'
+            y_label = f"{y_label} \n {dataset_obs_orig_name} ({units})"
 
-
-        #Generate title
-        title = f'{self.modelname} : {model_true_field_name}'
+        # Generate title
+        title = f"{self.modelname} : {model_true_field_name}"
         if not dataset is None:
-            title = f'{title} and {dataset_obs_orig_name} observations.'
-
+            title = f"{title} and {dataset_obs_orig_name} observations."
 
         # make plot of the observations
         if not dataset is None:
             # make plot of the observations
-            ax, col_map = timeseries_plot(mergedf=mergedf,
-                                 title=title,
-                                 ylabel=y_label,
-                                 colorby='name',
-                                 show_legend=legend,
-                                 show_outliers=show_outliers,
-                                 show_filled=show_filled ,
-                                 settings = dataset.settings)
-
+            ax, col_map = timeseries_plot(
+                mergedf=mergedf,
+                title=title,
+                ylabel=y_label,
+                colorby="name",
+                show_legend=legend,
+                show_outliers=show_outliers,
+                show_filled=show_filled,
+                settings=dataset.settings,
+            )
 
             # Make plot of the model on the previous axes
             ax, col_map = model_timeseries_plot(
-                                    df=model_df,
-                                    obstype=obstype,
-                                    title=title,
-                                    ylabel=y_label,
-                                    settings = self._settings,
-                                    show_primary_legend=False,
-                                    add_second_legend=True,
-                                    _ax = ax,
-                                    colorby_name_colordict=col_map)
-
+                df=model_df,
+                obstype=obstype,
+                title=title,
+                ylabel=y_label,
+                settings=self._settings,
+                show_primary_legend=False,
+                add_second_legend=True,
+                _ax=ax,
+                colorby_name_colordict=col_map,
+            )
 
         else:
-
             # Make plot of model on empty axes
             ax, _colmap = model_timeseries_plot(
-                    df=model_df,
-                    obstype=obstype,
-                    title=title,
-                    ylabel=y_label,
-                    settings = self._settings,
-                    show_primary_legend=legend,
-                    add_second_legend=False,
-                    _ax = None
-                    )
+                df=model_df,
+                obstype=obstype,
+                title=title,
+                ylabel=y_label,
+                settings=self._settings,
+                show_primary_legend=legend,
+                add_second_legend=False,
+                _ax=None,
+            )
 
         return ax

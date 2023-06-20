@@ -79,7 +79,9 @@ def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
 
     else:
         # map numeric classes to human
-        mapper = {str(num): human for num, human in mapinfo["categorical_mapper"].items()}
+        mapper = {
+            str(num): human for num, human in mapinfo["categorical_mapper"].items()
+        }
         freqs_df = freqs_df.rename(columns=mapper)
 
         return freqs_df, buffer
@@ -465,8 +467,8 @@ def gee_extract_timeseries(
         )
         return feature
 
-    print(f'startdtfilter: { _datetime_to_gee_datetime(startdt).getInfo()}')
-    print(f'enddtfilter: { _datetime_to_gee_datetime(enddt).getInfo()}')
+    print(f"startdtfilter: { _datetime_to_gee_datetime(startdt).getInfo()}")
+    print(f"enddtfilter: { _datetime_to_gee_datetime(enddt).getInfo()}")
     raster = get_ee_obj(mapinfo, bandname)  # dataset
     results = (
         raster.filter(
