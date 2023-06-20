@@ -365,6 +365,11 @@ def timeseries_plot(
     mergedf = mergedf[~mergedf.index.duplicated()]
 
 
+    # get min max datetime to set xrange
+    dt_min = mergedf.index.get_level_values('datetime').min()
+    dt_max = mergedf.index.get_level_values('datetime').max()
+
+
     if colorby == "label":
 
         # define different groups (different plotting styles)
@@ -392,9 +397,6 @@ def timeseries_plot(
         vlin_min = mergedf[mergedf['label'] == 'ok']['value'].min()
         vlin_max = mergedf[mergedf['label'] == 'ok']['value'].max()
 
-        # get min max datetime to set xrange
-        dt_min = mergedf.index.get_level_values('datetime').min()
-        dt_max = mergedf.index.get_level_values('datetime').max()
 
         # aggregate groups and make styling mappers
 
@@ -409,7 +411,7 @@ def timeseries_plot(
         line_labels = ['ok']
         line_labels.extend(fill_labels)
 
-        
+
         # -------- Ok and filled observation -------- (lines)
 
 

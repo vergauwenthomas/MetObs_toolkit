@@ -69,10 +69,24 @@ dataset.apply_titan_buddy_check(use_constant_altitude=True)
 
 
 # count test
+assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 'The buddy check did not perfom good.'
+
+# test if a check does not overwrite itself
+dataset.update_titan_qc_settings(obstype='temp',
+                                 buddy_radius=80000,
+                                 buddy_num_min=3,
+                                 buddy_max_elev_diff=200,
+                                 buddy_threshold=0.5)
+dataset.apply_titan_buddy_check(use_constant_altitude=True)
+
+assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 'The buddy check did overwrite itself!'
+
+
+
 
 
 #  ------------- SCT check ---------------
 
 
-# dataset.apply_titan_sct_resistant_check(use_constant_altitude=True)
+dataset.apply_titan_sct_resistant_check(use_constant_altitude=True)
 
