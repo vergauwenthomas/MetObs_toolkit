@@ -40,78 +40,35 @@ dataset = metobs_toolkit.Dataset()
 dataset.update_settings(output_folder=None,
                         input_data_file=metobs_toolkit.demo_datafile,
                         # input_data_file = data_file,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        # input_metadata_file=metobs_toolkit.demo_metadatafile,
                         data_template_file=metobs_toolkit.demo_template,
                         # data_template_file = template_file,
-                        metadata_template_file=metobs_toolkit.demo_template,
+                        # metadata_template_file=metobs_toolkit.demo_template,
                         )
 
 
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
-
 # dataset.apply_quality_control()
 
-#%%
-
-
-# print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
-
-
-# dataset.update_titan_qc_settings(obstype='temp', buddy_radius = 1567.2)
-
-
-# print(dataset.settings.qc['titan_check_settings']['titan_buddy_check'])
-
-
-
-
-#%%
 # dataset.update_gaps_and_missing_from_outliers(n_gapsize=10)
-# dataset.fill_missing_obs_linear()
-
-
-# dataset.get_altitude()
-
-
-dataset.update_titan_qc_settings(obstype='temp',
-                                 buddy_radius=50000,
-                                 buddy_num_min=3,
-                                 buddy_max_elev_diff=200,
-                                 buddy_threshold=3)
-
-dataset.apply_quality_control()
-
-dataset.apply_titan_buddy_check(use_constant_altitude=True)
-# dataset.apply_titan_sct_resistant_check(use_constant_altitude=True)
-dataset.make_plot(colorby='label')
-
+# dataset.fill_gaps_linear()
 
 
 
 
 #%%
 
-# import numpy as np
-# import titanlib
-# # Set up some fake data
-# lats = [60,60.1,60.2]
-# lons = [10,10,10]
-# elevs = [0,0,0]
-# temp_obs = [0, 1, -111]
-# points = titanlib.Points(lats, lons, elevs)
 
-# radius = np.full(points.size(), 5000)
-# num_min = np.full(points.size(), 5)
-# num_min = 5
-# threshold = 2
-# max_elev_diff = 200
-# elev_gradient = -0.0065
-# min_std = 1
-# num_iterations = 5
+model_data = metobs_toolkit.Modeldata("ERA5")
+# model_data.get_ERA5_data(metadf=dataset.metadf, startdt=datetime(2022, 9, 1), enddt=datetime(2022, 9, 2))
+
+model_data.set_model_from_csv('/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/era5_data.csv')
 
 
+#%%
+print(model_data.df.shape)
 
+model_data.make_plot(stationnames=['vlinder01', 'vlinder02'])
 
-
-
+print(model_data.df.shape)

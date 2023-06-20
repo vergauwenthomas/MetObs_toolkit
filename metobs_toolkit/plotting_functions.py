@@ -308,10 +308,16 @@ def _sorting_function(label_vec, custom_handles, number_of_labels_types=4):
 
     return sorted_handles
 
-
+def _format_datetime_axis(axes):
+    locator = mdates.AutoDateLocator()
+    # formatter = mdates.AutoDateFormatter(locator)
+    formatter = mdates.DateFormatter(fmt='%Y/%m/%d %H:%M:%S')
+    axes.xaxis.set_major_formatter(formatter)
+    axes.xaxis.set_minor_formatter(formatter)
+    return axes
 
 def _create_linecollection(linedf, colormapper, linestylemapper,
-                          plotsettings, value_col_name='value',
+                          plotsettings, const_color=None, value_col_name='value',
                           label_col_name='label'):
 
     # 1. convert datetime to numerics values
@@ -327,7 +333,10 @@ def _create_linecollection(linedf, colormapper, linestylemapper,
     segments = np.concatenate([points[:-1],points[1:]], axis=1)
 
     # 3. get styling info
-    color = linedf[label_col_name].map(colormapper).to_list()
+    if const_color is None:
+        color = linedf[label_col_name].map(colormapper).to_list()
+    else:
+        color =[const_color] * linedf.shape[0]
     linewidth=[plotsettings['time_series']['linewidth']] * linedf.shape[0]
     zorder = plotsettings['time_series']['linezorder']
     linestyle = linedf[label_col_name].map(linestylemapper).fillna('-').to_list()
@@ -342,14 +351,15 @@ def _create_linecollection(linedf, colormapper, linestylemapper,
 
 def timeseries_plot(
     mergedf,
-    # obstype,
     title,
     ylabel,
     colorby,
     show_legend,
     show_outliers,
+    show_filled,
     settings,
-    _ax=None #needed for GUI, not recommended use
+    _ax=None, #needed for GUI, not recommended use
+    colorby_name_colordict=None #when colorscheme will be reused
 ):
 
     plot_settings = settings.app["plot_settings"]
@@ -361,6 +371,7 @@ def timeseries_plot(
     else:
         ax=_ax
 
+
     # get data ready
     mergedf = mergedf[~mergedf.index.duplicated()]
 
@@ -369,34 +380,30 @@ def timeseries_plot(
     dt_min = mergedf.index.get_level_values('datetime').min()
     dt_max = mergedf.index.get_level_values('datetime').max()
 
+    #get value min max to set yrange
+    y_min = mergedf['value'].min()
+    y_max = mergedf['value'].max()
+
+    # define different groups (different plotting styles)
+
+    # ok group
+    ok_labels = ['ok']
+
+    # filled value groups
+    fill_labels= [ val for val in settings.gap['gaps_fill_info']['label'].values()]
+    missing_fill_labels = [ val for val in settings.missing_obs['missing_obs_fill_info']['label'].values()]
+    fill_labels.extend(missing_fill_labels)
+
+    # qc outlier labels
+    qc_labels = [val['outlier_flag'] for key, val in settings.qc['qc_checks_info'].items()]
+
+    # no value group
+    no_vals_labels = [settings.gap['gaps_info']['gap']['outlier_flag'],
+                      settings.gap['gaps_info']['missing_timestamp']['outlier_flag']]
+    no_vals_df = mergedf[mergedf['label'].isin(no_vals_labels)]
+
 
     if colorby == "label":
-
-        # define different groups (different plotting styles)
-
-        # ok group
-        ok_labels = ['ok']
-
-        # filled value groups
-        fill_labels= [ val for val in settings.gap['gaps_fill_info']['label'].values()]
-        missing_fill_labels = [ val for val in settings.missing_obs['missing_obs_fill_info']['label'].values()]
-        fill_labels.extend(missing_fill_labels)
-
-        # qc outlier labels
-        qc_labels = [val['outlier_flag'] for key, val in settings.qc['qc_checks_info'].items()]
-
-        # no value group
-        no_vals_labels = [settings.gap['gaps_info']['gap']['outlier_flag'],
-                          settings.gap['gaps_info']['missing_timestamp']['outlier_flag']]
-        no_vals_df = mergedf[mergedf['label'].isin(no_vals_labels)]
-
-
-        # get min max value for settings and styling
-
-        # set hight of the vertical lines for no vals
-        vlin_min = mergedf[mergedf['label'] == 'ok']['value'].min()
-        vlin_max = mergedf[mergedf['label'] == 'ok']['value'].max()
-
 
         # aggregate groups and make styling mappers
 
@@ -406,6 +413,9 @@ def timeseries_plot(
         line_mapper = {lab: plot_settings['time_series']['linestyle_ok'] for lab in ok_labels}
         line_mapper.update({lab: plot_settings['time_series']['linestyle_fill'] for lab in fill_labels})
 
+        # set hight of the vertical lines for no vals
+        vlin_min = mergedf[mergedf['label'] == 'ok']['value'].min()
+        vlin_max = mergedf[mergedf['label'] == 'ok']['value'].max()
 
         # line labels
         line_labels = ['ok']
@@ -516,31 +526,179 @@ def timeseries_plot(
 
 
     elif colorby == "name":
-        plotdf = mergedf.reset_index().pivot(
-            index="datetime", columns="name", values='value'
-        )
-        for sta in plotdf.columns:
-            plotdf[[sta]].dropna().plot(kind="line", legend=False, ax=ax)
+        # subset obs to plot
+        line_labels = ['ok']
+        if show_outliers:
+            line_labels.extend(qc_labels)
+        if show_filled:
+            line_labels.extend(fill_labels)
+
+        # all lines are solid lines
+        line_style_mapper = {lab: '-' for lab in line_labels}
+
+        # create color mapper if none is given
+        if colorby_name_colordict is None:
+            col_mapper = make_cat_colormapper(mergedf.index.get_level_values('name').unique(),
+                                              plot_settings['time_series']['colormap'])
+        else:
+            col_mapper = colorby_name_colordict
+
+
+        # iterate over station and make line collection to avoid interpolation
+        for sta in mergedf.index.get_level_values('name').unique():
+            stadf = xs_save(mergedf, sta, 'name') #subset to one station
+            linedf = stadf[stadf['label'].isin(line_labels)] #subset all obs that are repr by lines
+
+            # now add the other records, and convert the value to nan to avoid
+            # interpolation in the plot
+            stadf.loc[~stadf.index.isin(linedf.index), 'value'] = np.nan
+
+            # make line collection
+            sta_line_lc = _create_linecollection(
+                                linedf = stadf,
+                                colormapper = None,
+                                const_color = col_mapper[sta],
+                                linestylemapper=line_style_mapper,
+                                plotsettings =plot_settings)
+            ax.add_collection(sta_line_lc)
+
 
         if show_legend == True:
+            # create a legend item for each station
+            custom_handles = [] #add legend items to it
+            names = mergedf.index.get_level_values('name').unique().to_list()
+            # sort legend items alphabetically
+            names.sort()
+            for sta in names:
+                custom_handles.append(
+                        Line2D([0], [0], color=col_mapper[sta], label=sta, lw=4))
+
             box = ax.get_position()
             ax.set_position([box.x0, box.y0 + box.height * 0.2,
                  box.width, box.height * 0.88])
-            ax.legend(plotdf.columns.values.tolist(), loc='upper center',
-                bbox_to_anchor=(0.5, -0.2),
-                fancybox=True, shadow=True,
-                ncol=plot_settings["time_series"]["legend_n_columns"])
+            primary_legend = ax.legend(handles=custom_handles, loc='upper center',
+                                        bbox_to_anchor=(0.5, -0.2),
+                                        fancybox=True, shadow=True,
+                                        ncol=plot_settings["time_series"]["legend_n_columns"])
+            ax.add_artist(primary_legend)
 
     # Set title
     ax.set_title(title)
+
+    # datetime formatter
+    ax = _format_datetime_axis(ax)
+
+    # Set x and y labels
+    ax.set_ylabel(ylabel)
+
+    # set x,y limits
+    ax.autoscale()
+
+    return ax, col_mapper
+
+
+
+def model_timeseries_plot(
+    df,
+    obstype,
+    title,
+    ylabel,
+    settings,
+    show_primary_legend,
+    add_second_legend=True,
+    _ax=None, #needed for GUI, not recommended use
+    colorby_name_colordict=None):
+
+    plot_settings = settings.app["plot_settings"]
+
+
+    if isinstance(_ax, type(None)):
+        # init figure
+        fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
+    else:
+        ax=_ax
+
+    # get data ready
+    df = df[~df.index.duplicated()]
+
+
+    # rename and create dummy columns so that linecollection can be used
+    df = df.rename(columns={obstype: 'value'})
+    df['label'] = 'modeldata'
+
+
+    # all lines are dashed lines
+    line_style_mapper = {'modeldata': '--' }
+
+    # create color mapper if none is given
+    if colorby_name_colordict is None:
+        col_mapper = make_cat_colormapper(df.index.get_level_values('name').unique(),
+                                          plot_settings['time_series']['colormap'])
+    else:
+        col_mapper = colorby_name_colordict
+
+
+    # iterate over station and make line collection to avoid interpolation
+    for sta in df.index.get_level_values('name').unique():
+        stadf = xs_save(df, sta, 'name') #subset to one station
+
+        # make line collection
+        sta_line_lc = _create_linecollection(
+                            linedf = stadf,
+                            colormapper = None,
+                            const_color = col_mapper[sta],
+                            linestylemapper=line_style_mapper,
+                            plotsettings =plot_settings)
+        ax.add_collection(sta_line_lc)
+
+
+
+    if show_primary_legend == True:
+        # create a legend item for each station
+        custom_handles = [] #add legend items to it
+        names = df.index.get_level_values('name').unique().to_list()
+        # sort legend items alphabetically
+        names.sort()
+        for sta in names:
+            custom_handles.append(
+                    Line2D([0], [0], color=col_mapper[sta],
+                           label=f'modeldata at {sta}', lw=4))
+
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0 + box.height * 0.2,
+             box.width, box.height * 0.88])
+        primary_legend = ax.legend(handles=custom_handles, loc='upper center',
+            bbox_to_anchor=(0.5, -0.2),
+            fancybox=True, shadow=True,
+            ncol=plot_settings["time_series"]["legend_n_columns"])
+        ax.add_artist(primary_legend)
+
+
+    if add_second_legend:
+        line_solid = Line2D([], [], color='black', linestyle='--', linewidth=1.5, label=r'model')
+        line_dashed = Line2D([], [], color='black', linestyle='-', linewidth=1.5, label=r'observations')
+        secondary_legend = ax.legend(handles=[line_solid, line_dashed], loc='best')
+        ax.add_artist(secondary_legend)
+
+    # Set title
+    ax.set_title(title)
+
+    # datetime formatter
+    ax = _format_datetime_axis(ax)
 
     # Set x and y labels
     ax.set_ylabel(ylabel)
 
     # set x lim
-    ax.set_xlim(left=dt_min, right=dt_max)
+    # ax.set_xlim(left=dt_min, right=dt_max)
+    # ax.set_ylim(bottom=y_min, top=y_max)
+    ax.autoscale()
 
-    return ax
+    return ax, col_mapper
+
+
+
+
 
 def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
                  colorby, lcz_dict, data_template, obstype, y_label,

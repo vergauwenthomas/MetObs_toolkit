@@ -327,9 +327,9 @@ geopandas==0.9.0 ; python_version >= "3.9" and python_version < "4.0" \
 google-api-core==2.11.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:25d29e05a0058ed5f19c61c0a78b1b53adea4d9364b464d014fbda941f6d1c9a \
     --hash=sha256:d92a5a92dc36dd4f4b9ee4e55528a90e432b059f93aee6ad857f9de8cc7ae94a
-google-api-python-client==2.89.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:0b0c9503df2da92692ffceee88423ca593cbf0b939d879e2c46fbdc1a39cf091 \
-    --hash=sha256:272ff339928ac35b1e117d30e5db444fb701803bb748bb29e7bb520be29dea36
+google-api-python-client==2.90.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:4a41ffb7797d4f28e44635fb1e7076240b741c6493e7c3233c0e4421cec7c913 \
+    --hash=sha256:cbcb3ba8be37c6806676a49df16ac412077e5e5dc7fa967941eff977b31fba03
 google-auth-httplib2==0.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:31e49c36c6b5643b57e82617cb3e021e3e1d2df9da63af67252c02fa9c1f4a10 \
     --hash=sha256:a07c39fd632becacd3f07718dfd6021bf396978f03ad3ce4321d060015cc30ac

@@ -15,6 +15,7 @@ import numpy as np
 import pickle
 
 
+
 from metobs_toolkit.settings import Settings
 from metobs_toolkit.data_import import (
     import_data_from_csv,
@@ -385,12 +386,15 @@ class Dataset:
         y_label : string, optional
              y-axes label of the figure, if None a default label is generated. The default is None.
         legend : bool, optional
-             I True, a legend is added to the plot. The default is True.
+             If True, a legend is added to the plot. The default is True.
         show_outliers : bool, optional
-             If true the observations labeld as outliers will be included in the plot, defaults to True
+             If true the observations labeld as outliers will be included in
+             the plot. This is only true when colorby == 'name'. The default
+             is True.
         show_filled : bool, optional
              If true the filled values for gaps and missing observations will
-             be included in the plot, defaults to True
+             be included in the plot. This is only true when colorby == 'name'.
+             The default is True.
 
 
         Returns
@@ -399,6 +403,7 @@ class Dataset:
              The timeseries axes of the plot is returned.
 
         """
+
         if stationnames is None:
             logger.info(f"Make {obstype}-timeseries plot for all stations")
         else:
@@ -412,23 +417,11 @@ class Dataset:
 
         # Subset on stationnames
         if not stationnames is None:
-            mergedf = mergedf.reset_index()
-            mergedf = mergedf.loc[mergedf['name'].isin(stationnames)]
-            mergedf = mergedf.set_index(['name', 'datetime'])
+            mergedf = mergedf[mergedf.index.get_level_values('name').isin(stationnames)]
 
 
         # Subset on start and endtime
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
-
-        # remove outliers if required
-        if not show_outliers:
-            outlier_labels = [var['outlier_flag'] for var in self.settings.qc['qc_checks_info'].values()]
-            mergedf = mergedf[~mergedf['label'].isin(outlier_labels)]
-
-        # remove filled values if required
-        if not show_filled:
-            fill_labels = ['gap fill', 'missing observation fill'] #toolkit representation labels
-            mergedf = mergedf[~mergedf['toolkit_representation'].isin(fill_labels)]
 
         # Get plot styling attributes
         if title is None:
@@ -454,18 +447,24 @@ class Dataset:
         # create y label
         if y_label is None:
             try:
-                y_label = f'{self.data_template[obstype]["orig_name"]} ({self.data_template[obstype]["units"]}) \n {self.data_template[obstype]["description"]}'
+                if isinstance(self.data_template[obstype]["description"], str):
+                    description =self.data_template[obstype]["description"]
+                else:
+                    description =''
+
+                y_label = f'{self.data_template[obstype]["orig_name"]} ({self.data_template[obstype]["units"]}) \n {description}'
             except KeyError:
                 y_label = obstype
 
         # Make plot
-        ax = timeseries_plot(
+        ax, _colmap = timeseries_plot(
             mergedf=mergedf,
             title=title,
             ylabel=y_label,
             colorby=colorby,
             show_legend=legend,
             show_outliers=show_outliers,
+            show_filled=show_filled,
             settings = self.settings,
             _ax = _ax
         )
@@ -1661,6 +1660,7 @@ class Dataset:
         present_obstypes = [col for col in df if col in observation_types]
         df = df[present_obstypes]
 
+
         # to tripple index
         df = df.stack(dropna=False).reset_index().rename(columns={'level_2': 'obstype', 0: 'value'}).set_index(['name', 'datetime', 'obstype'])
 
@@ -1714,7 +1714,6 @@ class Dataset:
         missingfilldf = self.missing_fill_df.copy()
         missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(missingfilldf)
         missingfilldf['toolkit_representation'] = 'missing observation fill'
-
 
         # add missing observations if they occure in observation space
         missingidx = self.missing_obs.get_missing_indx_in_obs_space(
