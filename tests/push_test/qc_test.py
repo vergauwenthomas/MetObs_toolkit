@@ -81,9 +81,8 @@ dataset.apply_titan_buddy_check(use_constant_altitude=True)
 
 assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 'The buddy check did overwrite itself!'
 
+
 #%%
-
-
 
 
 # import numpy as np
@@ -116,6 +115,7 @@ assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 
 
 
 # dataset.metadf['altitude'] = np.random.randint(1, 250, dataset.metadf.shape[0])
+
 
 # dataset.apply_titan_sct_resistant_check()
 
