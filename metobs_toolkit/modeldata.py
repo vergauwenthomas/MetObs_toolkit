@@ -40,10 +40,99 @@ class Modeldata:
     def __str__(self):
         return self.__repr__()
 
-    # def add_gee_dataset(self, name, gee_location, obstype, bandname, units,
-    #                     scale, dynamical, is_image, time_res, credentials=''):
+    def add_gee_dataset(self, mapname, gee_location, obstype, bandname, units,
+                        scale, time_res='1H', is_image=False, is_numeric=True, credentials=''):
+        """
+        Method to add a new gee dataset to the available gee datasets.
 
-    #     # check if name exists
+
+        Parameters
+        ----------
+        mapname : str
+            Mapname of choice for the GEE dataset to add.
+        gee_location : str
+            Location of the gee dataset (like "ECMWF/ERA5_LAND/HOURLY" for ERA5).
+        obstype : str
+            The observation type the band corresponds to.
+        andname : str
+            Name of the dataset band as stored on the GEE.
+        units : str
+            The units of the band.
+        scale : int
+            The scale to represent the dataset in. (This is a GEE concept that
+            is similar to the resolution in meters).
+        time_res : timedelta string, optional
+            Time reoslution of the dataset, if is_image == False. The default is '1H'.
+        is_image : bool, optional
+            If True, the dataset is a ee.Image, else it is assumed to be an
+            ee.ImageCollection. The default is False.
+        is_numeric : bool, optional
+            If True, the bandvalues are interpreted as numerical values rather
+            than categorical.. The default is True.
+        credentials : str, optional
+            Extra credentials of the dataset. The default is ''.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -------
+        To list all available gee dataset, use the .list_gee_dataset() method.
+
+        Note
+        -------
+        Currently no unit conversion is perfomed automatically other than K -->
+        Celcius. This will be implemented in the futur.
+
+        """
+        # check if mapname exists
+        if mapname in self.mapinfo.keys():
+            print(f'{mapname} is found in the list of known gee datasets: {list(self.mapinfo.keys())}, choose a different mapname.')
+            return
+
+
+
+        if is_numeric:
+            val_typ='numeric'
+        else:
+            val_typ = 'categorical'
+
+        if is_image:
+            im_bool=True
+        else:
+            im_bool=False
+
+
+
+        new_info = {
+            mapname: {
+                'location': f'{gee_location}',
+                'usage': 'user defined addition',
+                'band_of_use' :
+                    {f'{obstype}':
+                         {'name': f'{bandname}',
+                          'units': f'{units}'}
+                         },
+                        'value_type': val_typ,
+                        'dynamical': not bool(is_image),
+                        'scale': int(scale),
+                        'is_image':bool(is_image),
+                        'is_imagecollection': not bool(is_image),
+                        'credentials' : f'{credentials}',
+                        }
+                }
+
+        if not is_image:
+            new_info[mapname]['time_res'] = f'{time_res}'
+
+        self.mapinfo.update(new_info)
+        print(f'{mapname} is added to the list of available gee dataset with: {new_info}')
+        return
+
+
+
+
     def add_band_to_gee_dataset(self, mapname, bandname, obstype, units, overwrite=False):
         """
         A method to add a new band to a available gee dataset.
@@ -132,6 +221,9 @@ class Modeldata:
         df = df.rename(columns={'datetime_utc': 'datetime'})
         df = df.set_index(['name', 'datetime'])
         self.df = df
+
+
+    # def get_gee_dataset_data(self)
 
     def get_ERA5_data(self, metadf, startdt, enddt, obstype="temp"):
         # startdt and enddt IN UTC FORMAT!!!!!

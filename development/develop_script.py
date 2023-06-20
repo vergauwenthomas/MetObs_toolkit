@@ -59,12 +59,17 @@ template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/tes
 model_data = metobs_toolkit.Modeldata("ERA5")
 # model_data.get_ERA5_data(metadf=dataset.metadf, startdt=datetime(2022, 9, 1), enddt=datetime(2022, 9, 2))
 
-model_data.add_band_to_gee_dataset(mapname='ERA5_hourly',
-                                   bandname = 'hophop',
-                                   obstype='temp',
-                                   units='idk',
-                                   overwrite=True)
 
+model_data.add_gee_dataset(mapname='worldcover',
+                           gee_location='location/loc/dfmijfe',
+                           obstype='temp',
+                           bandname='temp 2m passive field',
+                           units ='C',
+                           scale = 100,
+                           time_res='1H',
+                           is_image=False,
+                           is_numeric=True,
+                           credentials='bladiblie')
 
 
 # model_data.list_gee_datasets()
