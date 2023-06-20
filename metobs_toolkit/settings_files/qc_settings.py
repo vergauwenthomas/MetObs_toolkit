@@ -92,7 +92,7 @@ titan_specific_labeler = {
         },
 
     'titan_sct_resistant_check': {
-        'ok' : [0],
+        'ok' : [0, -999,11,12], #if obs not checked, or cannot be checked assume ok
         'outl': [1]
         }
 
