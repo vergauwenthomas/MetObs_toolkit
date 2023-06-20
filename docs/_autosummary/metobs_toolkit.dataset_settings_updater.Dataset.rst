@@ -17,6 +17,8 @@ metobs\_toolkit.dataset\_settings\_updater.Dataset
       :nosignatures:
    
       ~Dataset.apply_quality_control
+      ~Dataset.apply_titan_buddy_check
+      ~Dataset.apply_titan_sct_resistant_check
       ~Dataset.coarsen_time_resolution
       ~Dataset.combine_all_to_obsspace
       ~Dataset.fill_gaps_automatic
@@ -48,6 +50,7 @@ metobs\_toolkit.dataset\_settings\_updater.Dataset
       ~Dataset.update_qc_settings
       ~Dataset.update_settings
       ~Dataset.update_timezone
+      ~Dataset.update_titan_qc_settings
       ~Dataset.write_to_csv
    
    

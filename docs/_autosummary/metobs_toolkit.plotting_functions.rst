@@ -17,7 +17,6 @@ metobs\_toolkit.plotting\_functions
    
       add_stations_to_folium_map
       correlation_scatter
-      create_linecollection
       diurnal_plot
       folium_plot
       geospatial_plot

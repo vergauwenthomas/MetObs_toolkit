@@ -17,6 +17,8 @@ metobs\_toolkit.station.Station
       :nosignatures:
    
       ~Station.apply_quality_control
+      ~Station.apply_titan_buddy_check
+      ~Station.apply_titan_sct_resistant_check
       ~Station.coarsen_time_resolution
       ~Station.combine_all_to_obsspace
       ~Station.fill_gaps_automatic

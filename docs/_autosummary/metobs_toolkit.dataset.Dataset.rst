@@ -17,6 +17,8 @@ metobs\_toolkit.dataset.Dataset
       :nosignatures:
    
       ~Dataset.apply_quality_control
+      ~Dataset.apply_titan_buddy_check
+      ~Dataset.apply_titan_sct_resistant_check
       ~Dataset.coarsen_time_resolution
       ~Dataset.combine_all_to_obsspace
       ~Dataset.fill_gaps_automatic

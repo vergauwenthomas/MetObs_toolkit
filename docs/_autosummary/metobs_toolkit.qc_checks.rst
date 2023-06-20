@@ -15,6 +15,7 @@ metobs\_toolkit.qc\_checks
       :toctree:
       :nosignatures:
    
+      create_titanlib_points_dict
       duplicate_timestamp_check
       get_outliers_in_daterange
       gross_value_check
@@ -23,6 +24,8 @@ metobs\_toolkit.qc\_checks
       persistance_check
       repetitions_check
       step_check
+      titan_buddy_check
+      titan_sct_resistant_check
       window_variation_check
    
    

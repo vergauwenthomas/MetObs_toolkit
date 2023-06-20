@@ -1602,7 +1602,7 @@ class Dataset:
         # Stack outliers
         # =============================================================================
 
-        outliersdf = self.outliersdf
+        outliersdf = self.outliersdf.copy()
         outliersdf['toolkit_representation'] = 'outlier'
         # TODO: use the repr_outl_as_nan argumenten here
         # =============================================================================

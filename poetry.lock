@@ -3224,6 +3224,29 @@ files = [
 ]
 
 [[package]]
+name = "titanlib"
+version = "0.3.3"
+description = "A quality control toolbox"
+optional = false
+python-versions = "*"
+files = [
+    {file = "titanlib-0.3.3-cp27-cp27m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:2e5f6839a32a1de6c2cb105ae3d1444238a81b97af4f6ec25f682a1242cc863e"},
+    {file = "titanlib-0.3.3-cp27-cp27mu-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:cfab5e6c4ca9ae01f9d6fe6b479a7b81d208922b360042a8303a8418d22c2785"},
+    {file = "titanlib-0.3.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6b9f64bcd721995d36e0af82d8a4d984128b74dd526e2e4573e332ffe5d1663b"},
+    {file = "titanlib-0.3.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fe04554f27b117d0e1d21a68fefaddae3a58e92d2b1af62837154617ed9de703"},
+    {file = "titanlib-0.3.3-cp35-cp35m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:57cdc91a30bbc823335ead746de41963fa034caefbe672e81edb330c0ff3fe0e"},
+    {file = "titanlib-0.3.3-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:638cf84cfaacd8486d43f7bb463462c6ad10993c8f6aa33fdb55133dd192c8b9"},
+    {file = "titanlib-0.3.3-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:ce5265d4a2d92589b4513881a4e433ebe53a775b802d0cb272a99dda37c10ed6"},
+    {file = "titanlib-0.3.3-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:2ed8d60f769ab10cd04d6c172dd18fe2344ebbbfc7470af94233aa8814b9248c"},
+    {file = "titanlib-0.3.3-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:778291abc76803089d76fea60ad8c44ef529e9098e0d51eb2d3103264f9e3cb0"},
+    {file = "titanlib-0.3.3-pp37-pypy37_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:75d5507b86e3ed34eba98ca83c2d112bb581883e5b9191020d5629141524778b"},
+    {file = "titanlib-0.3.3-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:215023e1bd0ebfa4651bc9753ffc6f4854cdc18be8a66265f0ec8a34ae178972"},
+]
+
+[package.dependencies]
+numpy = ">=1.16"
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -3512,4 +3535,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "4be76e640feb4a28b5ce03770dffd230ec923f1b31c041816c04bf52d474b146"
+content-hash = "0a72e230697d6d92f68cc0a76211b6b028a82f0f70022997e93cd86328edf49e"
