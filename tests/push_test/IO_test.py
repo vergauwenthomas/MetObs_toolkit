@@ -151,7 +151,7 @@ dataset.save_dataset(outputfolder=outfolder,
 
 
 
-# del dataset #remove from kernel
+del dataset #remove from kernel
 
 
 # read dataset

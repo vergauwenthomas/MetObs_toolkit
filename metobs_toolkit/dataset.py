@@ -1394,7 +1394,37 @@ class Dataset:
         self.outliersdf = self.outliersdf.sort_index()
 
     def apply_titan_buddy_check(self, obstype='temp', use_constant_altitude=False):
+        """
+        Apply the TITAN buddy check on the observations.
 
+        The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
+        buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
+        (absolute value of the) difference between the observations and the average of the neighbours
+        normalized by the standard deviation in the circle is greater than a predefined threshold.
+
+        See the [titanlib documentation on the buddy check](https://github.com/metno/titanlib/wiki/Buddy-check)
+        for futher details.
+
+        The observation and outliers attributes will be updated accordingly.
+
+        Parameters
+        ----------
+        obstype : String, optional
+            Name of the observationtype you want to apply the checks on. The
+            default is 'temp'.
+        use_constant_altitude : bool, optional
+            Use a constant altitude for all stations. The default is False.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -------
+        To update the check settings, use the update_titan_qc_settings method
+        of the Dataset class.
+
+        """
 
         print("Applying the titan buddy check")
         logger.info("Applying the titan buddy check")
@@ -1427,7 +1457,7 @@ class Dataset:
             print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
             print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
             return
-        if ((not use_constant_altitude) & (self.metadf['lat'].isnull().any())):
+        if ((not use_constant_altitude) & (self.metadf['altitude'].isnull().any())):
             print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
             print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
             return
@@ -1475,7 +1505,44 @@ class Dataset:
 
 
 
-    def apply_titan_sct_resistant_check(self, obstype='temp', use_constant_altitude=False):
+    def apply_titan_sct_resistant_check(self, obstype='temp'):
+        """
+        Apply the TITAN spatial consistency test (resistant) on the observations.
+
+        The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
+        nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation
+        (OI) to compute an expected value for each observation. The background for the OI is computed from
+        a general vertical profile of observations in the area.
+
+        See the [titanlib documentation on the buddy check](https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant)
+        for futher details.
+
+        The observation and outliers attributes will be updated accordingly.
+
+
+        Parameters
+        ----------
+        obstype : String, optional
+            Name of the observationtype you want to apply the checks on. The
+            default is 'temp'.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -------
+        To update the check settings, use the update_titan_qc_settings method
+        of the Dataset class.
+
+        Note
+        -------
+        This method is a python wrapper on titanlib c++ scripts, and it is prone
+        to segmentation faults. The perfomance of this check is thus not
+        guaranteed!
+
+        """
+
 
         print("Applying the titan SCT check")
         logger.info("Applying the titan SCT check")
@@ -1493,24 +1560,12 @@ class Dataset:
             return
 
 
-        # set constant altitude if needed:
-
-        # if altitude is already available, save it to restore it after this check
-        restore_altitude = False
-        if (use_constant_altitude):
-            if ('altitulde' in self.metadf.columns):
-                self.metadf['altitude_backup'] = self.metadf['altitude']
-                restore_altitude=True
-
-            self.metadf['altitude'] = 2. #absolut value does not matter
-
-
         # 2. altitude available?
-        if ((not use_constant_altitude) & ('altitude' not in self.metadf.columns)):
+        if ('altitude' not in self.metadf.columns):
             print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
             print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
             return
-        if ((not use_constant_altitude) & (self.metadf['lat'].isnull().any())):
+        if (self.metadf['altitude'].isnull().any()):
             print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
             print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
             return
@@ -1525,7 +1580,7 @@ class Dataset:
                                                checks_settings = self.settings.qc['titan_check_settings'][checkname][obstype],
                                                titan_specific_labeler = self.settings.qc['titan_specific_labeler'][checkname])
 
-
+            print('DONE')
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
@@ -1547,14 +1602,7 @@ class Dataset:
             print(f'ERROR: The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
 
 
-        # Revert artificial data that has been added if needed
-        if restore_altitude: #altitude was overwritten, thus revert it
-            self.metadf['altitude'] = self.metadf["altitude_backup"]
-            self.metadf = self.metadf.drop(columns=['altitude_backup'])
 
-        elif (use_constant_altitude):
-            # when no alitude was available apriori, remove the fake constant altitude column
-            self.metadf = self.metadf.drop(columns=['altitude'])
 
     def combine_all_to_obsspace(self, repr_outl_as_nan=False,
                                 overwrite_outliers_by_gaps_and_missing=True):

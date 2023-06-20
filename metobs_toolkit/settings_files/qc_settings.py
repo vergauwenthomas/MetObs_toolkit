@@ -78,7 +78,7 @@ titan_check_settings = {
             'tpos': 5, #vec Positive deviation allowed
             'tneg': 8, #vec Negative deviation allowed
             'basic':True, #  bool  Basic mode
-            'debug':True #  bool  Debug mode
+            'debug':False #  bool  Debug mode
                 }
         }
 

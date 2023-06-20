@@ -856,6 +856,8 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
 
     """
 
+    import time
+
     try:
         alt = metadf['altitude']
     except:
@@ -869,6 +871,7 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
 
     df_list = []
     for dt, point in pointsdict.items():
+        print(f'sct on observations at {dt}')
         obs = list(point['values'])
         titan_points = titanlib.Points(np.asarray(point['lats']),
                                        np.asarray(point['lons']),
@@ -902,6 +905,8 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
                 debug=checks_settings['debug'], #debug
                 basic=checks_settings['basic'] #basic
                 )
+        print('Sleeping ... (to avoid segmentaton errors)')
+        time.sleep(1)
 
         labels = pd.Series(flags, name='num_label').to_frame()
         labels['name'] = point['names']

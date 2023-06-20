@@ -339,6 +339,7 @@ class Dataset(dataset.Dataset):
                                  buddy_elev_gradient=None,
                                  buddy_min_std=None,
                                  buddy_num_iterations=None,
+                                 buddy_debug=None,
                                  # sct settings
                                  sct_num_min_outer=None, sct_num_max_outer=None,
                                  sct_inner_radius=None,
@@ -357,7 +358,8 @@ class Dataset(dataset.Dataset):
                                  sct_eps2=None, #Ratio of observation error variance to background variance
                                  sct_tpos=None, #vec Positive deviation allowed
                                  sct_tneg=None, #vec Negative deviation allowed
-                                 sct_basic=None):
+                                 sct_basic=None,
+                                 sct_debug = None):
 
 
         """
@@ -386,6 +388,8 @@ class Dataset(dataset.Dataset):
             If the standard deviation of values in a neighborhood are less than min_std, min_std will be used instead. The default is None.
         buddy_num_iterations : int (> 0), optional
             The number of iterations to perform. The default is None.
+        buddy_debug : bool, optional
+            If True, print out debug information. The default is None.
         sct_num_min_outer : int (> 0), optional
             Minimal points in outer circle. The default is None.
         sct_num_max_outer : int (> 0), optional
@@ -424,6 +428,8 @@ class Dataset(dataset.Dataset):
             Positive deviation allowed. The default is None.
         sct_basic : bool, optional
             Basic mode. The default is None.
+        sct_debug : bool, optional
+            If True, print out debug information. The default is None.
 
         Returns
         -------
@@ -447,7 +453,9 @@ class Dataset(dataset.Dataset):
                         'buddy_min_std':
                             {'new_value': buddy_min_std, 'dtype':'numeric'},
                         'buddy_num_iterations' :
-                            {'new_value': buddy_num_iterations, 'dtype':'int'}}
+                            {'new_value': buddy_num_iterations, 'dtype':'int'},
+                        'buddy_debug' :
+                            {'new_value': buddy_debug, 'dtype':'bool'}}
 
         sct_attrs = {
             'sct_num_min_outer':{'new_value':sct_num_min_outer,  'dtype':'int'},
@@ -467,7 +475,8 @@ class Dataset(dataset.Dataset):
             'sct_eps2':{'new_value':sct_eps2, 'dtype':'numeric'},
             'sct_tpos':{'new_value':sct_tpos, 'dtype':'numeric'},
             'sct_tneg':{'new_value':sct_tneg, 'dtype':'numeric'},
-            'sct_basic':{'new_value':sct_basic, 'dtype':'bool'}}
+            'sct_basic':{'new_value':sct_basic, 'dtype':'bool'},
+            'sct_debug':{'new_value': sct_debug, 'dtype':'bool'}}
 
 
 
@@ -483,7 +492,6 @@ class Dataset(dataset.Dataset):
                     if val['dtype'] == 'numeric':
                         new_val = float(val['new_value'])
                     elif val['dtype'] == 'int':
-                        print(val)
                         new_val = int(val['new_value'])
                     elif val['dtype'] == 'bool':
                         new_val = bool(val['new_value'])
