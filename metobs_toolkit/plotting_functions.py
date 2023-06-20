@@ -621,14 +621,6 @@ def model_timeseries_plot(
     # get data ready
     df = df[~df.index.duplicated()]
 
-    # get min max datetime to set xrange
-    dt_min = df.index.get_level_values('datetime').min()
-    dt_max = df.index.get_level_values('datetime').max()
-
-    # get min max values
-    y_min = df[obstype].min()
-    y_max = df[obstype].max()
-
 
     # rename and create dummy columns so that linecollection can be used
     df = df.rename(columns={obstype: 'value'})
