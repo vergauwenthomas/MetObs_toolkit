@@ -46,7 +46,7 @@ class Modeldata:
         startdt = self.df.index.get_level_values('datetime').min()
         enddt = self.df.index.get_level_values('datetime').max()
 
-        return (f"Dataset instance containing: \n \
+        return (f"Modeldata instance containing: \n \
     * Modelname: {self.modelname} \n \
     * {n_stations} timeseries \n \
     * The following obstypes are available: {obstypes} \n \
@@ -557,9 +557,6 @@ class Modeldata:
         # 4. Convert units
         self.convert_units_to_tlk(obstype=obstype,
                                   target_unit_name=standard_tlk_units[obstype])
-
-
-
 
 
 

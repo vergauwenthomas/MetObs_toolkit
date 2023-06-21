@@ -59,7 +59,7 @@ model_data.add_band_to_gee_dataset(bandname='surface_pressure',
                                    units='pa')
 
 
-model_data = dataset.get_modeldata(obstype='temp')
+# model_data = dataset.get_modeldata(obstype='temp')
 
 file = "/home/thoverga/Downloads/era5_data (3).csv"
 
@@ -75,7 +75,7 @@ print(model_data)
 #%% test
 
 multiidx = dataset.df.index
-model_data.interpolate_modeldata(to_multiidx=multiidx,
+test = model_data.interpolate_modeldata(to_multiidx=multiidx,
                                  obstype='temp')
 
 
