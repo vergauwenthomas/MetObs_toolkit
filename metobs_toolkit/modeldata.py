@@ -15,7 +15,7 @@ from metobs_toolkit.landcover_functions import connect_to_gee, gee_extract_times
 
 from metobs_toolkit.plotting_functions import model_timeseries_plot, timeseries_plot
 
-from metobs_toolkit.convertors import convert_to_toolkit_units
+from metobs_toolkit.convertors import convert_to_toolkit_units, standard_tlk_units
 
 from metobs_toolkit.settings import Settings
 
@@ -34,11 +34,28 @@ class Modeldata:
         self._settings = Settings()
         self.mapinfo = self._settings.gee["gee_dataset_info"]
 
-    def __repr__(self):
-        return f"ModelData instance: {self.modelname} model data of {list(self.df.columns)}"
+        self._df_units = {} #the units of the data stored in the df
+        self.df_tz = 'UTC'# the timezone of the datetimes stored in the df
+
 
     def __str__(self):
-        return self.__repr__()
+        if self.df.empty:
+            return f'Empty Modeldata instance.'
+        n_stations = self.df.index.get_level_values('name').unique().shape[0]
+        obstypes = self.df.columns.to_list()
+        startdt = self.df.index.get_level_values('datetime').min()
+        enddt = self.df.index.get_level_values('datetime').max()
+
+        return (f"Dataset instance containing: \n \
+    * Modelname: {self.modelname} \n \
+    * {n_stations} timeseries \n \
+    * The following obstypes are available: {obstypes} \n \
+    * Data has these units: {self._df_units} \n \
+    * From {startdt} --> {enddt} (with tz={self.df_tz}) \n \n (Data is stored in the .df attribute)")
+
+    def __repr__(self):
+        return self.__str__()
+
 
     def add_gee_dataset(self, mapname, gee_location, obstype, bandname, units,
                         scale, time_res='1H', is_image=False, is_numeric=True, credentials=''):
@@ -133,15 +150,14 @@ class Modeldata:
 
 
 
-    def add_band_to_gee_dataset(self, mapname, bandname, obstype, units, overwrite=False):
+    def add_band_to_gee_dataset(self, bandname, obstype, units, overwrite=False):
         """
-        A method to add a new band to a available gee dataset.
+        A method to add a new band to the current gee dataset (by .modelname attribute).
 
 
         Parameters
         ----------
-        mapname : str
-            Mapname of an available GEE dataset to add a band to.
+
         bandname : str
             Name of the dataset band as stored on the GEE.
         obstype : str
@@ -166,6 +182,8 @@ class Modeldata:
         Celcius. This will be implemented in the futur.
 
         """
+        mapname = self.modelname
+
         # check if mapname exists
         if mapname not in self.mapinfo.keys():
             print(f'{mapname} is not found in the list of known gee datasets: {list(self.mapinfo.keys())}')
@@ -211,6 +229,19 @@ class Modeldata:
 
 
     def _conv_to_timezone(self, tzstr):
+        """
+        Convert the timezone of the datetime index of the df attribute.
+
+        Parameters
+        ----------
+        tzstr : str
+            TImezonstring from the pytz module.
+
+        Returns
+        -------
+        None.
+
+        """
         # get tzstr by datetimindex.tz.zone
 
 
@@ -221,12 +252,130 @@ class Modeldata:
         df = df.rename(columns={'datetime_utc': 'datetime'})
         df = df.set_index(['name', 'datetime'])
         self.df = df
+        self.df_tz = tzstr
+
+    def convert_units_to_tlk(self, obstype, target_unit_name='Celsius',
+                      conv_expr=None):
+        """
+        Method to convert the model data of one observation to the standard
+        units as used by the metobs_toolkit.
+
+        If No standard unit is present, you can give a conversion expression.
+
+        The data attributes will be updated.
+
+        Parameters
+        ----------
+        obstype : str
+            Observation type to convert to standard units.
+        target_unit_name : str, optional
+            Target unit name to convert to. The default is 'Celsius'.
+        conv_expr : str, optional
+            If the target_unit_name is not a default, you can add the
+            conversion expression here (i.g. "x - 273.15"). The default is None.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -------
+        All possible mathematical operations for the conv_expr are [+, -, *, /].
+        x represent the value in the current units. So "x - 273.15" represents
+        the conversion from Kelvin to Celcius.
+
+        """
 
 
-    # def get_gee_dataset_data(self)
 
-    def get_ERA5_data(self, metadf, startdt, enddt, obstype="temp"):
-        # startdt and enddt IN UTC FORMAT!!!!!
+        # chech if data is available
+        if self.df.empty:
+            print('Warning: No data to set units for.')
+            return
+        if not obstype in self.df.columns:
+            print('ERROR: {obstype} not found as observationtype in the Modeldata.')
+            return
+
+        if not conv_expr is None:
+            new_unit_def = {target_unit_name:{
+                                self._df_units[obstype] : f'{conv_expr}'}}
+        else:
+            new_unit_def={}
+
+        new_data, new_unit = convert_to_toolkit_units(data=self.df[obstype],
+                                                    data_unit=self._df_units[obstype],
+                                                    new_units=new_unit_def)
+
+        print(f'{obstype} are converted from {self._df_units[obstype]} --> {new_unit}.')
+
+        self.df[obstype] = new_data
+        self._df_units[obstype] = new_unit
+
+
+
+    def get_gee_dataset_data(self, mapname, metadf,
+                             startdt_utc, enddt_utc, obstype='temp',
+                             target_unit_name='new unit', conv_expr=None):
+
+        """
+        Extract timeseries of a gee dataset. The extraction can only be done
+        if the gee dataset bandname (and units) corresponding to the obstype
+        is known.
+
+        The units are converted to the toolkit standard units.
+
+
+        Parameters
+        ----------
+        mapname : str
+            Mapname of choice of the GEE dataset to extract data from.
+        metadf : pandas.DataFrame
+            A dataframe with a 'name' index and  'lat', 'lon' columns.
+            Timeseries are extracted for these locations.
+        startdt_utc : datetime.datetime
+            Start datetime of the timeseries in UTC.
+        enddt_utc : datetime.datetime
+            Last datetime of the timeseries in UTC.
+        obstype : str, optional
+            Toolkit observation type to extract data from. There should be a
+            bandname mapped to this obstype for the gee map. The default is
+            'temp'.
+        target_unit_name : str, optional
+            If there is on standard unit for your obstype, or if you do not
+            want to convert to the standard unit, you can specify the name of
+            the unit you whant to convert to. This will only be used when a
+            conversion expression is provided using the conv_expr argument. The
+            default is 'new unit'.
+        conv_expr : str, optional
+            If the target_unit_name is not a default, you can add the
+            conversion expression here (i.g. "x - 273.15"). The default is None.
+
+
+        Returns
+        -------
+        None.
+
+        Note
+        ------
+        When extracting large amounts of data, the timeseries data will be
+        writen to a file and saved on your google drive. In this case, you need
+        to provide the Modeldata with the data using the .set_model_from_csv()
+        method.
+
+        Note
+        -------
+        All possible mathematical operations for the conv_expr are [+, -, *, /].
+        x represent the value in the current units. So "x - 273.15" represents
+        the conversion from Kelvin to Celcius.
+
+        """
+
+        # ====================================================================
+        # Test input
+        # ====================================================================
+        if metadf.empty:
+            print(f'ERROR: The metadf is empty!')
+            return
 
         # Subset metadf to stations with coordinates
         no_coord_meta = metadf[metadf[['lat','lon']].isna().any(axis=1)]
@@ -234,62 +383,213 @@ class Modeldata:
             print(f'WARNING. Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}')
             metadf = metadf[~metadf[['lat','lon']].isna().any(axis=1)]
 
+        # is mapinfo available
+        if mapname not in self.mapinfo.keys():
+            print(f'ERROR: {mapname} is not a known gee dataset.')
+            return
 
-        era_mapinfo = self.mapinfo["ERA5_hourly"]
+        geeinfo = self.mapinfo[mapname]
+
+        # does dataset contain time evolution
+        if not geeinfo['dynamical']:
+            print(f'ERROR:{mapname} is a static dataset, this method does not work on static datasets')
+            return
+
+        # is obstype mapped?
+        if not obstype in geeinfo['band_of_use'].keys():
+            print(f'ERROR: {obstype} is not yet mapped to a bandname in the {mapname} dataset.')
+            return
+
+        # can observation be converted to standaard units?
+        try:
+            convert_to_toolkit_units(data = [10,20,30],
+                                     data_unit = geeinfo['band_of_use'][obstype]['units'])
+        except:
+            print(f"Error: The {geeinfo['band_of_use'][obstype]['units']} cannot be converted to standard toolkit units: ")
+            # this prints more details
+            convert_to_toolkit_units(data = [10,20,30],
+                                     data_unit = geeinfo['band_of_use'][obstype]['units'])
+
+
+        # ====================================================================
+        # GEE api extraction
+        # ====================================================================
+
         # Connect to Gee
         connect_to_gee()
 
         # Get data using GEE
         df = gee_extract_timeseries(
-            metadf=metadf,
-            mapinfo=era_mapinfo,
-            startdt=startdt,
-            enddt=enddt,
-            obstype=obstype,
-            latcolname="lat",
-            loncolname="lon",
-        )
+                                    metadf=metadf,
+                                    mapinfo=geeinfo,
+                                    startdt=startdt_utc,
+                                    enddt=enddt_utc,
+                                    obstype=obstype,
+                                    latcolname="lat",
+                                    loncolname="lon",
+                                    )
+
+
+
         if not df.empty:
-            # Convert to toolkit units
-            df[obstype], _tlk_unit = convert_to_toolkit_units(
-                data=df[obstype], data_unit=era_mapinfo["band_of_use"][obstype]["units"]
-            )
+            self._df_units[obstype] = geeinfo['band_of_use'][obstype]['units']
+            if conv_expr is None:
+                # use standard units
+                self.convert_units_to_tlk(obstype=obstype,
+                                      target_unit_name=standard_tlk_units[obstype],
+                                      )
+            else:
+                self.convert_units_to_tlk(obstype=obstype,
+                                      target_unit_name=target_unit_name,
+                                      conv_expr=conv_expr
+                                      )
+
+            self.df_tz='UTC'
+        else:
+            self._data_stored_at_drive=True
 
         self.df = df
-        self.modelname = "ERA5_hourly"
+        self.modelname = mapname
 
-    def set_model_from_csv(
-        self,
-        csvpath,
-        modelname="ERA5_hourly",
-        convert_units=True,
-        obstype="temp",
-        datatimezone="UTC",
-    ):
+
+
+    def get_ERA5_data(self, metadf, startdt_utc, enddt_utc, obstype='temp'):
+        """
+        Extract timeseries of the ERA5_hourly dataset.
+
+        The units are converted to the toolkit standard units.
+
+        (This method is a specific ERA5_hourly wrapper on the
+         get_gee_dataset_data() method)
+
+        Parameters
+        ----------
+
+        metadf : pandas.DataFrame
+            A dataframe with a 'name' index and  'lat', 'lon' columns.
+            Timeseries are extracted for these locations.
+        startdt_utc : datetime.datetime
+            Start datetime of the timeseries in UTC.
+        enddt_utc : datetime.datetime
+            Last datetime of the timeseries in UTC.
+        obstype : str, optional
+            Toolkit observation type to extract data from. There should be a
+            bandname mapped to this obstype for the gee map. The default is
+            'temp'.
+
+
+        Returns
+        -------
+        None.
+
+        Note
+        ------
+        When extracting large amounts of data, the timeseries data will be
+        writen to a file and saved on your google drive. In this case, you need
+        to provide the Modeldata with the data using the .set_model_from_csv()
+        method.
+
+        """
+
+        self.get_gee_dataset_data(mapname='ERA5_hourly',
+                                  metadf=metadf,
+                                  startdt_utc=startdt_utc,
+                                  enddt_utc=enddt_utc,
+                                  obstype=obstype)
+
+
+    def set_model_from_csv(self, csvpath):
+        """
+        This method loads timeseries data that is stored in a csv file.
+        The name of the gee dataset the timeseries are coming from must be the
+        same as the .modelname attribute of the Modeldata.
+
+
+        The timeseries will be formatted and converted to standard toolkit
+        units.
+
+        Parameters
+        ----------
+        csvpath : str
+            Path of the csv file containing the modeldata timeseries.
+
+        Returns
+        -------
+        None.
+
+        """
+        #TODO docstrin
+        # tests ----
+        if not self.modelname in self.mapinfo.keys():
+            print(f'ERROR: {self.modelname} is not found in the gee datasets.')
+            return
+
+        # 1. Read csv and set timezone
         df = pd.read_csv(csvpath, sep=",")
         # format datetime
         df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d%H%M%S")
-        df["datetime"] = df["datetime"].dt.tz_localize(datatimezone)
+        # (assume all gee dataset are in UTC)
+        df["datetime"] = df["datetime"].dt.tz_localize('UTC')
+        # self.df_tz='UTC'
 
+        # 2. Format dataframe
         # format index
         df = df.set_index(["name", "datetime"])
         df = df.sort_index()
 
         # rename to values to toolkit space
-        bandname = self.mapinfo[modelname]["band_of_use"][obstype]["name"]
+
+        bandname = df.columns[0] #assume only one column
+        # scan to the geeinfo to found which obstype and unit the bandname represents
+        geeinfo = self.mapinfo[self.modelname]
+        obstype = [obs for obs, val in geeinfo['band_of_use'].items() if val['name'] == bandname][0]
+        cur_unit = [val['units'] for obs, val in geeinfo['band_of_use'].items() if val['name'] == bandname][0]
+
         df = df.rename(columns={bandname: obstype})
 
-        # convert units
-        if convert_units:
-            df[obstype], _tlk_unit = convert_to_toolkit_units(
-                data=df[obstype],
-                data_unit=self.mapinfo[modelname]["band_of_use"][obstype]["units"],
-            )
-        df = df[obstype].to_frame()
-        self.df = df
-        self.modelname = modelname
+
+        # 3. update attributes
+        self.df = df[[obstype]]
+        self.df_tz = 'UTC'
+        self._df_units[obstype] = cur_unit
+
+
+        # 4. Convert units
+        self.convert_units_to_tlk(obstype=obstype,
+                                  target_unit_name=standard_tlk_units[obstype])
+
+
+
+
+
+
+
 
     def interpolate_modeldata(self, to_multiidx, obstype="temp"):
+        """
+        Interpolate the modeldata timeseries, of an obstype, to a
+        given name-datetime multiindex.
+
+        The modeldata will be converted to the timezone of the multiindex.
+
+        If no interpolation can be done, Nan values are used.
+
+        Parameters
+        ----------
+        to_multiidx : pandas.MultiIndex
+            A name - datetime (tz-aware) multiindex to interpolate the
+            modeldata timeseries to.
+        obstype : str, optional
+            Observation type of the timeseries. obstype must be a column in the
+            Modeldata.df. The default is "temp".
+
+        Returns
+        -------
+        returndf : pandas.DataFrame
+            A dataframe with to_multiidx as an index and obstype as a column.
+            The values are the interpolated values.
+
+        """
         returndf = init_multiindexdf()
 
         recordsdf = init_multiindexdf()
@@ -309,11 +609,11 @@ class Modeldata:
             if min(sta_recordsdf.index.get_level_values("datetime")) < min(
                 sta_moddf.index.get_level_values("datetime")
             ):
-                print("Extrapolation")
+                print("Warning: Modeldata will be extrapolated")
             if max(sta_recordsdf.index.get_level_values("datetime")) > max(
                 sta_moddf.index.get_level_values("datetime")
             ):
-                print("Extrapolation")
+                print("Warning: Modeldata will be extrapolated")
 
             # combine model and records
             mergedf = sta_recordsdf.merge(
