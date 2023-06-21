@@ -573,7 +573,7 @@ class Dataset:
     #   Gap Filling
     # =============================================================================
     def get_modeldata(
-        self, modelname="ERA5_hourly", stations=None, startdt=None, enddt=None
+        self, modelname="ERA5_hourly", modeldata=None, obstype='temp', stations=None, startdt=None, enddt=None
     ):
         """
         Make a metobs_toolkit.Modeldata object with modeldata at the locations
@@ -581,8 +581,12 @@ class Dataset:
 
         Parameters
         ----------
-        modelname : 'ERA5_hourly', optional
-            Which dataset to download timeseries from. The default is 'ERA5_hourly'.
+        modelname : str, optional
+            Which dataset to download timeseries from. This is only used when
+            no modeldata is provided. The default is 'ERA5_hourly'.
+        modeldata : metobs_toolkit.Modeldata, optional
+            Use the modelname attribute and the gee information stored in the
+            modeldata instance to extract timeseries.
         stations : string or list of strings, optional
             Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.
         startdt : datetime.datetime, optional
@@ -595,13 +599,26 @@ class Dataset:
         Modl : metobs_toolkit.Modeldata
             The extracted modeldata for period and a set of stations.
 
-        NOTE
+        Note
         ------
-        Only 2mT extraction of ERA5 is implemented at the moment.
+        When extracting large amounts of data, the timeseries data will be
+        writen to a file and saved on your google drive. In this case, you need
+        to provide the Modeldata with the data using the .set_model_from_csv()
+        method.
+
+        Note
+        ------
+        Only 2mT extraction of ERA5 is implemented for all Modeldata instances.
+        To extract other variables, one must create a Modeldata instance in
+        advance, add or update a gee_dataset and give this Modeldata instance
+        to this method.
 
         """
-
-        Modl = Modeldata(modelname)
+        if modeldata is None:
+            Modl = Modeldata(modelname)
+        else:
+            Modl = modeldata
+            modelname = Modl.modelname
 
         # Filters
         if startdt is None:
@@ -622,12 +639,19 @@ class Dataset:
 
         # fill modell with data
         if modelname == "ERA5_hourly":
-            Modl.get_ERA5_data(metadf, startdt_utc, enddt_utc)
+            Modl.get_ERA5_data(metadf=metadf,
+                               startdt_utc = startdt_utc,
+                               enddt_utc = enddt_utc,
+                               obstype=obstype)
 
-            return Modl
         else:
-            print(f"{modelname} for set_modeldata is not implemented yet")
-            return None
+            Modl.get_gee_dataset_data(mapname=modelname,
+                                      metadf=metadf,
+                                      startdt_utc = startdt_utc,
+                                      enddt_utc = enddt_utc,
+                                      obstype=obstype)
+        print(f'(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})')
+        return Modl
 
     def update_gaps_and_missing_from_outliers(self, obstype='temp', n_gapsize=None):
         """

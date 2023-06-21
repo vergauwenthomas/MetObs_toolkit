@@ -18,6 +18,24 @@ from collections.abc import Iterable
 # $ an operator (+-*/) and val a concersion value
 unit_convertors = {
     "Celsius": {"K": "x - 273.15"},
+    'pa':{'pa' : 'x'}
+}
+
+# =============================================================================
+# Standard units
+# =============================================================================
+standard_tlk_units = {
+    "temp": 'Celsius',
+    "radiation_temp": 'Celcius',
+    "humidity": '%',
+    "precip": 'mm/m² per hour',
+    "precip_sum" : 'mm/m² from midnight',
+    "wind_speed" : 'm/s',
+    "wind_gust": 'm/s',
+    "wind_direction": '° from north (CW)',
+    "pressure" : 'pa',
+    "pressure_at_sea_level": 'pa',
+
 }
 
 
@@ -46,7 +64,7 @@ def expression_calculator(equation, x):
         sys.exit(f"expression {equation}, can not be converted to mathematical.")
 
 
-def convert_to_toolkit_units(data, data_unit):
+def convert_to_toolkit_units(data, data_unit, new_units={}):
     """
     Convert the data to the toolkit perfered unit. Data can be a numeric value or an iterable.
     Data_unit is the unit of the input data.
@@ -68,8 +86,12 @@ def convert_to_toolkit_units(data, data_unit):
         Corresponding toolkit unit name.
 
     """
+    # update the units
+    unit_convertors.update(new_units)
+
     # check if unit is already a toolkit unit
     if data_unit in unit_convertors.keys():
+        print(f'Current unit ({data_unit}) is already the default, no coversion needed!')
         return data, data_unit
 
     # scan the units to find conversion

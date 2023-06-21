@@ -465,8 +465,7 @@ def gee_extract_timeseries(
         )
         return feature
 
-    print(f'startdtfilter: { _datetime_to_gee_datetime(startdt).getInfo()}')
-    print(f'enddtfilter: { _datetime_to_gee_datetime(enddt).getInfo()}')
+
     raster = get_ee_obj(mapinfo, bandname)  # dataset
     results = (
         raster.filter(
