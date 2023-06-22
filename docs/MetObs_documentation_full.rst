@@ -1,7 +1,7 @@
 ********************************************
 MetObs toolkit Documentation for developers
 ********************************************
-Here you can find the documentation on all classes, functions and methods in
+Here you can find the documentation on all classes, functions, and methods in
 the MetObs toolkit
 
 
