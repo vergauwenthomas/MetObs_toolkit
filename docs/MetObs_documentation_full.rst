@@ -5,7 +5,7 @@ Here you can find the documentation on all classes, functions and methods in
 the MetObs toolkit
 
 
-Please report Bugs and request on the [Github issues](https://github.com/vergauwenthomas/MetObs_toolkit/issues)
+Please report Bugs and request on the `Github issues <https://github.com/vergauwenthomas/MetObs_toolkit/issues>`_ .
 
 
 .. autosummary::
