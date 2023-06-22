@@ -6,6 +6,7 @@ Welcome to MetObs-Toolkit's documentation!
    :maxdepth: 1
 
    intro
+   template_mapping
    examples
    gee_authentication
    gui
