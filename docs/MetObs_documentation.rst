@@ -12,7 +12,5 @@ the MetObs toolkit to be used by a user.
 
    metobs_toolkit.dataset
    metobs_toolkit.station
-   metobs_toolkit.gap
-   metobs_toolkit.missingobs
    metobs_toolkit.analysis
    metobs_toolkit.modeldata

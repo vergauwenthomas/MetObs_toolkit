@@ -23,10 +23,10 @@ This is needed because the GEE (google earth engine) can only be used, if you
 
 Here is a step-by-step guide on how to do this.
 
-Note
-------
-this guide is to optain a basic working setup. There are a lot of ways on how
-to setup a googl cloud project, we only cover the minimum required steps.
+.. note::
+
+   This guide is to optain a basic working setup. There are a lot of ways on how to
+   setup a googl cloud project, we only cover the minimum required steps.
 
 
 
@@ -120,12 +120,12 @@ Test your GEE acces
 
 
 
-Note
---------
-If you click on select 'read-only' scopes in the authentication, you can only
-extract small data quantities from GEE. For larger data transfer, GEE will write
-the data to file on your Google drive, which will raise an error when you select
-'read-only' scopes.
+.. note::
+
+   If you click on select 'read-only' scopes in the authentication, you can only
+   extract small data quantities from GEE. For larger data transfer, GEE will write
+   the data to file on your Google drive, which will raise an error when you select
+   'read-only' scopes.
 
 
 

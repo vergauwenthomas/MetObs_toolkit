@@ -7,6 +7,8 @@ a data template and explore your dataset.
 
 The GUI can **only be launched as a local application**, or on a remote that has a graphical backend. This means that the **GUI can not be used in Google Colab notebooks!**
 
+.. warning::
+   The GUI is currently under development and performance can not yet be guaranteed on all OS platforms.
 
 Why a GUI
 ==================================
