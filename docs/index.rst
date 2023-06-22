@@ -1,31 +1,33 @@
 
 Welcome to MetObs-Toolkit's documentation!
-===========================================
+-------------------------------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    intro
+   template_mapping
    examples
    gee_authentication
    gui
 
 
 MetObs toolkit Documentation
-=============================
+-----------------------------
+.. toctree::
+   :maxdepth: 2
 
-.. autosummary::
-   :toctree: _autosummary
-   :template: custom-module-template.rst
-   :recursive:
+   MetObs_documentation
 
-   metobs_toolkit
+Metobs for developpers
+-----------------------------
+.. toctree::
+   :maxdepth: 2
 
-
-
+   MetObs_documentation_full
 
 Indices and tables
-==================
+----------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

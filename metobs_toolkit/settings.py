@@ -374,6 +374,7 @@ class Settings:
             "app",
             "qc",
             "gap",
+            "missing_obs",
             "templates",
             "gee",
         ]

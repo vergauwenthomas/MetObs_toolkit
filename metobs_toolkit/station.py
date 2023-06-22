@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Apr 26 09:31:51 2023
+This module contains the Station class that inherits all methods of the Dataset
+class.
 
-@author: thoverga
+A Station holds all observations of one station.
 """
 
 from metobs_toolkit import dataset

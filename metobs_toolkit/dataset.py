@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-The class object for a Vlinder/mocca station
-@author: thoverga
+This module contains the Dataset class and all its methods.
+
+A Dataset holds all observations and is at the center of the
+MetObs-toolkit.
 """
 
 import os
@@ -2738,13 +2740,12 @@ class Dataset:
         Map : geemap.foliumap.Map
             The folium Map instance.
 
-        Note
-        -------
-        If you execute this function with show = True, outside a notebook then
-        it is possible that the map will not appear because of backend compatibility
-        or settings.
 
-        It is better to use the save=True, and open the html file with a browser.
+        Warning
+        ---------
+        To display the interactive map a graphical backend is required, which
+        is often missing on (free) cloud platforms. Therefore it is better to
+        set save=True, and open the .html in your browser
 
         """
 

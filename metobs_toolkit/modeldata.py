@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar 22 13:50:17 2023
+This module contains the Modeldata class and all its methods.
 
-@author: thoverga
+A Modeldata holds all timeseries coming from a model and methods to use them.
 """
 
 import pandas as pd

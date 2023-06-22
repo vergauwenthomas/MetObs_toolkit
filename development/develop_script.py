@@ -37,6 +37,10 @@ template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/tes
 
 dataset = metobs_toolkit.Dataset()
 
+dataset.settings.show()
+
+#%%
+
 dataset.update_settings(output_folder=None,
                         input_data_file=metobs_toolkit.demo_datafile,
                         # input_data_file = data_file,

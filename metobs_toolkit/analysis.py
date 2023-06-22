@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 28 15:35:07 2023
+This module contains the Analysis class and all its methods.
 
-@author: thoverga
+A Analysis holds a set of 'good' observations and the methods will analyse them.
 """
 from datetime import datetime
 import pandas as pd
@@ -666,11 +666,9 @@ class Analysis():
         A dictionary is returnd where each key represents a unique combination of
         the groupby_labels. The value is a dictionary with the following keys
         and values:
-            * cor matrix: the Pearson correlation matrix
-            * significance matrix: the significance (p-)values of the correlations.
-            * combined matrix: A human readable combination of the correlations
-            and their p values. Indicate by *, ** or *** representing p-values
-            < 0.05, 0.01 and 0.001 respectively.
+        * cor matrix: the Pearson correlation matrix
+        * significance matrix: the significance (p-)values of the correlations.
+        * combined matrix: A human readable combination of the correlations and their p values. Indicate by *, ** or *** representing p-values < 0.05, 0.01 and 0.001 respectively.
 
         This dictionary is also stored as a lc_cor_dict attribute.
 
