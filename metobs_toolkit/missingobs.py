@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Mar 13 16:12:41 2023
+This module contains the Missingob_collection class and all its methods.
 
-@author: thoverga
+A Missingob_collection holds all missing observations and methods on how to
+fill them.
 """
 
 

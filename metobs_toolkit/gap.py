@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This module contains the Gap class and all its methods.
 
-Specific classes are created because gaps and missing obs can have out-of-sync
-datetimes wrt dataset.df.
-
-Created on Fri Mar  3 09:15:56 2023
-
-@author: thoverga
+A Gap contains all information and methods of a data-gap.
 """
 
 import pandas as pd
@@ -496,19 +492,6 @@ def remove_gaps_from_outliers(gaplist, outldf):
 # Helpers
 # =============================================================================
 
-
-# def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
-#     if where == "before":
-#         diff = refdt - (series_of_dt[series_of_dt < refdt])
-#     elif where == "after":
-#         diff = (series_of_dt[series_of_dt > refdt]) - refdt
-
-#     if diff.empty:
-#         # no occurences before of after
-
-#         return np.nan
-#     else:
-#         return min(diff).total_seconds()
 
 
 

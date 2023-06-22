@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-The class object for a Vlinder/mocca station
-@author: thoverga
+This module contains the Dataset class and all its methods.
+
+A Dataset holds all observations and is at the center of the
+MetObs-toolkit.
 """
 
 import os

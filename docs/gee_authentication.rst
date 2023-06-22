@@ -7,13 +7,15 @@ to use for your dataset. This is done to avoid donwloading/reprojecting/preproce
 geospatial dataset and to make it possible to swich easely between different datasets.
 
 There are two methods that are used to download the GEE data:
-    * Directly to your computer --> Only for small data transfers
-    * To your google drive --> Only when the direct donwload is not possible.
+
+* Directly to your computer --> Only for small data transfers
+* To your google drive --> Only when the direct donwload is not possible.
 
 
 
 This script will help you how to setup your personal google earth engine authentication.
 This is needed because the GEE (google earth engine) can only be used, if you
+
 * have a google developers account (free of charge)
 * Create a cloud project on your developers account (sufficient free credits for these applications)
 * enable the GEE API on your project
@@ -21,8 +23,10 @@ This is needed because the GEE (google earth engine) can only be used, if you
 
 Here is a step-by-step guide on how to do this.
 
-(Note: this guide is to optain a basic working setup. There are a lot of ways
- on how to setup a googl cloud project, we only cover the minimum required steps.)
+Note
+------
+this guide is to optain a basic working setup. There are a lot of ways on how
+to setup a googl cloud project, we only cover the minimum required steps.
 
 
 
@@ -40,6 +44,7 @@ A google developpers account is linked to your (regular) google account.
 
 #. open a browser, login to google with your account.
 #. Go to this website, to create a developers account: https://developers.google.com/
+
    #. Click on the tree vertical dots --> hit start
    #. Fill in your name and (optional) affiliations --> hit next
    #. (optinal) select your intersts --> hit next
@@ -57,12 +62,13 @@ the toolkit have quite a lot of free credentials, so you do not need to worry ab
 paying for these services.
 
 #. Create a cloud project: https://console.cloud.google.com/projectcreate?pli=1
+
    #. Choose a project name and select No organisation. --> hit create
    #. (It can take a few seconds to create your project, in the "Cloud overview" you should see your project appear.)
 
 
 
-# Enable API's on your project
+Enable API's on your project
 =============================================================================
 In the last step you need to enable the use of some API's on you project.
 
