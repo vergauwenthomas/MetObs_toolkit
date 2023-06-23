@@ -1,7 +1,7 @@
 ***************************************
 MetObs toolkit Documentation for Users
 ***************************************
-Here you can find the documentation on the classes, functions and methods in
+Here you can find the documentation on the classes, functions, and methods in
 the MetObs toolkit to be used by a user.
 
 

@@ -2,14 +2,14 @@
 *******************
 Introduction
 *******************
-This package is designed for handling meteorological observations for urban or non traditional networks. It includes tools to clean up and analyse your data.
+This package is designed for handling meteorological observations for urban or non-traditional networks. It includes tools to clean up and analyze your data.
 
 
 
 How to install
 =======================
 
-In order to use the package python 3.7 or higher is required.
+To use the package python 3.7 or higher is required.
 To install the package one can use pip:
 
 .. code-block:: console
@@ -18,7 +18,7 @@ To install the package one can use pip:
 
 .. note::
 
-   For now this is a development version, so to install you need to specify the latest version explicitly: pip3 install metobs-toolkit==0.0.2ax (where x is the latest version).
+   Now, this is a development version, so to install you need to specify the latest version explicitly: pip3 install metobs-toolkit==0.0.2ax (where x is the latest version).
 
 .. note::
    To install the package in a notebook, one has to add ! in front of the pip install command.
@@ -36,13 +36,13 @@ and import it in python
 How to use this toolkit
 =========================
 
-This toolkit is a python package based on object-oriented programming (OOP). Here you can find a short discription of the classes that are directyly used by the users:
+This toolkit is a python package based on object-oriented programming (OOP). Here you can find a short description of the classes that are directly used by the users:
 
 
 Dataset()
 -----------
 
-The :py:meth:`Dataset<metobs_toolkit.dataset.Dataset>` class is at the heart of the toolkit and it holds all observation and metadata.
+The :py:meth:`Dataset<metobs_toolkit.dataset.Dataset>` class is at the heart of the toolkit and it holds all observations and metadata.
 
 .. code-block:: python
 
@@ -53,35 +53,35 @@ The dataset class has attributes that serve as 'containers' to hold data:
 Dataset.df
     All(*) records will start in the *df-container*. This container contains the observations that we assume to be correct.
 
-    (*): One exception is the observatios with a duplicated timestamp, these will be passed to the outliersdf-container directly.
+    (*): One exception is the observations with a duplicated timestamp, these will be passed to the outliersdf-container directly.
 
 Dataset.outliersdf
-    When applying quality control, some observations may be labeled as outliers. When an observation is labeled as outlier, it is added to the *outliersdf-container*.
-    The record labeled as outlier are still kept inside the df-container but the observation value is removed (set to Nan).
+    When applying quality control, some observations may be labeled as outliers. When an observation is labeled as an outlier, it is added to the *outliersdf-container*.
+    The records labeled as outliers are still kept inside the df-container but the observation value is removed (set to Nan).
 
 Dataset.missing_obs
-    When importing a datafile, an observation frequency is estimated for eacht station. A missing observation is a record that is not in the observations, but is assumed by the station frequency.
+    When importing a datafile, an observation frequency is estimated for each station. A missing observation is a record that is not in the observations but is assumed by the station frequency.
     A missing observation is thus a record, without an observation value. These records are stored in the *missing_obs-container*.
 
 Dataset.gaps
-    When a sequence of (repeating) missing observations is found, a test is performed to check if the length(*) of the series is larger than a threshold (i.e. the gap defenition).
+    When a sequence of (repeating) missing observations is found, a test is performed to check if the length(*) of the series is larger than a threshold (i.e. the gap definition).
     If the series is larger than the threshold, we interpret it as a *gap* and it is removed from the missing_obs-container.
 
-    (*): Note that the defenition of a gap is based on a number of consecutive repeating missing records! The minimal gapsize is therefore depending on the observational frequency of each station.
+    (*): Note that the definition of a gap is based on a number of consecutive repeating missing records! The minimal gap size is therefore depending on the observational frequency of each station.
 
 Dataset.metadf
-    When metadata is provided, it will be stored in the Dataset.metadf. The metadf is stored as tabular data where each row represent a station. When variables are computed that depends only
-    on a station (No time evolution and independand of the obsevation type), it is stored here. All landcover information and observation frequency estimations are stored here.
+    When metadata is provided, it will be stored in the Dataset.metadf. The metadf is stored as tabular data where each row represents a station. When variables are computed that depend only
+    on a station (No time evolution and independent of the observation type), it is stored here. All land cover information and observation frequency estimations are stored here.
 
 
 .. note::
 
-   A **record** refers to a unique combination of timestamp, corresponding station and observation type.
+   A **record** refers to a unique combination of timestamp, corresponding station, and observation type.
 
 
 Station()
 -----------
-A :py:meth:`Station<metobs_toolkit.station.Station>` is an class that has the same attributes and methods as a Dataset, but all the observations are limited to a specific station.
+A :py:meth:`Station<metobs_toolkit.station.Station>` is a class that has the same attributes and methods as a Dataset, but all the observations are limited to a specific station.
 
 .. code-block:: python
 
@@ -90,8 +90,8 @@ A :py:meth:`Station<metobs_toolkit.station.Station>` is an class that has the sa
 
 Analysis()
 -----------
-The :py:meth:`Analysis<metobs_toolkit.analysis.Analysis>` class is created from a Dataset and hold the observations that are assumed to be correct (the df-container of the Dataset). In contrast to the Dataset, the Analysis methods do not change the observations.
-The Analysis methods are based on aggregating the observations to get insight in diurnal/seasonal paterns and landcover effects.
+The :py:meth:`Analysis<metobs_toolkit.analysis.Analysis>` class is created from a Dataset and holds the observations that are assumed to be correct (the df-container of the Dataset). In contrast to the Dataset, the Analysis methods do not change the observations.
+The Analysis methods are based on aggregating the observations to get insight into diurnal/seasonal patterns and landcover effects.
 
 .. code-block:: python
 
@@ -99,16 +99,16 @@ The Analysis methods are based on aggregating the observations to get insight in
 
 .. note::
 
-   Creating an Analysis of a Station is not recomanded, since there is not mutch scientific value in it.
+   Creating an Analysis of a Station is not recommended, since there is not much scientific value in it.
 
 
 
 Modeldata()
 -------------
-The :py:meth:`Modeldata<metobs_toolkit.modeldata.Modeldata>` holds timeseries of data from a source other than observations (i.g. a model). The timeseries are taken at the same coordinates as the stations, and the
+The :py:meth:`Modeldata<metobs_toolkit.modeldata.Modeldata>` holds time-series of data from a source other than observations (i.g. a model). The time-series are taken at the same coordinates as the stations and the
 names of the stations are used as wel.
 
-This class is used for comparing other sources to observations and for filling missing observations and gaps in the observations.
+This class is used for comparing other sources to observations and for filling in missing observations and gaps in the observations.
 
 
 .. code-block:: python
@@ -117,19 +117,19 @@ This class is used for comparing other sources to observations and for filling m
                                                 obstype='temp')
 
 
-The toolkit makes use of the Google Earth Engine (GEE), to extract these timeseries. To use the GEE API, follow these steps on :ref:`Using Google Earth Engine<Using Google Earth Engine>`.
+The toolkit makes use of the Google Earth Engine (GEE), to extract these time-series. To use the GEE API, follow these steps on :ref:`Using Google Earth Engine<Using Google Earth Engine>`.
 
 
 
 
 Settings
 -----------
-Each Dataset hold its own set of :py:meth:`Settings<metobs_toolkit.settings.Settings>`. When creating a Dataset instance, the default settings are attached to it. When another class is created (i.g. Station, Modeldata, ...) from a Dataset, the corresponing settings are inhereted.
+Each Dataset holds its own set of :py:meth:`Settings<metobs_toolkit.settings.Settings>`. When creating a Dataset instance, the default settings are attached to it. When another class is created (i.g. Station, Modeldata, ...) from a Dataset, the corresponding settings are inherited.
 There are methods to change some of the default settings (like quality control settings, timezone settings, gap fill settings, ...). To list all the settings of a class one can use the :py:meth:`show<metobs_toolkit.settings.Settings.show>` method on it:
 
 .. code-block:: python
 
-   #Create a Dataset, the default settings are atached to it
+   #Create a Dataset, the default settings are attached to it
    your_dataset = metobs_toolkit.Dataset()
 
    #Update the timezone from 'UTC' (default) to Brussels local time
@@ -138,9 +138,9 @@ There are methods to change some of the default settings (like quality control s
    #create a Station instance from your dataset
    your_station = your_dataset.get_station(stationname = 'station_A')
 
-   #Since the settings are inhereted, your_stations has also the timezone set to Brussels local time.
+   #Since the settings are inherited, your_stations has also the timezone set to Brussels local time.
 
-   # print out all settins
+   # print out all settings
    your_dataset.settings.show()
    your_station.settings.show()
 

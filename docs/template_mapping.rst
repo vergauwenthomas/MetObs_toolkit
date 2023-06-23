@@ -2,12 +2,15 @@
 Mapping to the toolkit
 ***********************
 
-The MetObs-toolkit uses standard names and formats for your data. In order to use the toolkit, your observational data must be converted to the toolkit standards this is refered to as **mapping**.
+The MetObs-toolkit uses standard names and formats for your data. To use the toolkit,
+your observational data must be converted to the toolkit standards this is referred to as **mapping**.
 
-To specify how the mapping must be done a **template** is used. This template contains all the information on how to convert your tabular data to the toolkit standards.
-Since the structure of datafiles differ for differnt networks, this template is unique for each datafile. A template is saved as a tabular .csv file in order to reuse and share them.
+To specify how the mapping must be done a **template** is used. This template contains
+all the information on how to convert your tabular data to the toolkit standards.
+Since the structure of data files differs for different networks, this template is
+unique for each data file. A template is saved as a tabular .csv file to reuse and share them.
 
-On this page you can find information on how to construct a template.
+On this page, you can find information on how to construct a template.
 
 
 
@@ -15,7 +18,7 @@ On this page you can find information on how to construct a template.
 Toolkit Standards
 ====================
 
-The toolkit has standard names for observation types and meta data. Here these standards are presented and described.
+The toolkit has standard names for observation types and metadata. Here these standards are presented and described.
 
 
 .. list-table:: Standard observation types
@@ -35,7 +38,7 @@ The toolkit has standard names for observation types and meta data. Here these s
      - precipitation intensity
      - numeric
    * - precip_sum
-     - cummulated precipitation
+     - accumulated precipitation
      - numeric
    * - pressure
      - air pressure (measured)
@@ -71,7 +74,7 @@ The toolkit has standard names for observation types and meta data. Here these s
      - the latitude of the station
      - numeric
    * - lon
-     - the longtitude of the station
+     - the longitude of the station
      - numeric
    * - location
      - location (the city/region of the stations) (OPTIONAL)
@@ -84,16 +87,16 @@ The toolkit has standard names for observation types and meta data. Here these s
      - string
 
 
-In the template you map your observations and metadata to one of these standards. What is not mapped, will not be used in the toolkit.
+In the template, you map your observations and metadata to one of these standards. What is not mapped, will not be used in the toolkit.
 
 
 Data structures
 =======================
 
-In order to make a template you must be aware which format your data is in. The toolkit can handle the following datasetructures:
+To make a template you must be aware of which format your data is in. The toolkit can handle the following data structures:
 
 **long-format**
-   Observations are stacked as rows per station. One column represents the stationnames.
+   Observations are stacked in rows per station. One column represents the station names.
 
    .. list-table:: long-format example
       :widths: 15 15 15 15
@@ -138,7 +141,8 @@ In order to make a template you must be aware which format your data is in. The 
         - 18.6
 
 **Single-station-format**
-   The same as a long format but without a column indicating the stationnames. Be aware that the toolkit interpret it as **observations coming from one station**.
+   The same as a long format but without a column indicating the station names.
+   Be aware that the toolkit interprets it as **observations coming from one station**.
 
    .. list-table:: Single-station-format example
       :widths: 15 15 15
@@ -185,9 +189,9 @@ The metadata **must be in a Wide-format**. Here an example
 Template creation
 =======================
 
-Once you have converted your tabular data files to eigther long-, wide or single-station-format, and saved as a .csv file, a template can be made.
+Once you have converted your tabular data files to either long-, wide-, or single-station-format, and saved them as a .csv file, a template can be made.
 .. info::
-   If you want to use a metadata file, make shure it is converted to a wide-format and saved as a .csv file.
+   If you want to use a metadata file, make sure it is converted to a wide-format and saved as a .csv file.
 
 The fastest and simplest way to make a template is by using the *metobs_toolkit.build_template_prompt()* function.
 
@@ -199,7 +203,7 @@ The fastest and simplest way to make a template is by using the *metobs_toolkit.
    metobs_toolkit.build_template_prompt()
 
 
-This function will prompt questions and build a template that matches your datafile (and metadata) file.
+This function will prompt questions and build a template that matches your data file (and metadata) file.
 The *template.csv* file will be stored at a location of your choice.
 
 To use this template, feed the path to the *template.csv* file to the data_template_file (and metadata_template_file)
@@ -208,7 +212,7 @@ arguments of the :py:meth:`update_settings()<metobs_toolkit.dataset_settings_upd
 
 .. note::
    When the prompt ask's if you need further help, and you type yes, some more questions are prompted.
-   Once all information is given to the prompt, it will print out a piece of code that you have to run to load your data into toolkit.
+   Once all information is given to the prompt, it will print out a piece of code that you have to run to load your data into the toolkit.
 
 
 
