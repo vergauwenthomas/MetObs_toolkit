@@ -982,6 +982,25 @@ class Dataset:
         """
         return gaps_to_df(self.gaps)
 
+    def get_gaps_info(self):
+        """
+        Print out all the information of the gaps.
+
+        Returns
+        -------
+        None.
+
+        """
+
+
+        if bool(self.gaps):
+            # there are gaps
+            for gap in self.gaps:
+                gap.get_info()
+        else:
+            # no gaps
+            print('There are no gaps.')
+
 
 
     def get_analysis(self):
