@@ -8,8 +8,9 @@ Created on Thu Mar 30 14:26:57 2023
 
 from PyQt5.QtWidgets import QMessageBox
 
-class Error():
-    def __init__(self, message, informative_text='More information'):
+
+class Error:
+    def __init__(self, message, informative_text="More information"):
         # msg = super().__init__()
 
         self.msg = QMessageBox()
@@ -20,9 +21,7 @@ class Error():
         self.msg.exec_()
 
 
-
-
-class Notification():
+class Notification:
     def __init__(self, message):
         self.msgBox = QMessageBox()
         self.msgBox.setIcon(QMessageBox.Information)

@@ -12,10 +12,7 @@ import json
 
 
 GUI_folder = Path(__file__).resolve().parents[0]
-saved_values_file = os.path.join(str(GUI_folder),
-                                 'save_gui_vals.json')
-
-
+saved_values_file = os.path.join(str(GUI_folder), "save_gui_vals.json")
 
 
 # =============================================================================
@@ -39,12 +36,13 @@ saved_values_file = os.path.join(str(GUI_folder),
 #         # convert back to json.
 #         json.dump(file_data, file, indent = 4)
 
+
 def update_json_file(update_dict, filepath=None):
     if isinstance(filepath, type(None)):
-        filepath=saved_values_file
+        filepath = saved_values_file
     # read the existing JSON data from the file or create an empty dict if it doesn't exist
     try:
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             data = json.load(f)
     except FileNotFoundError:
         data = {}
@@ -54,20 +52,16 @@ def update_json_file(update_dict, filepath=None):
         data[key] = value
 
     # write the updated JSON data to the file
-    with open(filepath, 'w') as f:
-        json.dump(data, f, indent = 4)
-
+    with open(filepath, "w") as f:
+        json.dump(data, f, indent=4)
 
 
 def read_json(jsonfilename):
-    with open(jsonfilename,'r') as file:
-          # First we load existing data into a dict.
+    with open(jsonfilename, "r") as file:
+        # First we load existing data into a dict.
         file_data = json.load(file)
 
     return file_data
-
-
-
 
 
 def get_saved_vals():
@@ -76,6 +70,4 @@ def get_saved_vals():
     return vals
 
 
-#%%
-
-
+# %%

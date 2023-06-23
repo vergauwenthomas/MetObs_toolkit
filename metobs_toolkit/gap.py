@@ -22,7 +22,7 @@ from metobs_toolkit.gap_filling import (
 from metobs_toolkit.df_helpers import (
     format_outliersdf_to_doubleidx,
     get_likely_frequency,
-    _find_closes_occuring_date
+    _find_closes_occuring_date,
 )
 
 from metobs_toolkit import observation_types
@@ -69,65 +69,79 @@ class Gap:
 
         # computed attributes
         self.leading_timestamp = None  # last ob_dt before gap in datset space
-        self.leading_val = {} #keys are obstypes
+        self.leading_val = {}  # keys are obstypes
         self.trailing_timestamp = None  # first ob_dt after gap in dataset space
-        self.trailing_val = {} #keys are obstypes
+        self.trailing_val = {}  # keys are obstypes
 
         self.exp_gap_idx = None
 
         # gap fill (only for conventional saving)
-        self.gapfill_df = pd.DataFrame() #index: datetime, columns: obstypes, values: fill_values
-        self.gapfill_technique = None #will become a string
-        self.gapfill_info = None # detailed infomation on the gapfill technique (only for the user)
-        self.gapfill_errormessage = {} #keys are obstypes
-
+        self.gapfill_df = (
+            pd.DataFrame()
+        )  # index: datetime, columns: obstypes, values: fill_values
+        self.gapfill_technique = None  # will become a string
+        self.gapfill_info = (
+            None  # detailed infomation on the gapfill technique (only for the user)
+        )
+        self.gapfill_errormessage = {}  # keys are obstypes
 
     def __str__(self):
         return f"Gap instance of {self.name} for {self.startgap} --> {self.endgap}, duration: {self.duration}"
+
     def __repr__(self):
         return self.__str__()
 
     def get_info(self):
-        print(f'Gap for {self.name} with: \n')
-        print(f'\n ---- Gap info ----- \n')
-        print(f'  * Start gap: {self.startgap} \n')
-        print(f'  * End gap: {self.endgap} \n')
-        print(f'  * Duration gap: {self.duration} \n')
-        print(f'\n ---- Gap fill info ----- \n')
+        print(f"Gap for {self.name} with: \n")
+        print(f"\n ---- Gap info ----- \n")
+        print(f"  * Start gap: {self.startgap} \n")
+        print(f"  * End gap: {self.endgap} \n")
+        print(f"  * Duration gap: {self.duration} \n")
+        print(f"\n ---- Gap fill info ----- \n")
         obstypes = self.gapfill_df.columns.to_list()
         obstypes = [obs for obs in obstypes if obs in observation_types]
         if self.gapfill_df.empty:
-            print ('(No gapfill applied)')
-        elif self.gapfill_technique == 'gap_interpolation':
+            print("(No gapfill applied)")
+        elif self.gapfill_technique == "gap_interpolation":
             for obstype in obstypes:
-                print(f'  * On observation type: {obstype}')
-                print(f'  * Technique: {self.gapfill_technique} \n')
-                print(f'  * Leading timestamp: {self.leading_timestamp} with  {obstype} = {self.leading_val[obstype]}\n')
-                print(f'  * Trailing timestamp: {self.trailing_timestamp} with  {obstype} = {self.trailing_val[obstype]}\n')
-                print(f'  * Filled values: {self.gapfill_df[obstype]} \n')
+                print(f"  * On observation type: {obstype}")
+                print(f"  * Technique: {self.gapfill_technique} \n")
+                print(
+                    f"  * Leading timestamp: {self.leading_timestamp} with  {obstype} = {self.leading_val[obstype]}\n"
+                )
+                print(
+                    f"  * Trailing timestamp: {self.trailing_timestamp} with  {obstype} = {self.trailing_val[obstype]}\n"
+                )
+                print(f"  * Filled values: {self.gapfill_df[obstype]} \n")
                 if obstype in self.gapfill_errormessage:
-                    print(f'  * Gapfill message: {self.gapfill_errormessage[obstype]} \n')
+                    print(
+                        f"  * Gapfill message: {self.gapfill_errormessage[obstype]} \n"
+                    )
                 if not self.gapfill_info is None:
-                    print(f'  * Gapfill info: {self.gapfill_info.head()} \n')
-                    print(f'    (Extract the gapfill info dataframe by using the .gapfill_info attribute) \n')
+                    print(f"  * Gapfill info: {self.gapfill_info.head()} \n")
+                    print(
+                        f"    (Extract the gapfill info dataframe by using the .gapfill_info attribute) \n"
+                    )
 
         elif self.gapfill_technique == "gap_debiased_era5":
             for obstype in obstypes:
-                print(f'  * On observation type: {obstype}')
-                print(f'  * Technique: {self.gapfill_technique} \n')
+                print(f"  * On observation type: {obstype}")
+                print(f"  * Technique: {self.gapfill_technique} \n")
                 # print(f'  * Leading timestamp: {self.leading_timestamp} with  {obstype} = {self.leading_val[obstype]}\n')
                 # print(f'  * Trailing timestamp: {self.trailing_timestamp} with  {obstype} = {self.trailing_val[obstype]}\n')
-                print(f'  * Filled values: {self.gapfill_df[obstype]} \n')
+                print(f"  * Filled values: {self.gapfill_df[obstype]} \n")
                 if obstype in self.gapfill_errormessage:
-                    print(f'  * Gapfill message: {self.gapfill_errormessage[obstype]} \n')
+                    print(
+                        f"  * Gapfill message: {self.gapfill_errormessage[obstype]} \n"
+                    )
                 if not self.gapfill_info is None:
-                    print(f'  * Gapfill info: {self.gapfill_info.head()} \n')
-                    print(f'    (Extract the gapfill info dataframe by using the .gapfill_info attribute) \n')
+                    print(f"  * Gapfill info: {self.gapfill_info.head()} \n")
+                    print(
+                        f"    (Extract the gapfill info dataframe by using the .gapfill_info attribute) \n"
+                    )
 
         else:
-            print('technique not implemented in yet in show')
-
-
+            print("technique not implemented in yet in show")
 
     def to_df(self):
         """
@@ -143,11 +157,13 @@ class Gap:
 
         returndf = pd.DataFrame(
             index=[self.name],
-            data={"start_gap": self.startgap,
-                  "end_gap": self.endgap,
-                  "duration": self.duration}
+            data={
+                "start_gap": self.startgap,
+                "end_gap": self.endgap,
+                "duration": self.duration,
+            },
         )
-        returndf.index.name = 'name'
+        returndf.index.name = "name"
         return returndf
 
     def update_leading_trailing_obs(self, obsdf, outliersdf, obs_only=False):
@@ -181,7 +197,6 @@ class Gap:
         if obs_only:
             sta_comb = sta_obs
         else:
-
             outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
             # combine timestamps of observations and outliers
@@ -213,15 +228,15 @@ class Gap:
         try:
             self.leading_val = obsdf.loc[(self.name, self.leading_timestamp)].to_dict()
         except KeyError:
-            print('Warning. Leading value not found in the observations')
+            print("Warning. Leading value not found in the observations")
             self.leading_val = {}
         try:
-            self.trailing_val = obsdf.loc[(self.name, self.trailing_timestamp)].to_dict()
+            self.trailing_val = obsdf.loc[
+                (self.name, self.trailing_timestamp)
+            ].to_dict()
         except KeyError:
-            print('Warning. Trailing value not found in the observations')
+            print("Warning. Trailing value not found in the observations")
             self.trailing_val = {}
-
-
 
     def update_gaps_indx_in_obs_space(self, obsdf, outliersdf, dataset_res):
         """
@@ -307,10 +322,10 @@ class Gap:
             Multiindex Series with filled gap values in dataset space.
 
         """
-        print(f' interpolate on {self}')
+        print(f" interpolate on {self}")
         outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
-        gapfill_series= interpolate_gap(
+        gapfill_series = interpolate_gap(
             gap=self,
             obsdf=obsdf,
             outliersdf=outliersdf,
@@ -321,33 +336,30 @@ class Gap:
         )
 
         # update self
-        self.gapfill_technique = 'interpolation'
+        self.gapfill_technique = "interpolation"
         self.gapfill_df[obstype] = gapfill_series
-
-
-
 
 
 # =============================================================================
 # Find gaps and missing values
 # =============================================================================
 def get_station_gaps(gapslist, name):
-       """
-       Extract a Gap_collection specific to one station. If no gaps are found
-       for the station, an empty Gap_collection is returned.
+    """
+    Extract a Gap_collection specific to one station. If no gaps are found
+    for the station, an empty Gap_collection is returned.
 
-       Parameters
-       ----------
-       name : String
-           Name of the station to extract a Gaps_collection from.
+    Parameters
+    ----------
+    name : String
+        Name of the station to extract a Gaps_collection from.
 
-       Returns
-       -------
-       Gap_collection
-           A Gap collection specific of the specified station.
+    Returns
+    -------
+    Gap_collection
+        A Gap collection specific of the specified station.
 
-       """
-       return [gap for gap in gapslist if gap.name == name]
+    """
+    return [gap for gap in gapslist if gap.name == name]
 
 
 def get_gaps_indx_in_obs_space(gapslist, obsdf, outliersdf, resolutionseries):
@@ -380,15 +392,11 @@ def get_gaps_indx_in_obs_space(gapslist, obsdf, outliersdf, resolutionseries):
 
     expanded_gabsidx_obsspace = init_multiindex()
 
-
     for gap in gapslist:
         gap.update_gaps_indx_in_obs_space(
             obsdf, outliersdf, resolutionseries.loc[gap.name]
         )
-        expanded_gabsidx_obsspace = expanded_gabsidx_obsspace.append(
-            gap.exp_gap_idx
-        )
-
+        expanded_gabsidx_obsspace = expanded_gabsidx_obsspace.append(gap.exp_gap_idx)
 
     return expanded_gabsidx_obsspace
 
@@ -410,20 +418,18 @@ def gaps_to_df(gapslist):
 
     """
 
-
     gapdflist = []
     for gap in gapslist:
         gapdflist.append(gap.to_df())
 
     if not bool(gapdflist):
         # when no gaps, make default return
-        default_df = pd.DataFrame(data={'start_gap':[],
-                                        'end_gap':[],
-                                        'duration':[]})
-        default_df.index.name = 'name'
+        default_df = pd.DataFrame(data={"start_gap": [], "end_gap": [], "duration": []})
+        default_df.index.name = "name"
         return default_df
 
     return pd.concat(gapdflist)
+
 
 def remove_gaps_from_obs(gaplist, obsdf):
     """
@@ -451,9 +457,7 @@ def remove_gaps_from_obs(gaplist, obsdf):
 
         gaps_dt = sta_records[
             (sta_records >= gap.startgap)
-            & (  # filter if the observations are within a gap
-                sta_records <= gap.endgap
-            )
+            & (sta_records <= gap.endgap)  # filter if the observations are within a gap
         ]
 
         gaps_multiidx = pd.MultiIndex.from_arrays(
@@ -465,6 +469,7 @@ def remove_gaps_from_obs(gaplist, obsdf):
     # remove gaps idx from the obsdf
     obsdf = obsdf.drop(index=expanded_gabsidx)
     return obsdf
+
 
 def remove_gaps_from_outliers(gaplist, outldf):
     """
@@ -486,165 +491,181 @@ def remove_gaps_from_outliers(gaplist, outldf):
 
     """
 
-
     # to multiindex
-    outldf = outldf.reset_index().set_index(['name', 'datetime'])
+    outldf = outldf.reset_index().set_index(["name", "datetime"])
 
     # remove records inside the gaps
-    suboutldf = remove_gaps_from_obs(gaplist = gaplist,
-                                     obsdf = outldf)
+    suboutldf = remove_gaps_from_obs(gaplist=gaplist, obsdf=outldf)
 
     # restet to triple index
-    outldf = suboutldf.reset_index().set_index(['name', 'datetime', 'obstype'])
+    outldf = suboutldf.reset_index().set_index(["name", "datetime", "obstype"])
 
     return outldf
+
 
 # =============================================================================
 # Helpers
 # =============================================================================
 
 
-
-
 def apply_debias_era5_gapfill(
-        gapslist, dataset, eraModelData, debias_settings, obstype="temp",
-        overwrite_fill=False):
+    gapslist,
+    dataset,
+    eraModelData,
+    debias_settings,
+    obstype="temp",
+    overwrite_fill=False,
+):
+    gapfill_settings = dataset.settings.gap["gaps_fill_info"]
+    expanded_gabsidx_obsspace = init_multiindex()
 
-        gapfill_settings = dataset.settings.gap['gaps_fill_info']
-        expanded_gabsidx_obsspace = init_multiindex()
+    filled_gaps_series = pd.Series(
+        data=[], index=expanded_gabsidx_obsspace, dtype=object
+    )
 
-        filled_gaps_series = pd.Series(
-            data=[], index=expanded_gabsidx_obsspace, dtype=object
-        )
-
-        # Convert modeldata to the same timzone as the data
-        targettz = dataset.df.index.get_level_values('datetime').tz.zone
-        eraModelData._conv_to_timezone(targettz)
-
-
-        for gap in gapslist:
-            if (not overwrite_fill) & (not gap.gapfill_df.empty):
-                print(f'WARNING: Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite.')
-                continue
-
-            print(f' Era5 gapfill for {gap}')
-            gap.gapfill_technique = gapfill_settings['label']['model_debias']
-
-            # avoid passing full dataset around
-            station = dataset.get_station(gap.name)
-
-            # Update gap attributes
-            gap.update_gaps_indx_in_obs_space(
-                obsdf=station.df,
-                outliersdf=station.outliersdf,
-                dataset_res=station.metadf["dataset_resolution"].squeeze(),
-            )
-
-            # get leading and trailing period
-            leading_obs, trailing_obs = create_leading_trailing_debias_periods(
-                station=station,
-                gap=gap,
-                debias_period_settings=debias_settings["debias_period"],
-                obstype=obstype,
-            )
-
-            # check if leading/trailing is valid
-            if leading_obs.empty | trailing_obs.empty:
-                print(
-                    "No suitable leading or trailing period found. Gapfill not possible"
-                )
-                gap.gapfill_errormessage[obstype] = 'gapfill not possible: no leading/trailing period'
-
-                default_return = pd.Series(
-                    index=gap.exp_gap_idx, name=obstype, dtype="object"
-                )
-
-                default_return.name = obstype
-                gapfill_df =default_return.to_frame()
-                gapfill_df[obstype + "_" + gapfill_settings["label_columnname"]] = gapfill_settings["label"]["model_debias"]
-
-                # update the gaps attributes
-                gap.gapfill_df = gapfill_df
-
-                continue
-
-            # extract model values at leading and trailing period
-            leading_model = eraModelData.interpolate_modeldata(leading_obs.index)
-            trailing_model = eraModelData.interpolate_modeldata(trailing_obs.index)
-
-            # TODO check if there is modeldata for the leading and trailing + obs period
-            if (leading_model[obstype].isnull().any()) | (
-                trailing_model[obstype].isnull().any()
-            ):
-                print(
-                    "No modeldata for the full leading/trailing period found. Gapfill not possible"
-                )
-                gap.gapfill_errormessage[obstype] = 'gapfill not possible: not enough modeldata'
-
-                default_return = pd.Series(
-                    index=gap.exp_gap_idx, name=obstype, dtype="object"
-                )
-                default_return.name = obstype
-                gapfill_df =default_return.to_frame()
-                gapfill_df[obstype + "_" + gapfill_settings["label_columnname"]] = gapfill_settings["label"]["model_debias"]
-
-                # update the gaps attributes
-                gap.gapfill_df = gapfill_df
-                continue
-
-            # Get model data for gap timestamps
-            gap_model = eraModelData.interpolate_modeldata(gap.exp_gap_idx)
-
-            # apply bias correction
-            filled_gap_series, fill_info, err_message = make_era_bias_correction(
-                leading_model=leading_model,
-                trailing_model=trailing_model,
-                gap_model=gap_model,
-                leading_obs=leading_obs,
-                trailing_obs=trailing_obs,
-                obstype=obstype,
-            )
-
-
-            filled_gap_series.name = obstype
-            gapfill_df =filled_gap_series.to_frame()
-            gapfill_df[obstype + "_" + gapfill_settings["label_columnname"]] = gapfill_settings["label"]["model_debias"]
-
-            # update the gaps attributes
-            gap.gapfill_df = gapfill_df
-            gap.gapfill_technique = gapfill_settings["label"]["model_debias"]
-            gap.gapfill_info = fill_info
-            if bool(err_message):
-                gap.gapfill_errormessage = err_message
-
-
-
-
-
-def apply_interpolate_gaps(gapslist, obsdf, outliersdf, dataset_res, gapfill_settings,
-                           obstype="temp", method="time", max_consec_fill=100,
-                           overwrite_fill=False,
-                           ):
-
-    """ No return, only update the gaps instances attributes"""
+    # Convert modeldata to the same timzone as the data
+    targettz = dataset.df.index.get_level_values("datetime").tz.zone
+    eraModelData._conv_to_timezone(targettz)
 
     for gap in gapslist:
         if (not overwrite_fill) & (not gap.gapfill_df.empty):
-            print(f'WARNING: Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite.')
+            print(
+                f"WARNING: Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite."
+            )
+            continue
+
+        print(f" Era5 gapfill for {gap}")
+        gap.gapfill_technique = gapfill_settings["label"]["model_debias"]
+
+        # avoid passing full dataset around
+        station = dataset.get_station(gap.name)
+
+        # Update gap attributes
+        gap.update_gaps_indx_in_obs_space(
+            obsdf=station.df,
+            outliersdf=station.outliersdf,
+            dataset_res=station.metadf["dataset_resolution"].squeeze(),
+        )
+
+        # get leading and trailing period
+        leading_obs, trailing_obs = create_leading_trailing_debias_periods(
+            station=station,
+            gap=gap,
+            debias_period_settings=debias_settings["debias_period"],
+            obstype=obstype,
+        )
+
+        # check if leading/trailing is valid
+        if leading_obs.empty | trailing_obs.empty:
+            print("No suitable leading or trailing period found. Gapfill not possible")
+            gap.gapfill_errormessage[
+                obstype
+            ] = "gapfill not possible: no leading/trailing period"
+
+            default_return = pd.Series(
+                index=gap.exp_gap_idx, name=obstype, dtype="object"
+            )
+
+            default_return.name = obstype
+            gapfill_df = default_return.to_frame()
+            gapfill_df[
+                obstype + "_" + gapfill_settings["label_columnname"]
+            ] = gapfill_settings["label"]["model_debias"]
+
+            # update the gaps attributes
+            gap.gapfill_df = gapfill_df
+
+            continue
+
+        # extract model values at leading and trailing period
+        leading_model = eraModelData.interpolate_modeldata(leading_obs.index)
+        trailing_model = eraModelData.interpolate_modeldata(trailing_obs.index)
+
+        # TODO check if there is modeldata for the leading and trailing + obs period
+        if (leading_model[obstype].isnull().any()) | (
+            trailing_model[obstype].isnull().any()
+        ):
+            print(
+                "No modeldata for the full leading/trailing period found. Gapfill not possible"
+            )
+            gap.gapfill_errormessage[
+                obstype
+            ] = "gapfill not possible: not enough modeldata"
+
+            default_return = pd.Series(
+                index=gap.exp_gap_idx, name=obstype, dtype="object"
+            )
+            default_return.name = obstype
+            gapfill_df = default_return.to_frame()
+            gapfill_df[
+                obstype + "_" + gapfill_settings["label_columnname"]
+            ] = gapfill_settings["label"]["model_debias"]
+
+            # update the gaps attributes
+            gap.gapfill_df = gapfill_df
+            continue
+
+        # Get model data for gap timestamps
+        gap_model = eraModelData.interpolate_modeldata(gap.exp_gap_idx)
+
+        # apply bias correction
+        filled_gap_series, fill_info, err_message = make_era_bias_correction(
+            leading_model=leading_model,
+            trailing_model=trailing_model,
+            gap_model=gap_model,
+            leading_obs=leading_obs,
+            trailing_obs=trailing_obs,
+            obstype=obstype,
+        )
+
+        filled_gap_series.name = obstype
+        gapfill_df = filled_gap_series.to_frame()
+        gapfill_df[
+            obstype + "_" + gapfill_settings["label_columnname"]
+        ] = gapfill_settings["label"]["model_debias"]
+
+        # update the gaps attributes
+        gap.gapfill_df = gapfill_df
+        gap.gapfill_technique = gapfill_settings["label"]["model_debias"]
+        gap.gapfill_info = fill_info
+        if bool(err_message):
+            gap.gapfill_errormessage = err_message
+
+
+def apply_interpolate_gaps(
+    gapslist,
+    obsdf,
+    outliersdf,
+    dataset_res,
+    gapfill_settings,
+    obstype="temp",
+    method="time",
+    max_consec_fill=100,
+    overwrite_fill=False,
+):
+    """No return, only update the gaps instances attributes"""
+
+    for gap in gapslist:
+        if (not overwrite_fill) & (not gap.gapfill_df.empty):
+            print(
+                f"WARNING: Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite."
+            )
             continue
         gapfill_series = interpolate_gap(
-                        gap=gap,
-                        obsdf=xs_save(obsdf, gap.name, level='name', drop_level=False),
-                        outliersdf=xs_save(outliersdf, gap.name, level='name', drop_level=False),
-                        dataset_res=dataset_res.loc[gap.name],
-                        obstype=obstype,
-                        method=method,
-                        max_consec_fill=max_consec_fill,
-                        )
+            gap=gap,
+            obsdf=xs_save(obsdf, gap.name, level="name", drop_level=False),
+            outliersdf=xs_save(outliersdf, gap.name, level="name", drop_level=False),
+            dataset_res=dataset_res.loc[gap.name],
+            obstype=obstype,
+            method=method,
+            max_consec_fill=max_consec_fill,
+        )
 
         gapfill_series.name = obstype
         gapfill_df = gapfill_series.to_frame()
-        gapfill_df[obstype + "_" + gapfill_settings["label_columnname"]] = gapfill_settings["label"]["linear"]
+        gapfill_df[
+            obstype + "_" + gapfill_settings["label_columnname"]
+        ] = gapfill_settings["label"]["linear"]
 
         # update the gaps attributes
         gap.gapfill_df = gapfill_df
@@ -658,8 +679,8 @@ def make_gapfill_df(gapslist):
     concatlist = []
     for gap in gapslist:
         subgapfill = gap.gapfill_df.reset_index()
-        subgapfill['name'] = gap.name
-        subgapfill = subgapfill.set_index(['name', 'datetime'])
+        subgapfill["name"] = gap.name
+        subgapfill = subgapfill.set_index(["name", "datetime"])
 
         concatlist.append(subgapfill)
 
@@ -709,18 +730,18 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
         timestamps = xs_save(df, station, level="name").index
         likely_freq = get_likely_frequency(timestamps, method="highest", simplify=False)
 
-
         assert likely_freq.seconds > 0, f"The frequency is not positive!"
 
         station_freqs[station] = likely_freq
 
-        missing_datetimeseries = (pd.date_range(start=timestamps.min(),
-                                               end=timestamps.max(),
-                                               freq=likely_freq)
-                                  .difference(timestamps)
-                                  .to_series()
-                                  .diff())
-
+        missing_datetimeseries = (
+            pd.date_range(
+                start=timestamps.min(), end=timestamps.max(), freq=likely_freq
+            )
+            .difference(timestamps)
+            .to_series()
+            .diff()
+        )
 
         if missing_datetimeseries.empty:
             continue
@@ -735,12 +756,12 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
         # iterate over the gabs and fill the gapsdf
         for gap_idx in gap_groups.index:
             datetime_of_gap_records = consec_missing_groups.get_group(gap_idx).index
-            gap = Gap(name=station,
-                      startdt=datetime_of_gap_records.min(),
-                      enddt=datetime_of_gap_records.max())
+            gap = Gap(
+                name=station,
+                startdt=datetime_of_gap_records.min(),
+                enddt=datetime_of_gap_records.max(),
+            )
             gap_list.append(gap)
-
-
 
         # combine the missing timestams values
         missing_timestamp_groups = group_sizes[group_sizes <= gapsize_n]
@@ -763,5 +784,3 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
     df = df.sort_index()
 
     return missing_obs_collection, gap_list
-
-
