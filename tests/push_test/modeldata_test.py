@@ -15,17 +15,19 @@ from pathlib import Path
 lib_folder = Path(__file__).resolve().parents[2]
 
 import metobs_toolkit
+
 # print(metobs_toolkit.__version__)
 
-#%% Import dataset
+# %% Import dataset
 
 dataset = metobs_toolkit.Dataset()
 
-dataset.update_settings(output_folder=None,
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        data_template_file=metobs_toolkit.demo_template,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile
-                        )
+dataset.update_settings(
+    output_folder=None,
+    input_data_file=metobs_toolkit.demo_datafile,
+    data_template_file=metobs_toolkit.demo_template,
+    input_metadata_file=metobs_toolkit.demo_metadatafile,
+)
 
 
 dataset.import_data_from_file()
@@ -33,51 +35,56 @@ dataset.coarsen_time_resolution()
 
 # dataset.get_modeldata()
 
-#%% test adding gee information
+# %% test adding gee information
 model_data = metobs_toolkit.Modeldata("ERA5_hourly")
-model_data.add_band_to_gee_dataset(bandname='surface_pressure',
-                                   obstype='pressure',
-                                   units='pa')
+model_data.add_band_to_gee_dataset(
+    bandname="surface_pressure", obstype="pressure", units="pa"
+)
 
-model_data.add_gee_dataset(mapname='new dataset name',
-                            gee_location='location/loc/dfmijfe',
-                            obstype='temp',
-                            bandname='temp 2m passive field',
-                            units ='C',
-                            scale = 100,
-                            time_res='1H',
-                            is_image=False,
-                            is_numeric=True,
-                            credentials='bladiblie')
-#%% Import modeldata
+model_data.add_gee_dataset(
+    mapname="new dataset name",
+    gee_location="location/loc/dfmijfe",
+    obstype="temp",
+    bandname="temp 2m passive field",
+    units="C",
+    scale=100,
+    time_res="1H",
+    is_image=False,
+    is_numeric=True,
+    credentials="bladiblie",
+)
+# %% Import modeldata
 model_data = metobs_toolkit.Modeldata("ERA5_hourly")
 
-csv_file = os.path.join(lib_folder, 'tests', 'test_data', 'era5_modeldata_test.csv')
+csv_file = os.path.join(lib_folder, "tests", "test_data", "era5_modeldata_test.csv")
 
 model_data.set_model_from_csv(csv_file)
 
-#%% Test repr
+# %% Test repr
 
 print(model_data)
 
 
-#%% test interpolation
+# %% test interpolation
 interpdf = model_data.interpolate_modeldata(dataset.df.index)
 
-assert interpdf[interpdf['temp'].isnull()].shape == (28, 1), 'Error in modeldata interpolation'
+assert interpdf[interpdf["temp"].isnull()].shape == (
+    28,
+    1,
+), "Error in modeldata interpolation"
 
 
-
-
-#%% Test plotting
+# %% Test plotting
 
 a = model_data.df.shape
 
-model_data.make_plot(stationnames=['vlinder01', 'vlinder02'])
+model_data.make_plot(stationnames=["vlinder01", "vlinder02"])
 
 
-assert model_data.df.shape == (10052, 1), 'Shape of modeldata df changed after plotting.'
+assert model_data.df.shape == (
+    10052,
+    1,
+), "Shape of modeldata df changed after plotting."
 
 
 model_data.make_plot(dataset=dataset, show_outliers=False)
-

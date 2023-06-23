@@ -64,7 +64,7 @@ extensions = [
     "sphinx.ext.napoleon",  # To convert Numpydocstring to readable format
     "sphinx.ext.autosummary",  # Create neat summary tables
     "myst_parser",  # for including md files (readme)
-    "sphinx.ext.autosectionlabel", #for cross linking
+    "sphinx.ext.autosectionlabel",  # for cross linking
 ]
 
 

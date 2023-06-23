@@ -16,26 +16,22 @@ from collections.abc import Iterable
 # Keys are the toolkit-units!! (not persee SI)
 # values expresions are of the form x $ val, where x is the numeric value,
 # $ an operator (+-*/) and val a concersion value
-unit_convertors = {
-    "Celsius": {"K": "x - 273.15"},
-    'pa':{'pa' : 'x'}
-}
+unit_convertors = {"Celsius": {"K": "x - 273.15"}, "pa": {"pa": "x"}}
 
 # =============================================================================
 # Standard units
 # =============================================================================
 standard_tlk_units = {
-    "temp": 'Celsius',
-    "radiation_temp": 'Celcius',
-    "humidity": '%',
-    "precip": 'mm/m² per hour',
-    "precip_sum" : 'mm/m² from midnight',
-    "wind_speed" : 'm/s',
-    "wind_gust": 'm/s',
-    "wind_direction": '° from north (CW)',
-    "pressure" : 'pa',
-    "pressure_at_sea_level": 'pa',
-
+    "temp": "Celsius",
+    "radiation_temp": "Celcius",
+    "humidity": "%",
+    "precip": "mm/m² per hour",
+    "precip_sum": "mm/m² from midnight",
+    "wind_speed": "m/s",
+    "wind_gust": "m/s",
+    "wind_direction": "° from north (CW)",
+    "pressure": "pa",
+    "pressure_at_sea_level": "pa",
 }
 
 
@@ -91,7 +87,9 @@ def convert_to_toolkit_units(data, data_unit, new_units={}):
 
     # check if unit is already a toolkit unit
     if data_unit in unit_convertors.keys():
-        print(f'Current unit ({data_unit}) is already the default, no coversion needed!')
+        print(
+            f"Current unit ({data_unit}) is already the default, no coversion needed!"
+        )
         return data, data_unit
 
     # scan the units to find conversion

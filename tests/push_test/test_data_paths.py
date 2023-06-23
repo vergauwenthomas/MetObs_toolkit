@@ -19,7 +19,7 @@ lib_folder = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(lib_folder))
 import metobs_toolkit
 
-test_data_dir = os.path.join(str(lib_folder), 'tests', 'test_data')
+test_data_dir = os.path.join(str(lib_folder), "tests", "test_data")
 
 
 testdata = {
@@ -31,7 +31,6 @@ testdata = {
     #         'kwargs':{},
     #         'coarsen': '20T',
     #         },
-
     # # wide test dataset
     # 'debug_wide' : {
     #         'datafile': join(test_data_dir, 'debug_wide.csv'),
@@ -41,7 +40,6 @@ testdata = {
     #                   'obstype' : 'temp'},
     #         'coarsen': '20T',
     #         },
-
     #   # Single station dataset
     #   'single_station' : {
     #           'datafile': join(test_data_dir, 'single_station.csv'),
@@ -51,8 +49,6 @@ testdata = {
     #                     'obstype' : 'temp'},
     #           'coarsen': '20T',
     #           },
-
-
     # # breaking
     # 'breaking data' : {
     #         'datafile': join(test_data_dir, 'testdata_breaking.csv'),
@@ -61,7 +57,6 @@ testdata = {
     #         'kwargs':{},
     #         'coarsen': '60T',
     #         },
-
     # # Kobe congo (single station)
     # 'Congo_single_station' : {
     #         'datafile': join(test_data_dir,'testdata_testday', 'Kobe','meteo_soil_clean_2023-01-19.csv'),
@@ -69,15 +64,25 @@ testdata = {
     #         'template': join(test_data_dir,'testdata_testday', 'Kobe','CONGO_template.csv'),
     #         'kwargs':{},
     #         'coarsen': '60T',
-            # },
-
-      # Single Netatmo station Sara
-      'single_netatmo_sara_station' : {
-              'datafile': join(test_data_dir,'testdata_testday', 'Sara','Outdoor_module_Netatmo_Sara_small.csv'),
-              'metadatafile': join(test_data_dir,'testdata_testday', 'Sara','metadata_Outdoor_module_Netatmo_Sara_new.csv'),
-              'template': join(test_data_dir,'testdata_testday', 'Sara','template_sara.csv'),
-              'kwargs':{},
-              'coarsen': '60T',
-              },
-
-    }
+    # },
+    # Single Netatmo station Sara
+    "single_netatmo_sara_station": {
+        "datafile": join(
+            test_data_dir,
+            "testdata_testday",
+            "Sara",
+            "Outdoor_module_Netatmo_Sara_small.csv",
+        ),
+        "metadatafile": join(
+            test_data_dir,
+            "testdata_testday",
+            "Sara",
+            "metadata_Outdoor_module_Netatmo_Sara_new.csv",
+        ),
+        "template": join(
+            test_data_dir, "testdata_testday", "Sara", "template_sara.csv"
+        ),
+        "kwargs": {},
+        "coarsen": "60T",
+    },
+}
