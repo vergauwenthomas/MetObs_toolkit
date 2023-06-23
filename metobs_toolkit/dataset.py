@@ -1001,6 +1001,7 @@ class Dataset:
             # no gaps
             print('There are no gaps.')
 
+
     def get_missing_obs_info(self):
         """
         Print out detailed information of the missing observations.
@@ -1012,7 +1013,6 @@ class Dataset:
         """
         # empty obs protector in the .get_info method.
         self.missing_obs.get_info()
-
 
 
 
