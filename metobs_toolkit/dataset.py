@@ -995,7 +995,8 @@ class Dataset:
 
         if bool(self.gaps):
             # there are gaps
-            self.gaps.get_info()
+            for gap in self.gaps:
+                gap.get_info()
         else:
             # no gaps
             print('There are no gaps.')
