@@ -24,13 +24,13 @@ test_data_dir = os.path.join(str(lib_folder), 'tests', 'test_data')
 
 testdata = {
     # demo
-    'demo' : {
-            'datafile': metobs_toolkit.demo_datafile,
-            'metadatafile':metobs_toolkit.demo_metadatafile,
-            'template': metobs_toolkit.demo_template,
-            'kwargs':{},
-            'coarsen': '20T',
-            },
+    # 'demo' : {
+    #         'datafile': metobs_toolkit.demo_datafile,
+    #         'metadatafile':metobs_toolkit.demo_metadatafile,
+    #         'template': metobs_toolkit.demo_template,
+    #         'kwargs':{},
+    #         'coarsen': '20T',
+    #         },
 
     # # wide test dataset
     # 'debug_wide' : {
@@ -71,6 +71,13 @@ testdata = {
     #         'coarsen': '60T',
             # },
 
-
+      # Single Netatmo station Sara
+      'single_netatmo_sara_station' : {
+              'datafile': join(test_data_dir,'testdata_testday', 'Sara','Outdoor_module_Netatmo_Sara_small.csv'),
+              'metadatafile': join(test_data_dir,'testdata_testday', 'Sara','metadata_Outdoor_module_Netatmo_Sara_new.csv'),
+              'template': join(test_data_dir,'testdata_testday', 'Sara','template_sara.csv'),
+              'kwargs':{},
+              'coarsen': '60T',
+              },
 
     }
