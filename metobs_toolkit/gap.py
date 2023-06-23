@@ -140,12 +140,15 @@ class Gap:
             Gap in dataframe format.
 
         """
-        return pd.DataFrame(
+
+        returndf = pd.DataFrame(
             index=[self.name],
             data={"start_gap": self.startgap,
                   "end_gap": self.endgap,
                   "duration": self.duration}
         )
+        returndf.index.name = 'name'
+        return returndf
 
     def update_leading_trailing_obs(self, obsdf, outliersdf, obs_only=False):
         """
@@ -411,6 +414,14 @@ def gaps_to_df(gapslist):
     gapdflist = []
     for gap in gapslist:
         gapdflist.append(gap.to_df())
+
+    if not bool(gapdflist):
+        # when no gaps, make default return
+        default_df = pd.DataFrame(data={'start_gap':[],
+                                        'end_gap':[],
+                                        'duration':[]})
+        default_df.index.name = 'name'
+        return default_df
 
     return pd.concat(gapdflist)
 
