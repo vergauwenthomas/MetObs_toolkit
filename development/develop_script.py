@@ -37,7 +37,7 @@ template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/tes
 
 dataset = metobs_toolkit.Dataset()
 
-dataset.settings.show()
+
 
 #%%
 
@@ -54,33 +54,24 @@ dataset.update_settings(output_folder=None,
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
 
+dataset.apply_quality_control()
+
+dataset.update_gaps_and_missing_from_outliers()
 
 #%%
-
-model_data = metobs_toolkit.Modeldata("ERA5_hourly")
-model_data.add_band_to_gee_dataset(bandname='surface_pressure',
-                                   obstype='pressure',
-                                   units='pa')
-
-
-# model_data = dataset.get_modeldata(obstype='temp')
-
-file = "/home/thoverga/Downloads/era5_data (3).csv"
+dataset.get_missing_obs_info()
+dataset.fill_missing_obs_linear()
 
 
 #%%
 
 
-model_data = metobs_toolkit.Modeldata("ERA5_hourly")
-model_data.set_model_from_csv(file)
 
-print(model_data)
+
+
+
 
 #%% test
-
-multiidx = dataset.df.index
-test = model_data.interpolate_modeldata(to_multiidx=multiidx,
-                                 obstype='temp')
 
 
 
