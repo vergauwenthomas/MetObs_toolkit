@@ -79,6 +79,54 @@ class Missingob_collection:
         return self.__str__()
 
 
+    def get_info(self, max_disp_list=7):
+        """
+        Print out detailed information on the missing observations.
+
+        Parameters
+        ----------
+
+        max_disp_list : int, optional
+            Max size of lists to print out. If listsize is larger, the length of
+            the list is printed. The default is 7.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        print(f'\n ---- Missing observations info ----- \n')
+        if self.series.empty:
+            print(f'Empty missing observations.')
+            return
+
+        n_missing = len(self)
+        stations = self.series.index.unique().to_list()
+
+        print(f'  * {n_missing} missing observations')
+        if n_missing <= max_disp_list:
+            print(f'\n {self.series} \n')
+
+        if len(stations) <= max_disp_list:
+            print(f'  * For these stations: {stations}')
+        else:
+            print(f'  * For {len(stations)} stations')
+
+        if self.fill_df.empty:
+            print(f'  * The missing observations are not filled.')
+        else:
+            filled_obstypes = [obs for obs in self.fill_df.columns if not obs.endswith('_final_label')]
+            print(f'  * Missing observations are filled with {{self.fill_technique}} for: ')
+            for obstype in filled_obstypes:
+                print(f'    {obstype}: \n {self.fill_df[[obstype]]}')
+
+        print('(More details on the missing observation can be found in the .series and .fill_df attributes.)')
+        return
+
+
+
+
     def get_station_missingobs(self, name):
         """
         Get the missing observations of a specific station.
