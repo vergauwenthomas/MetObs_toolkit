@@ -17,47 +17,41 @@ from pathlib import Path
 lib_folder = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(lib_folder))
 
+# add testdata paths
+from tests.push_test.test_data_paths import testdata
+
+
+
+
 tmp_pickle=os.path.join(lib_folder, 'development', 'tmp', 'dev_pickle.pkl')
 
 import metobs_toolkit
 
 
 
-
-# # data
-# era5_congo_file = '/home/thoverga/Downloads/era5_data_kongo.csv'
-data_file = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/ATHTS01_all.csv'
-# metadata_file = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Kobe/CONGO_meta.csv'
-template_file ='/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Ian/template.csv'
-
-
-
-
 #%%
-
+use_dataset = 'single_netatmo_sara_station'
 dataset = metobs_toolkit.Dataset()
 
 
-
-#%%
-
 dataset.update_settings(output_folder=None,
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        # input_data_file = data_file,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        data_template_file=metobs_toolkit.demo_template,
-                        # data_template_file = template_file,
-                        metadata_template_file=metobs_toolkit.demo_template,
+                        input_data_file=testdata[use_dataset]['datafile'],
+                        input_metadata_file=testdata[use_dataset]['metadatafile'],
+                        data_template_file=testdata[use_dataset]['template'],
+                        metadata_template_file=testdata[use_dataset]['template'],
                         )
 
 
-dataset.import_data_from_file()
-dataset.coarsen_time_resolution()
+dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
-# dataset.apply_quality_control()
+dataset.coarsen_time_resolution(freq =testdata[use_dataset]['coarsen'])
 
-# dataset.update_gaps_and_missing_from_outliers()
 
+#%%
+
+
+sta = dataset.get_station('feest')
+sta.make_geo_plot()
 
 
 

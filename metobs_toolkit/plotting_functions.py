@@ -6,7 +6,7 @@ Created on Fri Oct 21 11:26:52 2022
 @author: thoverga
 """
 
-
+import warnings
 import pandas as pd
 import math
 import numpy as np
@@ -232,7 +232,6 @@ def _spatial_plot(
     vmax,
 ):
     # TODO: docstring + beter positionion of the lengends
-
     gdf = gpd.GeoDataFrame(gdf)
     fig, ax = plt.subplots(1, 1, figsize=figsize)
 
