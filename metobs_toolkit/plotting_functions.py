@@ -308,11 +308,11 @@ def _sorting_function(label_vec, custom_handles, number_of_labels_types=4):
     return sorted_handles
 
 def _format_datetime_axis(axes):
-    locator = mdates.AutoDateLocator()
-    # formatter = mdates.AutoDateFormatter(locator)
-    formatter = mdates.DateFormatter(fmt='%Y/%m/%d %H:%M:%S')
-    axes.xaxis.set_major_formatter(formatter)
-    axes.xaxis.set_minor_formatter(formatter)
+    xtick_locator = mdates.AutoDateLocator()
+    xtick_formatter = mdates.AutoDateFormatter(xtick_locator)
+
+    axes.xaxis.set_major_locator(xtick_locator)
+    axes.xaxis.set_major_formatter(xtick_formatter)
     return axes
 
 def _create_linecollection(linedf, colormapper, linestylemapper,
@@ -379,9 +379,6 @@ def timeseries_plot(
     dt_min = mergedf.index.get_level_values('datetime').min()
     dt_max = mergedf.index.get_level_values('datetime').max()
 
-    #get value min max to set yrange
-    y_min = mergedf['value'].min()
-    y_max = mergedf['value'].max()
 
     # define different groups (different plotting styles)
 
@@ -524,6 +521,7 @@ def timeseries_plot(
 
 
 
+
     elif colorby == "name":
         # subset obs to plot
         line_labels = ['ok']
@@ -591,7 +589,8 @@ def timeseries_plot(
     ax.set_ylabel(ylabel)
 
     # set x,y limits
-    ax.autoscale()
+    ax.set_xlim(mdates.date2num(dt_min), mdates.date2num(dt_max))
+    ax.autoscale(axis='y')
 
     return ax, col_mapper
 

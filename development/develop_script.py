@@ -8,7 +8,7 @@ Created on Thu Oct  6 13:25:02 2022
 #%%
 
 # import metobs_toolkit
-
+#
 import os
 import sys
 from pathlib import Path
@@ -30,7 +30,7 @@ import metobs_toolkit
 
 
 #%%
-use_dataset = 'single_netatmo_sara_station'
+use_dataset = 'demo'
 dataset = metobs_toolkit.Dataset()
 
 
@@ -44,14 +44,42 @@ dataset.update_settings(output_folder=None,
 
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
-dataset.coarsen_time_resolution(freq =testdata[use_dataset]['coarsen'])
+dataset.coarsen_time_resolution(freq ='60T')
 
 
 #%%
 
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
-sta = dataset.get_station('feest')
-sta.make_geo_plot()
+
+ax = dataset.make_plot(legend=True)
+ax = dataset.make_plot(colorby='label')
+
+
+# from matplotlib.dates import AutoDateFormatter, AutoDateLocator
+
+# xtick_locator = AutoDateLocator()
+# xtick_formatter = AutoDateFormatter(xtick_locator)
+
+# # ax = plt.axes()
+# ax.xaxis.set_major_locator(xtick_locator)
+# ax.xaxis.set_major_formatter(xtick_formatter)
+
+
+
+
+
+# print(ax.xaxis.get_major_formatter())
+
+# # locator = mdates.AutoDateLocator()
+# formatter = mdates.AutoDateFormatter(mdates.AutoDateLocator())
+# # formatter = mdates.DateFormatter(fmt='%Y/%m/%d %H:%M:%S')
+# ax.xaxis.set_major_formatter(formatter)
+# # ax.xaxis.set_minor_formatter(formatter)
+# print(ax.xaxis.get_major_formatter())
+
+#%%
 
 
 
