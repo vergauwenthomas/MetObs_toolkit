@@ -128,13 +128,13 @@ def gapfill_testing(dataset, name):
     _ = dataset.get_gaps_df()
 
     dataset.get_gaps_info()
-    dataset.missing_obs.get_info()
+    dataset.get_missing_obs_info()
     # filling
     datset.fill_missing_obs_linear()
     datset.fill_gaps_linear()
 
     dataset.get_gaps_info()
-    dataset.missing_obs.get_info()
+    dataset.get_missing_obs_info()
 
     # plot test
     dataset.make_plot(colorby='label', title='AFTER GAP AND MISSING FILL')
