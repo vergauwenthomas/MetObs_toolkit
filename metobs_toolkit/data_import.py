@@ -65,7 +65,7 @@ def compress_dict(nested_dict, valuesname):
     return returndict
 
 
-def check_template_compatibility(template, df_columns):
+def check_template_compatibility(template, df_columns, filetype):
     # ignore datetime because this is already mapped
     present_cols = [col for col in df_columns if col != 'datetime']
     assumed_cols = [key for key in template.keys() if key != 'datetime']
@@ -75,20 +75,20 @@ def check_template_compatibility(template, df_columns):
 
     if len(unmapped_assumed) > 0:
         print(
-            f"WARNING! The following columns are not present in the data,\
-              and cannot be mapped: {unmapped_assumed}"
+            f"WARNING! The following columns are not present in the {filetype},\
+ and cannot be mapped: {unmapped_assumed}"
         )
 
     # in df but not in mapper
     unmapped_appearing = [col for col in present_cols if col not in assumed_cols]
     if len(unmapped_appearing) > 0:
         print(
-            f"WARNING! The following columns in the data cannot be mapped with the template: {unmapped_appearing}.")
+            f"WARNING! The following columns in the {filetype} cannot be mapped with the template: {unmapped_appearing}.")
 
     # check if at least one column is mapped
     if len(list(set(present_cols) - set(assumed_cols))) == len(present_cols):
         sys.exit(
-            f"Fatal: The given template: {assumed_cols} does not match with any of the data columns: {present_cols}."
+            f"Fatal: The given template: {assumed_cols} does not match with any of the {filetype} columns: {present_cols}."
         )
 
 
@@ -117,7 +117,7 @@ def import_metadata_from_csv(input_file, template_file, kwargs_metadata_read):
 
     # validate template
     template = read_csv_template(template_file)
-    check_template_compatibility(template, df.columns)
+    check_template_compatibility(template, df.columns, filetype='metadata')
 
     # rename columns to toolkit attriute names
     df = df.rename(columns=compress_dict(template, "varname"))
@@ -259,7 +259,7 @@ def import_data_from_csv(input_file, template_file,
 
 
     # 5. check compatibility
-    check_template_compatibility(template, df.columns)
+    check_template_compatibility(template, df.columns, filetype='data')
 
 
     # 6. map to default name space

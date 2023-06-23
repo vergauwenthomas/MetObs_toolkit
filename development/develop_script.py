@@ -54,62 +54,9 @@ dataset.update_settings(output_folder=None,
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
 
-dataset.apply_quality_control()
+# dataset.apply_quality_control()
 
-dataset.update_gaps_and_missing_from_outliers()
-
-#%%
-dataset.get_missing_obs_info()
-dataset.fill_missing_obs_linear()
-
-
-#%%
-
-
-
-
-
-
-
-#%% test
-
-
-
-
-# model_data.convert_units_to_tlk(obstype='temp',
-#                                 target_unit_name='Celcius',
-#                                 conv_expr=None)
-
-# print(model_data)
-# model_data.convert_units_to_tlk(obstype='temp',
-#                                 target_unit_name='hot_Celcius',
-#                                 conv_expr="x + 10")
-
-# model_data.get_ERA5_data(metadf=dataset.metadf, startdt=datetime(2022, 9, 1), enddt=datetime(2022, 9, 2))
-
-# print(model_data)
-# model_data.add_gee_dataset(mapname='worldcover',
-#                            gee_location='location/loc/dfmijfe',
-#                            obstype='temp',
-#                            bandname='temp 2m passive field',
-#                            units ='C',
-#                            scale = 100,
-#                            time_res='1H',
-#                            is_image=False,
-#                            is_numeric=True,
-#                            credentials='bladiblie')
-
-
-# model_data.list_gee_datasets()
-
-
-# model_data.set_model_from_csv('/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/era5_data.csv')
-
-
-
-
-
-
+# dataset.update_gaps_and_missing_from_outliers()
 
 
 
