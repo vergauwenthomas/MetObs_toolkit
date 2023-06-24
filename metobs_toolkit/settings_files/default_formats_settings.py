@@ -41,7 +41,7 @@ default_name = "unknown_name"  # used when no station names are available
 # =============================================================================
 plot_settings["time_series"] = {
     # shape
-    "figsize": (10, 5),
+    "figsize": (15, 5),
     "colormap": 'tab20', #when colorby='name' is used
     "linewidth": 2,  #
     "linestyle_ok": '-', #solid line
