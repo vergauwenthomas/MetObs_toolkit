@@ -2748,6 +2748,109 @@ class Dataset:
                 self.metadf[buf_df.columns] = buf_df
 
         return frac_df
+    def fairness_coordinates_for_modeldata_csv_creator(self, outputfolder=None,
+                    filename='summerschool_modeldata_metadata.csv',
+                    lat_min=None, lon_min=None,
+                    lat_max=None, lon_max=None):
+        """
+        This is for the participants of the Cost FAIRNESS Summerschool in Ghent.
+        It will create a small csv file with the locations and names of your stations.
+        This information is needed to extract timeseries of model data.
+
+        A spatial plot will be provided aswell. If no bounding box coordinates are given,
+        a boundingboux is create to encapsulate your stations.
+
+        A csv file will be saved in the outputfolder. Email this file to mivieijra@meteo.be.
+
+        Parameters
+        ----------
+        outputfolder : string, optional
+            The autput folder to store the csv file. If None, the default
+            autputfolder will be used. The default is None.
+        filename : string, optional
+            Name of the csv file. The default is
+            'summerschool_modeldata_metadata.csv'.
+        lat_min : num, optional
+            Minimum latitude of the bounding box. If None, a boundingbox will
+            be computed that fits your stations. The default is None.
+        lon_min : num, optional
+            Minimum longitude of the bounding box. If None, a boundingbox will
+            be computed that fits your stations. The default is None.
+        lat_max : num, optional
+            Maximum latitude of the bounding box. If None, a boundingbox will
+            be computed that fits your stations. The default is None.
+        lon_max : num, optional
+            Maximum longitude of the bounding box. If None, a boundingbox will
+            be computed that fits your stations. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # checks
+        # check if metadata is available
+        if self.metadf['lat'].isnull().all():
+            print('Error: No coordinates are found in the metadata. A csv cannot be created.')
+            return
+
+        if self.metadf['lon'].isnull().all():
+            print('Error: No coordinates are found in the metadata. A csv cannot be created.')
+            return
+
+        if ((outputfolder is None) & (self.settings.IO['output_folder'] is None)):
+            print('Error: No outputfolder is specified.')
+            return
+
+
+        if outputfolder is None:
+            outputfolder =self. settings.IO['output_folder']
+
+        user_bounds = [lat_min, lon_min, lat_max, lon_max]
+        if any([x is None for x in user_bounds]):
+            # use default bounds
+            make_bounds=True
+            print('Info: Since not (all) bounds are given, the bounds are the total bounds of the present stations.')
+        else:
+            make_bounds=False
+
+
+        metadf = self.metadf.copy()
+        metadf= metadf[metadf['lat'].notna()]
+        metadf= metadf[metadf['lon'].notna()]
+
+
+        if make_bounds:
+            # lonmin, latmin, lonmax, latmax
+            bounds = tuple(metadf.total_bounds)
+        else:
+            bounds = tuple([float(lon_min), float(lat_min),
+                            float(lon_max), float(lat_max)])
+
+
+        # add bounds as a column (avoid creating two files with data, and readin in problems in R)
+        metadf['bbox'] = [bounds for _ in range(len(metadf))]
+        # reset index so no problems in R
+        metadf = metadf.reset_index()
+        # subset to relevant columns
+        savedf = metadf[['name', 'lat', 'lon', 'bbox']]
+
+
+        # Write to a csv file
+        if not filename.endswith('.csv'):
+            filename += '.csv'
+
+        filepath = os.path.join(outputfolder, filename)
+        savedf.to_csv(filepath,
+                      sep=',',
+                      index=False,
+                      decimal='.')
+        print(f'\n File is writen to : {filepath}. \n')
+        print('Download the file (as a .csv), and send it by email to:  mivieijra@meteo.be.')
+        return
+
+
 
     def make_gee_plot(self, gee_map, show_stations=True, save=False):
         """

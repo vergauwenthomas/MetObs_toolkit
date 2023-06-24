@@ -45,39 +45,44 @@ dataset.update_settings(output_folder=None,
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
 dataset.coarsen_time_resolution(freq ='60T')
+#%%
+
+outputfolder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit'
+
+
+dataset.update_settings(output_folder=outputfolder)
+
+dataset.fairness_coordinates_for_modeldata_csv_creator()
+
+
+
+
+
 
 
 #%%
-
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-
-
-ax = dataset.make_plot(legend=True)
-ax = dataset.make_plot(colorby='label')
+# import pandas as pd
+# import copy
 
 
-# from matplotlib.dates import AutoDateFormatter, AutoDateLocator
-
-# xtick_locator = AutoDateLocator()
-# xtick_formatter = AutoDateFormatter(xtick_locator)
-
-# # ax = plt.axes()
-# ax.xaxis.set_major_locator(xtick_locator)
-# ax.xaxis.set_major_formatter(xtick_formatter)
+# metadf = dataset.metadf.copy()
+# metadf= metadf[metadf['lat'].notna()]
+# metadf= metadf[metadf['lon'].notna()]
 
 
+# bounds = tuple(metadf.total_bounds)
 
 
+# # add bounds as a column (avoid creating two files with data, and readin in problems in R)
+# # savedf.loc[:,'bbox'] = [bounds] * savedf.shape[0]
+# metadf['bbox'] = [bounds for _ in range(len(metadf))]
 
-# print(ax.xaxis.get_major_formatter())
 
-# # locator = mdates.AutoDateLocator()
-# formatter = mdates.AutoDateFormatter(mdates.AutoDateLocator())
-# # formatter = mdates.DateFormatter(fmt='%Y/%m/%d %H:%M:%S')
-# ax.xaxis.set_major_formatter(formatter)
-# # ax.xaxis.set_minor_formatter(formatter)
-# print(ax.xaxis.get_major_formatter())
+# # reset index so no problems in R
+# metadf = metadf.reset_index()
+
+
+# savedf = metadf[['name', 'lat', 'lon' , 'bbox']]
 
 #%%
 
