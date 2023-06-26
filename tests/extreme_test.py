@@ -228,17 +228,3 @@ for name in testdata:
 
 #%%
 
-# name = 'single_netatmo_sara_station'
-
-
-# dataset = read_in_the_dataset(name, testdata)
-# dataset.coarsen_time_resolution(freq=testdata[name]['coarsen'])
-# get_lcz_and_lc(name, dataset)
-# an = dataset.get_analysis()
-# #%%
-# an.get_lc_correlation_matrices(obstype=['temp', 'humidity'], groupby_labels=['lcz', 'hour'])
-
-
-# an.plot_correlation_heatmap()
-
-# an.plot_correlation_variation()

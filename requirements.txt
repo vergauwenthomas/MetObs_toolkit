@@ -435,9 +435,9 @@ ipyevents==2.0.1 ; python_version >= "3.9" and python_version < "4.0" \
 ipyfilechooser==0.6.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:41df9e4395a924f8e1b78e2804dbe5066dc3fdc233fb07fecfcdc2a0c9a7d8d3 \
     --hash=sha256:4555c24b30b819c91dc0ae5e6f7e4cf8f90e5cca531a9209a1fe4deee288d5c5
-ipykernel==6.23.2 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:7ccb6e2d32fd958c21453db494c914f3474908a2fdefd99ab548a5375b548d1f \
-    --hash=sha256:fcfb67c5b504aa1bfcda1c5b3716636239e0f7b9290958f1c558c79b4c0e7ed5
+ipykernel==6.23.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:bc00662dc44d4975b668cdb5fefb725e38e9d8d6e28441a519d043f38994922d \
+    --hash=sha256:dd4e18116357f36a1e459b3768412371bee764c51844cbf25c4ed1eb9cae4a54
 ipyleaflet==0.17.3 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:7717f4b5ad1f55b3048a6c3ea8144b85d0daab10752f2591b9c39d82dcf310ed \
     --hash=sha256:adca9ebdf009ad55d3e94976191474bfb85d13aa79854698e9b0922338a6fc66
@@ -459,9 +459,9 @@ jinja2==3.1.2 ; python_version >= "3.9" and python_version < "4.0" \
 joblib==1.2.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:091138ed78f800342968c523bdde947e7a305b8594b910a0fea2ab83c3c6d385 \
     --hash=sha256:e1cee4a79e4af22881164f218d4311f60074197fb707e082e803b61f6d137018
-jupyter-client==8.2.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:9fe233834edd0e6c0aa5f05ca2ab4bdea1842bfd2d8a932878212fc5301ddaf0 \
-    --hash=sha256:b18219aa695d39e2ad570533e0d71fb7881d35a873051054a84ee2a17c4b7389
+jupyter-client==8.3.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:3af69921fe99617be1670399a0b857ad67275eefcfa291e2c81a160b7b650f5f \
+    --hash=sha256:7441af0c0672edc5d28035e92ba5e32fadcfa8a4e608a434c228836a89df6158
 jupyter-core==5.3.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:5ba5c7938a7f97a6b0481463f7ff0dbac7c15ba48cf46fa4035ca6e838aa1aba \
     --hash=sha256:ae9036db959a71ec1cac33081eeb040a79e681f08ab68b0883e9a676c7a90dce
@@ -801,9 +801,9 @@ pillow==9.5.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:fbd359831c1657d69bb81f0db962905ee05e5e9451913b18b831febfe0519082 \
     --hash=sha256:fe7e1c262d3392afcf5071df9afa574544f28eac825284596ac6db56e6d11062 \
     --hash=sha256:fed1e1cf6a42577953abbe8e6cf2fe2f566daebde7c34724ec8803c4c0cda579
-platformdirs==3.7.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:87fbf6473e87c078d536980ba970a472422e94f17b752cfad17024c18876d481 \
-    --hash=sha256:cfd065ba43133ff103ab3bd10aecb095c2a0035fcd1f07217c9376900d94ba07
+platformdirs==3.8.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:b0cabcb11063d21a0b261d557acb0a9d2126350e63b70cdf7db6347baea456dc \
+    --hash=sha256:ca9ed98ce73076ba72e092b23d3c93ea6c4e186b3f1c3dad6edd98ff6ffcca2e
 plotly==5.15.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:3508876bbd6aefb8a692c21a7128ca87ce42498dd041efa5c933ee44b55aab24 \
     --hash=sha256:822eabe53997d5ebf23c77e1d1fcbf3bb6aa745eb05d532afd4b6f9a2e2ab02f

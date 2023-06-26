@@ -39,6 +39,8 @@ class Analysis():
         n_stations = self.df.index.get_level_values('name').unique().shape[0]
         n_obs_tot = self.df.shape[0]
 
+        startdt = self.df.index.get_level_values('datetime').min()
+        enddt = self.df.index.get_level_values('datetime').max()
 
         if ((not self.metadf['lat'].isnull().all()) &
             (not self.metadf['lon'].isnull().all())):
@@ -55,7 +57,9 @@ class Analysis():
 
         return (f"Analysis instance containing: \n \
     *{n_stations} stations \n \
-    *{n_obs_tot} observation records \n{add_info}" )
+    *{self.df.columns.to_list()} observation types \n \
+    *{n_obs_tot} observation records \n{add_info} \n \
+    *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt})" + add_info)
 
     def __repr__(self):
         return self.__str__()
