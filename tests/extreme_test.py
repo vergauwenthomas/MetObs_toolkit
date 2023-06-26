@@ -168,6 +168,7 @@ def analysis_test(dataset, name):
 
     filter_an = an.apply_filter('temp < 15.5 &  hour <= 19')
 
+
     agg_df = an.aggregate_df( agg=['lcz', 'hour'])
 
     if 'humidity' in dataset.df.columns:
@@ -209,6 +210,7 @@ def meta_path_generator(name):
 
 
 
+
 # %%
 
 for name in testdata:
@@ -224,7 +226,13 @@ for name in testdata:
     analysis_test(dataset, name)
     IO_test(dataset, name)
 
+# dataset = read_in_the_dataset(name, testdata)
+# dataset.coarsen_time_resolution(freq=testdata[name]['coarsen'])
+# get_lcz_and_lc(name, dataset)
+# an = dataset.get_analysis()
+# #%%
+# an.get_lc_correlation_matrices(obstype=['temp', 'humidity'], groupby_labels=['lcz', 'hour'])
 
 
-#%%
 
+# an.plot_correlation_variation()

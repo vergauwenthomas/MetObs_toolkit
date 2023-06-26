@@ -30,8 +30,10 @@ import metobs_toolkit
 
 
 #%%
+
 # use_dataset = 'debug_wide'
 use_dataset = 'demo'
+
 dataset = metobs_toolkit.Dataset()
 
 
@@ -51,7 +53,11 @@ dataset.apply_quality_control()
 
 
 
+# dataset.update_settings(output_folder=outputfolder)
+
+
 # dataset.make_plot(colorby='label')
+
 
 dataset.get_station('vlinder05').make_plot(colorby='label', title='using station', show_outliers=True)
 dataset.make_plot(colorby='label', title='using subset', show_outliers=True)
