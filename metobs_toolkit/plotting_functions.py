@@ -418,26 +418,6 @@ def timeseries_plot(
         line_labels.extend(fill_labels)
 
 
-        # -------- Ok and filled observation -------- (lines)
-
-
-        for sta in mergedf.index.get_level_values('name').unique():
-            stadf = xs_save(mergedf, sta, 'name') #subset to one station
-            linedf = stadf[stadf['label'].isin(line_labels)] #subset all obs that are repr by lines
-
-            # now add the other records, and convert the value to nan to avoid
-            # interpolation in the plot
-            stadf.loc[~stadf.index.isin(linedf.index), 'value'] = np.nan
-
-            # make line collection
-            sta_line_lc = _create_linecollection(
-                                linedf = stadf,
-                                colormapper = col_mapper,
-                                linestylemapper=line_mapper,
-                                plotsettings =plot_settings)
-            ax.add_collection(sta_line_lc)
-
-
         # ------ missing obs ------ (vertical lines)
         missing_df = mergedf[mergedf['label'].isin(no_vals_labels)]
         missing_df = missing_df.reset_index()
@@ -464,6 +444,30 @@ def timeseries_plot(
             zorder=plot_settings["time_series"]["scatterzorder"],
             s=plot_settings["time_series"]["scattersize"],
         )
+
+        # -------- Ok and filled observation -------- (lines)
+
+
+        for sta in mergedf.index.get_level_values('name').unique():
+            stadf = xs_save(mergedf, sta, 'name') #subset to one station
+            linedf = stadf[stadf['label'].isin(line_labels)] #subset all obs that are repr by lines
+
+            # now add the other records, and convert the value to nan to avoid
+            # interpolation in the plot
+            stadf.loc[~stadf.index.isin(linedf.index), 'value'] = np.nan
+            # (WARNING): The above line converts all values in the mergedf, to
+            # Nan's if the label is not in 'line_labels' !!! Thus plot all other
+            # categories in advance and the line plot at the end. The zorder,
+            # takes care of what is displayed on top.
+
+            # make line collection
+            sta_line_lc = _create_linecollection(
+                                linedf = stadf,
+                                colormapper = col_mapper,
+                                linestylemapper=line_mapper,
+                                plotsettings =plot_settings)
+            ax.add_collection(sta_line_lc)
+
 
         # create legend
         if show_legend:
