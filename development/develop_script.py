@@ -30,8 +30,10 @@ import metobs_toolkit
 
 
 #%%
-use_dataset = 'debug_wide'
-# use_dataset = 'demo'
+
+# use_dataset = 'debug_wide'
+use_dataset = 'demo'
+
 dataset = metobs_toolkit.Dataset()
 
 
@@ -46,23 +48,19 @@ dataset.update_settings(output_folder=None,
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
 dataset.coarsen_time_resolution(freq ='60T')
+dataset.apply_quality_control()
 #%%
 
-print(dataset.metadf[['lat', 'lon']])
-
-print(f"dtypes: {dataset.metadf['lat'].dtype} and {dataset.metadf['lon'].dtype}")
-
-
-# outputfolder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit'
 
 
 # dataset.update_settings(output_folder=outputfolder)
 
-# dataset.fairness_coordinates_for_modeldata_csv_creator()
+
+# dataset.make_plot(colorby='label')
 
 
-dataset.get_lcz()
-
+dataset.get_station('vlinder05').make_plot(colorby='label', title='using station', show_outliers=True)
+dataset.make_plot(colorby='label', title='using subset', show_outliers=True)
 
 
 

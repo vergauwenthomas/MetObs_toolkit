@@ -147,6 +147,9 @@ class Dataset:
         n_stations = self.df.index.get_level_values('name').unique().shape[0]
         n_obs_tot = self.df.shape[0]
         n_outl = self.outliersdf.shape[0]
+        startdt = self.df.index.get_level_values('datetime').min()
+        enddt = self.df.index.get_level_values('datetime').max()
+
 
         if ((not self.metadf['lat'].isnull().all()) &
             (not self.metadf['lon'].isnull().all())):
@@ -155,11 +158,12 @@ class Dataset:
 
         return (f"Dataset instance containing: \n \
     *{n_stations} stations \n \
+    *{self.df.columns.to_list()} observation types \n \
     *{n_obs_tot} observation records \n \
     *{n_outl} records labeled as outliers \n \
     *{len(self.gaps)} gaps \n \
-    *{self.missing_obs.series.shape[0]} missing observations \n" + add_info)
-
+    *{self.missing_obs.series.shape[0]} missing observations \n \
+    *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt})" + add_info)
     def __repr__(self):
         return self.__str__()
 
