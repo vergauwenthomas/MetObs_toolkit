@@ -1642,7 +1642,6 @@ class Dataset:
                                                checks_settings = self.settings.qc['titan_check_settings'][checkname][obstype],
                                                titan_specific_labeler = self.settings.qc['titan_specific_labeler'][checkname])
 
-            print('DONE')
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
