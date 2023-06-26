@@ -734,6 +734,8 @@ class Analysis():
         if 'name' not in groupby_labels:
             df = df.drop(columns=['name'])
 
+
+
         # create return
         cor_dict = {}
 
@@ -747,7 +749,10 @@ class Analysis():
 
 
         for group_lab, groupdf in groups:
-
+            # No correlations can be computed when no variance is found
+            if groupdf.shape[0] <=1:
+                print(f'No variance found in correlationd group {group_lab}. Correlation thus not be computed for this group: {groupdf}.')
+                continue
             # drop groupby labels
             groupdf = groupdf.drop(columns=groupby_labels, errors='ignore')
 
@@ -850,10 +855,17 @@ class Analysis():
         method to reduce the group values.
 
         """
-        # TODO docstring
 
         # check if there are correlation matrices
         assert bool(self.lc_cor_dict), 'No correlation matrices found, use the metod get_lc_correlation_matrices first.'
+
+        # check if correlation evolution information is available
+        if len(self.lc_cor_dict.keys()) <= 1:
+            print(f'WARNING: Only one correlation group is found: {self.lc_cor_dict.keys()}')
+            print('The variance plot can not be made.')
+            return
+
+
 
         if title is None:
             title = f'Correlation scatter for group: {self._lc_groupby_labels}'

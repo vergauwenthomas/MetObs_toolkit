@@ -30,7 +30,8 @@ import metobs_toolkit
 
 
 #%%
-use_dataset = 'demo'
+use_dataset = 'debug_wide'
+# use_dataset = 'demo'
 dataset = metobs_toolkit.Dataset()
 
 
@@ -47,15 +48,20 @@ dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 dataset.coarsen_time_resolution(freq ='60T')
 #%%
 
-outputfolder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit'
+print(dataset.metadf[['lat', 'lon']])
+
+print(f"dtypes: {dataset.metadf['lat'].dtype} and {dataset.metadf['lon'].dtype}")
 
 
-dataset.update_settings(output_folder=outputfolder)
-
-dataset.fairness_coordinates_for_modeldata_csv_creator()
+# outputfolder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit'
 
 
+# dataset.update_settings(output_folder=outputfolder)
 
+# dataset.fairness_coordinates_for_modeldata_csv_creator()
+
+
+dataset.get_lcz()
 
 
 

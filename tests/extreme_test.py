@@ -6,7 +6,7 @@ Idea is to test all testfiles with all kind of datasets
 @author: thoverga
 """
 
-
+import copy
 import sys, os
 
 from pathlib import Path
@@ -122,7 +122,9 @@ def gapfill_testing(dataset, name):
 
     init_outl_shape = dataset.outliersdf.shape
     dataset.update_gaps_and_missing_from_outliers(n_gapsize=3)
-    assert init_outl_shape!=dataset.outliersdf.shape, 'outliers still the same as before updateing to gaps'
+    if init_outl_shape[0] > 0:
+
+        assert init_outl_shape!=dataset.outliersdf.shape, 'outliers still the same as before updateing to gaps'
 
 
     _ = dataset.get_gaps_df()
@@ -145,61 +147,43 @@ def gapfill_testing(dataset, name):
 def plot_testing(dataset, name):
     print(f'\n ------ plot tests ({name})---------\n')
 
-    dataset.make_plot(colorby='name')
-    dataset.make_plot(colorby='label')
+    dataset.make_plot(colorby='name', title=name)
+    dataset.make_plot(colorby='label', title=name)
 
     if not dataset.metadf.empty:
-        dataset.make_geo_plot(variable='temp')
+        dataset.make_geo_plot(variable='temp', title=name)
 
 
+def analysis_test(dataset, name):
+    print(f'\n ------ Analysis testing({name})---------\n')
 
-def analysis_test(dataset):
     an = dataset.get_analysis()
-    # TODO: get lcz and landcover info for all teststations.
+
+    # Test plotting and functions
+    (temp_diurnal, stats) = an.get_diurnal_statistics(colorby='lcz',title=name, verbose=True)
+
+    test3 = an.get_aggregated_diurnal_statistics(aggregation=['lcz'],title=name, verbose=True)
+
+    print(an)
+
+    filter_an = an.apply_filter('temp < 15.5 &  hour <= 19')
+
+    agg_df = an.aggregate_df( agg=['lcz', 'hour'])
+
+    if 'humidity' in dataset.df.columns:
+        an.get_lc_correlation_matrices(obstype=['temp', 'humidity'], groupby_labels=['lcz', 'season'])
+    else:
+        an.get_lc_correlation_matrices(obstype=['temp'], groupby_labels=['lcz', 'season'])
 
 
 
-
-
-
-# %%
-
-
-
-# for name in testdata:
-#     print(f'\n ************ {name} *************\n')
-#     dataset = read_in_the_dataset(name, testdata)
-#     datset = dataset.coarsen_time_resolution(freq=testdata[name]['coarsen'])
-#     IO_test(dataset, name)
-#     # qc_testing(dataset, name)
-#     plot_testing(dataset, name)
-#     gapfill_testing(dataset, name)
-
-
-#%% get lcz and landcover for each dataset
-import pandas as pd
-import copy
-import os
-
-
-
-def meta_path_generator(name):
-    metafolder=os.path.join(str(lib_folder), 'tests', 'test_data/meta_data_extreme_test')
-
-    filename =name.replace(' ', '_' ) + 'lc_info.csv'
-
-
-    return os.path.join(metafolder, filename)
-
-
-for name in testdata:
-    print(f' \n ****   {name}  **** \n')
-    dataset = read_in_the_dataset(name, testdata)
-
+def get_lcz_and_lc(name, dataset):
+    print(f'\n ------ gee lcz and lc extraction ({name})---------\n')
 
     dataset.get_lcz()
     dataset.get_landcover(buffers=[50, 100])
 
+    # save for later use if needed
     metadf = dataset.metadf.copy()
 
     # relevant columns:
@@ -214,25 +198,47 @@ for name in testdata:
 
 
 
+def meta_path_generator(name):
+    metafolder=os.path.join(str(lib_folder), 'tests', 'test_data/meta_data_extreme_test')
+
+    filename =name.replace(' ', '_' ) + '_lc_info.csv'
+
+
+    return os.path.join(metafolder, filename)
 
 
 
 
-#%% debugging
+# %%
+
+for name in testdata:
+    print(f'\n ************ {name} *************\n')
+    dataset = read_in_the_dataset(name, testdata)
+    print(f'Initial df shape: {dataset.df.shape}')
+    dataset.coarsen_time_resolution(freq=testdata[name]['coarsen'])
+    print(f'after coarsening df shape: {dataset.df.shape}')
+    qc_testing(dataset, name)
+    plot_testing(dataset, name)
+    gapfill_testing(dataset, name)
+    get_lcz_and_lc(name, dataset)
+    analysis_test(dataset, name)
+    IO_test(dataset, name)
 
 
 
+#%%
+
+# name = 'single_netatmo_sara_station'
 
 
-
-# dataset =  dataset = read_in_the_dataset('demo', testdata)
-
-
-# dataset.fill_missing_obs_linear()
-
-
-
+# dataset = read_in_the_dataset(name, testdata)
+# dataset.coarsen_time_resolution(freq=testdata[name]['coarsen'])
+# get_lcz_and_lc(name, dataset)
+# an = dataset.get_analysis()
+# #%%
+# an.get_lc_correlation_matrices(obstype=['temp', 'humidity'], groupby_labels=['lcz', 'hour'])
 
 
+# an.plot_correlation_heatmap()
 
-
+# an.plot_correlation_variation()

@@ -47,6 +47,8 @@ def lcz_extractor(metadf, mapinfo):
     lcz_df = extract_pointvalues(
         metadf=relevant_metadf, mapinfo=mapinfo, output_column_name="lcz"
     )
+    if lcz_df.empty:
+        return pd.Series(dtype=object)
     return lcz_df["lcz"]  # return series
 
 
@@ -295,11 +297,19 @@ def extract_pointvalues(metadf, mapinfo, output_column_name):
             f'gee dataset {mapinfo["location"]} is neighter image nor imagecollection.'
         )
 
+
+    # extract properties
+    if not bool(results['features']):
+        # no data retrieved
+        print(f'Error: Something went wrong, gee did not return any data: {results}')
+        print(f'(Could it be that (one) these coordinates are not on the map: {metadf}?)')
+        return pd.DataFrame()
     # =============================================================================
     # to dataframe
     # =============================================================================
 
-    # extract properties
+
+
     properties = [x["properties"] for x in results["features"]]
     df = pd.DataFrame(properties)
 

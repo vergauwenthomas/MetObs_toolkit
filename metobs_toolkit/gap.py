@@ -102,8 +102,16 @@ class Gap:
             for obstype in obstypes:
                 print(f'  * On observation type: {obstype}')
                 print(f'  * Technique: {self.gapfill_technique} \n')
-                print(f'  * Leading timestamp: {self.leading_timestamp} with  {obstype} = {self.leading_val[obstype]}\n')
-                print(f'  * Trailing timestamp: {self.trailing_timestamp} with  {obstype} = {self.trailing_val[obstype]}\n')
+                if bool(self.leading_val):
+                    leading_val =self.leading_val[obstype]
+                else:
+                    leading_val = 'No leading observation value'
+                print(f'  * Leading timestamp: {self.leading_timestamp} with  {obstype} = {leading_val}\n')
+                if bool(self.trailing_val):
+                    trailing_val =self.trailing_val[obstype]
+                else:
+                    trailing_val = 'No trailing observation value'
+                print(f'  * Trailing timestamp: {self.trailing_timestamp} with  {obstype} = {trailing_val}\n')
                 print(f'  * Filled values: {self.gapfill_df[obstype]} \n')
                 if obstype in self.gapfill_errormessage:
                     print(f'  * Gapfill message: {self.gapfill_errormessage[obstype]} \n')
