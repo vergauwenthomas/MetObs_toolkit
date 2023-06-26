@@ -130,14 +130,14 @@ def gapfill_testing(dataset, name):
     dataset.get_gaps_info()
     dataset.get_missing_obs_info()
     # filling
-    datset.fill_missing_obs_linear()
-    datset.fill_gaps_linear()
+    dataset.fill_missing_obs_linear()
+    dataset.fill_gaps_linear()
 
     dataset.get_gaps_info()
     dataset.get_missing_obs_info()
 
     # plot test
-    dataset.make_plot(colorby='label', title='AFTER GAP AND MISSING FILL')
+    # dataset.make_plot(colorby='label', title='AFTER GAP AND MISSING FILL')
 
 
 
@@ -152,18 +152,85 @@ def plot_testing(dataset, name):
         dataset.make_geo_plot(variable='temp')
 
 
+
+def analysis_test(dataset):
+    an = dataset.get_analysis()
+    # TODO: get lcz and landcover info for all teststations.
+
+
+
+
+
+
 # %%
 
 
 
+# for name in testdata:
+#     print(f'\n ************ {name} *************\n')
+#     dataset = read_in_the_dataset(name, testdata)
+#     datset = dataset.coarsen_time_resolution(freq=testdata[name]['coarsen'])
+#     IO_test(dataset, name)
+#     # qc_testing(dataset, name)
+#     plot_testing(dataset, name)
+#     gapfill_testing(dataset, name)
+
+
+#%% get lcz and landcover for each dataset
+import pandas as pd
+import copy
+import os
+
+
+
+def meta_path_generator(name):
+    metafolder=os.path.join(str(lib_folder), 'tests', 'test_data/meta_data_extreme_test')
+
+    filename =name.replace(' ', '_' ) + 'lc_info.csv'
+
+
+    return os.path.join(metafolder, filename)
+
+
 for name in testdata:
-    print(f'\n ************ {name} *************\n')
+    print(f' \n ****   {name}  **** \n')
     dataset = read_in_the_dataset(name, testdata)
-    datset = dataset.coarsen_time_resolution(freq=testdata[name]['coarsen'])
-    IO_test(dataset, name)
-    qc_testing(dataset, name)
-    plot_testing(dataset, name)
-    gapfill_testing(dataset, name)
+
+
+    dataset.get_lcz()
+    dataset.get_landcover(buffers=[50, 100])
+
+    metadf = dataset.metadf.copy()
+
+    # relevant columns:
+    rel_columns = [col for col in metadf.columns if (col.endswith('50m') | col.endswith('100m'))]
+    rel_columns.append('lcz')
+
+    metadf = metadf[rel_columns]
+    metadf = metadf.reset_index()
+    filename =meta_path_generator(name)
+
+    metadf.to_csv(filename)
+
+
+
+
+
+
+
+#%% debugging
+
+
+
+
+
+
+# dataset =  dataset = read_in_the_dataset('demo', testdata)
+
+
+# dataset.fill_missing_obs_linear()
+
+
 
 
 

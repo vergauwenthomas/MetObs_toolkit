@@ -67,7 +67,8 @@ class Analysis():
 
     def subset_period(self, startdt, enddt):
         """
-        Subset the observations of the Analysis to a specific period.
+        Subset the observations of the Analysis to a specific period. The same
+        timezone is assumed as the data.
 
         Parameters
         ----------
