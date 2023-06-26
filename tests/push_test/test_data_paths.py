@@ -76,7 +76,7 @@ testdata = {
               'datafile': join(test_data_dir,'testdata_testday', 'Sara','Outdoor_module_Netatmo_Sara_small.csv'),
               'metadatafile': join(test_data_dir,'testdata_testday', 'Sara','metadata_Outdoor_module_Netatmo_Sara_new.csv'),
               'template': join(test_data_dir,'testdata_testday', 'Sara','template_sara.csv'),
-              'kwargs':{},
+              'kwargs':{'freq_estimation_method' : 'median'},
               'coarsen': '60T',
               },
 

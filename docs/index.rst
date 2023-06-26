@@ -9,6 +9,7 @@ Welcome to MetObs-Toolkit's documentation!
    template_mapping
    examples
    gee_authentication
+   special_topics
    gui
 
 
