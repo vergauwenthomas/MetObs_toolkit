@@ -485,6 +485,7 @@ class Dataset:
         legend=True,
         vmin=None,
         vmax=None,
+        boundbox = []
     ):
         """
         This functions creates a geospatial plot for a field
@@ -506,14 +507,17 @@ class Dataset:
         title : string, optional
             Title of the figure, if None a default title is generated. The default is None.
         timeinstance : datetime.datetime, optional
-            Datetime moment of the geospatial plot. If None, the first available datetime is used. The default is None.
+            Datetime moment of the geospatial plot. If None, the first occuring (not Nan) record is used. The default is None.
         legend : bool, optional
             I True, a legend is added to the plot. The default is True.
         vmin : numeric, optional
             The value corresponding with the minimum color. If None, the minimum of the presented observations is used. The default is None.
         vmax : numeric, optional
             The value corresponding with the maximum color. If None, the maximum of the presented observations is used. The default is None.
-
+        boundbox : [lon-west, lat-south, lon-east, lat-north], optional
+            The boundbox to indicate the domain to plot. The elemenst are numeric.
+            If the list is empty, a boundbox is created automatically. The default
+            is [].
         Returns
         -------
         axis : matplotlib.pyplot.geoaxes
@@ -524,9 +528,9 @@ class Dataset:
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
 
-        # get first timeinstance of the dataset if not given
+        # get first (Not Nan) timeinstance of the dataset if not given
         if timeinstance is None:
-            timeinstance = self.df.index.get_level_values("datetime").min()
+            timeinstance = self.df.dropna(subset=['temp']).index[0][1]
 
         logger.info(f"Make {variable}-geo plot at {timeinstance}")
 
@@ -540,6 +544,11 @@ class Dataset:
             _sta = self.metadf[self.metadf['lon'].isnull()]['lon']
             print(f'Error: Stations without coordinates detected: {_sta}')
             return None
+
+        if bool(boundbox):
+            if len(boundbox) != 4:
+                print(f'Error: The boundbox ({boundbox}) does not contain 4 elements! The default boundbox is used!')
+                boundbox=[]
 
         # Check if LCZ if available
         if variable == 'lcz':
@@ -570,7 +579,8 @@ class Dataset:
             static_fields=self.settings.app["static_fields"],
             display_name_mapper=self.settings.app["display_name_mapper"],
             world_boundaries_map=self.settings.app["world_boundary_map"],
-            data_template=self.data_template
+            data_template=self.data_template,
+            boundbox = boundbox
         )
 
         return axis
