@@ -36,6 +36,9 @@ we can see that there are 4320 observational records. However, when we import it
 into the toolkit, only 87 observational records remain:
 
 
+(*) `Netatmo <https://www.netatmo.com/nl-be/smart-weather-station>`_ is a commercial company that sells automatic weather stations
+for personal use.
+
 
 .. code-block:: python
 
@@ -50,7 +53,7 @@ into the toolkit, only 87 observational records remain:
                            data_template_file=' .. template file .. ',
                            )
    #import the data
-   dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
+   dataset.import_data_from_file()
 
    print(dataset)
 
@@ -113,6 +116,13 @@ We can synchronize the dataset using this code example:
    name
    netatmo_station   0 days 00:05:00
    Name: dataset_resolution, dtype: timedelta64[ns]
+
+
+The :py:meth:`sync_observations()<metobs_toolkit.dataset.Dataset.sync_observations>` method can also
+be used to synchronize the time series of multiple stations. It does this by trying to stations with similar
+resolutions, finding an origin that works for all stations in this group, and creating a regular time series.
+
+
 
 
 
