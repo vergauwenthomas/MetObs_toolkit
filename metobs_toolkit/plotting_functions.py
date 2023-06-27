@@ -24,7 +24,7 @@ from matplotlib.collections import LineCollection
 import geemap.foliumap as foliumap
 import folium
 
-from metobs_toolkit.geometry_functions import find_largest_extent
+from metobs_toolkit.geometry_functions import find_plot_extent
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from metobs_toolkit.landcover_functions import get_ee_obj
@@ -142,7 +142,8 @@ def geospatial_plot(
     static_fields,
     display_name_mapper,
     world_boundaries_map,
-    data_template
+    data_template,
+    boundbox
 ):
     # Load default plot settings
     default_settings = plotsettings["spatial_geo"]
@@ -184,9 +185,10 @@ def geospatial_plot(
         use_quantiles = False
 
     # if observations extend is contained by default exten, use default else use obs extend
-    use_extent = find_largest_extent(
-        geodf=gpd.GeoDataFrame(plotdf), extentlist=default_settings["extent"]
-    )
+    use_extent = find_plot_extent(geodf=gpd.GeoDataFrame(plotdf),
+                                  user_bounds=boundbox,
+                                  default_extentlist=default_settings["extent"]
+                                  )
 
     # Style attributes
     if isinstance(title, type(None)):
@@ -262,6 +264,7 @@ def _spatial_plot(
     world_boundaries = gpd.read_file(world_boundaries_map)
     world_boundaries.plot(ax=ax)
 
+
     # add observations as scatters
     gdf.plot(
         column=variable,
@@ -269,7 +272,8 @@ def _spatial_plot(
         cmap=cmap,
         vmin=vmin,
         vmax=vmax,
-        # edgecolor='white',
+        # color='black',
+        edgecolor='black',
         # linewidth=0.5,
         # scale='NUMBER OF PERSONS KILLED',
         # limits=(8, 24),
