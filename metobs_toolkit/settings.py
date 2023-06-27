@@ -32,6 +32,7 @@ class Settings:
         self.missing_obs = {}
         self.templates = {}
         self.gee = {}
+        self.alaro = {}
         self.IO = {
             "output_folder": None,
             "input_data_file": None,
@@ -46,7 +47,7 @@ class Settings:
         self._update_gap_settings()
         self._update_templates()
         self._update_gee_settings()
-
+        self._update_alaro_settings()
     # =============================================================================
     #     Update settings from files in initialisation
     # =============================================================================
@@ -216,6 +217,18 @@ class Settings:
         from .settings_files.gee_settings import gee_datasets
 
         self.gee["gee_dataset_info"] = gee_datasets
+
+    def _update_alaro_settings(self):
+        """
+        Update the Alaro settings using the default settings templates.
+        :return: No return
+        :rtype: No return
+        """
+        logger.debug("Updating gee settings.")
+        from .settings_files.alaro_25_settings import al25_mapinfo
+        self.alaro["info"] = al25_mapinfo
+
+
 
     def update_timezone(self, timezonestr):
         """
