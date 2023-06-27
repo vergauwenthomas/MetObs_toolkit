@@ -45,6 +45,9 @@ dataset.update_settings(output_folder=None,
                         data_template_file=testdata[use_dataset]['template'],
                         metadata_template_file=testdata[use_dataset]['template'],
                         )
+tz ='Europe/Brussels'
+
+dataset.update_timezone(timezonestr=tz)
 
 
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
@@ -55,4 +58,23 @@ dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
 #%%
 dataset.sync_observations(tollerance='3T')
 dataset.coarsen_time_resolution(freq='30T')
-dataset.make_plot()
+
+
+#%%
+from datetime import datetime
+import pytz
+
+
+
+tstart = datetime(2021, 2, 28,9, tzinfo=pytz.timezone('UTC'))
+
+dataset.make_plot(starttime=tstart)
+#%%
+
+from metobs_toolkit.df_helpers import multiindexdf_datetime_subsetting
+import pytz
+
+
+
+
+
