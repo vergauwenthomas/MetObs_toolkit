@@ -2060,7 +2060,10 @@ class Dataset:
 
         """
 
+        # get columns pressent in metadf, because the input df can have columns
+        # that does not have to be mapped to the toolkit
 
+        init_meta_cols = self.metadf.columns.copy()
 
         df = self.input_df
 
@@ -2180,6 +2183,8 @@ class Dataset:
             fixed_freq_series=simplified_resolution,
             update_full_metadf=False,
         )  # Do not overwrite full metadf, only the frequencies
+
+        self.metadf = self.metadf[[col for col in self.metadf.columns if col in init_meta_cols]]
 
         if verbose:
             _total_verbose_df = _total_verbose_df.rename(
