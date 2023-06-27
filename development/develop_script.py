@@ -12,6 +12,7 @@ Created on Thu Oct  6 13:25:02 2022
 import os
 import sys
 from pathlib import Path
+import pandas as pd
 
 
 lib_folder = Path(__file__).resolve().parents[1]
@@ -29,25 +30,11 @@ import metobs_toolkit
 
 
 
-#%%
-
-import pandas as pd
-import pytz
-
-
-mmm = metobs_toolkit.Modeldata('cordex')
-
-csvpath= '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/Alaro_2.5_melle.csv'
-
-mmm.set_alaro_25_model_from_csv(csvpath)
-
-
-
 
 #%%
 
 # # use_dataset = 'debug_wide'
-use_dataset = 'demo'
+use_dataset = 'Congo_single_station'
 
 dataset = metobs_toolkit.Dataset()
 
@@ -62,16 +49,24 @@ dataset.update_settings(output_folder=None,
 
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
-dataset.coarsen_time_resolution(freq ='60T')
+dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
 # dataset.apply_quality_control()
 #%%
+dataset.make_plot(colorby='label')
+
+#%%
+from datetime import datetime
+from metobs_toolkit.df_helpers import datetime_subsetting
 
 
-mmm.df = mmm.df.reset_index()
-mmm.df['name']= 'vlinder01'
-mmm.df = mmm.df.set_index(['name', 'datetime'])
 
-mmm.make_plot(obstype_model='temp_TEB', dataset=dataset,
-              obstype_dataset = 'temp')
+
+# startdt =datetime(2021, 11,15)
+# enddt = datetime(2022,1,15)
+
+
+# df = datetime_subsetting(dataset.input_df, startdt, enddt)
+
+
 
 
