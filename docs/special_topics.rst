@@ -35,7 +35,6 @@ timestamps. On average the time resolution is 5 minutes. In the data file,
 we can see that there are 4320 observational records. However, when we import it
 into the toolkit, only 87 observational records remain:
 
-
 (*) `Netatmo <https://www.netatmo.com/nl-be/smart-weather-station>`_ is a commercial company that sells automatic weather stations
 for personal use.
 
@@ -121,8 +120,6 @@ We can synchronize the dataset using this code example:
 The :py:meth:`sync_observations()<metobs_toolkit.dataset.Dataset.sync_observations>` method can also
 be used to synchronize the time series of multiple stations. It does this by trying to stations with similar
 resolutions, finding an origin that works for all stations in this group, and creating a regular time series.
-
-
 
 
 
