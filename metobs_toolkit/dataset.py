@@ -2751,14 +2751,14 @@ class Dataset:
                 self.metadf[buf_df.columns] = buf_df
 
         return frac_df
-    def fairness_coordinates_for_modeldata_csv_creator(self, outputfolder=None,
+    def fairness_coordinates_for_alaro_25_csv_creator(self, outputfolder=None,
                     filename='summerschool_modeldata_metadata.csv',
                     lat_min=None, lon_min=None,
                     lat_max=None, lon_max=None):
         """
         This is for the participants of the Cost FAIRNESS Summerschool in Ghent.
         It will create a small csv file with the locations and names of your stations.
-        This information is needed to extract timeseries of model data.
+        This information is needed to extract timeseries of Alaro 2.5km modeldata.
 
         A spatial plot will be provided aswell. If no bounding box coordinates are given,
         a boundingboux is create to encapsulate your stations.

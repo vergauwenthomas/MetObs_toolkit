@@ -33,9 +33,12 @@ class Modeldata:
 
         self._settings = Settings()
         self.mapinfo = self._settings.gee["gee_dataset_info"]
+        self.mapinfo.update(self._settings.alaro['info'])
 
         self._df_units = {} #the units of the data stored in the df
         self.df_tz = 'UTC'# the timezone of the datetimes stored in the df
+
+        self._is_alaro25=False
 
 
     def __str__(self):
@@ -498,6 +501,59 @@ class Modeldata:
                                   obstype=obstype)
 
 
+    def set_alaro_25_model_from_csv(self, csvpath):
+
+        # update name
+        if self.modelname != 'ALARO_2.5':
+            print(f'Info: Converting modelname: {self.modelname} --> ALARO_2.5')
+            self.modelname ='ALARO_2.5'
+
+
+        info = self.mapinfo['ALARO_2.5']
+
+
+        # read in file
+        df = pd.read_csv(csvpath, sep=",")
+
+        # Subset to columns in the template
+        keep_cols = [val['name'] for val in info['band_of_use'].values()]
+        keep_cols.append(info['other_mapping']['datetime']['name'])
+        keep_cols.append(info['other_mapping']['name']['name'])
+        df = df[keep_cols]
+
+
+        # rename columns to 'defaults'
+        rename_dict = {val['name'] : key for key, val in info['band_of_use'].items()}
+        rename_dict[info['other_mapping']['datetime']['name']] = 'datetime'
+        rename_dict[info['other_mapping']['name']['name']] = 'name'
+        df = df.rename(columns=rename_dict)
+
+        # format datatime
+        df["datetime"] = pd.to_datetime(df["datetime"],
+                                        format=info['other_mapping']['datetime']['fmt'])
+
+        df["datetime"] = df["datetime"].dt.tz_localize(info['other_mapping']['datetime']['tz'])
+
+
+        # Make multiidx structure:
+        df = df.set_index(['name', 'datetime'])
+
+        # 3. update attributes
+        self.df = df
+        self.df_tz = info['other_mapping']['datetime']['tz']
+
+        unit_dict = {key: val['units'] for key, val in info['band_of_use'].items() if 'units' in val}
+        self._df_units.update(unit_dict)
+
+        self._is_alaro25=True
+
+
+
+        # 4. Convert units
+        # self.convert_units_to_tlk(obstype=obstype,
+        #                           target_unit_name=standard_tlk_units[obstype])
+
+
     def set_model_from_csv(self, csvpath):
         """
         This method loads timeseries data that is stored in a csv file.
@@ -518,7 +574,7 @@ class Modeldata:
         None.
 
         """
-        #TODO docstrin
+
         # tests ----
         if not self.modelname in self.mapinfo.keys():
             print(f'ERROR: {self.modelname} is not found in the gee datasets.')
@@ -557,7 +613,6 @@ class Modeldata:
         # 4. Convert units
         self.convert_units_to_tlk(obstype=obstype,
                                   target_unit_name=standard_tlk_units[obstype])
-
 
 
 
@@ -632,11 +687,12 @@ class Modeldata:
             returndf = pd.concat([returndf, mergedf])
         return returndf
 
-    def make_plot(self, obstype="temp", dataset = None, stationnames=None,
-        starttime=None, endtime=None, title=None, show_outliers=True,
-        show_filled=True, legend=True,
-        _ax=None, #needed for GUI, not recommended use
-        ):
+    def make_plot(self, obstype_model="temp", dataset = None,
+                  obstype_dataset=None, stationnames=None,
+                  starttime=None, endtime=None, title=None, show_outliers=True,
+                  show_filled=True, legend=True,
+                  _ax=None, #needed for GUI, not recommended use
+                  ):
 
         """
         This function creates a timeseries plot for the Modeldata. When a
@@ -648,13 +704,16 @@ class Modeldata:
 
         Parameters
         ----------
-        obstype : string, optional
-             Fieldname to visualise. This can be an observation or station
-             attribute. The default is 'temp'.
+        obstype_model : string, optional
+             Fieldname of the Modeldata to visualise. The default is 'temp'.
         dataset : metobs_toolkit.Dataset, optional
             A Dataset instance with observations plotted in the same figure.
             Observations are represented by solid line and modeldata by dashed
             lines. The default is None.
+        obstype_dataset : string, optional
+            Fieldname of the Dataset to visualise. Only relevent when a dataset
+            is provided. If None, obsype_dataset = obstype_model. The default
+            is None.
         stationnames : list, optional
             A list with stationnames to include in the timeseries. If None is
             given, all the stations are used, defaults to None.
@@ -687,18 +746,21 @@ class Modeldata:
         """
 
 
-        logger.info(f"Make {obstype}-timeseries plot of model data")
+        logger.info(f"Make {obstype_model}-timeseries plot of model data")
 
         # Basic test
-        if obstype not in self.df.columns:
-            print(f'ERROR: {obstype} is not foud in the modeldata df.')
+        if obstype_model not in self.df.columns:
+            print(f'ERROR: {obstype_model} is not foud in the modeldata df.')
             return
         if self.df.empty:
             print('ERROR: The modeldata is empty.')
             return
+        if obstype_dataset is None:
+            obstype_dataset = obstype_model
+
         if (not dataset is None):
-            if (obstype not in dataset.df.columns):
-                print(f'ERROR: {obstype} is not foud in the Dataframe df.')
+            if (obstype_dataset not in dataset.df.columns):
+                print(f'ERROR: {obstype_dataset} is not foud in the Dataframe df.')
                 return
 
 
@@ -707,7 +769,7 @@ class Modeldata:
         # ------ filter model ------------
 
         # Filter on obstype
-        model_df = model_df[[obstype]]
+        model_df = model_df[[obstype_model]]
 
         # Subset on stationnames
         if not stationnames is None:
@@ -723,7 +785,7 @@ class Modeldata:
             mergedf = dataset.combine_all_to_obsspace()
 
             # subset to obstype
-            mergedf = xs_save(mergedf, obstype, level='obstype')
+            mergedf = xs_save(mergedf, obstype_dataset, level='obstype')
 
             # Subset on stationnames
             if not stationnames is None:
@@ -734,18 +796,23 @@ class Modeldata:
 
 
         # Generate ylabel
+
         try:
-            model_true_field_name = self.mapinfo[self.modelname]['band_of_use'][obstype]['name']
+            model_true_field_name = self.mapinfo[self.modelname]['band_of_use'][obstype_model]['name']
         except KeyError:
-            print (f'No model field name found for {obstype} in {self}.')
+            print (f'No model field name found for {obstype_model} in {self}.')
             model_true_field_name = 'Unknown fieldname'
-        y_label = f'{model_true_field_name}'
+
+        fieldname = f'{model_true_field_name}'
 
         if not dataset is None:
-            dataset_obs_orig_name = dataset.data_template[obstype]['orig_name']
-            units = dataset.data_template[obstype]['units']
+            dataset_obs_orig_name = dataset.data_template[obstype_dataset]['orig_name']
+            units = dataset.data_template[obstype_dataset]['units']
+            y_label = f'{fieldname} \n {dataset_obs_orig_name} ({units})'
 
-            y_label = f'{y_label} \n {dataset_obs_orig_name} ({units})'
+        else:
+
+            y_label = f'{fieldname} \n ({self._df_units[obstype_model]})'
 
 
         #Generate title
@@ -770,7 +837,7 @@ class Modeldata:
             # Make plot of the model on the previous axes
             ax, col_map = model_timeseries_plot(
                                     df=model_df,
-                                    obstype=obstype,
+                                    obstype=obstype_model,
                                     title=title,
                                     ylabel=y_label,
                                     settings = self._settings,
@@ -785,7 +852,7 @@ class Modeldata:
             # Make plot of model on empty axes
             ax, _colmap = model_timeseries_plot(
                     df=model_df,
-                    obstype=obstype,
+                    obstype=obstype_model,
                     title=title,
                     ylabel=y_label,
                     settings = self._settings,
