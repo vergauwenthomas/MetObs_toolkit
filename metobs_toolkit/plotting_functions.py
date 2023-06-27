@@ -396,6 +396,10 @@ def timeseries_plot(
     # no value group
     no_vals_labels = [settings.gap['gaps_info']['gap']['outlier_flag'],
                       settings.gap['gaps_info']['missing_timestamp']['outlier_flag']]
+    # duplicated timestamp and invalid input outliers do not have a known value, so add them to this group
+    no_vals_labels.append(settings.qc['qc_checks_info']['duplicated_timestamp']['outlier_flag'])
+    no_vals_labels.append(settings.qc['qc_checks_info']['invalid_input']['outlier_flag'])
+
     no_vals_df = mergedf[mergedf['label'].isin(no_vals_labels)]
 
 
