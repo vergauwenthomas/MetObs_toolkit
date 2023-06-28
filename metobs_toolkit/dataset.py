@@ -167,6 +167,119 @@ class Dataset:
     def __repr__(self):
         return self.__str__()
 
+
+    def __add__(self, other, gapsize=None):
+
+        new = Dataset()
+
+
+        self_obstypes = self.df.columns.to_list().copy()
+        #  ---- df ----
+
+        # check if observation of self are also in other
+        assert all([(obs in other.df.columns) for obs in self_obstypes])
+        # subset obstype of other to self
+        other.df = other.df[self.df.columns.to_list()]
+
+        # set new df
+        new.df = pd.concat([self.df, other.df])
+        new.df = new.df.sort_index()
+
+        #  ----- outliers df ---------
+
+
+        other_outliers = other.outliersdf.reset_index()
+        other_outliers = other_outliers[other_outliers['obstype'].isin(self_obstypes)]
+        other_outliers = other_outliers.set_index(['name', 'datetime', 'obstype'])
+        new.outliersdf = pd.concat([self.outliersdf, other_outliers])
+        new.outliersdf = new.outliersdf.sort_index()
+
+        #  ------- Gaps -------------
+        new.gaps = copy.deepcopy(self.gaps)
+        new.gaps.extend(other.gaps)
+
+
+        # ---------- missing ---------
+
+        new.missing_obs = copy.deepcopy(self.missing_obs) + copy.deepcopy(other.missing_obs)
+
+
+        # ---------- metadf -----------
+        # Use the metadf from self and add new rows if they are present in other
+        new.metadf = pd.concat([self.metadf, other.metadf])
+        new.metadf = new.metadf.drop_duplicates(keep='first')
+        new.metadf = new.metadf.sort_index()
+
+        # ------- specific attributes ----------
+
+        # Template (units and descritpions) are taken from self
+        new.data_template = self.data_template
+
+        # Inherit Settings from self
+        new.settings = copy.deepcopy(self.settings)
+
+
+        # Applied qc:
+        # TODO:  is this oke to do?
+        new._applied_qc = pd.DataFrame(columns=["obstype", "checkname"])
+        new._qc_checked_obstypes = []  # list with qc-checked obstypes
+
+
+        # set init_dataframe to empty
+        #NOTE: this is not necesarry but users will use this method when they
+        # have a datafile that is to big. So storing and overloading a copy of
+        # the very big datafile is invalid for these cases.
+        new.input_df = pd.DataFrame()
+
+
+        # ----- Apply IO QC ---------
+        # Apply only checks that are relevant on records in between self and other
+        # lets call this the bridge-period
+
+        # missing and gap check
+        if gapsize is None:
+            gapsize =new.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]
+
+        # note gapsize is now defined on the frequency of self
+        bridge_missing, bridge_gaps =  missing_timestamp_and_gap_check(
+            df=new.df,
+            gapsize_n=self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"],
+        )
+
+        new.gaps.extend(bridge_gaps)
+        new.missing_obs = new.missing_obs + bridge_missing
+
+
+        # duplicate check
+        new.df, dup_outl_df = duplicate_timestamp_check(
+            df=new.df,
+            checks_info=new.settings.qc["qc_checks_info"],
+            checks_settings=new.settings.qc["qc_check_settings"],
+        )
+
+        if not dup_outl_df.empty:
+            new.update_outliersdf(add_to_outliersdf=dup_outl_df)
+
+        # update the order and which qc is applied on which obstype
+        checked_obstypes = [obs for obs in new.df.columns if obs in observation_types]
+
+        checknames = ["duplicated_timestamp"]  # KEEP order
+
+        new._applied_qc = pd.concat(
+            [
+                new._applied_qc,
+                conv_applied_qc_to_df(
+                    obstypes=checked_obstypes, ordered_checknames=checknames
+                ),
+            ],
+            ignore_index=True,
+        )
+
+
+
+        return new
+
+
     def save_dataset(self, outputfolder=None, filename='saved_dataset.pkl'):
         """
         Method to save a Dataset instance to a (pickle) file.
@@ -2061,7 +2174,7 @@ class Dataset:
         """
 
 
-
+        assert not self.input_df.empty, f'To syncronize a dataset, the (pure) input dataframe cannot be empty.'
         df = self.input_df
 
         self.df = init_multiindexdf()
@@ -2584,7 +2697,19 @@ class Dataset:
             self.metadf = metadf_to_gdf(metadf)
 
 
+
+
+
     def _apply_qc_on_import(self):
+        # if the name is Nan, remove these records from df, and metadf (before)
+        # they end up in the gaps and missing obs
+        if np.nan in self.df.index.get_level_values('name'):
+            print('WARNING: following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}')
+            self.df = self.df[~self.df.index.get_level_values('name').isna()]
+        if np.nan in self.metadf.index:
+            print('WARNING: following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}')
+            self.metadf = self.metadf[~self.metadf.index.isna()]
+
         # find missing obs and gaps, and remove them from the df
         self.missing_obs, self.gaps = missing_timestamp_and_gap_check(
             df=self.df,
