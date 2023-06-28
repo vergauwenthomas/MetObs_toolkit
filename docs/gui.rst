@@ -25,11 +25,13 @@ As explained above, the GUI can best be launched as a local python script or as 
 To do that, make sure you have installed the **Metobs-toolkit** and the **Metobs-GUI** on your machine.
 
 .. code-block:: console
-   #install the metobs-toolkit
-   pip3 install metobs-toolkit
 
-   #install the metobs-gui (currently only on github)
-   pip3 install git+https://github.com/vergauwenthomas/MetObs_GUI
+    #install the metobs-toolkit
+    pip3 install metobs-toolkit
+    #install the metobs-gui (currently only on github)
+    pip3 install git+https://github.com/vergauwenthomas/MetObs_GUI
+
+
 
 Launch the GUI by running this code in a Python3 console or in a Jupyter notebook
 
