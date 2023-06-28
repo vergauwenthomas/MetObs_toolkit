@@ -21,10 +21,14 @@ pyproj = "~3.4"
 mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
 geemap = '^0.20.0'
-PyQt5 = "=5.12.2" #Technical: this version is the latest to build from source
+#PyQt5 = "=5.12.2" #Technical: this version is the latest to build from source
+pyQt5 = "^5.12.2" # This installs Version 5.15.9, which works
+#pyqt5.15.9 installs--> PyQt5-Qt5 >=5.15.2 and +PyQt5-sip = ">=12.11,<13"
+#pyqt5-sip = "^12.12.1"
+#pyqt5-qt5 = "^5.15.2"
+titanlib = "^0.3"
 pyqt5-sip = "^12.12.1"
 pyqt5-qt5 = "^5.15.2"
-titanlib = "^0.3"
 
 
 
