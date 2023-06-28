@@ -57,28 +57,28 @@ dataset.update_settings(output_folder=None,
 
 
 dataset.import_data_from_file()
-dataset.coarsen_time_resolution(freq='30T')
+dataset.coarsen_time_resolution(freq='60T')
 
-datafile2 = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/chunkdir/chunk_2.csv'
+# datafile2 = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/chunkdir/chunk_2.csv'
 
-dataset2 = metobs_toolkit.Dataset()
-
-
-dataset2.update_settings(output_folder=None,
-                        input_data_file=datafile2,
-                        # input_metadata_file=metadata,
-                        data_template_file=template,
-                        metadata_template_file=template,
-                        )
+# dataset2 = metobs_toolkit.Dataset()
 
 
-dataset2.import_data_from_file()
+# dataset2.update_settings(output_folder=None,
+#                         input_data_file=datafile2,
+#                         # input_metadata_file=metadata,
+#                         data_template_file=template,
+#                         metadata_template_file=template,
+#                         )
 
-dataset2.coarsen_time_resolution(freq='30T')
 
+# dataset2.import_data_from_file()
 
+# dataset2.coarsen_time_resolution(freq='60T')
 
-comb = dataset + dataset2
+# comb = dataset.combine_all_to_obsspace()
+
+# comb = dataset + dataset2
 
 
 

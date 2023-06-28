@@ -1928,7 +1928,7 @@ class Dataset:
         # =============================================================================
 
         combdf = pd.concat([df, outliersdf, gapsdf, gapsfilldf, missingdf, missingfilldf]).sort_index()
-
+        combdf.index.names = ['name', 'datetime', 'obstype']
         # To be shure?
         combdf = combdf[~combdf.index.duplicated(keep='first')]
         return combdf
@@ -2704,10 +2704,10 @@ class Dataset:
         # if the name is Nan, remove these records from df, and metadf (before)
         # they end up in the gaps and missing obs
         if np.nan in self.df.index.get_level_values('name'):
-            print('WARNING: following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}')
+            print(f'WARNING: following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}')
             self.df = self.df[~self.df.index.get_level_values('name').isna()]
         if np.nan in self.metadf.index:
-            print('WARNING: following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}')
+            print(f'WARNING: following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}')
             self.metadf = self.metadf[~self.metadf.index.isna()]
 
         # find missing obs and gaps, and remove them from the df
