@@ -170,6 +170,19 @@ class Dataset:
 
     def __add__(self, other, gapsize=None):
 
+        # important !!!!!
+
+        # the toolkit makes a new dataframe, and assumes the df from self and other
+        # to be the input data.
+        # This means that missing obs, gaps, invalid and duplicated records are
+        # being looked for in the concatenation of both dataset, using their current
+        # resolution !
+
+
+
+
+
+
         new = Dataset()
 
 
@@ -195,14 +208,17 @@ class Dataset:
         new.outliersdf = new.outliersdf.sort_index()
 
         #  ------- Gaps -------------
-        new.gaps = copy.deepcopy(self.gaps)
-        new.gaps.extend(other.gaps)
+        # Gaps have to be recaluculated using a frequency assumtion from the
+        # combination of self.df and other.df, thus NOT the native frequency if
+        # their is a coarsening allied on either of them.
+        new.gaps = []
 
 
         # ---------- missing ---------
-
-        new.missing_obs = copy.deepcopy(self.missing_obs) + copy.deepcopy(other.missing_obs)
-
+        # Missing observations have to be recaluculated using a frequency assumtion from the
+        # combination of self.df and other.df, thus NOT the native frequency if
+        # their is a coarsening allied on either of them.
+        new.missing_obs = None
 
         # ---------- metadf -----------
         # Use the metadf from self and add new rows if they are present in other
@@ -234,20 +250,20 @@ class Dataset:
 
         # ----- Apply IO QC ---------
         # Apply only checks that are relevant on records in between self and other
-        # lets call this the bridge-period
+        # OR
+        # that are dependand on the frequency (since the freq of the .df is used,
+        # which is not the naitive frequency if coarsening is applied on either. )
+
 
         # missing and gap check
         if gapsize is None:
             gapsize =new.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]
 
         # note gapsize is now defined on the frequency of self
-        bridge_missing, bridge_gaps =  missing_timestamp_and_gap_check(
+        new.missing_obs, new.gaps =  missing_timestamp_and_gap_check(
             df=new.df,
             gapsize_n=self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"],
         )
-
-        new.gaps.extend(bridge_gaps)
-        new.missing_obs = new.missing_obs + bridge_missing
 
 
         # duplicate check
