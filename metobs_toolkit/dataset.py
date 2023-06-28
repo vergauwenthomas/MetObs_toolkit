@@ -77,7 +77,7 @@ from metobs_toolkit.gap import (
 
 from metobs_toolkit.df_helpers import (
     multiindexdf_datetime_subsetting,
-    # remove_outliers_from_obs,
+    fmt_datetime_argument,
     init_multiindex,
     init_multiindexdf,
     init_triple_multiindexdf,
@@ -153,7 +153,7 @@ class Dataset:
 
         if ((not self.metadf['lat'].isnull().all()) &
             (not self.metadf['lon'].isnull().all())):
-            add_info += '     *Coordinates are available for all stations. \n'
+            add_info += '    *Coordinates are available for all stations. \n'
 
 
         return (f"Dataset instance containing: \n \
@@ -163,7 +163,8 @@ class Dataset:
     *{n_outl} records labeled as outliers \n \
     *{len(self.gaps)} gaps \n \
     *{self.missing_obs.series.shape[0]} missing observations \n \
-    *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt})" + add_info)
+    *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt}) \n \
+    *time zone of the records: {self.settings.time_settings['timezone']} \n " + add_info)
     def __repr__(self):
         return self.__str__()
 
@@ -408,6 +409,11 @@ class Dataset:
         axis : matplotlib.pyplot.axes
              The timeseries axes of the plot is returned.
 
+        Note
+        --------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
+
         """
 
         if stationnames is None:
@@ -427,6 +433,10 @@ class Dataset:
 
 
         # Subset on start and endtime
+        starttime = fmt_datetime_argument(starttime, self.settings.time_settings['timezone'])
+        endtime = fmt_datetime_argument(endtime, self.settings.time_settings['timezone'])
+
+        print(starttime)
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
         # Get plot styling attributes
@@ -523,12 +533,18 @@ class Dataset:
         axis : matplotlib.pyplot.geoaxes
             The geoaxes of the plot is returned.
 
+        Note
+        --------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
+
         """
 
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
 
         # get first (Not Nan) timeinstance of the dataset if not given
+        timeinstance = fmt_datetime_argument(timeinstance, self.settings.time_settings['timezone'])
         if timeinstance is None:
             timeinstance = self.df.dropna(subset=['temp']).index[0][1]
 
@@ -616,6 +632,11 @@ class Dataset:
             The extracted modeldata for period and a set of stations.
 
         Note
+        --------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
+
+        Note
         ------
         When extracting large amounts of data, the timeseries data will be
         writen to a file and saved on your google drive. In this case, you need
@@ -639,8 +660,14 @@ class Dataset:
         # Filters
         if startdt is None:
             startdt = self.df.index.get_level_values("datetime").min()
+        else:
+            startdt = fmt_datetime_argument(startdt, self.settings.time_settings['timezone'])
+
         if enddt is None:
             enddt = self.df.index.get_level_values("datetime").max()
+        else:
+            enddt = fmt_datetime_argument(enddt, self.settings.time_settings['timezone'])
+
         if not stations is None:
             if isinstance(stations, str):
                 metadf = self.metadf.loc[[stations]]
@@ -650,6 +677,7 @@ class Dataset:
             metadf = self.metadf
 
         # Convert to UTC
+
         startdt_utc = startdt.astimezone(pytz.utc)
         enddt_utc = enddt.astimezone(pytz.utc)
 
@@ -1607,7 +1635,7 @@ class Dataset:
         To update the check settings, use the update_titan_qc_settings method
         of the Dataset class.
 
-        Note
+        Warning
         -------
         This method is a python wrapper on titanlib c++ scripts, and it is prone
         to segmentation faults. The perfomance of this check is thus not
@@ -2060,7 +2088,10 @@ class Dataset:
 
         """
 
+        # get columns pressent in metadf, because the input df can have columns
+        # that does not have to be mapped to the toolkit
 
+        init_meta_cols = self.metadf.columns.copy()
 
         df = self.input_df
 
@@ -2180,6 +2211,8 @@ class Dataset:
             fixed_freq_series=simplified_resolution,
             update_full_metadf=False,
         )  # Do not overwrite full metadf, only the frequencies
+
+        self.metadf = self.metadf[[col for col in self.metadf.columns if col in init_meta_cols]]
 
         if verbose:
             _total_verbose_df = _total_verbose_df.rename(
@@ -2410,73 +2443,73 @@ class Dataset:
             freq_estimation_simplify_error=freq_estimation_simplify_error,
         )
 
-    def import_data_from_database(
-        self, start_datetime=None, end_datetime=None, coarsen_timeres=False
-    ):
-        """
-        Function to import data directly from the framboos database and
-        updating the network and station objects.
+    # def import_data_from_database(
+    #     self, start_datetime=None, end_datetime=None, coarsen_timeres=False
+    # ):
+    #     """
+    #     Function to import data directly from the framboos database and
+    #     updating the network and station objects.
 
 
-        Parameters
-        ----------
+    #     Parameters
+    #     ----------
 
-        start_datetime : datetime, optional
-            Start datetime of the observations. The default is None and using
-            yesterday's midnight.
-        end_datetime : datetime, optional
-            End datetime of the observations. The default is None and using
-            todays midnight.
-        coarsen_timeres : Bool, optional
-            If True, the observations will be interpolated to a coarser
-            time resolution as is defined in the Settings. The default
-            is False.
+    #     start_datetime : datetime, optional
+    #         Start datetime of the observations. The default is None and using
+    #         yesterday's midnight.
+    #     end_datetime : datetime, optional
+    #         End datetime of the observations. The default is None and using
+    #         todays midnight.
+    #     coarsen_timeres : Bool, optional
+    #         If True, the observations will be interpolated to a coarser
+    #         time resolution as is defined in the Settings. The default
+    #         is False.
 
-        Returns
-        ----------
+    #     Returns
+    #     ----------
 
-        None.
+    #     None.
 
-        Note
-        ----------
-        A Ugent VPN connection must be present, as well as the username and password
-        stored in the settings.
+    #     Note
+    #     ----------
+    #     A Ugent VPN connection must be present, as well as the username and password
+    #     stored in the settings.
 
-        """
-        if start_datetime is None:
-            start_datetime = datetime.date.today() - datetime.timedelta(days=1)
-        if end_datetime is None:
-            end_datetime = datetime.date.today()
+    #     """
+    #     if start_datetime is None:
+    #         start_datetime = datetime.date.today() - datetime.timedelta(days=1)
+    #     if end_datetime is None:
+    #         end_datetime = datetime.date.today()
 
-        # Read observations into pandas dataframe
-        df = import_data_from_db(
-            self.settings.db, start_datetime=start_datetime, end_datetime=end_datetime
-        )
+    #     # Read observations into pandas dataframe
+    #     df = import_data_from_db(
+    #         self.settings.db, start_datetime=start_datetime, end_datetime=end_datetime
+    #     )
 
-        if df.empty:  # No data has, probably connection error
-            return
+    #     if df.empty:  # No data has, probably connection error
+    #         return
 
-        # Make data template
-        self.data_template = pd.DataFrame().from_dict(
-            template_to_package_space(self.settings.db["vlinder_db_obs_template"])
-        )
+    #     # Make data template
+    #     self.data_template = pd.DataFrame().from_dict(
+    #         template_to_package_space(self.settings.db["vlinder_db_obs_template"])
+    #     )
 
-        # convert dataframe to multiindex (datetime - name)
-        df = df.set_index(["name", df.index])
-        df = df.sort_index()
+    #     # convert dataframe to multiindex (datetime - name)
+    #     df = df.set_index(["name", df.index])
+    #     df = df.sort_index()
 
-        # If an ID has changed or not present in the metadatafile,
-        # the stationname and metadata is Nan
-        # These observations will be removed
-        unknown_obs = df[df.index.get_level_values("name").isnull()]
-        if not unknown_obs.empty:
-            logger.warning(
-                "There is an unknown station in the dataset \
-                           (probaply due to an ID that is not present in \
-                           the metadata file). This will be removed from the dataset."
-            )
-            df = df[~df.index.get_level_values("name").isnull()]
-        self._construct_dataset(df)
+    #     # If an ID has changed or not present in the metadatafile,
+    #     # the stationname and metadata is Nan
+    #     # These observations will be removed
+    #     unknown_obs = df[df.index.get_level_values("name").isnull()]
+    #     if not unknown_obs.empty:
+    #         logger.warning(
+    #             "There is an unknown station in the dataset \
+    #                        (probaply due to an ID that is not present in \
+    #                        the metadata file). This will be removed from the dataset."
+    #         )
+    #         df = df[~df.index.get_level_values("name").isnull()]
+    #     self._construct_dataset(df)
 
 
     def _construct_dataset(
