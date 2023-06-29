@@ -242,7 +242,9 @@ class Analysis():
     def get_anual_statistics(self, groupby=['name'], obstype='temp',
                              agg_method='mean', stations=None,
                              startdt=None, enddt=None, plot=True,
-                             title=None, y_label=None, legend=True):
+                             errorbands=False, title=None, y_label=None,
+                             legend=True):
+
         """
         Create an anual cycle for aggregated groups.
 
@@ -268,6 +270,8 @@ class Analysis():
             The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
         plot : bool, optional
             If True, an anual plot is made. The default is True.
+        errorbands : bool, optional
+             If True, the std is representd in the plot by colored bands. The default is False.
         title : string, optional
              Title of the figure, if None a default title is generated. The default is None.
         y_label : string, optional
@@ -308,7 +312,7 @@ class Analysis():
 
 
         # get agg statistics
-        df = self.aggregate_df(df=obsdf, agg=agg, method=agg_method)
+        df = self.aggregate_df(df=obsdf, agg=agg, method=[agg_method, 'std'])
         # multiindex to string format
         df = df.reset_index()
         for idx_col in agg:
@@ -316,15 +320,27 @@ class Analysis():
         df = df.set_index(agg)
 
         # unstack multiindex and unstack column levels if multiple groupby labels
-        plotdf = df.unstack(groupby).droplevel(0, axis='columns')
-        if len(groupby) > 1:
-            plotdf.columns = [' ,'.join(col).strip() for col in plotdf.columns.values]
+        aggdf = df.unstack(groupby).droplevel(0, axis='columns')
+        values_df = aggdf[[agg_method]].droplevel(0, axis='columns') #df with values
+        std_df = aggdf[['std']].droplevel(0, axis='columns') #df with errors
 
-        # sort months order
-        months = ['January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November',
-                  'December']
-        plotdf = plotdf.reindex(months)
+        def _format_for_plotting(df):
+
+            if len(groupby) > 1:
+                df.columns = [' ,'.join(col).strip() for col in df.columns.values]
+
+            # sort months order
+            months = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November',
+                      'December']
+            df = df.reindex(months)
+            return df
+
+        plotdf = _format_for_plotting(values_df)
+        if errorbands:
+            errordf= _format_for_plotting(std_df)
+        else:
+            errordf=None
 
         # title
         desc_dict = self.data_template[obstype].to_dict()
@@ -345,7 +361,7 @@ class Analysis():
 
         if plot:
             ax = diurnal_plot(diurnaldf = plotdf,
-                              errorbandsdf = None,
+                              errorbandsdf = errordf,
                               title = title,
                               plot_settings = self.settings.app['plot_settings']['anual'],
                               colorby = 'name',
