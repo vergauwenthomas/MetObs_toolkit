@@ -436,7 +436,6 @@ class Dataset:
         starttime = fmt_datetime_argument(starttime, self.settings.time_settings['timezone'])
         endtime = fmt_datetime_argument(endtime, self.settings.time_settings['timezone'])
 
-        print(starttime)
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
         # Get plot styling attributes

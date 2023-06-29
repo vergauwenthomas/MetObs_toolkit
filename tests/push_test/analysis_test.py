@@ -23,8 +23,11 @@ print(str(lib_folder))
 
 dataset = metobs_toolkit.Dataset()
 
+
 dataset = dataset.import_dataset(folder_path=os.path.join(str(lib_folder), "tests", "test_data"),
                                  filename='tests_dataset.pkl')
+
+
 
 
 
@@ -48,6 +51,12 @@ test2 = an.get_diurnal_statistics_with_reference(refstation='vlinder08',colorby=
                                                   errorbands=True, verbose=True)
 
 test3 = an.get_aggregated_diurnal_statistics(aggregation=['lcz'], verbose=True)
+
+# =============================================================================
+# test anual cycle
+# =============================================================================
+
+# test4 = an.get_anual_statistics(groupby=['name'])
 
 
 # Test values
@@ -366,6 +375,7 @@ assert filter_an.df.shape == (2481, 10), 'filter on analysis problem'
 
 agg_df = an.aggregate_df( agg=['lcz', 'hour'])
 assert agg_df.shape == (216,10), 'aggregate on analysis problem'
+
 
 
 
