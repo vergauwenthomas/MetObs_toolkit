@@ -707,10 +707,6 @@ def model_timeseries_plot(
     return ax, col_mapper
 
 
-# def anual_plot(anualdf, title, plot_settings, legend):
-
-
-
 
 
 def diurnal_plot(diurnaldf, errorbandsdf, title, plot_settings,
