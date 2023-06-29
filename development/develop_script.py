@@ -79,7 +79,6 @@ dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
 
 
 
-
 #%%
 
 
@@ -90,10 +89,12 @@ ann= dataset.get_analysis()
 
 
 
+
 plotdf = ann.get_anual_statistics(groupby=['name'], errorbands=False)
 
 
 
+#%%
 
 #%%
 

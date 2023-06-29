@@ -244,6 +244,7 @@ class Analysis():
                              startdt=None, enddt=None, plot=True,
                              errorbands=False, title=None, y_label=None,
                              legend=True):
+
         """
         Create an anual cycle for aggregated groups.
 
