@@ -707,10 +707,13 @@ def model_timeseries_plot(
     return ax, col_mapper
 
 
+# def anual_plot(anualdf, title, plot_settings, legend):
 
 
 
-def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
+
+
+def diurnal_plot(diurnaldf, errorbandsdf, title, plot_settings,
                  colorby, lcz_dict, data_template, obstype, y_label,
                  legend, show_zero_horizontal=False):
     # init figure
@@ -796,11 +799,10 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, tzstr, plot_settings,
             y_label = f'{templ_map["orig_name"]}'
 
     ax.set_ylabel(y_label)
-    ax.xaxis.set_major_formatter('{x:.0f} h')
-    ax.set_xlabel(f'Hours (timezone: {tzstr})')
 
 
-    plt.show()
+
+    return ax
 
 
 

@@ -33,8 +33,31 @@ import metobs_toolkit
 
 #%%
 
+# outfile = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Sara/Vlinder_gent_2022.csv'
+# infile = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Sara/Vlinder_2022.csv'
+
+
+
+# def get_small_subset(datafile, nrows=10, **kwargs):
+#     return pd.read_csv(datafile, chunksize=nrows+2, **kwargs).get_chunk(nrows)
+# test = get_small_subset(infile)
+
+
+# gentlijst = ['vlinder02', 'vlinder01', 'vlinder05', 'vlinder27']
+
+# df = pd.read_csv(infile)
+# subdf = df[df['name'].isin(gentlijst)]
+
+
+# subdf.to_csv(outfile)
+
+
+
+
+#%%
+
 # # use_dataset = 'debug_wide'
-use_dataset = 'single_netatmo_sara_station'
+use_dataset = 'vlindergent2022'
 
 dataset = metobs_toolkit.Dataset()
 
@@ -45,7 +68,7 @@ dataset.update_settings(output_folder=None,
                         data_template_file=testdata[use_dataset]['template'],
                         metadata_template_file=testdata[use_dataset]['template'],
                         )
-tz ='Europe/Brussels'
+tz ='UTC'
 
 dataset.update_timezone(timezonestr=tz)
 
@@ -53,28 +76,20 @@ dataset.update_timezone(timezonestr=tz)
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
 dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
-# dataset.apply_quality_control()
 
-#%%
-dataset.sync_observations(tollerance='3T')
-dataset.coarsen_time_resolution(freq='30T')
+
 
 
 #%%
-from datetime import datetime
-import pytz
 
 
 
-tstart = datetime(2021, 2, 28,9, tzinfo=pytz.timezone('UTC'))
+ann= dataset.get_analysis()
 
-dataset.make_plot(starttime=tstart)
+plotdf = ann.get_anual_statistics(groupby=['name', 'hour'])
+
+
+
+
 #%%
-
-from metobs_toolkit.df_helpers import multiindexdf_datetime_subsetting
-import pytz
-
-
-
-
 

@@ -128,6 +128,18 @@ plot_settings["diurnal"] = {
 
 }
 
+plot_settings["anual"] = {
+    "figsize": (10,10),
+    # 'alpha_error_bands': 0.3,
+    'cmap_continious' : "viridis", #if many stations are present, best to use continious rather than categorical
+
+    'n_cat_max': 20, #when less or equal categories are detected, use the categorical col mapping
+    'cmap_categorical': "tab20",
+    "legend_n_columns": 5,
+
+}
+
+
 # =============================================================================
 # correlation plot settings
 # =============================================================================
