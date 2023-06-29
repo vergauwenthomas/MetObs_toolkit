@@ -17,7 +17,8 @@ from metobs_toolkit.plotting_functions import (diurnal_plot,
 
 from metobs_toolkit.df_helpers import (init_multiindexdf,
                                         datetime_subsetting,
-                                        subset_stations)
+                                        subset_stations,
+                                        fmt_datetime_argument)
 
 class Analysis():
     """ The Analysis class contains methods for analysing diurnal cycles and landcover effects"""
@@ -85,6 +86,11 @@ class Analysis():
         -------
         None.
 
+        Note
+        --------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
+
         """
         if not isinstance(startdt, type(datetime(2020,1,1))):
             print(f' {startdt} not a datetime type. Ignore subsetting!')
@@ -92,6 +98,9 @@ class Analysis():
         if not isinstance(enddt, type(datetime(2020,1,1))):
             print(f' {enddt} not a datetime type. Ignore subsetting!')
             return
+
+        startdt = fmt_datetime_argument(startdt, self.settings.time_settings['timezone'])
+        enddt = fmt_datetime_argument(enddt, self.settings.time_settings['timezone'])
 
         self.df = datetime_subsetting(self.df, startdt, enddt)
 
@@ -230,6 +239,140 @@ class Analysis():
     # =============================================================================
     #   Analyse method
     # =============================================================================
+    def get_anual_statistics(self, groupby=['name'], obstype='temp',
+                             agg_method='mean', stations=None,
+                             startdt=None, enddt=None, plot=True,
+                             errorbands=False, title=None, y_label=None,
+                             legend=True):
+
+        """
+        Create an anual cycle for aggregated groups.
+
+        (In the plot, unique combination of groupby categories is presented
+         as a line.)
+
+        Parameters
+        ----------
+        groupby : list string, optional
+            Variables to aggregate to. These can be columns in the metadf, or
+            time aggregations ('hour', 'year', 'week_of_year', ...]. 'name' will
+            aggregate to the stationnames. The default is ['name'].
+        obstype : str, optional
+            Element of the metobs_toolkit.observation_types The default is 'temp'.
+        agg_method : str, optional
+            Function names to use for aggregation, e.g. [np.sum, 'mean']. The
+            default is 'mean'.
+        stations : list, optional
+             List of station names to use. If None, all present stations will be used. The default is None.
+        startdt : datetime.datetime, optional
+            The start datetime of the observations to use. If None, all timestamps will be used. The default is None.
+        enddt : datetime.datetime, optional
+            The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
+        plot : bool, optional
+            If True, an anual plot is made. The default is True.
+        errorbands : bool, optional
+             If True, the std is representd in the plot by colored bands. The default is False.
+        title : string, optional
+             Title of the figure, if None a default title is generated. The default is None.
+        y_label : string, optional
+             y-axes label of the figure, if None a default label is generated. The default is None.
+        legend : bool, optional
+             I True, a legend is added to the plot. The default is True.
+
+        Returns
+        -------
+        df : pandas.DataFrame()
+            The dataframe containing the aggregated values.
+
+        Note
+        --------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
+
+        """
+
+
+        obsdf = self.df[[obstype]]
+
+        # Filter stations
+        if not stations is None:
+            if isinstance(stations, str):
+                stations = [stations]
+
+            obsdf = subset_stations(obsdf, stations)
+
+        # Filter datetimes
+        obsdf = datetime_subsetting(df=obsdf,
+                                    starttime=startdt,
+                                    endtime=enddt)
+
+        # Define aggregation groups
+        agg = groupby.copy()
+        agg.insert(0, 'month')
+
+
+        # get agg statistics
+        df = self.aggregate_df(df=obsdf, agg=agg, method=[agg_method, 'std'])
+        # multiindex to string format
+        df = df.reset_index()
+        for idx_col in agg:
+            df[idx_col] = df[idx_col].astype(str)
+        df = df.set_index(agg)
+
+        # unstack multiindex and unstack column levels if multiple groupby labels
+        aggdf = df.unstack(groupby).droplevel(0, axis='columns')
+        values_df = aggdf[[agg_method]].droplevel(0, axis='columns') #df with values
+        std_df = aggdf[['std']].droplevel(0, axis='columns') #df with errors
+
+        def _format_for_plotting(df):
+
+            if len(groupby) > 1:
+                df.columns = [' ,'.join(col).strip() for col in df.columns.values]
+
+            # sort months order
+            months = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November',
+                      'December']
+            df = df.reindex(months)
+            return df
+
+        plotdf = _format_for_plotting(values_df)
+        if errorbands:
+            errordf= _format_for_plotting(std_df)
+        else:
+            errordf=None
+
+        # title
+        desc_dict = self.data_template[obstype].to_dict()
+
+        if title is None:
+            title=f'Anual {desc_dict["description"]} cycle plot per {groupby}.'
+        else:
+            title = str(title)
+
+        # ylabel
+        if y_label is None:
+
+            y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+        else:
+            y_label = str(y_label)
+
+
+
+        if plot:
+            ax = diurnal_plot(diurnaldf = plotdf,
+                              errorbandsdf = errordf,
+                              title = title,
+                              plot_settings = self.settings.app['plot_settings']['anual'],
+                              colorby = 'name',
+                              lcz_dict = None,
+                              data_template=self.data_template,
+                              obstype=obstype,
+                              y_label = y_label,
+                              legend=legend)
+        return plotdf
+
+
     def get_diurnal_statistics(self, obstype='temp', stations=None,
                                startdt=None, enddt=None, plot=True,
                                title=None, y_label=None, legend=True,
@@ -252,7 +395,7 @@ class Analysis():
         enddt : datetime.datetime, optional
             The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
         plot : bool, optional
-            If True, a diurnal plot is made. The default is True.
+            If True, an diurnal plot is made. The default is True.
         title : string, optional
              Title of the figure, if None a default title is generated. The default is None.
         y_label : string, optional
@@ -270,6 +413,11 @@ class Analysis():
         -------
         tuple (if verbose)
             A tuple of dataframes is returned when verbose is True.
+
+        Note
+        --------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
 
         """
 
@@ -340,10 +488,9 @@ class Analysis():
 
 
             # Make plot
-            diurnal_plot(diurnaldf = hourly_avg,
+            ax = diurnal_plot(diurnaldf = hourly_avg,
                          errorbandsdf = stddf,
                          title = title,
-                         tzstr=tzstring,
                          plot_settings = self.settings.app['plot_settings']['diurnal'],
                          colorby = colorby,
                          lcz_dict = lcz_dict,
@@ -351,6 +498,9 @@ class Analysis():
                          obstype=obstype,
                          y_label = y_label,
                          legend=legend)
+
+            ax.xaxis.set_major_formatter('{x:.0f} h')
+            ax.set_xlabel(f'Hours (timezone: {tzstring})')
 
 
         if verbose:
@@ -409,26 +559,32 @@ class Analysis():
         tuple (if verbose)
             A tuple of dataframes is returned when verbose is True.
 
+        Note
+        --------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
+
         """
 
 
 
 
         obsdf = self.df
-
+        assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
         # Filter stations
         if not stations is None:
             if isinstance(stations, str):
                 stations = [stations]
-                stations.append(refstation)
-            obsdf = subset_stations(obsdf, stations)
 
+            stations.append(refstation)
+            obsdf = subset_stations(obsdf, stations)
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {stations}'
 
         # Filter datetimes
         obsdf = datetime_subsetting(df=obsdf,
                                     starttime=startdt,
                                     endtime=enddt)
-
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
         # check if lcz is available if required
         if colorby == 'lcz':
             if self.metadf['lcz'].isnull().any():
@@ -438,10 +594,14 @@ class Analysis():
         obsdf = obsdf[obstype].reset_index()
 
 
-
         # extract refernce from observations
         refdf = obsdf[obsdf['name'] == refstation]
         obsdf = obsdf[obsdf['name']!= refstation]
+
+        assert not refdf.empty, f'Error: No reference observation found (after filtering) for {refstation}'
+        assert not obsdf.empty, f'Error: No observation found (after filtering)'
+
+
 
         # Syncronize observations with the reference observations
         refdf = refdf.rename(columns={obstype: 'ref_'+obstype, 'datetime': 'ref_datetime'})
@@ -500,18 +660,19 @@ class Analysis():
 
 
             # Make plot
-            diurnal_plot(diurnaldf = hourly_avg,
-                         errorbandsdf = stddf,
-                         title = title,
-                         tzstr=tzstring,
-                         plot_settings = self.settings.app['plot_settings']['diurnal'],
-                         colorby = colorby,
-                         lcz_dict = lcz_dict,
-                         data_template=self.data_template,
-                         obstype = obstype,
-                         y_label = y_label,
-                         legend=legend,
-                         show_zero_horizontal = True)
+            ax = diurnal_plot(diurnaldf = hourly_avg,
+                             errorbandsdf = stddf,
+                             title = title,
+                             plot_settings = self.settings.app['plot_settings']['diurnal'],
+                             colorby = colorby,
+                             lcz_dict = lcz_dict,
+                             data_template=self.data_template,
+                             obstype = obstype,
+                             y_label = y_label,
+                             legend=legend,
+                             show_zero_horizontal = True)
+            ax.xaxis.set_major_formatter('{x:.0f} h')
+            ax.set_xlabel(f'Hours (timezone: {tzstring})')
 
 
         if verbose:
@@ -569,6 +730,11 @@ class Analysis():
         -------
         tuple (if verbose)
             A tuple of dataframes is returned when verbose is True.
+
+        Note
+        -------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
 
         """
 
@@ -638,18 +804,19 @@ class Analysis():
 
 
             # Make plot
-            diurnal_plot(diurnaldf = hourly_avg,
-                         errorbandsdf = stddf,
-                         title = title,
-                         tzstr=tzstring,
-                         plot_settings = self.settings.app['plot_settings']['diurnal'],
-                         colorby = 'name',
-                         lcz_dict = None,
-                         data_template=self.data_template,
-                         obstype=obstype,
-                         y_label = y_label,
-                         legend=legend)
+            ax = diurnal_plot(diurnaldf = hourly_avg,
+                             errorbandsdf = stddf,
+                             title = title,
+                             plot_settings = self.settings.app['plot_settings']['diurnal'],
+                             colorby = 'name',
+                             lcz_dict = None,
+                             data_template=self.data_template,
+                             obstype=obstype,
+                             y_label = y_label,
+                             legend=legend)
 
+            ax.xaxis.set_major_formatter('{x:.0f} h')
+            ax.set_xlabel(f'Hours (timezone: {tzstring})')
 
         if verbose:
             return hourly_avg, stats

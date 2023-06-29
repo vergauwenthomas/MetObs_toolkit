@@ -21,15 +21,6 @@ EXAMPLESDIR=${WORKDIR}/examples
 poetry update #to update the poetry.lock with the latest versions of the depending packages
 poetry install
 
-#test for the gui since this error pops up:
-
-#ImportError: /lib/x86_64-linux-gnu/libQt5Core.so.5: version `Qt_5.15' not found (required by /home/thoverga/anaconda3/envs/metobs_dev_env/lib/python3.9/site-packages/PyQt5/QtWidgets.abi3.so)
-
-#Still pyqt is installd in the poetry env
-
-poetry add pyqt5-sip pyqt5-qt5
-
-
 
 #list all packages installed (for debugging)
 poetry show

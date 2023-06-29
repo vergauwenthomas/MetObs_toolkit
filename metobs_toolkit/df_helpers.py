@@ -14,6 +14,44 @@ import numpy as np
 import geopandas as gpd
 import itertools
 from metobs_toolkit import observation_types
+import pytz
+
+
+
+def fmt_datetime_argument(dt, target_tz_str):
+    """
+    Helper function to format the datetime, a user enters as argument, to the
+    correct timezone.
+
+    If the datetime is timezone unaware, the toolkit ASSUMES the dt is in the
+    same timezone as target_tz_str (the timezone of the dataset).
+
+    if dt is None, None is returned
+    Parameters
+    ----------
+    dt : datetime.datetime
+        A datetime to convert to the timezone of tz_str_data.
+    target_tz_str : str
+        a pytz timezone string, to convert/assign the dt to.
+
+    Returns
+    -------
+    dt : datetime.datetime
+        Timezone-Aware datetime in tzone=tz_str_data.
+
+    """
+    if dt is None:
+        return None
+
+    # check if datime is timezone aware
+    if (dt.tzinfo is not None and dt.tzinfo.utcoffset(dt) is not None):
+        #timezone aware
+        dt = dt.astimezone(pytz.timezone(target_tz_str))
+
+    else: #timezon unaware
+        # assume timezone is the timezone of the data!
+        dt = pytz.timezone(target_tz_str).localize(dt)
+    return dt
 
 
 

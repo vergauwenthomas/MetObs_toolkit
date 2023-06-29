@@ -79,5 +79,15 @@ testdata = {
               'kwargs':{'freq_estimation_method' : 'median'},
               'coarsen': '60T',
               },
+      # Vlinders 2022
+      'vlindergent2022':{
+              'datafile': join(test_data_dir,'testdata_testday', 'Sara','Vlinder_gent_2022.csv'),
+              'metadatafile': join(test_data_dir,'testdata_testday', 'Sara','all_vlinders_metadata.csv'),
+              'template': join(test_data_dir,'testdata_testday', 'Sara','bigvlinder_templatefile.csv'),
+              'kwargs':{'freq_estimation_method' : 'median'},
+              'coarsen': '60T',
+
+                    }
 
     }
+
