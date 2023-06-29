@@ -34,6 +34,7 @@ import metobs_toolkit
 #%%
 sara_folder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/testdata_testday/Sara'
 
+<<<<<<< Updated upstream
 
 bigdatafile = os.path.join(sara_folder,'Vlinder_2022.csv')
 template =os.path.join(sara_folder, 'bigvlinder_templatefile.csv')
@@ -120,14 +121,14 @@ outputdir = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_d
 from guppy import hpy
 h = hpy() #create session
 
-
+#%%
 
 def n_lines_of_file(filepath):
     # read number of lines without ectually reading it
     with open(filepath, "rbU") as f:
         num_lines = sum(1 for _ in f)
     return num_lines
-
+#%%
 # nlines = n_lines_of_file(bigfile)
 
 # print(nlines)
@@ -191,7 +192,7 @@ def method1():
     del df
 
 
-def method2(datafile, chunksize=500000):
+def method2(datafile, outputdir, chunksize=500000):
 
     # Calculate the number of chunks
     nlines = n_lines_of_file(datafile)
@@ -209,6 +210,8 @@ def method2(datafile, chunksize=500000):
         chunk.to_csv(outputfile, index=False)
         # time.sleep(1)
         del chunk
+        
+    return n_chunks
 
 # method1()
 # method2('/home/thoverga/Downloads/Vlinder_2022.csv', 1000000)
@@ -217,8 +220,48 @@ def method2(datafile, chunksize=500000):
 # def format_datetime(df, datetimecolumn, fmt, datecolumn=None, timecolumn=None, )
 
 
+#%% checking the propper functionality of the __add__ function (no accidental duplicates)
 
 
+# template = metobs_toolkit.demo_template
+# inputdata = metobs_toolkit.demo_datafile
+# outputdir='D:/github/vlinder_toolkit/development/test'
+# n=method2(inputdata, outputdir, 10000)
+
+# chunk0 = 'D:/github/vlinder_toolkit/development/test/chunk_0.csv'
+# chunk1 = 'D:/github/vlinder_toolkit/development/test/chunk_1.csv'
+
+
+# dataset0 = metobs_toolkit.Dataset()
+# dataset0.update_settings(output_folder=None,
+#                             input_data_file=chunk0,
+#                             #input_metadata_file=metadata,
+#                             data_template_file=template,
+#                             metadata_template_file=template,
+#                             )
+# dataset0.import_data_from_file()
+# dataset0.coarsen_time_resolution(freq='60T')
+
+
+# dataset1 = metobs_toolkit.Dataset()
+# dataset1.update_settings(output_folder=None,
+#                             input_data_file=chunk1,
+#                             #input_metadata_file=metadata,
+#                             data_template_file=template,
+#                             metadata_template_file=template,
+#                             )
+# dataset1.import_data_from_file()
+# dataset1.coarsen_time_resolution(freq='60T')
+
+# dataset0.show()
+# dataset1.show()
+# dataset0.make_plot(obstype='temp',colorby='label')
+# dataset1.make_plot(obstype='temp',colorby='label')
+# bigdataset=dataset0.__add__(dataset1, gapsize=None)
+# bigdataset.make_plot(obstype='temp',colorby='label')
+
+
+#if Add worked then there should be no duplicate outliers in the final plot
 #%%
 
 # # # use_dataset = 'debug_wide'
@@ -251,3 +294,6 @@ def method2(datafile, chunksize=500000):
 
 
 
+=======
+metobs_toolkit.build_template_prompt()
+>>>>>>> Stashed changes

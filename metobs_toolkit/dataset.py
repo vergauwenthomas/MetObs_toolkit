@@ -193,10 +193,15 @@ class Dataset:
         assert all([(obs in other.df.columns) for obs in self_obstypes])
         # subset obstype of other to self
         other.df = other.df[self.df.columns.to_list()]
+        
+        #remove duplicate rows 
+        common_indexes = self.df.index.intersection(other.df.index)
+        other.df=other.df.drop(common_indexes)
 
         # set new df
         new.df = pd.concat([self.df, other.df])
         new.df = new.df.sort_index()
+        
 
         #  ----- outliers df ---------
 

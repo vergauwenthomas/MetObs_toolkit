@@ -305,7 +305,7 @@ class MainWindow(QDialog):
 def main():
     try:
         app=QApplication(sys.argv)
-
+        
         mainwindow = MainWindow()
         widget = QtWidgets.QStackedWidget()
         widget.addWidget(mainwindow)
@@ -316,7 +316,7 @@ def main():
         # sys.exit('Something went wrong in the GUI')
         succesfull=False
         pass
-    sys.exit(app.exec_())
+        sys.exit(app.exec_())
 
     return succesfull
 
