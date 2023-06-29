@@ -33,8 +33,8 @@ import metobs_toolkit
 
 #%%
 # # use_dataset = 'debug_wide'
-use_dataset = 'Congo_single_station'
-
+use_dataset = 'single_netatmo_sara_station'
+use_dataset = 'demo'
 dataset = metobs_toolkit.Dataset()
 
 
@@ -49,11 +49,8 @@ dataset.update_settings(output_folder=None,
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
 dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
-# dataset.apply_quality_control()
+dataset.apply_quality_control()
+dataset.update_gaps_and_missing_from_outliers()
 #%%
 
-alarofile = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data/alaro_2500_timeseries_mocca.csv'
-
-model = metobs_toolkit.Modeldata('alaro')
-model.set_alaro_25_model_from_csv(csvpath=alarofile)
-
+dataset.show(show_all_settings=True)

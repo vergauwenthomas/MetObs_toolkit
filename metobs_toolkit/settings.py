@@ -398,7 +398,7 @@ class Settings:
         print(" \n ---------------------------------------\n")
 
         for theme in attr_list:
-            print(f" ---------------- {theme} ----------------------\n")
+            print(f" ---------------- {theme} (settings) ----------------------\n")
             printdict = getattr(self, theme)
             for key1, item1 in printdict.items():
                 print(f"* {key1}: \n")
