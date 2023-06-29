@@ -528,6 +528,11 @@ class Modeldata:
         rename_dict[info['other_mapping']['name']['name']] = 'name'
         df = df.rename(columns=rename_dict)
 
+        # unit conversion
+        for col in info['conversions'].keys():
+            df[col] = df[col] * info['conversions'][col]
+
+
         # format datatime
         df["datetime"] = pd.to_datetime(df["datetime"],
                                         format=info['other_mapping']['datetime']['fmt'])
