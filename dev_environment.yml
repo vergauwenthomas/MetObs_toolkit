@@ -95,6 +95,7 @@ dependencies:
   - google-auth-httplib2=0.1.0=pyhd8ed1ab_1
   - google-cloud-core=2.3.2=pyhd8ed1ab_0
   - google-cloud-storage=2.9.0=pyh1a96a4e_0
+  - google-crc32c=1.5.0=py39h5eee18b_0
   - google-resumable-media=2.5.0=pyhd8ed1ab_0
   - grpcio=1.51.1=py39h712372c_0
   - gst-plugins-base=1.14.1=h6a678d5_1
@@ -350,6 +351,7 @@ dependencies:
   - tqdm=4.65.0=pyhd8ed1ab_1
   - traitlets=5.9.0=pyhd8ed1ab_0
   - traittypes=0.2.1=pyh9f0ad1d_2
+  - trove-classifiers=2023.5.24=pyhd8ed1ab_0
   - typing=3.10.0.0=pyhd8ed1ab_0
   - typing_utils=0.1.0=pyhd8ed1ab_0
   - tzdata=2023c=h71feb2d_0
@@ -393,7 +395,6 @@ dependencies:
       - fiona==1.9.4.post1
       - geopandas==0.9.0
       - google-auth==2.19.0
-      - google-crc32c==1.5.0
       - googleapis-common-protos==1.59.0
       - ipywidgets==8.0.6
       - joblib==1.2.0
@@ -417,7 +418,7 @@ dependencies:
       - shapely==2.0.1
       - shellingham==1.5.0.post1
       - threadpoolctl==3.1.0
-      - trove-classifiers==2023.5.24
+      - titanlib==0.3.3
       - typing-extensions==4.6.2
       - urllib3==1.26.16
       - widgetsnbextension==4.0.7
