@@ -301,6 +301,26 @@ class Dataset:
 
         return new
 
+    def show(self, show_all_settings=False, max_disp_n_gaps = 5):
+        """
+        A function to print out a detailed overview information about the Dataset.
+
+        Parameters
+        ----------
+        show_all_settings : bool, optional
+            If True all the settings are printed out. The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        logger.info("Show basic info of dataset.")
+
+        print_dataset_info(self, show_all_settings)
+
+
 
     def save_dataset(self, outputfolder=None, filename='saved_dataset.pkl'):
         """
@@ -458,35 +478,7 @@ class Dataset:
             _applied_qc=self._applied_qc,
         )
 
-    def show(self):
-        """
-        A function to print out some overview information about the Dataset.
 
-        Returns
-        -------
-        None.
-
-        """
-
-        logger.info("Show basic info of dataset.")
-
-        try:
-            gapsdf = self.gaps.to_df()
-        except:
-            gapsdf = init_multiindexdf()
-
-        if self.missing_obs is None:
-            missing_obs_series = pd.Series(dtype=object)
-        else:
-            missing_obs_series = self.missing_obs.series
-
-        print_dataset_info(
-            self.df,
-            self.outliersdf,
-            gapsdf,
-            missing_obs_series,
-            self.settings.app["print_fmt_datetime"],
-        )
 
     def make_plot(
         self,

@@ -7,42 +7,38 @@ Created on Thu Mar  2 14:56:26 2023
 """
 
 
-from datetime import datetime
 
 
-def print_dataset_info(df, outliersdf, gapsdf, missing_obs, fmt_datetime):
-    if df.empty:
-        print("This dataset is empty!")
-        # logger.error('The dataset is empty!')
+
+def print_dataset_info(dataset, show_all_settings=False, max_disp_n_gaps = 5):
+
+    print("\n", "--------  General ---------", "\n")
+    print(dataset)
+
+    print("\n", "--------  Settings ---------", "\n")
+    if show_all_settings:
+        dataset.show_settings()
     else:
-        print("\n", "--------  General ---------", "\n")
-        print(" .... ")
+        print('(to show all settings use the .show_settings() method, or set show_all_settings = True)')
 
-        print("\n", "--------  Observations ---------", "\n")
-        starttimestr = datetime.strftime(
-            min(df.index.get_level_values(level="datetime")), fmt_datetime
-        )
-        endtimestr = datetime.strftime(
-            max(df.index.get_level_values(level="datetime")), fmt_datetime
-        )
+    print("\n", "--------  Meta data ---------", "\n")
 
-        stations_available = list(df.index.get_level_values(level="name").unique())
-        print(f"Observations found for period: {starttimestr} --> {endtimestr}")
-        # logger.debug(f'Observations found for period: {starttimestr} --> {endtimestr}')
-        print(f"Following stations are in dataset: {stations_available}")
-        # logger.debug(f'Following stations are in dataset: {stations_available}')
+    relev_columns = []
+    for col in dataset.metadf.columns:
+        if not dataset.metadf[col].isna().all():
+            relev_columns.append(col)
 
-        print("\n", "--------  Outliers ---------", "\n")
-        print(
-            f'There are {outliersdf.shape[0]} flagged observations found in total. They occure in these stations: {list(outliersdf.index.get_level_values("name").unique())}'
-        )
+    print(f'The following metadata is found: {relev_columns}')
+    print('\n The first rows of the metadf looks like:')
+    print(f'{dataset.metadf[relev_columns].head()}')
 
-        print("\n", "--------  Missing observations ---------", "\n")
-        print(
-            f"There are {missing_obs.shape[0]} missing observations in total. They occure in these stations: {list(missing_obs.index.unique())}"
-        )
+    # "--------  Missing observations ---------")
 
-        print("\n", "--------  Gaps ---------", "\n")
-        print(
-            f"There are {gapsdf.shape[0]} gaps found in total. They occure in these stations: {list(gapsdf.index.unique())}"
-        )
+    print(dataset.get_missing_obs_info())
+
+    print("\n", "--------  Gaps ---------", "\n")
+
+    if len(dataset.gaps) <= 5:
+        print(dataset.get_gaps_info())
+    else:
+        print(f'The info on {len(dataset.gaps)} is to long to print. Use the .get_gaps_info() to print out the details of all gaps.')

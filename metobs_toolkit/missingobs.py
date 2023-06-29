@@ -96,7 +96,7 @@ class Missingob_collection:
 
         """
 
-        print(f'\n ---- Missing observations info ----- \n')
+        print(f'\n -------- Missing observations info -------- \n')
         if self.series.empty:
             print(f'Empty missing observations.')
             return
