@@ -57,7 +57,7 @@ import metobs_toolkit
 #%%
 
 # # use_dataset = 'debug_wide'
-use_dataset = 'vlindergent2022'
+use_dataset = 'demo'
 
 dataset = metobs_toolkit.Dataset()
 
@@ -68,29 +68,29 @@ dataset.update_settings(output_folder=None,
                         data_template_file=testdata[use_dataset]['template'],
                         metadata_template_file=testdata[use_dataset]['template'],
                         )
-tz ='UTC'
 
-dataset.update_timezone(timezonestr=tz)
 
 
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
-dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
+# dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
 
 
 
 #%%
 
 
-
-ann= dataset.get_analysis()
-
-# ann.aggregate_df(agg=['month', 'name'], method=['mean', 'std'])
-
-
-
-
-plotdf = ann.get_anual_statistics(groupby=['name'], errorbands=False)
+analysis = dataset.get_analysis()
+stats = analysis.get_diurnal_statistics_with_reference(obstype='temp',
+                                                       refstation='vlinder01', # define a (rural) reference station of your dataset, insert the name here
+                                                       stations=['vlinder02','vlinder27','vlinder28'], # here you can select the stations you want to include, for example: stations=['vlinder01','vlinder02','vlinder25','vlinder27','vlinder28'],
+                                                       #if None then all stations are selected
+                                                       startdt=None,
+                                                       enddt=None,
+                                                       plot=True,
+                                                       colorby='name',
+                                                       errorbands=False, # standard deviation of both reference station and station included
+                                                       verbose=False)
 
 
 

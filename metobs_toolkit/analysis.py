@@ -570,20 +570,21 @@ class Analysis():
 
 
         obsdf = self.df
-
+        assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
         # Filter stations
         if not stations is None:
             if isinstance(stations, str):
                 stations = [stations]
-                stations.append(refstation)
-            obsdf = subset_stations(obsdf, stations)
 
+            stations.append(refstation)
+            obsdf = subset_stations(obsdf, stations)
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {stations}'
 
         # Filter datetimes
         obsdf = datetime_subsetting(df=obsdf,
                                     starttime=startdt,
                                     endtime=enddt)
-
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
         # check if lcz is available if required
         if colorby == 'lcz':
             if self.metadf['lcz'].isnull().any():
@@ -593,10 +594,14 @@ class Analysis():
         obsdf = obsdf[obstype].reset_index()
 
 
-
         # extract refernce from observations
         refdf = obsdf[obsdf['name'] == refstation]
         obsdf = obsdf[obsdf['name']!= refstation]
+
+        assert not refdf.empty, f'Error: No reference observation found (after filtering) for {refstation}'
+        assert not obsdf.empty, f'Error: No observation found (after filtering)'
+
+
 
         # Syncronize observations with the reference observations
         refdf = refdf.rename(columns={obstype: 'ref_'+obstype, 'datetime': 'ref_datetime'})
