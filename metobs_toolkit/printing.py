@@ -22,15 +22,17 @@ def print_dataset_info(dataset, show_all_settings=False, max_disp_n_gaps = 5):
         print('(to show all settings use the .show_settings() method, or set show_all_settings = True)')
 
     print("\n", "--------  Meta data ---------", "\n")
+    if dataset.metadf.empty:
+        print('No metadata is found.')
+    else:
+        relev_columns = []
+        for col in dataset.metadf.columns:
+            if not dataset.metadf[col].isna().all():
+                relev_columns.append(col)
 
-    relev_columns = []
-    for col in dataset.metadf.columns:
-        if not dataset.metadf[col].isna().all():
-            relev_columns.append(col)
-
-    print(f'The following metadata is found: {relev_columns}')
-    print('\n The first rows of the metadf looks like:')
-    print(f'{dataset.metadf[relev_columns].head()}')
+        print(f'The following metadata is found: {relev_columns}')
+        print('\n The first rows of the metadf looks like:')
+        print(f'{dataset.metadf[relev_columns].head()}')
 
     # "--------  Missing observations ---------")
     if not dataset.missing_obs is None:
