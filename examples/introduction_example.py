@@ -43,7 +43,7 @@ print(metobs_toolkit.observation_types)
 
 # we created an dataset and stored in under the variable 'aug_2020_all_vlinder'.
 # The show function prints out an overview of data in the dataset:
-aug_2020_all_vlinders.show()
+aug_2020_all_vlinders.show() # or .get_info()
 
 # =============================================================================
 # Importing data

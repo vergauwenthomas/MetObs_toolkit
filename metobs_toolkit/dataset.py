@@ -320,6 +320,22 @@ class Dataset:
 
         print_dataset_info(self, show_all_settings)
 
+    def get_info(self, show_all_settings=False, max_disp_n_gaps = 5):
+        """
+        (alias of .show() method)
+        A function to print out a detailed overview information about the Dataset.
+
+        Parameters
+        ----------
+        show_all_settings : bool, optional
+            If True all the settings are printed out. The default is False.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.show(show_all_settings, max_disp_n_gaps)
 
 
     def save_dataset(self, outputfolder=None, filename='saved_dataset.pkl'):
@@ -1130,6 +1146,7 @@ class Dataset:
                                             method=fill_settings["method"],
         )
         missing_fill_df = self.missing_obs.fill_df
+
         missing_fill_df[obstype+'_' + fill_info["label_columnname"]] = fill_info["label"]["linear"]
 
         # Update attribute

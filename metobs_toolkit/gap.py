@@ -90,6 +90,7 @@ class Gap:
     def get_info(self):
         print(f'Gap for {self.name} with: \n')
         print(f'\n ---- Gap info ----- \n')
+        print('(Note: gaps are defined on the frequency estimation of the native dataset.)')
         print(f'  * Start gap: {self.startgap} \n')
         print(f'  * End gap: {self.endgap} \n')
         print(f'  * Duration gap: {self.duration} \n')
@@ -671,7 +672,14 @@ def make_gapfill_df(gapslist):
 
         concatlist.append(subgapfill)
 
-    return pd.concat(concatlist).sort_index()
+    filldf = pd.concat(concatlist).sort_index()
+
+    # When gapfill could (paritally) not been fulfilled,
+    # their values (=Nan) must be removed from gapfill,
+    # so they will be plotted as gaps
+    filldf = filldf.dropna()
+
+    return filldf
 
 
 def missing_timestamp_and_gap_check(df, gapsize_n):
