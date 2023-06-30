@@ -70,6 +70,7 @@ class Missingob_collection:
     def __str__(self):
         if self.series.empty:
             return f'Empty missing observations.'
+
         if not self.fill_df.empty:
             return f'Missing observations with filled ({self.fill_technique}) \
                 values: \n {self.fill_df} \n Original missing observations on import: \n {self.idx}'
@@ -100,6 +101,7 @@ class Missingob_collection:
         if self.series.empty:
             print(f'Empty missing observations.')
             return
+        print('(Note: missing observations are defined on the frequency estimation of the native dataset.)')
 
         n_missing = len(self)
         stations = self.series.index.unique().to_list()
@@ -120,6 +122,13 @@ class Missingob_collection:
             print(f'  * Missing observations are filled with {{self.fill_technique}} for: ')
             for obstype in filled_obstypes:
                 print(f'    {obstype}: \n {self.fill_df[[obstype]]}')
+
+            # print missing obs that could not be filled
+            print(f'  * Missing observations that could NOT be filled for: ')
+            for obstype in filled_obstypes:
+                unfilled = self.idx[~self.idx.isin(self.fill_df[[obstype]].dropna().index)]
+                print(f'    {obstype}: \n {unfilled}')
+
 
         print('(More details on the missing observation can be found in the .series and .fill_df attributes.)')
         return
@@ -279,7 +288,8 @@ class Missingob_collection:
 
             self.fill_df.loc[(staname, missingdt), obstype] = stadf.loc[missingdt, 'interp']
 
-
+        # if no fill is applied (no leading/trailing), remove them from fill to keep them as missing
+        self.fill_df = self.fill_df.dropna(subset=obstype)
 
 
     def get_missing_indx_in_obs_space(self, obsdf, resolutionseries):

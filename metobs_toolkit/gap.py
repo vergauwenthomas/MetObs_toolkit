@@ -90,6 +90,7 @@ class Gap:
     def get_info(self):
         print(f'Gap for {self.name} with: \n')
         print(f'\n ---- Gap info ----- \n')
+        print('(Note: gaps are defined on the frequency estimation of the native dataset.)')
         print(f'  * Start gap: {self.startgap} \n')
         print(f'  * End gap: {self.endgap} \n')
         print(f'  * Duration gap: {self.duration} \n')

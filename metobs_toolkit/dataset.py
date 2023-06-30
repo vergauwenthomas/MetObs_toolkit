@@ -1130,6 +1130,7 @@ class Dataset:
                                             method=fill_settings["method"],
         )
         missing_fill_df = self.missing_obs.fill_df
+
         missing_fill_df[obstype+'_' + fill_info["label_columnname"]] = fill_info["label"]["linear"]
 
         # Update attribute

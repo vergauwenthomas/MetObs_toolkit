@@ -33,7 +33,7 @@ import metobs_toolkit
 
 #%%
 # # use_dataset = 'debug_wide'
-use_dataset = 'single_netatmo_sara_station'
+# use_dataset = 'single_netatmo_sara_station'
 use_dataset = 'demo'
 dataset = metobs_toolkit.Dataset()
 
@@ -53,4 +53,42 @@ dataset.apply_quality_control()
 dataset.update_gaps_and_missing_from_outliers()
 #%%
 
-dataset.show(show_all_settings=True)
+
+station = dataset.get_station('vlinder05')
+# station.fill_gaps_linear()
+# station.fill_missing_obs_linear()
+
+station.make_plot(colorby='label')
+
+
+
+# mergedf = station.combine_all_to_obsspace()
+# mergedf = mergedf.xs('temp', level='obstype')
+
+#%%
+station.fill_missing_obs_linear()
+
+station.make_plot(colorby='label', title='after fix')
+
+station.get_missing_obs_info()
+
+
+#%%
+
+# missing = station.missing_obs
+
+# misrec = missing.idx
+# mis_series = missing.series
+# misfil = missing.fill_df
+
+# # cheat method
+# unfilled = misfil[misfil['temp'].isnull()]
+
+
+# misfil = misfil.dropna(subset='temp')
+
+# test_unfilled = misrec[~misrec.isin(misfil.index)]
+
+
+
+
