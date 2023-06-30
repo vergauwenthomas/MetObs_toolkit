@@ -672,7 +672,14 @@ def make_gapfill_df(gapslist):
 
         concatlist.append(subgapfill)
 
-    return pd.concat(concatlist).sort_index()
+    filldf = pd.concat(concatlist).sort_index()
+
+    # When gapfill could (paritally) not been fulfilled,
+    # their values (=Nan) must be removed from gapfill,
+    # so they will be plotted as gaps
+    filldf = filldf.dropna()
+
+    return filldf
 
 
 def missing_timestamp_and_gap_check(df, gapsize_n):

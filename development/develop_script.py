@@ -66,11 +66,13 @@ station.make_plot(colorby='label')
 # mergedf = mergedf.xs('temp', level='obstype')
 
 #%%
-station.fill_missing_obs_linear()
-
+station.fill_gaps_linear()
+#%%
 station.make_plot(colorby='label', title='after fix')
 
-station.get_missing_obs_info()
+# station.get_gaps_info()
+mergedf = station.combine_all_to_obsspace()
+mergedf = mergedf.xs('temp', level='obstype')
 
 
 #%%
