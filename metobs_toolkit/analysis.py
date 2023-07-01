@@ -317,8 +317,10 @@ class Analysis():
 
         # ylabel
         if y_label is None:
-
-            y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+            if 'units' not in desc_dict:
+                y_label = f'{desc_dict["description"]} (units unknown)'
+            else:
+                y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
         else:
             y_label = str(y_label)
 
@@ -414,8 +416,10 @@ class Analysis():
 
         # ylabel
         if y_label is None:
-
-            y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+            if 'units' not in desc_dict:
+                y_label = f'{desc_dict["description"]} (units unknown)'
+            else:
+                y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
         else:
             y_label = str(y_label)
 
@@ -554,8 +558,10 @@ class Analysis():
 
         # ylabel
         if y_label is None:
-
-            y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+            if 'units' not in desc_dict:
+                y_label = f'{desc_dict["description"]} (units unknown)'
+            else:
+                y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
         else:
             y_label = str(y_label)
 
@@ -770,12 +776,14 @@ class Analysis():
                 enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
                 title=f'{aggregation_method} - {horizontal_axis } {obstype} cycle for period {startdtstr} - {enddtstr} grouped by {aggregation}'
 
-            # y-label
+            # ylabel
             if y_label is None:
-                try:
-                    y_label = f'{desc_dict["orig_name"]} ({desc_dict["units"]}) \n {description}'
-                except KeyError:
-                    y_label = f'{obstype}'
+                if 'units' not in desc_dict:
+                    y_label = f'{desc_dict["description"]} (units unknown)'
+                else:
+                    y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+            else:
+                y_label = str(y_label)
 
 
             # generate errorbands df
