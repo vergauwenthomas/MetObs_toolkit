@@ -289,7 +289,8 @@ class Missingob_collection:
             self.fill_df.loc[(staname, missingdt), obstype] = stadf.loc[missingdt, 'interp']
 
         # if no fill is applied (no leading/trailing), remove them from fill to keep them as missing
-        self.fill_df = self.fill_df.dropna(subset=obstype)
+        if not self.fill_df.empty:
+            self.fill_df = self.fill_df.dropna(subset=obstype)
 
 
     def get_missing_indx_in_obs_space(self, obsdf, resolutionseries):

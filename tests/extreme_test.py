@@ -57,7 +57,7 @@ def IO_test(dataset, name):
 
 
     # Sycnronize data
-    test = dataset.sync_observations(tollerance='5T', verbose=True)
+    test = dataset.sync_observations(tollerance='5T')
 
     # pickel test
     outfolder =os.path.join(str(lib_folder), 'tests', 'test_data')
@@ -160,9 +160,9 @@ def analysis_test(dataset, name):
     an = dataset.get_analysis()
 
     # Test plotting and functions
-    (temp_diurnal, stats) = an.get_diurnal_statistics(colorby='lcz',title=name, verbose=True)
-
-    test3 = an.get_aggregated_diurnal_statistics(aggregation=['lcz'],title=name, verbose=True)
+    temp_diurnal = an.get_diurnal_statistics(colorby='lcz',title=name)
+    an.get_anual_statistics(agg_method='median', plot=False)
+    test3 = an.get_aggregated_cycle_statistics(aggregation=['lcz'],title=name)
 
     print(an)
 
@@ -206,6 +206,7 @@ def meta_path_generator(name):
 
 
     return os.path.join(metafolder, filename)
+
 
 
 
