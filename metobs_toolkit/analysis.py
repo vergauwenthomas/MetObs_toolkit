@@ -8,6 +8,7 @@ A Analysis holds a set of 'good' observations and the methods will analyse them.
 from datetime import datetime
 import pandas as pd
 import numpy as np
+import math
 import copy
 from scipy.stats import pearsonr
 
@@ -231,6 +232,12 @@ class Analysis():
         if 'datetime' in df.columns:
             df = df.drop(columns=['datetime'])
 
+        # Remove name column if present and not in the aggregation scheme,
+        # this happens because name was in the index
+        if 'name' not in agg:
+            df = df.drop(columns=['name'], errors='ignore')
+
+
 
         # Aggregate the df
         agg_df = df.groupby(agg).agg(method, numeric_only=True) #descrepation warning
@@ -247,7 +254,7 @@ class Analysis():
                              agg_method='mean', stations=None,
                              startdt=None, enddt=None, plot=True,
                              errorbands=False, title=None, y_label=None,
-                             legend=True):
+                             legend=True, return_all_stats=False):
 
         """
         Create an anual cycle for aggregated groups.
@@ -295,63 +302,12 @@ class Analysis():
 
         """
 
-
-        obsdf = self.df[[obstype]]
-        assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
-        # Filter stations
-        if not stations is None:
-            if isinstance(stations, str):
-                stations = [stations]
-
-            obsdf = subset_stations(obsdf, stations)
-        assert not obsdf.empty, f'Error: No more observations after subsetting to {stations}'
-
-        # Filter datetimes
-        obsdf = datetime_subsetting(df=obsdf,
-                                    starttime=startdt,
-                                    endtime=enddt)
-        assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
-
-        # Define aggregation groups
-        agg = groupby.copy()
-        agg.insert(0, 'month')
-
-
-        # get agg statistics
-        df = self.aggregate_df(df=obsdf, agg=agg, method=[agg_method, 'std'])
-        # multiindex to string format
-        df = df.reset_index()
-        for idx_col in agg:
-            df[idx_col] = df[idx_col].astype(str)
-        df = df.set_index(agg)
-
-        # unstack multiindex and unstack column levels if multiple groupby labels
-        aggdf = df.unstack(groupby).droplevel(0, axis='columns')
-        values_df = aggdf[[agg_method]].droplevel(0, axis='columns') #df with values
-        std_df = aggdf[['std']].droplevel(0, axis='columns') #df with errors
-
-        def _format_for_plotting(df):
-
-            if len(groupby) > 1:
-                df.columns = [' ,'.join(col).strip() for col in df.columns.values]
-
-            # sort months order
-            months = ['January', 'February', 'March', 'April', 'May', 'June',
-                      'July', 'August', 'September', 'October', 'November',
-                      'December']
-            df = df.reindex(months)
-            return df
-
-        plotdf = _format_for_plotting(values_df)
-        if errorbands:
-            errordf= _format_for_plotting(std_df)
-        else:
-            errordf=None
-
         # title
         desc_dict = self.data_template[obstype].to_dict()
 
         if not 'description' in desc_dict:
+            desc_dict['description'] = obstype
+        if not isinstance(desc_dict['description'], str):
             desc_dict['description'] = obstype
 
         if title is None:
@@ -367,19 +323,23 @@ class Analysis():
             y_label = str(y_label)
 
 
+        stats = self.get_aggregated_cycle_statistics(obstype=obstype,
+                                             stations=stations,
+                                             aggregation=groupby,
+                                             aggregation_method=agg_method,
+                                             horizontal_axis='month',
+                                             startdt=startdt,
+                                             enddt=enddt,
+                                             plot=plot,
+                                             title=title,
+                                             y_label=y_label,
+                                             legend=legend,
+                                             errorbands=errorbands,
+                                             verbose=return_all_stats,
+                                             )
+        return stats
 
-        if plot:
-            ax = diurnal_plot(diurnaldf = plotdf,
-                              errorbandsdf = errordf,
-                              title = title,
-                              plot_settings = self.settings.app['plot_settings']['anual'],
-                              colorby = 'name',
-                              lcz_dict = None,
-                              data_template=self.data_template,
-                              obstype=obstype,
-                              y_label = y_label,
-                              legend=legend)
-        return plotdf
+
 
 
     def get_diurnal_statistics(self, obstype='temp', stations=None,
@@ -430,94 +390,56 @@ class Analysis():
 
         """
 
-        obsdf = self.df
-        assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
-        # Filter stations
-        if not stations is None:
-            if isinstance(stations, str):
-                stations = [stations]
+        # title
+        desc_dict = self.data_template[obstype].to_dict()
 
-            obsdf = subset_stations(obsdf, stations)
-        assert not obsdf.empty, f'Error: No more observations after subsetting to {stations}'
+        if not 'description' in desc_dict:
+            desc_dict['description'] = obstype
+        if not isinstance(desc_dict['description'], str):
+            desc_dict['description'] = obstype
 
-        # Filter datetimes
-        obsdf = datetime_subsetting(df=obsdf,
-                                    starttime=startdt,
-                                    endtime=enddt)
-        assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
-
-        # check if lcz is available if required
-        if colorby == 'lcz':
-            if self.metadf['lcz'].isnull().any():
-                print("ERROR: Not all stations have a LCZ. Update the LCZ's first or use colorby='name'. ")
-                return None
-
-
-
-        # Get hours for all records
-        obsdf = obsdf.reset_index()
-        obsdf['hour'] = obsdf['datetime'].dt.hour
-
-
-        agg_column_name = obstype #aggregate the measured obstypes
-        startdt = obsdf['datetime'].min()
-        enddt = obsdf['datetime'].max()
-
-
-        # groupby and take the mean per station per hour.
-        stats = obsdf.groupby(['name', 'hour'])[agg_column_name].agg(['mean', 'std', 'median'])
-
-        hourly_avg = stats['mean'].unstack().transpose()
-
-
-        if plot:
-            # get lcz groups if needed
-            if ((colorby == 'lcz') & (not 'lcz' in self.metadf.columns)):
-                print('Warning: No LCZ information, thus colorby will be set to name.')
-                colorby = 'name'
-            if colorby =='lcz':
-                lcz_dict = self.metadf['lcz'][hourly_avg.columns.to_list()].to_dict()
+        if title is None:
+            if startdt is None:
+                if enddt is None:
+                    title=f'Hourly average {obstype} diurnal cycle'
+                else:
+                    title=f'Hourly average {obstype} diurnal cycle until {enddt}'
             else:
-                lcz_dict = None
+                if enddt is None:
+                    title=f'Hourly average {obstype} diurnal cycle from {startdt}'
+                else:
+                    title=f'Hourly average {obstype} diurnal cycle for period {startdt} - {enddt}'
 
-            # generate title
-            if title is None:
-                startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
-                enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
+        else:
+            title = str(title)
 
-                title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr}'
+        # ylabel
+        if y_label is None:
 
-
-            # generate errorbands df
-            if errorbands:
-                stddf = stats['std'].unstack().transpose()
-            else:
-                stddf = None
-
-            # extract timezone
-            tzstring = self.df.index.get_level_values('datetime').tz.zone
+            y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+        else:
+            y_label = str(y_label)
 
 
-            # Make plot
-            ax = diurnal_plot(diurnaldf = hourly_avg,
-                         errorbandsdf = stddf,
-                         title = title,
-                         plot_settings = self.settings.app['plot_settings']['diurnal'],
-                         colorby = colorby,
-                         lcz_dict = lcz_dict,
-                         data_template=self.data_template,
-                         obstype=obstype,
-                         y_label = y_label,
-                         legend=legend)
+        stats = self.get_aggregated_cycle_statistics(obstype=obstype,
+                                             stations=stations,
+                                             aggregation=[colorby],
+                                             aggregation_method='mean',
+                                             horizontal_axis='hour',
+                                             startdt=startdt,
+                                             enddt=enddt,
+                                             plot=plot,
+                                             title=title,
+                                             y_label=y_label,
+                                             legend=legend,
+                                             errorbands=errorbands,
+                                             verbose=verbose,
+                                             )
+        return stats
 
-            ax.xaxis.set_major_formatter('{x:.0f} h')
-            ax.set_xlabel(f'Hours (timezone: {tzstring})')
 
 
-        if verbose:
-            return hourly_avg, stats
 
-        return hourly_avg
 
     def get_diurnal_statistics_with_reference(self, refstation, obstype='temp',
                                               tollerance='30T', stations=None,
@@ -525,6 +447,7 @@ class Analysis():
                                               plot=True, title=None,
                                               y_label=None, legend=True,
                                               colorby='name', errorbands=False,
+                                              show_zero_horizontal = True,
                                               verbose=False):
         """
         Create an average diurnal cycle for the observation differences of a reference station.
@@ -577,33 +500,8 @@ class Analysis():
 
         """
 
-
-
-
         obsdf = self.df
-        assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
-        # Filter stations
-        if not stations is None:
-            if isinstance(stations, str):
-                stations = [stations]
-
-            stations.append(refstation)
-            obsdf = subset_stations(obsdf, stations)
-        assert not obsdf.empty, f'Error: No more observations after subsetting to {stations}'
-
-        # Filter datetimes
-        obsdf = datetime_subsetting(df=obsdf,
-                                    starttime=startdt,
-                                    endtime=enddt)
-        assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
-        # check if lcz is available if required
-        if colorby == 'lcz':
-            if self.metadf['lcz'].isnull().any():
-                print("ERROR: Not all stations have a LCZ. Update the LCZ's first or use colorby='name'. ")
-                return None
-
         obsdf = obsdf[obstype].reset_index()
-
 
         # extract refernce from observations
         refdf = obsdf[obsdf['name'] == refstation]
@@ -624,80 +522,74 @@ class Analysis():
                                 tolerance=pd.Timedelta(tollerance),
                                 )
 
-        startdt = refdf['ref_datetime'].min()
-        enddt = refdf['ref_datetime'].max()
+        # Get differnces
+        mergedf['temp'] = mergedf['temp'] - mergedf['ref_temp']
 
-        # Compute difference
-        agg_column_name = 'difference'
-        mergedf[agg_column_name] = mergedf[obstype] - mergedf['ref_'+obstype]
+        # Subset to relavent columns
+        mergedf = mergedf.reset_index()
+        mergedf = mergedf[['name', 'datetime', obstype]]
+        mergedf = mergedf.set_index(['name', 'datetime'])
 
-        # Get hour column
-        mergedf['hour'] = mergedf['datetime'].dt.hour
+        # title
+        desc_dict = self.data_template[obstype].to_dict()
+        if not 'description' in desc_dict:
+            desc_dict['description'] = obstype
+        if not isinstance(desc_dict['description'], str):
+            desc_dict['description'] = obstype
 
-        # overwrite the obsdf
-        obsdf = mergedf
-        # groupby and take the mean per station per hour.
-        stats = obsdf.groupby(['name', 'hour'])[agg_column_name].agg(['mean', 'std', 'median'])
-
-        hourly_avg = stats['mean'].unstack().transpose()
-
-
-        if plot:
-            # get lcz groups if needed
-            if ((colorby == 'lcz') & (not 'lcz' in self.metadf.columns)):
-                print('Warning: No LCZ information, thus colorby will be set to name.')
-                colorby = 'name'
-
-            if colorby =='lcz':
-                lcz_dict = self.metadf['lcz'][hourly_avg.columns.to_list()].to_dict()
+        if title is None:
+            if startdt is None:
+                if enddt is None:
+                    title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference,'
+                else:
+                    title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, until {enddt}'
             else:
-                lcz_dict = None
+                if enddt is None:
+                    title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, from {startdt}'
+                else:
+                    title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdt} - {enddt}'
 
-            # generate title
-            if title is None:
-                startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
-                enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
-                title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdtstr} - {enddtstr}'
+        else:
+            title = str(title)
 
+        # ylabel
+        if y_label is None:
 
-            # generate errorbands df
-            if errorbands:
-                stddf = stats['std'].unstack().transpose()
-            else:
-                stddf = None
-
-            # extract timezone
-            tzstring = self.df.index.get_level_values('datetime').tz.zone
+            y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+        else:
+            y_label = str(y_label)
 
 
-            # Make plot
-            ax = diurnal_plot(diurnaldf = hourly_avg,
-                             errorbandsdf = stddf,
-                             title = title,
-                             plot_settings = self.settings.app['plot_settings']['diurnal'],
-                             colorby = colorby,
-                             lcz_dict = lcz_dict,
-                             data_template=self.data_template,
-                             obstype = obstype,
-                             y_label = y_label,
-                             legend=legend,
-                             show_zero_horizontal = True)
-            ax.xaxis.set_major_formatter('{x:.0f} h')
-            ax.set_xlabel(f'Hours (timezone: {tzstring})')
+        stats = self.get_aggregated_cycle_statistics(obstype=obstype,
+                                             stations=stations,
+                                             aggregation=[colorby],
+                                             aggregation_method='mean',
+                                             horizontal_axis='hour',
+                                             startdt=startdt,
+                                             enddt=enddt,
+                                             plot=plot,
+                                             title=title,
+                                             y_label=y_label,
+                                             legend=legend,
+                                             errorbands=errorbands,
+                                             verbose=verbose,
+                                             _obsdf=mergedf,
+                                             _show_zero_line= show_zero_horizontal
+                                             )
+        return stats
 
 
-        if verbose:
-            return hourly_avg, stats, obsdf
-
-        return hourly_avg
 
 
-    def get_aggregated_diurnal_statistics(self, obstype='temp', stations=None,
+
+    def get_aggregated_cycle_statistics(self, obstype='temp', stations=None,
                                           aggregation=['lcz', 'datetime'],
                                           aggregation_method='mean',
+                                          horizontal_axis='hour',
                                           startdt=None, enddt=None, plot=True,
                                           title=None, y_label=None, legend=True,
-                                          errorbands=False, verbose=False):
+                                          errorbands=False, verbose=False,
+                                          _obsdf=None, _show_zero_line=False):
 
         """
         Create an average diurnal cycle for an aggregated categorie. A commen
@@ -720,6 +612,9 @@ class Analysis():
             'week_of_year', 'season']. The default is ['lcz', 'datetime'].
         aggregation_method : str, optional
             Which (numpy) function is used to aggregate the observations. The default is 'mean'.
+        horizontal_axis : str, optional
+            Which aggregated value will be represented on the horizontal axis
+            of the plot. The default is 'hour'.
         startdt : datetime.datetime, optional
             The start datetime of the observations to use. If None, all timestamps will be used. The default is None.
         enddt : datetime.datetime, optional
@@ -749,7 +644,11 @@ class Analysis():
 
         """
 
-        obsdf = self.df
+        if _obsdf is None:
+            obsdf = self.df[[obstype]]
+        else:
+            obsdf = _obsdf
+
         assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
         # Filter stations
         if not stations is None:
@@ -766,74 +665,152 @@ class Analysis():
                                     endtime=enddt)
         assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
 
-        if bool(aggregation):
-            # check if datetime is in the aggreagation, otherwise no time component is left
-            if not 'datetime' in aggregation:
-                print(f'WARNING: To make a diurnal cycle with aggregation, the "datetime" must be in the aggregation list. "datetime" is added to it.')
-                aggregation.append('datetime')
-            obsdf = self.aggregate_df(df = obsdf, agg=aggregation,
-                                      method=aggregation_method)
-
-        obsdf = obsdf.reset_index()
-        # Create identifiers to form unique hours
-        obsdf['hour'] = obsdf['datetime'].dt.hour
 
 
-        # aggregation scheme setup
+
         agg_column_name = obstype #aggregate the measured obstypes
-        groupby_list = aggregation
-        groupby_list.append('hour')
-        groupby_list.remove('datetime')
+        startdt = obsdf.index.get_level_values('datetime').min()
+        enddt = obsdf.index.get_level_values('datetime').max()
 
-        # for plot titles
-        startdt = obsdf['datetime'].dropna().min()
-        enddt = obsdf['datetime'].dropna().max()
+        # add hour to aggregation (will be the x-axis)
+        if not horizontal_axis in aggregation:
+            aggregation.insert(0, horizontal_axis)
+
+        # add other methods for errorbands and stats
+        methods =['mean', 'std', 'median']
+        methods.append(aggregation_method)
+        methods = list(set(methods))
+
+        # compute the aggregation statistics
+        aggdf = self.aggregate_df(df = obsdf, agg=aggregation,
+                                  method=methods)
+
+        # since only one observation type is in the stats, drop the column
+        #level with the obstye, this is not relevant
+        aggdf = aggdf.droplevel(0, axis='columns')
+
+        # format dataframe for plotting
+        # Categories to string format
+        aggdf = aggdf.reset_index()
+        for idx_col in aggdf:
+            if idx_col == horizontal_axis:
+                continue #if numeric, let it be numeric!
+            aggdf[idx_col] = aggdf[idx_col].astype(str)
+        aggdf = aggdf.set_index(aggregation)
+
+        # sorting cateigories (months and seisons)
+
+        seasons = ['winter', 'spring', 'summer', 'autumn' ]
+        months = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November',
+                        'December']
+        season_order_dict = {}
+        months_order_dict = {}
+        for i, item in enumerate(seasons): season_order_dict[item] = i
+        for i, item in enumerate(months): months_order_dict[item] = i
+
+        # Sort columns
+        aggdf = aggdf.reset_index()
+        sort_list = aggregation.copy()
+        if 'season' in aggdf.columns:
+            aggdf['season_num'] = aggdf['season'].map(season_order_dict)
+            sort_list = ['season_num' if x == 'season' else x for x in sort_list]
+        if 'month' in aggdf.columns:
+            aggdf['month_num'] = aggdf['month'].map(months_order_dict)
+            sort_list = ['month_num' if x == 'month' else x for x in sort_list]
+        # sort dataframe
+        aggdf = aggdf.sort_values(sort_list, axis=0)
+        # drop dummy num coluns (if they are present)
+        aggdf = aggdf.drop(columns=['season_num', 'month_num'], errors='ignore')
+        # reset the index
+        aggdf = aggdf.set_index(aggregation)
 
 
-        # groupby and take the mean per station per hour.
-        stats = obsdf.groupby(groupby_list)[agg_column_name].agg(['mean', 'std', 'median'])
+        # unstack aggregation
+        aggregation.remove(horizontal_axis) #let horizontal axes be the index
+        all_stats = aggdf.unstack(aggregation) #return on verbose
 
-        hourly_avg = stats['mean'].unstack().transpose()
+        # Sort index if categorical
+        if all_stats.index.name == 'season':
+            all_stats = all_stats.reindex(seasons)
+        if all_stats.index.name == 'month':
+            all_stats = all_stats.reindex(months)
+
+
+        # split in values and std
+        values_df = all_stats[aggregation_method]
+        std_df = all_stats['std']
+
+
+        # make shure all data is numeric
+        values_df = values_df.astype(float)
+        std_df = std_df.astype(float)
+
+        # squize all column levels to one category for plotting
+        if len(aggregation) > 1: #more than one level for the columns
+            values_df.columns = [' ,'.join(col).strip() for col in values_df.columns.values]
+            std_df.columns = [' ,'.join(col).strip() for col in std_df.columns.values]
+
 
         if plot:
+            # description of the obstype
+            desc_dict = self.data_template[obstype].to_dict()
+            if not 'description' in desc_dict:
+                desc_dict['description'] = obstype
+
+            if not isinstance(desc_dict['description'], str):
+                desc_dict['description'] = obstype
+
+            description = desc_dict['description']
 
             # generate title
             if title is None:
                 startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
                 enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
-                title=f'Hourly average {obstype} diurnal cycle for period {startdtstr} - {enddtstr} grouped by {groupby_list}'
+                title=f'{aggregation_method} - {horizontal_axis } {obstype} cycle for period {startdtstr} - {enddtstr} grouped by {aggregation}'
 
+            # y-label
+            if y_label is None:
+                try:
+                    y_label = f'{desc_dict["orig_name"]} ({desc_dict["units"]}) \n {description}'
+                except KeyError:
+                    y_label = f'{obstype}'
 
 
             # generate errorbands df
             if errorbands:
-                stddf = stats['std'].unstack().transpose()
+                stddf = std_df
             else:
                 stddf = None
 
-            # extract timezone
-            tzstring = self.df.index.get_level_values('datetime').tz.zone
 
 
             # Make plot
-            ax = diurnal_plot(diurnaldf = hourly_avg,
+            ax = diurnal_plot(diurnaldf = values_df,
                              errorbandsdf = stddf,
                              title = title,
                              plot_settings = self.settings.app['plot_settings']['diurnal'],
-                             colorby = 'name',
+                             aggregation = aggregation,
                              lcz_dict = None,
                              data_template=self.data_template,
                              obstype=obstype,
                              y_label = y_label,
-                             legend=legend)
+                             legend=legend,
+                             show_zero_horizontal = _show_zero_line)
 
-            ax.xaxis.set_major_formatter('{x:.0f} h')
-            ax.set_xlabel(f'Hours (timezone: {tzstring})')
+            ax.set_ylabel(y_label)
+            if horizontal_axis == 'hour':
+                # extract timezone
+                tzstring = self.df.index.get_level_values('datetime').tz.zone
+
+                ax.xaxis.set_major_formatter('{x:.0f} h')
+                ax.set_xlabel(f'Hours (timezone: {tzstring})')
+
 
         if verbose:
-            return hourly_avg, stats
+            return values_df, all_stats
 
-        return hourly_avg
+        return values_df
 
     # =============================================================================
     # Correlations analysis

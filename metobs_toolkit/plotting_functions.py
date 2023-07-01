@@ -706,67 +706,28 @@ def model_timeseries_plot(
 
     return ax, col_mapper
 
-
-
-
 def diurnal_plot(diurnaldf, errorbandsdf, title, plot_settings,
-                 colorby, lcz_dict, data_template, obstype, y_label,
+                 aggregation, lcz_dict, data_template, obstype, y_label,
                  legend, show_zero_horizontal=False):
     # init figure
     fig, ax = plt.subplots(figsize=plot_settings["figsize"])
 
-    if colorby == 'lcz':
-        present_lczs = list(set(lcz_dict.values()))
 
-        # select colormap
-        if len(present_lczs) <= plot_settings['n_cat_max']:
-            cmap = plot_settings['cmap_categorical']
-        else:
-            cmap = plot_settings['cmap_continious']
+    # which colormap to use:
+    if diurnaldf.shape[1] <= plot_settings['n_cat_max']:
+        cmap = plot_settings['cmap_categorical']
+    else:
+        cmap = plot_settings['cmap_continious']
 
-        colordict = make_cat_colormapper(catlist=present_lczs,
-                                         cmapname=cmap)
-
-
-        # Make plot per lcz
-        custom_handles = []
-
-        for lcz_cat  in present_lczs:
-            stations = [sta for sta in diurnaldf.columns if lcz_dict[sta] == lcz_cat]
-            diurnaldf[stations].plot(ax=ax, title=title, color=colordict[lcz_cat], legend=False)
-
-            # add legend item
-            custom_handles.append(
-                Line2D([0], [0], color=colordict[lcz_cat], label=lcz_cat, lw=4)
-            )
-        if legend:
-            box = ax.get_position()
-            ax.set_position([box.x0, box.y0 + box.height * 0.2,
-                 box.width, box.height * 0.95])
-            ax.legend(handles=custom_handles, loc='upper center',
-                bbox_to_anchor=(0.5, -0.1),
+    diurnaldf.plot(ax=ax, title=title, legend=False, cmap=cmap)
+    if legend:
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0 + box.height * 0.2,
+                 box.width, box.height * 0.88])
+        ax.legend(diurnaldf.columns.values.tolist(), loc='upper center',
+                bbox_to_anchor=(0.5, -0.2),
                 fancybox=True, shadow=True,
                 ncol=plot_settings["legend_n_columns"])
-
-
-
-
-    if colorby == 'name':
-        # which colormap to use:
-        if diurnaldf.shape[1] <= plot_settings['n_cat_max']:
-            cmap = plot_settings['cmap_categorical']
-        else:
-            cmap = plot_settings['cmap_continious']
-
-        diurnaldf.plot(ax=ax, title=title, legend=False, cmap=cmap)
-        if legend:
-            box = ax.get_position()
-            ax.set_position([box.x0, box.y0 + box.height * 0.2,
-                     box.width, box.height * 0.88])
-            ax.legend(diurnaldf.columns.values.tolist(), loc='upper center',
-                    bbox_to_anchor=(0.5, -0.2),
-                    fancybox=True, shadow=True,
-                    ncol=plot_settings["legend_n_columns"])
 
 
 
@@ -784,21 +745,11 @@ def diurnal_plot(diurnaldf, errorbandsdf, title, plot_settings,
 
     if show_zero_horizontal:
         ax.axhline(y=0., color='black', linestyle='--')
-    # Styling attributes
-
-    # y-label
-    if y_label is None:
-        templ_map = map_obstype(obstype, data_template)
-        try:
-            y_label = f'{templ_map["orig_name"]} ({templ_map["units"]}) \n {templ_map["description"]}'
-        except KeyError:
-            y_label = f'{templ_map["orig_name"]}'
-
-    ax.set_ylabel(y_label)
 
 
 
     return ax
+
 
 
 
