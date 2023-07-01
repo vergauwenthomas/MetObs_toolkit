@@ -760,6 +760,10 @@ class Dataset:
         modeldata : metobs_toolkit.Modeldata, optional
             Use the modelname attribute and the gee information stored in the
             modeldata instance to extract timeseries.
+        obstype : String, optional
+            Name of the observationtype you want to apply gap filling on. The
+            modeldata must contain this observation type as well. The
+            default is 'temp'.
         stations : string or list of strings, optional
             Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.
         startdt : datetime.datetime, optional
@@ -1440,18 +1444,16 @@ class Dataset:
              If True the gross_value check is applied if False not. The default
              is True.
          persistance : Bool, optional
-            If True the persistance check is applied if False not. The default
-            is True.. The default is True.
+             If True the persistance check is applied if False not. The default
+             is True.. The default is True.
+         repetition : Bool, optional
+             If True the repetations check is applied if False not. The default
+             is True.
          step : Bool, optional
-            If True the step check is applied if False not. The default is True.
-         internal_consistency : Bool, optional
-            If True the internal consistency check is applied if False not. The
-            default is True.
-         qc_info: Bool, optional
-            If True info about the quality control is printed if False not. The
-            default is True.
-         ignore_val : numeric, optional
-             Values to ignore in the quality checks. The default is np.nan.
+             If True the step check is applied if False not. The default is True.
+         window_variation : Bool, optional
+             If True the window_variation check is applied if False not. The 
+             default is True.
 
          Returns
          ---------
@@ -3067,8 +3069,6 @@ class Dataset:
             scheme should included as well. The default is 'worldcover'
         show_stations : bool, optional
             If True, the stations will be plotted as markers. The default is True.
-        show : bool, optional
-            Display the plot. (Not all consoles support this) The default is True.
         save : bool, optional
             If True, the map will be saved as an html file in the output_folder
             as defined in the settings. The default is False.

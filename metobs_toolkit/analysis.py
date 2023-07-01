@@ -1077,7 +1077,31 @@ def get_seasons(datetimeseries,
                 start_day_autumn = '01/09',
                 start_day_winter = '01/12'):
 
-    """ Convert a datetimeseries to a season label (i.g. categorical). """
+    """ 
+    Convert a datetimeseries to a season label (i.g. categorical).
+    
+    Parameters
+    ----------
+    datetimeseries : datetime.datetime
+        The timeseries that you want to split up in seasons.
+    start_day_spring : str , optional
+        Start date for spring, default is '01/03' and if changed the input
+        should have the same format as the default value.
+    start_day_summer : str , optional
+        Start date for summer, default is '01/06' and if changed the input
+        should have the same format as the default value.
+    start_day_autumn : str , optional
+        Start date for autumn, default is '01/09' and if changed the input
+        should have the same format as the default value.
+    start_day_winter : str , optional
+        Start date for winter, default is '01/12' and if changed the input
+        should have the same format as the default value.
+
+    Returns
+    -------
+    output : dataframe
+        A obtained dataframe that has where a label for the seasons has been added.
+    """
 
 
     spring_startday = datetime.strptime(start_day_spring, '%d/%m')
