@@ -226,10 +226,14 @@ class Analysis():
         for agg_name in agg:
             assert df[agg_name].isnull().all() == False, f'Aggregation to {agg_name} not possible because no valid values found for {agg_name}.'
 
+        # remove datetime column if present, because no aggregation can be done on
+        # datetime and it gives a descrepation warning
+        if 'datetime' in df.columns:
+            df = df.drop(columns=['datetime'])
 
 
         # Aggregate the df
-        agg_df = df.groupby(agg).agg(method, numeric_only=True)
+        agg_df = df.groupby(agg).agg(method, numeric_only=True) #descrepation warning
         # sort index
         agg_df = agg_df.reset_index()
         agg_df = agg_df.set_index(agg)
@@ -344,6 +348,9 @@ class Analysis():
 
         # title
         desc_dict = self.data_template[obstype].to_dict()
+
+        if not 'descritpion' in desc_dict:
+            desc_dict['description'] = obstype
 
         if title is None:
             title=f'Anual {desc_dict["description"]} cycle plot per {groupby}.'

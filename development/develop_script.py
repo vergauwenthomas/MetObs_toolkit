@@ -34,7 +34,7 @@ import metobs_toolkit
 #%%
 # # use_dataset = 'debug_wide'
 # use_dataset = 'single_netatmo_sara_station'
-use_dataset = 'demo'
+use_dataset = 'vlindergent2022'
 dataset = metobs_toolkit.Dataset()
 
 
@@ -50,47 +50,21 @@ dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
 dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
 dataset.apply_quality_control()
-dataset.update_gaps_and_missing_from_outliers()
+# dataset.update_gaps_and_missing_from_outliers()
 #%%
 
-
-station = dataset.get_station('vlinder05')
-# station.fill_gaps_linear()
-# station.fill_missing_obs_linear()
-
-station.make_plot(colorby='label')
-
-
-
-# mergedf = station.combine_all_to_obsspace()
-# mergedf = mergedf.xs('temp', level='obstype')
+ann = dataset.get_analysis()
 
 #%%
-station.fill_gaps_linear()
-#%%
-station.make_plot(colorby='label', title='after fix')
-
-# station.get_gaps_info()
-mergedf = station.combine_all_to_obsspace()
-mergedf = mergedf.xs('temp', level='obstype')
-
-
-#%%
-
-# missing = station.missing_obs
-
-# misrec = missing.idx
-# mis_series = missing.series
-# misfil = missing.fill_df
-
-# # cheat method
-# unfilled = misfil[misfil['temp'].isnull()]
-
-
-# misfil = misfil.dropna(subset='temp')
-
-# test_unfilled = misrec[~misrec.isin(misfil.index)]
-
-
-
+# Compute mean annual cycle for each station + plot
+ann_mean_df = ann.get_anual_statistics(groupby=['name'], #each line represents a station
+                                                obstype='temp', # on temperatures
+                                                agg_method='mean', #value of the line is the means of the aggregation
+                                                stations=None, #use all stations
+                                                startdt=None, #use the full analysis
+                                                enddt=None, #use the full analysis
+                                                plot=True,
+                                                errorbands=False, #Display the std as a band
+                                                title = None,
+                                                )
 
