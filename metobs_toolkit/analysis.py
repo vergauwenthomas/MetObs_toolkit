@@ -254,7 +254,7 @@ class Analysis():
                              agg_method='mean', stations=None,
                              startdt=None, enddt=None, plot=True,
                              errorbands=False, title=None, y_label=None,
-                             legend=True, return_all_stats=False):
+                             legend=True, _return_all_stats=False):
 
         """
         Create an anual cycle for aggregated groups.
@@ -335,18 +335,19 @@ class Analysis():
                                              y_label=y_label,
                                              legend=legend,
                                              errorbands=errorbands,
-                                             verbose=return_all_stats,
+                                             verbose=_return_all_stats,
                                              )
         return stats
 
 
 
 
-    def get_diurnal_statistics(self, obstype='temp', stations=None,
-                               startdt=None, enddt=None, plot=True,
+    def get_diurnal_statistics(self, colorby='name', obstype='temp',
+                               stations=None, startdt=None,
+                               enddt=None, plot=True,
                                title=None, y_label=None, legend=True,
-                               colorby='name', errorbands=False,
-                               verbose=False):
+                               errorbands=False,
+                               _return_all_stats=False):
         """
         Create an average diurnal cycle for the observations.
 
@@ -355,6 +356,8 @@ class Analysis():
 
         Parameters
         ----------
+        colorby : 'name' or 'lcz', optional
+            If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
         obstype : str, optional
             Element of the metobs_toolkit.observation_types The default is 'temp'.
         stations : list, optional
@@ -371,17 +374,13 @@ class Analysis():
              y-axes label of the figure, if None a default label is generated. The default is None.
         legend : bool, optional
              I True, a legend is added to the plot. The default is True.
-        colorby : 'name' or 'lcz', optional
-            If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
         errorbands : bool, optional
             If True, the std is representd in the plot by colored bands. The default is False.
-        verbose : True, optional
-            If True, the dataframse with aggregation information are returned . The default is False.
 
         Returns
         -------
-        tuple (if verbose)
-            A tuple of dataframes is returned when verbose is True.
+        df : pandas.DataFrame()
+            The dataframe containing the aggregated values.
 
         Note
         --------
@@ -433,7 +432,7 @@ class Analysis():
                                              y_label=y_label,
                                              legend=legend,
                                              errorbands=errorbands,
-                                             verbose=verbose,
+                                             verbose=_return_all_stats,
                                              )
         return stats
 
@@ -441,14 +440,15 @@ class Analysis():
 
 
 
-    def get_diurnal_statistics_with_reference(self, refstation, obstype='temp',
+    def get_diurnal_statistics_with_reference(self, refstation, colorby='name',
+                                              obstype='temp',
                                               tollerance='30T', stations=None,
                                               startdt=None, enddt=None,
                                               plot=True, title=None,
                                               y_label=None, legend=True,
-                                              colorby='name', errorbands=False,
+                                              errorbands=False,
                                               show_zero_horizontal = True,
-                                              verbose=False):
+                                              _return_all_stats=False):
         """
         Create an average diurnal cycle for the observation differences of a reference station.
 
@@ -462,11 +462,13 @@ class Analysis():
         ----------
         refstation : str,
             Name of the station to use as a reference.
+        colorby : 'name' or 'lcz', optional
+            If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
         obstype : str, optional
             Element of the metobs_toolkit.observation_types The default is 'temp'.
         tollerance : Timedelta or str, optional
             The tollerance string or object representing the maximum translation in time to find a reference
-            observation for each observation. Ex: '5T' is 5 minuts, '1H', is one hour. The default is '30T'.
+            observation for each observation. Ex: '5T' is 5 minutes, '1H', is one hour. The default is '30T'.
         stations : list, optional
             List of station names to use. If None, all present stations will be used. The default is None.
         startdt : datetime.datetime, optional
@@ -481,17 +483,15 @@ class Analysis():
              y-axes label of the figure, if None a default label is generated. The default is None.
         legend : bool, optional
              I True, a legend is added to the plot. The default is True.
-        colorby : 'name' or 'lcz', optional
-            If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
         errorbands : bool, optional
             If True, the std is representd in the plot by colored bands. The upper bound represents +1 x std, the lower bound -1 x std. The default is False.
-        verbose : True, optional
-            If True, the dataframse with aggregation information are returned . The default is False.
+        show_zero_horizontal : bool, optional
+            If True a horizontal line is drawn in the plot at zero. The default is True.
 
         Returns
         -------
-        tuple (if verbose)
-            A tuple of dataframes is returned when verbose is True.
+        df : pandas.DataFrame()
+            The dataframe containing the aggregated values.
 
         Note
         --------
@@ -572,7 +572,7 @@ class Analysis():
                                              y_label=y_label,
                                              legend=legend,
                                              errorbands=errorbands,
-                                             verbose=verbose,
+                                             verbose=_return_all_stats,
                                              _obsdf=mergedf,
                                              _show_zero_line= show_zero_horizontal
                                              )
@@ -582,17 +582,18 @@ class Analysis():
 
 
 
-    def get_aggregated_cycle_statistics(self, obstype='temp', stations=None,
+    def get_aggregated_cycle_statistics(self, obstype='temp',
                                           aggregation=['lcz', 'datetime'],
                                           aggregation_method='mean',
                                           horizontal_axis='hour',
+                                          stations=None,
                                           startdt=None, enddt=None, plot=True,
                                           title=None, y_label=None, legend=True,
                                           errorbands=False, verbose=False,
                                           _obsdf=None, _show_zero_line=False):
 
         """
-        Create an average diurnal cycle for an aggregated categorie. A commen
+        Create an average cycle for an aggregated categorie. A commen
         example is to aggregate to the LCZ's, so to get the diurnal cycle per LCZ
         rather than per station.
 
@@ -602,8 +603,6 @@ class Analysis():
         ----------
         obstype : str, optional
             Element of the metobs_toolkit.observation_types The default is 'temp'.
-        stations : list, optional
-            List of station names to use. If None, all present stations will be used. The default is None.
         aggregation : list, optional
             List of variables to aggregate to. These variables should either a
             categorical observation type, a categorical column in the metadf or
@@ -615,6 +614,8 @@ class Analysis():
         horizontal_axis : str, optional
             Which aggregated value will be represented on the horizontal axis
             of the plot. The default is 'hour'.
+        stations : list, optional
+            List of station names to use. If None, all present stations will be used. The default is None.
         startdt : datetime.datetime, optional
             The start datetime of the observations to use. If None, all timestamps will be used. The default is None.
         enddt : datetime.datetime, optional
@@ -630,12 +631,12 @@ class Analysis():
         errorbands : bool, optional
             If True, the std is representd in the plot by colored bands. The default is False.
         verbose : True, optional
-            If True, the dataframse with aggregation information are returned . The default is False.
+            If True, an additional dataframe with aggregation information is returned . The default is False.
 
         Returns
         -------
-        tuple (if verbose)
-            A tuple of dataframes is returned when verbose is True.
+        df : pandas.DataFrame()
+            The dataframe containing the aggregated values.
 
         Note
         -------
