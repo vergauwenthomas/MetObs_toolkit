@@ -297,18 +297,20 @@ class Analysis():
 
 
         obsdf = self.df[[obstype]]
-
+        assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
         # Filter stations
         if not stations is None:
             if isinstance(stations, str):
                 stations = [stations]
 
             obsdf = subset_stations(obsdf, stations)
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {stations}'
 
         # Filter datetimes
         obsdf = datetime_subsetting(df=obsdf,
                                     starttime=startdt,
                                     endtime=enddt)
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
 
         # Define aggregation groups
         agg = groupby.copy()
@@ -349,7 +351,7 @@ class Analysis():
         # title
         desc_dict = self.data_template[obstype].to_dict()
 
-        if not 'descritpion' in desc_dict:
+        if not 'description' in desc_dict:
             desc_dict['description'] = obstype
 
         if title is None:
@@ -429,18 +431,20 @@ class Analysis():
         """
 
         obsdf = self.df
-
+        assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
         # Filter stations
         if not stations is None:
             if isinstance(stations, str):
                 stations = [stations]
 
             obsdf = subset_stations(obsdf, stations)
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {stations}'
 
         # Filter datetimes
         obsdf = datetime_subsetting(df=obsdf,
                                     starttime=startdt,
                                     endtime=enddt)
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
 
         # check if lcz is available if required
         if colorby == 'lcz':
@@ -746,20 +750,21 @@ class Analysis():
         """
 
         obsdf = self.df
-
+        assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
         # Filter stations
         if not stations is None:
             if isinstance(stations, str):
                 stations = [stations]
 
             obsdf = subset_stations(obsdf, stations)
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {stations}'
 
 
         # Filter datetimes
         obsdf = datetime_subsetting(df=obsdf,
                                     starttime=startdt,
                                     endtime=enddt)
-
+        assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
 
         if bool(aggregation):
             # check if datetime is in the aggreagation, otherwise no time component is left

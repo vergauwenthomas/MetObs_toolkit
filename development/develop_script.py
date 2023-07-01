@@ -56,15 +56,17 @@ dataset.apply_quality_control()
 ann = dataset.get_analysis()
 
 #%%
+
+from datetime import datetime
 # Compute mean annual cycle for each station + plot
-ann_mean_df = ann.get_anual_statistics(groupby=['name'], #each line represents a station
-                                                obstype='temp', # on temperatures
-                                                agg_method='mean', #value of the line is the means of the aggregation
-                                                stations=None, #use all stations
-                                                startdt=None, #use the full analysis
-                                                enddt=None, #use the full analysis
-                                                plot=True,
-                                                errorbands=False, #Display the std as a band
-                                                title = None,
-                                                )
+# Create diurnal cycle for the meteorological summer of 2022 (June, July, August)
+stats = ann.get_diurnal_statistics(obstype='temp', # here you can change the varible for which you want to plot the diurnal cycle
+                                    stations=None, # here you can select the stations you want to include, for example: stations=['vlinder01','vlinder02','vlinder25','vlinder27','vlinder28']
+                                    startdt= datetime(2022,6,1), # here you can change the start date and time
+                                    enddt= datetime(2022,8,31), # here you can change the end date and time
+                                    plot=True, # create immediatly a plot, if false, then no plot is created
+                                    colorby='name', # here you can change the color of the lines in the graph
+                                    errorbands=False, # when you set this to True, then error bands are created around the curves based on the standard deviation
+                                    verbose=False) #if True, an extra dataframe with the std is returned aswell.
+
 
