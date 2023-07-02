@@ -222,12 +222,12 @@ class Gap:
         try:
             self.leading_val = obsdf.loc[(self.name, self.leading_timestamp)].to_dict()
         except KeyError:
-            print('Warning. Leading value not found in the observations')
+            logger.warning('Leading value not found in the observations')
             self.leading_val = {}
         try:
             self.trailing_val = obsdf.loc[(self.name, self.trailing_timestamp)].to_dict()
         except KeyError:
-            print('Warning. Trailing value not found in the observations')
+            logger.warning('Trailing value not found in the observations')
             self.trailing_val = {}
 
 
@@ -316,7 +316,7 @@ class Gap:
             Multiindex Series with filled gap values in dataset space.
 
         """
-        print(f' interpolate on {self}')
+        logger.info(f' interpolate on {self}')
         outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
         gapfill_series= interpolate_gap(
@@ -533,10 +533,10 @@ def apply_debias_era5_gapfill(
 
         for gap in gapslist:
             if (not overwrite_fill) & (not gap.gapfill_df.empty):
-                print(f'WARNING: Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite.')
+                logger.warning(f'Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite.')
                 continue
 
-            print(f' Era5 gapfill for {gap}')
+            logger.info(f' Era5 gapfill for {gap}')
             gap.gapfill_technique = gapfill_settings['label']['model_debias']
 
             # avoid passing full dataset around
@@ -559,7 +559,7 @@ def apply_debias_era5_gapfill(
 
             # check if leading/trailing is valid
             if leading_obs.empty | trailing_obs.empty:
-                print(
+                logger.info(
                     "No suitable leading or trailing period found. Gapfill not possible"
                 )
                 gap.gapfill_errormessage[obstype] = 'gapfill not possible: no leading/trailing period'
@@ -585,7 +585,7 @@ def apply_debias_era5_gapfill(
             if (leading_model[obstype].isnull().any()) | (
                 trailing_model[obstype].isnull().any()
             ):
-                print(
+                logger.info(
                     "No modeldata for the full leading/trailing period found. Gapfill not possible"
                 )
                 gap.gapfill_errormessage[obstype] = 'gapfill not possible: not enough modeldata'
@@ -639,7 +639,7 @@ def apply_interpolate_gaps(gapslist, obsdf, outliersdf, dataset_res, gapfill_set
 
     for gap in gapslist:
         if (not overwrite_fill) & (not gap.gapfill_df.empty):
-            print(f'WARNING: Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite.')
+            logger.warning(f'Gap {gap.name} is already filled with {gap.gapfill_technique} and will not be overwirtten. Set overwrite_fill to True to overwrite.')
             continue
         gapfill_series = interpolate_gap(
                         gap=gap,
