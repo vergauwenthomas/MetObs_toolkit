@@ -8,12 +8,15 @@ Created on Wed Oct 19 11:28:36 2022
 
 
 import sys
+import logging
 from time import sleep
 import pytz
 import pandas as pd
 import ee
 
 from metobs_toolkit.df_helpers import init_multiindexdf
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 #  Connection functions
@@ -39,7 +42,7 @@ def lcz_extractor(metadf, mapinfo):
     )
     # test if metadata is suitable
     if not _validate_metadf(metadf):
-        print(f"Metadf is not suitable for GEE extractiond: {metadf}")
+        logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
         return default_return
 
     relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
@@ -58,7 +61,7 @@ def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
 
     # test if metadata is suitable
     if not _validate_metadf(metadf):
-        print(f"Metadf is not suitable for GEE extractiond: {metadf}")
+        logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
         return default_return
 
     relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
@@ -69,7 +72,7 @@ def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
 
     # apply aggregation if required
     if agg:
-        print(f"Using aggregation scheme: {mapinfo['aggregation']}")
+        logger.info(f"Using aggregation scheme: {mapinfo['aggregation']}")
         agg_df = pd.DataFrame()
         for agg_name, agg_classes in mapinfo["aggregation"].items():
             present_agg_classes = [
@@ -95,7 +98,7 @@ def height_extractor(metadf, mapinfo):
 
     # test if metadata is suitable
     if not _validate_metadf(metadf):
-        print(f"Metadf is not suitable for GEE extractiond: {metadf}")
+        logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
         return default_return
 
     relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
@@ -114,10 +117,9 @@ def height_extractor(metadf, mapinfo):
 def _datetime_to_gee_datetime(datetime):
     # covert to UTC!
     utcdt = datetime.astimezone(pytz.utc)
-    print(utcdt.replace(tzinfo=None))
+    logger.debug(utcdt.replace(tzinfo=None))
     return ee.Date(utcdt.replace(tzinfo=None))
-    # print(f'formaat:   {utcdt.strftime("%Y-%m-%dT%H:%M:%S")}')
-    # return ee.Date(utcdt.strftime("%Y-%m-%dT%H:%M:%S"))
+
 
 
 def get_ee_obj(mapinfo, band=None):
@@ -212,10 +214,10 @@ def _df_to_features_buffer_collection(df, bufferradius):
 
 def coordinates_available(metadf, latcol="lat", loncol="lon"):
     if metadf[latcol].isnull().all():
-        print("No coordinates are found!")
+        logger.warning("No coordinates are found!")
         return False
     if metadf[loncol].isnull().all():
-        print("No coordinates are found!")
+        logger.warning("No coordinates are found!")
         return False
     return True
 
@@ -301,8 +303,8 @@ def extract_pointvalues(metadf, mapinfo, output_column_name):
     # extract properties
     if not bool(results['features']):
         # no data retrieved
-        print(f'Error: Something went wrong, gee did not return any data: {results}')
-        print(f'(Could it be that (one) these coordinates are not on the map: {metadf}?)')
+        logger.warning(f'Something went wrong, gee did not return any data: {results}')
+        logger.info(f'(Could it be that (one) these coordinates are not on the map: {metadf}?)')
         return pd.DataFrame()
     # =============================================================================
     # to dataframe
@@ -363,8 +365,8 @@ def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
 
     # test if map is categorical
     if not mapinfo["value_type"] == "categorical":
-        print(
-            "ERROR: Extract buffer frequencies is only implemented for categorical datasets!"
+        logger.warning(
+            "Extract buffer frequencies is only implemented for categorical datasets!"
         )
         return pd.DataFrame()
 
@@ -457,6 +459,10 @@ def gee_extract_timeseries(
         print(
             "THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!"
         )
+        logger.info(
+            "THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!"
+        )
+
         use_drive = True
     # =============================================================================
     # df to featurecollection
@@ -524,6 +530,9 @@ def gee_extract_timeseries(
         print(
             f"The timeseries will be writen to your Drive in {_drivefolder}/{_filename} "
         )
+        logger.info(
+            f"The timeseries will be writen to your Drive in {_drivefolder}/{_filename} "
+        )
 
         task = ee.batch.Export.table.toDrive(
             collection=results,
@@ -535,18 +544,18 @@ def gee_extract_timeseries(
         )
 
         task.start()
-        print("The google server is handling your request ...")
+        logger.info("The google server is handling your request ...")
         sleep(3)
         finished = False
         while finished == False:
             if task.status()["state"] == "READY":
-                print("Awaitening execution ...")
+                logger.info("Awaitening execution ...")
                 sleep(4)
             elif task.status()["state"] == "RUNNING":
-                print("Running ...")
+                logger.info("Running ...")
                 sleep(4)
             else:
-                print("finished")
+                logger.info("finished")
                 finished = True
 
         doc_folder_id = task.status()["destination_uris"][0]

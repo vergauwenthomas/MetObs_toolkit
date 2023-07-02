@@ -12,6 +12,7 @@ import math
 import numpy as np
 import geopandas as gpd
 from datetime import datetime
+import logging
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -30,7 +31,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from metobs_toolkit.landcover_functions import get_ee_obj
 from metobs_toolkit.df_helpers import xs_save
 
-
+logger = logging.getLogger(__name__)
 
 def folium_plot(mapinfo, band, vis_params, labelnames, layername,
                 basemap='SATELLITE', legendname=None,
@@ -99,7 +100,7 @@ def make_cat_colormapper(catlist, cmapname):
 
     # check number of colors in the cmap
     if cmap.N < len(catlist):
-        print(f'Warning: colormap: {cmapname}, is not well suited to color {len(catlist)} categories. ')
+        logger.warning(f'colormap: {cmapname}, is not well suited to color {len(catlist)} categories.')
         same_col_n_groups = np.ceil(len(catlist) / cmap.N)
 
         # group cateogries and color them by group
@@ -155,12 +156,12 @@ def geospatial_plot(
     ignored_stations = plotdf[plotdf["geometry"].isnull()]
     plotdf = plotdf[~plotdf["geometry"].isnull()]
     if plotdf.empty:
-        print(f"No coordinate data found, geoplot can not be made. Plotdf: {plotdf}")
+        logger.warning(f"No coordinate data found, geoplot can not be made. Plotdf: {plotdf}")
         return
 
     if not ignored_stations.empty:
         # logger.error(f'No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!')
-        print(
+        logger.warning(
             f"No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!"
         )
 
@@ -827,7 +828,7 @@ def correlation_scatter(full_cor_dict, groupby_labels, obstypes,title, cor_scatt
 
     # Get columns without variation (these will not be plotted)
     const_cols = plot_cor_df.columns[plot_cor_df.nunique() <= 1]
-    print(f' The following correlations are constant for all groups and will not be included in the plot: {const_cols}')
+    logger.warning(f' The following correlations are constant for all groups and will not be included in the plot: {const_cols}')
 
 
     # Subset to the columns that has to be plotted
@@ -941,7 +942,6 @@ def _make_pie_from_freqs(
     stats["color"] = stats.index.map(colormapper)
 
     if (stats["freq"] == 0.0).all():
-        print("No occurences in sample.")
         # add a 100% no occurences to it, so it can be plotted
         no_oc_df = pd.DataFrame(
             index=["No occurences"],

@@ -15,6 +15,9 @@ import geopandas as gpd
 import itertools
 from metobs_toolkit import observation_types
 import pytz
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -249,8 +252,8 @@ def multiindexdf_datetime_subsetting(df, starttime, endtime):
     )
 
     if returndf.empty:
-        print(
-            f"Warning: No observations left after subsetting datetime {starttime} -- {endtime} "
+        logger.warning(
+            f"No observations left after subsetting datetime {starttime} -- {endtime} "
         )
 
     return returndf
@@ -267,7 +270,7 @@ def subset_stations(df, stationslist):
     present_stations = df.index.get_level_values('name')
     not_present_stations = list(set(stationslist) - set(present_stations))
     if len(not_present_stations)!=0:
-        print(f'WARNING: The stations: {not_present_stations} not found in the dataframe.')
+        logger.warning(f'The stations: {not_present_stations} not found in the dataframe.')
 
     return df
 
@@ -492,8 +495,8 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
         # Check if all observations have at least two observations
         if subdf.shape[0] < 2:
             problematic_stations.append(station)
-            print(
-                f"WARNING! Stations {station} have to few observations to make a frequency estimate."
+            logger.warning(
+                f"Stations {station} have to few observations to make a frequency estimate."
             )
             continue
 
@@ -509,7 +512,7 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
             np.median([freq.total_seconds() for freq in freqs.values()]), unit="seconds"
         )
 
-        print(
+        logger.warning(
             f"Asigning the median of frequencies ({assign_med_freq}) to these stations {problematic_stations}."
         )
         for prob_station in problematic_stations:

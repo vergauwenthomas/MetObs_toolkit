@@ -8,6 +8,7 @@ Created on Tue Feb 28 17:05:26 2023
 import numpy as np
 import pandas as pd
 from datetime import timedelta
+import logging
 
 from metobs_toolkit.df_helpers import (
     remove_outliers_from_obs,
@@ -15,9 +16,7 @@ from metobs_toolkit.df_helpers import (
     format_outliersdf_to_doubleidx,
 )
 
-# def interpolate_missing_obs(missing_ob, obsdf, outliersdf, obstype, method):
-#     # 1 get trailing and leading obs
-
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -41,13 +40,13 @@ def interpolate_gap(
     # 2 check if there is a trailing and leading gap
     if gap.startgap == gap.leading_timestamp:
         message =f"No leading timestamp found for gap {gap}"
-        print(message)
+        logger.info(message)
         gap.gapfill_errormessage[obstype]=message
         return empty_interp
 
     if gap.endgap == gap.trailing_timestamp:
         message = f"No trailing timestamp found for gap {gap}"
-        print(message)
+        logger.info(message)
         gap.gapfill_errormessage[obstype]=message
         return empty_interp
 
@@ -56,14 +55,14 @@ def interpolate_gap(
     if not bool(gap.leading_val):
         # empty dict --> no value in the obs
         message =f"No cadidate for leading {obstype} observation found for {gap}"
-        print(message)
+        logger.info(message)
         gap.gapfill_errormessage[obstype]=message
         return empty_interp
 
     if not bool(gap.trailing_val):
         # empty dict --> no value in the obs
         message =f"No cadidate for trailing {obstype} observation found for {gap}"
-        print(message)
+        logger.info(message)
         gap.gapfill_errormessage[obstype]=message
         return empty_interp
 
@@ -165,7 +164,7 @@ def create_leading_trailing_debias_periods(
     # Select all leading and all trailing obs
     leading_period = obs[obs["datetime"] < gap.startgap]
     trailing_period = obs[obs["datetime"] > gap.endgap]
-    print(f'   {leading_period.shape[0]} leading records, {trailing_period.shape[0]} trailing records.')
+    logger.debug(f'   {leading_period.shape[0]} leading records, {trailing_period.shape[0]} trailing records.')
 
     # some derived integers
     poss_shrinkage_leading = leading_period.shape[0] - debias_min_sample_size_leading
@@ -179,7 +178,7 @@ def create_leading_trailing_debias_periods(
     if (leading_period.shape[0] >= debias_pref_sample_size_leading) & (
         trailing_period.shape[0] >= debias_pref_sample_size_trailing
     ):
-        print(f"leading and trailing periods are both available for debiassing.")
+        logger.debug(f"leading and trailing periods are both available for debiassing.")
         # both periods are oke
         leading_df = leading_period[-debias_pref_sample_size_leading:]
         trailing_df = trailing_period[:debias_pref_sample_size_trailing]
@@ -187,7 +186,7 @@ def create_leading_trailing_debias_periods(
     elif (leading_period.shape[0] <= debias_pref_sample_size_leading) & (
         trailing_period.shape[0] >= debias_pref_sample_size_trailing
     ):
-        print(
+        logger.debug(
             f"leading periods for debiassing does not have a preferable size. Try translation/shrinkage ..."
         )
 
@@ -199,7 +198,7 @@ def create_leading_trailing_debias_periods(
         if poss_shrinkage_leading < 0:
             leading_df = init_multiindexdf()
             trailing_df = init_multiindexdf()  # this might be to strict
-            print(
+            logger.debug(
                 "The available leading debias samplesize is smaller than the minimum. A translation/shrinking is not possible."
             )
 
@@ -214,7 +213,7 @@ def create_leading_trailing_debias_periods(
                 0 : (debias_pref_sample_size_trailing + translation_trailing)
             ]
 
-            print(
+            logger.debug(
                 f"A translation of {translation_trailing} records is done towards the trailing period. (n_leading + n_trailing is conserved: {leading_df.shape[0] + trailing_df.shape[0]}"
             )
 
@@ -226,13 +225,13 @@ def create_leading_trailing_debias_periods(
             trailing_df = trailing_period[
                 0 : debias_pref_sample_size_trailing + translation_trailing
             ]
-            print(
+            logger.debug(
                 f"A translation of {translation_trailing} records is done towards the trailing period. Since there was not engough translation space for the trailing obs, the condition n_leading + n_trailing is NOT conserved: {leading_df.shape[0] + trailing_df.shape[0]}. \
                   Both leading and trailing sizes still achieves minimal size restrictions."
             )
         # 4. If all else fails, it is not possible to make a leading period
         else:
-            print(
+            logger.info(
                 "The available leading samplesize can not reach minimal size restrictions."
             )
             # no translation is possible, even with shrinking
@@ -243,7 +242,7 @@ def create_leading_trailing_debias_periods(
         trailing_period.shape[0] <= debias_pref_sample_size_trailing
     ):
         # leading period is ok, trailing period is to short
-        print(
+        logger.debug(
             f"trailing periods for debiassing does not have a preferable size. Try translation/shrinkage ..."
         )
         missing_records = debias_pref_sample_size_trailing - trailing_period.shape[0]
@@ -252,7 +251,7 @@ def create_leading_trailing_debias_periods(
         if poss_shrinkage_trailing < 0:
             leading_df = init_multiindexdf()  # might be to strict
             trailing_df = init_multiindexdf()
-            print(
+            logger.debug(
                 "The available trailing debias samplesize is smaller than the minimum. A translation/shrinking is not possible."
             )
             # return
@@ -266,7 +265,7 @@ def create_leading_trailing_debias_periods(
                 -(debias_pref_sample_size_leading + translation_leading) :
             ]
             trailing_df = trailing_period
-            print(
+            logger.debug(
                 f"A translation of {translation_leading} records is done towards the leading period. (n_leading + n_trailing is conserved: {leading_df.shape[0] + trailing_df.shape[0]}"
             )
 
@@ -278,14 +277,14 @@ def create_leading_trailing_debias_periods(
                 -(debias_pref_sample_size_leading + translation_leading)
             ]
             trailing_df = trailing_period
-            print(
+            logger.debug(
                 f"A translation of {translation_leading} records is done towards the leading period. Since there was not engough translation space for the leading obs, the condition n_leading + n_trailing is NOT conserved: {leading_df.shape[0] + trailing_df.shape[0]}. \
                   Both leading and trailing sizes still achieves minimal size restrictions."
             )
         # 4. If all else fails, it is not possible to make a trailing period
         else:
             # no translation is possible, even with shrinking
-            print(
+            logger.info(
                 "The available trailing samplesize can not reach minimal size restrictions."
             )
             leading_df = init_multiindexdf()  # this might be to strict
@@ -296,14 +295,14 @@ def create_leading_trailing_debias_periods(
 
         # 1 does both (leading and trailing) still acchieves the minimal size condition for shrinking?
         if (poss_shrinkage_leading >= 0) & (poss_shrinkage_trailing >= 0):
-            print(
+            logger.debug(
                 "Both leading and trailing periods do not have a prefered size, but still meet the minimal conditions."
             )
             leading_df = leading_period
             trailing_df = trailing_period
 
         else:
-            print(
+            logger.info(
                 "Both leading and trailing periods do not have a prefered size, and eighter of them does NOT meet minimal condition."
             )
             # either one of the periods does not reach minimal condition, so return default
@@ -382,8 +381,8 @@ def make_era_bias_correction(leading_model, trailing_model,
     no_debias = gap_model[(gap_model[obstype + '_bias_lead'].isnull()) |
                           (gap_model[obstype + '_bias_trail'].isnull())].index
     if not no_debias.empty:
-        error_message =f'WARNING!, No debias possible for these gap records: {no_debias},the gap will be filled by model data without bias correction. '
-        print(error_message)
+        error_message =f'No debias possible for these gap records: {no_debias},the gap will be filled by model data without bias correction. '
+        logger.warning(error_message)
 
 
     # set weights to zero if not debias correction can be applied on that record

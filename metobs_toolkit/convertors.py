@@ -7,8 +7,12 @@ Created on Fri Feb 24 09:34:00 2023
 """
 
 import sys
+import logging
 import numpy as np
 from collections.abc import Iterable
+
+logger = logging.getLogger(__name__)
+
 
 # =============================================================================
 # Unit defenitions and coversions
@@ -91,7 +95,7 @@ def convert_to_toolkit_units(data, data_unit, new_units={}):
 
     # check if unit is already a toolkit unit
     if data_unit in unit_convertors.keys():
-        print(f'Current unit ({data_unit}) is already the default, no coversion needed!')
+        logger.info(f'Current unit ({data_unit}) is already the default, no coversion needed!')
         return data, data_unit
 
     # scan the units to find conversion

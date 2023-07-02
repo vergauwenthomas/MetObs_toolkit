@@ -246,7 +246,7 @@ class Settings:
             print(f"{common_timezones}")
             return
         else:
-            print(
+            logger.info(
                 f'Update timezone: {self.time_settings["timezone"]} --> {timezonestr}'
             )
             self.time_settings["timezone"] = timezonestr
@@ -281,60 +281,30 @@ class Settings:
         logger.info("Updating settings with input: ")
 
         if not isinstance(output_folder, type(None)):
-            print(
-                "Update output_folder: ",
-                self.IO["output_folder"],
-                " --> ",
-                output_folder,
-            )
             logger.info(
                 f'Update output_folder:  {self.IO["output_folder"]}  -->  {output_folder}'
             )
             self.IO["output_folder"] = output_folder
 
         if not isinstance(input_data_file, type(None)):
-            print(
-                "Update input_data_file: ",
-                self.IO["input_data_file"],
-                " --> ",
-                input_data_file,
-            )
             logger.info(
                 f'Update input_data_file:  {self.IO["input_data_file"]}  -->  {input_data_file}'
             )
             self.IO["input_data_file"] = input_data_file
 
         if not isinstance(input_metadata_file, type(None)):
-            print(
-                "Update input_metadata_file: ",
-                self.IO["input_metadata_file"],
-                " --> ",
-                input_metadata_file,
-            )
             logger.info(
                 f'Update meta_data_file:  {self.IO["input_metadata_file"]}  -->  {input_metadata_file}'
             )
             self.IO["input_metadata_file"] = input_metadata_file
 
         if not isinstance(data_template_file, type(None)):
-            print(
-                "Update data template file: ",
-                self.templates["data_template_file"],
-                " --> ",
-                data_template_file,
-            )
             logger.info(
                 f'Update data template file:  {self.templates["data_template_file"]}  -->  {data_template_file}'
             )
             self.templates["data_template_file"] = data_template_file
 
         if not isinstance(metadata_template_file, type(None)):
-            print(
-                "Update metadata template file: ",
-                self.templates["metadata_template_file"],
-                " --> ",
-                metadata_template_file,
-            )
             logger.info(
                 f'Update metadata template file:  {self.templates["metadata_template_file"]}  -->  {metadata_template_file}'
             )
@@ -360,7 +330,7 @@ class Settings:
 
         shutil.copy2(default_template_file, target_file)
 
-        print("Templates copied to : ", target_file)
+        logger.info("Templates copied to : ", target_file)
 
     # =============================================================================
     #     Check settings
