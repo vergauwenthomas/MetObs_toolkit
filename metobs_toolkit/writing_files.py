@@ -7,6 +7,9 @@ Created on Thu Mar  2 15:30:55 2023
 """
 # --
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def write_dataset_to_csv(
@@ -55,6 +58,7 @@ def write_dataset_to_csv(
         metadf = metadf.reset_index()
         metadf = metadf.drop(columns=ignore_metadat)
         metadatafile = os.path.join(outputfolder, "metadata_file.csv")
+        logger.info(f"write metadata to file: {metadatafile}")
         print(f"write metadata to file: {metadatafile}")
         metadf.to_csv(path_or_buf=metadatafile, sep=";", na_rep="NaN", index=False)
 
@@ -75,5 +79,6 @@ def write_dataset_to_csv(
     filepath = os.path.join(outputfolder, filename + ".csv")
 
     # write to csv in output folder
+    logger.info(f"write dataset to file: {filepath}")
     print(f"write dataset to file: {filepath}")
     df.to_csv(path_or_buf=filepath, sep=";", na_rep="NaN", index=False)
