@@ -502,6 +502,24 @@ class Modeldata:
 
 
     def set_alaro_25_model_from_csv(self, csvpath):
+        """
+        (This is for the participants of the Cost FAIRNESS Summerschool in Ghent.)
+
+        This method will import the data from the ALARO model, that was send
+        to you.
+
+
+        Parameters
+        ----------
+        csvpath : str
+            Path to the datafile with ALARO timeseries. (This file was send
+            to you by email).
+
+        Returns
+        -------
+        None.
+
+        """
 
         # update name
         if self.modelname != 'ALARO_2.5':
@@ -553,10 +571,6 @@ class Modeldata:
         self._is_alaro25=True
 
 
-
-        # 4. Convert units
-        # self.convert_units_to_tlk(obstype=obstype,
-        #                           target_unit_name=standard_tlk_units[obstype])
 
 
     def set_model_from_csv(self, csvpath):
@@ -739,9 +753,8 @@ class Modeldata:
              If true the filled values for gaps and missing observations will
              be included in the plot. Only relevent when a dataset is provided.
              The default is True.
-         legend : bool, optional
-              If True, a legend is added to the plot. The default is True.
-
+        legend : bool, optional
+             If True, a legend is added to the plot. The default is True.
 
         Returns
         -------

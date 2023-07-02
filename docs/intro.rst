@@ -9,7 +9,7 @@ This package is designed for handling meteorological observations for urban or n
 How to install
 =======================
 
-To use the package python 3.7 or higher is required.
+To use the package python 3.9 or higher is required.
 To install the package one can use pip:
 
 .. code-block:: console
@@ -122,7 +122,7 @@ The toolkit makes use of the Google Earth Engine (GEE), to extract these time-se
 
 
 
-Settings
+Settings()
 -----------
 Each Dataset holds its own set of :py:meth:`Settings<metobs_toolkit.settings.Settings>`. When creating a Dataset instance, the default settings are attached to it. When another class is created (i.g. Station, Modeldata, ...) from a Dataset, the corresponding settings are inherited.
 There are methods to change some of the default settings (like quality control settings, timezone settings, gap fill settings, ...). To list all the settings of a class one can use the :py:meth:`show<metobs_toolkit.settings.Settings.show>` method on it:
@@ -145,3 +145,9 @@ There are methods to change some of the default settings (like quality control s
    your_station.settings.show()
 
 
+Schematic overview
+====================
+
+.. image:: figures/schematic_overview.png
+  :width: 700
+  :alt: Alternative text

@@ -190,7 +190,8 @@ Template creation
 =======================
 
 Once you have converted your tabular data files to either long-, wide-, or single-station-format, and saved them as a .csv file, a template can be made.
-.. info::
+
+.. Note::
    If you want to use a metadata file, make sure it is converted to a wide-format and saved as a .csv file.
 
 The fastest and simplest way to make a template is by using the *metobs_toolkit.build_template_prompt()* function.
