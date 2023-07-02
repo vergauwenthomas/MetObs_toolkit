@@ -376,6 +376,8 @@ class Dataset:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
         print(f'Dataset saved in {full_path}')
+        logger.info(f'Dataset saved in {full_path}')
+
 
 
     def import_dataset(self, folder_path=None, filename='saved_dataset.pkl'):
@@ -456,7 +458,6 @@ class Dataset:
             sta_metadf = self.metadf.loc[stationname].to_frame().transpose()
         except KeyError:
             logger.warning(f"{stationname} not found in the dataset.")
-            print(f"{stationname} not found in the dataset.")
             return None
 
         try:
@@ -695,23 +696,23 @@ class Dataset:
         # check coordinates if available
         if self.metadf['lat'].isnull().any():
             _sta = self.metadf[self.metadf['lat'].isnull()]['lat']
-            print(f'Error: Stations without coordinates detected: {_sta}')
+            logger.warning(f'Stations without coordinates detected: {_sta}')
             return None
         if self.metadf['lon'].isnull().any():
             _sta = self.metadf[self.metadf['lon'].isnull()]['lon']
-            print(f'Error: Stations without coordinates detected: {_sta}')
+            logger.warning(f'Stations without coordinates detected: {_sta}')
             return None
 
         if bool(boundbox):
             if len(boundbox) != 4:
-                print(f'Error: The boundbox ({boundbox}) does not contain 4 elements! The default boundbox is used!')
+                logger.warning(f'The boundbox ({boundbox}) does not contain 4 elements! The default boundbox is used!')
                 boundbox=[]
 
         # Check if LCZ if available
         if variable == 'lcz':
             if self.metadf['lcz'].isnull().any():
                 _sta = self.metadf[self.metadf['lcz'].isnull()]['lcz']
-                print(f'Error: Stations without lcz detected: {_sta}')
+                logger.warning(f'Stations without lcz detected: {_sta}')
                 return None
 
 
@@ -840,6 +841,7 @@ class Dataset:
                                       enddt_utc = enddt_utc,
                                       obstype=obstype)
         print(f'(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})')
+        logger.info(f'(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})')
         return Modl
 
     def update_gaps_and_missing_from_outliers(self, obstype='temp', n_gapsize=None):
@@ -880,7 +882,7 @@ class Dataset:
         if n_gapsize is None:
             n_gapsize = self.settings.gap['gaps_settings']['gaps_finder']['gapsize_n']
             if not self.metadf["assumed_import_frequency"].eq(self.metadf['dataset_resolution']).all():
-                print(f'The defenition of the gapsize (n_gapsize = {n_gapsize}) \
+                logger.info(f'The defenition of the gapsize (n_gapsize = {n_gapsize}) \
                                will have another effect on the update of the gaps and missing \
                                    timestamps because coarsening is applied and the defenition \
                                    of the gapsize is not changed.')
@@ -1005,7 +1007,7 @@ class Dataset:
 
         # check if modeldata is available
         if modeldata is None:
-            print(
+            logger.warning(
                 "The dataset has no modeldate. Use the set_modeldata() function to add modeldata."
             )
             return None
@@ -1256,7 +1258,7 @@ class Dataset:
 
         # check if modeldata is available
         if modeldata is None:
-            print(
+            logger.warning(
                 "The dataset has no modeldate. Use the set_modeldata() function to add modeldata."
             )
             return None
@@ -1287,7 +1289,7 @@ class Dataset:
             # get fill df
             filldf = make_gapfill_df(self.gaps)
         else:
-            print("not implemented yet")
+            sys.exit(f"{method} not implemented yet")
 
         # update attribute
         self.gapfilldf = filldf
@@ -1452,7 +1454,7 @@ class Dataset:
          step : Bool, optional
              If True the step check is applied if False not. The default is True.
          window_variation : Bool, optional
-             If True the window_variation check is applied if False not. The 
+             If True the window_variation check is applied if False not. The
              default is True.
 
          Returns
@@ -1466,7 +1468,6 @@ class Dataset:
 
 
         if repetitions:
-            print("Applying the repetitions-check.")
             logger.info("Applying repetitions check.")
             apliable = _can_qc_be_applied(self._applied_qc, obstype, "repetitions")
 
@@ -1495,10 +1496,9 @@ class Dataset:
                     ignore_index=True,
                 )
             else:
-                print(f'ERROR: The repetitions check can NOT be applied on {obstype} because it was already applied on this observation type!')
+                logger.warning(f'The repetitions check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if gross_value:
-            print("Applying the gross-value-check.")
             logger.info("Applying gross value check.")
 
             apliable = _can_qc_be_applied(self._applied_qc, obstype, "gross_value")
@@ -1529,10 +1529,9 @@ class Dataset:
                 )
 
             else:
-                print(f'ERROR: The gross_value check can NOT be applied on {obstype} because it was already applied on this observation type!')
+                logger.warning(f'The gross_value check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if persistance:
-            print("Applying the persistance-check.")
             logger.info("Applying persistance check.")
 
             apliable = _can_qc_be_applied(self._applied_qc, obstype, "persistance")
@@ -1564,10 +1563,9 @@ class Dataset:
                 )
 
             else:
-                 print(f'ERROR: The persistance check can NOT be applied on {obstype} because it was already applied on this observation type!')
+                 logger.warning(f'The persistance check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if step:
-            print("Applying the step-check.")
             logger.info("Applying step-check.")
 
             apliable = _can_qc_be_applied(self._applied_qc, obstype, "step")
@@ -1596,10 +1594,9 @@ class Dataset:
                 )
 
             else:
-                 print(f'ERROR: The step check can NOT be applied on {obstype} because it was already applied on this observation type!')
+                 logger.warning(f'The step check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if window_variation:
-            print("Applying the window variation-check.")
             logger.info("Applying window variation-check.")
 
             apliable = _can_qc_be_applied(self._applied_qc, obstype, "window_variation")
@@ -1630,7 +1627,7 @@ class Dataset:
                 )
 
             else:
-                 print(f'ERROR: The window_variation check can NOT be applied on {obstype} because it was already applied on this observation type!')
+                 logger.warning(f'The window_variation check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
 
         self._qc_checked_obstypes.append(obstype)
@@ -1670,17 +1667,16 @@ class Dataset:
 
         """
 
-        print("Applying the titan buddy check")
         logger.info("Applying the titan buddy check")
 
         checkname = 'titan_buddy_check'
 
         # 1. coordinates are available?
         if self.metadf['lat'].isnull().any():
-            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            logger.warning(f'Not all coordinates are available, the {checkname} cannot be executed!')
             return
         if self.metadf['lon'].isnull().any():
-            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            logger.warning(f'Not all coordinates are available, the {checkname} cannot be executed!')
             return
 
 
@@ -1698,12 +1694,12 @@ class Dataset:
 
         # 2. altitude available?
         if ((not use_constant_altitude) & ('altitude' not in self.metadf.columns)):
-            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
-            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
+            logger.warning(f'The altitude is not known for all stations. The {checkname} cannot be executed!')
+            logger.info('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
             return
         if ((not use_constant_altitude) & (self.metadf['altitude'].isnull().any())):
-            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
-            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
+            logger.warning(f'The altitude is not known for all stations. The {checkname} cannot be executed!')
+            logger.info('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
             return
 
         apliable = _can_qc_be_applied(self._applied_qc, obstype, checkname)
@@ -1733,7 +1729,7 @@ class Dataset:
             )
 
         else:
-            print(f'ERROR: The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
+            logger.warning(f'The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
 
 
         # Revert artificial data that has been added if needed
@@ -1788,7 +1784,7 @@ class Dataset:
         """
 
 
-        print("Applying the titan SCT check")
+
         logger.info("Applying the titan SCT check")
 
 
@@ -1797,21 +1793,21 @@ class Dataset:
 
         # 1. coordinates are available?
         if self.metadf['lat'].isnull().any():
-            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            logger.warning(f'Not all coordinates are available, the {checkname} cannot be executed!')
             return
         if self.metadf['lon'].isnull().any():
-            print(f'ERROR: Not all coordinates are available, the {checkname} cannot be executed!')
+            logger.warning(f'Not all coordinates are available, the {checkname} cannot be executed!')
             return
 
 
         # 2. altitude available?
         if ('altitude' not in self.metadf.columns):
-            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
-            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
+            logger.warning(f'The altitude is not known for all stations. The {checkname} cannot be executed!')
+            logger.info('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
             return
         if (self.metadf['altitude'].isnull().any()):
-            print(f'ERROR: The altitude is not known for all stations. The {checkname} cannot be executed!')
-            print('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
+            logger.warning(f'The altitude is not known for all stations. The {checkname} cannot be executed!')
+            logger.info('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
             return
 
         apliable = _can_qc_be_applied(self._applied_qc, obstype, checkname)
@@ -1842,7 +1838,7 @@ class Dataset:
 
 
         else:
-            print(f'ERROR: The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
+            logger.warning(f'The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
 
 
 
@@ -2136,8 +2132,8 @@ class Dataset:
         if self._applied_qc[~self._applied_qc['checkname']
                             .isin(["duplicated_timestamp", "invalid_input"])
                             ].shape[0] > 0:
-            print('WARNING: Coarsening time resolution is not possible because quality control checks that are resolution depening are already performed on the Dataset.')
-            print('(Apply coarsening_time_resolution BEFORE applying quality control.)')
+            logger.warning('Coarsening time resolution is not possible because quality control checks that are resolution depening are already performed on the Dataset.')
+            logger.info('(Apply coarsening_time_resolution BEFORE applying quality control.)')
             return
 
 
@@ -2176,7 +2172,7 @@ class Dataset:
             )
 
         else:
-            print(f"The coarsening method: {method}, is not implemented yet.")
+            logger.warning(f"The coarsening method: {method}, is not implemented yet.")
             df = df.set_index(["name", "datetime"])
 
         if "name" in df.columns:
@@ -2285,7 +2281,7 @@ class Dataset:
             group_stations = simplified_resolution[
                 simplified_resolution == occur_res
             ].index.to_list()
-            print(
+            logger.info(
                 f" Grouping stations with simplified resolution of {pd.to_timedelta(occur_res)}: {group_stations}"
             )
             groupdf = df[df["name"].isin(group_stations)]
@@ -2448,7 +2444,7 @@ class Dataset:
 
         """
 
-        print("Settings input data file: ", self.settings.IO["input_data_file"])
+
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         if freq_estimation_method is None:
@@ -2503,10 +2499,6 @@ class Dataset:
 
 
         if self.settings.IO["input_metadata_file"] is None:
-            print(
-                "WARNING: No metadata file is defined.\
-                  Add your settings object."
-            )
             logger.warning(
                 "No metadata file is defined,\
                     no metadata attributes can be set!"
@@ -2770,10 +2762,10 @@ class Dataset:
         # if the name is Nan, remove these records from df, and metadf (before)
         # they end up in the gaps and missing obs
         if np.nan in self.df.index.get_level_values('name'):
-            print(f'WARNING: following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}')
+            logger.warning(f'Following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}')
             self.df = self.df[~self.df.index.get_level_values('name').isna()]
         if np.nan in self.metadf.index:
-            print(f'WARNING: following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}')
+            logger.warning(f'Following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}')
             self.metadf = self.metadf[~self.metadf.index.isna()]
 
         # find missing obs and gaps, and remove them from the df
@@ -2919,7 +2911,7 @@ class Dataset:
         df_list = []
         for buffer in buffers:
 
-            print(f'Extracting landcover from {gee_map} with buffer radius = {buffer}')
+            logger.info(f'Extracting landcover from {gee_map} with buffer radius = {buffer}')
             # Extract landcover fractions for all stations
             lc_frac_df, buffer = lc_fractions_extractor(
                 metadf=self.metadf,
@@ -2996,15 +2988,15 @@ class Dataset:
         # checks
         # check if metadata is available
         if self.metadf['lat'].isnull().all():
-            print('Error: No coordinates are found in the metadata. A csv cannot be created.')
+            logger.warning('No coordinates are found in the metadata. A csv cannot be created.')
             return
 
         if self.metadf['lon'].isnull().all():
-            print('Error: No coordinates are found in the metadata. A csv cannot be created.')
+            logger.warning('No coordinates are found in the metadata. A csv cannot be created.')
             return
 
         if ((outputfolder is None) & (self.settings.IO['output_folder'] is None)):
-            print('Error: No outputfolder is specified.')
+            logger.warning('No outputfolder is specified.')
             return
 
 
@@ -3015,7 +3007,7 @@ class Dataset:
         if any([x is None for x in user_bounds]):
             # use default bounds
             make_bounds=True
-            print('Info: Since not (all) bounds are given, the bounds are the total bounds of the present stations.')
+            logger.info('Since not (all) bounds are given, the bounds are the total bounds of the present stations.')
         else:
             make_bounds=False
 
@@ -3052,6 +3044,7 @@ class Dataset:
                       decimal='.')
         print(f'\n File is writen to : {filepath}. \n')
         print('Download the file (as a .csv), and send it by email to:  mivieijra@meteo.be.')
+
         return
 
 
@@ -3122,7 +3115,7 @@ class Dataset:
                           )
         if show_stations:
             if not _validate_metadf(self.metadf):
-                print('Not enough coordinates information is provided to plot the stations.')
+                logger.warning('Not enough coordinates information is provided to plot the stations.')
             else:
                 Map = add_stations_to_folium_map(Map = Map,
                                                  metadf = self.metadf)
@@ -3133,12 +3126,13 @@ class Dataset:
         # Save if needed
         if save:
             if self.settings.IO['output_folder'] is None:
-                print('WARNING: The outputfolder is not set up, use the update_settings to specify the output_folder.')
+                logger.warning('The outputfolder is not set up, use the update_settings to specify the output_folder.')
 
             else:
                 filename = f'gee_{gee_map}_figure.html'
                 filepath = os.path.join(self.settings.IO['output_folder'], filename)
                 print(f'Gee Map will be save at {filepath}')
+                logger.info(f'Gee Map will be save at {filepath}')
                 Map.save(filepath)
 
 
