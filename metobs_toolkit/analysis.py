@@ -9,6 +9,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import math
+import logging
 import copy
 from scipy.stats import pearsonr
 
@@ -21,6 +22,7 @@ from metobs_toolkit.df_helpers import (init_multiindexdf,
                                         subset_stations,
                                         fmt_datetime_argument)
 
+logger = logging.getLogger(__name__)
 class Analysis():
     """ The Analysis class contains methods for analysing diurnal cycles and landcover effects"""
     def __init__(self, obsdf, metadf, settings, data_template):
@@ -94,10 +96,10 @@ class Analysis():
 
         """
         if not isinstance(startdt, type(datetime(2020,1,1))):
-            print(f' {startdt} not a datetime type. Ignore subsetting!')
+            logger.info(f' {startdt} not a datetime type. Ignore subsetting!')
             return
         if not isinstance(enddt, type(datetime(2020,1,1))):
-            print(f' {enddt} not a datetime type. Ignore subsetting!')
+            logger.info(f' {enddt} not a datetime type. Ignore subsetting!')
             return
 
         startdt = fmt_datetime_argument(startdt, self.settings.time_settings['timezone'])
@@ -892,7 +894,7 @@ class Analysis():
         lc_df = self.metadf[lc_columns]
 
         if lc_df.empty:
-            print('WARNING: No landcover columns found in the metadf. Landcover correlations cannot be computed.')
+            logger.warning('WARNING: No landcover columns found in the metadf. Landcover correlations cannot be computed.')
             return None
 
 
@@ -920,7 +922,7 @@ class Analysis():
         for group_lab, groupdf in groups:
             # No correlations can be computed when no variance is found
             if groupdf.shape[0] <=1:
-                print(f'No variance found in correlationd group {group_lab}. Correlation thus not be computed for this group: {groupdf}.')
+                logger.warning(f'No variance found in correlationd group {group_lab}. Correlation thus not be computed for this group: {groupdf}.')
                 continue
             # drop groupby labels
             groupdf = groupdf.drop(columns=groupby_labels, errors='ignore')
@@ -980,8 +982,8 @@ class Analysis():
 
         if groupby_value is None:
             groupby_value = list(self.lc_cor_dict.keys())[0]
-            print('WARNING: No groupby_value is given, so the first groupby value (={groupby_value}) will be used!')
-            print(f'INFO: The correlations are computed over {self._lc_groupby_labels} with the following unique values: {list(self.lc_cor_dict.keys())}')
+            logger.warning('No groupby_value is given, so the first groupby value (={groupby_value}) will be used!')
+            logger.info(f'The correlations are computed over {self._lc_groupby_labels} with the following unique values: {list(self.lc_cor_dict.keys())}')
 
         # check if groupby value exists
         assert groupby_value in self.lc_cor_dict.keys(), f'{groupby_value} not found as a groupby value. These are all the possible values: {self.lc_cor_dict.keys()}'
@@ -1030,8 +1032,8 @@ class Analysis():
 
         # check if correlation evolution information is available
         if len(self.lc_cor_dict.keys()) <= 1:
-            print(f'WARNING: Only one correlation group is found: {self.lc_cor_dict.keys()}')
-            print('The variance plot can not be made.')
+            logger.warning(f'Only one correlation group is found: {self.lc_cor_dict.keys()}')
+            logger.warning('The variance plot can not be made.')
             return
 
 
@@ -1077,9 +1079,9 @@ def get_seasons(datetimeseries,
                 start_day_autumn = '01/09',
                 start_day_winter = '01/12'):
 
-    """ 
+    """
     Convert a datetimeseries to a season label (i.g. categorical).
-    
+
     Parameters
     ----------
     datetimeseries : datetime.datetime
