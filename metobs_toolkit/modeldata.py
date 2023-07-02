@@ -108,7 +108,7 @@ class Modeldata:
         """
         # check if mapname exists
         if mapname in self.mapinfo.keys():
-            print(f'{mapname} is found in the list of known gee datasets: {list(self.mapinfo.keys())}, choose a different mapname.')
+            logger.warning(f'{mapname} is found in the list of known gee datasets: {list(self.mapinfo.keys())}, choose a different mapname.')
             return
 
 
@@ -147,7 +147,7 @@ class Modeldata:
             new_info[mapname]['time_res'] = f'{time_res}'
 
         self.mapinfo.update(new_info)
-        print(f'{mapname} is added to the list of available gee dataset with: {new_info}')
+        logger.info(f'{mapname} is added to the list of available gee dataset with: {new_info}')
         return
 
 
@@ -189,11 +189,11 @@ class Modeldata:
 
         # check if mapname exists
         if mapname not in self.mapinfo.keys():
-            print(f'{mapname} is not found in the list of known gee datasets: {list(self.mapinfo.keys())}')
+            logger.warning(f'{mapname} is not found in the list of known gee datasets: {list(self.mapinfo.keys())}')
             return
 
         if self.mapinfo[mapname]['is_image']:
-            print(f'{mapname} is found as a Image. No bandnames can be added to it.')
+            logger.warning(f'{mapname} is found as a Image. No bandnames can be added to it.')
             return
 
 
@@ -201,7 +201,7 @@ class Modeldata:
         if not isinstance(self.mapinfo[mapname]['band_of_use'], str):
             if obstype in self.mapinfo[mapname]['band_of_use'].keys():
                 if not overwrite:
-                    print(f'{obstype} already mapped to a bandname for dataset: {mapname}.')
+                    logger.warning(f'{obstype} already mapped to a bandname for dataset: {mapname}.')
                     return
 
 
@@ -210,7 +210,7 @@ class Modeldata:
                               'units' : units}}
         self.mapinfo[mapname]['band_of_use'].update(new_info)
 
-        print(f'{new_info} is added to the {mapname} bands of use.')
+        logger.info(f'{new_info} is added to the {mapname} bands of use.')
         return
 
 
@@ -293,10 +293,10 @@ class Modeldata:
 
         # chech if data is available
         if self.df.empty:
-            print('Warning: No data to set units for.')
+            logger.warning('No data to set units for.')
             return
         if not obstype in self.df.columns:
-            print('ERROR: {obstype} not found as observationtype in the Modeldata.')
+            logger.warning('{obstype} not found as observationtype in the Modeldata.')
             return
 
         if not conv_expr is None:
@@ -309,7 +309,7 @@ class Modeldata:
                                                     data_unit=self._df_units[obstype],
                                                     new_units=new_unit_def)
 
-        print(f'{obstype} are converted from {self._df_units[obstype]} --> {new_unit}.')
+        logger.info(f'{obstype} are converted from {self._df_units[obstype]} --> {new_unit}.')
 
         self.df[obstype] = new_data
         self._df_units[obstype] = new_unit
@@ -377,30 +377,30 @@ class Modeldata:
         # Test input
         # ====================================================================
         if metadf.empty:
-            print(f'ERROR: The metadf is empty!')
+            logger.warning(f'The metadf is empty!')
             return
 
         # Subset metadf to stations with coordinates
         no_coord_meta = metadf[metadf[['lat','lon']].isna().any(axis=1)]
         if not no_coord_meta.empty:
-            print(f'WARNING. Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}')
+            logger.warning(f'Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}')
             metadf = metadf[~metadf[['lat','lon']].isna().any(axis=1)]
 
         # is mapinfo available
         if mapname not in self.mapinfo.keys():
-            print(f'ERROR: {mapname} is not a known gee dataset.')
+            logger.warning(f'{mapname} is not a known gee dataset.')
             return
 
         geeinfo = self.mapinfo[mapname]
 
         # does dataset contain time evolution
         if not geeinfo['dynamical']:
-            print(f'ERROR:{mapname} is a static dataset, this method does not work on static datasets')
+            logger.warning(f'{mapname} is a static dataset, this method does not work on static datasets')
             return
 
         # is obstype mapped?
         if not obstype in geeinfo['band_of_use'].keys():
-            print(f'ERROR: {obstype} is not yet mapped to a bandname in the {mapname} dataset.')
+            logger.warning(f'{obstype} is not yet mapped to a bandname in the {mapname} dataset.')
             return
 
         # can observation be converted to standaard units?
@@ -408,7 +408,7 @@ class Modeldata:
             convert_to_toolkit_units(data = [10,20,30],
                                      data_unit = geeinfo['band_of_use'][obstype]['units'])
         except:
-            print(f"Error: The {geeinfo['band_of_use'][obstype]['units']} cannot be converted to standard toolkit units: ")
+            logger.warning(f"The {geeinfo['band_of_use'][obstype]['units']} cannot be converted to standard toolkit units: ")
             # this prints more details
             convert_to_toolkit_units(data = [10,20,30],
                                      data_unit = geeinfo['band_of_use'][obstype]['units'])
@@ -523,7 +523,7 @@ class Modeldata:
 
         # update name
         if self.modelname != 'ALARO_2.5':
-            print(f'Info: Converting modelname: {self.modelname} --> ALARO_2.5')
+            logger.info(f'Converting modelname: {self.modelname} --> ALARO_2.5')
             self.modelname ='ALARO_2.5'
 
 
@@ -596,7 +596,7 @@ class Modeldata:
 
         # tests ----
         if not self.modelname in self.mapinfo.keys():
-            print(f'ERROR: {self.modelname} is not found in the gee datasets.')
+            logger.warning(f'{self.modelname} is not found in the gee datasets.')
             return
 
         # 1. Read csv and set timezone
@@ -680,11 +680,11 @@ class Modeldata:
             if min(sta_recordsdf.index.get_level_values("datetime")) < min(
                 sta_moddf.index.get_level_values("datetime")
             ):
-                print("Warning: Modeldata will be extrapolated")
+                logger.warning("Warning: Modeldata will be extrapolated")
             if max(sta_recordsdf.index.get_level_values("datetime")) > max(
                 sta_moddf.index.get_level_values("datetime")
             ):
-                print("Warning: Modeldata will be extrapolated")
+                logger.warning("Warning: Modeldata will be extrapolated")
 
             # combine model and records
             mergedf = sta_recordsdf.merge(
@@ -769,17 +769,17 @@ class Modeldata:
 
         # Basic test
         if obstype_model not in self.df.columns:
-            print(f'ERROR: {obstype_model} is not foud in the modeldata df.')
+            logger.warning(f'{obstype_model} is not foud in the modeldata df.')
             return
         if self.df.empty:
-            print('ERROR: The modeldata is empty.')
+            logger.warning('The modeldata is empty.')
             return
         if obstype_dataset is None:
             obstype_dataset = obstype_model
 
         if (not dataset is None):
             if (obstype_dataset not in dataset.df.columns):
-                print(f'ERROR: {obstype_dataset} is not foud in the Dataframe df.')
+                logger.warning(f'{obstype_dataset} is not foud in the Dataframe df.')
                 return
 
 
@@ -819,7 +819,7 @@ class Modeldata:
         try:
             model_true_field_name = self.mapinfo[self.modelname]['band_of_use'][obstype_model]['name']
         except KeyError:
-            print (f'No model field name found for {obstype_model} in {self}.')
+            logger.info(f'No model field name found for {obstype_model} in {self}.')
             model_true_field_name = 'Unknown fieldname'
 
         fieldname = f'{model_true_field_name}'
