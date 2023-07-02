@@ -894,7 +894,7 @@ class Analysis():
         lc_df = self.metadf[lc_columns]
 
         if lc_df.empty:
-            logger.warning('WARNING: No landcover columns found in the metadf. Landcover correlations cannot be computed.')
+            logger.warning('No landcover columns found in the metadf. Landcover correlations cannot be computed.')
             return None
 
 

@@ -680,11 +680,11 @@ class Modeldata:
             if min(sta_recordsdf.index.get_level_values("datetime")) < min(
                 sta_moddf.index.get_level_values("datetime")
             ):
-                logger.warning("Warning: Modeldata will be extrapolated")
+                logger.warning("Modeldata will be extrapolated")
             if max(sta_recordsdf.index.get_level_values("datetime")) > max(
                 sta_moddf.index.get_level_values("datetime")
             ):
-                logger.warning("Warning: Modeldata will be extrapolated")
+                logger.warning("Modeldata will be extrapolated")
 
             # combine model and records
             mergedf = sta_recordsdf.merge(
