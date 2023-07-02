@@ -74,7 +74,7 @@ class Modeldata:
             Location of the gee dataset (like "ECMWF/ERA5_LAND/HOURLY" for ERA5).
         obstype : str
             The observation type the band corresponds to.
-        andname : str
+        bandname : str
             Name of the dataset band as stored on the GEE.
         units : str
             The units of the band.
@@ -755,6 +755,7 @@ class Modeldata:
              The default is True.
         legend : bool, optional
              If True, a legend is added to the plot. The default is True.
+
 
         Returns
         -------
