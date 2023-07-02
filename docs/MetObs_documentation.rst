@@ -10,6 +10,7 @@ the MetObs toolkit to be used by a user.
    :template: custom-module-template.rst
    :recursive:
 
+   metobs_toolkit.dataset_settings_updater
    metobs_toolkit.dataset
    metobs_toolkit.station
    metobs_toolkit.analysis

@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Seperate interface for the methods that update dataset settings
+Extension of the Dataset class (methods for updating settings).
 @author: thoverga
 """
 import logging
