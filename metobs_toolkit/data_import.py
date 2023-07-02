@@ -7,6 +7,7 @@ Created on Thu Sep 22 16:24:06 2022
 """
 import sys
 import warnings
+import logging
 import pandas as pd
 
 import mysql.connector
@@ -16,6 +17,7 @@ from metobs_toolkit.data_templates.import_templates import read_csv_template
 
 from metobs_toolkit import observation_types
 
+logger = logging.getLogger(__name__)
 
 def template_to_package_space(specific_template):
     returndict = {
@@ -32,7 +34,7 @@ def find_compatible_templatefor(df_columns, template_list):
     for templ in template_list:
         found = all(keys in list(df_columns) for keys in templ.keys())
         if found:
-            print("Compatible template found. ")
+            logger.info("Compatible template found. ")
             return templ
     sys.exit("No compatible teplate found!")
 
@@ -74,16 +76,16 @@ def check_template_compatibility(template, df_columns, filetype):
     unmapped_assumed = [templ_var for templ_var in assumed_cols if not templ_var in present_cols]
 
     if len(unmapped_assumed) > 0:
-        print(
-            f"WARNING! The following columns are not present in the {filetype},\
+        logger.info(
+            f"The following columns are not present in the {filetype},\
  and cannot be mapped: {unmapped_assumed}"
         )
 
     # in df but not in mapper
     unmapped_appearing = [col for col in present_cols if col not in assumed_cols]
     if len(unmapped_appearing) > 0:
-        print(
-            f"WARNING! The following columns in the {filetype} cannot be mapped with the template: {unmapped_appearing}.")
+        logger.info(
+            f"The following columns in the {filetype} cannot be mapped with the template: {unmapped_appearing}.")
 
     # check if at least one column is mapped
     if len(list(set(present_cols) - set(assumed_cols))) == len(present_cols):
