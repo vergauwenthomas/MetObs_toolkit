@@ -179,7 +179,7 @@ def duplicate_timestamp_check(df, checks_info, checks_settings):
     )
 
     if not df.loc[duplicates].empty:
-        logging.warning(
+        logger.warning(
             f" Following records are labeld as duplicates: {df.loc[duplicates]}, and are removed"
         )
 
@@ -253,7 +253,6 @@ def gross_value_check(obsdf, obstype, checks_info, checks_settings):
     try:
         specific_settings = checks_settings[checkname][obstype]
     except:
-        print(f"No {checkname} settings found for obstype={obstype}. Check is skipped!")
         logger.warning(
             f"No {checkname} settings found for obstype={obstype}. Check is skipped!"
         )
@@ -313,7 +312,6 @@ def persistance_check(
     try:
         specific_settings = checks_settings[checkname][obstype]
     except:
-        print(f"No {checkname} settings found for obstype={obstype}. Check is skipped!")
         logger.warning(
             f"No {checkname} settings found for obstype={obstype}. Check is skipped!"
         )
@@ -327,10 +325,7 @@ def persistance_check(
         invalid_windows_check_df[invalid_windows_check_df == True].index
     )
     if bool(invalid_stations):
-        print(
-            f"The windows are too small for stations  {invalid_stations} to perform persistance check"
-        )
-        logger.info(
+        logger.warning(
             f"The windows are too small for stations  {invalid_stations} to perform persistance check"
         )
 
@@ -424,7 +419,6 @@ def repetitions_check(obsdf, obstype, checks_info, checks_settings):
     try:
         specific_settings = checks_settings[checkname][obstype]
     except:
-        print(f"No {checkname} settings found for obstype={obstype}. Check is skipped!")
         logger.warning(
             f"No {checkname} settings found for obstype={obstype}. Check is skipped!"
         )
@@ -501,7 +495,6 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
     try:
         specific_settings = checks_settings[checkname][obstype]
     except:
-        print(f"No {checkname} settings found for obstype={obstype}. Check is skipped!")
         logger.warning(
             f"No {checkname} settings found for obstype={obstype}. Check is skipped!"
         )
@@ -589,7 +582,6 @@ def window_variation_check(
     try:
         specific_settings = checks_settings[checkname][obstype]
     except:
-        print(f"No {checkname} settings found for obstype={obstype}. Check is skipped!")
         logger.warning(
             f"No {checkname} settings found for obstype={obstype}. Check is skipped!"
         )
@@ -603,10 +595,7 @@ def window_variation_check(
         invalid_windows_check_df[invalid_windows_check_df == True].index
     )
     if bool(invalid_stations):
-        print(
-            f"The windows are too small for stations  {invalid_stations} to perform window variation check"
-        )
-        logger.info(
+        logger.warning(
             f"The windows are too small for stations  {invalid_stations} to perform window variation check"
         )
 
@@ -774,7 +763,6 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
     try:
         alt = metadf['altitude']
     except:
-        print(f"Cannot find altitude of weather stations. Check is skipped!")
         logger.warning(
             f"Cannot find altitude of weather stations. Check is skipped!"
         )
@@ -861,7 +849,6 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
     try:
         alt = metadf['altitude']
     except:
-        print(f"Cannot find altitude of weather stations. Check is skipped!")
         logger.warning(
             f"Cannot find altitude of weather stations. Check is skipped!"
         )
@@ -871,7 +858,7 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
 
     df_list = []
     for dt, point in pointsdict.items():
-        print(f'sct on observations at {dt}')
+        logger.debug(f'sct on observations at {dt}')
         obs = list(point['values'])
         titan_points = titanlib.Points(np.asarray(point['lats']),
                                        np.asarray(point['lons']),
@@ -905,7 +892,7 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
                 debug=checks_settings['debug'], #debug
                 basic=checks_settings['basic'] #basic
                 )
-        print('Sleeping ... (to avoid segmentaton errors)')
+        logger.debug('Sleeping ... (to avoid segmentaton errors)')
         time.sleep(1)
 
         labels = pd.Series(flags, name='num_label').to_frame()
