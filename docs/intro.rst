@@ -18,7 +18,7 @@ To install the package one can use pip:
 
 .. note::
 
-   Now, this is a development version, so to install you need to specify the latest version explicitly: pip3 install metobs-toolkit==0.0.2ax (where x is the latest version).
+   Now, this is a development version, so to install you need to specify the latest version explicitly: pip3 install metobs-toolkit==0.1.1ax (where x is the latest version).
 
 .. note::
    To install the package in a notebook, one has to add ! in front of the pip install command.
