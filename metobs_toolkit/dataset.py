@@ -2490,7 +2490,7 @@ class Dataset:
 
         logger.debug(
             f'Data from {self.settings.IO["input_data_file"]} \
-                     imported to dataframe.'
+                     imported to dataframe {df.head()}.'
         )
 
         # drop Nat datetimes if present
@@ -2570,6 +2570,9 @@ class Dataset:
 
         # convert dataframe to multiindex (datetime - name)
         df = df.set_index(["name", df.index])
+
+        # Sort by name and then by datetime (to avoid negative freq)
+        df = df.sort_index(level=['name', 'datetime'])
 
         # dataframe with all data of input file
         self.input_df = df.sort_index()
