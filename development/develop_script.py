@@ -32,6 +32,21 @@ import metobs_toolkit
 
 
 #%%
+
+
+datafile ='/home/thoverga/Downloads/sub_set.csv'
+
+template_file = '/home/thoverga/Downloads/sub_set_template.csv'
+
+dataset = metobs_toolkit.Dataset()
+
+dataset.update_settings(input_data_file=datafile,
+                        data_template_file=template_file)
+
+dataset.import_data_from_file()
+# print(dataset)
+
+#%%
 # # use_dataset = 'debug_wide'
 # use_dataset = 'single_netatmo_sara_station'
 use_dataset = 'vlindergent2022'
@@ -51,8 +66,8 @@ dataset.update_settings(output_folder=None,
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
 dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
-dataset.apply_quality_control()
-dataset.get_lcz()
+# dataset.apply_quality_control()
+# dataset.get_lcz()
 # dataset.update_gaps_and_missing_from_outliers()
 #%%
 
