@@ -2488,15 +2488,13 @@ class Dataset:
             nonexistent="shift_forward",
         )
 
-        logger.debug(
-            f'Data from {self.settings.IO["input_data_file"]} \
-                     imported to dataframe.'
-        )
-
         # drop Nat datetimes if present
         df = df.loc[pd.notnull(df.index)]
 
-
+        logger.debug(
+            f'Data from {self.settings.IO["input_data_file"]} \
+                     imported to dataframe {df.head()}.'
+        )
 
         if self.settings.IO["input_metadata_file"] is None:
             logger.warning(
@@ -2545,8 +2543,15 @@ class Dataset:
                         f'Assume the dataset is for ONE station with the \
                         default name: {self.settings.app["default_name"]}.')
 
+            # make shure name column in metadata and data have the same type for merging
+            df["name"] = df["name"].astype(str)
+            meta_df["name"] = meta_df["name"].astype(str)
+
 
             # merge additional metadata to observations
+            logger.debug(f"Head of data file, before merge: {df.head()}")
+            logger.debug(f"Head of metadata file, before merge: {meta_df.head()}")
+
             meta_cols = [
                 colname for colname in meta_df.columns if not colname.startswith("_")
             ]
@@ -2570,6 +2575,9 @@ class Dataset:
 
         # convert dataframe to multiindex (datetime - name)
         df = df.set_index(["name", df.index])
+
+        # Sort by name and then by datetime (to avoid negative freq)
+        df = df.sort_index(level=['name', 'datetime'])
 
         # dataframe with all data of input file
         self.input_df = df.sort_index()
