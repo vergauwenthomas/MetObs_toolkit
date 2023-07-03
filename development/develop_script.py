@@ -43,8 +43,8 @@ dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=datafile,
                         data_template_file=template_file)
 
-dataset = dataset.import_data_from_file()
-print(dataset)
+dataset.import_data_from_file()
+# print(dataset)
 
 #%%
 # # use_dataset = 'debug_wide'
