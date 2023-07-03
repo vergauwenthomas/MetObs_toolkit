@@ -21,6 +21,12 @@ def print_dataset_info(dataset, show_all_settings=False, max_disp_n_gaps = 5):
     else:
         print('(to show all settings use the .show_settings() method, or set show_all_settings = True)')
 
+    print("\n", "--------  Outliers ---------", "\n")
+    if dataset.outliersdf.empty:
+        print('No outliers.')
+    else:
+        print(f'A total of {dataset.outliersdf.shape[0]} found with these occurrences: \n')
+        print(f'{dataset.outliersdf["label"].value_counts().to_dict()}')
     print("\n", "--------  Meta data ---------", "\n")
     if dataset.metadf.empty:
         print('No metadata is found.')

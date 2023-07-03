@@ -177,17 +177,17 @@ def _read_csv_file(path, kwargsdict):
         ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
 
     # LINES TO DEAL WITH RANDOM PIECES OF TEXT BEFORE ACTUAL MEASUREMENTS
-    if True in df.columns.str.contains(pat="Unnamed"):
-        num_columns = df.iloc[-3].count().sum()
+    # if True in df.columns.str.contains(pat="Unnamed"):
+    #     num_columns = df.iloc[-3].count().sum()
 
-        rows_to_skip = 0
-        for row in range(len(df)):
-            if df.iloc[row : (row + 1), :].count().sum() != num_columns:
-                rows_to_skip += 1
-            else:
-                break
-        df = df.iloc[rows_to_skip:, :]
-        df = df.rename(columns=df.iloc[0]).iloc[1:, :]
+    #     rows_to_skip = 0
+    #     for row in range(len(df)):
+    #         if df.iloc[row : (row + 1), :].count().sum() != num_columns:
+    #             rows_to_skip += 1
+    #         else:
+    #             break
+    #     df = df.iloc[rows_to_skip:, :]
+    #     df = df.rename(columns=df.iloc[0]).iloc[1:, :]
     df.index = range(len(df))
     return df
 
