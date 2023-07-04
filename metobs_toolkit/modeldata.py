@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class Modeldata:
     def __init__(self, modelname):
-        self.df = init_multiindexdf
+        self.df = init_multiindexdf()
         self.modelname = modelname
 
         self._settings = Settings()
