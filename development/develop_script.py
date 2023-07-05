@@ -34,9 +34,9 @@ import metobs_toolkit
 #%%
 
 
-datafile ='/home/thoverga/Downloads/sub_set.csv'
+datafile ='C:/Users/andre/Downloads/tal_netatmo_22.csv'
 
-template_file = '/home/thoverga/Downloads/sub_set_template.csv'
+template_file = 'C:/Users/andre/Downloads/est_netatmo_22_template.csv'
 
 dataset = metobs_toolkit.Dataset()
 
