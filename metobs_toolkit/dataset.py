@@ -2589,15 +2589,25 @@ class Dataset:
 
         # update dataset object
         self.data_template = pd.DataFrame().from_dict(template)
+        
+        #Remove stations whith only one observation (no freq estimation)
+        station_counts = df['name'].value_counts()
+        issue_station = station_counts[station_counts < 2].index.to_list()
+        print(issue_station)
+        logger.warning(f'These stations will be removed because of only having one record: {issue_station}')
+        df = df[~df["name"].isin(issue_station)]
+
+            
 
         # convert dataframe to multiindex (datetime - name)
         df = df.set_index(["name", df.index])
 
         # Sort by name and then by datetime (to avoid negative freq)
-        df = df.sort_index(level=['name', 'datetime'])
+        df = df.sort_index(level=['name','datetime'])
+        
 
         # dataframe with all data of input file
-        self.input_df = df.sort_index()
+        self.input_df = df.sort_index(level=['name','datetime'])
 
         self._construct_dataset(
             df=df,
