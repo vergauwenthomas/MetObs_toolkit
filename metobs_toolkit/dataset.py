@@ -9,7 +9,7 @@ MetObs-toolkit.
 
 import os
 import copy
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import logging
 import pandas as pd
@@ -2190,7 +2190,7 @@ class Dataset:
         self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
 
-    def sync_observations(self, tollerance, verbose=True):
+    def sync_observations(self, tollerance, verbose=True, _force_resolution_minutes=None, _drop_target_nan_dt=False):
         """
         Simplify and syncronize the observation timestamps along different stations.
 
@@ -2211,7 +2211,11 @@ class Dataset:
             Ex: '5T' is 5 minuts, '1H', is one hour.
         verbose : bool, optional
             If True, a dataframe illustrating the mapping from original datetimes to simplified and syncronized is returned. The default is True.
-
+        _drop_target_nan_dt : bool, optional
+            If record has no target datetime, the datetimes will be listed as Nat. To remove them,
+            set this to True. Default is False.
+        _force_resolution_minutes : bool, optional
+            force the resolution estimate to this frequency in minutes. If None, the frequency is estimated. The default is None.
         Note
         --------
         Keep in mind that this method will overwrite the df, outliersdf, missing timestamps and gaps.
@@ -2244,9 +2248,21 @@ class Dataset:
         self.gaps = None
 
         # find simplified resolution
-        simplified_resolution = get_freqency_series(
-            df=df, method="median", simplify=True, max_simplify_error=tollerance
-        )
+        if _force_resolution_minutes is None:
+            simplified_resolution = get_freqency_series(
+                df=df, method="median", simplify=True, max_simplify_error=tollerance
+            )
+        else:
+            if isinstance(_force_resolution_minutes, list):
+                #TODO
+                print('foce resolution minutes as a list is not implemented yet, sorry.')
+            else:
+                stations = self.metadf.index
+                freq_series = pd.Series(index=stations,
+                                        data = [timedelta(minutes=float(_force_resolution_minutes))]*len(stations))
+                simplified_resolution = freq_series
+
+        logger.debug(f'Syncronizing to these resolutions: {simplified_resolution}')
 
         occuring_resolutions = simplified_resolution.unique()
 
@@ -2315,7 +2331,8 @@ class Dataset:
                     direction="nearest",
                     tolerance=pd.Timedelta(tollerance),
                 )
-
+                if _drop_target_nan_dt:
+                    mergedstadf = mergedstadf.dropna(subset='target_datetime')
                 # possibility 1: record is mapped crrectly
                 correct_mapped = mergedstadf[~mergedstadf["target_datetime"].isnull()]
 
