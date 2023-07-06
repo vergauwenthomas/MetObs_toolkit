@@ -35,7 +35,7 @@ al25_mapinfo = {
 
                          },
         'other_mapping': {'datetime' : {'name' : 'date',
-                                        'fmt': '%Y-%m-%d %H:%M:%S',
+                                        'fmt': '%m/%d/%Y %H:%M:%S',
                                         'tz': 'UTC'},
                           'name': {'name': 'name'}},
 
