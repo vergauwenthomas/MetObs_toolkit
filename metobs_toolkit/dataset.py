@@ -1207,9 +1207,15 @@ class Dataset:
 
 
 
-    def get_analysis(self):
+    def get_analysis(self, add_gapfilled_values=False):
         """
         Create a MetObs_toolkit.Analysis instance from the Dataframe
+
+        Parameters
+        ----------
+        add_gapfilled_values : bool, optional
+            If True, all filled values (from gapfill and missing observation fill),
+            are added to the analysis records aswell. The default is False.
 
         Returns
         -------
@@ -1217,8 +1223,34 @@ class Dataset:
             The Analysis instance of the Dataset.
 
         """
+        #TODO:
+        # combine all to obsspace and include gapfill
+        if add_gapfilled_values:
+            mergedf = self.combine_all_to_obsspace()
 
-        return Analysis(obsdf = self.df,
+            # gapsfilled labels
+            gapfill_settings =self.settings.gap['gaps_fill_info']
+            gapfilllabels =[ val for val in gapfill_settings['label'].values()]
+
+            # missingfilled labels
+            missingfill_settings =self.settings.missing_obs['missing_obs_fill_info']
+            missingfilllabels =[ val for val in missingfill_settings['label'].values()]
+
+            # get all labels
+            fill_labels = gapfilllabels.copy()
+            fill_labels.extend(missingfilllabels)
+            fill_labels.append('ok')
+
+            df = mergedf[mergedf['label'].isin(fill_labels)]
+            df = df[['value']]
+            df = df.unstack(level='obstype')
+            df = df.droplevel(level=0, axis=1)
+        else:
+            df = self.df
+
+
+
+        return Analysis(obsdf = df,
                         metadf = self.metadf,
                         settings = self.settings,
                         data_template=self.data_template)
@@ -2589,7 +2621,7 @@ class Dataset:
 
         # update dataset object
         self.data_template = pd.DataFrame().from_dict(template)
-        
+
         #Remove stations whith only one observation (no freq estimation)
         station_counts = df['name'].value_counts()
         issue_station = station_counts[station_counts < 2].index.to_list()
@@ -2597,14 +2629,14 @@ class Dataset:
         logger.warning(f'These stations will be removed because of only having one record: {issue_station}')
         df = df[~df["name"].isin(issue_station)]
 
-            
+
 
         # convert dataframe to multiindex (datetime - name)
         df = df.set_index(["name", df.index])
 
         # Sort by name and then by datetime (to avoid negative freq)
         df = df.sort_index(level=['name','datetime'])
-        
+
 
         # dataframe with all data of input file
         self.input_df = df.sort_index(level=['name','datetime'])
