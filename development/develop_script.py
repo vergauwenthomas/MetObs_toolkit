@@ -34,23 +34,23 @@ import metobs_toolkit
 #%%
 
 
-datafile ='C:/Users/andre/Downloads/tal_netatmo_22.csv'
+# datafile ='C:/Users/andre/Downloads/tal_netatmo_22.csv'
 
-template_file = 'C:/Users/andre/Downloads/est_netatmo_22_template.csv'
+# template_file = 'C:/Users/andre/Downloads/est_netatmo_22_template.csv'
 
-dataset = metobs_toolkit.Dataset()
+# dataset = metobs_toolkit.Dataset()
 
-dataset.update_settings(input_data_file=datafile,
-                        data_template_file=template_file)
+# dataset.update_settings(input_data_file=datafile,
+#                         data_template_file=template_file)
 
-dataset.import_data_from_file()
+# dataset.import_data_from_file()
 # print(dataset)
 
 #%%
 # # use_dataset = 'debug_wide'
 # use_dataset = 'single_netatmo_sara_station'
-use_dataset = 'vlindergent2022'
-# use_dataset = 'demo'
+# use_dataset = 'vlindergent2022'
+use_dataset = 'demo'
 dataset = metobs_toolkit.Dataset()
 
 
@@ -70,42 +70,62 @@ dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
 # dataset.get_lcz()
 # dataset.update_gaps_and_missing_from_outliers()
 #%%
-
-ann = dataset.get_analysis()
+dataset.apply_quality_control()
+dataset.update_gaps_and_missing_from_outliers()
+dataset.fill_gaps_linear()
 
 #%%
 
-from datetime import datetime
-# Compute mean annual cycle for each station + plot
-# Create diurnal cycle for the meteorological summer of 2022 (June, July, August)
-stats = ann.get_diurnal_statistics(obstype='temp', # here you can change the varible for which you want to plot the diurnal cycle
-                                    stations=None, # here you can select the stations you want to include, for example: stations=['vlinder01','vlinder02','vlinder25','vlinder27','vlinder28']
-                                    startdt= datetime(2022,6,1), # here you can change the start date and time
-                                    enddt= datetime(2022,8,31), # here you can change the end date and time
-                                    plot=True, # create immediatly a plot, if false, then no plot is created
-                                    colorby='lcz', # here you can change the color of the lines in the graph
-                                    errorbands=False, # when you set this to True, then error bands are created around the curves based on the standard deviation
-                                    verbose=False) #if True, an extra dataframe with the std is returned aswell.
+# vlinder01 2022-09-07 07:00:00+00:00  16.637895  gap_interpolation
+#           2022-09-07 07:20:00+00:00  16.675789  gap_interpolation
+#           2022-09-07 07:40:00+00:00  16.713684  gap_interpolation
+#           2022-09-07 08:00:00+00:00  16.751579  gap_interpolation
+
+
+#%%
+test = dataset.get_analysis(add_gapfilled_values=True)
+
+
+dummy = test.df
+
+# # gapsfilled labels
+# gapfill_settings =dataset.settings.gap['gaps_fill_info']
+# gapfilllabels =[ val for val in gapfill_settings['label'].values()]
+
+
+# # missingfilled labels
+# missingfill_settings =dataset.settings.missing_obs['missing_obs_fill_info']
+# missingfilllabels =[ val for val in missingfill_settings['label'].values()]
+
+# fill_labels = gapfilllabels.copy()
+# fill_labels.extend(missingfilllabels)
+
+
+# #%%
+# from metobs_toolkit.df_helpers import xs_save
+
+
+# obstype = 'temp'
+# mergedf = dataset.combine_all_to_obsspace()
+# # df = xs_save(mergedf, obstype, 'obstype')
+
+# keeplabels = ['ok', 'gap_interpolation']
+# df = mergedf[mergedf['label'].isin(keeplabels)]
+# df = df[['value']]
+# df = df.unstack(level='obstype')
+# df.droplevel(level=0, axis=1)
 
 
 
 
-# ann.get_diurnal_statistics(colorby='lcz',
-#                             errorbands=True)
 
 
-# ann.get_diurnal_statistics_with_reference(refstation='vlinder01')
 
-# stats = ann.get_aggregated_diurnal_statistics(obstype='temp', # here you can change the varible for which you want to plot the diurnal cycle
-#                                               stations=None, # here you can select the stations you want to include, for example: stations=['vlinder01','vlinder02','vlinder25','vlinder27','vlinder28']
-#                                               aggregation=['name','hour'],
-#                                               aggregation_method='mean',
-#                                               horizontal_axis='season',
-#                                               startdt=None, # here you can change the start date and time
-#                                               enddt=None, # here you can change the end date and time
-#                                               plot=True, # create immediatly a plot, if false, then no plot is created
-#                                               errorbands=True, # when you set this to True, then error bands are created around the curves based on the standard deviation
-#                                               verbose=True) #if True, an extra dataframe with the std is returned aswell.
+
+
+
+# ana = dataset.get_analysis()
+
 
 
 #%%
