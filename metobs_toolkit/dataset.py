@@ -3191,7 +3191,7 @@ class Dataset:
 
 
 def _can_qc_be_applied(dataset, obstype, checkname):
-    """ test if the check is already performed on self """
+    """ test if a qc check can be applied """
 
     # test if check is already applied on the obstype
     applied_df = dataset._applied_qc
