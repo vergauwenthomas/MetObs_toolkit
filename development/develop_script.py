@@ -31,6 +31,7 @@ tmp_pickle=os.path.join(lib_folder, 'development', 'tmp', 'dev_pickle.pkl')
 import metobs_toolkit
 
 
+
 #%%
 
 
@@ -50,7 +51,7 @@ import metobs_toolkit
 # # use_dataset = 'debug_wide'
 # use_dataset = 'single_netatmo_sara_station'
 # use_dataset = 'vlindergent2022'
-use_dataset = 'demo'
+use_dataset = 'siebevlinder'
 dataset = metobs_toolkit.Dataset()
 
 
@@ -69,8 +70,36 @@ dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
 # dataset.apply_quality_control()
 # dataset.get_lcz()
 # dataset.update_gaps_and_missing_from_outliers()
+
 #%%
-dataset.apply_quality_control()
+dataset.update_qc_settings(obstype='radiation_temp', rep_max_valid_repetitions=3)
+dataset.apply_quality_control(obstype='radiation_temp')
+
+#%%
+dataset.make_plot(obstype='radiation_temp', colorby='label')
+
+
+
+
+#%%
+dataset.get_qc_stats(obstype='radiation_temp')
+
+
+df = dataset.df[['radiation_temp']]
+outliers = dataset.outliersdf.xs('radiation_temp', level='obstype')
+
+
+
+
+comb_df = dataset.combine_all_to_obsspace()
+comb_df = comb_df.xs('radiation_temp', level='obstype')
+#%%
+
+
+
+
+
+#%%
 dataset.update_gaps_and_missing_from_outliers()
 dataset.fill_gaps_linear()
 

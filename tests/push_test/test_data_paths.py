@@ -87,6 +87,14 @@ testdata = {
               'kwargs':{'freq_estimation_method' : 'median'},
               'coarsen': '60T',
 
+                    },
+      # Siebe stations (6 vlinders for 15 days)
+      'siebevlinder':{
+              'datafile': join(test_data_dir,'testdata_testday', 'Siebe','vlindersdata.csv'),
+              'metadatafile': None,
+              'template': metobs_toolkit.demo_template,
+              'kwargs':{},
+              'coarsen': '60T',
                     }
 
     }

@@ -155,12 +155,15 @@ ngaps_orig = len(dataset.gaps)
 
 dataset2 = copy.deepcopy(dataset)
 dataset2.apply_quality_control()
+outliersbefore = copy.deepcopy(dataset2.outliersdf.xs('temp', level='obstype'))
+missingbefore =copy.deepcopy(dataset2.missing_obs.series)
 dataset2.update_gaps_and_missing_from_outliers(obstype='temp', n_gapsize = 10)
+missingafter =copy.deepcopy(dataset2.missing_obs.series)
 
 nobs = len(dataset2.missing_obs.idx)
 ngaps = len(dataset2.gaps)
 
-assert (nobs == 29) & (nobs_orig == 26), 'Something wrong with the update gaps and missing from outliers'
+assert (nobs == 28) & (nobs_orig == 26), 'Something wrong with the update gaps and missing from outliers'
 assert (ngaps == 5) & (ngaps_orig == 2), 'Something wrong with the update gaps and missing from outliers'
 
 
