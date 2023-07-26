@@ -7,7 +7,7 @@ A Dataset holds all observations and is at the center of the
 MetObs-toolkit.
 """
 
-import os
+import os, sys
 import copy
 from datetime import datetime, timedelta
 import pytz
@@ -1500,10 +1500,9 @@ class Dataset:
 
 
         if repetitions:
-            logger.info("Applying repetitions check.")
-            apliable = _can_qc_be_applied(self._applied_qc, obstype, "repetitions")
-
+            apliable = _can_qc_be_applied(self, obstype, "repetitions")
             if apliable:
+                logger.info("Applying repetitions check.")
 
                 obsdf, outl_df = repetitions_check(
                     obsdf=self.df,
@@ -1527,15 +1526,12 @@ class Dataset:
                     ],
                     ignore_index=True,
                 )
-            else:
-                logger.warning(f'The repetitions check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if gross_value:
-            logger.info("Applying gross value check.")
-
-            apliable = _can_qc_be_applied(self._applied_qc, obstype, "gross_value")
+            apliable = _can_qc_be_applied(self, obstype, "gross_value")
 
             if apliable:
+                logger.info("Applying gross value check.")
 
                 obsdf, outl_df = gross_value_check(
                     obsdf=self.df,
@@ -1560,16 +1556,11 @@ class Dataset:
                     ignore_index=True,
                 )
 
-            else:
-                logger.warning(f'The gross_value check can NOT be applied on {obstype} because it was already applied on this observation type!')
-
         if persistance:
-            logger.info("Applying persistance check.")
-
-            apliable = _can_qc_be_applied(self._applied_qc, obstype, "persistance")
+            apliable = _can_qc_be_applied(self, obstype, "persistance")
 
             if apliable:
-
+                logger.info("Applying persistance check.")
                 obsdf, outl_df = persistance_check(
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
@@ -1594,16 +1585,12 @@ class Dataset:
                     ignore_index=True,
                 )
 
-            else:
-                 logger.warning(f'The persistance check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if step:
-            logger.info("Applying step-check.")
-
-            apliable = _can_qc_be_applied(self._applied_qc, obstype, "step")
+            apliable = _can_qc_be_applied(self, obstype, "step")
 
             if apliable:
-
+                logger.info("Applying step-check.")
                 obsdf, outl_df = step_check(
                     obsdf=self.df,
                     obstype=obstype,
@@ -1625,15 +1612,11 @@ class Dataset:
                     ignore_index=True,
                 )
 
-            else:
-                 logger.warning(f'The step check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
         if window_variation:
-            logger.info("Applying window variation-check.")
-
-            apliable = _can_qc_be_applied(self._applied_qc, obstype, "window_variation")
+            apliable = _can_qc_be_applied(self, obstype, "window_variation")
             if apliable:
-
+                logger.info("Applying window variation-check.")
                 obsdf, outl_df = window_variation_check(
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
@@ -1658,8 +1641,6 @@ class Dataset:
                     ignore_index=True,
                 )
 
-            else:
-                 logger.warning(f'The window_variation check can NOT be applied on {obstype} because it was already applied on this observation type!')
 
 
         self._qc_checked_obstypes.append(obstype)
@@ -1699,6 +1680,7 @@ class Dataset:
 
         """
 
+
         logger.info("Applying the titan buddy check")
 
         checkname = 'titan_buddy_check'
@@ -1734,7 +1716,7 @@ class Dataset:
             logger.info('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
             return
 
-        apliable = _can_qc_be_applied(self._applied_qc, obstype, checkname)
+        apliable = _can_qc_be_applied(self, obstype, checkname)
         if apliable:
             obsdf, outliersdf = titan_buddy_check(obsdf = self.df,
                                                metadf = self.metadf,
@@ -1842,7 +1824,7 @@ class Dataset:
             logger.info('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
             return
 
-        apliable = _can_qc_be_applied(self._applied_qc, obstype, checkname)
+        apliable = _can_qc_be_applied(self, obstype, checkname)
         if apliable:
 
             obsdf, outliersdf = titan_sct_resistant_check(obsdf = self.df,
@@ -1917,27 +1899,31 @@ class Dataset:
 
         # TODO: label values from settings not hardcoding
 
-        # =============================================================================
-        # Stack outliers
-        # =============================================================================
 
-        outliersdf = self.outliersdf.copy()
-        outliersdf['toolkit_representation'] = 'outlier'
         # TODO: use the repr_outl_as_nan argumenten here
         # =============================================================================
-        # Stack observations
+        # Stack observations and outliers
         # =============================================================================
         df = self.df
         # better save than sorry
         present_obstypes = [col for col in df if col in observation_types]
         df = df[present_obstypes]
 
-
         # to tripple index
         df = df.stack(dropna=False).reset_index().rename(columns={'level_2': 'obstype', 0: 'value'}).set_index(['name', 'datetime', 'obstype'])
 
         df['label'] = 'ok'
         df['toolkit_representation'] = 'observation'
+
+        # outliers
+        outliersdf = self.outliersdf.copy()
+        outliersdf['toolkit_representation'] = 'outlier'
+
+        # Careful! Some outliers exist on inport frequency (duplicated, invalid)
+        # So only use the outliers for which station-datetime-obstype are present in the
+        # dataset.df
+        outliersdf = outliersdf[outliersdf.index.isin(df.index)]
+
 
         # remove outliers from the observations
         df = df[~ df.index.isin(outliersdf.index)]
@@ -2080,10 +2066,11 @@ class Dataset:
             return None
 
         # make title
+        orig_obstype = self.data_template[obstype].to_dict()['orig_name']
         if stationname is None:
-            title='Label frequency statistics on all stations.'
+            title=f'Label frequency statistics on all stations for {orig_obstype}.'
         else:
-            title=f'Label frequency statistics for {stationname}'
+            title=f'Label frequency statistics for {stationname} for {orig_obstype}.'
 
 
         if make_plot:
@@ -3203,6 +3190,28 @@ class Dataset:
                 Map.save(filepath)
 
 
-def _can_qc_be_applied(applied_df, obstype, checkname):
+def _can_qc_be_applied(dataset, obstype, checkname):
     """ test if the check is already performed on self """
-    return not applied_df[(applied_df['obstype'] == obstype) & (applied_df['checkname'] == checkname)].shape[0] > 0
+
+    # test if check is already applied on the obstype
+    applied_df = dataset._applied_qc
+    can_be_applied =  not applied_df[(applied_df['obstype'] == obstype) & (applied_df['checkname'] == checkname)].shape[0] > 0
+
+    if not can_be_applied:
+        logger.warning(f'The {checkname} check can NOT be applied on {obstype} because it was already applied on this observation type!')
+        return False
+    # test of all settings are present for the check on the obstype
+    if checkname not in ['duplicated_timestamp', 'titan_buddy_check', 'titan_sct_resistant_check']:
+        # these checks are obstype depending,
+        required_keys = list(dataset.settings.qc['qc_check_settings'][checkname]['temp'].keys()) #use temp to find all required settings
+        if not obstype in dataset.settings.qc['qc_check_settings'][checkname].keys():
+            logger.warning(f'The {checkname} check can NOT be applied on {obstype} because none of the required check settings are found. The following are missing: {required_keys}')
+            return False
+
+        if not all([req_key in dataset.settings.qc['qc_check_settings'][checkname][obstype].keys() for req_key in required_keys]):
+            # not all required settings are available
+            missing_settings = [req_key for req_key in required_keys if req_key not in dataset.settings.qc['qc_check_settings'][checkname][obstype].keys()]
+            logger.warning(f'The {checkname} check can NOT be applied on {obstype} because not all required check settings ar found. The following are missing: {missing_settings}')
+            return False
+
+    return True
