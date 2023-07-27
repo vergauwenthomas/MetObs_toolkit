@@ -10,8 +10,12 @@ import sys
 import pandas as pd
 import numpy as np
 import logging
-import titanlib
 
+
+try:
+    import titanlib
+except ModuleNotFoundError:
+    print('DIT IS ZONDER TITAN !!!! ')
 
 from metobs_toolkit.df_helpers import (
     init_multiindex,
