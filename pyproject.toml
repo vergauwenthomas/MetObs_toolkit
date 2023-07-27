@@ -23,7 +23,7 @@ earthengine-api = "^0.1.340"
 geemap = '^0.20.0'
 
 
-titanlib = { version = "^0.2", optional = true }
+titanlib = { version = "^0.3", optional = true }
 [tool.poetry.extras]
 titanlib = ["titanlib"]
 #titanlib = "^0.3" #can give errors due to C-compiler in windows ....
