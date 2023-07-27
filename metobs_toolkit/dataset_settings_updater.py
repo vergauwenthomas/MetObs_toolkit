@@ -20,8 +20,8 @@ class Dataset(dataset.Dataset):
         output_folder=None,
         input_data_file=None,
         input_metadata_file=None,
-        data_template_file=None,
-        metadata_template_file=None,
+        template_file=None,
+
     ):
         """
         Update the most common input-output (IO) settings.
@@ -37,10 +37,9 @@ class Dataset(dataset.Dataset):
             Path to the input data file with observations. The default is None.
         input_metadata_file : string, optional
             Path to the input metadata file. The default is None.
-        data_template_file : string, optional
-            Path to the mapper-template csv file to be used on the observations.. The default is None.
-        metadata_template_file : string, optional
-            Path to the mapper-template csv file to be used on the metadata.. The default is None.
+        template_file : string, optional
+            Path to the mapper-template csv file to be used on the observations
+            and metadata. The default is None.
 
         Returns
         -------
@@ -52,8 +51,7 @@ class Dataset(dataset.Dataset):
             output_folder=output_folder,
             input_data_file=input_data_file,
             input_metadata_file=input_metadata_file,
-            data_template_file=data_template_file,
-            metadata_template_file=metadata_template_file,
+            template_file=template_file,
         )
 
 

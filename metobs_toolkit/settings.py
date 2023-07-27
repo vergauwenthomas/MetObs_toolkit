@@ -256,8 +256,8 @@ class Settings:
         output_folder=None,
         input_data_file=None,
         input_metadata_file=None,
-        data_template_file=None,
-        metadata_template_file=None,
+        template_file=None,
+
     ):
         """
         Update some settings that are relevent before data is imported. The self
@@ -269,10 +269,10 @@ class Settings:
         :type input_data_file: String, optional
         :param input_metadata_file: Path to the input metadata file, defaults to None
         :type input_metadata_file: String, optional
-        :param data_template_file: Path to the mapper-template csv file to be used on the observations. If not given, the default template is used.
+        :param template_file: Path to the mapper-template csv file to be used
+            on the observations and metadata. If not given, the default
+            template is used.
         :type data_template_file: String, optional
-        :param metadata_template_file: Path to the mapper-template csv file to be used on the metadata. If not given, the default template is used.
-        :type metadata_template_file: String, optional
         :return: No return
         :rtype: No return
 
@@ -298,17 +298,11 @@ class Settings:
             )
             self.IO["input_metadata_file"] = input_metadata_file
 
-        if not isinstance(data_template_file, type(None)):
+        if not isinstance(template_file, type(None)):
             logger.info(
-                f'Update data template file:  {self.templates["data_template_file"]}  -->  {data_template_file}'
+                f'Update template file:  {self.templates["data_template_file"]}  -->  {template_file}'
             )
-            self.templates["data_template_file"] = data_template_file
-
-        if not isinstance(metadata_template_file, type(None)):
-            logger.info(
-                f'Update metadata template file:  {self.templates["metadata_template_file"]}  -->  {metadata_template_file}'
-            )
-            self.templates["metadata_template_file"] = metadata_template_file
+            self.templates["template_file"] = template_file
 
     def copy_template_csv_files(self, target_folder):
         """
