@@ -12,10 +12,6 @@ import numpy as np
 import logging
 
 
-try:
-    import titanlib
-except ModuleNotFoundError:
-    print('DIT IS ZONDER TITAN !!!! ')
 
 from metobs_toolkit.df_helpers import (
     init_multiindex,
@@ -27,6 +23,11 @@ from metobs_toolkit.df_helpers import (
 
 logger = logging.getLogger(__name__)
 
+
+try:
+    import titanlib
+except ModuleNotFoundError:
+    logger.warning("Titanlib is not installed, install it manually if you want to use this functionallity.")
 
 # =============================================================================
 # Helper functions

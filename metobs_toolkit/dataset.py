@@ -1678,10 +1678,22 @@ class Dataset:
         To update the check settings, use the update_titan_qc_settings method
         of the Dataset class.
 
+        Warning
+        --------
+        To use this method, you must install titanlib. Windows users must have
+        a c++ compiler installed. See the titanlib documentation: https://github.com/metno/titanlib/wiki/Installation.
+
         """
 
 
         logger.info("Applying the titan buddy check")
+
+        try:
+            import titanlib
+            # Add version restrictions??
+        except ModuleNotFoundError:
+            logger.warning("Titanlib is not installed, install it manually if you want to use this functionallity.")
+            return
 
         checkname = 'titan_buddy_check'
 
@@ -1790,6 +1802,11 @@ class Dataset:
         of the Dataset class.
 
         Warning
+        --------
+        To use this method, you must install titanlib. Windows users must have
+        a c++ compiler installed. See the titanlib documentation: https://github.com/metno/titanlib/wiki/Installation.
+
+        Warning
         -------
         This method is a python wrapper on titanlib c++ scripts, and it is prone
         to segmentation faults. The perfomance of this check is thus not
@@ -1801,6 +1818,12 @@ class Dataset:
 
         logger.info("Applying the titan SCT check")
 
+        try:
+            import titanlib
+            # Add version restrictions??
+        except ModuleNotFoundError:
+            logger.warning("Titanlib is not installed, install it manually if you want to use this functionallity.")
+            return
 
         checkname ='titan_sct_resistant_check'
         # check if required metadata is available:
