@@ -244,7 +244,7 @@ def build_template_prompt(debug=False):
             obstype_options.remove(obstype_desc[obstype])
 
     if format_option == 2:
-        print('Does these columns represent stations: ')
+        print('\n Does these columns represent stations: ')
         for col in columnnames:
             print(f'  {col} ')
 
@@ -254,7 +254,7 @@ def build_template_prompt(debug=False):
         else:
             stationnames = columnnames
 
-        print('What observation type does you data represent : ')
+        print('\n What observation type does you data represent : ')
         obstype_options.remove(obstype_desc['name'])
         desc_return = col_option_input(obstype_options)
         if desc_return is None:
@@ -343,7 +343,10 @@ def build_template_prompt(debug=False):
     if debug:
         print(f'metatemplate_dict : {metatemplate_dict}')
 
-    print('\n   ... Oke, that is all the info for the mapping. Now i will do some basic tests to see if the mapping works.')
+
+
+
+
 
     # if (not meta_avail) & (format_option == 3):
     #     prompt_mapping = yes_no_ques('Can you give me the coordinates and the name of the station?')
@@ -352,6 +355,8 @@ def build_template_prompt(debug=False):
     # =============================================================================
     # Apply tests
     # =============================================================================
+    print('\n \n *******      Testing template compatibility   ***********')
+    print('\n   ... Oke, that is all the info for the mapping. Now i will do some basic tests to see if the mapping works.')
 
 
     #  ------- tests on data ---------
@@ -477,6 +482,9 @@ def build_template_prompt(debug=False):
                 sys.exit('Template invalid, see last message. ')
 
             if (len(unmapped) < len(stationnames)):
+                print(f' unmapped: {unmapped}')
+                print(f' stationnames: {stationnames}')
+                print(f' stationnames metadta: {stanames_metadata}')
                 print(f'Warning! The following stations are present in the data but not in the metadata: {unmapped}')
 
 
@@ -491,16 +499,37 @@ def build_template_prompt(debug=False):
                 print(f' Warning! {col} in the metadatafile is not present in the template, and thus it will not be used.')
 
 
+# make shure the stationname is unique in single station datafile
+    if ((format_option == 3)):
+        print (' *  ... checking if stationname is unique ... ')
+        if bool(metatemplate_dict):
+            if 'name' in metatemplate_dict:
+                names = metadata[metatemplate_dict['name']['orig_name']].unique()
+                if len(names) > 1 :
+                    print(f"Error! multiple station names found in the {metatemplate_dict['name']['orig_name']} metadata column.")
+                    sys.exit('Template invalid, see last message. ')
+        else:
+            if 'name' in template_dict:
+                names = data[template_dict['name']['orig_name']].unique()
+                if len(names) > 1 :
+                    print(f"Error! multiple station names found in the {template_dict['name']['orig_name']} data column.")
+                    sys.exit('Template invalid, see last message. ')
+
+
 # =============================================================================
 #     Some extra options
 # =============================================================================
 
+    template_dict.update(metatemplate_dict) #this is why name in data and metadata should have the same mapping !!
+
+
+    print('\n \n *******      Extra options    ***********')
 
     if ((format_option == 3) & (not 'name' in template_dict)):#single station with no name information
         staname = input('\n What is the name of your station : ')
         options_dict['stationname'] = staname
 
-    tzchange = yes_no_ques('Are the timestamps in UTC?')
+    tzchange = yes_no_ques('\n Are the timestamps in UTC?')
     if tzchange is False:
         print('\n Select a timezone: ')
         tzstring = col_option_input(pytz.all_timezones)
@@ -525,7 +554,7 @@ def build_template_prompt(debug=False):
     #     else:
     #         print(f'{save_dir} is not a directory, try again.')
 
-    template_dict.update(metatemplate_dict) #this is why name in data and metadata should have the same mapping !!
+
 
 
     # Convert to dataframe

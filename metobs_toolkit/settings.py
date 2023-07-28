@@ -40,7 +40,7 @@ class Settings:
         }
 
         # Update (instance and class variables) what can be updated by setingsfiles
-        self._update_db_settings()
+        # self._update_db_settings()
         self._update_time_res_settings()
         self._update_app_settings()
         self._update_qc_settings()
@@ -52,36 +52,36 @@ class Settings:
     #     Update settings from files in initialisation
     # =============================================================================
 
-    def _update_db_settings(self):
-        """
-        Update the database settings of self using the default settings templates
-        and the 'db_user' and 'db_passw' envrionment variables if available.
-        :return: No return
-        :rtype: No return
-        """
-        logger.debug("Updating Database settings.")
-        f = open(os.path.join(Settings._settings_files_path, "server_login.json"))
-        login_data = json.load(f)
-        f.close()
+    # def _update_db_settings(self):
+    #     """
+    #     Update the database settings of self using the default settings templates
+    #     and the 'db_user' and 'db_passw' envrionment variables if available.
+    #     :return: No return
+    #     :rtype: No return
+    #     """
+        # logger.debug("Updating Database settings.")
+        # f = open(os.path.join(Settings._settings_files_path, "server_login.json"))
+        # login_data = json.load(f)
+        # f.close()
 
-        self.db["db_host"] = login_data["host"]
+        # self.db["db_host"] = login_data["host"]
 
-        # self.db_host = Settings.db_host
-        self.db["db_database"] = login_data["database"]
-        self.db["db_obs_table"] = login_data["obs_table"]
-        self.db["db_meta_table"] = login_data["meta_table"]
+        # # self.db_host = Settings.db_host
+        # self.db["db_database"] = login_data["database"]
+        # self.db["db_obs_table"] = login_data["obs_table"]
+        # self.db["db_meta_table"] = login_data["meta_table"]
 
-        self.db["db_user"] = os.getenv("VLINDER_DB_USER_NAME")
-        self.db["db_passw"] = os.getenv("VLINDER_DB_USER_PASW")
+        # self.db["db_user"] = os.getenv("VLINDER_DB_USER_NAME")
+        # self.db["db_passw"] = os.getenv("VLINDER_DB_USER_PASW")
 
-        # import db templates
-        from .data_templates.db_templates import (
-            vlinder_metadata_db_template,
-            vlinder_observations_db_template,
-        )
+        # # import db templates
+        # from .data_templates.db_templates import (
+        #     vlinder_metadata_db_template,
+        #     vlinder_observations_db_template,
+        # )
 
-        self.db["vlinder_db_meta_template"] = vlinder_metadata_db_template
-        self.db["vlinder_db_obs_template"] = vlinder_observations_db_template
+        # self.db["vlinder_db_meta_template"] = vlinder_metadata_db_template
+        # self.db["vlinder_db_obs_template"] = vlinder_observations_db_template
 
     def _update_time_res_settings(self):
         """
@@ -204,8 +204,8 @@ class Settings:
         from .data_templates.import_templates import default_template_file
 
         # Set default templates
-        self.templates["data_template_file"] = default_template_file
-        self.templates["metadata_template_file"] = default_template_file
+        self.templates["template_file"] = default_template_file
+
 
     def _update_gee_settings(self):
         """
@@ -300,7 +300,7 @@ class Settings:
 
         if not isinstance(template_file, type(None)):
             logger.info(
-                f'Update template file:  {self.templates["data_template_file"]}  -->  {template_file}'
+                f'Update template file:  {self.templates["template_file"]}  -->  {template_file}'
             )
             self.templates["template_file"] = template_file
 

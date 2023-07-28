@@ -33,27 +33,41 @@ import metobs_toolkit
 
 #%%
 
-# metobs_toolkit.build_template_prompt()
+metobs_toolkit.build_template_prompt()
 
-
-#%%
 
 
 
 #%%
-use_dataset = 'debug_wide'
+
+
 dataset = metobs_toolkit.Dataset()
 
-
+use_dataset = 'single_station'
 dataset.update_settings(output_folder=None,
                         input_data_file=testdata[use_dataset]['datafile'],
                         input_metadata_file=testdata[use_dataset]['metadatafile'],
-                        template_file=testdata[use_dataset]['template'],
+                        template_file='/home/thoverga/Documents/VLINDER_github/template.csv',
                         )
 
-
-
 dataset.import_data_from_file()
+dataset.get_info()
+print(dataset.df)
+
+#%%
+# use_dataset = 'debug_wide'
+# dataset = metobs_toolkit.Dataset()
+
+
+# dataset.update_settings(output_folder=None,
+#                         input_data_file=testdata[use_dataset]['datafile'],
+#                         input_metadata_file=testdata[use_dataset]['metadatafile'],
+#                         template_file=testdata[use_dataset]['template'],
+#                         )
+
+
+
+# dataset.import_data_from_file()
 
 
 #%%

@@ -1676,7 +1676,7 @@ class Dataset:
         (absolute value of the) difference between the observations and the average of the neighbours
         normalized by the standard deviation in the circle is greater than a predefined threshold.
 
-        See the [titanlib documentation on the buddy check](https://github.com/metno/titanlib/wiki/Buddy-check)
+        See the `titanlib documentation on the buddy check <https://github.com/metno/titanlib/wiki/Buddy-check>`_
         for futher details.
 
         The observation and outliers attributes will be updated accordingly.
@@ -1787,7 +1787,7 @@ class Dataset:
         (OI) to compute an expected value for each observation. The background for the OI is computed from
         a general vertical profile of observations in the area.
 
-        See the [titanlib documentation on the buddy check](https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant)
+        See the `titanlib documentation on the sct check <https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant>`_
         for futher details.
 
         The observation and outliers attributes will be updated accordingly.
