@@ -1,7 +1,7 @@
-varname,template column name,format,units,description,options,options_values
-_date,Datum_dummy,%Y-%m-%d,,,data_structure,wide
-_time,Tijd (UTC),%H:%M:%S,,,obstype,temp
-temp,,,Celcius,ukgliuhijm,obstype_unit,Celcius
-name,station,,,,obstype_description,ukgliuhijm
-lat,lat,,,,timezone,Australia/LHI
-lon,lon,,,,,
+"varname","template column name","format","units","description"
+"_date","Datum_dummy","%Y-%m-%d",,
+"_time","Tijd (UTC)","%H:%M:%S",,
+"temp",,,"Celcius","ukgliuhijm"
+"name","station",,,
+"lat","lat",,,
+"lon","lon",,,

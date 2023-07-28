@@ -23,7 +23,7 @@ dataset = metobs_toolkit.Dataset()
 
 dataset.update_settings(output_folder=None,
                         input_data_file=metobs_toolkit.demo_datafile,
-                        data_template_file=metobs_toolkit.demo_template,
+                        template_file=metobs_toolkit.demo_template,
                         input_metadata_file=metobs_toolkit.demo_metadatafile
                         )
 

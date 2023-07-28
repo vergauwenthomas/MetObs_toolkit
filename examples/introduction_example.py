@@ -65,8 +65,7 @@ aug_2020_all_vlinders.update_settings(
     input_data_file=testdata_file,  # A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
     input_metadata_file=metadata,
     output_folder="/home/$USER/output/",
-    data_template_file=templatefile,
-    metadata_template_file=templatefile,
+    template_file=templatefile,
 )
 
 
