@@ -2449,7 +2449,11 @@ class Dataset:
         imported (if a suitable template is in the Settings.template_list.)
 
         The dataset is by default assumed to be in long-format (each column represent an observation type, one column indicates the stationname).
-        Wide-format can be used if 'long_format' is set to False and if the observation type is specified by obstype.
+        Wide-format can be used if
+
+        - the 'wide' option is present in the template (this is done automatically if the themplate was made using the metobs_toolkit.build_template_prompt())
+
+        - 'long_format' is set to False and if the observation type is specified (obstype, obstype_unit and obstype_description)
 
         An estimation of the observational frequency is made per station. This is used
         to find missing observations and gaps.
@@ -2470,6 +2474,12 @@ class Dataset:
             If the dataformat is wide, specify which observation type the
             observations represent. The obstype should be an element of
             metobs_toolkit.observation_types. The default is None.
+        obstype_unit : str, optional
+            If the dataformat is wide, specify the unit of the obstype. The
+            default is None.
+        obstype_description : str, optional
+            If the dataformat is wide, specify the description of the obstype.
+            The default is None.
         freq_estimation_method : 'highest' or 'median', optional
             Select wich method to use for the frequency estimation. If
             'highest', the highest apearing frequency is used. If 'median', the
@@ -2496,6 +2506,10 @@ class Dataset:
         kwargs_metadata_read : dict, optional
             Keyword arguments collected in a dictionary to pass to the
             pandas.read_csv() function on the metadata file. The default is {}.
+
+        Note
+        --------
+        If options are present in the template, these will have priority over the arguments of this function.
 
         Returns
         -------
