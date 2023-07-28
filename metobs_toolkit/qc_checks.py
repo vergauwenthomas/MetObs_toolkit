@@ -10,7 +10,7 @@ import sys
 import pandas as pd
 import numpy as np
 import logging
-import titanlib
+
 
 
 from metobs_toolkit.df_helpers import (
@@ -23,6 +23,11 @@ from metobs_toolkit.df_helpers import (
 
 logger = logging.getLogger(__name__)
 
+
+try:
+    import titanlib
+except ModuleNotFoundError:
+    logger.warning("Titanlib is not installed, install it manually if you want to use this functionallity.")
 
 # =============================================================================
 # Helper functions
