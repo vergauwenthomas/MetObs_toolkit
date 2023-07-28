@@ -77,8 +77,6 @@ def compress_dict(nested_dict, valuesname):
     return returndict
 
 
-
-
 def _read_csv_to_df(filepath, kwargsdict):
     assert not isinstance(filepath, type(None)), "No filepath is specified: {filepath}"
 
@@ -100,7 +98,6 @@ def _read_csv_to_df(filepath, kwargsdict):
     ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
 
     return df
-
 
 
 # =============================================================================
@@ -192,8 +189,6 @@ def extract_options_from_template(templ):
 
     #remove the options from the template
     new_templ = templ.drop(columns=['options', 'options_values'], errors='ignore')
-
-
     return new_templ, opt_kwargs
 
 
@@ -223,11 +218,6 @@ def read_csv_template(file, data_long_format=True):
     # create dictionary from templframe
     templ = templ.set_index("template column name")
 
-
-
-
-
-
     # create a dict from the dataframe, remove Nan value row wise
     template = {}
     for idx, row in templ.iterrows():
@@ -239,8 +229,6 @@ def read_csv_template(file, data_long_format=True):
 # =============================================================================
 # Metadata
 # =============================================================================
-
-
 
 def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
 
@@ -260,15 +248,9 @@ def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
     return df
 
 
-
-
-
 # =============================================================================
 # Data
 # =============================================================================
-
-
-
 
 def wide_to_long(df, template, obstype):
 
@@ -309,10 +291,8 @@ def import_data_from_csv(input_file, template,
     # 1. Read data into df
     df = _read_csv_to_df(filepath=input_file,
                          kwargsdict=kwargs_data_read)
-    # df = _read_csv_file(input_file, kwargs_data_read)
 
     # 2. Read template
-    # template = read_csv_template(template_file, long_format, obstype)
     invtemplate = template_to_package_space(template)
 
     # 3. Make datetime column (needed for wide to long conversion)
@@ -346,10 +326,8 @@ def import_data_from_csv(input_file, template,
     template = _remove_keys_from_dict(template, temp_remove_keys)
 
 
-
     # 4. convert wide data to long if needed
     if not long_format:
-
         template[obstype] = {}
         invtemplate[obstype] = {}
         template[obstype]['varname'] = obstype
@@ -379,7 +357,6 @@ def import_data_from_csv(input_file, template,
     df = df.loc[:,df.columns.isin(cols_to_keep)]
 
 
-
     # 8. Set index
     df = df.reset_index()
     df = df.drop(columns=['index'], errors='ignore')
@@ -391,7 +368,6 @@ def import_data_from_csv(input_file, template,
             df[col] = pd.to_numeric(df[col], errors='coerce')
         if col in ['lon', 'lat']:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-
 
     # add template to the return
     return df, invtemplate
