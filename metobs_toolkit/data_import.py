@@ -12,12 +12,22 @@ import pandas as pd
 
 import mysql.connector
 from mysql.connector import errorcode
-from metobs_toolkit.df_helpers import init_multiindexdf
-from metobs_toolkit.data_templates.import_templates import read_csv_template
+from pytz import all_timezones
 
+from metobs_toolkit.df_helpers import init_multiindexdf
 from metobs_toolkit import observation_types
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Helpers
+# =============================================================================
+
+def _remove_keys_from_dict(dictionary, keys):
+    for key in keys:
+        dictionary.pop(key, None)
+    return dictionary
 
 def template_to_package_space(specific_template):
     returndict = {
@@ -67,6 +77,33 @@ def compress_dict(nested_dict, valuesname):
     return returndict
 
 
+def _read_csv_to_df(filepath, kwargsdict):
+    assert not isinstance(filepath, type(None)), "No filepath is specified: {filepath}"
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        if bool(kwargsdict):
+            df = pd.read_csv(filepath_or_buffer=filepath, **kwargsdict)
+        else:
+            common_seperators = [None, ";", ",", "    ", "."]
+            for sep in common_seperators:
+                df = pd.read_csv(filepath, sep=sep)
+                assert not df.empty, f"{filepath} is empty!"
+
+                if len(df.columns) > 1:
+                    break
+
+    assert (
+        len(df.columns) > 1
+    ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
+
+    return df
+
+
+# =============================================================================
+# Template
+# =============================================================================
+
 def check_template_compatibility(template, df_columns, filetype):
     # ignore datetime because this is already mapped
     present_cols = [col for col in df_columns if col != 'datetime']
@@ -93,41 +130,127 @@ def check_template_compatibility(template, df_columns, filetype):
             f"Fatal: The given template: {assumed_cols} does not match with any of the {filetype} columns: {present_cols}."
         )
 
+def extract_options_from_template(templ):
+    opt_kwargs = {}
+    if 'options' in templ.columns:
+        if 'options_values' in templ.columns:
+            opt = templ[['options', 'options_values']]
+            # drop nan columns
+            opt = opt[opt['options'].notna()]
+            # convert to dict
+            opt = opt.set_index('options')['options_values'].to_dict()
+
+            # check options if valid
+            possible_options = {'data_structure': ['long', 'wide', 'single_station'],
+                                'stationname': '_any_',
+                                'obstype': observation_types,
+                                'obstype_unit': '_any_',
+                                'obstype_description' : '_any_',
+                                'timezone': all_timezones
+                                }
+            for key, val in opt.items():
+                key, val = str(key), str(val)
+                if key not in possible_options:
+                    sys.exit(f'{key} is not a known option in the template. These are the possible options: {list(possible_options.keys())}')
+
+                if possible_options[key] == '_any_':
+                    pass #value can be any string
+
+                else:
+                    if not val in possible_options[key]:
+                        sys.exit(f'{val} is not a possible value for {key}. These values are possible for {key}: {possible_options[key]}')
+
+                # overload to kwargs:
+
+                if key == 'data_structure':
+                    if val == 'long':
+                        opt_kwargs['long_format'] = True
+                    elif val == 'wide':
+                        opt_kwargs['long_format'] = False
+                    else:
+                        # single station
+                        opt_kwargs['long_format'] = True
+                if key == 'stationname':
+                    if not opt['data_structure'] == 'single_station':
+                        logger.warning(f'{val} as {key} in the template options will be ignored because the datastructure is not "single_station" (but {opt["data_structure"]})')
+                    else:
+                        opt_kwargs['single'] = val
+                if key == 'obstype':
+                    opt_kwargs['obstype'] = val
+                if key == 'obstype_unit':
+                    opt_kwargs['obstype_unit'] = val
+                if key == 'obstype_description':
+                    opt_kwargs['obstype_description'] = val
+                if key == 'timezone':
+                    opt_kwargs['timezone'] = val
+
+        else:
+            sys.exit(f' "options" column found in the template, but no "options_values" found!')
+
+    #remove the options from the template
+    new_templ = templ.drop(columns=['options', 'options_values'], errors='ignore')
+    return new_templ, opt_kwargs
 
 
-def import_metadata_from_csv(input_file, template_file, kwargs_metadata_read):
+def read_csv_template(file, data_long_format=True):
+
+
+    templ = _read_csv_to_df(filepath = file,
+                            kwargsdict = {})
+
+    # Drop emty rows
+    templ = templ.dropna(axis="index", how="all")
+
+    # Extract structure options from template
+    templ, opt_kwargs = extract_options_from_template(templ)
+
+
+    if 'long_format' in opt_kwargs.keys():
+        data_long_format = opt_kwargs['long_format']
+
+    if data_long_format:
+        # Drop variables that are not present in templ
+        templ = templ[templ["template column name"].notna()]
+
+    # templates have nested dict structure where the keys are the column names in the csv file, and the
+    # values contain the mapping information to the toolkit classes and names.
+
+    # create dictionary from templframe
+    templ = templ.set_index("template column name")
+
+    # create a dict from the dataframe, remove Nan value row wise
+    template = {}
+    for idx, row in templ.iterrows():
+        template[idx] = row[~row.isnull()].to_dict()
+
+    return template, opt_kwargs
+
+
+# =============================================================================
+# Metadata
+# =============================================================================
+
+def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
 
 
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        if bool(kwargs_metadata_read):
-            df = pd.read_csv(filepath_or_buffer=input_file, **kwargs_metadata_read)
-        else:
-            common_seperators = [None, ";", ",", "    ", "."]
-            for sep in common_seperators:
-                df = pd.read_csv(input_file, sep=sep)
-                assert not df.empty, "Dataset is empty!"
-
-                if len(df.columns) > 1:
-                    break
-
-    assert (
-        len(df.columns) > 1
-    ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
+    df = _read_csv_to_df(input_file, kwargs_metadata_read)
 
     # validate template
-    template = read_csv_template(template_file)
+    # template = read_csv_template(template_file)
     check_template_compatibility(template, df.columns, filetype='metadata')
 
     # rename columns to toolkit attriute names
-    df = df.rename(columns=compress_dict(template, "varname"))
+    column_mapper = {val['orig_name']:key for key, val in template.items()}
+    df = df.rename(columns=column_mapper)
 
     return df
 
 
-
+# =============================================================================
+# Data
+# =============================================================================
 
 def wide_to_long(df, template, obstype):
 
@@ -154,50 +277,11 @@ def wide_to_long(df, template, obstype):
 
     return longdf, template
 
-def _read_csv_file(path, kwargsdict):
-    """ a helper function to read in csv data files, try multiple seperators, and
-        remove header text. """
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-
-        if bool(kwargsdict):
-            df = pd.read_csv(filepath_or_buffer=path, **kwargsdict)
-        else:
-            common_seperators = [None, ";", ",", "    ", "."]
-            assert not isinstance(path, type(None)), "Specify input file in the settings!"
-            for sep in common_seperators:
-                df = pd.read_csv(path, sep=sep)
-                assert not df.empty, "Dataset is empty!"
-
-                if len(df.columns) > 1:
-                    break
-
-        assert (
-            len(df.columns) > 1
-        ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
-
-    # LINES TO DEAL WITH RANDOM PIECES OF TEXT BEFORE ACTUAL MEASUREMENTS
-    # if True in df.columns.str.contains(pat="Unnamed"):
-    #     num_columns = df.iloc[-3].count().sum()
-
-    #     rows_to_skip = 0
-    #     for row in range(len(df)):
-    #         if df.iloc[row : (row + 1), :].count().sum() != num_columns:
-    #             rows_to_skip += 1
-    #         else:
-    #             break
-    #     df = df.iloc[rows_to_skip:, :]
-    #     df = df.rename(columns=df.iloc[0]).iloc[1:, :]
-    df.index = range(len(df))
-    return df
-
-def _remove_keys_from_dict(dictionary, keys):
-    for key in keys:
-        dictionary.pop(key, None)
-    return dictionary
 
 
-def import_data_from_csv(input_file, template_file,
+
+
+def import_data_from_csv(input_file, template,
                          long_format, obstype,
                          obstype_units, obstype_description,
                          kwargs_data_read):
@@ -205,10 +289,10 @@ def import_data_from_csv(input_file, template_file,
     """ Wrapper data import function for long and wide"""
 
     # 1. Read data into df
-    df = _read_csv_file(input_file, kwargs_data_read)
+    df = _read_csv_to_df(filepath=input_file,
+                         kwargsdict=kwargs_data_read)
 
     # 2. Read template
-    template = read_csv_template(template_file, long_format, obstype)
     invtemplate = template_to_package_space(template)
 
     # 3. Make datetime column (needed for wide to long conversion)
@@ -242,10 +326,8 @@ def import_data_from_csv(input_file, template_file,
     template = _remove_keys_from_dict(template, temp_remove_keys)
 
 
-
     # 4. convert wide data to long if needed
     if not long_format:
-
         template[obstype] = {}
         invtemplate[obstype] = {}
         template[obstype]['varname'] = obstype
@@ -275,7 +357,6 @@ def import_data_from_csv(input_file, template_file,
     df = df.loc[:,df.columns.isin(cols_to_keep)]
 
 
-
     # 8. Set index
     df = df.reset_index()
     df = df.drop(columns=['index'], errors='ignore')
@@ -288,11 +369,8 @@ def import_data_from_csv(input_file, template_file,
         if col in ['lon', 'lat']:
             df[col] = pd.to_numeric(df[col], errors='coerce')
 
-
     # add template to the return
     return df, invtemplate
-
-
 
 
 # %%

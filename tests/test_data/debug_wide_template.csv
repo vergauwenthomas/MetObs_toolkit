@@ -1,11 +1,7 @@
-varname,template column name,units,description,format
-lon,lon,,,
-lat,lat,,,
-name,station,,,
-_date,Datum_dummy,,,%Y-%m-%d
-_time,Tijd (UTC),,,%H:%M:%S
-,,,,
-temp,,,,
-,,,,
-humidity,,,,
-wind_speed,,,,
+"varname","template column name","format","units","description"
+"_date","Datum_dummy","%Y-%m-%d",,
+"_time","Tijd (UTC)","%H:%M:%S",,
+"temp",,,"Celcius","ukgliuhijm"
+"name","station",,,
+"lat","lat",,,
+"lon","lon",,,

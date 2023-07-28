@@ -24,6 +24,7 @@ from metobs_toolkit.data_import import (
     import_data_from_db,
     template_to_package_space,
     import_metadata_from_csv,
+    read_csv_template
 )
 
 from metobs_toolkit.printing import print_dataset_info
@@ -1656,7 +1657,7 @@ class Dataset:
         (absolute value of the) difference between the observations and the average of the neighbours
         normalized by the standard deviation in the circle is greater than a predefined threshold.
 
-        See the [titanlib documentation on the buddy check](https://github.com/metno/titanlib/wiki/Buddy-check)
+        See the `titanlib documentation on the buddy check <https://github.com/metno/titanlib/wiki/Buddy-check>`_
         for futher details.
 
         The observation and outliers attributes will be updated accordingly.
@@ -1780,7 +1781,7 @@ class Dataset:
         (OI) to compute an expected value for each observation. The background for the OI is computed from
         a general vertical profile of observations in the area.
 
-        See the [titanlib documentation on the buddy check](https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant)
+        See the `titanlib documentation on the sct check <https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant>`_
         for futher details.
 
         The observation and outliers attributes will be updated accordingly.
@@ -2426,10 +2427,9 @@ class Dataset:
     def import_data_from_file(
         self,
         long_format=True,
-        obstype=None,
 
-        obstype_dtype = None,
-        obstype_unit = None,
+        obstype=None,
+        obstype_unit= None,
         obstype_description = None,
 
         freq_estimation_method=None,
@@ -2449,7 +2449,11 @@ class Dataset:
         imported (if a suitable template is in the Settings.template_list.)
 
         The dataset is by default assumed to be in long-format (each column represent an observation type, one column indicates the stationname).
-        Wide-format can be used if 'long_format' is set to False and if the observation type is specified by obstype.
+        Wide-format can be used if
+
+        - the 'wide' option is present in the template (this is done automatically if the themplate was made using the metobs_toolkit.build_template_prompt())
+
+        - 'long_format' is set to False and if the observation type is specified (obstype, obstype_unit and obstype_description)
 
         An estimation of the observational frequency is made per station. This is used
         to find missing observations and gaps.
@@ -2470,6 +2474,12 @@ class Dataset:
             If the dataformat is wide, specify which observation type the
             observations represent. The obstype should be an element of
             metobs_toolkit.observation_types. The default is None.
+        obstype_unit : str, optional
+            If the dataformat is wide, specify the unit of the obstype. The
+            default is None.
+        obstype_description : str, optional
+            If the dataformat is wide, specify the description of the obstype.
+            The default is None.
         freq_estimation_method : 'highest' or 'median', optional
             Select wich method to use for the frequency estimation. If
             'highest', the highest apearing frequency is used. If 'median', the
@@ -2496,6 +2506,10 @@ class Dataset:
         kwargs_metadata_read : dict, optional
             Keyword arguments collected in a dictionary to pass to the
             pandas.read_csv() function on the metadata file. The default is {}.
+
+        Note
+        --------
+        If options are present in the template, these will have priority over the arguments of this function.
 
         Returns
         -------
@@ -2526,11 +2540,36 @@ class Dataset:
                 obstype in observation_types
             ), f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
 
-        # Read observations into pandas dataframe
 
+        # Read template
+        template, options_kwargs = read_csv_template(file=self.settings.templates["template_file"],
+                                     data_long_format= long_format)
+        #update the kwargs using the option kwargs (i.g. arguments from in the template)
+        logger.debug(f'Options found in the template: {options_kwargs}')
+        if 'long_format' in options_kwargs:
+            long_format = options_kwargs['long_format']
+            logger.info(f'Set long_format = {long_format} from options in template.')
+        if 'obstype' in options_kwargs:
+            obstype = options_kwargs['obstype']
+            logger.info(f'Set obstype = {obstype} from options in template.')
+        if 'obstype_unit' in options_kwargs:
+            obstype_unit = options_kwargs['obstype']
+            logger.info(f'Set obstype_unit = {obstype_unit} from options in template.')
+        if 'obstype_description' in options_kwargs:
+            obstype_description = options_kwargs['obstype_description']
+            logger.info(f'Set obstype description = {obstype_description} from options in template.')
+        if 'single' in options_kwargs:
+            self.update_default_name(options_kwargs['single'])
+            logger.info(f'Set single station name = {options_kwargs["single"]} from options in template.')
+        if 'timezone' in options_kwargs:
+            self.update_timezone(options_kwargs['timezone'])
+            logger.info(f'Set timezone = {options_kwargs["timezone"]} from options in template.')
+
+
+        # Read observations into pandas dataframe
         df, template = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
-            template_file=self.settings.templates["data_template_file"],
+            template=template,
             long_format=long_format,
             obstype=obstype,  # only relevant in wide format
             obstype_units = obstype_unit, # only relevant in wide format
@@ -2565,20 +2604,18 @@ class Dataset:
             # with default name
             if not "name" in df.columns:
                 logger.warning(
-                    f'No station names find in the observations! \
-                               Assume the dataset is for ONE station with the \
-                             default name: {self.settings.app["default_name"]}.'
-                )
+f'No station names find in the observations! Assume the dataset is for ONE\
+ station with the default name: {self.settings.app["default_name"]}.'
+                                )
                 df["name"] = str(self.settings.app["default_name"])
 
         else:
             logger.info(
-                f'Importing metadata from file:\
-                        {self.settings.IO["input_metadata_file"]}'
+    f'Importing metadata from file: {self.settings.IO["input_metadata_file"]}'
             )
             meta_df = import_metadata_from_csv(
                 input_file=self.settings.IO["input_metadata_file"],
-                template_file=self.settings.templates["metadata_template_file"],
+                template=template,
                 kwargs_metadata_read = kwargs_metadata_read,
             )
 
@@ -2618,8 +2655,7 @@ class Dataset:
 
             if bool(additional_meta_cols):
                 logger.debug(
-                    f"Merging metadata ({additional_meta_cols})\
-                             to dataset data by name."
+        f"Merging metadata ({additional_meta_cols}) to dataset data by name."
                 )
                 additional_meta_cols.append("name")  # merging on name
                 # merge deletes datetime index somehow? so add it back.
@@ -2635,7 +2671,6 @@ class Dataset:
         #Remove stations whith only one observation (no freq estimation)
         station_counts = df['name'].value_counts()
         issue_station = station_counts[station_counts < 2].index.to_list()
-        print(issue_station)
         logger.warning(f'These stations will be removed because of only having one record: {issue_station}')
         df = df[~df["name"].isin(issue_station)]
 
@@ -2813,9 +2848,7 @@ class Dataset:
 
     def _initiate_df_attribute(self, dataframe, update_metadf=True):
         logger.info(
-            f"Updating dataset by dataframe with shape:\
-                    {dataframe.shape}."
-        )
+            f"Updating dataset by dataframe with shape: {dataframe.shape}.")
 
         # Create dataframe with fixed order of observational columns
         obs_col_order = [col for col in observation_types if col in dataframe.columns]

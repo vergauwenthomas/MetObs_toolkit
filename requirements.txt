@@ -246,8 +246,8 @@ debugpy==1.6.7 ; python_version >= "3.9" and python_version < "4.0" \
 decorator==5.1.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:637996211036b6385ef91435e4fae22989472f9d571faba8927ba8253acbc330 \
     --hash=sha256:b8c3f85900b9dc423225913c5aace94729fe1fa9763b38939a95226f02d37186
-earthengine-api==0.1.360 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:e07dda4153a86ccd910682ea791bbc86c4ea8ca66052932e474b1586f495d0b7
+earthengine-api==0.1.361 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:fc22586c5ff32262b6a102cfc61c2bfcc22e5321b7fdecdda3f4301b45911af5
 eerepr==0.0.4 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:79595fd643e99d91a68041cdba3f5347d5559e6744a34983291a46cada6edbd4 \
     --hash=sha256:920cccbe498b2880f42ed39a2db8945f705b1497523c48b8d392c5380d511926
