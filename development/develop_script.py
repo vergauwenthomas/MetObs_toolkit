@@ -10,6 +10,7 @@ Created on Thu Oct  6 13:25:02 2022
 # import metobs_toolkit
 #
 import os
+import logging
 import sys
 from pathlib import Path
 import pandas as pd
@@ -19,6 +20,10 @@ import math
 
 lib_folder = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(lib_folder))
+
+
+
+
 
 # add testdata paths
 from tests.push_test.test_data_paths import testdata
@@ -30,10 +35,32 @@ tmp_pickle=os.path.join(lib_folder, 'development', 'tmp', 'dev_pickle.pkl')
 
 import metobs_toolkit
 
+# handle logs to spyder console
+toolkit_logger = metobs_toolkit.loggers
+
+toolkit_logger.addHandler(logging.StreamHandler())
+
 
 
 #%%
+import os
 
+folder = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data"
+file = 'era5_modeldata_test.csv'
+
+
+moddata = metobs_toolkit.Modeldata('ERA5_hourly')
+moddata.set_model_from_csv(os.path.join(folder, file))
+
+
+# test saving modeld
+outfolder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests'
+
+moddata.save_modeldata(outputfolder=outfolder)
+
+
+newmod = metobs_toolkit.Modeldata('ERA5_hourly')
+newmod = newmod.import_dataset(outfolder)
 
 
 #%%
