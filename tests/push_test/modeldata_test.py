@@ -60,6 +60,21 @@ model_data.set_model_from_csv(csv_file)
 
 print(model_data)
 
+#%% test saving and importing
+outfolder = os.path.join(lib_folder, 'tests', 'test_data')
+pkl_file = 'delete_me_if_you_see_me'
+# save
+model_data.save_modeldata(outputfolder=outfolder, filename=pkl_file)
+
+# read it again
+newmod = metobs_toolkit.Modeldata('ERA5_hourly')
+newmod2 = newmod.import_dataset(folder_path=outfolder, filename=pkl_file+'.pkl')
+
+# delete file
+fullpath = os.path.join(outfolder, pkl_file+'.pkl')
+if os.path.exists(fullpath):
+    os.remove(fullpath)
+
 
 #%% test interpolation
 interpdf = model_data.interpolate_modeldata(dataset.df.index)
