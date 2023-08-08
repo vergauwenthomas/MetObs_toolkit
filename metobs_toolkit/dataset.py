@@ -2517,7 +2517,6 @@ class Dataset:
 
         """
 
-
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         if freq_estimation_method is None:
@@ -3159,7 +3158,7 @@ f'No station names find in the observations! Assume the dataset is for ONE\
 
 
 
-    def make_gee_plot(self, gee_map, show_stations=True, save=False):
+    def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
         """
         Make an interactive plot of a google earth dataset. The location of the
         stations can be plotted on top of it.
@@ -3174,7 +3173,12 @@ f'No station names find in the observations! Assume the dataset is for ONE\
             If True, the stations will be plotted as markers. The default is True.
         save : bool, optional
             If True, the map will be saved as an html file in the output_folder
-            as defined in the settings. The default is False.
+            as defined in the settings if the outputfile is not set. The
+            default is False.
+        outputfile : str, optional
+            Specify the path of the html file if save is True. If None, and save
+            is true, the html file will be saved in the output_folder. The
+            default is None.
 
         Returns
         -------
@@ -3235,15 +3239,30 @@ f'No station names find in the observations! Assume the dataset is for ONE\
 
         # Save if needed
         if save:
-            if self.settings.IO['output_folder'] is None:
-                logger.warning('The outputfolder is not set up, use the update_settings to specify the output_folder.')
+            save_file=False #update to true if path can be used
+            if outputfile is None:
+                # Try to save in the output folder
+                if self.settings.IO['output_folder'] is None:
+                    logger.warning('The outputfolder is not set up, use the update_settings to specify the output_folder.')
 
+                else:
+                    filename = f'gee_{gee_map}_figure.html'
+                    filepath = os.path.join(self.settings.IO['output_folder'],
+                                            filename)
+                    save_file=True
             else:
-                filename = f'gee_{gee_map}_figure.html'
-                filepath = os.path.join(self.settings.IO['output_folder'], filename)
-                print(f'Gee Map will be save at {filepath}')
-                logger.info(f'Gee Map will be save at {filepath}')
-                Map.save(filepath)
+                # outputfile is specified
+                # 1. check extension
+                if not outputfile.endswith('.html'):
+                    outputfile = outputfile + '.html'
+
+                filepath = outputfile
+                save_file=True
+
+
+            print(f'Gee Map will be save at {filepath}')
+            logger.info(f'Gee Map will be save at {filepath}')
+            Map.save(filepath)
 
 
 def _can_qc_be_applied(dataset, obstype, checkname):
