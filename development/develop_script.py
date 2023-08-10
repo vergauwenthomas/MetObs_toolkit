@@ -21,15 +21,8 @@ import math
 lib_folder = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(lib_folder))
 
-
-
-
-
 # add testdata paths
 from tests.push_test.test_data_paths import testdata
-
-
-
 
 tmp_pickle=os.path.join(lib_folder, 'development', 'tmp', 'dev_pickle.pkl')
 
@@ -41,41 +34,34 @@ toolkit_logger = metobs_toolkit.loggers
 toolkit_logger.addHandler(logging.StreamHandler())
 
 
-
 #%%
 import os
 
-folder = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests/test_data"
-file = 'era5_modeldata_test.csv'
-
-
-moddata = metobs_toolkit.Modeldata('ERA5_hourly')
-moddata.set_model_from_csv(os.path.join(folder, file))
-
-
-# test saving modeld
-outfolder = '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/tests'
-
-moddata.save_modeldata(outputfolder=outfolder)
-
 
 newmod = metobs_toolkit.Modeldata('ERA5_hourly')
-newmod = newmod.import_dataset(outfolder)
+newmod = newmod.import_modeldata(folder_path = '/home/thoverga/Documents/VLINDER_github/MetObs_GUI/metobs_gui/cache/modeldata',
+                               filename='my_modeldata.pkl')
+
+newmod.make_plot()
+
+
+
+
 
 
 #%%
-# # use_dataset = 'debug_wide'
+# use_dataset = 'debug_wide'
 # use_dataset = 'single_netatmo_sara_station'
-# use_dataset = 'vlindergent2022'
-use_dataset = 'siebevlinder'
+use_dataset = 'vlindergent2022'
+use_dataset = 'demo'
 
 dataset = metobs_toolkit.Dataset()
 
-use_dataset = 'single_station'
+
 dataset.update_settings(output_folder=None,
                         input_data_file=testdata[use_dataset]['datafile'],
                         input_metadata_file=testdata[use_dataset]['metadatafile'],
-                        template_file='/home/thoverga/Documents/VLINDER_github/template.csv',
+                        template_file=testdata[use_dataset]['template'],
                         )
 
 
@@ -84,9 +70,24 @@ dataset.update_settings(output_folder=None,
 dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
 dataset.coarsen_time_resolution(freq = testdata[use_dataset]['coarsen'])
-# dataset.apply_quality_control()
+dataset.apply_quality_control()
 # dataset.get_lcz()
-# dataset.update_gaps_and_missing_from_outliers()
+dataset.update_gaps_and_missing_from_outliers()
+#%%
+
+dataset.fill_missing_obs_linear()
+
+dataset.fill_gaps_linear()
+
+
+
+#%%
+
+start_gaps = dataset.get_gaps_df()['start_gap'].min()
+end_gaps =  dataset.get_gaps_df()['end_gap'].max()
+
+
+
 
 #%%
 dataset.update_qc_settings(obstype='radiation_temp', rep_max_valid_repetitions=3)
