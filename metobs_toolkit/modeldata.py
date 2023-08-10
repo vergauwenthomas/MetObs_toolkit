@@ -612,7 +612,7 @@ class Modeldata:
         logger.info(f'Modeldata saved in {full_path}')
 
 
-    def import_dataset(self, folder_path=None, filename='saved_modeldata.pkl'):
+    def import_modeldata(self, folder_path=None, filename='saved_modeldata.pkl'):
         """
         Method to import a modeldata instance from a (pickle) file.
 
@@ -920,14 +920,15 @@ class Modeldata:
         # make plot of the observations
         if not dataset is None:
             # make plot of the observations
-            ax, col_map = timeseries_plot(mergedf=mergedf,
+            _ax, col_map = timeseries_plot(mergedf=mergedf,
                                  title=title,
                                  ylabel=y_label,
                                  colorby='name',
                                  show_legend=legend,
                                  show_outliers=show_outliers,
                                  show_filled=show_filled ,
-                                 settings = dataset.settings)
+                                 settings = dataset.settings,
+                                 _ax=_ax)
 
 
             # Make plot of the model on the previous axes
@@ -939,7 +940,7 @@ class Modeldata:
                                     settings = self._settings,
                                     show_primary_legend=False,
                                     add_second_legend=True,
-                                    _ax = ax,
+                                    _ax = _ax,
                                     colorby_name_colordict=col_map)
 
 
@@ -954,7 +955,7 @@ class Modeldata:
                     settings = self._settings,
                     show_primary_legend=legend,
                     add_second_legend=False,
-                    _ax = None
+                    _ax =_ax,
                     )
 
         return ax
