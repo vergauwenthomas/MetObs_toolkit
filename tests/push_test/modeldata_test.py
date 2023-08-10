@@ -68,7 +68,7 @@ model_data.save_modeldata(outputfolder=outfolder, filename=pkl_file)
 
 # read it again
 newmod = metobs_toolkit.Modeldata('ERA5_hourly')
-newmod2 = newmod.import_dataset(folder_path=outfolder, filename=pkl_file+'.pkl')
+newmod2 = newmod.import_modeldata(folder_path=outfolder, filename=pkl_file+'.pkl')
 
 # delete file
 fullpath = os.path.join(outfolder, pkl_file+'.pkl')
