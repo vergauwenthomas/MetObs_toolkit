@@ -31,6 +31,14 @@ testdata = {
             'kwargs':{},
             'coarsen': '20T',
             },
+    # paper dataset (based on the demo dataset)
+    'paper_dataset' : {
+            'datafile': join(test_data_dir, 'paper_dataset', 'datafile.csv'),
+            'metadatafile':join(test_data_dir, 'paper_dataset', 'metadatafile.csv'),
+            'template': join(test_data_dir, 'paper_dataset', 'templatefile.csv'),
+            'kwargs':{},
+            'coarsen': '20T',
+            },
 
     # wide test dataset
     'debug_wide' : {
