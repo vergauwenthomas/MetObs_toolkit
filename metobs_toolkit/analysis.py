@@ -1042,11 +1042,12 @@ class Analysis():
             title = f'Correlation scatter for group: {self._lc_groupby_labels}'
 
 
-        correlation_scatter(full_cor_dict = self.lc_cor_dict,
+        ax = correlation_scatter(full_cor_dict = self.lc_cor_dict,
                             groupby_labels = self._lc_groupby_labels,
                             obstypes =self._lc_cor_obstype,
                             title=title,
                             cor_scatter_settings = self.settings.app['plot_settings']['correlation_scatter'])
+        return ax
 
 
 
