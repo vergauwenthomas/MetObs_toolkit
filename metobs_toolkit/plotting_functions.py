@@ -908,8 +908,8 @@ def correlation_scatter(full_cor_dict, groupby_labels, obstypes,title, cor_scatt
     ax.set_position([box.x0, box.y0 + box.height * 0.2,
           box.width, box.height * 0.85])
     ax.legend(handles=custom_handles,
-              # loc='upper center',
-              bbox_to_anchor=(1, -0.1),
+               loc='upper center',
+              bbox_to_anchor=(0.5, -0.1),
               fancybox=True, shadow=True,
               prop={'size': cor_scatter_settings['legend_text_size']},
               ncol=cor_scatter_settings['legend_ncols'],
@@ -926,6 +926,7 @@ def correlation_scatter(full_cor_dict, groupby_labels, obstypes,title, cor_scatt
 
 
     plt.show()
+    return ax
 
 
 
