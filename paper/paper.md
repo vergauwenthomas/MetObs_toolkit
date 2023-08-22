@@ -45,7 +45,7 @@ affiliations:
  - name: Flemisch Institute for Technological Reseach (VITO), Mol, Belgium
    index: 4
 date: 13 August 2023
-#bibliography: paper.bib
+bibliography: paper.bib
 
 ---
 
