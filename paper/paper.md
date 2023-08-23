@@ -67,6 +67,7 @@ The primary objective of the MetObs toolkit is  to enable scientists to process 
 Sophisticated software such as TITAN/CrowdQC+  [@titan2020; @CrowdQC] exists for identifying erroneous observations (QC), which is one aspect of cleaning a dataset. These packages are designed specifically for this purpose. Moreover, researchers often face the challenge of coding scripts that can generate analyses, particularly when using geographical datasets such as landcover datasets. Traditionally, this requires the installation of numerous packages, storage of geographical datasets, and GIS manipulations (often manually done with specific GIS software). The toolkit implements one user-friendly framework for creating various plots, generating analysis statistics, and incorporating GIS data through the use of the Google Earth engine.
 By using the toolkit, scientists can set up a pipeline to process raw data into analysis in an easy-to-use (and install) manner. Additionally, the developed pipeline can be directly applied to other datasets without any formatting issues.
 
+![A schematic overview of the main MetObs Toolkit functionalities.\label{fig:overview_fig}](overview_fig.png)
 
 # Technical implementation
 
@@ -76,8 +77,6 @@ Mapping the raw data to the toolkit standards by creating a template. Once the r
 Quality control is performed in the form of a series of checks. Advanced quality control methods are available through the implementation of TITAN into the toolkit. The user can choose to keep the outliers or convert them to missing records (which can be filled).
 Gap filling is applied by using interpolation methods and/or importing ERA5 reanalysis time series to fill the gaps. The latter is stored as a Toolkit Modeldata, which has a set of methods to directly import the required time series through the use of the Google Earth engine API.
 The user obtains a cleaned-up dataset ready for analysis. A set of typical analysis techniques such as filters, aggregation schemes, and landcover correlation estimates are implemented in the Toolkit-Analysis class.
-
-![A schematic overview of the main MetObs Toolkit functionalities.\label{fig:overview_fig}](overview_fig.png)
 
 \autoref{fig:overview_fig} gives an overview of the main framework of the MetObs-toolkit, but it is an evolving project that responds to the community's needs and input. As an example, the development of a graphical user interface (GUI) for the toolkit is planned. A GUI would increase the ease of use by enabling to create templates, adjust QC settings and plot data interactively. 
 
