@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# __init__.py
 
+import os
+import sys
 import logging
 from pathlib import Path
-import os, sys
+
 
 # Create the Logger
 loggers = logging.getLogger(__name__)  # logger name is <metobs-toolkit>
 loggers.setLevel(logging.DEBUG)
 
 
-#Adding Handlers
+# Adding Handlers
 
 # File handler
 log_path = os.path.join(str(Path(__file__).parent.parent.parent), "logfile.log")
