@@ -29,7 +29,9 @@ def _remove_keys_from_dict(dictionary, keys):
         dictionary.pop(key, None)
     return dictionary
 
+
 def template_to_package_space(specific_template):
+    """Invert template dictionary."""
     returndict = {
         val["varname"]: {"orig_name": key} for key, val in specific_template.items()
     }
@@ -41,6 +43,7 @@ def template_to_package_space(specific_template):
 
 
 def find_compatible_templatefor(df_columns, template_list):
+    """Test if template is compatible with dataaframe columns."""
     for templ in template_list:
         found = all(keys in list(df_columns) for keys in templ.keys())
         if found:
@@ -50,12 +53,12 @@ def find_compatible_templatefor(df_columns, template_list):
 
 
 def compress_dict(nested_dict, valuesname):
-    """
+    """Unnest dictionary info for valuename.
+
     This function unnests a nested dictionary for a specific valuename that is a key in the nested dict.
 
     Parameters
     ----------
-
     nested_dict : dict
         Nested dictionary
 
@@ -68,7 +71,6 @@ def compress_dict(nested_dict, valuesname):
         A dictionarry where the keys are kept that have the valuesname as a nesteddict key,
         and values are the values of the values of the valuesname.
         {[key-nested_dict-if-exists]: nested_dict[key-nested_dict-if-exists][valuesname]}
-
     """
     returndict = {}
     for key, item in nested_dict.items():
@@ -105,12 +107,28 @@ def _read_csv_to_df(filepath, kwargsdict):
 # =============================================================================
 
 def check_template_compatibility(template, df_columns, filetype):
+    """Log template compatiblity with dataframe columns.
+
+    Parameters
+    ----------
+    template : dict
+        Template dictionary.
+    df_columns : pd.index
+        Dataframe columns to map.
+    filetype : str
+        'data', 'metadata' or other description of the dataframe.
+
+    Returns
+    -------
+    None.
+
+    """
     # ignore datetime because this is already mapped
     present_cols = [col for col in df_columns if col != 'datetime']
     assumed_cols = [key for key in template.keys() if key != 'datetime']
 
     # in mapper but not in df
-    unmapped_assumed = [templ_var for templ_var in assumed_cols if not templ_var in present_cols]
+    unmapped_assumed = [templ_var for templ_var in assumed_cols if templ_var not in present_cols]
 
     if len(unmapped_assumed) > 0:
         logger.info(
@@ -130,7 +148,23 @@ def check_template_compatibility(template, df_columns, filetype):
             f"Fatal: The given template: {assumed_cols} does not match with any of the {filetype} columns: {present_cols}."
         )
 
+
 def extract_options_from_template(templ):
+    """Filter out options settings from the template dataframe.
+
+    Parameters
+    ----------
+    templ : pandas.DataFrame()
+        Template in a dataframe structure
+
+    Returns
+    -------
+    new_templ : pandas.DataFrame()
+        The template dataframe with optioncolumns removed.
+    opt_kwargs : dict
+        Options and settings present in the template dataframe.
+
+    """
     opt_kwargs = {}
     if 'options' in templ.columns:
         if 'options_values' in templ.columns:
@@ -145,7 +179,7 @@ def extract_options_from_template(templ):
                                 'stationname': '_any_',
                                 'obstype': observation_types,
                                 'obstype_unit': '_any_',
-                                'obstype_description' : '_any_',
+                                'obstype_description': '_any_',
                                 'timezone': all_timezones
                                 }
             for key, val in opt.items():
@@ -154,10 +188,10 @@ def extract_options_from_template(templ):
                     sys.exit(f'{key} is not a known option in the template. These are the possible options: {list(possible_options.keys())}')
 
                 if possible_options[key] == '_any_':
-                    pass #value can be any string
+                    pass  # value can be any string
 
                 else:
-                    if not val in possible_options[key]:
+                    if val not in possible_options[key]:
                         sys.exit(f'{val} is not a possible value for {key}. These values are possible for {key}: {possible_options[key]}')
 
                 # overload to kwargs:
@@ -185,25 +219,43 @@ def extract_options_from_template(templ):
                     opt_kwargs['timezone'] = val
 
         else:
-            sys.exit(f' "options" column found in the template, but no "options_values" found!')
+            sys.exit('"options" column found in the template, but no "options_values" found!')
 
-    #remove the options from the template
+    # remove the options from the template
     new_templ = templ.drop(columns=['options', 'options_values'], errors='ignore')
     return new_templ, opt_kwargs
 
 
 def read_csv_template(file, data_long_format=True):
+    """ Import a template from a csv file.
 
+    Format options will be stored in a seperate dictionary. (Because these
+    do not relate to any of the data columns.)
 
-    templ = _read_csv_to_df(filepath = file,
-                            kwargsdict = {})
+    Parameters
+    ----------
+    file : str
+        Path to the csv template file.
+    data_long_format : bool, optional
+        If True, this format structure has priority over the format structure
+        in the template file. The default is True.
+
+    Returns
+    -------
+    template : dict
+        The template related to the data/metadata columns.
+    opt_kwargs : dict
+        Options and settings present in the template.
+
+    """
+    templ = _read_csv_to_df(filepath=file,
+                            kwargsdict={})
 
     # Drop emty rows
     templ = templ.dropna(axis="index", how="all")
 
     # Extract structure options from template
     templ, opt_kwargs = extract_options_from_template(templ)
-
 
     if 'long_format' in opt_kwargs.keys():
         data_long_format = opt_kwargs['long_format']
@@ -231,8 +283,24 @@ def read_csv_template(file, data_long_format=True):
 # =============================================================================
 
 def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
+    """Import metadata as a dataframe.
 
+    Parameters
+    ----------
+    input_file : str
+        Path to the metadata (csv) file.
+    template : dict
+        Template dictionary.
+    kwargs_metadata_read : dict
+        Extra user-specific kwargs to pass to the pd.read_csv() function.
 
+    Returns
+    -------
+    df : pandas.DataFrame()
+        The metadata in a pandas dataframe with columnnames in the toolkit
+        standards.
+
+    """
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
 
     df = _read_csv_to_df(input_file, kwargs_metadata_read)
@@ -242,7 +310,7 @@ def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
     check_template_compatibility(template, df.columns, filetype='metadata')
 
     # rename columns to toolkit attriute names
-    column_mapper = {val['orig_name']:key for key, val in template.items()}
+    column_mapper = {val['orig_name']: key for key, val in template.items()}
     df = df.rename(columns=column_mapper)
 
     return df
@@ -253,7 +321,28 @@ def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
 # =============================================================================
 
 def wide_to_long(df, template, obstype):
+    """Convert a wide dataframe to a long format.
 
+    Convert a wide dataframe that represents obstype-observations to a long
+    dataframe (=standard toolkit structure).
+
+    Parameters
+    ----------
+    df : pandas.DataFrame()
+        Wide dataframe.
+    template : dict
+        The dictionary to update the 'name' key on.
+    obstype : str
+        A MetObs obstype.
+
+    Returns
+    -------
+    longdf : pandas.DataFrame
+        Long dataframe.
+    template : dict
+        Updateted template dictionary.
+
+    """
     # the df is assumed to have one datetime column, and the others represent
     # stations with their obstype values
 
@@ -278,16 +367,37 @@ def wide_to_long(df, template, obstype):
     return longdf, template
 
 
-
-
-
 def import_data_from_csv(input_file, template,
                          long_format, obstype,
                          obstype_units, obstype_description,
                          kwargs_data_read):
+    """Import data as a dataframe.
 
-    """ Wrapper data import function for long and wide"""
+    Parameters
+    ----------
+    input_file : str
+        Path to the data (csv) file.
+    template : dict
+        template dictionary.
+    long_format : bool
+        If True, a long format is assumed else wide.
+    obstype : str
+        If format is wide, this is the observationtype.
+    obstype_units : str
+       If format is wide, this is the observation unit.
+    obstype_description : str
+        If format is wide, this is the observation description.
+    kwargs_data_read : dict
+        Kwargs passed to the pd.read_csv() function.
 
+    Returns
+    -------
+    df : pandas.DataFrame()
+        A long dataframe containing the observations.
+    invtemplate : dict
+        Template in toolkit space.
+
+    """
     # 1. Read data into df
     df = _read_csv_to_df(filepath=input_file,
                          kwargsdict=kwargs_data_read)
@@ -298,7 +408,7 @@ def import_data_from_csv(input_file, template,
     # 3. Make datetime column (needed for wide to long conversion)
     if ('datetime' in invtemplate.keys()):
 
-        df = df.rename(columns={invtemplate['datetime']['orig_name'] : 'datetime'})
+        df = df.rename(columns={invtemplate['datetime']['orig_name']: 'datetime'})
         df['datetime'] = pd.to_datetime(df["datetime"],
                                         format=invtemplate["datetime"]["format"])
 
@@ -325,26 +435,23 @@ def import_data_from_csv(input_file, template,
     invtemplate = _remove_keys_from_dict(invtemplate, inv_temp_remove_keys)
     template = _remove_keys_from_dict(template, temp_remove_keys)
 
-
     # 4. convert wide data to long if needed
     if not long_format:
         template[obstype] = {}
         invtemplate[obstype] = {}
         template[obstype]['varname'] = obstype
-        invtemplate[obstype]['orig_name'] = obstype #use default as orig name
-        if not obstype_units is None:
+        invtemplate[obstype]['orig_name'] = obstype  # use default as orig name
+        if obstype_units is not None:
             template[obstype]['units'] = obstype_units
             invtemplate[obstype]['units'] = obstype_units
-        if not obstype_description is None:
+        if obstype_description is not None:
             template[obstype]['description'] = obstype_description
             invtemplate[obstype]['description'] = obstype_description
 
         df, template = wide_to_long(df, template, obstype)
 
-
     # 5. check compatibility
     check_template_compatibility(template, df.columns, filetype='data')
-
 
     # 6. map to default name space
     df = df.rename(columns=compress_dict(template, "varname"))
@@ -354,8 +461,7 @@ def import_data_from_csv(input_file, template,
     cols_to_keep.append('datetime')
     cols_to_keep.append('name')
     cols_to_keep = list(set(cols_to_keep))
-    df = df.loc[:,df.columns.isin(cols_to_keep)]
-
+    df = df.loc[:, df.columns.isin(cols_to_keep)]
 
     # 8. Set index
     df = df.reset_index()
@@ -373,161 +479,160 @@ def import_data_from_csv(input_file, template,
     return df, invtemplate
 
 
-# %%
-def import_data_from_db(db_settings, start_datetime, end_datetime):
-    # =============================================================================
-    # Make connection to database
-    # =============================================================================
+# def import_data_from_db(db_settings, start_datetime, end_datetime):
+#     # =============================================================================
+#     # Make connection to database
+#     # =============================================================================
 
-    # Make connection with database (needs ugent VPN active)
+#     # Make connection with database (needs ugent VPN active)
 
-    try:
-        connection = mysql.connector.connect(
-            host=db_settings["db_host"],
-            database=db_settings["db_database"],
-            user=db_settings["db_user"],
-            password=db_settings["db_passw"],
-            connection_timeout=1,
-        )
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password!")
-            print("Make shure the following envrionment variables are defind:")
-            print("    VLINDER_DB_USER_NAME")
-            print("    VLINDER_DB_USER_PASW")
-            print("or update the Settings.db_user and Settings.db_passw")
+#     try:
+#         connection = mysql.connector.connect(
+#             host=db_settings["db_host"],
+#             database=db_settings["db_database"],
+#             user=db_settings["db_user"],
+#             password=db_settings["db_passw"],
+#             connection_timeout=1,
+#         )
+#     except mysql.connector.Error as err:
+#         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+#             print("Something is wrong with your user name or password!")
+#             print("Make shure the following envrionment variables are defind:")
+#             print("    VLINDER_DB_USER_NAME")
+#             print("    VLINDER_DB_USER_PASW")
+#             print("or update the Settings.db_user and Settings.db_passw")
 
-            # TODO use default return
-            return init_multiindexdf()
-        elif err.errno == 2003:
-            print(
-                "Can't connect to ",
-                db_settings["db_host"],
-                " host. Make shure your Ugent VPN is on!",
-            )
-            # sys.exit()
-            # TODO use default return
-            return init_multiindexdf()
+#             # TODO use default return
+#             return init_multiindexdf()
+#         elif err.errno == 2003:
+#             print(
+#                 "Can't connect to ",
+#                 db_settings["db_host"],
+#                 " host. Make shure your Ugent VPN is on!",
+#             )
+#             # sys.exit()
+#             # TODO use default return
+#             return init_multiindexdf()
 
-    # =============================================================================
-    # Read all meta data from database
-    # =============================================================================
+#     # =============================================================================
+#     # Read all meta data from database
+#     # =============================================================================
 
-    metadata_Query = "select * from " + db_settings["db_meta_table"]
-    cursor = connection.cursor()
-    cursor.execute(metadata_Query)
-    metadata = cursor.fetchall()
-    metadata = pd.DataFrame(metadata)
-    # metadata_columns = list(cursor.column_names)
+#     metadata_Query = "select * from " + db_settings["db_meta_table"]
+#     cursor = connection.cursor()
+#     cursor.execute(metadata_Query)
+#     metadata = cursor.fetchall()
+#     metadata = pd.DataFrame(metadata)
+#     # metadata_columns = list(cursor.column_names)
 
-    metadata.columns = list(cursor.column_names)
+#     metadata.columns = list(cursor.column_names)
 
-    # subset relevent columns
-    metadata = metadata[list(db_settings["vlinder_db_meta_template"].keys())]
+#     # subset relevent columns
+#     metadata = metadata[list(db_settings["vlinder_db_meta_template"].keys())]
 
-    # rename columns to standards
-    metadata = metadata.rename(
-        columns=compress_dict(db_settings["vlinder_db_meta_template"], "varname")
-    )
+#     # rename columns to standards
+#     metadata = metadata.rename(
+#         columns=compress_dict(db_settings["vlinder_db_meta_template"], "varname")
+#     )
 
-    # COnvert template to package-space
-    template = template_to_package_space(db_settings["vlinder_db_meta_template"])
+#     # COnvert template to package-space
+#     template = template_to_package_space(db_settings["vlinder_db_meta_template"])
 
-    # format columns
-    metadata = metadata.astype(dtype=compress_dict(template, "dtype"))
+#     # format columns
+#     metadata = metadata.astype(dtype=compress_dict(template, "dtype"))
 
-    # =============================================================================
-    # Read observations data
-    # =============================================================================
+#     # =============================================================================
+#     # Read observations data
+#     # =============================================================================
 
-    assert (
-        start_datetime < end_datetime
-    ), "start_datetime is not earlier thand end_datetime!"
+#     assert (
+#         start_datetime < end_datetime
+#     ), "start_datetime is not earlier thand end_datetime!"
 
-    observation_types = ["all"]
+#     observation_types = ["all"]
 
-    # observation types to strig
-    if observation_types[0] == "all":
-        obs_type_query_str = "*"
-    else:  # TODO
-        print("NOT IMPLEMENTED YET")
-        obs_type_query_str = "*"
+#     # observation types to strig
+#     if observation_types[0] == "all":
+#         obs_type_query_str = "*"
+#     else:  # TODO
+#         print("NOT IMPLEMENTED YET")
+#         obs_type_query_str = "*"
 
-    # format datetime
+#     # format datetime
 
-    datetime_db_info = [
-        item
-        for item in db_settings["vlinder_db_obs_template"].values()
-        if item["varname"] == "datetime"
-    ][0]
+#     datetime_db_info = [
+#         item
+#         for item in db_settings["vlinder_db_obs_template"].values()
+#         if item["varname"] == "datetime"
+#     ][0]
 
-    startstring = start_datetime.strftime(
-        format=datetime_db_info["fmt"]
-    )  # datetime to string
-    endstring = end_datetime.strftime(
-        format=datetime_db_info["fmt"]
-    )  # datetime to string
-    _inverted_template = template_to_package_space(
-        db_settings["vlinder_db_obs_template"]
-    )
-    datetime_column_name = _inverted_template["datetime"]["orig_name"]
+#     startstring = start_datetime.strftime(
+#         format=datetime_db_info["fmt"]
+#     )  # datetime to string
+#     endstring = end_datetime.strftime(
+#         format=datetime_db_info["fmt"]
+#     )  # datetime to string
+#     _inverted_template = template_to_package_space(
+#         db_settings["vlinder_db_obs_template"]
+#     )
+#     datetime_column_name = _inverted_template["datetime"]["orig_name"]
 
-    # select all stations
-    obsdata_Query = (
-        str(r"SELECT ")
-        + obs_type_query_str
-        + " "
-        + str(r"FROM ")
-        + db_settings["db_obs_table"]
-        + str(" ")
-        + str(r"WHERE ")
-        + datetime_column_name
-        + str(r">='")
-        + startstring
-        + str(r"' AND ")
-        + datetime_column_name
-        + str(r"<='")
-        + endstring
-        + str(r"'  ")
-        + str(r"ORDER BY ")
-        + datetime_column_name
-    )
+#     # select all stations
+#     obsdata_Query = (
+#         str(r"SELECT ")
+#         + obs_type_query_str
+#         + " "
+#         + str(r"FROM ")
+#         + db_settings["db_obs_table"]
+#         + str(" ")
+#         + str(r"WHERE ")
+#         + datetime_column_name
+#         + str(r">='")
+#         + startstring
+#         + str(r"' AND ")
+#         + datetime_column_name
+#         + str(r"<='")
+#         + endstring
+#         + str(r"'  ")
+#         + str(r"ORDER BY ")
+#         + datetime_column_name
+#     )
 
-    print(obsdata_Query)
+#     print(obsdata_Query)
 
-    cursor.execute(obsdata_Query)
-    obsdata = cursor.fetchall()
-    obsdata = pd.DataFrame(obsdata)
+#     cursor.execute(obsdata_Query)
+#     obsdata = cursor.fetchall()
+#     obsdata = pd.DataFrame(obsdata)
 
-    obsdata.columns = list(cursor.column_names)
+#     obsdata.columns = list(cursor.column_names)
 
-    # subset relevent columns
-    obsdata = obsdata[list(db_settings["vlinder_db_obs_template"])]
+#     # subset relevent columns
+#     obsdata = obsdata[list(db_settings["vlinder_db_obs_template"])]
 
-    # format columns
-    obsdata = obsdata.astype(
-        dtype=compress_dict(db_settings["vlinder_db_obs_template"], "dtype")
-    )
+#     # format columns
+#     obsdata = obsdata.astype(
+#         dtype=compress_dict(db_settings["vlinder_db_obs_template"], "dtype")
+#     )
 
-    # rename columns to standards
-    obsdata = obsdata.rename(
-        columns=compress_dict(db_settings["vlinder_db_obs_template"], "varname")
-    )
+#     # rename columns to standards
+#     obsdata = obsdata.rename(
+#         columns=compress_dict(db_settings["vlinder_db_obs_template"], "varname")
+#     )
 
-    connection.close()
+#     connection.close()
 
-    # =============================================================================
-    # merge Observatios and metadata
-    # =============================================================================
+#     # =============================================================================
+#     # merge Observatios and metadata
+#     # =============================================================================
 
-    combdata = obsdata.merge(metadata, how="left", on="id")
-    combdata = combdata.drop(columns=["id"])
-    combdata["datetime"] = pd.to_datetime(
-        combdata["datetime"], format=datetime_db_info["fmt"]
-    )
-    # TODO implement timezone settings
+#     combdata = obsdata.merge(metadata, how="left", on="id")
+#     combdata = combdata.drop(columns=["id"])
+#     combdata["datetime"] = pd.to_datetime(
+#         combdata["datetime"], format=datetime_db_info["fmt"]
+#     )
+#     # TODO implement timezone settings
 
-    # Set datetime index
-    combdata = combdata.set_index("datetime", drop=True, verify_integrity=False)
+#     # Set datetime index
+#     combdata = combdata.set_index("datetime", drop=True, verify_integrity=False)
 
-    return combdata
+#     return combdata
