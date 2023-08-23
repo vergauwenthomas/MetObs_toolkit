@@ -212,7 +212,7 @@ class Analysis():
 
         # check if not all values are Nan
         for agg_name in agg:
-            assert df[agg_name].isnull().all() is False, f'Aggregation to {agg_name} not possible because no valid values found for {agg_name}.'
+            assert not df[agg_name].isnull().all(), f'Aggregation to {agg_name} not possible because no valid values found for {agg_name}.'
 
         # remove datetime column if present, because no aggregation can be done on
         # datetime and it gives a descrepation warning
