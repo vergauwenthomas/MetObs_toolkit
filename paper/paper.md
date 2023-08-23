@@ -52,15 +52,15 @@ bibliography: paper.bib
 
 # Summary
 In-situ weather station observations are highly important for meteorological and climatological research. The evolution towards more affordable sensor technology and data communication has resulted in the emergence of novel meteorological networks alongside the traditional high-quality measurement networks of meteorological institutions. Examples include urban measurement networks intended to study the impact of cities [@mocca] and networks consisting of devices of weather enthusiasts e.g. [@crowdsourcing_status]. However, exploiting the data of such non-traditional networks comes with significant challenges [@crowdsourcing]. Firstly, sensors and data communication protocols are usually low-cost and this in general results in an increase of measurement errors, biases and data gaps. Secondly, data storage formats and temporal measurement frequencies are not consistent or compatible across different networks. Finally, metadata, such as station location, elevation, and instrument specifications, are not easily accessible or documented.
-The MetObs-toolkit is a Python package developed to address these issues and facilitate the use of non-traditional observations. The package provides automated quality control (QC) techniques to identify and flag erroneous observations and includes methods to fill data gaps. Additionally, the package also offers a set of tools for analyzing the data e.g. linkage with popular land use datasets [@worldcover, @lcz_map] is included such that microclimate effects can be investigated by the MetObs toolkit.
+The MetObs-toolkit is a Python package developed to address these issues and facilitate the use of non-traditional observations. The package provides automated quality control (QC) techniques to identify and flag erroneous observations and includes methods to fill data gaps. Additionally, the package also offers a set of tools for analyzing the data e.g. linkage with popular land use datasets [@worldcover; @lcz_map] is included such that microclimate effects can be investigated by the MetObs toolkit.
 
 
 # Statement of need
 The primary objective of the MetObs toolkit is  to enable scientists to process meteorological observations into datasets ready for analysis. The data cleaning process involves three steps: 
-1) resampling the time resolution if necessary, 
-2) identifying erroneous or missing records, and 
-3) filling the missing records.
-Sophisticated software such as TITAN/CrowdQC+  [@titan2020, @CrowdQC] exists for identifying erroneous observations (QC), which is one aspect of cleaning a dataset. These packages are designed specifically for this purpose. Moreover, researchers often face the challenge of coding scripts that can generate analyses, particularly when using geographical datasets such as landcover datasets. Traditionally, this requires the installation of numerous packages, storage of geographical datasets, and GIS manipulations (often manually done with specific GIS software). The toolkit implements one user-friendly framework for creating various plots, generating analysis statistics, and incorporating GIS data through the use of the Google Earth engine.
+1. resampling the time resolution if necessary, 
+2. identifying erroneous or missing records, and 
+3. filling the missing records.
+Sophisticated software such as TITAN/CrowdQC+  [@titan2020; @CrowdQC] exists for identifying erroneous observations (QC), which is one aspect of cleaning a dataset. These packages are designed specifically for this purpose. Moreover, researchers often face the challenge of coding scripts that can generate analyses, particularly when using geographical datasets such as landcover datasets. Traditionally, this requires the installation of numerous packages, storage of geographical datasets, and GIS manipulations (often manually done with specific GIS software). The toolkit implements one user-friendly framework for creating various plots, generating analysis statistics, and incorporating GIS data through the use of the Google Earth engine.
 By using the toolkit, scientists can set up a pipeline to process raw data into analysis in an easy-to-use (and install) manner. Additionally, the developed pipeline can be directly applied to other datasets without any formatting issues.
 
 
@@ -75,7 +75,7 @@ The user obtains a cleaned-up dataset ready for analysis. A set of typical analy
 
 ![A schematic overview of the main MetObs Toolkit functionalities.\label{fig:overview_fig}](overview_fig.png)
 
-The above \autoref{fig:overview_fig} gives an overview of the main framework of the MetObs-toolkit, but it is an evolving project that responds to the community's needs and input. As an example, the development of a graphical user interface (GUI) for the toolkit is planned. A GUI would increase the ease of use by enabling to create templates, adjust QC settings and plot data interactively. 
+\autoref{fig:overview_fig} gives an overview of the main framework of the MetObs-toolkit, but it is an evolving project that responds to the community's needs and input. As an example, the development of a graphical user interface (GUI) for the toolkit is planned. A GUI would increase the ease of use by enabling to create templates, adjust QC settings and plot data interactively. 
 
 It is to be expected that some novel functionalities will be added in the coming years and the documentation will be updated accordingly. 
 
@@ -91,3 +91,7 @@ No specific funding has been obtained to build the MetObs-Toolkit, but the autho
 FWO: Sara (fellowship 1270723N) and Wout (fellowship 1157523N)
 BELSPO: Kobe (B2/223/P1/CORDEX.be II), Thomas (B2/202/P1/CS-MASK), Michiel (B2/212/P2/CLIMPACTH) and Steven (FED-tWIN Prf-2020-018_AURA)
 VITO: Ian (VITO PhD fellowship, I will verify if he has a code)
+
+# References
+nocite: |
+  @*
