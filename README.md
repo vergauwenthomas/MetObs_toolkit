@@ -9,9 +9,13 @@ Documentation can be found [here](https://vergauwenthomas.github.io/MetObs_toolk
 ## Exercises and demos
 In the context of a [FAIRNESS (COST action)](https://www.fairness-ca20108.eu/) summer school, a set of well-documented exercises and demos are made. 
 
-[![Introduction Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/googlecolab/colabtools/blob/master/examples/Introduction_01.ipynb)
+| Notebook  | Description  |       |
+|:----------|:-------------|------:|
+| [Introduction](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/examples/Introduction_01.ipynb) | Introduction to the toolkit | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/examples/Introduction_01.ipynb) |
+| [Quality control](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/examples/Quality_control_excercise_02.ipynb) | Introduction to quality control methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/examples/Quality_control_excercise_02.ipynb)|
+| [Filling gaps](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/examples/Gap_filling_excercise_03.ipynb) | Introduction to gap filling methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/examples/Gap_filling_excercise_03.ipynb)|
+| [Analysis](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/examples/Urban_analysis_excercise_04.ipynb) | Introduction analysis methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/examples/Urban_analysis_excercise_04.ipynb)|
 
-These exercises are documented as Google Colab notebooks, which can be found [here](https://drive.google.com/drive/folders/1xdk-enJm75K-qKsQlEHiLRTd_ovzNz7L?usp=sharing).
 
 
 ## Installing the package
