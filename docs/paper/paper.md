@@ -19,7 +19,7 @@ authors:
     equal-contrib: False # (This is how you can denote equal contributions between multiple authors)
     affiliation: 3
   - name: Amber Jacobs
-    orcid: 0000-0002-4628
+    orcid: 0000-0002-4628-3988
     equal-contrib: False # (This is how you can denote equal contributions between multiple authors)
     affiliation: 1
   - name: Sara Top
