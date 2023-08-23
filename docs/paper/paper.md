@@ -47,7 +47,7 @@ affiliations:
    index: 1
  - name: University of Ghent, Ghent, Belgium
    index: 2
- - name: University of Brussels (VUB), Brussels, Belgium
+ - name: Vrije Universiteit Brussel (VUB), Brussels, Belgium
    index: 3
  - name: Flemisch Institute for Technological Reseach (VITO), Mol, Belgium
    index: 4
@@ -102,6 +102,6 @@ FWO: Sara (fellowship 1270723N) and Wout (fellowship 1157523N)
 
 BELSPO: Kobe (B2/223/P1/CORDEX.be II), Thomas (B2/202/P1/CS-MASK), Michiel (B2/212/P2/CLIMPACTH) and Steven (FED-tWIN Prf-2020-018_AURA)
 
-VITO : Ian (UG_PhD_2202)
+Andrei (VUB, SRP74/LSDS, OZR3893, Innoviris-Brussels ILSF-2023-12) and Ian (VITO, UG_PhD_2202)
 
 # References
