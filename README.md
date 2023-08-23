@@ -9,7 +9,7 @@ Documentation can be found [here](https://vergauwenthomas.github.io/MetObs_toolk
 ## Exercises and demos
 In the context of a [FAIRNESS (COST action)](https://www.fairness-ca20108.eu/) summer school, a set of well-documented exercises and demos are made. 
 
-[![Introduction Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/googlecolab/colabtools/blob/master/examples/Introduction_01.ipynb)
+[![Introduction Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/examples/Introduction_01.ipynb)
 
 These exercises are documented as Google Colab notebooks, which can be found [here](https://drive.google.com/drive/folders/1xdk-enJm75K-qKsQlEHiLRTd_ovzNz7L?usp=sharing).
 
