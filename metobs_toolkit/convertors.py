@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # $ an operator (+-*/) and val a concersion value
 unit_convertors = {
     "Celsius": {"K": "x - 273.15"},
-    'pa':{'pa' : 'x'}
+    'pa': {'pa': 'x'}
 }
 
 # =============================================================================
@@ -33,11 +33,11 @@ standard_tlk_units = {
     "radiation_temp": 'Celcius',
     "humidity": '%',
     "precip": 'mm/m² per hour',
-    "precip_sum" : 'mm/m² from midnight',
-    "wind_speed" : 'm/s',
+    "precip_sum": 'mm/m² from midnight',
+    "wind_speed": 'm/s',
     "wind_gust": 'm/s',
     "wind_direction": '° from north (CW)',
-    "pressure" : 'pa',
+    "pressure": 'pa',
     "pressure_at_sea_level": 'pa',
 
 }
@@ -49,6 +49,7 @@ standard_tlk_units = {
 
 
 def expression_calculator(equation, x):
+    """Convert array by equation."""
     if isinstance(x, Iterable):
         x = np.array(x)
 
@@ -69,8 +70,9 @@ def expression_calculator(equation, x):
 
 
 def convert_to_toolkit_units(data, data_unit, new_units={}):
-    """
-    Convert the data to the toolkit perfered unit. Data can be a numeric value or an iterable.
+    """Convert the data to the toolkit perfered unit.
+
+    Data can be a numeric value or an iterable.
     Data_unit is the unit of the input data.
 
     The converted data AND the corresponding toolkit unit is returned.
