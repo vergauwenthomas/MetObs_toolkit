@@ -88,7 +88,7 @@ It is to be expected that some novel functionalities will be added in the coming
 
 # Acknowledgments
 
-The authors would like to thank all participants of the COST FAIRNESS (CA20108) summer school 2023 in Ghent for their role as Beta testers. This group of scientists, from various European countries, working on urban climate represented the target audience of this package. Their input, ideas, and recommendations were instrumental in improving the MetObs-Toolkit.
+The authors would like to thank all participants of the [COST FAIRNESS](https://www.fairness-ca20108.eu/) (CA20108) summer school 2023 in Ghent for their role as Beta testers. This group of scientists, from various European countries, working on urban climate represented the target audience of this package. Their input, ideas, and recommendations were instrumental in improving the MetObs-Toolkit.
 
 No specific funding has been obtained to build the MetObs-Toolkit, but the authors have been supported by different Belgian and Flemish scientific research grants.
 
