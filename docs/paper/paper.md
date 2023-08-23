@@ -95,6 +95,6 @@ No specific funding has been obtained to build the MetObs-Toolkit, but the autho
 
 FWO: Sara (fellowship 1270723N) and Wout (fellowship 1157523N)
 BELSPO: Kobe (B2/223/P1/CORDEX.be II), Thomas (B2/202/P1/CS-MASK), Michiel (B2/212/P2/CLIMPACTH) and Steven (FED-tWIN Prf-2020-018_AURA)
-VITO: Ian (VITO PhD fellowship, I will verify if he has a code)
+VITO : Ian (UG_PhD_2202)
 
 # References
