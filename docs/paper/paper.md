@@ -34,6 +34,10 @@ authors:
     orcid: 0009-0001-1252-7315
     equal-contrib: False # (This is how you can denote equal contributions between multiple authors)
     affiliation: "1, 2"
+  - name: Ian Hellebosch
+    orcid: 0000-0003-0150-529X
+    equal-contrib: False # (This is how you can denote equal contributions between multiple authors)
+    affiliation: "2, 4"
   - name: Steven Caluwaerts
     orcid: 0000-0001-7456-3891
     equal-contrib: False # (This is how you can denote equal contributions between multiple authors)
