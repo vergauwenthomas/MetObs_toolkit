@@ -21,7 +21,7 @@ import pickle
 from metobs_toolkit.settings import Settings
 from metobs_toolkit.data_import import (
     import_data_from_csv,
-    import_data_from_db,
+    # import_data_from_db,
     template_to_package_space,
     import_metadata_from_csv,
     read_csv_template
