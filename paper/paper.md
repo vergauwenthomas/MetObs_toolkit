@@ -15,6 +15,7 @@ authors:
     equal-contrib: False # (This is how you can denote equal contributions between multiple authors)
     affiliation: 1
   - name: Andrei Covaci
+    orcid: 0000-0001-5147-2460
     equal-contrib: False # (This is how you can denote equal contributions between multiple authors)
     affiliation: 3
   - name: Amber Jacobs
@@ -29,6 +30,7 @@ authors:
     equal-contrib: False # (This is how you can denote equal contributions between multiple authors)
     affiliation: 1
   - name: Kobe Vandelanotte
+    orcid: 0009-0001-1252-7315
     equal-contrib: False # (This is how you can denote equal contributions between multiple authors)
     affiliation: "1, 2"
   - name: Steven Caluwaerts
