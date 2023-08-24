@@ -1,5 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/metobs-toolkit.svg)](https://badge.fury.io/py/metobs-toolkit)
-<img src="https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/dev/docs/logo_small.jpeg" alt="drawing" style="width:500px;"/>
+
+<img src="https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/dev/docs/logo_small.jpeg" alt="drawing" style="width:200px;"/>
 
 # MetObs-toolkit
 
