@@ -26,6 +26,9 @@ To install the PyPi version of the toolkit. To install the github versions one c
    #development version
    pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
 
+   #specific release from github
+   pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.1.1
+
 
 For some advanced quality control methods, the `Titanlib <https://github.com/metno/titanlib>`_ package is used.
 Since the instalation of titanlib requires a c++ compiler, it is categorized as a *extra-dependency*. This means that
@@ -35,10 +38,6 @@ the user must install titanlib manually if this functionallity is required or us
 
    pip3 install metobs-toolkit[titanlib]
 
-
-.. note::
-
-   Now, this is a development version, so to install you need to specify the latest version explicitly: pip3 install metobs-toolkit==0.1.1ax (where x is the latest version).
 
 .. note::
    To install the package in a notebook, one has to add ! in front of the pip install command.

@@ -80,7 +80,7 @@ def compress_dict(nested_dict, valuesname):
 
 
 def _read_csv_to_df(filepath, kwargsdict):
-    assert not isinstance(filepath, type(None)), "No filepath is specified: {filepath}"
+    assert not isinstance(filepath, type(None)), f"No filepath is specified: {filepath}"
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
