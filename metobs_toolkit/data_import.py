@@ -10,11 +10,10 @@ import warnings
 import logging
 import pandas as pd
 
-import mysql.connector
-from mysql.connector import errorcode
+# import mysql.connector
+# from mysql.connector import errorcode
 from pytz import all_timezones
 
-from metobs_toolkit.df_helpers import init_multiindexdf
 from metobs_toolkit import observation_types
 
 logger = logging.getLogger(__name__)
