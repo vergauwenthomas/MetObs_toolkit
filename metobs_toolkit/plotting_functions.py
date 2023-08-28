@@ -786,7 +786,8 @@ def heatmap_plot(cor_dict, title, heatmap_settings):
 
     ax.set_title(title)
 
-    plt.show()
+    # plt.show()
+    return ax
 
 def correlation_scatter(full_cor_dict, groupby_labels, obstypes,title, cor_scatter_settings):
 
