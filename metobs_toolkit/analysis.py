@@ -770,6 +770,8 @@ class Analysis():
                 ax.set_xlabel(f'Hours (timezone: {tzstring})')
 
         if verbose:
+            if plot:
+                return values_df, all_stats, ax
             return values_df, all_stats
 
         return values_df
@@ -893,7 +895,7 @@ class Analysis():
 
         return cor_dict
 
-    def plot_correlation_heatmap(self, groupby_value=None, title=None):
+    def plot_correlation_heatmap(self, groupby_value=None, title=None, _return_ax=False):
         """Make a heatmap plot af a correaltion matrix.
 
         To specify which correlation matrix to plot, specify the group value
@@ -935,9 +937,13 @@ class Analysis():
         if title is None:
             title = f'Correlation heatmap for group: {self._lc_groupby_labels} = {groupby_value}'
 
-        heatmap_plot(cor_dict=self.lc_cor_dict[groupby_value],
-                     title=title,
-                     heatmap_settings=self.settings.app['plot_settings']['correlation_heatmap'])
+        ax = heatmap_plot(cor_dict=self.lc_cor_dict[groupby_value],
+                          title=title,
+                          heatmap_settings=self.settings.app['plot_settings']['correlation_heatmap'])
+
+        if _return_ax:
+            return ax
+
 
     def plot_correlation_variation(self, title=None):
         """Create correlation scatter plot.
