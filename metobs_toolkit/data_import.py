@@ -250,11 +250,11 @@ def read_csv_template(file, data_long_format=True):
     templ = _read_csv_to_df(filepath=file,
                             kwargsdict={})
 
-    # Drop emty rows
-    templ = templ.dropna(axis="index", how="all")
-
     # Extract structure options from template
     templ, opt_kwargs = extract_options_from_template(templ)
+
+    # Drop emty rows
+    templ = templ.dropna(axis="index", how="all")
 
     if 'long_format' in opt_kwargs.keys():
         data_long_format = opt_kwargs['long_format']
