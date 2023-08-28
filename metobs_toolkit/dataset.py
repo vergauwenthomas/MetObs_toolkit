@@ -2211,7 +2211,11 @@ class Dataset:
                 stadf = groupdf[groupdf["name"] == sta]
                 # Drop all nan values! these will be added later from the outliersdf
                 stadf = stadf.set_index(["name", "datetime"])
-                stadf = stadf.dropna(axis=0, how="all")
+
+                # drop all records per statiotion for which there are no obsecvations
+                present_obs = [col for col in stadf.columns if col in observation_types]
+                stadf = stadf.loc[stadf[present_obs].dropna(axis=0, how='all').index]
+
                 stadf = stadf.reset_index()
 
                 mergedstadf = pd.merge_asof(
