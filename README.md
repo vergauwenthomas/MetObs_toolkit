@@ -21,7 +21,7 @@ In the context of a [FAIRNESS (COST action)](https://www.fairness-ca20108.eu/) s
 ## Installing the package
 Install the package by:
 
-`pip install metobs-toolkit`
+`pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git`
 
 ## Related
 * A graphical user interface for the MetObs-Toolkit: [MetObs_GUI](https://github.com/vergauwenthomas/MetObs_GUI)
