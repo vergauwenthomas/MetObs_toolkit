@@ -38,6 +38,19 @@ check_settings = {
             "max_increase_per_second": 8.0 / 3600.0,
             "max_decrease_per_second": -10.0 / 3600.0,
         }
+    },
+    "toolkit_buddy_check": {
+        "temp":{
+            'radius': 15000, #Search radius in meter
+            'num_min': 2, #	int		The minimum number of buddies a station can have
+            'threshold': 1.5, #	σ	the variance threshold for flagging a station
+            'max_elev_diff': 200, #	 m the maximum difference in elevation for a buddy (if negative will not check for heigh difference)
+            'elev_gradient': -0.0065, #	linear elevation gradient with height
+            'min_std': 1.0, # If the standard deviation of values in a neighborhood are less than min_std, min_std will be used instead
+
+            }
+
+
     }
 }
 
@@ -146,6 +159,10 @@ checks_info = {
         "numeric_flag": 8,
         "apply_on": "obstype",
     },
+    "toolkit_buddy_check": {
+        "outlier_flag": "tlk buddy check outlier",
+        "numeric_flag": 11,
+        "apply_on": "obstype"},
     "titan_buddy_check": {
         "outlier_flag": "buddy check outlier",
         "numeric_flag": 9,

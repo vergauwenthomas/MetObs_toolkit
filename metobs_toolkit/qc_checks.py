@@ -733,6 +733,141 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
 
     return points_dict
 
+# =============================================================================
+# Toolkit buddy check
+# =============================================================================
+
+
+
+
+def _calculate_distance_matrix(metadf, metric_epsg='31370'):
+    metric_metadf = metadf.to_crs(epsg=metric_epsg)
+    return metric_metadf.geometry.apply(lambda g: metric_metadf.geometry.distance(g))
+
+
+
+def _find_spatial_buddies(distance_df, buddy_radius):
+    """ Get neighbouring stations using buddy radius."""
+    buddies = {}
+    for refstation, distances in distance_df.iterrows():
+        bud_stations =distances[distances <= buddy_radius].index.to_list()
+        bud_stations.remove(refstation)
+        buddies[refstation] = bud_stations
+
+    return buddies
+
+
+
+
+# filter altitude buddies
+def _filter_to_altitude_buddies(spatial_buddies, metadf, max_altitude_diff):
+    """Filter neighbours by maximum altitude difference."""
+    alt_buddies_dict = {}
+    for refstation, buddylist in spatial_buddies.items():
+        alt_diff = abs((metadf.loc[buddylist, 'altitude']) - metadf.loc[refstation, 'altitude'])
+        alt_buddies = alt_diff[alt_diff <= max_altitude_diff].index.to_list()
+        alt_buddies_dict[refstation] = alt_buddies
+    return alt_buddies_dict
+
+
+
+
+
+def _filter_to_samplesize(buddydict, min_sample_size):
+    """Filter stations that are to isolated using minimum sample size."""
+    to_check_stations = {}
+    for refstation, buddies in buddydict.items():
+        if len(buddies) < min_sample_size:
+            # not enough buddies
+            to_check_stations[refstation] = []  # remove buddies
+        else:
+            to_check_stations[refstation] = buddies
+    return to_check_stations
+
+
+
+
+
+
+def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, max_alt_diff,
+                        min_std, std_threshold, outl_flag, metric_epsg='31370', lapserate=-0.0065):
+
+
+    outliers_idx = init_multiindex()
+
+    # Get spatial buddies for each station
+    distance_df = _calculate_distance_matrix(metadf=metadf,
+                                             metric_epsg=metric_epsg)
+    buddies = _find_spatial_buddies(distance_df=distance_df,
+                                    buddy_radius=buddy_radius)
+
+    # Filter by altitude difference
+    buddies = _filter_to_altitude_buddies(spatial_buddies=buddies,
+                                          metadf=metadf,
+                                          max_altitude_diff=max_alt_diff)
+
+    # Filter by samplesize
+    buddydict =_filter_to_samplesize(buddydict=buddies,
+                                     min_sample_size=min_sample_size)
+
+    # Apply buddy check station per station
+    for refstation, buddies in buddydict.items():
+        if len(buddies) == 0:
+            logger.debug(f'{refstation} has not enough suitable buddies.')
+            continue
+
+        # Get observations
+        buddies_obs = obsdf[obsdf.index.get_level_values('name').isin(buddies)][obstype]
+        # Unstack
+        buddies_obs = buddies_obs.unstack(level='name')
+        # Make lapsrate correction:
+        buddy_correction = (metadf.loc[buddies, 'altitude'] * lapserate).to_dict()
+        for bud in buddies_obs.columns:
+            buddies_obs[bud] = buddies_obs[bud] - buddy_correction[bud]
+
+        # calucalate std and mean row wise
+        buddies_obs['mean'] = buddies_obs.mean(axis=1)
+        buddies_obs['std'] = buddies_obs.std(axis=1)
+        buddies_obs['samplesize'] = buddies_obs.count(axis=1)
+        # replace where needed with min std
+        buddies_obs['std'] = buddies_obs['std'].where(cond=buddies_obs['std'] >= min_std,
+                                                      other=min_std)
+
+        # correct refstation for altitude
+        ref_obs = obsdf[obsdf.index.get_level_values('name') == refstation][obstype].unstack(level='name')
+        ref_obs = ref_obs - (metadf.loc[refstation, 'altitude'] * lapserate)
+
+        # left merge on buddies
+        buddies_obs = buddies_obs.merge(ref_obs,
+                                        how='left',
+                                        left_index=True,
+                                        right_index=True)
+        # Calculate sigma
+        buddies_obs['chi'] = (abs(buddies_obs['mean'] - buddies_obs[refstation])) / buddies_obs['std']
+
+        outliers = buddies_obs[(buddies_obs['chi'] > std_threshold) & (buddies_obs['samplesize'] >= min_sample_size)]
+
+        # to multiindex
+        outliers['name'] = refstation
+        outliers = outliers.reset_index().set_index(['name', 'datetime']).index
+        outliers_idx = outliers_idx.append(outliers)
+
+    # Update the outliers and replace the obsdf
+
+    obsdf, outlier_df = make_outlier_df_for_check(
+        station_dt_list=outliers_idx,
+        obsdf=obsdf,
+        obstype=obstype,
+        flag=outl_flag,
+    )
+
+    return obsdf, outlier_df
+
+
+
+# =============================================================================
+#
+# =============================================================================
 def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
 
     """

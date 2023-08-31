@@ -49,6 +49,7 @@ from metobs_toolkit.qc_checks import (
     step_check,
     window_variation_check,
     invalid_input_check,
+    toolkit_buddy_check,
     titan_buddy_check,
     titan_sct_resistant_check
 )
@@ -1552,6 +1553,88 @@ class Dataset:
         self._qc_checked_obstypes.append(obstype)
         self._qc_checked_obstypes = list(set(self._qc_checked_obstypes))
         self.outliersdf = self.outliersdf.sort_index()
+
+
+    def apply_toolkit_buddy_check(self, obstype='temp', use_constant_altitude=False,
+                                  metric_epsg='31370'):
+
+        logger.info("Applying the toolkit buddy check")
+
+        checkname = 'toolkit_buddy_check'
+
+        # 1. coordinates are available?
+        if self.metadf['lat'].isnull().any():
+            logger.warning(f'Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+        if self.metadf['lon'].isnull().any():
+            logger.warning(f'Not all coordinates are available, the {checkname} cannot be executed!')
+            return
+
+        # set constant altitude if needed:
+
+        # if altitude is already available, save it to restore it after this check
+        restore_altitude = False
+        if (use_constant_altitude):
+            if ('altitulde' in self.metadf.columns):
+                self.metadf['altitude_backup'] = self.metadf['altitude']
+                restore_altitude = True
+
+            self.metadf['altitude'] = 2.  # absolut value does not matter
+
+        # 2. altitude available?
+        if ((not use_constant_altitude) & ('altitude' not in self.metadf.columns)):
+            logger.warning(f'The altitude is not known for all stations. The {checkname} cannot be executed!')
+            logger.info('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.')
+            return
+        if ((not use_constant_altitude) & (self.metadf['altitude'].isnull().any())):
+            logger.warning(f'The altitude is not known for all stations. The {checkname} cannot be executed!')
+            logger.info('(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)')
+            return
+
+        apliable = _can_qc_be_applied(self, obstype, checkname)
+        if apliable:
+            buddy_set = self.settings.qc['qc_check_settings'][checkname][obstype]
+            outl_flag = self.settings.qc['qc_checks_info']['toolkit_buddy_check']['outlier_flag']
+            obsdf, outliersdf = toolkit_buddy_check(obsdf=self.df,
+                                                    metadf=self.metadf,
+                                                    obstype=obstype,
+                                                    buddy_radius=buddy_set['radius'],
+                                                    min_sample_size=buddy_set['num_min'],
+                                                    max_alt_diff=buddy_set['max_elev_diff'],
+                                                    min_std=buddy_set['min_std'],
+                                                    std_threshold=buddy_set['threshold'],
+                                                    metric_epsg=metric_epsg,
+                                                    lapserate=buddy_set['elev_gradient'],
+                                                    outl_flag=outl_flag)
+
+            # update the dataset and outliers
+            self.df = obsdf
+            if not outliersdf.empty:
+                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+
+            # add this check to the applied checks
+            self._applied_qc = pd.concat(
+                [
+                    self._applied_qc,
+                    conv_applied_qc_to_df(
+                        obstypes=obstype, ordered_checknames=checkname
+                    ),
+                ],
+                ignore_index=True,
+            )
+
+        else:
+            logger.warning(f'The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!')
+
+        # Revert artificial data that has been added if needed
+        if restore_altitude:  # altitude was overwritten, thus revert it
+            self.metadf['altitude'] = self.metadf["altitude_backup"]
+            self.metadf = self.metadf.drop(columns=['altitude_backup'])
+
+        elif (use_constant_altitude):
+            # when no alitude was available apriori, remove the fake constant altitude column
+            self.metadf = self.metadf.drop(columns=['altitude'])
+
 
     def apply_titan_buddy_check(self, obstype='temp', use_constant_altitude=False):
         """Apply the TITAN buddy check on the observations.
