@@ -61,6 +61,6 @@ jobs:
         run: |
           source .venv/bin/activate
           pip install pytest
-          pytest tests/push_test/import_test.py
+          python tests/push_test/import_test.py
 
 
