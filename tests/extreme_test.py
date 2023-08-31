@@ -39,8 +39,8 @@ def read_in_the_dataset(dataname, testdatadict):
     dataset = metobs_toolkit.Dataset()
     dataset.update_settings(input_data_file=datafile,
                             input_metadata_file=metafile,
-                            data_template_file=template,
-                            metadata_template_file=template)
+                            template_file=template,
+                            )
 
     dataset.import_data_from_file(**kwargsdict)
     return dataset
@@ -96,6 +96,7 @@ def qc_testing(dataset, name):
     # on get station
     stationname = dataset.metadf.index[0]
     station = dataset.get_station(stationname)
+
     station.apply_quality_control(obstype='temp')
     station.get_qc_stats(make_plot=False)
 

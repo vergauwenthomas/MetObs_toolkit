@@ -764,7 +764,7 @@ class Analysis():
             ax.set_ylabel(y_label)
             if horizontal_axis == 'hour':
                 # extract timezone
-                tzstring = self.df.index.get_level_values('datetime').tz.zone
+                tzstring = str(self.df.index.get_level_values('datetime').tz)
 
                 ax.xaxis.set_major_formatter('{x:.0f} h')
                 ax.set_xlabel(f'Hours (timezone: {tzstring})')

@@ -525,7 +525,7 @@ def apply_debias_era5_gapfill(
     gapfill_settings = dataset.settings.gap['gaps_fill_info']
 
     # Convert modeldata to the same timzone as the data
-    targettz = dataset.df.index.get_level_values('datetime').tz.zone
+    targettz =str(dataset.df.index.get_level_values('datetime').tz)
     eraModelData._conv_to_timezone(targettz)
 
     for gap in gapslist:
