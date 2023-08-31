@@ -1,32 +1,5 @@
-# name: Installation testing
-
-# on: [push]
-
-# jobs:
-#     build:
-#         runs-on: ${{ matrix.os }}
-#         strategy:
-#             fail-fast: false
-#             matrix:
-#                 os: [ubuntu-latest, windows-latest, macos-latest]
-#         steps:
-#           - uses: actions/checkout@v3
-#           - uses: actions/setup-python@v4
-#             with:
-#               python-version: '3.9'
-#               cache: 'poetry' # caching pip dependencies
-#           - run: poetry install
-#           - name: import test on ${{matrix.os}}
-#             run: |
-#                 cd tests
-#                 cd push_test
-#                 poetry run python import_test.py
-
-
 name: Installation testing
-
 on: [push]
-
 jobs:
   linting:
     runs-on: ubuntu-latest
@@ -100,13 +73,6 @@ jobs:
       #----------------------------------------------
       - name: Install library
         run: poetry install --no-interaction
-      #----------------------------------------------
-      #    add matrix specifics and run test suite
-      #----------------------------------------------
-      # - name: Install django ${{ matrix.django-version }}
-        # run: |
-          # source .venv/bin/activate
-          # pip install "Django==${{ matrix.django-version }}"
       - name: Run tests
         run: |
           source .venv/bin/activate
