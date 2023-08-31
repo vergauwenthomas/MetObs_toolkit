@@ -57,18 +57,5 @@ jobs:
           source .venv/bin/activate
           pip install pytest
           python tests/push_test/import_test.py
-  run-tests:
-    needs: test-os-installations
-      steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python
-          uses: actions/setup-python@v4
-          with:
-            python-version: ${{ matrix.python-version }}
-            #cache: 'poetry'
-        # You can test your matrix by printing the current Python version
-        - name: Display Python version
-          run: python -c "import sys; print(sys.version)"
-
 
 
