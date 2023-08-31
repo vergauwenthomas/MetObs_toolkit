@@ -245,6 +245,8 @@ class Missingob_collection:
 
         # Set index for df fill attribute
         self.fill_df = pd.DataFrame(index=missing_obsspace)
+        # localize timezone
+
 
 
         for staname, missingdt in missing_obsspace:
@@ -315,10 +317,7 @@ class Missingob_collection:
             The multiindex (name - datetime) is returned with the missing timestamps that are expexted in the observation space.
 
         """
-
-        missing_obsspace = pd.MultiIndex(
-            levels=[["name"], ["datetime"]], codes=[[], []], names=["name", "datetime"]
-        )
+        missing_obsspace_df = pd.DataFrame(data={'name':[], 'datetime': []})
 
         # per stationtion because stations can have different resolutions/timerange
         for sta in self.series.index.unique():
@@ -343,14 +342,13 @@ class Missingob_collection:
             # Convert to multiindex
             if sta_missing.empty:
                 continue
+            sta_missing_df = pd.DataFrame(data={'name': sta,
+                                                'datetime': sta_missing},
+                                          index=None).reset_index(drop=True)
 
-            sta_missing_idx = pd.MultiIndex.from_arrays(
-                arrays=[[sta] * len(sta_missing), sta_missing.to_numpy()],
-                names=["name", "datetime"],
-            )
+            missing_obsspace_df = pd.concat([missing_obsspace_df, sta_missing_df])
 
-            missing_obsspace = missing_obsspace.append(sta_missing_idx)
+        # convert to mulittindex
+        missing_obsspace_df = missing_obsspace_df.set_index(['name', 'datetime'])
 
-        return missing_obsspace
-
-
+        return missing_obsspace_df.index
