@@ -1,4 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/metobs-toolkit.svg)](https://badge.fury.io/py/metobs-toolkit)
+[![Installation testing](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/os_istall_test.yml/badge.svg?branch=dev)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/os_istall_test.yml)
+[![Test pushed version](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/master_test.yml/badge.svg?branch=dev)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/master_test.yml)
 
 <img src="https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/dev/docs/logo_small.jpeg" alt="drawing" style="width:200px;"/>
 
