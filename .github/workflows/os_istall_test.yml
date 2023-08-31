@@ -39,9 +39,6 @@ jobs:
         run: poetry install --no-interaction --no-root
       - name: Install library
         run: poetry install --no-interaction
-      - run: |
-          source $VENV
-          pytest --version
       - name: Run tests
         run: |
           source .venv/bin/activate
