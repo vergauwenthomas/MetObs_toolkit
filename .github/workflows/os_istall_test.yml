@@ -47,6 +47,5 @@ jobs:
         run: poetry install --no-interaction
       - name: Run tests
         run: |
-          source .venv/bin/activate
-          pip install pytest
+          source $VENV
           python tests/push_test/import_test.py
