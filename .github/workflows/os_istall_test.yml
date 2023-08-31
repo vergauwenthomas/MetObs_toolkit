@@ -23,9 +23,9 @@
 #                 poetry run python import_test.py
 
 
-name: test
+name: Installation testing
 
-on: pull_request
+on: [push]
 
 jobs:
   linting:
