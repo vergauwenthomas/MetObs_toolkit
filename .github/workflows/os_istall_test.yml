@@ -59,16 +59,6 @@ jobs:
           python tests/push_test/import_test.py
   run-tests:
     needs: test-os-installations
-    # build:
-    #   # runs-on: ${{ matrix.os }}
-    #   strategy:
-    #     # You can use PyPy versions in python-version.
-    #     # For example, pypy-2.7 and pypy-3.8
-    #     matrix:
-    #       python-version: ["3.9", "3.10"]
-    #       # os: [ubuntu-latest, windows-latest]
-    #       os: [ubuntu-latest]
-    #       node-version: [12.x]
       steps:
         - uses: actions/checkout@v3
         - name: Set up Python
