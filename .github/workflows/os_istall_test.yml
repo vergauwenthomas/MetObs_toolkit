@@ -10,25 +10,25 @@ jobs:
             matrix:
                 os: [ubuntu-latest, windows-latest, macos-latest]
         steps:
-            - name: Setup Python 3.9 on ${{matrix.os}}
-            - uses: actions/checkout@v3
-            - uses: actions/setup-python@v4
-              with:
-                  python-version: '3.9'
+          - uses: actions/checkout@v3
+          - name: Setup Python 3.9 on ${{matrix.os}}
+            uses: actions/setup-python@v4
+            with:
+              python-version: '3.9'
 
-            - name: PyPi install on ${{matrix.os}}
-              run: python pip install metobs-toolkit
-            - name: install this branch-version on ${{matrix.os}}
-              run: |
-                  pip install poetry
-                  poetry update
-                  poetry install --all-extras
-                  poetry build
-            - name: import test on ${{matrix.os}}
-              run: |
-                  cd tests
-                  cd push_test
-                  poetry run python import_test.py
+          - name: PyPi install on ${{matrix.os}}
+            run: python pip install metobs-toolkit
+          - name: install this branch-version on ${{matrix.os}}
+            run: |
+                pip install poetry
+                poetry update
+                poetry install --all-extras
+                poetry build
+          - name: import test on ${{matrix.os}}
+            run: |
+                cd tests
+                cd push_test
+                poetry run python import_test.py
 
 
 
