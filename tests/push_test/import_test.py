@@ -14,3 +14,6 @@ from pathlib import Path
 lib_folder = Path(__file__).resolve().parents[2]
 
 import metobs_toolkit
+
+
+print(f'Succesfull import of the metobs_toolkit version: {metobs_toolkit.__version__}')

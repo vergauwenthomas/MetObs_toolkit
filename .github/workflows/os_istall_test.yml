@@ -1,13 +1,17 @@
 name: Installation testing
 
-on: push
+on:
+  push:
+    branches:
+      - master
+      - dev
 
 jobs:
   test-os-installations:
     strategy:
       fail-fast: true
       matrix:
-        os: [ "windows-latest" ]
+        os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
         python-version: ["3.9", "3.10"]
     defaults:
       run:
