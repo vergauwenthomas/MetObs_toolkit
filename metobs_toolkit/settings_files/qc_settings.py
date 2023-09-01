@@ -160,11 +160,11 @@ checks_info = {
         "apply_on": "obstype",
     },
     "buddy_check": {
-        "outlier_flag": "tlk buddy check outlier",
+        "outlier_flag": "buddy check outlier",
         "numeric_flag": 11,
         "apply_on": "obstype"},
     "titan_buddy_check": {
-        "outlier_flag": "buddy check outlier",
+        "outlier_flag": "titan buddy check outlier",
         "numeric_flag": 9,
         "apply_on": "obstype",
     },

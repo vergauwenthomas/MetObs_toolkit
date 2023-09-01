@@ -1626,7 +1626,7 @@ class Dataset:
         apliable = _can_qc_be_applied(self, obstype, checkname)
         if apliable:
             buddy_set = self.settings.qc['qc_check_settings'][checkname][obstype]
-            outl_flag = self.settings.qc['qc_checks_info']['toolkit_buddy_check']['outlier_flag']
+            outl_flag = self.settings.qc['qc_checks_info'][checkname]['outlier_flag']
             obsdf, outliersdf = toolkit_buddy_check(obsdf=self.df,
                                                     metadf=self.metadf,
                                                     obstype=obstype,
