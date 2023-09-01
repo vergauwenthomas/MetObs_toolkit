@@ -745,18 +745,15 @@ def _calculate_distance_matrix(metadf, metric_epsg='31370'):
     return metric_metadf.geometry.apply(lambda g: metric_metadf.geometry.distance(g))
 
 
-
 def _find_spatial_buddies(distance_df, buddy_radius):
-    """ Get neighbouring stations using buddy radius."""
+    """Get neighbouring stations using buddy radius."""
     buddies = {}
     for refstation, distances in distance_df.iterrows():
-        bud_stations =distances[distances <= buddy_radius].index.to_list()
+        bud_stations = distances[distances <= buddy_radius].index.to_list()
         bud_stations.remove(refstation)
         buddies[refstation] = bud_stations
 
     return buddies
-
-
 
 
 # filter altitude buddies
@@ -768,9 +765,6 @@ def _filter_to_altitude_buddies(spatial_buddies, metadf, max_altitude_diff):
         alt_buddies = alt_diff[alt_diff <= max_altitude_diff].index.to_list()
         alt_buddies_dict[refstation] = alt_buddies
     return alt_buddies_dict
-
-
-
 
 
 def _filter_to_samplesize(buddydict, min_sample_size):
@@ -785,14 +779,68 @@ def _filter_to_samplesize(buddydict, min_sample_size):
     return to_check_stations
 
 
-
-
-
-
 def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, max_alt_diff,
                         min_std, std_threshold, outl_flag, metric_epsg='31370', lapserate=-0.0065):
+    """Spatial buddy check.
+
+    The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
+    buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
+    (absolute value of the) difference between the observations and the average of the neighbours
+    normalized by the standard deviation in the circle is greater than a predefined threshold.
+
+    obsdf: Pandas.DataFrame
+        The dataframe containing the observations
+
+    metadf: Pandas.DataFrame
+        The dataframe containing the metadata (e.g. latitude, longitude...)
+
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'
+
+    checks_info: Dictionary
+        Dictionary with the names of the outlier flags for each check
+
+    checks_settings: Dictionary
+        Dictionary with the settings for each check
+
+    titan_specific_labeler: Dictionary
+        Dictionary that maps numeric flags to 'ok' or 'outlier' flags for each titan check
 
 
+    Parameters
+    ----------
+    obsdf: Pandas.DataFrame
+        The dataframe containing the observations
+    metadf: Pandas.DataFrame
+        The dataframe containing the metadata (e.g. latitude, longitude...)
+     obstype: String, optional
+         The observation type that has to be checked. The default is 'temp'
+    buddy_radius : numeric
+        The radius to define neighbours in meters.
+    min_sample_size : int
+        The minimum sample size to calculate statistics on.
+    max_alt_diff : numeric
+        The maximum altitude difference allowd for buddies.
+    min_std : numeric
+        The minimum standard deviation for sample statistics. This should
+        represent the accuracty of the observations.
+    std_threshold : numeric
+        The threshold (std units) for flaggging observations as outliers.
+    outl_flag : str
+        Label to give to the outliers.
+    metric_epsg : str, optional
+        EPSG code for the metric CRS to calculate distances in. The default is '31370' (which is suitable for Belgium).
+    lapserate : numeric, optional
+        Describes how the obstype changes with altitude (in meters). The default is -0.0065.
+
+    Returns
+    -------
+    obsdf: Pandas.DataFrame
+        The dataframe containing the unflagged-observations
+    outlier_df : Pandas.DataFrame
+        The dataframe containing the flagged observations
+
+    """
     outliers_idx = init_multiindex()
 
     # Get spatial buddies for each station
@@ -863,7 +911,6 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
         outliers_idx = outliers_idx.append(outliers)
 
     # Update the outliers and replace the obsdf
-
     obsdf, outlier_df = make_outlier_df_for_check(
         station_dt_list=outliers_idx,
         obsdf=obsdf,

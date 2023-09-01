@@ -1555,8 +1555,40 @@ class Dataset:
         self.outliersdf = self.outliersdf.sort_index()
 
 
-    def apply_toolkit_buddy_check(self, obstype='temp', use_constant_altitude=False,
-                                  metric_epsg='31370'):
+    def apply_buddy_check(self, obstype='temp', use_constant_altitude=False,
+                          metric_epsg='31370'):
+        """Apply the buddy check on the observations.
+
+        The buddy check compares an observation against its neighbours (i.e.
+        buddies). The check looks for buddies in a neighbourhood specified by
+        a certain radius. The buddy check flags observations if the
+        (absolute value of the) difference between the observations and the
+        average of the neighbours normalized by the standard deviation in the
+        circle is greater than a predefined threshold.
+
+        This check is based on the buddy check from titanlib. Documentation on
+        the titanlib buddy check can be found
+        `here <https://github.com/metno/titanlib/wiki/Buddy-check>`_.
+
+
+        The observation and outliers attributes will be updated accordingly.
+
+        Parameters
+        ----------
+        obstype : String, optional
+            Name of the observationtype you want to apply the checks on. The
+            default is 'temp'.
+        use_constant_altitude : bool, optional
+            Use a constant altitude for all stations. The default is False.
+        metric_epsg : str, optional
+            EPSG code for a metric CRS to calculate distances in. The default
+            is '31370' which is percise for the region of Belgium.
+
+        Returns
+        -------
+        None.
+
+        """
 
         logger.info("Applying the toolkit buddy check")
 
