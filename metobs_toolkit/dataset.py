@@ -1592,7 +1592,7 @@ class Dataset:
 
         logger.info("Applying the toolkit buddy check")
 
-        checkname = 'toolkit_buddy_check'
+        checkname = 'buddy_check'
 
         # 1. coordinates are available?
         if self.metadf['lat'].isnull().any():

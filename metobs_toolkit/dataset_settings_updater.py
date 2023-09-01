@@ -191,7 +191,13 @@ class Dataset(dataset.Dataset):
                            win_var_time_win_to_check=None,
                            win_var_min_num_obs=None,
                            step_max_increase_per_sec=None,
-                           step_max_decrease_per_sec=None):
+                           step_max_decrease_per_sec=None,
+                           buddy_radius=None,
+                           buddy_min_sample_size=None,
+                           buddy_max_elev_diff=None,
+                           buddy_min_std=None,
+                           buddy_threshold=None,
+                           buddy_elev_gradient=None):
         """Update the QC settings for the specified observation type.
 
         If a argument value is None, the default settings will not be updated.
@@ -228,6 +234,23 @@ class Dataset(dataset.Dataset):
             Maximal increase per second for step check. The default is None.
         step_max_decrease_per_sec : numeric (< 0), optional
             Maximal decrease per second for step check. The default is None.
+        buddy_radius : numeric (> 0), optional
+            The radius to define neighbours in meters. The default is None.
+        buddy_min_sample_size : int (> 2), optional
+            The minimum sample size to calculate statistics on. The default is
+            None.
+        buddy_max_elev_diff : numeric (> 0), optional
+            The maximum altitude difference allowed for buddies. The default is
+            None.
+        buddy_min_std : numeric (> 0), optional
+            The minimum standard deviation for sample statistics. This should
+            represent the accuracty of the observations. The default is None.
+        buddy_threshold : numeric (> 0), optional
+            The threshold (std units) for flaggging observations as buddy
+            outliers. The default is None.
+        buddy_elev_gradient : numeric, optional
+            Describes how the obstype changes with altitude (in meters). The
+            default is -0.0065. The default is None.
 
         Returns
         -------
@@ -370,6 +393,61 @@ class Dataset(dataset.Dataset):
                 value=-1.0 * abs(float(step_max_decrease_per_sec)))
 
             logger.info(f'Maximal decrease per second for step check updated: {updatestr}')
+
+        # Buddy check
+        buddy_elev_gradient=None
+        if buddy_radius is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="radius",
+                value=abs(float(buddy_radius)))
+            logger.info(f'Buddy radius for buddy check updated: {updatestr}')
+
+        if buddy_min_sample_size is not None:
+            value = abs(int(buddy_min_sample_size))
+            if value >= 2:
+                self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                    self.settings.qc['qc_check_settings']["buddy_check"],
+                    obstype=obstype,
+                    argname="num_min",
+                    value=value)
+                logger.info(f'Minimum number of buddies for buddy check updated: {updatestr}')
+            else:
+                logger.warning(f'Minimum number of buddies must be >= 2, but {value} is given. Not updated.')
+
+        if buddy_max_elev_diff is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="max_elev_diff",
+                value=abs(float(buddy_max_elev_diff)))
+            logger.info(f'Max elevation differences for buddy check updated: {updatestr}')
+
+        if buddy_min_std is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="min_std",
+                value=abs(float(buddy_min_std)))
+            logger.info(f'Minimum std in sample for buddy check updated: {updatestr}')
+
+        if buddy_threshold is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="threshold",
+                value=abs(float(buddy_threshold)))
+            logger.info(f'Outlier threshold (in sigma) for buddy check updated: {updatestr}')
+
+        if buddy_elev_gradient is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="elev_gradient",
+                value=float(buddy_max_elev_diff))
+            logger.info(f'Elevation gradient for buddy check updated: {updatestr}')
+
 
     def update_titan_qc_settings(self, obstype='temp',
                                  # buddy settings

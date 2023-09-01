@@ -820,7 +820,7 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
     min_sample_size : int
         The minimum sample size to calculate statistics on.
     max_alt_diff : numeric
-        The maximum altitude difference allowd for buddies.
+        The maximum altitude difference allowed for buddies.
     min_std : numeric
         The minimum standard deviation for sample statistics. This should
         represent the accuracty of the observations.

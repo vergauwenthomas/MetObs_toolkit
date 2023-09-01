@@ -39,7 +39,7 @@ check_settings = {
             "max_decrease_per_second": -10.0 / 3600.0,
         }
     },
-    "toolkit_buddy_check": {
+    "buddy_check": {
         "temp":{
             'radius': 15000, #Search radius in meter
             'num_min': 2, #	int		The minimum number of buddies a station can have
@@ -159,7 +159,7 @@ checks_info = {
         "numeric_flag": 8,
         "apply_on": "obstype",
     },
-    "toolkit_buddy_check": {
+    "buddy_check": {
         "outlier_flag": "tlk buddy check outlier",
         "numeric_flag": 11,
         "apply_on": "obstype"},
