@@ -820,32 +820,42 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
         buddies_obs = obsdf[obsdf.index.get_level_values('name').isin(buddies)][obstype]
         # Unstack
         buddies_obs = buddies_obs.unstack(level='name')
+
         # Make lapsrate correction:
-        buddy_correction = (metadf.loc[buddies, 'altitude'] * lapserate).to_dict()
+        ref_alt = metadf.loc[refstation, 'altitude']
+        buddy_correction = ((metadf.loc[buddies, 'altitude'] - ref_alt) * (-1. * lapserate)).to_dict()
         for bud in buddies_obs.columns:
             buddies_obs[bud] = buddies_obs[bud] - buddy_correction[bud]
 
         # calucalate std and mean row wise
-        buddies_obs['mean'] = buddies_obs.mean(axis=1)
-        buddies_obs['std'] = buddies_obs.std(axis=1)
-        buddies_obs['samplesize'] = buddies_obs.count(axis=1)
+        buddies_obs['mean'] = buddies_obs[buddies].mean(axis=1)
+        buddies_obs['std'] = buddies_obs[buddies].std(axis=1)
+        buddies_obs['samplesize'] = buddies_obs[buddies].count(axis=1)
+
+        # from titan they use std adjust which is float std_adjusted = sqrt(variance + variance / n_buddies);
+        # This is not used
+        # buddies_obs['var'] = buddies_obs[buddies].var(axis=1)
+        # buddies_obs['std_adj'] =np.sqrt(buddies_obs['var'] + buddies_obs['var']/buddies_obs['samplesize'])
+
+
         # replace where needed with min std
         buddies_obs['std'] = buddies_obs['std'].where(cond=buddies_obs['std'] >= min_std,
                                                       other=min_std)
 
-        # correct refstation for altitude
+        # Get refstation observations and merge
         ref_obs = obsdf[obsdf.index.get_level_values('name') == refstation][obstype].unstack(level='name')
-        ref_obs = ref_obs - (metadf.loc[refstation, 'altitude'] * lapserate)
-
-        # left merge on buddies
         buddies_obs = buddies_obs.merge(ref_obs,
-                                        how='left',
+                                        how='left', #both not needed because if right, than there is no buddy sample per definition.
                                         left_index=True,
                                         right_index=True)
         # Calculate sigma
         buddies_obs['chi'] = (abs(buddies_obs['mean'] - buddies_obs[refstation])) / buddies_obs['std']
 
         outliers = buddies_obs[(buddies_obs['chi'] > std_threshold) & (buddies_obs['samplesize'] >= min_sample_size)]
+
+        logger.debug(f' Buddy outlier details for {refstation}: \n {buddies}')
+        # NOTE: the outliers (above) can be interesting to pass back to the dataset??
+
 
         # to multiindex
         outliers['name'] = refstation
