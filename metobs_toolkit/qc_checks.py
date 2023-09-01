@@ -737,7 +737,34 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
 # Toolkit buddy check
 # =============================================================================
 
+def _calculate_distance_matrix_with_haverine(metadf):
+    from math import radians, cos, sin, asin, sqrt
 
+    def haversine(lon1, lat1, lon2, lat2):
+        """
+        Calculate the great circle distance between two points
+        on the earth (specified in decimal degrees)
+        """
+        # convert decimal degrees to radians
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+        # haversine formula
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a))
+        r = 6367000 # Radius of earth in meter.
+        return c * r
+
+    distance_matrix = {}
+    for sta1, row1 in metadf.iterrows():
+        distance_matrix[sta1] = {}
+        for sta2, row2 in metadf.iterrows():
+            distance_matrix[sta1][sta2] = haversine(row1.geometry.x,
+                                                    row1.geometry.y,
+                                                    row2.geometry.x,
+                                                    row2.geometry.y)
+    return pd.DataFrame(distance_matrix)
 
 
 def _calculate_distance_matrix(metadf, metric_epsg='31370'):
@@ -780,7 +807,7 @@ def _filter_to_samplesize(buddydict, min_sample_size):
 
 
 def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, max_alt_diff,
-                        min_std, std_threshold, outl_flag, metric_epsg='31370', lapserate=-0.0065):
+                        min_std, std_threshold, outl_flag, haversine_approx=True, metric_epsg='31370', lapserate=-0.0065):
     """Spatial buddy check.
 
     The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
@@ -828,8 +855,14 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
         The threshold (std units) for flaggging observations as outliers.
     outl_flag : str
         Label to give to the outliers.
+    haversine_approx : bool, optional
+        Use the haversine approximation (earth is a sphere) to calculate
+        distances between stations. The default is True.
     metric_epsg : str, optional
-        EPSG code for the metric CRS to calculate distances in. The default is '31370' (which is suitable for Belgium).
+        EPSG code for the metric CRS to calculate distances in. Only used when
+        haversine approximation is set to False. Thus becoming a better
+        distance approximation but not global applicable The default is '31370'
+        (which is suitable for Belgium).
     lapserate : numeric, optional
         Describes how the obstype changes with altitude (in meters). The default is -0.0065.
 
@@ -844,7 +877,10 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
     outliers_idx = init_multiindex()
 
     # Get spatial buddies for each station
-    distance_df = _calculate_distance_matrix(metadf=metadf,
+    if haversine_approx:
+        distance_df = _calculate_distance_matrix_with_haverine(metadf=metadf)
+    else:
+        distance_df = _calculate_distance_matrix(metadf=metadf,
                                              metric_epsg=metric_epsg)
     buddies = _find_spatial_buddies(distance_df=distance_df,
                                     buddy_radius=buddy_radius)

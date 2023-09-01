@@ -1556,7 +1556,7 @@ class Dataset:
 
 
     def apply_buddy_check(self, obstype='temp', use_constant_altitude=False,
-                          metric_epsg='31370'):
+                          haversine_approx=True, metric_epsg='31370'):
         """Apply the buddy check on the observations.
 
         The buddy check compares an observation against its neighbours (i.e.
@@ -1580,9 +1580,14 @@ class Dataset:
             default is 'temp'.
         use_constant_altitude : bool, optional
             Use a constant altitude for all stations. The default is False.
+        haversine_approx : bool, optional
+            Use the haversine approximation (earth is a sphere) to calculate
+            distances between stations. The default is True.
         metric_epsg : str, optional
-            EPSG code for a metric CRS to calculate distances in. The default
-            is '31370' which is percise for the region of Belgium.
+            EPSG code for the metric CRS to calculate distances in. Only used when
+            haversine approximation is set to False. Thus becoming a better
+            distance approximation but not global applicable The default is '31370'
+            (which is suitable for Belgium).
 
         Returns
         -------
@@ -1637,7 +1642,9 @@ class Dataset:
                                                     std_threshold=buddy_set['threshold'],
                                                     metric_epsg=metric_epsg,
                                                     lapserate=buddy_set['elev_gradient'],
-                                                    outl_flag=outl_flag)
+                                                    outl_flag=outl_flag,
+                                                    haversine_approx=haversine_approx,
+                                                    )
 
             # update the dataset and outliers
             self.df = obsdf
