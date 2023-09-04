@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar  2 15:30:55 2023
+Module with functions for writing csv files.
 
 @author: thoverga
 """
-# --
+
 import os
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def write_dataset_to_csv(
-    df, metadf, filename, outputfolder, location_info, seperate_metadata_file,
-):
-    """
+def write_dataset_to_csv(df, metadf, filename, outputfolder,
+                         location_info, seperate_metadata_file):
+    """Write a dataset to a csv files.
+
     Write the dataset to a file where the observations, metadata and (if available)
     the quality labels per observation type are merged together.
 
@@ -40,15 +40,10 @@ def write_dataset_to_csv(
     None
 
     """
-
-
-
     df = df.reset_index()
-
 
     # find metadata that are not present
     ignore_metadat = [col for col in location_info if metadf[col].isnull().all()]
-
 
     if not seperate_metadata_file:
         # merge metadata
@@ -61,9 +56,6 @@ def write_dataset_to_csv(
         logger.info(f"write metadata to file: {metadatafile}")
         print(f"write metadata to file: {metadatafile}")
         metadf.to_csv(path_or_buf=metadatafile, sep=";", na_rep="NaN", index=False)
-
-
-
 
     df = df.sort_values(["name", "datetime"])
 
