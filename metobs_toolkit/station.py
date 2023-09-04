@@ -11,21 +11,12 @@ from metobs_toolkit import dataset
 
 
 class Station(dataset.Dataset):
-    def __init__(
-        self,
-        name,
-        df,
-        outliersdf,
-        gaps,
-        missing_obs,
-        gapfilldf,
-        missing_fill_df,
-        metadf,
-        data_template,
-        settings,
-        _qc_checked_obstypes,
-        _applied_qc,
-    ):
+    """A class holding all information of one station. Inherit all from Dataset."""
+
+    def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
+                 missing_fill_df, metadf, data_template, settings,
+                 _qc_checked_obstypes, _applied_qc):
+        """Initiate the Station object."""
         self.name = name
         self.df = df
         self.outliersdf = outliersdf
