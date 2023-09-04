@@ -757,7 +757,6 @@ class Analysis():
                             title=title,
                             plot_settings=self.settings.app['plot_settings']['diurnal'],
                             aggregation=aggregation,
-                            lcz_dict=None,
                             data_template=self.data_template,
                             obstype=obstype,
                             y_label=y_label,
