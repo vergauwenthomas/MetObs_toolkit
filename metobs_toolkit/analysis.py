@@ -12,7 +12,7 @@ import logging
 import copy
 from scipy.stats import pearsonr
 
-from metobs_toolkit.plotting_functions import (diurnal_plot,
+from metobs_toolkit.plotting_functions import (cycle_plot,
                                                heatmap_plot,
                                                correlation_scatter)
 
@@ -27,6 +27,7 @@ class Analysis():
     """The Analysis class contains methods for analysing observations."""
 
     def __init__(self, obsdf, metadf, settings, data_template):
+        """Initialize an Analysis."""
         self.df = obsdf
         self.metadf = metadf
         self.settings = settings
@@ -38,6 +39,7 @@ class Analysis():
         self._lc_groupby_labels = None
 
     def __str__(self):
+        """Print a overview of the analysis."""
         if self.df.empty:
             return "Empty Analysis instance."
         add_info = ''
@@ -64,6 +66,7 @@ class Analysis():
     *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt})" + add_info)
 
     def __repr__(self):
+        """Print a overview of the analysis."""
         return self.__str__()
 
     # =============================================================================
@@ -749,17 +752,17 @@ class Analysis():
                 stddf = None
 
             # Make plot
-            ax = diurnal_plot(diurnaldf=values_df,
-                              errorbandsdf=stddf,
-                              title=title,
-                              plot_settings=self.settings.app['plot_settings']['diurnal'],
-                              aggregation=aggregation,
-                              lcz_dict=None,
-                              data_template=self.data_template,
-                              obstype=obstype,
-                              y_label=y_label,
-                              legend=legend,
-                              show_zero_horizontal=_show_zero_line)
+            ax = cycle_plot(cycle_df=values_df,
+                            errorbandsdf=stddf,
+                            title=title,
+                            plot_settings=self.settings.app['plot_settings']['diurnal'],
+                            aggregation=aggregation,
+                            lcz_dict=None,
+                            data_template=self.data_template,
+                            obstype=obstype,
+                            y_label=y_label,
+                            legend=legend,
+                            show_zero_horizontal=_show_zero_line)
 
             ax.set_ylabel(y_label)
             if horizontal_axis == 'hour':
