@@ -12,11 +12,9 @@ import numpy as np
 import logging
 
 
-
 from metobs_toolkit.df_helpers import (
     init_multiindex,
     init_multiindexdf,
-    init_triple_multiindexdf,
     xs_save
 )
 
@@ -34,11 +32,10 @@ except ModuleNotFoundError:
 # =============================================================================
 
 
-def make_outlier_df_for_check(
-    station_dt_list, obsdf, obstype, flag, stationname=None, datetimelist=None
-):
-    """
-    V5
+def make_outlier_df_for_check(station_dt_list, obsdf, obstype, flag,
+                              stationname=None, datetimelist=None):
+    """Construct obsdf and outliersdf from a list of outlier timestamps.
+
     Helper function to create an outlier dataframe for the given station(s) and datetimes. This will be returned by
     a quality control check and later added to the dastes.outlierdf.
 
@@ -47,27 +44,27 @@ def make_outlier_df_for_check(
     A multiindex dataframe with the relevant observationtypes i.e. the values_in_dict and a specific quality flag column (i.g. the labels) is returned.
 
     Parameters
-
+    ------------
     station_dt_list : MultiIndex or list of tuples: (name, datetime)
         The stations with corresponding datetimes that are labeled as outliers.
-    values_in_dict : Dictionary
-        A Dictionary {columnname: pd.Series()} with the values on which this check is applied.
-    flagcolumnname : String
-        Name of the labels column
+    obsdf : pandas.DataFrame
+        The observations dataframe to update.
+    obstype : str
+        The observation type of the outliers.
     flag : String
-        The label for all the outliers.
+        The label for the outliers.
     stationname : String, optional
         It is possible to give the name of one station. The default is None.
     datetimelist : DatetimeIndex or List, optional
         The outlier timestamps for the stationname. The default is None.
 
     Returns
-
-    check_outliers : pd.Dataframe
-        A multiindex (name -- datetime) datatframe with one column (columname) and all
-        values are the flag.
+    ----------
+    obsdf : pandas.DataFrame
+        The updated observations dataframe.
+     outliersdf : pandas.DataFrame
+         The updated outliers dataframe.
     """
-
     if isinstance(station_dt_list, pd.MultiIndex):
         multi_idx = station_dt_list
 
@@ -112,13 +109,30 @@ def make_outlier_df_for_check(
 
 
 def invalid_input_check(df, checks_info):
+    """Test if values are numeric and not Nan.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The observations to check the values for. Must contain a column 'name'.
+    checks_info : dict
+        Specific settings for the invalid check test.
+
+    Returns
+    -------
+    df : pandas.DataFrame
+        The observations with NaN values at the location of invalid input.
+    outl_df : pandas.DataFrame
+        The updated outliersdf.
+
+    """
     checkname = "invalid_input"
 
     # fast scan wich stations and obstypes have nan outliers
     groups = (
         df.reset_index()
         .groupby("name")
-        .apply(lambda x: (np.isnan(x).any()) & (np.isnan(x).all() == False))
+        .apply(lambda x: (np.isnan(x).any()) & (np.isnan(x).all() is False))
     )
 
     # extract all obstype that have outliers
@@ -160,22 +174,26 @@ def invalid_input_check(df, checks_info):
 
 
 def duplicate_timestamp_check(df, checks_info, checks_settings):
-    """
-    V3
+    """Test for duplicate timestamps in the observations.
+
     Looking for duplcate timestaps per station. Duplicated records are removed by the method specified in the qc_settings.
 
     Parameters
-
+    ------------
     df : pandas.DataFrame
         The observations dataframe of the dataset object (Dataset.df)
+    checks_info : dict
+        The specific info (outlier labels) for quality control.
+    checks_settings : dict
+        The dictionary containing the settings for the quality control checks.
 
     Returns
-
+    ----------
     df : pandas.DataFrame()
         The observations dataframe updated for duplicate timestamps. Duplicated timestamps are removed.
-
+    outl_df : pandas.DataFrame
+        The updated outliersdf.
     """
-
     checkname = "duplicated_timestamp"
 
     duplicates = pd.Series(
@@ -231,28 +249,31 @@ def duplicate_timestamp_check(df, checks_info, checks_settings):
 
 
 def gross_value_check(obsdf, obstype, checks_info, checks_settings):
-    """
+    """Filter out gross outliers from the observations.
+
     Looking for values of an observation type that are not physical. These values are labeled and the physical limits are specified in the qc_settings.
 
     Parameters
-
-    input_series : pandas.Series
-        The observations series of the dataset object
-
-    obstype: String, optional
-        The observation type that has to be checked. The default is 'temp'.
+    ------------
+    df : pandas.DataFrame
+        The observations dataframe of the dataset object (Dataset.df)
+    obstype : str
+        The observation type to check for outliers.
+    checks_info : dict
+        The specific info (outlier labels) for quality control.
+    checks_settings : dict
+        The dictionary containing the settings for the quality control checks.
 
 
     Returns
-
-    updated_obs_series : pandas.Series
-        The observations series updated for this check. Observations that didn't pass are removed.
-
-    outlier_df : pandas.DataFrame
-        The collection of records flagged as outliers by this check.
+    ----------
+    obsdf : pandas.DataFrame()
+        The observations dataframe updated for gross values. These are
+        represented by Nan values.
+    outl_df : pandas.DataFrame
+        The updated outliersdf.
 
     """
-
     checkname = "gross_value"
 
     try:
@@ -283,35 +304,38 @@ def gross_value_check(obsdf, obstype, checks_info, checks_settings):
     return obsdf, outlier_df
 
 
-def persistance_check(
-    station_frequencies, obsdf, obstype, checks_info, checks_settings
-):
-    """
-    V3
+def persistance_check(station_frequencies, obsdf, obstype, checks_info, checks_settings):
+    """Test observations to change over a specific period.
+
     Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
 
     In order to perform this check, at least N observations chould be in that time window.
 
 
     Parameters
+    ------------
+    station_frequencies : pandas.Series
+        The frecuencies of all the stations. This is a column in the metadf
+        attribute of the Dataset.
+    obsdf : pandas.DataFrame
+        The observations dataframe of the dataset object (Dataset.df)
+    obstype : str
+        The observation type to check for outliers.
+    checks_info : dict
+        The specific info (outlier labels) for quality control.
+    checks_settings : dict
+        The dictionary containing the settings for the quality control checks.
 
-    input_series : pandas.Series
-        The observations series of the dataset object
 
-    obstype: String, optional
-        The observation type that has to be checked. The default is 'temp'.
-
-
-        Returns
-
-        updated_obs_series : pandas.Series
-            The observations series updated for this check. Observations that didn't pass are removed.
-
-        outlier_df : pandas.DataFrame
-            The collection of records flagged as outliers by this check.
+    Returns
+    ----------
+    obsdf : pandas.DataFrame()
+        The observations dataframe updated for persistance outliers. These are
+        represented by Nan values.
+    outl_df : pandas.DataFrame
+        The updated outliersdf.
 
     """
-
     checkname = "persistance"
 
     try:
@@ -327,7 +351,7 @@ def persistance_check(
         < specific_settings["min_num_obs"]
     )
     invalid_stations = list(
-        invalid_windows_check_df[invalid_windows_check_df == True].index
+        invalid_windows_check_df[invalid_windows_check_df is True].index
     )
     if bool(invalid_stations):
         logger.warning(
@@ -363,7 +387,7 @@ def persistance_check(
         )
 
         list_of_outliers = []
-        outl_obs = window_output.loc[window_output[obstype] == True].index
+        outl_obs = window_output.loc[window_output[obstype] is True].index
         for outlier in outl_obs:
             outliers_list = get_outliers_in_daterange(
                 input_series,
@@ -396,29 +420,33 @@ def persistance_check(
 
 
 def repetitions_check(obsdf, obstype, checks_info, checks_settings):
-    """
-    Looking for values of an observation type that are repeated at least with the frequency specified in the qc_settings. These values are labeled.
+    """Test if observation change after a number of records.
+
+    Looking for values of an observation type that are repeated at least with
+    the frequency specified in the qc_settings. These values are labeled.
 
     Parameters
-
-    input_series : pandas.Series
-        The observations series of the dataset object
-
-    obstype: String, optional
-        The observation type that has to be checked. The default is 'temp'.
+    ------------
+    obsdf : pandas.DataFrame
+        The observations dataframe of the dataset object (Dataset.df)
+    obstype : str
+        The observation type to check for outliers.
+    checks_info : dict
+        The specific info (outlier labels) for quality control.
+    checks_settings : dict
+        The dictionary containing the settings for the quality control checks.
 
 
     Returns
-
-    updated_obs_series : pandas.Series
-        The observations series updated for this check. Observations that didn't pass are removed.
-
-    outlier_df : pandas.DataFrame
-        The collection of records flagged as outliers by this check.
+    ----------
+    obsdf : pandas.DataFrame()
+        The observations dataframe updated for repetitions outliers. These are
+        represented by Nan values.
+    outl_df : pandas.DataFrame
+        The updated outliersdf.
 
 
     """
-
     checkname = "repetitions"
 
     try:
@@ -467,31 +495,34 @@ def repetitions_check(obsdf, obstype, checks_info, checks_settings):
 
 
 def step_check(obsdf, obstype, checks_info, checks_settings):
-    """
+    """Test if observations do not produces spikes in timeseries.
 
-    V3
-    Looking for jumps of the values of an observation type that are larger than the limit specified in the qc_settings. These values are removed from
-    the input series and combined in the outlier df.
+    Looking for jumps of the values of an observation type that are larger than
+    the limit specified in the qc_settings. These values are removed from the
+    input series and combined in the outlier df.
 
-    The purpose of this check is to flag observations with a value that is too much different compared to the previous (not flagged) recorded value.
+    The purpose of this check is to flag observations with a value that is too
+    much different compared to the previous (not flagged) recorded value.
 
     Parameters
+    ------------
+    obsdf : pandas.DataFrame
+        The observations dataframe of the dataset object (Dataset.df)
+    obstype : str
+        The observation type to check for outliers.
+    checks_info : dict
+        The specific info (outlier labels) for quality control.
+    checks_settings : dict
+        The dictionary containing the settings for the quality control checks.
 
-    input_series : pandas.Series
-        The observations series of the dataset object
 
-    obstype: String, optional
-        The observation type that has to be checked. The default is 'temp'.
-
-
-
-     Returns
-
-     updated_obs_series : pandas.Series
-         The observations series updated for this check. Observations that didn't pass are removed.
-
-     outlier_df : pandas.DataFrame
-         The collection of records flagged as outliers by this check.
+    Returns
+    ----------
+    obsdf : pandas.DataFrame()
+        The observations dataframe updated for step outliers. These are
+        represented by Nan values.
+    outl_df : pandas.DataFrame
+        The updated outliersdf.
 
     """
 
@@ -530,7 +561,7 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
             )
         )  # &
         # (time_diff == station_frequencies[name]))
-        outl_obs = step_filter[step_filter == True].index
+        outl_obs = step_filter[step_filter is True].index
 
         list_of_outliers.extend(outl_obs)
 
@@ -545,41 +576,43 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
     return obsdf, outlier_df
 
 
-def window_variation_check(
-    station_frequencies, obsdf, obstype, checks_info, checks_settings
-):
-    """
+def window_variation_check(station_frequencies, obsdf, obstype,
+                           checks_info, checks_settings):
+    """Test if the variation exeeds threshold in moving time windows.
 
-    V3
-    Looking for jumps of the values of an observation type that are larger than the limit specified in the qc_settings. These values are removed from
-    the input series and combined in the outlier df.
+    Looking for jumps of the values of an observation type that are larger than
+    the limit specified in the qc_settings. These values are removed from the
+    input series and combined in the outlier df.
 
-    There is a increament threshold (that is if there is a max value difference and the maximum value occured later than the minimum value occured.)
+    There is a increament threshold (that is if there is a max value difference
+    and the maximum value occured later than the minimum value occured.)
     And vice versa is there a decreament threshold.
 
     The check is only applied if there are at leas N observations in the time window.
 
 
     Parameters
+    ------------
+    station_frequencies : pandas.Series
+        The frecuencies of all the stations. This is a column in the metadf
+        attribute of the Dataset.
+    obsdf : pandas.DataFrame
+        The observations dataframe of the dataset object (Dataset.df)
+    obstype : str
+        The observation type to check for outliers.
+    checks_info : dict
+        The specific info (outlier labels) for quality control.
+    checks_settings : dict
+        The dictionary containing the settings for the quality control checks.
 
-    station_frequencies: pandas.Series
-        The series containing the dataset time-resolution for all stations (as index).
 
-    input_series : pandas.Series
-        The observations series of the dataset object
-
-    obstype: String, optional
-        The observation type that has to be checked. The default is 'temp'.
-
-
-
-     Returns
-
-     updated_obs_series : pandas.Series
-         The observations series updated for this check. Observations that didn't pass are removed.
-
-     outlier_df : pandas.DataFrame
-         The collection of records flagged as outliers by this check.
+    Returns
+    ----------
+    obsdf : pandas.DataFrame()
+        The observations dataframe updated for window-variation-outliers. These are
+        represented by Nan values.
+    outl_df : pandas.DataFrame
+        The updated outliersdf.
 
     """
     checkname = "window_variation"
@@ -597,7 +630,7 @@ def window_variation_check(
         < specific_settings["min_window_members"]
     )
     invalid_stations = list(
-        invalid_windows_check_df[invalid_windows_check_df == True].index
+        invalid_windows_check_df[invalid_windows_check_df is True].index
     )
     if bool(invalid_stations):
         logger.warning(
@@ -682,57 +715,6 @@ def window_variation_check(
         return obsdf, init_multiindexdf()
 
 
-def get_outliers_in_daterange(input_data, date, name, time_window, station_freq):
-    end_date = date + (pd.Timedelta(time_window) / 2).floor(station_freq[name])
-    start_date = date - (pd.Timedelta(time_window) / 2).floor(station_freq[name])
-
-    daterange = pd.date_range(start=start_date, end=end_date, freq=station_freq[name])
-
-    multi_idx = pd.MultiIndex.from_arrays(
-        arrays=[[name] * len(daterange), daterange.to_list()],
-        sortorder=1,
-        names=["name", "datetime"],
-    )
-    outlier_sub_df = pd.DataFrame(data=None, index=multi_idx, columns=None)
-
-    intersection = outlier_sub_df.index.intersection(input_data.dropna().index).values
-
-    return intersection
-
-
-# =============================================================================
-# Titan checks
-# =============================================================================
-
-def create_titanlib_points_dict(obsdf, metadf, obstype):
-    obs = obsdf[[obstype]]
-    obs = obs.reset_index()
-
-    # merge metadata
-    obs = obs.merge(right = metadf[['lat', 'lon','altitude']],
-                    how = 'left',
-                    left_on='name',
-                    right_index=True)
-
-    dt_grouper = obs.groupby('datetime')
-
-
-    points_dict = {}
-    for dt, group in dt_grouper:
-
-        check_group = group[~group[obstype].isnull()]
-
-        points_dict[dt] = {
-            'values': check_group[obstype].to_numpy(),
-            'names': check_group['name'].to_numpy(),
-            'lats': check_group['lat'].to_numpy(),
-            'lons': check_group['lon'].to_numpy(),
-            'elev': check_group['altitude'].to_numpy(),
-            'ignore_names': group[group[obstype].isnull()]['name'].to_numpy()
-        }
-
-    return points_dict
-
 # =============================================================================
 # Toolkit buddy check
 # =============================================================================
@@ -741,19 +723,16 @@ def _calculate_distance_matrix_with_haverine(metadf):
     from math import radians, cos, sin, asin, sqrt
 
     def haversine(lon1, lat1, lon2, lat2):
-        """
-        Calculate the great circle distance between two points
-        on the earth (specified in decimal degrees)
-        """
+        """Calculate the great circle distance between two points."""
         # convert decimal degrees to radians
         lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
 
         # haversine formula
         dlon = lon2 - lon1
         dlat = lat2 - lat1
-        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
         c = 2 * asin(sqrt(a))
-        r = 6367000 # Radius of earth in meter.
+        r = 6367000  # Radius of earth in meter.
         return c * r
 
     distance_matrix = {}
@@ -881,7 +860,7 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
         distance_df = _calculate_distance_matrix_with_haverine(metadf=metadf)
     else:
         distance_df = _calculate_distance_matrix(metadf=metadf,
-                                             metric_epsg=metric_epsg)
+                                                 metric_epsg=metric_epsg)
     buddies = _find_spatial_buddies(distance_df=distance_df,
                                     buddy_radius=buddy_radius)
 
@@ -891,8 +870,8 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
                                           max_altitude_diff=max_alt_diff)
 
     # Filter by samplesize
-    buddydict =_filter_to_samplesize(buddydict=buddies,
-                                     min_sample_size=min_sample_size)
+    buddydict = _filter_to_samplesize(buddydict=buddies,
+                                      min_sample_size=min_sample_size)
 
     # Apply buddy check station per station
     for refstation, buddies in buddydict.items():
@@ -921,7 +900,6 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
         # buddies_obs['var'] = buddies_obs[buddies].var(axis=1)
         # buddies_obs['std_adj'] =np.sqrt(buddies_obs['var'] + buddies_obs['var']/buddies_obs['samplesize'])
 
-
         # replace where needed with min std
         buddies_obs['std'] = buddies_obs['std'].where(cond=buddies_obs['std'] >= min_std,
                                                       other=min_std)
@@ -929,7 +907,7 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
         # Get refstation observations and merge
         ref_obs = obsdf[obsdf.index.get_level_values('name') == refstation][obstype].unstack(level='name')
         buddies_obs = buddies_obs.merge(ref_obs,
-                                        how='left', #both not needed because if right, than there is no buddy sample per definition.
+                                        how='left',  # both not needed because if right, than there is no buddy sample per definition.
                                         left_index=True,
                                         right_index=True)
         # Calculate sigma
@@ -939,7 +917,6 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
 
         logger.debug(f' Buddy outlier details for {refstation}: \n {buddies}')
         # NOTE: the outliers (above) can be interesting to pass back to the dataset??
-
 
         # to multiindex
         outliers['name'] = refstation
@@ -957,13 +934,62 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
     return obsdf, outlier_df
 
 
+# =============================================================================
+# Titan bindings
+# =============================================================================
 
-# =============================================================================
-#
-# =============================================================================
-def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
+def create_titanlib_points_dict(obsdf, metadf, obstype):
+    """ Create a dictionary of titanlib-points.
+
+    Titanlib uses point as dataformats. This method converts the dataframes to
+    a dictionnary of points.
+
+    Parameters
+    ----------
+    obsdf : pandas.DataFrame
+        Dataset.df
+    metadf : pandas.DataFrame
+        Dataset.metadf.
+    obstype : str
+        The observation type to pass to the points.
+
+    Returns
+    -------
+    points_dict : dict
+        The collection of datapoints.
 
     """
+    obs = obsdf[[obstype]]
+    obs = obs.reset_index()
+
+    # merge metadata
+    obs = obs.merge(right=metadf[['lat', 'lon', 'altitude']],
+                    how='left',
+                    left_on='name',
+                    right_index=True)
+
+    dt_grouper = obs.groupby('datetime')
+
+    points_dict = {}
+    for dt, group in dt_grouper:
+
+        check_group = group[~group[obstype].isnull()]
+
+        points_dict[dt] = {
+            'values': check_group[obstype].to_numpy(),
+            'names': check_group['name'].to_numpy(),
+            'lats': check_group['lat'].to_numpy(),
+            'lons': check_group['lon'].to_numpy(),
+            'elev': check_group['altitude'].to_numpy(),
+            'ignore_names': group[group[obstype].isnull()]['name'].to_numpy()
+        }
+
+    return points_dict
+
+
+def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
+    """Apply the Titanlib buddy check.
+
     The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
     buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
     (absolute value of the) difference between the observations and the average of the neighbours
@@ -971,33 +997,33 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
 
 
     Parameters
-
+    ------------
     obsdf: Pandas.DataFrame
         The dataframe containing the observations
-
     metadf: Pandas.DataFrame
         The dataframe containing the metadata (e.g. latitude, longitude...)
-
     obstype: String, optional
         The observation type that has to be checked. The default is 'temp'
-
     checks_info: Dictionary
         Dictionary with the names of the outlier flags for each check
-
     checks_settings: Dictionary
         Dictionary with the settings for each check
-
     titan_specific_labeler: Dictionary
         Dictionary that maps numeric flags to 'ok' or 'outlier' flags for each titan check
 
+    Returns
+    ----------
+    obsdf: Pandas.DataFrame
+        The dataframe containing the unflagged-observations
+    outlier_df : Pandas.DataFrame
+        The dataframe containing the flagged observations
 
     """
-
     try:
-        alt = metadf['altitude']
+        _ = metadf['altitude']
     except:
         logger.warning(
-            f"Cannot find altitude of weather stations. Check is skipped!"
+            "Cannot find altitude of weather stations. Check is skipped!"
         )
 
     # Create points_dict
@@ -1010,18 +1036,17 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
                                        np.asarray(point['lons']),
                                        np.asarray(point['elev']))
 
-
         num_labels = titanlib.buddy_check(
                 titan_points,
                 np.asarray(obs),
-                np.asarray([checks_settings['radius']] * len(obs)), #same radius for all stations
-                np.asarray([checks_settings['num_min']] * len(obs)), #same min neighbours for all stations
+                np.asarray([checks_settings['radius']] * len(obs)),  # same radius for all stations
+                np.asarray([checks_settings['num_min']] * len(obs)),  # same min neighbours for all stations
                 checks_settings['threshold'],
                 checks_settings['max_elev_diff'],
                 checks_settings['elev_gradient'],
                 checks_settings['min_std'],
                 checks_settings['num_iterations'],
-                np.full(len(obs), 1)) #check all
+                np.full(len(obs), 1))  # check all
 
         labels = pd.Series(num_labels, name='num_label').to_frame()
         labels['name'] = point['names']
@@ -1030,60 +1055,58 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
 
     checkeddf = pd.concat(df_list)
 
-    #Convert to toolkit format
+    # Convert to toolkit format
     outliersdf = checkeddf[checkeddf['num_label'].isin(titan_specific_labeler['outl'])]
 
     outliersdf = outliersdf.set_index(['name', 'datetime'])
 
-
     obsdf, outliersdf = make_outlier_df_for_check(station_dt_list=outliersdf.index,
-                                                  obsdf = obsdf,
+                                                  obsdf=obsdf,
                                                   obstype=obstype,
-                                                  flag = checks_info["titan_buddy_check"]['outlier_flag'])
-
+                                                  flag=checks_info["titan_buddy_check"]['outlier_flag'])
 
     return obsdf, outliersdf
+
 
 def titan_sct_resistant_check(obsdf, metadf, obstype,
                               checks_info, checks_settings,
                               titan_specific_labeler):
+    """Apply the Titanlib (robust) Spatial-Consistency-Test (SCT).
 
-    """
     The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
     nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation
     (OI) to compute an expected value for each observation. The background for the OI is computed from
     a general vertical profile of observations in the area.
 
     Parameters
-
+    -------------
     obsdf: Pandas.DataFrame
         The dataframe containing the observations
-
     metadf: Pandas.DataFrame
         The dataframe containing the metadata (e.g. latitude, longitude...)
-
     obstype: String, optional
         The observation type that has to be checked. The default is 'temp'
-
     checks_info: Dictionary
         Dictionary with the names of the outlier flags for each check
-
     checks_settings: Dictionary
         Dictionary with the settings for each check
-
     titan_specific_labeler: Dictionary
         Dictionary that maps numeric flags to 'ok' or 'outlier' flags for each titan check
 
-
+    Returns
+    ----------
+    obsdf: Pandas.DataFrame
+        The dataframe containing the unflagged-observations
+    outlier_df : Pandas.DataFrame
+        The dataframe containing the flagged observations
     """
-
     import time
 
     try:
-        alt = metadf['altitude']
+        _ = metadf['altitude']
     except:
         logger.warning(
-            f"Cannot find altitude of weather stations. Check is skipped!"
+            "Cannot find altitude of weather stations. Check is skipped!"
         )
 
     # Create points_dict
@@ -1097,34 +1120,33 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
                                        np.asarray(point['lons']),
                                        np.asarray(point['elev']))
 
-
         flags, scores = titanlib.sct_resistant(
-                points=titan_points, #points
-                values=np.asarray(obs), # vlues
-                obs_to_check=np.full(len(obs), 1), # obs to check (check all)
-                background_values=np.full(len(obs), 0), # background values
-                background_elab_type=titanlib.MedianOuterCircle, #background elab type
-                num_min_outer=checks_settings['num_min_outer'], #num min outer
-                num_max_outer=checks_settings['num_max_outer'], #num mac outer
-                inner_radius=checks_settings['inner_radius'], #inner radius
-                outer_radius=checks_settings['outer_radius'], #outer radius
-                num_iterations=checks_settings['num_iterations'], #num iterations
-                num_min_prof=checks_settings['num_min_prof'], #num min prof
-                min_elev_diff=checks_settings['min_elev_diff'], # min elev diff
-                min_horizontal_scale=checks_settings['min_horizontal_scale'], #min horizontal scale
-                max_horizontal_scale=checks_settings['max_horizontal_scale'], # max horizontal scale
-                kth_closest_obs_horizontal_scale=checks_settings['kth_closest_obs_horizontal_scale'], #kth closest obs horizontal scale
-                vertical_scale=checks_settings['vertical_scale'], #vertical scale
-                value_mina=[x - checks_settings['mina_deviation'] for x in obs], # values mina
-                value_maxa=[x + checks_settings['maxa_deviation'] for x in obs], #values maxa
-                value_minv=[x - checks_settings['minv_deviation'] for x in obs], #values minv
-                value_maxv=[x + checks_settings['maxv_deviation'] for x in obs], # values maxv
-                eps2=np.full(len(obs),checks_settings['eps2']), #eps2
-                tpos=np.full(len(obs),checks_settings['tpos']), #tpos
-                tneg=np.full(len(obs),checks_settings['tneg']), #tneg
-                debug=checks_settings['debug'], #debug
-                basic=checks_settings['basic'] #basic
-                )
+                points=titan_points,  # points
+                values=np.asarray(obs),  # vlues
+                obs_to_check=np.full(len(obs), 1),  # obs to check (check all)
+                background_values=np.full(len(obs), 0),  # background values
+                background_elab_type=titanlib.MedianOuterCircle,  # background elab type
+                num_min_outer=checks_settings['num_min_outer'],  # num min outer
+                num_max_outer=checks_settings['num_max_outer'],  # num mac outer
+                inner_radius=checks_settings['inner_radius'],  # inner radius
+                outer_radius=checks_settings['outer_radius'],  # outer radius
+                num_iterations=checks_settings['num_iterations'],  # num iterations
+                num_min_prof=checks_settings['num_min_prof'],  # num min prof
+                min_elev_diff=checks_settings['min_elev_diff'],  # min elev diff
+                min_horizontal_scale=checks_settings['min_horizontal_scale'],  # min horizontal scale
+                max_horizontal_scale=checks_settings['max_horizontal_scale'],  # max horizontal scale
+                kth_closest_obs_horizontal_scale=checks_settings['kth_closest_obs_horizontal_scale'],  # kth closest obs horizontal scale
+                vertical_scale=checks_settings['vertical_scale'],  # vertical scale
+                value_mina=[x - checks_settings['mina_deviation'] for x in obs],  # values mina
+                value_maxa=[x + checks_settings['maxa_deviation'] for x in obs],  # values maxa
+                value_minv=[x - checks_settings['minv_deviation'] for x in obs],  # values minv
+                value_maxv=[x + checks_settings['maxv_deviation'] for x in obs],  # values maxv
+                eps2=np.full(len(obs), checks_settings['eps2']),  # eps2
+                tpos=np.full(len(obs), checks_settings['tpos']),  # tpos
+                tneg=np.full(len(obs), checks_settings['tneg']),  # tneg
+                debug=checks_settings['debug'],  # debug
+                basic=checks_settings['basic'])  # basic
+
         logger.debug('Sleeping ... (to avoid segmentaton errors)')
         time.sleep(1)
 
@@ -1135,18 +1157,59 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
 
     checkeddf = pd.concat(df_list)
 
-    #Convert to toolkit format
+    # Convert to toolkit format
     outliersdf = checkeddf[checkeddf['num_label'].isin(titan_specific_labeler['outl'])]
 
     outliersdf = outliersdf.set_index(['name', 'datetime'])
 
-
     obsdf, outliersdf = make_outlier_df_for_check(station_dt_list=outliersdf.index,
-                                                  obsdf = obsdf,
+                                                  obsdf=obsdf,
                                                   obstype=obstype,
-                                                  flag = checks_info["titan_sct_resistant_check"]['outlier_flag'])
-
+                                                  flag=checks_info["titan_sct_resistant_check"]['outlier_flag'])
 
     return obsdf, outliersdf
 
 
+# =============================================================================
+# Helpers
+# =============================================================================
+
+
+def get_outliers_in_daterange(input_data, date, name, time_window, station_freq):
+    """ Find all outliers in a window of a specific station.
+
+    Parameters
+    ----------
+    input_data : pandas.DataFrame
+        Dataframe with a datetimeindex to get the intersection with a
+        datetimerange from.
+    date : datetime.datetime
+        The center of the window.
+    name : str
+        The stationname.
+    time_window : datetimestring
+        Half the width of the window.
+    station_freq : pandas.Series
+        The series containing the frequencies per station.
+
+    Returns
+    -------
+    intersection : pandas.multiindex
+        A name-datetime multiindex for occuring outliers in the window.
+
+    """
+    end_date = date + (pd.Timedelta(time_window) / 2).floor(station_freq[name])
+    start_date = date - (pd.Timedelta(time_window) / 2).floor(station_freq[name])
+
+    daterange = pd.date_range(start=start_date, end=end_date, freq=station_freq[name])
+
+    multi_idx = pd.MultiIndex.from_arrays(
+        arrays=[[name] * len(daterange), daterange.to_list()],
+        sortorder=1,
+        names=["name", "datetime"],
+    )
+    outlier_sub_df = pd.DataFrame(data=None, index=multi_idx, columns=None)
+
+    intersection = outlier_sub_df.index.intersection(input_data.dropna().index).values
+
+    return intersection
