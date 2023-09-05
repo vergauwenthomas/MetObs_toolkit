@@ -36,12 +36,15 @@ def make_outlier_df_for_check(station_dt_list, obsdf, obstype, flag,
                               stationname=None, datetimelist=None):
     """Construct obsdf and outliersdf from a list of outlier timestamps.
 
-    Helper function to create an outlier dataframe for the given station(s) and datetimes. This will be returned by
-    a quality control check and later added to the dastes.outlierdf.
+    Helper function to create an outlier dataframe for the given station(s) and
+    datetimes. This will be returned by a quality control check and later added
+    to the dastes.outlierdf.
 
     Multiple commum inputstructures can be handles
 
-    A multiindex dataframe with the relevant observationtypes i.e. the values_in_dict and a specific quality flag column (i.g. the labels) is returned.
+    A multiindex dataframe with the relevant observationtypes i.e. the
+    values_in_dict and a specific quality flag column (i.g. the labels) is
+    returned.
 
     Parameters
     ------------
@@ -62,8 +65,8 @@ def make_outlier_df_for_check(station_dt_list, obsdf, obstype, flag,
     ----------
     obsdf : pandas.DataFrame
         The updated observations dataframe.
-     outliersdf : pandas.DataFrame
-         The updated outliers dataframe.
+    outliersdf : pandas.DataFrame
+        The updated outliers dataframe.
     """
     if isinstance(station_dt_list, pd.MultiIndex):
         multi_idx = station_dt_list
@@ -132,7 +135,7 @@ def invalid_input_check(df, checks_info):
     groups = (
         df.reset_index()
         .groupby("name")
-        .apply(lambda x: (np.isnan(x).any()) & (np.isnan(x).all() is False))
+        .apply(lambda x: (np.isnan(x).any()) & (np.isnan(x).all() == False))
     )
 
     # extract all obstype that have outliers
@@ -351,7 +354,7 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_info, checks_s
         < specific_settings["min_num_obs"]
     )
     invalid_stations = list(
-        invalid_windows_check_df[invalid_windows_check_df is True].index
+        invalid_windows_check_df[invalid_windows_check_df == True].index
     )
     if bool(invalid_stations):
         logger.warning(
@@ -387,7 +390,7 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_info, checks_s
         )
 
         list_of_outliers = []
-        outl_obs = window_output.loc[window_output[obstype] is True].index
+        outl_obs = window_output.loc[window_output[obstype] == True].index
         for outlier in outl_obs:
             outliers_list = get_outliers_in_daterange(
                 input_series,
@@ -561,7 +564,7 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
             )
         )  # &
         # (time_diff == station_frequencies[name]))
-        outl_obs = step_filter[step_filter is True].index
+        outl_obs = step_filter[step_filter].index
 
         list_of_outliers.extend(outl_obs)
 
@@ -630,7 +633,7 @@ def window_variation_check(station_frequencies, obsdf, obstype,
         < specific_settings["min_window_members"]
     )
     invalid_stations = list(
-        invalid_windows_check_df[invalid_windows_check_df is True].index
+        invalid_windows_check_df[invalid_windows_check_df].index
     )
     if bool(invalid_stations):
         logger.warning(
@@ -793,25 +796,6 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
     buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
     (absolute value of the) difference between the observations and the average of the neighbours
     normalized by the standard deviation in the circle is greater than a predefined threshold.
-
-    obsdf: Pandas.DataFrame
-        The dataframe containing the observations
-
-    metadf: Pandas.DataFrame
-        The dataframe containing the metadata (e.g. latitude, longitude...)
-
-    obstype: String, optional
-        The observation type that has to be checked. The default is 'temp'
-
-    checks_info: Dictionary
-        Dictionary with the names of the outlier flags for each check
-
-    checks_settings: Dictionary
-        Dictionary with the settings for each check
-
-    titan_specific_labeler: Dictionary
-        Dictionary that maps numeric flags to 'ok' or 'outlier' flags for each titan check
-
 
     Parameters
     ----------
