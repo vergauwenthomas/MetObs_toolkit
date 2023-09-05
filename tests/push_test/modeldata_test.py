@@ -23,7 +23,7 @@ dataset = metobs_toolkit.Dataset()
 
 dataset.update_settings(output_folder=None,
                         input_data_file=metobs_toolkit.demo_datafile,
-                        data_template_file=metobs_toolkit.demo_template,
+                        template_file=metobs_toolkit.demo_template,
                         input_metadata_file=metobs_toolkit.demo_metadatafile
                         )
 
@@ -59,6 +59,21 @@ model_data.set_model_from_csv(csv_file)
 #%% Test repr
 
 print(model_data)
+
+#%% test saving and importing
+outfolder = os.path.join(lib_folder, 'tests', 'test_data')
+pkl_file = 'delete_me_if_you_see_me'
+# save
+model_data.save_modeldata(outputfolder=outfolder, filename=pkl_file)
+
+# read it again
+newmod = metobs_toolkit.Modeldata('ERA5_hourly')
+newmod2 = newmod.import_modeldata(folder_path=outfolder, filename=pkl_file+'.pkl')
+
+# delete file
+fullpath = os.path.join(outfolder, pkl_file+'.pkl')
+if os.path.exists(fullpath):
+    os.remove(fullpath)
 
 
 #%% test interpolation

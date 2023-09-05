@@ -1,6 +1,6 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Extension of the Dataset class (methods for updating settings).
 @author: thoverga
@@ -11,20 +11,21 @@ import pandas as pd
 
 import metobs_toolkit.dataset as dataset
 from metobs_toolkit import observation_types
+
 logger = logging.getLogger(__name__)
 
-class Dataset(dataset.Dataset):
 
-    def update_settings(
-        self,
-        output_folder=None,
-        input_data_file=None,
-        input_metadata_file=None,
-        data_template_file=None,
-        metadata_template_file=None,
-    ):
-        """
-        Update the most common input-output (IO) settings.
+class Dataset(dataset.Dataset):
+    """Extension on the metobs_toolkit.Dataset class with updaters."""
+
+    def update_settings(self,
+                        output_folder=None,
+                        input_data_file=None,
+                        input_metadata_file=None,
+                        template_file=None
+                        ):
+        """Update the most common input-output (IO) settings.
+
         (This should be applied before importing the observations.)
 
         When an update value is None, the specific setting will not be updated.
@@ -37,29 +38,26 @@ class Dataset(dataset.Dataset):
             Path to the input data file with observations. The default is None.
         input_metadata_file : string, optional
             Path to the input metadata file. The default is None.
-        data_template_file : string, optional
-            Path to the mapper-template csv file to be used on the observations.. The default is None.
-        metadata_template_file : string, optional
-            Path to the mapper-template csv file to be used on the metadata.. The default is None.
+        template_file : string, optional
+            Path to the mapper-template csv file to be used on the observations
+            and metadata. The default is None.
 
         Returns
         -------
         None.
 
         """
-
         self.settings.update_IO(
             output_folder=output_folder,
             input_data_file=input_data_file,
             input_metadata_file=input_metadata_file,
-            data_template_file=data_template_file,
-            metadata_template_file=metadata_template_file,
+            template_file=template_file,
         )
 
-
     def update_timezone(self, timezonestr):
-        """
-        Change the timezone of the input data. By default the Brussels timezone is assumed.
+        """Change the timezone of the input data.
+
+        By default UTC is assumed.
         A valid timezonestring is an element of the pytz.all_timezones.
 
         Parameters
@@ -72,13 +70,12 @@ class Dataset(dataset.Dataset):
         None.
 
         """
-
         self.settings.update_timezone(timezonestr)
 
     def update_default_name(self, default_name):
-        """
-        Update the default name (the name of the station). This name will be
-        used when no names are found in the observational dataset.
+        """Update the default name (the name of the station).
+
+        This name will be used when no names are found in the observational dataset.
 
         (All observations are assumed to come from one station.)
 
@@ -92,17 +89,13 @@ class Dataset(dataset.Dataset):
         None.
 
         """
-
         self.settings.app["default_name"] = str(default_name)
-
-
 
     def update_gap_and_missing_fill_settings(self, gap_interpolation_method=None, gap_interpolation_max_consec_fill=None,
                                              gap_debias_prefered_leading_period_hours=None, gap_debias_prefered_trailing_period_hours=None,
                                              gap_debias_minimum_leading_period_hours=None, gap_debias_minimum_trailing_period_hours=None,
                                              automatic_max_interpolation_duration_str=None, missing_obs_interpolation_method=None):
-        """
-        Update the settings on the filling methods for missing observations and gaps.
+        """Update fill settings for gaps and missing observations.
 
         If None, the current setting is not updated.
 
@@ -138,42 +131,40 @@ class Dataset(dataset.Dataset):
         None.
 
         """
-
         # Gap linear interpolation
-        if not gap_interpolation_method is None:
+        if gap_interpolation_method is not None:
             logger.info(f' The gap interpolation method is updated: \
         {self.settings.gap["gaps_fill_settings"]["linear"]["method"]} --> {str(gap_interpolation_method)}')
             self.settings.gap["gaps_fill_settings"]["linear"]["method"] = str(gap_interpolation_method)
 
-        if not gap_interpolation_max_consec_fill is None:
+        if gap_interpolation_max_consec_fill is not None:
             logger.info(f' The gap max number of consecutive interpolations is updated: \
         {self.settings.gap["gaps_fill_settings"]["linear"]["max_consec_fill"]} --> {abs(int(gap_interpolation_max_consec_fill))}')
             self.settings.gap["gaps_fill_settings"]["linear"]["max_consec_fill"] = abs(int(gap_interpolation_max_consec_fill))
 
-
         # Gap debias fill
-        if not gap_debias_prefered_leading_period_hours is None:
+        if gap_debias_prefered_leading_period_hours is not None:
             logger.info(f' The size of the prefered leading period for debias gapfill is updated: \
         {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_leading_sample_duration_hours"]} --> {abs(int(gap_debias_prefered_leading_period_hours))}')
             self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_leading_sample_duration_hours"] = abs(int(gap_debias_prefered_leading_period_hours))
 
-        if not gap_debias_prefered_trailing_period_hours is None:
+        if gap_debias_prefered_trailing_period_hours is not None:
             logger.info(f' The size of the prefered trailing period for debias gapfill is updated: \
         {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_trailing_sample_duration_hours"]} --> {abs(int(gap_debias_prefered_trailing_period_hours))}')
             self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_trailing_sample_duration_hours"] = abs(int(gap_debias_prefered_trailing_period_hours))
 
-        if not gap_debias_minimum_leading_period_hours is None:
+        if gap_debias_minimum_leading_period_hours is not None:
             logger.info(f' The minimum size of the leading period for debias gapfill is updated: \
         {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_leading_sample_duration_hours"]} --> {abs(int(gap_debias_minimum_leading_period_hours))}')
             self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_leading_sample_duration_hours"] = abs(int(gap_debias_minimum_leading_period_hours))
 
-        if not gap_debias_minimum_trailing_period_hours is None:
+        if gap_debias_minimum_trailing_period_hours is not None:
             logger.info(f' The minimum size of the trailing period for debias gapfill is updated: \
         {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_trailing_sample_duration_hours"]} --> {abs(int(gap_debias_minimum_trailing_period_hours))}')
             self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_trailing_sample_duration_hours"] = abs(int(gap_debias_minimum_trailing_period_hours))
 
         # Gapfill automatic
-        if not automatic_max_interpolation_duration_str is None:
+        if automatic_max_interpolation_duration_str is not None:
             if is_timedelta(str(automatic_max_interpolation_duration_str)):
                 logger.info(f' The maximum interpolation duration for automatic gapfill is updated: \
             {self.settings.gap["gaps_fill_settings"]["automatic"]["max_interpolation_duration_str"]} --> {str(automatic_max_interpolation_duration_str)}')
@@ -182,20 +173,32 @@ class Dataset(dataset.Dataset):
                 logger.warning(f' {str(automatic_max_interpolation_duration_str)} is not a valid timedelta string. No update on this setting.')
 
         # Missing obs interpolation
-        if not missing_obs_interpolation_method is None:
+        if missing_obs_interpolation_method is not None:
             logger.info(f' The missing observations interpolation method is updated: \
         {self.settings.missing_obs["missing_obs_fill_settings"]["linear"]["method"]} --> {str(missing_obs_interpolation_method)}')
             self.settings.missing_obs['missing_obs_fill_settings']['linear']['method'] = str(missing_obs_interpolation_method)
 
-
-
-    def update_qc_settings(self, obstype='temp', gapsize_in_records=None, dupl_timestamp_keep=None, persis_time_win_to_check=None, persis_min_num_obs=None,
-                            rep_max_valid_repetitions=None, gross_value_min_value=None, gross_value_max_value=None,
-                            win_var_max_increase_per_sec=None, win_var_max_decrease_per_sec=None, win_var_time_win_to_check=None,
-                            win_var_min_num_obs=None, step_max_increase_per_sec=None, step_max_decrease_per_sec=None):
-
-        """
-        Update the QC settings for the specified observation type.
+    def update_qc_settings(self, obstype='temp',
+                           gapsize_in_records=None,
+                           dupl_timestamp_keep=None,
+                           persis_time_win_to_check=None,
+                           persis_min_num_obs=None,
+                           rep_max_valid_repetitions=None,
+                           gross_value_min_value=None,
+                           gross_value_max_value=None,
+                           win_var_max_increase_per_sec=None,
+                           win_var_max_decrease_per_sec=None,
+                           win_var_time_win_to_check=None,
+                           win_var_min_num_obs=None,
+                           step_max_increase_per_sec=None,
+                           step_max_decrease_per_sec=None,
+                           buddy_radius=None,
+                           buddy_min_sample_size=None,
+                           buddy_max_elev_diff=None,
+                           buddy_min_std=None,
+                           buddy_threshold=None,
+                           buddy_elev_gradient=None):
+        """Update the QC settings for the specified observation type.
 
         If a argument value is None, the default settings will not be updated.
 
@@ -231,6 +234,23 @@ class Dataset(dataset.Dataset):
             Maximal increase per second for step check. The default is None.
         step_max_decrease_per_sec : numeric (< 0), optional
             Maximal decrease per second for step check. The default is None.
+        buddy_radius : numeric (> 0), optional
+            The radius to define neighbours in meters. The default is None.
+        buddy_min_sample_size : int (> 2), optional
+            The minimum sample size to calculate statistics on. The default is
+            None.
+        buddy_max_elev_diff : numeric (> 0), optional
+            The maximum altitude difference allowed for buddies. The default is
+            None.
+        buddy_min_std : numeric (> 0), optional
+            The minimum standard deviation for sample statistics. This should
+            represent the accuracty of the observations. The default is None.
+        buddy_threshold : numeric (> 0), optional
+            The threshold (std units) for flaggging observations as buddy
+            outliers. The default is None.
+        buddy_elev_gradient : numeric, optional
+            Describes how the obstype changes with altitude (in meters). The
+            default is -0.0065. The default is None.
 
         Returns
         -------
@@ -242,92 +262,191 @@ class Dataset(dataset.Dataset):
         all the observation types.
 
         """
-
-
         assert obstype in observation_types, f'{obstype} is not a known observation type'
 
+        def _updater(dictionary, obstype, argname, value):
+            """Update nested dictionaries."""
+            if obstype not in dictionary.keys():
+                dictionary[obstype] = {}
+                printstr = f'{obstype} : unexisting --> {value}'
+            elif argname not in dictionary[obstype]:
+                printstr = f'{obstype} : unexisting --> {value}'
+            else:
+                printstr = f'{obstype} : {dictionary[obstype][argname]} --> {value}'
+
+            dictionary[obstype][argname] = value
+            return dictionary, printstr
+
         # Gap defenition
-        if not gapsize_in_records is None:
+        if gapsize_in_records is not None:
             logger.info(f' The defenition of a gap (=gapsize) is updated: \
         {self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]} --> {abs(int(gapsize_in_records))}')
             self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"] = abs(int(gapsize_in_records))
 
         # Gross value check
-        if not gross_value_max_value is None:
-            logger.info(f'Maximal value for gross value check updated: \
-        {self.settings.qc["qc_check_settings"]["gross_value"][obstype]["max_value"]} --> {float(gross_value_max_value)}')
-            self.settings.qc['qc_check_settings']["gross_value"][obstype]['max_value'] = float(gross_value_max_value)
+        if gross_value_max_value is not None:
+            self.settings.qc['qc_check_settings']["gross_value"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["gross_value"],
+                obstype=obstype,
+                argname="max_value",
+                value=float(gross_value_max_value))
+            logger.info(f'Maximal value for gross value check updated: {updatestr}')
 
-        if not gross_value_min_value is None:
-            logger.info(f'Manimal value for gross value check updated: \
-        {self.settings.qc["qc_check_settings"]["gross_value"][obstype]["min_value"]} --> {float(gross_value_min_value)}')
-            self.settings.qc['qc_check_settings']["gross_value"][obstype]['min_value'] = float(gross_value_min_value)
+        if gross_value_min_value is not None:
+            self.settings.qc['qc_check_settings']["gross_value"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["gross_value"],
+                obstype=obstype,
+                argname="min_value",
+                value=float(gross_value_min_value))
+            logger.info(f'Minimal value for gross value check updated: {updatestr}')
 
         # Duplicate check
-        if not dupl_timestamp_keep is None:
+        if dupl_timestamp_keep is not None:
             logger.info(f'Setting to keep (True) are remove (False) duplicate timestamps updated: \
         {self.settings.qc["qc_check_settings"]["duplicated_timestamp"]["keep"]} -->  {bool(dupl_timestamp_keep)}')
             self.settings.qc['qc_check_settings']["duplicated_timestamp"]['keep'] = bool(dupl_timestamp_keep)
 
         # Persistance check
-        if not persis_time_win_to_check is None:
+        if persis_time_win_to_check is not None:
             if is_timedelta(str(persis_time_win_to_check)):
-                logger.info(f'Time window size for persistance check updated:\
-                {self.settings.qc["qc_check_settings"]["persistance"][obstype]["time_window_to_check"]}--> {str(persis_time_win_to_check)}')
-                self.settings.qc['qc_check_settings']["persistance"][obstype]['time_window_to_check'] = str(persis_time_win_to_check)
+                self.settings.qc['qc_check_settings']["persistance"], updatestr = _updater(
+                    self.settings.qc['qc_check_settings']["persistance"],
+                    obstype=obstype,
+                    argname="time_window_to_check",
+                    value=str(persis_time_win_to_check))
+
+                logger.info(f'Time window size for persistance check updated: {updatestr}')
+
             else:
                 logger.warning(f' {str(persis_time_win_to_check)} is not a valid timedelta string. No update on this setting.')
 
-        if not persis_min_num_obs is None:
-            logger.info(f'Minimal window members for persistance check updated:\
-            {self.settings.qc["qc_check_settings"]["persistance"][obstype]["min_num_obs"]} --> {abs(int(persis_min_num_obs))}')
-            self.settings.qc['qc_check_settings']["persistance"][obstype]['min_num_obs'] = abs(int(persis_min_num_obs))
+        if persis_min_num_obs is not None:
+            self.settings.qc['qc_check_settings']["persistance"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["persistance"],
+                obstype=obstype,
+                argname="min_num_obs",
+                value=abs(int(persis_min_num_obs)))
+
+            logger.info(f'Minimal window members for persistance check updated: {updatestr}')
 
         # Repetitions check
-        if not rep_max_valid_repetitions is None:
-            logger.info(f'Maximal valid repetitions for repetitions check updated: \
-                        {self.settings.qc["qc_check_settings"]["repetitions"][obstype]["max_valid_repetitions"]} --> {abs(int(rep_max_valid_repetitions))}')
-            self.settings.qc['qc_check_settings']["repetitions"][obstype]['max_valid_repetitions'] = abs(int(rep_max_valid_repetitions))
+        if rep_max_valid_repetitions is not None:
+            self.settings.qc['qc_check_settings']["repetitions"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["repetitions"],
+                obstype=obstype,
+                argname="max_valid_repetitions",
+                value=abs(int(rep_max_valid_repetitions)))
+            logger.info(f'Maximal valid repetitions for repetitions check updated: {updatestr}')
 
         # Window variation check
-        if not win_var_max_increase_per_sec is None:
-            logger.info(f'Maximal increase per second for window variation check updated:\
-                        {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["max_increase_per_second"]} --> {abs(float(win_var_max_increase_per_sec))}')
-            self.settings.qc['qc_check_settings']["window_variation"][obstype]['max_increase_per_second'] = abs(float(win_var_max_increase_per_sec))
+        if win_var_max_increase_per_sec is not None:
+            self.settings.qc['qc_check_settings']["window_variation"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["window_variation"],
+                obstype=obstype,
+                argname="max_increase_per_second",
+                value=abs(float(win_var_max_increase_per_sec)))
 
-        if not win_var_max_decrease_per_sec is None:
-            logger.info(f'Maximal decrease per second for window variation check updated:\
-                        {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["max_decrease_per_second"] } --> {abs(float(win_var_max_decrease_per_sec))}')
-            self.settings.qc['qc_check_settings']["window_variation"][obstype]['max_decrease_per_second'] = abs(float(win_var_max_decrease_per_sec))
+            logger.info(f'Maximal increase per second for window variation check updated: {updatestr}')
 
-        if not win_var_time_win_to_check is None:
+        if win_var_max_decrease_per_sec is not None:
+            self.settings.qc['qc_check_settings']["window_variation"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["window_variation"],
+                obstype=obstype,
+                argname="max_decrease_per_second",
+                value=abs(float(win_var_max_decrease_per_sec)))
+            logger.info(f'Maximal decrease per second for window variation check updated: {updatestr}')
+
+        if win_var_time_win_to_check is not None:
             if is_timedelta(str(win_var_time_win_to_check)):
-                logger.info(f'Time window for window variation check updated:\
-                            {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["time_window_to_check"]} --> {str(win_var_time_win_to_check)}')
-                self.settings.qc['qc_check_settings']["window_variation"][obstype]['time_window_to_check'] = str(win_var_time_win_to_check)
+                self.settings.qc['qc_check_settings']["window_variation"], updatestr = _updater(
+                    self.settings.qc['qc_check_settings']["window_variation"],
+                    obstype=obstype,
+                    argname="time_window_to_check",
+                    value=str(win_var_time_win_to_check))
+                logger.info(f'Time window for window variation check updated: {updatestr}')
             else:
                 logger.warning(f' {str(persis_time_win_to_check)} is not a valid timedelta string. No update on this setting.')
 
-        if not win_var_min_num_obs is None:
-            logger.info(f'Minimal window members for window variation check updated:\
-                         {self.settings.qc["qc_check_settings"]["window_variation"][obstype]["min_window_members"]}--> {abs(int(win_var_min_num_obs))}')
-            self.settings.qc['qc_check_settings']["window_variation"][obstype]['min_window_members'] = abs(int(win_var_min_num_obs))
+        if win_var_min_num_obs is not None:
+            self.settings.qc['qc_check_settings']["window_variation"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["window_variation"],
+                obstype=obstype,
+                argname="min_window_members",
+                value=abs(int(win_var_min_num_obs)))
+            logger.info(f'Minimal window members for window variation check updated: {updatestr}')
 
         # Step check
-        if not step_max_increase_per_sec is None:
-            logger.info(f'Maximal increase per second for step check updated:\
-                        {self.settings.qc["qc_check_settings"]["step"][obstype]["max_increase_per_second"]}--> {abs(float(step_max_increase_per_sec))}')
-            self.settings.qc['qc_check_settings']["step"][obstype]['max_increase_per_second'] = abs(float(step_max_increase_per_sec))
+        if step_max_increase_per_sec is not None:
+            self.settings.qc['qc_check_settings']["step"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["step"],
+                obstype=obstype,
+                argname="max_increase_per_second",
+                value=abs(float(step_max_increase_per_sec)))
 
-        if not step_max_decrease_per_sec is None:
-            logger.info(f'Maximal decrease per second for step check updated:\
-                       {self.settings.qc["qc_check_settings"]["step"][obstype]["max_decrease_per_second"]} --> {-1.0 * abs(float(step_max_decrease_per_sec))}')
-            self.settings.qc['qc_check_settings']["step"][obstype]['max_decrease_per_second'] = -1.0 * abs(float(step_max_decrease_per_sec))
+            logger.info(f'Maximal increase per second for step check updated: {updatestr}')
 
+        if step_max_decrease_per_sec is not None:
+            self.settings.qc['qc_check_settings']["step"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["step"],
+                obstype=obstype,
+                argname="max_decrease_per_second",
+                value=-1.0 * abs(float(step_max_decrease_per_sec)))
 
+            logger.info(f'Maximal decrease per second for step check updated: {updatestr}')
 
+        # Buddy check
+        buddy_elev_gradient=None
+        if buddy_radius is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="radius",
+                value=abs(float(buddy_radius)))
+            logger.info(f'Buddy radius for buddy check updated: {updatestr}')
 
+        if buddy_min_sample_size is not None:
+            value = abs(int(buddy_min_sample_size))
+            if value >= 2:
+                self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                    self.settings.qc['qc_check_settings']["buddy_check"],
+                    obstype=obstype,
+                    argname="num_min",
+                    value=value)
+                logger.info(f'Minimum number of buddies for buddy check updated: {updatestr}')
+            else:
+                logger.warning(f'Minimum number of buddies must be >= 2, but {value} is given. Not updated.')
 
+        if buddy_max_elev_diff is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="max_elev_diff",
+                value=abs(float(buddy_max_elev_diff)))
+            logger.info(f'Max elevation differences for buddy check updated: {updatestr}')
+
+        if buddy_min_std is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="min_std",
+                value=abs(float(buddy_min_std)))
+            logger.info(f'Minimum std in sample for buddy check updated: {updatestr}')
+
+        if buddy_threshold is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="threshold",
+                value=abs(float(buddy_threshold)))
+            logger.info(f'Outlier threshold (in sigma) for buddy check updated: {updatestr}')
+
+        if buddy_elev_gradient is not None:
+            self.settings.qc['qc_check_settings']["buddy_check"], updatestr = _updater(
+                self.settings.qc['qc_check_settings']["buddy_check"],
+                obstype=obstype,
+                argname="elev_gradient",
+                value=float(buddy_max_elev_diff))
+            logger.info(f'Elevation gradient for buddy check updated: {updatestr}')
 
 
     def update_titan_qc_settings(self, obstype='temp',
@@ -351,19 +470,17 @@ class Dataset(dataset.Dataset):
                                  sct_max_horizontal_scale=None,
                                  sct_kth_closest_obs_horizontal_scale=None,
                                  sct_vertical_scale=None,
-                                 sct_mina_deviation=None, # vec Minimum admissible value
-                                 sct_maxa_deviation=None, # vec Maximum admissible value
-                                 sct_minv_deviation=None, # vec Minimum valid value
-                                 sct_maxv_deviation=None, #	vec Maximum valid value
-                                 sct_eps2=None, #Ratio of observation error variance to background variance
-                                 sct_tpos=None, #vec Positive deviation allowed
-                                 sct_tneg=None, #vec Negative deviation allowed
+                                 sct_mina_deviation=None,  # vec Minimum admissible value
+                                 sct_maxa_deviation=None,  # vec Maximum admissible value
+                                 sct_minv_deviation=None,  # vec Minimum valid value
+                                 sct_maxv_deviation=None,  # vec Maximum valid value
+                                 sct_eps2=None,  # Ratio of observation error variance to background variance
+                                 sct_tpos=None,  # vec Positive deviation allowed
+                                 sct_tneg=None,  # vec Negative deviation allowed
                                  sct_basic=None,
-                                 sct_debug = None):
+                                 sct_debug=None):
+        """Update the TITAN QC settings for the specified observation type.
 
-
-        """
-        Update the TITAN QC settings for the specified observation type.
         If a argument value is None, the default settings will not be updated.
 
         For a detailed explanation of the settings, we refer to the
@@ -403,7 +520,7 @@ class Dataset(dataset.Dataset):
         sct_num_min_prof : int (> 0), optional
             Minimum number of observations to compute vertical profile. The default is None.
         sct_min_elev_diff : num (> 0), optional
-         	Minimum elevation difference to compute vertical profile. The default is None.
+            Minimum elevation difference to compute vertical profile. The default is None.
         sct_min_horizontal_scale : num (> 0), optional
             Minimum horizontal decorrelation length. The default is None.
         sct_max_horizontal_scale : num (> 0), optional
@@ -436,50 +553,38 @@ class Dataset(dataset.Dataset):
         None.
 
         """
-
         assert obstype in observation_types, f'{obstype} is not a known observation type'
 
         # check buddy settings for updates
-        buddy_attrs = {'buddy_radius':
-                           {'new_value':buddy_radius, 'dtype':'numeric'},
-                        'buddy_num_min':
-                             {'new_value': buddy_num_min, 'dtype':'int'},
-                        'buddy_threshold' :
-                            {'new_value': buddy_threshold, 'dtype':'numeric'},
-                        'buddy_max_elev_diff':
-                            {'new_value':buddy_max_elev_diff, 'dtype':'numeric'},
-                        'buddy_elev_gradient':
-                            {'new_value': buddy_elev_gradient, 'dtype':'numeric'},
-                        'buddy_min_std':
-                            {'new_value': buddy_min_std, 'dtype':'numeric'},
-                        'buddy_num_iterations' :
-                            {'new_value': buddy_num_iterations, 'dtype':'int'},
-                        'buddy_debug' :
-                            {'new_value': buddy_debug, 'dtype':'bool'}}
+        buddy_attrs = {'buddy_radius': {'new_value': buddy_radius, 'dtype': 'numeric'},
+                       'buddy_num_min': {'new_value': buddy_num_min, 'dtype': 'int'},
+                       'buddy_threshold': {'new_value': buddy_threshold, 'dtype': 'numeric'},
+                       'buddy_max_elev_diff': {'new_value': buddy_max_elev_diff, 'dtype': 'numeric'},
+                       'buddy_elev_gradient': {'new_value': buddy_elev_gradient, 'dtype': 'numeric'},
+                       'buddy_min_std': {'new_value': buddy_min_std, 'dtype': 'numeric'},
+                       'buddy_num_iterations': {'new_value': buddy_num_iterations, 'dtype': 'int'},
+                       'buddy_debug': {'new_value': buddy_debug, 'dtype': 'bool'}}
 
         sct_attrs = {
-            'sct_num_min_outer':{'new_value':sct_num_min_outer,  'dtype':'int'},
-            'sct_num_max_outer':{'new_value':sct_num_max_outer,  'dtype':'int'},
-            'sct_inner_radius':{'new_value':sct_inner_radius,  'dtype':'numeric'},
-            'sct_outer_radius':{'new_value':sct_outer_radius,  'dtype':'numeric'},
-            'sct_num_iterations':{'new_value':sct_num_iterations,  'dtype':'int'},
-            'sct_num_min_prof':{'new_value':sct_num_min_prof,  'dtype':'int'},
-            'sct_min_elev_diff':{'new_value':sct_min_elev_diff,  'dtype':'numeric'},
-            'sct_min_horizontal_scale':{'new_value':sct_min_horizontal_scale,  'dtype':'numeric'},
-            'sct_max_horizontal_scale':{'new_value':sct_max_horizontal_scale,  'dtype':'numeric'},
-            'sct_kth_closest_obs_horizontal_scale':{'new_value':sct_kth_closest_obs_horizontal_scale,  'dtype':'int'},
-            'sct_vertical_scale':{'new_value':sct_vertical_scale,  'dtype':'numeric'},
-            'sct_mina_deviation':{'new_value':sct_mina_deviation,  'dtype':'numeric'},
-            'sct_minv_deviation':{'new_value':sct_minv_deviation,  'dtype':'numeric'},
-            'sct_maxv_deviation':{'new_value':sct_maxv_deviation,  'dtype':'numeric'},
-            'sct_eps2':{'new_value':sct_eps2, 'dtype':'numeric'},
-            'sct_tpos':{'new_value':sct_tpos, 'dtype':'numeric'},
-            'sct_tneg':{'new_value':sct_tneg, 'dtype':'numeric'},
-            'sct_basic':{'new_value':sct_basic, 'dtype':'bool'},
-            'sct_debug':{'new_value': sct_debug, 'dtype':'bool'}}
-
-
-
+            'sct_num_min_outer': {'new_value': sct_num_min_outer, 'dtype': 'int'},
+            'sct_num_max_outer': {'new_value': sct_num_max_outer, 'dtype': 'int'},
+            'sct_inner_radius': {'new_value': sct_inner_radius, 'dtype': 'numeric'},
+            'sct_outer_radius': {'new_value': sct_outer_radius, 'dtype': 'numeric'},
+            'sct_num_iterations': {'new_value': sct_num_iterations, 'dtype': 'int'},
+            'sct_num_min_prof': {'new_value': sct_num_min_prof, 'dtype': 'int'},
+            'sct_min_elev_diff': {'new_value': sct_min_elev_diff, 'dtype': 'numeric'},
+            'sct_min_horizontal_scale': {'new_value': sct_min_horizontal_scale, 'dtype': 'numeric'},
+            'sct_max_horizontal_scale': {'new_value': sct_max_horizontal_scale, 'dtype': 'numeric'},
+            'sct_kth_closest_obs_horizontal_scale': {'new_value': sct_kth_closest_obs_horizontal_scale, 'dtype': 'int'},
+            'sct_vertical_scale': {'new_value': sct_vertical_scale, 'dtype': 'numeric'},
+            'sct_mina_deviation': {'new_value': sct_mina_deviation, 'dtype': 'numeric'},
+            'sct_minv_deviation': {'new_value': sct_minv_deviation, 'dtype': 'numeric'},
+            'sct_maxv_deviation': {'new_value': sct_maxv_deviation, 'dtype': 'numeric'},
+            'sct_eps2': {'new_value': sct_eps2, 'dtype': 'numeric'},
+            'sct_tpos': {'new_value': sct_tpos, 'dtype': 'numeric'},
+            'sct_tneg': {'new_value': sct_tneg, 'dtype': 'numeric'},
+            'sct_basic': {'new_value': sct_basic, 'dtype': 'bool'},
+            'sct_debug': {'new_value': sct_debug, 'dtype': 'bool'}}
 
         def _iterate_attributes(obstype, attr_dict, attr_prefix, checkname):
 
@@ -488,27 +593,23 @@ class Dataset(dataset.Dataset):
 
             for key, val in attr_dict.items():
                 if not val['new_value'] is None:
-                    settings_key = key.split(attr_prefix)[1] #remove 'buddy_'
+                    settings_key = key.split(attr_prefix)[1]  # remove 'buddy_'
                     if val['dtype'] == 'numeric':
                         new_val = float(val['new_value'])
                     elif val['dtype'] == 'int':
                         new_val = int(val['new_value'])
                     elif val['dtype'] == 'bool':
                         new_val = bool(val['new_value'])
-                    else:  #val['dtype'] == 'str':
+                    else:  # val['dtype'] == 'str':
                         new_val = str(val['new_value'])
 
                     try:
-                        old_value=self.settings.qc['titan_check_settings'][checkname][obstype][settings_key]
+                        old_value = self.settings.qc['titan_check_settings'][checkname][obstype][settings_key]
                         print(f'{key.replace("_", " ")} for the TITAN buddy check updated:  {old_value}--> {new_val}')
                     except KeyError:
                         print(f'{key.replace("_", " ")} for the TITAN buddy check added:  --> {new_val}')
 
-
-
                     self.settings.qc['titan_check_settings'][checkname][obstype][settings_key] = new_val
-
-
 
         _iterate_attributes(obstype, buddy_attrs, 'buddy_', 'titan_buddy_check')
         _iterate_attributes(obstype, sct_attrs, 'sct_', 'titan_sct_resistant_check')
@@ -516,9 +617,24 @@ class Dataset(dataset.Dataset):
 # =============================================================================
 # dtype check functions
 # =============================================================================
+
+
 def is_timedelta(timedeltastr):
+    """Test if string can be timedelta representation.
+
+    Parameters
+    ----------
+    timedeltastr : str
+        Representation of timedelta.
+
+    Returns
+    -------
+    bool
+
+
+    """
     try:
         pd.to_timedelta(timedeltastr)
         return True
-    except:
+    except ValueError:
         return False

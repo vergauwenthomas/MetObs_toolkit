@@ -26,14 +26,8 @@ al25_mapinfo = {
                         # Fluxes
                         "heat_flux": {"name": "SFX.H", "units": "W/m²"}, #??"
                         "lat_heat_flux": {"name": "SFX.LE", "units": "W/m²"}, #??"
-                        "ground_heat_flux": {"name": "SFX.GFLUX", "units": "W/m²"}, #??"
-
-
-
-
-
-
-                         },
+                        "ground_heat_flux": {"name": "SFX.GFLUX", "units": "W/m²"}},
+        "dynamical": True,  # time evolution? To be used for timeseries
         'other_mapping': {'datetime' : {'name' : 'date',
                                         'fmt': '%m/%d/%Y %H:%M:%S',
                                         'tz': 'UTC'},

@@ -31,7 +31,7 @@ template_file = os.path.join(
 
 dataset_coarsened = metobs_toolkit.Dataset()
 dataset_coarsened.update_settings(
-    input_data_file=testdata, data_template_file=template_file
+    input_data_file=testdata, template_file=template_file
 )
 
 
@@ -117,7 +117,7 @@ dataset_coarsened.apply_quality_control()
 # _ = dataset_coarsened.get_qc_stats()
 # %%
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=testdata, data_template_file=template_file)
+dataset.update_settings(input_data_file=testdata, template_file=template_file)
 dataset.update_qc_settings(obstype='temp', gapsize_in_records=minimal_gapsize, dupl_timestamp_keep=dupl_dropping, persis_time_win_to_check=persistance_time_window_to_check, persis_min_num_obs=min_num_obs,
                                       rep_max_valid_repetitions=max_valid_repetitions, gross_value_min_value=min_value,
                                       win_var_max_increase_per_sec=max_increase_per_second, win_var_max_decrease_per_sec=max_decrease_per_second, win_var_time_win_to_check=time_window_to_check,

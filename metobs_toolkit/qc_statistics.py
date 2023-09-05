@@ -3,7 +3,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov  25 13:44:54 2022
+Module for computing frequency statistics of outlier labels.
 
 @author: thoverga
 """
@@ -17,6 +17,32 @@ logger = logging.getLogger(__name__)
 
 
 def get_freq_statistics(comb_df, obstype, checks_info, gaps_info, applied_qc_order):
+    """Compute frequency statistics of the outliers.
+
+    Parameters
+    ----------
+    comb_df : pandas.DataFrame
+        The dataframe containing all obsarvations, outliers and there labels.
+    obstype : str
+        The observation type to compute the frequencies of.
+    checks_info : dict
+        The general quality control info dictionary.
+    gaps_info : dict
+        The general gap info dictionary.
+    applied_qc_order : pandas.DataFrame
+        The _applied_qc attribute of the Dataset.
+
+    Returns
+    -------
+    agg_dict : dict
+        Dictionary containing occurence frequencies for all labels.
+    outl_dict : dict
+        Dictionary with frequency statistics of outlier-labels.
+    specific_counts : dict
+        Dictionary containing the effectiviness of quality control checks
+        individually.
+
+    """
     outlier_labels = [qc["outlier_flag"] for qc in checks_info.values()]
 
     final_counts = comb_df['label'].value_counts()
@@ -26,7 +52,7 @@ def get_freq_statistics(comb_df, obstype, checks_info, gaps_info, applied_qc_ord
     non_triggered_labels_dict = {}
     # fill with zeros for non-triggered checks
     for outl_label in outlier_labels:
-        if not outl_label in final_counts.index:
+        if outl_label not in final_counts.index:
             non_triggered_labels_dict[outl_label] = 0
 
     # gaps
@@ -99,7 +125,7 @@ def get_freq_statistics(comb_df, obstype, checks_info, gaps_info, applied_qc_ord
 
     # add checks that are not performed
     not_perf_checknames = [
-        check for check in checks_info.keys() if not check in applied_checks
+        check for check in checks_info.keys() if check not in applied_checks
     ]
     for checkname in not_perf_checknames:
         specific_counts[checkname] = {"not checked": 100.0, "ok": 0.0, "outlier": 0.0}

@@ -37,6 +37,16 @@ outliersdf = dataset.combine_all_to_obsspace()
 dataset.get_qc_stats(make_plot=False)
 dataset.get_qc_stats(obstype="humidity", make_plot=False)
 
+#%% Apply buddy check
+dataset.update_qc_settings(buddy_radius=17000,
+                           buddy_min_sample_size=3,
+                           buddy_max_elev_diff=150,
+                           buddy_min_std=1.2,
+                           buddy_threshold=2.4,
+                           buddy_elev_gradient=None)
+
+dataset.apply_buddy_check(use_constant_altitude=True)
+assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 125, 'The buddy check did not perfom good.'
 
 # %% Apply Qc on obstype not specified in settings
 
@@ -48,10 +58,11 @@ dataset.get_qc_stats(obstype="humidity", make_plot=False)
 sta = dataset.get_station("vlinder05")
 
 sta.apply_quality_control()
-
+sta.apply_buddy_check(use_constant_altitude=True)
 test = sta.get_qc_stats(make_plot=True)
 
-# sta.get_qc_stats(make_plot=True)
+
+
 
 
 #%% Apply titan checks
@@ -61,7 +72,7 @@ dataset.update_titan_qc_settings(obstype='temp',
                                   buddy_radius=50000,
                                   buddy_num_min=3,
                                   buddy_max_elev_diff=200,
-                                  buddy_threshold=3)
+                                  buddy_threshold=2)
 
 
 
@@ -69,7 +80,7 @@ dataset.apply_titan_buddy_check(use_constant_altitude=True)
 
 
 # count test
-assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 'The buddy check did not perfom good.'
+assert dataset.outliersdf['label'].value_counts()['titan buddy check outlier'] == 277, 'The TITAN buddy check did not perfom good.'
 
 # test if a check does not overwrite itself
 dataset.update_titan_qc_settings(obstype='temp',
@@ -79,7 +90,7 @@ dataset.update_titan_qc_settings(obstype='temp',
                                   buddy_threshold=0.5)
 dataset.apply_titan_buddy_check(use_constant_altitude=True)
 
-assert dataset.outliersdf['label'].value_counts()['buddy check outlier'] == 57, 'The buddy check did overwrite itself!'
+assert dataset.outliersdf['label'].value_counts()['titan buddy check outlier'] == 277, 'The buddy check did overwrite itself!'
 
 
 #%%

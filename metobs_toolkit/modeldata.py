@@ -5,17 +5,24 @@ This module contains the Modeldata class and all its methods.
 
 A Modeldata holds all timeseries coming from a model and methods to use them.
 """
-
+import os
+import pickle
 import pandas as pd
 import logging
 
-from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf, xs_save, multiindexdf_datetime_subsetting
+from metobs_toolkit.df_helpers import (init_multiindexdf,
+                                       conv_tz_multiidxdf,
+                                       xs_save,
+                                       multiindexdf_datetime_subsetting)
 
-from metobs_toolkit.landcover_functions import connect_to_gee, gee_extract_timeseries
+from metobs_toolkit.landcover_functions import (connect_to_gee,
+                                                gee_extract_timeseries)
 
-from metobs_toolkit.plotting_functions import model_timeseries_plot, timeseries_plot
+from metobs_toolkit.plotting_functions import (model_timeseries_plot,
+                                               timeseries_plot)
 
-from metobs_toolkit.convertors import convert_to_toolkit_units, standard_tlk_units
+from metobs_toolkit.convertors import (convert_to_toolkit_units,
+                                       standard_tlk_units)
 
 from metobs_toolkit.settings import Settings
 
@@ -27,7 +34,10 @@ logger = logging.getLogger(__name__)
 
 
 class Modeldata:
+    """Class holding data and methods for a modeldata-timeseries."""
+
     def __init__(self, modelname):
+        """Initialize modeldata."""
         self.df = init_multiindexdf()
         self.modelname = modelname
 
@@ -35,15 +45,15 @@ class Modeldata:
         self.mapinfo = self._settings.gee["gee_dataset_info"]
         self.mapinfo.update(self._settings.alaro['info'])
 
-        self._df_units = {} #the units of the data stored in the df
-        self.df_tz = 'UTC'# the timezone of the datetimes stored in the df
+        self._df_units = {}  # the units of the data stored in the df
+        self.df_tz = 'UTC'  # the timezone of the datetimes stored in the df
 
-        self._is_alaro25=False
-
+        self._is_alaro25 = False
 
     def __str__(self):
+        """Print overview information of the modeldata."""
         if self.df.empty:
-            return f'Empty Modeldata instance.'
+            return 'Empty Modeldata instance.'
         n_stations = self.df.index.get_level_values('name').unique().shape[0]
         obstypes = self.df.columns.to_list()
         startdt = self.df.index.get_level_values('datetime').min()
@@ -57,14 +67,12 @@ class Modeldata:
     * From {startdt} --> {enddt} (with tz={self.df_tz}) \n \n (Data is stored in the .df attribute)")
 
     def __repr__(self):
+        """Print overview information of the modeldata."""
         return self.__str__()
-
 
     def add_gee_dataset(self, mapname, gee_location, obstype, bandname, units,
                         scale, time_res='1H', is_image=False, is_numeric=True, credentials=''):
-        """
-        Method to add a new gee dataset to the available gee datasets.
-
+        """Add a new gee dataset to the available gee datasets.
 
         Parameters
         ----------
@@ -111,37 +119,28 @@ class Modeldata:
             logger.warning(f'{mapname} is found in the list of known gee datasets: {list(self.mapinfo.keys())}, choose a different mapname.')
             return
 
-
-
         if is_numeric:
-            val_typ='numeric'
+            val_typ = 'numeric'
         else:
             val_typ = 'categorical'
-
-        if is_image:
-            im_bool=True
-        else:
-            im_bool=False
-
-
 
         new_info = {
             mapname: {
                 'location': f'{gee_location}',
                 'usage': 'user defined addition',
-                'band_of_use' :
+                'band_of_use':
                     {f'{obstype}':
                          {'name': f'{bandname}',
                           'units': f'{units}'}
-                         },
-                        'value_type': val_typ,
-                        'dynamical': not bool(is_image),
-                        'scale': int(scale),
-                        'is_image':bool(is_image),
-                        'is_imagecollection': not bool(is_image),
-                        'credentials' : f'{credentials}',
-                        }
-                }
+                     },
+                'value_type': val_typ,
+                'dynamical': not bool(is_image),
+                'scale': int(scale),
+                'is_image': bool(is_image),
+                'is_imagecollection': not bool(is_image),
+                'credentials': f'{credentials}',
+            }
+        }
 
         if not is_image:
             new_info[mapname]['time_res'] = f'{time_res}'
@@ -150,17 +149,11 @@ class Modeldata:
         logger.info(f'{mapname} is added to the list of available gee dataset with: {new_info}')
         return
 
-
-
-
     def add_band_to_gee_dataset(self, bandname, obstype, units, overwrite=False):
-        """
-        A method to add a new band to the current gee dataset (by .modelname attribute).
-
+        """Add a new band to the current gee dataset (by .modelname attribute).
 
         Parameters
         ----------
-
         bandname : str
             Name of the dataset band as stored on the GEE.
         obstype : str
@@ -196,7 +189,6 @@ class Modeldata:
             logger.warning(f'{mapname} is found as a Image. No bandnames can be added to it.')
             return
 
-
         # check if obstype is already mapped if multiple bands exist
         if not isinstance(self.mapinfo[mapname]['band_of_use'], str):
             if obstype in self.mapinfo[mapname]['band_of_use'].keys():
@@ -204,36 +196,30 @@ class Modeldata:
                     logger.warning(f'{obstype} already mapped to a bandname for dataset: {mapname}.')
                     return
 
-
         # update the dict
-        new_info = {obstype: {'name' : bandname,
-                              'units' : units}}
+        new_info = {obstype: {'name': bandname,
+                              'units': units}}
         self.mapinfo[mapname]['band_of_use'].update(new_info)
 
         logger.info(f'{new_info} is added to the {mapname} bands of use.')
         return
 
-
-
     def list_gee_datasets(self):
-        """
-        Print out all the available gee datasets
+        """Print out all the available gee datasets.
 
         Returns
         -------
         None.
 
         """
-        print(f'The following datasets are found: ')
+        print('The following datasets are found: ')
         for geename, info in self.mapinfo.items():
             print('\n --------------------------------')
             print(f'{geename} : \n')
             print(f'{info}')
 
-
     def _conv_to_timezone(self, tzstr):
-        """
-        Convert the timezone of the datetime index of the df attribute.
+        """Convert the timezone of the datetime index of the df attribute.
 
         Parameters
         ----------
@@ -247,8 +233,7 @@ class Modeldata:
         """
         # get tzstr by datetimindex.tz.zone
 
-
-        df=self.df
+        df = self.df
         df['datetime_utc'] = df.index.get_level_values('datetime').tz_convert(tzstr)
         df = df.reset_index()
         df = df.drop(columns=['datetime'])
@@ -258,10 +243,9 @@ class Modeldata:
         self.df_tz = tzstr
 
     def convert_units_to_tlk(self, obstype, target_unit_name='Celsius',
-                      conv_expr=None):
+                             conv_expr=None):
         """
-        Method to convert the model data of one observation to the standard
-        units as used by the metobs_toolkit.
+        Convert the model data of one observation to the standard units as used by the metobs_toolkit.
 
         If No standard unit is present, you can give a conversion expression.
 
@@ -288,45 +272,38 @@ class Modeldata:
         the conversion from Kelvin to Celcius.
 
         """
-
-
-
         # chech if data is available
         if self.df.empty:
             logger.warning('No data to set units for.')
             return
-        if not obstype in self.df.columns:
+        if obstype not in self.df.columns:
             logger.warning('{obstype} not found as observationtype in the Modeldata.')
             return
 
-        if not conv_expr is None:
-            new_unit_def = {target_unit_name:{
-                                self._df_units[obstype] : f'{conv_expr}'}}
+        if conv_expr is not None:
+            new_unit_def = {target_unit_name: {
+                            self._df_units[obstype]: f'{conv_expr}'}}
         else:
-            new_unit_def={}
+            new_unit_def = {}
 
         new_data, new_unit = convert_to_toolkit_units(data=self.df[obstype],
-                                                    data_unit=self._df_units[obstype],
-                                                    new_units=new_unit_def)
+                                                      data_unit=self._df_units[obstype],
+                                                      new_units=new_unit_def)
 
         logger.info(f'{obstype} are converted from {self._df_units[obstype]} --> {new_unit}.')
 
         self.df[obstype] = new_data
         self._df_units[obstype] = new_unit
 
-
-
     def get_gee_dataset_data(self, mapname, metadf,
                              startdt_utc, enddt_utc, obstype='temp',
                              target_unit_name='new unit', conv_expr=None):
+        """Extract timeseries of a gee dataset.
 
-        """
-        Extract timeseries of a gee dataset. The extraction can only be done
-        if the gee dataset bandname (and units) corresponding to the obstype
-        is known.
+        The extraction can only be done if the gee dataset bandname (and units)
+        corresponding to the obstype is known.
 
         The units are converted to the toolkit standard units.
-
 
         Parameters
         ----------
@@ -372,19 +349,18 @@ class Modeldata:
         the conversion from Kelvin to Celcius.
 
         """
-
         # ====================================================================
         # Test input
         # ====================================================================
         if metadf.empty:
-            logger.warning(f'The metadf is empty!')
+            logger.warning('The metadf is empty!')
             return
 
         # Subset metadf to stations with coordinates
-        no_coord_meta = metadf[metadf[['lat','lon']].isna().any(axis=1)]
+        no_coord_meta = metadf[metadf[['lat', 'lon']].isna().any(axis=1)]
         if not no_coord_meta.empty:
             logger.warning(f'Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}')
-            metadf = metadf[~metadf[['lat','lon']].isna().any(axis=1)]
+            metadf = metadf[~metadf[['lat', 'lon']].isna().any(axis=1)]
 
         # is mapinfo available
         if mapname not in self.mapinfo.keys():
@@ -399,20 +375,19 @@ class Modeldata:
             return
 
         # is obstype mapped?
-        if not obstype in geeinfo['band_of_use'].keys():
+        if obstype not in geeinfo['band_of_use'].keys():
             logger.warning(f'{obstype} is not yet mapped to a bandname in the {mapname} dataset.')
             return
 
         # can observation be converted to standaard units?
         try:
-            convert_to_toolkit_units(data = [10,20,30],
-                                     data_unit = geeinfo['band_of_use'][obstype]['units'])
+            convert_to_toolkit_units(data=[10, 20, 30],
+                                     data_unit=geeinfo['band_of_use'][obstype]['units'])
         except:
             logger.warning(f"The {geeinfo['band_of_use'][obstype]['units']} cannot be converted to standard toolkit units: ")
             # this prints more details
-            convert_to_toolkit_units(data = [10,20,30],
-                                     data_unit = geeinfo['band_of_use'][obstype]['units'])
-
+            convert_to_toolkit_units(data=[10, 20, 30],
+                                     data_unit=geeinfo['band_of_use'][obstype]['units'])
 
         # ====================================================================
         # GEE api extraction
@@ -422,8 +397,7 @@ class Modeldata:
         connect_to_gee()
 
         # Get data using GEE
-        df = gee_extract_timeseries(
-                                    metadf=metadf,
+        df = gee_extract_timeseries(metadf=metadf,
                                     mapinfo=geeinfo,
                                     startdt=startdt_utc,
                                     enddt=enddt_utc,
@@ -432,33 +406,28 @@ class Modeldata:
                                     loncolname="lon",
                                     )
 
-
-
         if not df.empty:
             self._df_units[obstype] = geeinfo['band_of_use'][obstype]['units']
             if conv_expr is None:
                 # use standard units
                 self.convert_units_to_tlk(obstype=obstype,
-                                      target_unit_name=standard_tlk_units[obstype],
-                                      )
+                                          target_unit_name=standard_tlk_units[obstype],
+                                          )
             else:
                 self.convert_units_to_tlk(obstype=obstype,
-                                      target_unit_name=target_unit_name,
-                                      conv_expr=conv_expr
-                                      )
+                                          target_unit_name=target_unit_name,
+                                          conv_expr=conv_expr
+                                          )
 
-            self.df_tz='UTC'
+            self.df_tz = 'UTC'
         else:
-            self._data_stored_at_drive=True
+            self._data_stored_at_drive = True
 
         self.df = df
         self.modelname = mapname
 
-
-
     def get_ERA5_data(self, metadf, startdt_utc, enddt_utc, obstype='temp'):
-        """
-        Extract timeseries of the ERA5_hourly dataset.
+        """Extract timeseries of the ERA5_hourly dataset.
 
         The units are converted to the toolkit standard units.
 
@@ -467,7 +436,6 @@ class Modeldata:
 
         Parameters
         ----------
-
         metadf : pandas.DataFrame
             A dataframe with a 'name' index and  'lat', 'lon' columns.
             Timeseries are extracted for these locations.
@@ -493,16 +461,15 @@ class Modeldata:
         method.
 
         """
-
         self.get_gee_dataset_data(mapname='ERA5_hourly',
                                   metadf=metadf,
                                   startdt_utc=startdt_utc,
                                   enddt_utc=enddt_utc,
                                   obstype=obstype)
 
-
     def set_alaro_25_model_from_csv(self, csvpath):
-        """
+        """Set Alaro 2.5km model as modeldata.
+
         (This is for the participants of the Cost FAIRNESS Summerschool in Ghent.)
 
         This method will import the data from the ALARO model, that was send
@@ -520,15 +487,12 @@ class Modeldata:
         None.
 
         """
-
         # update name
         if self.modelname != 'ALARO_2.5':
             logger.info(f'Converting modelname: {self.modelname} --> ALARO_2.5')
-            self.modelname ='ALARO_2.5'
-
+            self.modelname = 'ALARO_2.5'
 
         info = self.mapinfo['ALARO_2.5']
-
 
         # read in file
         df = pd.read_csv(csvpath, sep=",")
@@ -539,9 +503,8 @@ class Modeldata:
         keep_cols.append(info['other_mapping']['name']['name'])
         df = df[keep_cols]
 
-
         # rename columns to 'defaults'
-        rename_dict = {val['name'] : key for key, val in info['band_of_use'].items()}
+        rename_dict = {val['name']: key for key, val in info['band_of_use'].items()}
         rename_dict[info['other_mapping']['datetime']['name']] = 'datetime'
         rename_dict[info['other_mapping']['name']['name']] = 'name'
         df = df.rename(columns=rename_dict)
@@ -550,13 +513,11 @@ class Modeldata:
         for col in info['conversions'].keys():
             df[col] = df[col] * info['conversions'][col]
 
-
         # format datatime
         df["datetime"] = pd.to_datetime(df["datetime"],
                                         format=info['other_mapping']['datetime']['fmt'])
 
         df["datetime"] = df["datetime"].dt.tz_localize(info['other_mapping']['datetime']['tz'])
-
 
         # Make multiidx structure:
         df = df.set_index(['name', 'datetime'])
@@ -568,14 +529,83 @@ class Modeldata:
         unit_dict = {key: val['units'] for key, val in info['band_of_use'].items() if 'units' in val}
         self._df_units.update(unit_dict)
 
-        self._is_alaro25=True
+        self._is_alaro25 = True
 
+    def save_modeldata(self, outputfolder=None, filename='saved_modeldata.pkl', ):
+        """Save a Modeldata instance to a (pickle) file.
 
+        Parameters
+        ----------
+        outputfolder : str or None, optional
+            The path to the folder to save the file. If None, the outputfolder
+            from the Settings is used. The default is None.
+        filename : str, optional
+            The name of the output file. The default is 'saved_modeldata.pkl'.
 
+        Returns
+        -------
+        None.
+
+        """
+        # check if outputfolder is known and exists
+        if outputfolder is None:
+            outputfolder = self.settings.IO['output_folder']
+            assert outputfolder is not None, 'No outputfolder is given, and no outputfolder is found in the settings.'
+
+        assert os.path.isdir(outputfolder), f'{outputfolder} is not a directory!'
+
+        # check file extension in the filename:
+        if filename[-4:] != '.pkl':
+            filename += '.pkl'
+
+        full_path = os.path.join(outputfolder, filename)
+
+        # check if file exists
+        assert not os.path.isfile(full_path), f'{full_path} is already a file!'
+
+        with open(full_path, 'wb') as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+        print(f'Modeldata saved in {full_path}')
+        logger.info(f'Modeldata saved in {full_path}')
+
+    def import_modeldata(self, folder_path=None, filename='saved_modeldata.pkl'):
+        """Import a modeldata instance from a (pickle) file.
+
+        Parameters
+        ----------
+        folder_path : str or None, optional
+            The path to the folder to save the file. If None, the outputfolder
+            from the Settings is used. The default is None.
+        filename : str, optional
+            The name of the output file. The default is 'saved_modeldata.pkl'.
+
+        Returns
+        -------
+        metobs_toolkit.Modeldata
+            The modeldata instance.
+
+        """
+        # check if folder_path is known and exists
+        if folder_path is None:
+            folder_path = self.settings.IO['output_folder']
+            assert folder_path is not None, 'No folder_path is given, and no outputfolder is found in the settings.'
+
+        assert os.path.isdir(folder_path), f'{folder_path} is not a directory!'
+
+        full_path = os.path.join(folder_path, filename)
+
+        # check if file exists
+        assert os.path.isfile(full_path), f'{full_path} does not exist.'
+
+        with open(full_path, 'rb') as inp:
+            modeldata = pickle.load(inp)
+
+        return modeldata
 
     def set_model_from_csv(self, csvpath):
-        """
-        This method loads timeseries data that is stored in a csv file.
+        """Import timeseries data that is stored in a csv file.
+
         The name of the gee dataset the timeseries are coming from must be the
         same as the .modelname attribute of the Modeldata.
 
@@ -593,9 +623,8 @@ class Modeldata:
         None.
 
         """
-
         # tests ----
-        if not self.modelname in self.mapinfo.keys():
+        if self.modelname not in self.mapinfo.keys():
             logger.warning(f'{self.modelname} is not found in the gee datasets.')
             return
 
@@ -614,7 +643,7 @@ class Modeldata:
 
         # rename to values to toolkit space
 
-        bandname = df.columns[0] #assume only one column
+        bandname = df.columns[0]  # assume only one column
         # scan to the geeinfo to found which obstype and unit the bandname represents
         geeinfo = self.mapinfo[self.modelname]
         obstype = [obs for obs, val in geeinfo['band_of_use'].items() if val['name'] == bandname][0]
@@ -622,22 +651,18 @@ class Modeldata:
 
         df = df.rename(columns={bandname: obstype})
 
-
         # 3. update attributes
         self.df = df[[obstype]]
         self.df_tz = 'UTC'
         self._df_units[obstype] = cur_unit
 
-
         # 4. Convert units
         self.convert_units_to_tlk(obstype=obstype,
                                   target_unit_name=standard_tlk_units[obstype])
 
-
-
-
     def interpolate_modeldata(self, to_multiidx, obstype="temp"):
-        """
+        """Interpolate modeldata in time.
+
         Interpolate the modeldata timeseries, of an obstype, to a
         given name-datetime multiindex.
 
@@ -706,14 +731,14 @@ class Modeldata:
             returndf = pd.concat([returndf, mergedf])
         return returndf
 
-    def make_plot(self, obstype_model="temp", dataset = None,
+    def make_plot(self, obstype_model="temp", dataset=None,
                   obstype_dataset=None, stationnames=None,
                   starttime=None, endtime=None, title=None, show_outliers=True,
                   show_filled=True, legend=True,
-                  _ax=None, #needed for GUI, not recommended use
+                  _ax=None,  # needed for GUI, not recommended use
                   ):
+        """Plot timeseries of the modeldata.
 
-        """
         This function creates a timeseries plot for the Modeldata. When a
         metobs_toolkit.Dataset is provided, it is plotted in the same figure.
 
@@ -763,8 +788,6 @@ class Modeldata:
              The timeseries axes of the plot is returned.
 
         """
-
-
         logger.info(f"Make {obstype_model}-timeseries plot of model data")
 
         # Basic test
@@ -777,11 +800,10 @@ class Modeldata:
         if obstype_dataset is None:
             obstype_dataset = obstype_model
 
-        if (not dataset is None):
+        if dataset is not None:
             if (obstype_dataset not in dataset.df.columns):
                 logger.warning(f'{obstype_dataset} is not foud in the Dataframe df.')
                 return
-
 
         model_df = self.df
 
@@ -791,15 +813,14 @@ class Modeldata:
         model_df = model_df[[obstype_model]]
 
         # Subset on stationnames
-        if not stationnames is None:
+        if stationnames is not None:
             model_df = model_df[model_df.index.get_level_values('name').isin(stationnames)]
 
         # Subset on start and endtime
         model_df = multiindexdf_datetime_subsetting(model_df, starttime, endtime)
 
-
         #  -------- Filter dataset (if available) -----------
-        if not dataset is None:
+        if dataset is not None:
             # combine all dataframes
             mergedf = dataset.combine_all_to_obsspace()
 
@@ -807,12 +828,11 @@ class Modeldata:
             mergedf = xs_save(mergedf, obstype_dataset, level='obstype')
 
             # Subset on stationnames
-            if not stationnames is None:
+            if stationnames is not None:
                 mergedf = mergedf[mergedf.index.get_level_values('name').isin(stationnames)]
 
             # Subset on start and endtime
             mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
-
 
         # Generate ylabel
 
@@ -824,7 +844,7 @@ class Modeldata:
 
         fieldname = f'{model_true_field_name}'
 
-        if not dataset is None:
+        if dataset is not None:
             dataset_obs_orig_name = dataset.data_template[obstype_dataset]['orig_name']
             units = dataset.data_template[obstype_dataset]['units']
             y_label = f'{fieldname} \n {dataset_obs_orig_name} ({units})'
@@ -833,51 +853,44 @@ class Modeldata:
 
             y_label = f'{fieldname} \n ({self._df_units[obstype_model]})'
 
-
-        #Generate title
+        # Generate title
         title = f'{self.modelname} : {model_true_field_name}'
-        if not dataset is None:
+        if dataset is not None:
             title = f'{title} and {dataset_obs_orig_name} observations.'
 
-
         # make plot of the observations
-        if not dataset is None:
+        if dataset is not None:
             # make plot of the observations
-            ax, col_map = timeseries_plot(mergedf=mergedf,
-                                 title=title,
-                                 ylabel=y_label,
-                                 colorby='name',
-                                 show_legend=legend,
-                                 show_outliers=show_outliers,
-                                 show_filled=show_filled ,
-                                 settings = dataset.settings)
-
+            _ax, col_map = timeseries_plot(mergedf=mergedf,
+                                           title=title,
+                                           ylabel=y_label,
+                                           colorby='name',
+                                           show_legend=legend,
+                                           show_outliers=show_outliers,
+                                           show_filled=show_filled,
+                                           settings=dataset.settings,
+                                           _ax=_ax)
 
             # Make plot of the model on the previous axes
-            ax, col_map = model_timeseries_plot(
-                                    df=model_df,
-                                    obstype=obstype_model,
-                                    title=title,
-                                    ylabel=y_label,
-                                    settings = self._settings,
-                                    show_primary_legend=False,
-                                    add_second_legend=True,
-                                    _ax = ax,
-                                    colorby_name_colordict=col_map)
-
+            ax, col_map = model_timeseries_plot(df=model_df,
+                                                obstype=obstype_model,
+                                                title=title,
+                                                ylabel=y_label,
+                                                settings=self._settings,
+                                                show_primary_legend=False,
+                                                add_second_legend=True,
+                                                _ax=_ax,
+                                                colorby_name_colordict=col_map)
 
         else:
-
             # Make plot of model on empty axes
-            ax, _colmap = model_timeseries_plot(
-                    df=model_df,
-                    obstype=obstype_model,
-                    title=title,
-                    ylabel=y_label,
-                    settings = self._settings,
-                    show_primary_legend=legend,
-                    add_second_legend=False,
-                    _ax = None
-                    )
+            ax, _colmap = model_timeseries_plot(df=model_df,
+                                                obstype=obstype_model,
+                                                title=title,
+                                                ylabel=y_label,
+                                                settings=self._settings,
+                                                show_primary_legend=legend,
+                                                add_second_legend=False,
+                                                _ax=_ax)
 
         return ax
