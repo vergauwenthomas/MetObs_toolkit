@@ -1,4 +1,4 @@
-name: Installation testing
+name: Local Installation testing
 
 on:
   push:
