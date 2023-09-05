@@ -752,7 +752,7 @@ class Analysis():
                 stddf = None
 
             # Make plot
-            ax = cycle_plot(cycle_df=values_df,
+            ax = cycle_plot(cycledf=values_df,
                             errorbandsdf=stddf,
                             title=title,
                             plot_settings=self.settings.app['plot_settings']['diurnal'],
@@ -794,6 +794,7 @@ class Analysis():
         A dictionary is returnd where each key represents a unique combination of
         the groupby_labels. The value is a dictionary with the following keys
         and values:
+
         * cor matrix: the Pearson correlation matrix
         * significance matrix: the significance (p-)values of the correlations.
         * combined matrix: A human readable combination of the correlations and their p values. Indicate by *, ** or *** representing p-values < 0.05, 0.01 and 0.001 respectively.
