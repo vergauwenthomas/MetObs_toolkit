@@ -9,7 +9,7 @@
 
 
 # MetObs-toolkit
-The MetObs-Toolkit provides a comprehensive framework for scientists to process raw meteorological data for analysis.
+The MetObs-toolkit provides a comprehensive framework for scientists to process raw meteorological data for analysis.
 This repo contains all the software for the [metobs_toolkit](https://test.pypi.org/project/metobs-toolkit/).
 
 ## Documentation
@@ -31,7 +31,7 @@ In the context of a [FAIRNESS (COST action)](https://www.fairness-ca20108.eu/) s
 ## Installing the package
 Install the package by:
 
-`pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git`
+`pip install MetObs-toolkit`
 
 ## Related
 * A graphical user interface for the MetObs-Toolkit: [MetObs_GUI](https://github.com/vergauwenthomas/MetObs_GUI)
