@@ -5,7 +5,7 @@ datetime,,,,object,%Y-%m-%d %H:%M:%S
 _date,Datum,,,object,%Y-%m-%d
 _time,Tijd (UTC),,,object,%H:%M:%S
 ,,,,,
-temp,Temperatuur,Celcius,2m-temperature,float64,
+temp,Temperatuur,Celsius,2m-temperature,float64,
 humidity,Vochtigheid,%,relative humidity,float64,
 pressure,Luchtdruk,pa,air pressure,float64,
 precip,Neerslagintensiteit,l/m²,precipitation intensity,float64,
@@ -14,7 +14,7 @@ wind_direction,Windrichting,°,° from North (CW),float64,
 wind_speed,Windsnelheid,m/s,windspeed,float64,
 wind_gust,Rukwind,m/s,windgust,float64,
 pressure_at_sea_level,Luchtdruk_Zeeniveau,pa,pressure at sea level,float64,
-radiation_temp,Globe Temperatuur,Celcius,Radiative blackglobe temperature,float64,
+radiation_temp,Globe Temperatuur,Celsius,Radiative blackglobe temperature,float64,
 ,,,,,
 ,,,,,
 _ID,ID,,,object,

@@ -49,18 +49,18 @@ demo_template = os.path.join(
 # =============================================================================
 #  Static variables to be reached by users
 # =============================================================================
-observation_types = [
-    "temp",
-    "radiation_temp",
-    "humidity",
-    "precip",
-    "precip_sum",
-    "wind_speed",
-    "wind_gust",
-    "wind_direction",
-    "pressure",
-    "pressure_at_sea_level",
-]
+# observation_types = [
+#     "temp",
+#     "radiation_temp",
+#     "humidity",
+#     "precip",
+#     "precip_sum",
+#     "wind_speed",
+#     "wind_gust",
+#     "wind_direction",
+#     "pressure",
+#     "pressure_at_sea_level",
+# ]
 
 
 # =============================================================================

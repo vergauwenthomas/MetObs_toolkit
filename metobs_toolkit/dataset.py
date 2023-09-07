@@ -87,10 +87,12 @@ from metobs_toolkit.df_helpers import (
     xs_save
 )
 
+from metobs_toolkit.obstypes import tlk_obstypes
+
+
 from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
 
-from metobs_toolkit import observation_types
 
 
 logger = logging.getLogger(__name__)
@@ -122,6 +124,10 @@ class Dataset:
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
+
+        # dictionary storing present observationtypes
+        self.obstypes = tlk_obstypes #init with all tlk obstypes
+
         # dataframe containing all information on the description and mapping
         self.data_template = pd.DataFrame()
 
@@ -264,7 +270,7 @@ class Dataset:
             new.update_outliersdf(add_to_outliersdf=dup_outl_df)
 
         # update the order and which qc is applied on which obstype
-        checked_obstypes = [obs for obs in new.df.columns if obs in observation_types]
+        checked_obstypes = list(self.obstypes.keys())
 
         checknames = ["duplicated_timestamp"]  # KEEP order
 
@@ -558,33 +564,25 @@ class Dataset:
             if stationnames is None:
                 if self._istype == "Dataset":
                     title = (
-                        self.data_template[obstype]["orig_name"]
+                        self.obstypes[obstype].get_orig_name()
                         + " for all stations. "
                     )
                 elif self._istype == "Station":
                     title = (
-                        self.data_template[obstype]["orig_name"]
+                        self.obstypes[obstype].get_orig_name()
                         + " of "
                         + self.name
                     )
 
             else:
                 title = (
-                    self.data_template[obstype]["orig_name"]
+                    self.obstypes[obstype].get_orig_name()
                     + " for stations: "
                     + str(stationnames)
                 )
         # create y label
         if y_label is None:
-            try:
-                if isinstance(self.data_template[obstype]["description"], str):
-                    description = self.data_template[obstype]["description"]
-                else:
-                    description = ''
-
-                y_label = f'{self.data_template[obstype]["orig_name"]} ({self.data_template[obstype]["units"]}) \n {description}'
-            except KeyError:
-                y_label = obstype
+            y_label = f'{self.obstypes[obstype].get_orig_name()} ({self.obstypes[obstype].get_standard_unit()}) \n {self.obstypes[obstype].get_description()}'
 
         # Make plot
         ax, _colmap = timeseries_plot(
@@ -609,6 +607,7 @@ class Dataset:
         legend=True,
         vmin=None,
         vmax=None,
+        legend_title=None,
         boundbox=[]
     ):
         """Make geospatial plot.
@@ -639,6 +638,8 @@ class Dataset:
             The value corresponding with the minimum color. If None, the minimum of the presented observations is used. The default is None.
         vmax : numeric, optional
             The value corresponding with the maximum color. If None, the maximum of the presented observations is used. The default is None.
+        legend_title : string, optional
+            Title of the legend, if None a default title is generated. The default is None.
         boundbox : [lon-west, lat-south, lon-east, lat-north], optional
             The boundbox to indicate the domain to plot. The elemenst are numeric.
             If the list is empty, a boundbox is created automatically. The default
@@ -685,6 +686,8 @@ class Dataset:
                 _sta = self.metadf[self.metadf['lcz'].isnull()]['lcz']
                 logger.warning(f'Stations without lcz detected: {_sta}')
                 return None
+            title = f'Local climate zones at {timeinstance}.'
+            legend_title = ''
 
         # subset to timeinstance
         plotdf = xs_save(self.df, timeinstance, level="datetime")
@@ -694,12 +697,27 @@ class Dataset:
             self.metadf, how="left", left_index=True, right_index=True
         )
 
+        # titles
+        if title is None:
+            try:
+                title = f'{self.obstypes[variable].get_orig_name()} at {timeinstance}.'
+            except KeyError:
+                title = f'{variable} at {timeinstance}.'
+
+
+        if legend:
+            if legend_title is None:
+                legend_title = f'{self.obstypes[variable].get_standard_unit()}'
+
+
+
         axis = geospatial_plot(
             plotdf=plotdf,
             variable=variable,
             timeinstance=timeinstance,
             title=title,
             legend=legend,
+            legend_title=legend_title,
             vmin=vmin,
             vmax=vmax,
             plotsettings=self.settings.app["plot_settings"],
@@ -828,8 +846,7 @@ class Dataset:
         ----------
         obstype : str, optional
             Use the outliers on this observation type to update the gaps and
-            missing timestamps.The obstype should be an element of
-            metobs_toolkit.observation_types. The default is 'temp'.
+            missing timestamps. The default is 'temp'.
         n_gapsize : int, optional
             The minimum number of consecutive missing observations to define
             as a gap. If None, n_gapsize is taken from the settings defenition
@@ -1343,7 +1360,7 @@ class Dataset:
 
         # Map obstypes columns
         if not use_tlk_obsnames:
-            mapper = self.data_template.transpose()['orig_name'].to_dict()
+            mapper = {col: self.obstypes[col].get_orig_name() for col in self.obstypes.keys()}
             mergedf = mergedf.reset_index()
             mergedf['new_names'] = mergedf['obstype'].map(mapper)
             mergedf = mergedf.drop(columns=['obstype'])
@@ -1928,7 +1945,7 @@ class Dataset:
         # =============================================================================
         df = self.df
         # better save than sorry
-        present_obstypes = [col for col in df if col in observation_types]
+        present_obstypes = list(self.obstypes.keys())
         df = df[present_obstypes]
 
         # to tripple index
@@ -1956,7 +1973,8 @@ class Dataset:
         gapsfilldf = self.gapfilldf.copy()
 
         # to triple index
-        gapsfilldf = value_labeled_doubleidxdf_to_triple_idxdf(gapsfilldf)
+        gapsfilldf = value_labeled_doubleidxdf_to_triple_idxdf(gapsfilldf,
+                                                               known_obstypes=list(self.obstypes.keys()))
         gapsfilldf['toolkit_representation'] = 'gap fill'
 
         gapsidx = get_gaps_indx_in_obs_space(gapslist=self.gaps,
@@ -1983,7 +2001,8 @@ class Dataset:
         # Stack missing
         # =============================================================================
         missingfilldf = self.missing_fill_df.copy()
-        missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(missingfilldf)
+        missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(missingfilldf,
+                                                                  known_obstypes=list(self.obstypes.keys()))
         missingfilldf['toolkit_representation'] = 'missing observation fill'
 
         # add missing observations if they occure in observation space
@@ -2071,7 +2090,8 @@ class Dataset:
             return None
 
         # make title
-        orig_obstype = self.data_template[obstype].to_dict()['orig_name']
+        orig_obstype = self.obstypes[obstype].get_orig_name()
+
         if stationname is None:
             title = f'Label frequency statistics on all stations for {orig_obstype}.'
         else:
@@ -2335,7 +2355,7 @@ class Dataset:
                 stadf = stadf.set_index(["name", "datetime"])
 
                 # drop all records per statiotion for which there are no obsecvations
-                present_obs = [col for col in stadf.columns if col in observation_types]
+                present_obs = list(self.obstypes.keys())
                 stadf = stadf.loc[stadf[present_obs].dropna(axis=0, how='all').index]
 
                 stadf = stadf.reset_index()
@@ -2502,11 +2522,12 @@ class Dataset:
         # check if obstype is valid
         if obstype is not None:
             assert (
-                obstype in observation_types
-            ), f'{obstype} is not a default obstype. Use one of: {self.settings.app["observation_types"]}'
+                obstype in list(self.obstypes.keys())
+            ), f'{obstype} is not a known observation type. Use one of the default, or add a new to the defaults: {tlk_obstypes.keys()}.'
 
         # Read template
         template, options_kwargs = read_csv_template(file=self.settings.templates["template_file"],
+                                                     known_obstypes=list(self.obstypes.keys()),
                                                      data_long_format=long_format)
 
         # update the kwargs using the option kwargs (i.g. arguments from in the template)
@@ -2538,6 +2559,7 @@ class Dataset:
             obstype=obstype,  # only relevant in wide format
             obstype_units=obstype_unit,  # only relevant in wide format
             obstype_description=obstype_description,  # only relevant in wide format
+            known_obstypes=list(self.obstypes.keys()),
             kwargs_data_read=kwargs_data_read
         )
 
@@ -2642,7 +2664,7 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         # dataframe with all data of input file
         self.input_df = df.sort_index(level=['name', 'datetime'])
-
+        # Construct all attributes of the Dataset
         self._construct_dataset(
             df=df,
             freq_estimation_method=freq_estimation_method,
@@ -2728,7 +2750,9 @@ station with the default name: {self.settings.app["default_name"]}.'
     ):
         """Construct the Dataset class from a IO dataframe.
 
-        The df, metadf, outliersdf, gaps and missing timestamps attributes are set.
+        The df, metadf, outliersdf, gaps, missing timestamps and observationtypes attributes are set.
+
+        The observations are converted to the toolkit standard units if possible.
 
         Qc on IO is applied (duplicated check and invalid check) + gaps and missing
         values are defined by assuming a frequency per station.
@@ -2762,6 +2786,9 @@ station with the default name: {self.settings.app["default_name"]}.'
         """
         # Convert dataframe to dataset attributes
         self._initiate_df_attribute(dataframe=df, update_metadf=update_full_metadf)
+
+        # Check observation types and convert units if needed.
+        self._check_observation_types()
 
         # Apply quality control on Import resolution
         self._apply_qc_on_import()
@@ -2800,7 +2827,7 @@ station with the default name: {self.settings.app["default_name"]}.'
             f"Updating dataset by dataframe with shape: {dataframe.shape}.")
 
         # Create dataframe with fixed order of observational columns
-        obs_col_order = [col for col in observation_types if col in dataframe.columns]
+        obs_col_order = list(self.obstypes.keys())
 
         self.df = dataframe[obs_col_order].sort_index()
 
@@ -2851,7 +2878,7 @@ station with the default name: {self.settings.app["default_name"]}.'
         self.outliersdf = self.outliersdf.sort_index()
 
         # update the order and which qc is applied on which obstype
-        checked_obstypes = [obs for obs in self.df.columns if obs in observation_types]
+        checked_obstypes = [obs for obs in self.df.columns if obs in self.obstypes.keys()]
 
         checknames = ["duplicated_timestamp", "invalid_input"]  # KEEP order
 
@@ -2864,6 +2891,39 @@ station with the default name: {self.settings.app["default_name"]}.'
             ],
             ignore_index=True,
         )
+
+    def _check_observation_types(self):
+
+        # Check if all present observation types are known.
+        unknown_obs_cols = [obs_col for obs_col in self.df.columns if obs_col not in self.obstypes.keys()]
+        if len(unknown_obs_cols) > 0:
+            sys.exit(f'The following observation types are unknown: {unknown_obs_cols}')
+
+
+
+        for obs_col in self.df.columns:
+            print(obs_col)
+            # Convert the units to the toolkit standards (if unit is known)
+            input_unit = self.data_template.loc['units', obs_col]
+            self.df[obs_col] = self.obstypes[obs_col] \
+                        .convert_to_standard_units(input_data = self.df[obs_col],
+                                                   input_unit = input_unit)
+
+            # Update the description of the obstype
+            description = self.data_template.loc['description', obs_col]
+            if (pd.isna(description)):
+                description = None
+            self.obstypes[obs_col].set_description(desc=description)
+
+            # Update the original column name and original units
+            self.obstypes[obs_col].set_original_name(self.data_template.loc['orig_name', obs_col])
+            self.obstypes[obs_col].set_original_unit(self.data_template.loc['units', obs_col])
+
+        # subset the obstypes attribute
+        self.obstypes = {name: obj for name, obj in self.obstypes.items() if name in self.df.columns}
+
+
+
 
     # =============================================================================
     # Physiography extractions

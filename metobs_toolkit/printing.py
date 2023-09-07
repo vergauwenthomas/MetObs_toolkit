@@ -29,6 +29,10 @@ def print_dataset_info(dataset, show_all_settings=False, max_disp_n_gaps=5):
     print("\n", "--------  General ---------", "\n")
     print(dataset)
 
+    print("\n", "--------  Observation types ---------", "\n")
+    for obstype in dataset.obstypes.values():
+        obstype.get_info()
+
     print("\n", "--------  Settings ---------", "\n")
     if show_all_settings:
         dataset.show_settings()

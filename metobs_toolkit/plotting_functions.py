@@ -130,7 +130,7 @@ def make_cat_colormapper(catlist, cmapname):
 # =============================================================================
 
 
-def geospatial_plot(plotdf, variable, timeinstance, title, legend, vmin, vmax,
+def geospatial_plot(plotdf, variable, timeinstance, title, legend, legend_title, vmin, vmax,
                     plotsettings, categorical_fields, static_fields,
                     display_name_mapper, world_boundaries_map, data_template,
                     boundbox):
@@ -196,18 +196,10 @@ def geospatial_plot(plotdf, variable, timeinstance, title, legend, vmin, vmax,
             f"No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!"
         )
 
-    # make legend/colorbar title
-    try:
-        templ_map = map_obstype(variable, data_template)
-        legend_title = f'{templ_map["orig_name"]} ({templ_map["units"]})'
-    except KeyError:
-        legend_title = variable
-
     # make color scheme for field
     if variable in categorical_fields:
         is_categorical = True
         if variable == "lcz":
-            legend_title = 'LCZ'
             # use all available LCZ categories
             use_quantiles = False
         else:
@@ -221,14 +213,6 @@ def geospatial_plot(plotdf, variable, timeinstance, title, legend, vmin, vmax,
                                   user_bounds=boundbox,
                                   default_extentlist=default_settings["extent"]
                                   )
-
-    # Style attributes
-    if isinstance(title, type(None)):
-        if variable in static_fields:
-            title = display_name_mapper[variable]
-        else:
-            dtstring = datetime.strftime(timeinstance, default_settings["fmt"])
-            title = display_name_mapper[variable] + " at " + dtstring
 
     ax = _spatial_plot(
         gdf=plotdf,

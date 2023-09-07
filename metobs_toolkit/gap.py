@@ -25,7 +25,6 @@ from metobs_toolkit.df_helpers import (
     _find_closes_occuring_date
 )
 
-from metobs_toolkit import observation_types
 from metobs_toolkit.df_helpers import init_multiindex, xs_save
 
 from metobs_toolkit.missingobs import Missingob_collection
@@ -99,7 +98,6 @@ class Gap:
         print(f'  * Duration gap: {self.duration} \n')
         print('\n ---- Gap fill info ----- \n')
         obstypes = self.gapfill_df.columns.to_list()
-        obstypes = [obs for obs in obstypes if obs in observation_types]
         if self.gapfill_df.empty:
             print('(No gapfill applied)')
         elif self.gapfill_technique == 'gap_interpolation':

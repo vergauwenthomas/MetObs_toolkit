@@ -13,8 +13,8 @@ import numpy as np
 from datetime import datetime
 import pytz
 
+from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.data_import import _read_csv_to_df
-from metobs_toolkit import observation_types
 
 
 def col_option_input(columns):
@@ -349,7 +349,10 @@ def build_template_prompt(debug=False):
 
     # check if a least one mapped observation type exist
     if (format_option != 2):
-        present_obs = [key for key in template_dict.keys() if key in observation_types]
+        #NOTE: Maybe this is to strict that at leas one obstype should be one of the default,
+        # but if do not have a good idea on how to loosen the restriction towards user-defined
+        # observation types, since the obervation types are stored in the Dataset.
+        present_obs = [key for key in template_dict.keys() if key in tlk_obstypes.keys()]
         if not bool(present_obs):
             print('ERROR! There is no observation type included in the template! Add at least one observation type when mapping the data file.')
             sys.exit('Template invalid, see last message. ')
