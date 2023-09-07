@@ -5,7 +5,7 @@
 "_date","Datum",,,"%Y-%m-%d","timezone","UTC"
 "_time","Tijd (UTC)",,,"%H:%M:%S",,
 ,,,,,,
-"temp","Temperatuur","Celcius","2m-temperature",,,
+"temp","Temperatuur","Celsius","2m-temperature",,,
 "humidity","Vochtigheid","%","relative humidity",,,
 "pressure","Luchtdruk","pa","air pressure",,,
 "precip","Neerslagintensiteit","l/m²","precipitation intensity",,,
@@ -14,7 +14,7 @@
 "wind_speed","Windsnelheid","m/s","windspeed",,,
 "wind_gust","Rukwind","m/s","windgust",,,
 "pressure_at_sea_level","Luchtdruk_Zeeniveau","pa","pressure at sea level",,,
-"radiation_temp","Globe Temperatuur","Celcius","Radiative blackglobe temperature",,,
+"radiation_temp","Globe Temperatuur","Celsius","Radiative blackglobe temperature",,,
 ,,,,,,
 ,,,,,,
 "_ID","ID",,,,,

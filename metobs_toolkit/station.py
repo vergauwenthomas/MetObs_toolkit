@@ -14,7 +14,7 @@ class Station(dataset.Dataset):
     """A class holding all information of one station. Inherit all from Dataset."""
 
     def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
-                 missing_fill_df, metadf, data_template, settings,
+                 missing_fill_df, metadf, obstypes, data_template, settings,
                  _qc_checked_obstypes, _applied_qc):
         """Initiate the Station object."""
         self.name = name
@@ -25,6 +25,7 @@ class Station(dataset.Dataset):
         self.gapfilldf = gapfilldf
         self.missing_fill_df = missing_fill_df
         self.metadf = metadf
+        self.obstypes = obstypes
         self.data_template = data_template
         self.settings = settings
         self._qc_checked_obstypes = _qc_checked_obstypes

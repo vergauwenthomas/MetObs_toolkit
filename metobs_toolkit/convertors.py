@@ -69,49 +69,49 @@ def expression_calculator(equation, x):
         sys.exit(f"expression {equation}, can not be converted to mathematical.")
 
 
-def convert_to_toolkit_units(data, data_unit, new_units={}):
-    """Convert the data to the toolkit perfered unit.
+# def convert_to_toolkit_units(data, data_unit, new_units={}):
+#     """Convert the data to the toolkit perfered unit.
 
-    Data can be a numeric value or an iterable.
-    Data_unit is the unit of the input data.
+#     Data can be a numeric value or an iterable.
+#     Data_unit is the unit of the input data.
 
-    The converted data AND the corresponding toolkit unit is returned.
+#     The converted data AND the corresponding toolkit unit is returned.
 
-    Parameters
-    ----------
-    data : numeric, iterable
-        numeric data to be converted.
-    data_unit : String
-        unit name of the data.
+#     Parameters
+#     ----------
+#     data : numeric, iterable
+#         numeric data to be converted.
+#     data_unit : String
+#         unit name of the data.
 
-    Returns
-    -------
-    numeric, numpy.array
-        The data in toolkit units.
-    String
-        Corresponding toolkit unit name.
+#     Returns
+#     -------
+#     numeric, numpy.array
+#         The data in toolkit units.
+#     String
+#         Corresponding toolkit unit name.
 
-    """
-    # update the units
-    unit_convertors.update(new_units)
+#     """
+#     # update the units
+#     unit_convertors.update(new_units)
 
-    # check if unit is already a toolkit unit
-    if data_unit in unit_convertors.keys():
-        logger.info(f'Current unit ({data_unit}) is already the default, no coversion needed!')
-        return data, data_unit
+#     # check if unit is already a toolkit unit
+#     if data_unit in unit_convertors.keys():
+#         logger.info(f'Current unit ({data_unit}) is already the default, no coversion needed!')
+#         return data, data_unit
 
-    # scan the units to find conversion
-    expr = {
-        toolk_unit: other_unit[data_unit]
-        for toolk_unit, other_unit in unit_convertors.items()
-        if data_unit in other_unit.keys()
-    }
+#     # scan the units to find conversion
+#     expr = {
+#         toolk_unit: other_unit[data_unit]
+#         for toolk_unit, other_unit in unit_convertors.items()
+#         if data_unit in other_unit.keys()
+#     }
 
-    if len(expr) == 1:  # unique conversion found
-        conv_data = expression_calculator(next(iter(expr.values())), data)
-        return conv_data, next(iter(expr.keys()))
+#     if len(expr) == 1:  # unique conversion found
+#         conv_data = expression_calculator(next(iter(expr.values())), data)
+#         return conv_data, next(iter(expr.keys()))
 
-    elif len(expr) > 1:
-        sys.exit(f" Multiple possible conversions found for {data_unit}")
-    else:
-        sys.exit(f"No conversion found for {data_unit}")
+#     elif len(expr) > 1:
+#         sys.exit(f" Multiple possible conversions found for {data_unit}")
+#     else:
+#         sys.exit(f"No conversion found for {data_unit}")

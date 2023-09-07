@@ -37,8 +37,8 @@ import metobs_toolkit
 
 aug_2020_all_vlinders = metobs_toolkit.Dataset()
 
-# All default observationtypes present in the MetObs toolkit can be shown by:
-print(metobs_toolkit.observation_types)
+# All knonw observationtypes present in the dataset can be shown by:
+print(aug_2020_all_vlinders.obstypes)
 
 
 # we created an dataset and stored in under the variable 'aug_2020_all_vlinder'.

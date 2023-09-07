@@ -6,6 +6,7 @@ This module contains the Modeldata class and all its methods.
 A Modeldata holds all timeseries coming from a model and methods to use them.
 """
 import os
+import sys
 import pickle
 import pandas as pd
 import logging
@@ -21,9 +22,10 @@ from metobs_toolkit.landcover_functions import (connect_to_gee,
 from metobs_toolkit.plotting_functions import (model_timeseries_plot,
                                                timeseries_plot)
 
-from metobs_toolkit.convertors import (convert_to_toolkit_units,
-                                       standard_tlk_units)
-
+# from metobs_toolkit.convertors import (convert_to_toolkit_units,
+#                                        standard_tlk_units)
+from metobs_toolkit.obstypes import tlk_obstypes
+from metobs_toolkit.obstypes import Obstype as Obstype_class
 from metobs_toolkit.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -48,6 +50,8 @@ class Modeldata:
         self._df_units = {}  # the units of the data stored in the df
         self.df_tz = 'UTC'  # the timezone of the datetimes stored in the df
 
+        self.obstypes = tlk_obstypes  # Dict name: Obstype-instance
+
         self._is_alaro25 = False
 
     def __str__(self):
@@ -69,6 +73,51 @@ class Modeldata:
     def __repr__(self):
         """Print overview information of the modeldata."""
         return self.__str__()
+
+    def append_obstypes(self, other_obstypes):
+        """Update the known observation types.
+
+        This method updates the obstypes stored as attribute in the Modeldata,
+        with other_obstypes.
+
+        Parameters
+        ----------
+        other_obstypes : {obstype_name, metobs_toolkit.Obstype}
+            Name and Obstype (class instance) pairs to update the current
+            obstypes with.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.obstypes.update(other_obstypes)
+
+    def add_obstype_definition(self, Obstype):
+        """Add a new Observation type to the known observation types.
+
+        Parameters
+        ----------
+        Obstype : metobs_toolkit.obstype.Obstype
+            The new Obstype to add.
+
+        Returns
+        -------
+        None.
+
+        """
+        # check if Obstype is of the proper type
+        if not isinstance(Obstype, Obstype_class):
+            sys.exit(f"{Obstype} is not an instance of metobs_toolkit.obstypes.Obstype.")
+
+        # check if the Obstype is already present
+        if Obstype.name in self.obstypes.keys():
+            logger.warning(f"The {Obstype} is already present in the known obstypes.")
+            return
+
+        # add Obstype
+        self.obstypes[Obstype.name] = Obstype
+        logger.info(f'{Obstype.name} added to the known observation types.')
 
     def add_gee_dataset(self, mapname, gee_location, obstype, bandname, units,
                         scale, time_res='1H', is_image=False, is_numeric=True, credentials=''):
@@ -242,12 +291,8 @@ class Modeldata:
         self.df = df
         self.df_tz = tzstr
 
-    def convert_units_to_tlk(self, obstype, target_unit_name='Celsius',
-                             conv_expr=None):
-        """
-        Convert the model data of one observation to the standard units as used by the metobs_toolkit.
-
-        If No standard unit is present, you can give a conversion expression.
+    def convert_units_to_tlk(self, obstype):
+        """Convert the model data of one observation to the standard units.
 
         The data attributes will be updated.
 
@@ -267,9 +312,7 @@ class Modeldata:
 
         Note
         -------
-        All possible mathematical operations for the conv_expr are [+, -, *, /].
-        x represent the value in the current units. So "x - 273.15" represents
-        the conversion from Kelvin to Celcius.
+        If the observationtype is not a default, you must first make this metobs_toolkit.Obstype and add it to the
 
         """
         # chech if data is available
@@ -280,30 +323,25 @@ class Modeldata:
             logger.warning('{obstype} not found as observationtype in the Modeldata.')
             return
 
-        if conv_expr is not None:
-            new_unit_def = {target_unit_name: {
-                            self._df_units[obstype]: f'{conv_expr}'}}
-        else:
-            new_unit_def = {}
+        cur_unit = self._df_units[obstype]
+        converted_data = self.obstypes[obstype].convert_to_standard_units(input_data=self.df[obstype],
+                                                                          input_unit=cur_unit)
 
-        new_data, new_unit = convert_to_toolkit_units(data=self.df[obstype],
-                                                      data_unit=self._df_units[obstype],
-                                                      new_units=new_unit_def)
+        # Update the data and the current unit
+        self.df[obstype] = converted_data
+        self._df_units[obstype] = self.obstypes[obstype].get_standard_unit()
 
-        logger.info(f'{obstype} are converted from {self._df_units[obstype]} --> {new_unit}.')
-
-        self.df[obstype] = new_data
-        self._df_units[obstype] = new_unit
+        logger.info(f'{obstype} are converted from {cur_unit} --> {self._df_units[obstype]}.')
 
     def get_gee_dataset_data(self, mapname, metadf,
                              startdt_utc, enddt_utc, obstype='temp',
-                             target_unit_name='new unit', conv_expr=None):
+                            ):
         """Extract timeseries of a gee dataset.
 
         The extraction can only be done if the gee dataset bandname (and units)
         corresponding to the obstype is known.
 
-        The units are converted to the toolkit standard units.
+        The units are converted to the toolkit standard units!!
 
         Parameters
         ----------
@@ -320,15 +358,6 @@ class Modeldata:
             Toolkit observation type to extract data from. There should be a
             bandname mapped to this obstype for the gee map. The default is
             'temp'.
-        target_unit_name : str, optional
-            If there is on standard unit for your obstype, or if you do not
-            want to convert to the standard unit, you can specify the name of
-            the unit you whant to convert to. This will only be used when a
-            conversion expression is provided using the conv_expr argument. The
-            default is 'new unit'.
-        conv_expr : str, optional
-            If the target_unit_name is not a default, you can add the
-            conversion expression here (i.g. "x - 273.15"). The default is None.
 
 
         Returns
@@ -342,11 +371,6 @@ class Modeldata:
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
 
-        Note
-        -------
-        All possible mathematical operations for the conv_expr are [+, -, *, /].
-        x represent the value in the current units. So "x - 273.15" represents
-        the conversion from Kelvin to Celcius.
 
         """
         # ====================================================================
@@ -379,15 +403,12 @@ class Modeldata:
             logger.warning(f'{obstype} is not yet mapped to a bandname in the {mapname} dataset.')
             return
 
-        # can observation be converted to standaard units?
-        try:
-            convert_to_toolkit_units(data=[10, 20, 30],
-                                     data_unit=geeinfo['band_of_use'][obstype]['units'])
-        except:
-            logger.warning(f"The {geeinfo['band_of_use'][obstype]['units']} cannot be converted to standard toolkit units: ")
-            # this prints more details
-            convert_to_toolkit_units(data=[10, 20, 30],
-                                     data_unit=geeinfo['band_of_use'][obstype]['units'])
+        # is the unit a known unit?
+        is_known = self.obstypes[obstype].test_if_unit_is_known(geeinfo['band_of_use'][obstype]['units'])
+
+        if not is_known:
+            logger.warning(f"{geeinfo['band_of_use'][obstype]['units']} is not a known unit of {self.obstypes[obstype]}")
+            return
 
         # ====================================================================
         # GEE api extraction
@@ -405,26 +426,17 @@ class Modeldata:
                                     latcolname="lat",
                                     loncolname="lon",
                                     )
+        self.df = df
+        self.modelname = mapname
 
-        if not df.empty:
-            self._df_units[obstype] = geeinfo['band_of_use'][obstype]['units']
-            if conv_expr is None:
-                # use standard units
-                self.convert_units_to_tlk(obstype=obstype,
-                                          target_unit_name=standard_tlk_units[obstype],
-                                          )
-            else:
-                self.convert_units_to_tlk(obstype=obstype,
-                                          target_unit_name=target_unit_name,
-                                          conv_expr=conv_expr
-                                          )
-
+        if not self.df.empty:
             self.df_tz = 'UTC'
+            # convert to standard units
+            self.convert_units_to_tlk(obstype)
         else:
             self._data_stored_at_drive = True
 
-        self.df = df
-        self.modelname = mapname
+
 
     def get_ERA5_data(self, metadf, startdt_utc, enddt_utc, obstype='temp'):
         """Extract timeseries of the ERA5_hourly dataset.
@@ -657,8 +669,7 @@ class Modeldata:
         self._df_units[obstype] = cur_unit
 
         # 4. Convert units
-        self.convert_units_to_tlk(obstype=obstype,
-                                  target_unit_name=standard_tlk_units[obstype])
+        self.convert_units_to_tlk(obstype)
 
     def interpolate_modeldata(self, to_multiidx, obstype="temp"):
         """Interpolate modeldata in time.

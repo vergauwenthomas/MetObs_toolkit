@@ -88,6 +88,7 @@ from metobs_toolkit.df_helpers import (
 )
 
 from metobs_toolkit.obstypes import tlk_obstypes
+from metobs_toolkit.obstypes import Obstype as Obstype_class
 
 
 from metobs_toolkit.analysis import Analysis
@@ -397,6 +398,93 @@ class Dataset:
 
         return dataset
 
+    def add_new_observationtype(self, obsname, standard_units,
+                                obstype_description, unit_alias_dict={},
+                                unit_conv_dict={}):
+        """Add a new observation type to the known observation types.
+
+        The observation can only be added if it is not already present in the
+        knonw observation types. If that is the case that you probably need to
+        use use the Dataset.add_new_unit() method.
+
+        Parameters
+        ----------
+        obsname : str
+            The name of the new observation type (i.g. 'sensible_heat_flux').
+        standard_units : str
+            The standard unit for the observation type (i.g. 'J/m²')
+        obstype_description : str
+            A more detailed description of the obstype (i.g. '2m SE inside canopy').
+        unit_alias_dict : dict, optional
+            A dictionary containing unit alias names. Keys represent a unit and
+            values are lists with aliases for the units at the keys. The default is {}.
+        unit_conv_dict : dict, optional
+            A dictionary containing the conversion information to map to the
+            standard units. Here an example of for temperatures (with Celcius
+            as standard unit):
+
+                {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
+                'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
+
+                The default is {}.
+
+        Returns
+        -------
+        None.
+
+        """
+        # Test if the obsname is already in use
+        if obsname in self.obstypes.keys():
+            logger.warning(f'{obsname} is already a known observation type: {self.obstypes[obsname]}')
+            return
+        new_obs = Obstype_class(obsname=obsname,
+                                std_unit=standard_units,
+                                description=obstype_description,
+                                unit_aliases=unit_alias_dict,
+                                unit_conversions=unit_conv_dict)
+        # Update the known obstypes
+        self.obstypes[obsname] = new_obs
+
+    def add_new_unit(self, obstype, new_unit, conversion_expression = []):
+        """Add a new unit to a known observation type.
+
+        Parameters
+        ----------
+        obstype : str
+            The observation type to add the new unit to.
+        new_unit : str
+            The new unit name.
+        conversion_expression : list or str, optional
+            The conversion expression to the standard unit of the observation
+            type. The expression is a (list of) strings with simple algebraic
+            operations, where x represent the value in the new unit, and the
+            result is the value in the standard unit. Two examples for
+            temperature (with a standard unit in Celcius):
+
+                ["x - 273.15"] #if the new_unit is Kelvin
+                ["x-32.0", "x/1.8"] #if the new unit is Farenheit
+
+            The default is [].
+
+        Returns
+        -------
+        None.
+
+        """
+        # test if observation is present
+        if not obstype in self.obstypes.keys():
+            logger.warning(f'{obstype} is not a known obstype! No unit can be added.')
+            return
+
+        # check if the unit is already present
+        is_present = self.obstypes[obstype].test_if_unit_is_known(new_unit)
+        if is_present:
+            logger.info(f"{new_unit} is already a known unit of {self.obstypes[obstype]}")
+            return
+
+        self.obstypes[obstype].add_unit(unit_name=new_unit,
+                                        conversion=conversion_expression)
+
     def show_settings(self):
         """Show detailed information of the stored Settings.
 
@@ -468,6 +556,7 @@ class Dataset:
             gapfilldf=sta_gapfill,
             missing_fill_df = sta_missingfill,
             metadf=sta_metadf,
+            obstypes = self.obstypes,
             data_template=self.data_template,
             settings=self.settings,
             _qc_checked_obstypes=self._qc_checked_obstypes,
@@ -2539,7 +2628,7 @@ class Dataset:
             obstype = options_kwargs['obstype']
             logger.info(f'Set obstype = {obstype} from options in template.')
         if 'obstype_unit' in options_kwargs:
-            obstype_unit = options_kwargs['obstype']
+            obstype_unit = options_kwargs['obstype_unit']
             logger.info(f'Set obstype_unit = {obstype_unit} from options in template.')
         if 'obstype_description' in options_kwargs:
             obstype_description = options_kwargs['obstype_description']
@@ -2827,7 +2916,7 @@ station with the default name: {self.settings.app["default_name"]}.'
             f"Updating dataset by dataframe with shape: {dataframe.shape}.")
 
         # Create dataframe with fixed order of observational columns
-        obs_col_order = list(self.obstypes.keys())
+        obs_col_order = [col for col in list(self.obstypes.keys()) if col in dataframe.columns]
 
         self.df = dataframe[obs_col_order].sort_index()
 
@@ -2902,7 +2991,6 @@ station with the default name: {self.settings.app["default_name"]}.'
 
 
         for obs_col in self.df.columns:
-            print(obs_col)
             # Convert the units to the toolkit standards (if unit is known)
             input_unit = self.data_template.loc['units', obs_col]
             self.df[obs_col] = self.obstypes[obs_col] \

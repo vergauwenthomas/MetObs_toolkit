@@ -5,7 +5,7 @@
 "_date","Datum_dummy",,,"%Y-%m-%d",,
 "_time","Tijd (UTC)",,,"%H:%M:%S","timezone","UTC"
 ,,,,,,
-"temp","temperature air",,"the 2m temperature passive",,,
+"temp","temperature air","farenheit","the 2m temperature passive",,,
 ,,,,,,
 "humidity",,,,,,
-"wind_speed","windspeed air",,"the 2m windspeed",,,
+"wind_speed","windspeed air","m/s","the 2m windspeed",,,

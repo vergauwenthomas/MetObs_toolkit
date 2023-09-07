@@ -35,9 +35,9 @@ tlk_std_units = {
 # Aliases for units
 # =============================================================================
 
-temp_aliases = {'Celsius': ['celsius', '°C', '°c'],
+temp_aliases = {'Celsius': ['celsius', '°C', '°c', 'celcius', 'Celcius'],  # for the dyselectic developper..
                 'Kelvin': ['K', 'kelvin'],
-                'Farenheit': []}
+                'Farenheit': ['farenheit']}
 pressure_aliases = {'pa': ['Pascal', 'pascal', 'Pa'],
                     'hpa': ['hecto pascal', 'hPa'],
                     'psi': ['Psi'],
@@ -110,6 +110,35 @@ class Obstype:
     """Object with all info and methods for a specific observation type."""
 
     def __init__(self, obsname, std_unit, description=None, unit_aliases={}, unit_conversions={}):
+        """Initiate an observationtype.
+
+        Parameters
+        ----------
+        obsname : str
+            The name of the new observation type (i.g. 'sensible_heat_flux').
+        std_unit : str
+            The standard unit for the observation type (i.g. 'J/m²')
+        obstype_description : str, ptional
+            A more detailed description of the obstype (i.g. '2m SE inside
+            canopy'). The default is None.
+        unit_aliases : dict, optional
+            A dictionary containing unit alias names. Keys represent a unit and
+            values are lists with aliases for the units at the keys. The default is {}.
+        unit_conversions : dict, optional
+            A dictionary containing the conversion information to map to the
+            standard units. Here an example of for temperatures (with Celcius
+            as standard unit):
+
+                {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
+                'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
+
+                The default is {}.
+
+        Returns
+        -------
+        None.
+
+        """
 
         self.name = str(obsname)  # Standard name for the observation type
         self.std_unit = str(std_unit) #standard unit fot the observation type
@@ -164,7 +193,7 @@ class Obstype:
 
     def add_unit(self, unit_name, conversion=["x"]):
         # check if unit name is already known
-        known = self._test_if_unit_is_known(unit_name)
+        known = self.test_if_unit_is_known(unit_name)
         if known:
             return
 
@@ -183,7 +212,7 @@ class Obstype:
 
     def convert_to_standard_units(self, input_data, input_unit):
         # check if input unit is known
-        known = self._test_if_unit_is_known(input_unit)
+        known = self.test_if_unit_is_known(input_unit)
 
         # error when unit is not know
         if not known:
@@ -214,15 +243,15 @@ class Obstype:
         sys.exit(f"No standard unit name is found for {unit_name} for {self.name}")
 
 
-    def _test_if_unit_is_known(self, unit_name):
+    def test_if_unit_is_known(self, unit_name):
         if unit_name == self.std_unit:
             return True
         for std_unit_name, aliases in self.units_aliases.items():
             if unit_name == std_unit_name:
-                logger.info(f'{unit_name} is a known unit for {self.name}.')
+                logger.debug(f'{unit_name} is a known unit for {self.name}.')
                 return True
             if unit_name in aliases:
-                logger.info(f'{unit_name} is a known (alias for {std_unit_name}) unit for {self.name}.')
+                logger.debug(f'{unit_name} is a known (alias for {std_unit_name}) unit for {self.name}.')
                 return True
         return False
 

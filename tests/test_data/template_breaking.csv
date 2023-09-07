@@ -7,5 +7,5 @@ _time,time,,,%H:%M:%S
 ,,,,
 temp,temperature,Celcius,2m-temperature,
 flags,qc_flags,,,
-humidity,humidity,,,
-wind_speed,windspeed,,,
+humidity,humidity,%,,
+wind_speed,windspeed,km/h,,
