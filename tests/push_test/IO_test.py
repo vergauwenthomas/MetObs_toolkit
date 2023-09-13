@@ -203,3 +203,60 @@ assert new_dataset.settings.app["default_name"] == 'this_is_a_test_name', 'some 
 
 
 
+# =============================================================================
+# Testing the IO properties for new observation types and units
+# =============================================================================
+
+dataset = metobs_toolkit.Dataset()
+
+n_obstypes = len(dataset.obstypes)
+# add unit to unexisting obstype
+dataset.add_new_unit(obstype='wetbulptem', new_unit='fake_wbtemp', conversion_expression = ["x+100"])
+
+new_n_obstypes = len(dataset.obstypes)
+
+assert n_obstypes == new_n_obstypes, 'Adding a new unit to unexisting obstype creates and obstype!'
+
+
+# test addition of obstype and unit
+dataset.add_new_unit(obstype='temp', new_unit='fake_temp', conversion_expression = ["x+100"])
+
+dataset.add_new_observationtype(obsname='wetbulptemp',
+                                    standard_units='Celcius',
+                                    obstype_description='THe wet bulb temperature',
+                                    unit_alias_dict={'Celcius': ['°C'],
+                                                      'Kelvin': ['K']},
+                                    unit_conv_dict={'Kelvin': ['x-273']})
+new_n_obstypes = len(dataset.obstypes)
+
+assert n_obstypes == new_n_obstypes - 1 , 'Adding a new obstype not stored in dataset!'
+
+
+
+# test if data can be imported with the new obstype and the new unit
+
+testdata =os.path.join(str(lib_folder), 'tests', 'test_data', 'single_station_new_obstypes.csv')
+testmetadata = os.path.join(str(lib_folder), 'tests', 'test_data', 'single_station_metadata.csv')
+testtemplate =os.path.join(str(lib_folder), 'tests', 'test_data', 'single_station_new_obstype_template.csv')
+
+dataset.update_settings(input_data_file=testdata,
+                               input_metadata_file=testmetadata,
+                               template_file= testtemplate,
+                               )
+
+dataset.import_data_from_file(long_format=True)
+
+
+# test if all obstypes are present in the dataset
+assert list(dataset.df.columns) == ['temp', 'wetbulptemp'], 'New obstype not use when importing data'
+
+# check if the unist of the obstypes are correct (the default)
+assert dataset.obstypes['temp'].get_standard_unit() == 'Celsius', 'Standard unit not correct'
+assert dataset.obstypes['wetbulptemp'].get_standard_unit() == 'Celcius', 'Standard unit not correct'
+
+# Check if unit conversion is done
+
+assert dataset.df['temp'].mean() > 100., 'THe units of the temperature observations are not converted to std units'
+
+
+
