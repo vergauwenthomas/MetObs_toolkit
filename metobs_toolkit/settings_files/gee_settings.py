@@ -52,7 +52,10 @@ gee_datasets = {
     "ERA5_hourly": {
         "location": "ECMWF/ERA5_LAND/HOURLY",  # GEE location
         "usage": "ERA5",  # Human readable application domain
-        "band_of_use": {"temp": {"name": "temperature_2m", "units": "K"}},
+        "band_of_use": {"temp": {"name": "temperature_2m", "units": "K", 'description': "Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth's surface, taking account of the atmospheric conditions."},
+                        "dewpoint_temp": {'name': 'dewpoint_temperature_2m', "units": 'K', 'description': "Temperature to which the air, at 2 meters above the surface of the Earth, would have to be cooled for saturation to occur. It is a measure of the humidity of the air. Combined with temperature and pressure, it can be used to calculate the relative humidity. 2m dew point temperature is calculated by interpolating between the lowest model level and the Earth's surface, taking account of the atmospheric conditions."
+                                          },
+                        },
         # band mapper to use for imagecollections (or None if no band available)
         "value_type": "numeric",  # categorical or numeric
         "dynamical": True,  # time evolution? To be used for timeseries

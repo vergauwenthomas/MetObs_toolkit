@@ -54,7 +54,7 @@ def fmt_datetime_argument(dt, target_tz_str):
     else:  # timezon unaware
         # assume timezone is the timezone of the data!
         dt = pytz.timezone(target_tz_str).localize(dt)
-    return dt
+    return pd.to_datetime(dt)
 
 
 def xs_save(df, key, level, drop_level=True):

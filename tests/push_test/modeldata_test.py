@@ -35,20 +35,36 @@ dataset.coarsen_time_resolution()
 
 #%% test adding gee information
 model_data = metobs_toolkit.Modeldata("ERA5_hourly")
-model_data.add_band_to_gee_dataset(bandname='surface_pressure',
-                                   obstype='pressure',
-                                   units='pa')
 
-model_data.add_gee_dataset(mapname='new dataset name',
-                            gee_location='location/loc/dfmijfe',
-                            obstype='temp',
-                            bandname='temp 2m passive field',
-                            units ='C',
-                            scale = 100,
-                            time_res='1H',
-                            is_image=False,
-                            is_numeric=True,
-                            credentials='bladiblie')
+# Define a regular obstype
+new_obstype = metobs_toolkit.Obstype(obsname='special_pressure',
+                                 std_unit='pa',
+                                 description='just for testing',
+                                 unit_aliases={'pa': ['Pascal', 'Pa', 'N/m²'],
+                                               },
+                                 unit_conversions={'hpa': ["x * 100"]},
+                                 )
+
+
+# add new obstype to model_data
+model_data.add_obstype(Obstype=new_obstype,
+                                  bandname='surface_pressure',
+                                  band_units='hpa',
+                                  )
+
+
+model_data.get_info()
+from datetime import datetime
+tstart = datetime(2022, 10, 3,23)
+tend = datetime(2022, 10,4, 4)
+model_data = dataset.get_modeldata(modeldata = model_data, obstype = 'special_pressure',startdt = tstart, enddt = tend)
+
+assert model_data.df.shape[0] == 168, 'No modeldata extracted from gee for new unit and obstype!'
+
+
+model_data.make_plot(obstype_model='special_pressure')
+
+
 #%% Import modeldata
 model_data = metobs_toolkit.Modeldata("ERA5_hourly")
 

@@ -22,10 +22,10 @@ from metobs_toolkit.landcover_functions import (connect_to_gee,
 from metobs_toolkit.plotting_functions import (model_timeseries_plot,
                                                timeseries_plot)
 
-# from metobs_toolkit.convertors import (convert_to_toolkit_units,
-#                                        standard_tlk_units)
-from metobs_toolkit.obstypes import tlk_obstypes
+# from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype as Obstype_class
+from metobs_toolkit.obstype_modeldata import model_obstypes, create_model_obstype
+
 from metobs_toolkit.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class Modeldata:
         self._df_units = {}  # the units of the data stored in the df
         self.df_tz = 'UTC'  # the timezone of the datetimes stored in the df
 
-        self.obstypes = tlk_obstypes  # Dict name: Obstype-instance
+        self.obstypes = model_obstypes  # Dict name: Obstype-instance
 
         self._is_alaro25 = False
 
@@ -74,30 +74,25 @@ class Modeldata:
         """Print overview information of the modeldata."""
         return self.__str__()
 
-    def append_obstypes(self, other_obstypes):
-        """Update the known observation types.
 
-        This method updates the obstypes stored as attribute in the Modeldata,
-        with other_obstypes.
+    def get_info(self):
 
-        Parameters
-        ----------
-        other_obstypes : {obstype_name, metobs_toolkit.Obstype}
-            Name and Obstype (class instance) pairs to update the current
-            obstypes with.
+        print(str(self))
 
-        Returns
-        -------
-        None.
+        print("\n ------ Known gee datasets -----------")
+        self.list_gee_datasets()
 
-        """
-        self.obstypes.update(other_obstypes)
-
-    def add_obstype_definition(self, Obstype):
-        """Add a new Observation type to the known observation types.
+    def add_obstype(self, bandname, band_units, Obstype=None, band_description=None,
+                               obsname=None, standard_units=None, obstype_description=None,
+                               unit_alias_dict={}, unit_conv_dict={}):
+        """Add a new Observation type to the known observation types for the
+        current dataset.
 
         Parameters
         ----------
+        bandname : str
+            The name of the band that represents the obstype.
+        band_units:
         Obstype : metobs_toolkit.obstype.Obstype
             The new Obstype to add.
 
@@ -106,21 +101,42 @@ class Modeldata:
         None.
 
         """
-        # check if Obstype is of the proper type
-        if not isinstance(Obstype, Obstype_class):
-            sys.exit(f"{Obstype} is not an instance of metobs_toolkit.obstypes.Obstype.")
 
-        # check if the Obstype is already present
-        if Obstype.name in self.obstypes.keys():
-            logger.warning(f"The {Obstype} is already present in the known obstypes.")
-            return
+        # Get a regular obstype
+        if Obstype is None:
+            obs = Obstype_class(obsname=obsname,
+                                    std_unit=standard_units,
+                                    description=obstype_description,
+                                    unit_aliases=unit_alias_dict,
+                                    unit_conversions=unit_conv_dict)
+
+
+
+        else:
+            if not isinstance(Obstype, Obstype_class):
+                sys.exit(f"{Obstype} is not an instance of metobs_toolkit.obstypes.Obstype.")
+
+            obs = Obstype
+
+        # Test if the band unit is a knonw unit
+        if not obs.test_if_unit_is_known(band_units):
+            sys.exit(f"The {bandname} unit: {band_units} is not a knonw unit for {obs.name}")
+
+
+        # Make the modeldata extension
+        equiv_dict = {self.modelname: {'name': str(bandname),
+                                       'units': str(band_units),
+                                       'band_desc': str(band_description)}}
+
+        modeldata_obstype = create_model_obstype(obs, equiv_dict)
 
         # add Obstype
-        self.obstypes[Obstype.name] = Obstype
-        logger.info(f'{Obstype.name} added to the known observation types.')
+        self.obstypes[obs.name] = modeldata_obstype
+        logger.info(f'{obs.name} added to the known observation types.')
+
 
     def add_gee_dataset(self, mapname, gee_location, obstype, bandname, units,
-                        scale, time_res='1H', is_image=False, is_numeric=True, credentials=''):
+                        scale, band_desc=None, time_res='1H', is_image=False, is_numeric=True, credentials=''):
         """Add a new gee dataset to the available gee datasets.
 
         Parameters
@@ -138,6 +154,8 @@ class Modeldata:
         scale : int
             The scale to represent the dataset in. (This is a GEE concept that
             is similar to the resolution in meters).
+        band_desc : str or None, optional
+            Add a descrition to of the band. The default is None.
         time_res : timedelta string, optional
             Time reoslution of the dataset, if is_image == False. The default is '1H'.
         is_image : bool, optional
@@ -173,15 +191,16 @@ class Modeldata:
         else:
             val_typ = 'categorical'
 
+        # Dataset defenition
         new_info = {
             mapname: {
                 'location': f'{gee_location}',
                 'usage': 'user defined addition',
-                'band_of_use':
-                    {f'{obstype}':
-                         {'name': f'{bandname}',
-                          'units': f'{units}'}
-                     },
+                # 'band_of_use':
+                #     {f'{obstype}':
+                #           {'name': f'{bandname}',
+                #           'units': f'{units}'}
+                #       },
                 'value_type': val_typ,
                 'dynamical': not bool(is_image),
                 'scale': int(scale),
@@ -194,64 +213,24 @@ class Modeldata:
         if not is_image:
             new_info[mapname]['time_res'] = f'{time_res}'
 
+        # obstype defenition
+        # 1. if obstype exists, update the obstype
+        if obstype in self.obstypes:
+            self.obstypes[obstype].add_new_band(mapname=mapname,
+                                                bandname=bandname,
+                                                bandunit=units,
+                                                band_desc=band_desc)
+
+        # 2. if obstype does not exist, create the obstype
+        else:
+            sys.exit(f'{obstype} is an unknown obstype. First add this obstype to the Modeldata, and than add a gee dataset.')
+
+
         self.mapinfo.update(new_info)
         logger.info(f'{mapname} is added to the list of available gee dataset with: {new_info}')
         return
 
-    def add_band_to_gee_dataset(self, bandname, obstype, units, overwrite=False):
-        """Add a new band to the current gee dataset (by .modelname attribute).
 
-        Parameters
-        ----------
-        bandname : str
-            Name of the dataset band as stored on the GEE.
-        obstype : str
-            The observation type the band corresponds to.
-        units : str
-            The units of the band.
-        overwrite : bool, optional
-            If True, verwrite the exising bandname when the corresponding
-            obstype is already mapped to a bandname. The default is False.
-
-        Returns
-        -------
-        None.
-
-        Note
-        -------
-        To list all available gee dataset, use the .list_gee_dataset() method.
-
-        Note
-        -------
-        Currently no unit conversion is perfomed automatically other than K -->
-        Celcius. This will be implemented in the futur.
-
-        """
-        mapname = self.modelname
-
-        # check if mapname exists
-        if mapname not in self.mapinfo.keys():
-            logger.warning(f'{mapname} is not found in the list of known gee datasets: {list(self.mapinfo.keys())}')
-            return
-
-        if self.mapinfo[mapname]['is_image']:
-            logger.warning(f'{mapname} is found as a Image. No bandnames can be added to it.')
-            return
-
-        # check if obstype is already mapped if multiple bands exist
-        if not isinstance(self.mapinfo[mapname]['band_of_use'], str):
-            if obstype in self.mapinfo[mapname]['band_of_use'].keys():
-                if not overwrite:
-                    logger.warning(f'{obstype} already mapped to a bandname for dataset: {mapname}.')
-                    return
-
-        # update the dict
-        new_info = {obstype: {'name': bandname,
-                              'units': units}}
-        self.mapinfo[mapname]['band_of_use'].update(new_info)
-
-        logger.info(f'{new_info} is added to the {mapname} bands of use.')
-        return
 
     def list_gee_datasets(self):
         """Print out all the available gee datasets.
@@ -265,6 +244,14 @@ class Modeldata:
         for geename, info in self.mapinfo.items():
             print('\n --------------------------------')
             print(f'{geename} : \n')
+            # find which observations that are mappd
+            mapped_obs = [obstype for obstype in self.obstypes.values() if obstype.has_mapped_band(geename)]
+            if len(mapped_obs) == 0:
+                print(f' No mapped observation types for {geename}.')
+            else:
+                for obs in mapped_obs:
+                    obs.get_info()
+            print('\n INFO: \n')
             print(f'{info}')
 
     def _conv_to_timezone(self, tzstr):
@@ -322,8 +309,11 @@ class Modeldata:
         if obstype not in self.df.columns:
             logger.warning('{obstype} not found as observationtype in the Modeldata.')
             return
+        if obstype not in self.obstypes:
+            logger.warning('{obstype} not found as a known observationtype in the Modeldata.')
+            return
 
-        cur_unit = self._df_units[obstype]
+        cur_unit = self.obstypes[obstype].get_modelunit(self.modelname)
         converted_data = self.obstypes[obstype].convert_to_standard_units(input_data=self.df[obstype],
                                                                           input_unit=cur_unit)
 
@@ -399,16 +389,13 @@ class Modeldata:
             return
 
         # is obstype mapped?
-        if obstype not in geeinfo['band_of_use'].keys():
+        if obstype not in self.obstypes.keys():
+            logger.warning(f'{obstype} is an unknown observation type of the modeldata.')
+            return
+        if not self.obstypes[obstype].has_mapped_band(mapname):
             logger.warning(f'{obstype} is not yet mapped to a bandname in the {mapname} dataset.')
             return
 
-        # is the unit a known unit?
-        is_known = self.obstypes[obstype].test_if_unit_is_known(geeinfo['band_of_use'][obstype]['units'])
-
-        if not is_known:
-            logger.warning(f"{geeinfo['band_of_use'][obstype]['units']} is not a known unit of {self.obstypes[obstype]}")
-            return
 
         # ====================================================================
         # GEE api extraction
@@ -419,6 +406,7 @@ class Modeldata:
 
         # Get data using GEE
         df = gee_extract_timeseries(metadf=metadf,
+                                    bandname=self.obstypes[obstype].get_bandname(mapname),
                                     mapinfo=geeinfo,
                                     startdt=startdt_utc,
                                     enddt=enddt_utc,
@@ -473,11 +461,23 @@ class Modeldata:
         method.
 
         """
+        # test if obstype is known
+        if not obstype in self.obstypes:
+            sys.exit(f'{obstype} is not a known obstype of the Modeldata instance.')
+
+        # test if the obstype is mapped in the era5 hourly dataset
+        if not 'ERA5_hourly' in self.obstypes[obstype].get_mapped_datasets():
+            sys.exit(f'{obstype} has no equivalent mapped band for the ERA5_hourly dataset.')
+
+
         self.get_gee_dataset_data(mapname='ERA5_hourly',
                                   metadf=metadf,
                                   startdt_utc=startdt_utc,
                                   enddt_utc=enddt_utc,
                                   obstype=obstype)
+
+
+
 
     def set_alaro_25_model_from_csv(self, csvpath):
         """Set Alaro 2.5km model as modeldata.
@@ -803,7 +803,7 @@ class Modeldata:
 
         # Basic test
         if obstype_model not in self.df.columns:
-            logger.warning(f'{obstype_model} is not foud in the modeldata df.')
+            logger.warning(f'{obstype_model} is not foud in the modeldata df (columns = {self.df.columns}).')
             return
         if self.df.empty:
             logger.warning('The modeldata is empty.')
@@ -848,7 +848,7 @@ class Modeldata:
         # Generate ylabel
 
         try:
-            model_true_field_name = self.mapinfo[self.modelname]['band_of_use'][obstype_model]['name']
+            model_true_field_name = self.obstypes[obstype_model].get_bandname(self.modelname)
         except KeyError:
             logger.info(f'No model field name found for {obstype_model} in {self}.')
             model_true_field_name = 'Unknown fieldname'

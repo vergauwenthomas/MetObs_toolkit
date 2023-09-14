@@ -16,7 +16,7 @@ lib_folder = Path(__file__).resolve().parents[2]
 import metobs_toolkit
 # print(metobs_toolkit.__version__)
 
-
+#%%
 # %% import data from file (long standard format)
 
 testdatafile = os.path.join(
@@ -134,7 +134,7 @@ assert dataset_single.df.index.get_level_values('name')[0] == 'whats_the_name', 
 
 assert dataset_single.metadf.shape == (1,9), 'Shape metadf for single station is not correct'
 
-assert dataset_single.metadf['lat'].iloc[0] ==2.51558, 'Metadf latitde is not merged correct.'
+assert dataset_single.metadf['lat'].iloc[0] ==51.558, 'Metadf latitde is not merged correct.'
 assert dataset_single.df.index.get_level_values('name').unique()[0] == 'whats_the_name', 'single station name not represented correctly.'
 
 

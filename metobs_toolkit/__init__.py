@@ -70,6 +70,8 @@ demo_template = os.path.join(
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
 from metobs_toolkit.modeldata import Modeldata
+from metobs_toolkit.obstypes import Obstype
+
 
 # import GUI
 from metobs_toolkit.data_templates.template_build_prompt import build_template_prompt

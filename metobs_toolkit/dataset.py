@@ -877,11 +877,14 @@ class Dataset:
         """
         if modeldata is None:
             Modl = Modeldata(modelname)
+
         else:
             Modl = modeldata
             modelname = Modl.modelname
 
+
         # Filters
+
         if startdt is None:
             startdt = self.df.index.get_level_values("datetime").min()
         else:
@@ -891,6 +894,11 @@ class Dataset:
             enddt = self.df.index.get_level_values("datetime").max()
         else:
             enddt = fmt_datetime_argument(enddt, self.settings.time_settings['timezone'])
+
+        # make shure bounds include required range
+        Model_time_res = Modl.mapinfo[Modl.modelname]['time_res']
+        startdt = startdt.floor(Model_time_res)
+        enddt = enddt.ceil(Model_time_res)
 
         if stations is not None:
             if isinstance(stations, str):
@@ -910,14 +918,16 @@ class Dataset:
             Modl.get_ERA5_data(metadf=metadf,
                                startdt_utc=startdt_utc,
                                enddt_utc=enddt_utc,
-                               obstype=obstype)
+                               obstype=obstype,
+                               )
 
         else:
             Modl.get_gee_dataset_data(mapname=modelname,
                                       metadf=metadf,
                                       startdt_utc=startdt_utc,
                                       enddt_utc=enddt_utc,
-                                      obstype=obstype)
+                                      obstype=obstype,
+                                      )
         print(f'(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})')
         logger.info(f'(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})')
         return Modl

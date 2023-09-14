@@ -411,7 +411,7 @@ def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
 
 
 def gee_extract_timeseries(
-    metadf, mapinfo, startdt, enddt, obstype="temp", latcolname="lat", loncolname="lon"
+    metadf, bandname, mapinfo, startdt, enddt, obstype="temp", latcolname="lat", loncolname="lon"
 ):
     """Extract timeseries data at the stations location from a GEE dataset.
 
@@ -427,6 +427,8 @@ def gee_extract_timeseries(
     ----------
     metadf : pd.DataFrame
         dataframe containing coordinates and a column "name", representing the name for each location.
+    bandname : str
+        the name of the band to extract data from.
     mapinfo : Dict
         The information about the GEE dataset.
     startdt : datetime obj
@@ -448,7 +450,7 @@ def gee_extract_timeseries(
 
     """
     scale = mapinfo["scale"]
-    bandname = mapinfo["band_of_use"][obstype]["name"]
+    # bandname = mapinfo["band_of_use"][obstype]["name"]
 
     # test if coordiantes are available
     if not coordinates_available(metadf, latcolname, loncolname):
@@ -481,6 +483,10 @@ def gee_extract_timeseries(
             scale=scale,  # Cell size of raster
         )
         return feature
+
+    # Because the daterange is maxdate exclusive, add the time resolution to the enddt
+    enddt = enddt + pd.Timedelta(mapinfo['time_res'])
+
 
     raster = get_ee_obj(mapinfo, bandname)  # dataset
     results = (
@@ -519,6 +525,9 @@ def gee_extract_timeseries(
         # extract properties
         properties = [x["properties"] for x in results["features"]]
         df = pd.DataFrame(properties)
+
+        if df.empty:
+            sys.exit('ERROR: the returned timeseries from GEE are empty.')
 
         df = format_df(df, obstype, bandname)
         return df
