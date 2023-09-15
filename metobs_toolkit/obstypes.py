@@ -14,7 +14,6 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-
 # =============================================================================
 # Standard toolkit units for each observation type
 # =============================================================================
@@ -30,20 +29,6 @@ tlk_std_units = {
     "wind_direction": '° from north (CW)',
     "pressure": 'pa',
     "pressure_at_sea_level": 'pa'}
-
-# =============================================================================
-# Standard modeldata equivalents
-# =============================================================================
-tlk_std_modeldata_obstypes = {
-    'temp': { "ERA5_hourly": {'name': 'temperature_2m', 'units': 'Kelvin',
-                             'band_desc': "Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth's surface, taking account of the atmospheric conditions."}},
-    'dewpoint_temp': { "ERA5_hourly":   {'name': 'dewpoint_temperature_2m', "units": 'K',
-                                        'band_desc': "Temperature to which the air, at 2 meters above the surface of the Earth, would have to be cooled for saturation to occur. It is a measure of the humidity of the air. Combined with temperature and pressure, it can be used to calculate the relative humidity. 2m dew point temperature is calculated by interpolating between the lowest model level and the Earth's surface, taking account of the atmospheric conditions."}},
-    }
-
-
-
-
 
 
 # =============================================================================
@@ -72,15 +57,15 @@ all_units_aliases = {
     "radiation_temp": temp_aliases,
     "humidity": {
         "%": ['percent', 'percentage']
-        },
+    },
     'pressure': pressure_aliases,
     'pressure_at_sea_level': pressure_aliases,
     'precip': precip_aliases,
     'precip_sum': precip_aliases,
     'wind_speed': wind_aliases,
     'wind_gust': wind_aliases,
-    'wind_direction' : direction_aliases,
-    }
+    'wind_direction': direction_aliases,
+}
 
 # =============================================================================
 # Unit conversion expressions
@@ -88,17 +73,17 @@ all_units_aliases = {
 
 all_conversion_table = {
     'temp': {
-        'Kelvin': ["x - 273.15"], #result is in tlk_std_units
-        'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
+        'Kelvin': ["x - 273.15"],  # result is in tlk_std_units
+        'Farenheit': ["x-32.0", "x/1.8"]},  # -->execute from left to write  = (x-32)/1.8
     'radiation_temp': {
-        'Kelvin': ["x - 273.15"], #result is in tlk_std_units
-        'Farenheit' : ["x-32.0", "x/1.8"]},
+        'Kelvin': ["x - 273.15"],  # result is in tlk_std_units
+        'Farenheit': ["x-32.0", "x/1.8"]},
     'humidity': {},
     'pressure': {
         'hpa': ["x * 100"],
         'psi': ['x * 6894.7573'],
         'bar': ['x * 100000.']},
-    'pressure_at_sea_level' : {
+    'pressure_at_sea_level': {
         'hpa': ["x * 100"],
         'psi': ['x * 6894.7573'],
         'bar': ['x * 100000.']},
@@ -107,26 +92,24 @@ all_conversion_table = {
     'wind_speed': {
         "km/h": ["x / 3.6"],
         "mph": ["x * 0.44704"]},
-    'wind_gust' : {
+    'wind_gust': {
         "km/h": ["x / 3.6"],
         "mph": ["x * 0.44704"]},
-    'wind_direction' : {}
+    'wind_direction': {}
 
 }
-
-
-
 
 # =============================================================================
 # Observation type class
 # =============================================================================
+
 
 class Obstype:
     """Object with all info and methods for a specific observation type."""
 
     def __init__(self, obsname, std_unit, description=None, unit_aliases={},
                  unit_conversions={}):
-        """Initiate an observationtype.
+        """Initiate an observation type.
 
         Parameters
         ----------
@@ -155,57 +138,52 @@ class Obstype:
         None.
 
         """
-
         self.name = str(obsname)  # Standard name for the observation type
-        self.std_unit = str(std_unit) #standard unit fot the observation type
+        self.std_unit = str(std_unit)  # standard unit fot the observation type
         self.description = str(description)
 
         # Conversion info and mappers
         self.units_aliases = unit_aliases
         self.conv_table = unit_conversions
 
-        #Original column name and units in the data
+        # Original column name and units in the data
         self.original_name = None  # Updated on IO
-        self.original_unit = None # updated on IO
+        self.original_unit = None  # updated on IO
 
         self._check_attributes()
 
-
-    def _check_attributes(self):
-
-        add_to_aliases = {}
-        all_std_unit_names = []
-        all_aliases = []
-        for std_unit, alias_units in self.units_aliases.items():
-            all_std_unit_names.append(std_unit)
-            all_aliases.extend(alias_units)
-
-        for unit in self.conv_table.keys():
-            if unit not in all_std_unit_names:
-                if unit not in all_aliases:
-                    add_to_aliases[unit] = []
-
-        self.units_aliases.update(add_to_aliases)
-
-
     def __repr__(self):
+        """Instance representation."""
         return f"Obstype instance of {self.name}"
 
     def __str__(self):
+        """Text representation."""
         return f"Obstype instance of {self.name}"
 
     # -----  Setters -------
+
     def set_description(self, desc):
+        """Set the description of the observation type."""
         self.description = str(desc)
 
     def set_original_name(self, columnname):
+        """Set the original name of the observation type."""
         self.original_name = str(columnname)
 
     def set_original_unit(self, original_unit):
+        """Set the original unit of the observation type."""
         self.original_unit = str(original_unit)
 
     # ------ Getters --------
+
     def get_info(self):
+        """Print out detailed information of the observation type.
+
+        Returns
+        -------
+        None.
+
+        """
         info_str = f"{self.name} observation with: \n \
     * standard unit: {self.std_unit} \n \
     * data column as {self.original_name} in {self.original_unit} \n \
@@ -215,19 +193,40 @@ class Obstype:
         print(info_str)
 
     def get_orig_name(self):
+        """Return the original name of the observation type."""
         return self.original_name
 
     def get_description(self):
+        """Return the descrition of the observation type."""
         if (self.description == str(None)):
             return 'No description available'
         else:
             return str(self.description)
 
     def get_standard_unit(self):
+        """Return the standard unit of the observation type."""
         return self.std_unit
 
+    def get_plot_y_label(self, mapname=None):
+        """Return a string to represent the vertical axes of a plot."""
+        return f'{self.name} ({self.std_unit})'
 
     def add_unit(self, unit_name, conversion=["x"]):
+        """Add a new unit to an observation type.
+
+        Parameters
+        ----------
+        unit_name : str
+            The name of the new unit.
+        conversion : list, optional
+            The conversion description to the standard unit. The default is
+            ["x"].
+
+        Returns
+        -------
+        None.
+
+        """
         # check if unit name is already known
         known = self.test_if_unit_is_known(unit_name)
         if known:
@@ -245,8 +244,25 @@ class Obstype:
 
         logger.info(f'{unit_name} is added as a {self.name} unit with coversion: {conversion} to {self.std_unit}')
 
-
     def convert_to_standard_units(self, input_data, input_unit):
+        """Convert data from a knonw unit to the standard unit.
+
+        The data can be a collection of numeric values or a single numeric
+        value.
+
+        Parameters
+        ----------
+        input_data : (collection of) numeric
+            The data to convert to the standard unit.
+        input_unit : str
+            The known unit the inputdata is in.
+
+        Returns
+        -------
+        data  numeric/numpy.array
+            The data in standard units.
+
+        """
         # check if input unit is known
         known = self.test_if_unit_is_known(input_unit)
 
@@ -269,8 +285,26 @@ class Obstype:
 
         return data
 
+    # ------------- Helpers ----------------------------------
+
+    def _check_attributes(self):
+        """Add units from the conv_table to the aliases if needed."""
+        add_to_aliases = {}
+        all_std_unit_names = []
+        all_aliases = []
+        for std_unit, alias_units in self.units_aliases.items():
+            all_std_unit_names.append(std_unit)
+            all_aliases.extend(alias_units)
+
+        for unit in self.conv_table.keys():
+            if unit not in all_std_unit_names:
+                if unit not in all_aliases:
+                    add_to_aliases[unit] = []
+
+        self.units_aliases.update(add_to_aliases)
 
     def _get_std_unit_name(self, unit_name):
+        """Get standard name for a unit name by scanning trough the aliases."""
         for std_unit_name, aliases in self.units_aliases.items():
             if unit_name == std_unit_name:
                 return unit_name
@@ -278,8 +312,20 @@ class Obstype:
                 return std_unit_name
         sys.exit(f"No standard unit name is found for {unit_name} for {self.name}")
 
-
     def test_if_unit_is_known(self, unit_name):
+        """Test is the unit is known.
+
+        Parameters
+        ----------
+        unit_name : str
+            The unit name to test.
+
+        Returns
+        -------
+        bool
+            True if knonw, False else.
+
+        """
         if unit_name == self.std_unit:
             return True
         for std_unit_name, aliases in self.units_aliases.items():
@@ -325,23 +371,23 @@ temperature = Obstype(obsname='temp',
                       )
 
 humidity = Obstype(obsname='humidity',
-                      std_unit=tlk_std_units['humidity'],
-                      description="2m - relative humidity",
-                      unit_aliases=all_units_aliases['humidity'],
-                      unit_conversions=all_conversion_table['humidity'])
+                   std_unit=tlk_std_units['humidity'],
+                   description="2m - relative humidity",
+                   unit_aliases=all_units_aliases['humidity'],
+                   unit_conversions=all_conversion_table['humidity'])
 
 radiation_temp = Obstype(obsname='radiation_temp',
-                      std_unit=tlk_std_units['radiation_temp'],
-                      description="2m - Black globe",
-                      unit_aliases=all_units_aliases['radiation_temp'],
-                      unit_conversions=all_conversion_table['radiation_temp'])
+                         std_unit=tlk_std_units['radiation_temp'],
+                         description="2m - Black globe",
+                         unit_aliases=all_units_aliases['radiation_temp'],
+                         unit_conversions=all_conversion_table['radiation_temp'])
 
 pressure = Obstype(obsname='pressure',
-                      std_unit=tlk_std_units['pressure'],
-                      description="atmospheric pressure (at station)",
-                      unit_aliases=all_units_aliases['pressure'],
-                      unit_conversions=all_conversion_table['pressure']
-                      )
+                   std_unit=tlk_std_units['pressure'],
+                   description="atmospheric pressure (at station)",
+                   unit_aliases=all_units_aliases['pressure'],
+                   unit_conversions=all_conversion_table['pressure']
+                   )
 
 pressure_at_sea_level = Obstype(obsname='pressure_at_sea_level',
                                 std_unit=tlk_std_units['pressure_at_sea_level'],
@@ -350,33 +396,33 @@ pressure_at_sea_level = Obstype(obsname='pressure_at_sea_level',
                                 unit_conversions=all_conversion_table['pressure_at_sea_level'])
 
 precip = Obstype(obsname='precip',
-                                std_unit=tlk_std_units['precip'],
-                                description="precipitation intensity",
-                                unit_aliases=all_units_aliases['precip'],
-                                unit_conversions=all_conversion_table['precip'])
+                 std_unit=tlk_std_units['precip'],
+                 description="precipitation intensity",
+                 unit_aliases=all_units_aliases['precip'],
+                 unit_conversions=all_conversion_table['precip'])
 
 precip_sum = Obstype(obsname='precip_sum',
-                                std_unit=tlk_std_units['precip'],
-                                description="Cummulated precipitation",
-                                unit_aliases=all_units_aliases['precip_sum'],
-                                unit_conversions=all_conversion_table['precip_sum'])
+                     std_unit=tlk_std_units['precip'],
+                     description="Cummulated precipitation",
+                     unit_aliases=all_units_aliases['precip_sum'],
+                     unit_conversions=all_conversion_table['precip_sum'])
 wind = Obstype(obsname='wind_speed',
-                                std_unit=tlk_std_units['wind_speed'],
-                                description="wind speed",
-                                unit_aliases=all_units_aliases['wind_speed'],
-                                unit_conversions=all_conversion_table['wind_speed'])
+               std_unit=tlk_std_units['wind_speed'],
+               description="wind speed",
+               unit_aliases=all_units_aliases['wind_speed'],
+               unit_conversions=all_conversion_table['wind_speed'])
 
 windgust = Obstype(obsname='wind_gust',
-                std_unit=tlk_std_units['wind_gust'],
-                description="wind gust",
-                unit_aliases=all_units_aliases['wind_gust'],
-                unit_conversions=all_conversion_table['wind_gust'])
+                   std_unit=tlk_std_units['wind_gust'],
+                   description="wind gust",
+                   unit_aliases=all_units_aliases['wind_gust'],
+                   unit_conversions=all_conversion_table['wind_gust'])
 
 wind_direction = Obstype(obsname='wind_direction',
-                                std_unit=tlk_std_units['wind_direction'],
-                                description="wind direction",
-                                unit_aliases=all_units_aliases['wind_direction'],
-                                unit_conversions=all_conversion_table['wind_direction'])
+                         std_unit=tlk_std_units['wind_direction'],
+                         description="wind direction",
+                         unit_aliases=all_units_aliases['wind_direction'],
+                         unit_conversions=all_conversion_table['wind_direction'])
 
 # The order of the dictionary is also the order on how columns in dataset are presetnted
 tlk_obstypes = {'temp': temperature,
@@ -389,9 +435,3 @@ tlk_obstypes = {'temp': temperature,
                 'wind_speed': wind,
                 'wind_gust': windgust,
                 'wind_direction': wind_direction}
-
-
-
-
-
-

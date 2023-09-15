@@ -58,7 +58,7 @@ release = "0.0.1"
 
 extensions = [
     "sphinx.ext.autodoc",  # Autodocument functions
-    "sphinx_rtd_theme",  # Use the read the docs theme
+    # "sphinx_rtd_theme",  # Use the read the docs theme
     "sphinx.ext.viewcode",  # Button to go to source code
     "sphinx_copybutton",  # Copy button (for examples etc)
     "sphinx.ext.napoleon",  # To convert Numpydocstring to readable format
@@ -96,13 +96,14 @@ autodoc_mock_imports = [
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+# html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
     "analytics_id": "G-XXXXXXXXXX",  #  Provided by Google in your dashboard

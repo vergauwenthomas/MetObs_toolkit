@@ -400,7 +400,7 @@ class Dataset:
 
     def add_new_observationtype(self, obsname, standard_units,
                                 obstype_description, unit_alias_dict={},
-                                unit_conv_dict={}):
+                                unit_conv_dict={}, new_obstype=None):
         """Add a new observation type to the known observation types.
 
         The observation can only be added if it is not already present in the
@@ -427,21 +427,32 @@ class Dataset:
                 'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
 
                 The default is {}.
-
+        new_obstype : metobs_toolkit.Obstype or None, optional
+            Alternatively one can create a observationtype directly and add it
+            to the Dataset. If an Obstype is given all other arguments are
+            ignored and the Obstype is added to the dataset. The default is
+            None.
         Returns
         -------
         None.
 
         """
+        if isinstance(new_obstype, Obstype_class):
+            obsname = new_obstype.name
+            new_obs = new_obstype
         # Test if the obsname is already in use
         if obsname in self.obstypes.keys():
             logger.warning(f'{obsname} is already a known observation type: {self.obstypes[obsname]}')
             return
-        new_obs = Obstype_class(obsname=obsname,
-                                std_unit=standard_units,
-                                description=obstype_description,
-                                unit_aliases=unit_alias_dict,
-                                unit_conversions=unit_conv_dict)
+
+        if isinstance(new_obstype, Obstype_class):
+            new_obs = new_obstype
+        else:
+            new_obs = Obstype_class(obsname=obsname,
+                                    std_unit=standard_units,
+                                    description=obstype_description,
+                                    unit_aliases=unit_alias_dict,
+                                    unit_conversions=unit_conv_dict)
         # Update the known obstypes
         self.obstypes[obsname] = new_obs
 
