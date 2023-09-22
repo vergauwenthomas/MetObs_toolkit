@@ -38,7 +38,7 @@ def add_new_obstype():
     is_std_unit = yes_no_ques(f' Are the {obsname} values in your data in {std_unit}')
     if is_std_unit:
         cur_unit = std_unit
-        unit_conv={}
+        unit_conv={std_unit : ['x']}
     else:
         cur_unit = str(input('Give the unit your data is in: '))
         print(f'Give the expression on how to convert {cur_unit} values to {std_unit}. ')
@@ -264,19 +264,6 @@ def build_template_prompt(debug=False):
     obstype_desc.update({ob.name: ob.get_description() for ob in known_obstypes.values()})
     obstype_desc.update({'ADD NEW OBSERVATION TYPE': "add a new observation type if it is not present in this list."})
 
-    # obstype_desc = {
-    #     'name': 'name (name of the stations represented by strings)',
-    #     'temp': "temp (temperature)",
-    #     'radiation_temp': "radiation_temp (radiation temperature)",
-    #     'humidity': "humidity (humidity)",
-    #     'precip': "precip (precipitation intensity)",
-    #     'precip_sum': "precip_sum (precipitation cumulated)",
-    #     'wind_speed': "wind_speed (wind speed)",
-    #     'wind_gust': "wind_gust (wind gust)",
-    #     'wind_direction': "wind_direction (wind direction in degrees)",
-    #     'pressure': "pressure (measured pressure)",
-    #     'pressure_at_sea_level': "pressure_at_sea_level (altitude corrected pressure)",
-    #     'ADD NEW OBSERVATION TYPE': "add a new observation type if it is not present in this list."}
     inv_obstype_desc = {val: key for key, val in obstype_desc.items()}
     obstype_options = list(obstype_desc.values())
 
@@ -298,7 +285,6 @@ def build_template_prompt(debug=False):
 
             # 1) add a new obstype
             if inv_obstype_desc[desc_return] == 'ADD NEW OBSERVATION TYPE':
-                print("NIEW OBSTYPE TOEVOEGEN!!!")
                 new_obstype, cur_unit = add_new_obstype()
 
                 known_obstypes[new_obstype.name] = new_obstype #add to knonw obstypes
@@ -356,7 +342,7 @@ def build_template_prompt(debug=False):
         if wide_obstype == 'ADD NEW OBSERVATION TYPE':
             print("NIEW OBSTYPE TOEVOEGEN!!!")
             new_obstype, cur_unit = add_new_obstype()
-
+            wide_obstype = new_obstype.name
             known_obstypes[new_obstype.name] = new_obstype #add to knonw obstypes
             units = cur_unit
             description = new_obstype.get_description()
@@ -367,10 +353,10 @@ def build_template_prompt(debug=False):
             units, conv_str = get_unit(known_obstypes[wide_obstype])
             if conv_str is not None:
                 # add new units to the dict
-                new_units[obstype] = {'unit': units,
+                new_units[wide_obstype] = {'unit': units,
                                       'conv': conv_str}
 
-        description = input('Some more details on the observation (optional): ')
+            description = input('Some more details on the observation (optional): ')
 
 
         # update template

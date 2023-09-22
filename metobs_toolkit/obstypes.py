@@ -187,9 +187,10 @@ class Obstype:
         info_str = f"{self.name} observation with: \n \
     * standard unit: {self.std_unit} \n \
     * data column as {self.original_name} in {self.original_unit} \n \
-    * Known units and aliases: {self.units_aliases} \n \
+    * known units and aliases: {self.units_aliases} \n \
     * description: {self.description} \n \
-    * conversions to known units: {self.conv_table} \n"
+    * conversions to known units: {self.conv_table} \n\n \
+    * originates from data column: {self.original_name} with {self.original_unit} as native unit."
         print(info_str)
 
     def get_orig_name(self):
