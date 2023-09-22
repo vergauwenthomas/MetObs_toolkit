@@ -81,9 +81,7 @@ class Modeldata:
         print("\n ------ Known gee datasets -----------")
         self.list_gee_datasets()
 
-    def add_obstype(self, bandname, band_units, Obstype=None, band_description=None,
-                    obsname=None, standard_units=None, obstype_description=None,
-                    unit_alias_dict={}, unit_conv_dict={}):
+    def add_obstype(self, Obstype, bandname, band_units, band_description=None):
         """Add a new Observation type for the current Modeldata.
 
         Parameters
@@ -99,19 +97,10 @@ class Modeldata:
         None.
 
         """
-        # Get a regular obstype
-        if Obstype is None:
-            obs = Obstype_class(obsname=obsname,
-                                std_unit=standard_units,
-                                description=obstype_description,
-                                unit_aliases=unit_alias_dict,
-                                unit_conversions=unit_conv_dict)
+        if not isinstance(Obstype, Obstype_class):
+            sys.exit(f"{Obstype} is not an instance of metobs_toolkit.obstypes.Obstype.")
 
-        else:
-            if not isinstance(Obstype, Obstype_class):
-                sys.exit(f"{Obstype} is not an instance of metobs_toolkit.obstypes.Obstype.")
-
-            obs = Obstype
+        obs = Obstype
 
         # Test if the band unit is a knonw unit
         if not obs.test_if_unit_is_known(band_units):
@@ -140,7 +129,7 @@ class Modeldata:
         gee_location : str
             Location of the gee dataset (like "ECMWF/ERA5_LAND/HOURLY" for ERA5).
         obstype : str
-            The observation type the band corresponds to.
+            The observation type name the band corresponds to.
         bandname : str
             Name of the dataset band as stored on the GEE.
         units : str
@@ -190,11 +179,6 @@ class Modeldata:
             mapname: {
                 'location': f'{gee_location}',
                 'usage': 'user defined addition',
-                # 'band_of_use':
-                #     {f'{obstype}':
-                #           {'name': f'{bandname}',
-                #           'units': f'{units}'}
-                #       },
                 'value_type': val_typ,
                 'dynamical': not bool(is_image),
                 'scale': int(scale),
@@ -278,19 +262,10 @@ class Modeldata:
         ----------
         obstype : str
             Observation type to convert to standard units.
-        target_unit_name : str, optional
-            Target unit name to convert to. The default is 'Celsius'.
-        conv_expr : str, optional
-            If the target_unit_name is not a default, you can add the
-            conversion expression here (i.g. "x - 273.15"). The default is None.
 
         Returns
         -------
         None.
-
-        Note
-        -------
-        If the observationtype is not a default, you must first make this metobs_toolkit.Obstype and add it to the
 
         """
         # chech if data is available
@@ -312,9 +287,26 @@ class Modeldata:
         self.df[obstype] = converted_data
         logger.info(f'{obstype} are converted from {cur_unit} --> {self.obstypes[obstype].get_standard_unit()}.')
 
-    def expoid_vector_field(self, obstype):
+    def exploid_2d_vector_field(self, obstype):
+        """Compute amplitude and direction of 2D vector field components.
+
+        The amplitude and directions are added to the data attribute, and their
+        equivalent observationtypes are added to the known ModelObstypes.
+
+        (The vector components are not saved.)
+        Parameters
+        ----------
+        obstype : str
+            The name of the observationtype that is a ModelObstype_Vectorfield.
+
+        Returns
+        -------
+        None.
+
+        """
         # check if the obstype is a vector field
         if not isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
+            logger.warning(f'{obstype} is not a 2D vector field, so it can not be exploided.')
             return
 
         # get amplitude of 2D vectors
@@ -451,7 +443,8 @@ class Modeldata:
             # convert to standard units
             for obstype in obstypes:
                 self.convert_units_to_tlk(obstype)
-                self.expoid_vector_field(obstype)
+                if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
+                    self.exploid_2d_vector_field(obstype)
         else:
             self._data_stored_at_drive = True
 
@@ -680,13 +673,11 @@ class Modeldata:
         df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d%H%M%S")
         # (assume all gee dataset are in UTC)
         df["datetime"] = df["datetime"].dt.tz_localize('UTC')
-        # self.df_tz='UTC'
 
         # 2. Format dataframe
         # format index
         df = df.set_index(["name", "datetime"])
         df = df.sort_index()
-
 
         # make a bandname --> tlk name mapper
         bandname_mapper = {}
@@ -696,27 +687,15 @@ class Modeldata:
         # rename to values to toolkit space
         df = df.rename(columns=bandname_mapper)
 
-
-
-
-
-        # bandname = df.columns[0]  # assume only one column
-        # # scan to the geeinfo to found which obstype and unit the bandname represents
-        # geeinfo = self.mapinfo[self.modelname]
-        # obstype = [obs for obs, val in geeinfo['band_of_use'].items() if val['name'] == bandname][0]
-        # cur_unit = [val['units'] for obs, val in geeinfo['band_of_use'].items() if val['name'] == bandname][0]
-
-        # df = df.rename(columns={bandname: obstype})
-
         # 3. update attributes
-        # self.df = df[[obstype]]
         self.df = df
         self.df_tz = 'UTC'
-        # self._df_units[obstype] = cur_unit
 
         # 4. Convert units
         for obstype in df.columns:
             self.convert_units_to_tlk(obstype)
+            if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
+                self.exploid_2d_vector_field(obstype)
 
     def interpolate_modeldata(self, to_multiidx, obstype="temp"):
         """Interpolate modeldata in time.
@@ -894,26 +873,6 @@ class Modeldata:
 
         # Generate ylabel
         y_label = self.obstypes[obstype_model].get_plot_y_label(mapname=self.modelname)
-        # if not hasattr(self.obstypes[obstype_model], 'get_bandname'):
-        #     model_true_field_name = 'Unknown fieldname'
-
-        # try:
-        #     model_true_field_name = self.obstypes[obstype_model].get_bandname(self.modelname)
-        # except KeyError:
-        #     logger.info(f'No model field name found for {obstype_model} in {self}.')
-        #     model_true_field_name = 'Unknown fieldname'
-
-        # fieldname = f'{model_true_field_name}'
-
-        # if dataset is not None:
-        #     dataset_obs_orig_name = dataset.data_template[obstype_dataset]['orig_name']
-        #     units = dataset.data_template[obstype_dataset]['units']
-        #     y_label = f'{fieldname} \n {dataset_obs_orig_name} ({units})'
-
-        # else:
-
-        #     y_label = f'{fieldname} \n ({self.obstypes[obstype_model].get_standard_unit()})'
-
 
         # Generate title
         title = f'{self.modelname}'

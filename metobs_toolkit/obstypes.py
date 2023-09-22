@@ -330,10 +330,8 @@ class Obstype:
             return True
         for std_unit_name, aliases in self.units_aliases.items():
             if unit_name == std_unit_name:
-                logger.debug(f'{unit_name} is a known unit for {self.name}.')
                 return True
             if unit_name in aliases:
-                logger.debug(f'{unit_name} is a known (alias for {std_unit_name}) unit for {self.name}.')
                 return True
         return False
 

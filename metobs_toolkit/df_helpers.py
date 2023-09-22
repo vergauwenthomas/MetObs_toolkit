@@ -13,7 +13,6 @@ import pandas as pd
 import numpy as np
 import geopandas as gpd
 import itertools
-# from metobs_toolkit import observation_types
 import pytz
 import logging
 

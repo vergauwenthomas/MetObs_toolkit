@@ -398,9 +398,7 @@ class Dataset:
 
         return dataset
 
-    def add_new_observationtype(self, obsname, standard_units,
-                                obstype_description, unit_alias_dict={},
-                                unit_conv_dict={}, new_obstype=None):
+    def add_new_observationtype(self, Obstype):
         """Add a new observation type to the known observation types.
 
         The observation can only be added if it is not already present in the
@@ -409,52 +407,25 @@ class Dataset:
 
         Parameters
         ----------
-        obsname : str
-            The name of the new observation type (i.g. 'sensible_heat_flux').
-        standard_units : str
-            The standard unit for the observation type (i.g. 'J/m²')
-        obstype_description : str
-            A more detailed description of the obstype (i.g. '2m SE inside canopy').
-        unit_alias_dict : dict, optional
-            A dictionary containing unit alias names. Keys represent a unit and
-            values are lists with aliases for the units at the keys. The default is {}.
-        unit_conv_dict : dict, optional
-            A dictionary containing the conversion information to map to the
-            standard units. Here an example of for temperatures (with Celcius
-            as standard unit):
-
-                {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
-                'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
-
-                The default is {}.
-        new_obstype : metobs_toolkit.Obstype or None, optional
-            Alternatively one can create a observationtype directly and add it
-            to the Dataset. If an Obstype is given all other arguments are
-            ignored and the Obstype is added to the dataset. The default is
-            None.
+        Obstype : metobs_toolkit.obstype.Obstype
+            The new Obstype to add.
         Returns
         -------
         None.
 
         """
-        if isinstance(new_obstype, Obstype_class):
-            obsname = new_obstype.name
-            new_obs = new_obstype
+        # Test if the obstype is of the correct class.
+        if not isinstance(Obstype, Obstype_class):
+            sys.exit(f"{Obstype} is not an instance of metobs_toolkit.obstypes.Obstype.")
+
         # Test if the obsname is already in use
-        if obsname in self.obstypes.keys():
-            logger.warning(f'{obsname} is already a known observation type: {self.obstypes[obsname]}')
+        if Obstype.name in self.obstypes.keys():
+            logger.warning(f'{Obstype.name} is already a known observation type: {self.obstypes[obsname]}')
             return
 
-        if isinstance(new_obstype, Obstype_class):
-            new_obs = new_obstype
-        else:
-            new_obs = Obstype_class(obsname=obsname,
-                                    std_unit=standard_units,
-                                    description=obstype_description,
-                                    unit_aliases=unit_alias_dict,
-                                    unit_conversions=unit_conv_dict)
         # Update the known obstypes
-        self.obstypes[obsname] = new_obs
+        logger.info(f'Adding {Obstype} to the list of knonw observation types.')
+        self.obstypes[Obstype.name] = Obstype
 
     def add_new_unit(self, obstype, new_unit, conversion_expression = []):
         """Add a new unit to a known observation type.
@@ -682,8 +653,7 @@ class Dataset:
                 )
         # create y label
         if y_label is None:
-            y_label = f'{self.obstypes[obstype].get_orig_name()} ({self.obstypes[obstype].get_standard_unit()}) \n {self.obstypes[obstype].get_description()}'
-
+            y_label = self.obstypes[obstype].get_plot_y_label()
         # Make plot
         ax, _colmap = timeseries_plot(
             mergedf=mergedf,
@@ -2898,7 +2868,7 @@ station with the default name: {self.settings.app["default_name"]}.'
         self._initiate_df_attribute(dataframe=df, update_metadf=update_full_metadf)
 
         # Check observation types and convert units if needed.
-        self._check_observation_types()
+        self._setup_of_obstypes_and_units()
 
         # Apply quality control on Import resolution
         self._apply_qc_on_import()
@@ -3002,13 +2972,14 @@ station with the default name: {self.settings.app["default_name"]}.'
             ignore_index=True,
         )
 
-    def _check_observation_types(self):
+    def _setup_of_obstypes_and_units(self):
+        """Function to setup all attributes related to observation types and
+        convert to standard units. """
 
         # Check if all present observation types are known.
         unknown_obs_cols = [obs_col for obs_col in self.df.columns if obs_col not in self.obstypes.keys()]
         if len(unknown_obs_cols) > 0:
             sys.exit(f'The following observation types are unknown: {unknown_obs_cols}')
-
 
 
         for obs_col in self.df.columns:
