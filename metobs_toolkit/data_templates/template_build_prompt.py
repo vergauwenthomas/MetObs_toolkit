@@ -10,11 +10,83 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+import copy
 from datetime import datetime
 import pytz
 
-from metobs_toolkit.obstypes import tlk_obstypes
+from metobs_toolkit.obstypes import Obstype, tlk_obstypes
 from metobs_toolkit.data_import import _read_csv_to_df
+
+
+def add_new_obstype():
+
+    print('\n --- Adding a new observation type --- \n')
+
+    # get obsname
+    name_ok = False
+    while not name_ok:
+        obsname = str(input("Give the name of your observation type: "))
+        if obsname in tlk_obstypes.keys():
+            print(f"!! {obsname} is already a knonw observation type. This cannot be added.")
+        else:
+            name_ok = True
+
+    # get std unit
+    std_unit = str(input('Give the standard unit (how the toolkit should store/present the data): '))
+
+    # Get input data unit
+    is_std_unit = yes_no_ques(f' Are the {obsname} values in your data in {std_unit}')
+    if is_std_unit:
+        cur_unit = std_unit
+        unit_conv={}
+    else:
+        cur_unit = str(input('Give the unit your data is in: '))
+        print(f'Give the expression on how to convert {cur_unit} values to {std_unit}. ')
+        print('  * Example: Kelvin (= new unit) to °C :  x - 273.15 ')
+        print('  * Example: Farenheit to °C : x-32.0; x/1.8    (executed left to right)')
+
+        conv_str = str(input(' : '))
+        # cleanup and make list if needend
+        conv_str = list(conv_str.replace(' ', '').split(';'))
+
+        unit_conv = {cur_unit: conv_str}
+    # Description
+    description = str(input(f'Give a detailed description of the {obsname} type (optional): '))
+
+    #Aliases and coversions
+
+    # Do not add this in the prompt, the prompt should not check the more advanced
+    # settigns. If the prompt could cover 95% of all user needs, that would be great.
+    # The others should help themself with the documentation to create aliases
+    #and conversions
+
+    unit_aliases = {}
+
+    # create obstype:
+    new_obstype = Obstype(obsname=obsname, std_unit=std_unit,
+                          description=description, unit_aliases=unit_aliases,
+                          unit_conversions = unit_conv)
+    return new_obstype, cur_unit
+
+def get_unit(obstype):
+
+    available_units = obstype.get_all_units()
+    available_units.append('ADD A NEW UNIT')
+
+    print(f'\n Select the unit your {obstype.name} data is in:  \n')
+    conv_str = None
+    unit = col_option_input(available_units)
+    if unit == 'ADD A NEW UNIT':
+        unit = str(input('Give the unit your data is in: '))
+        print(f'Give the expression on how to convert {unit} values to {obstype.get_standard_unit()}. ')
+        print('  * Example: Kelvin (= new unit) to °C :  x - 273.15 ')
+        print('  * Example: Farenheit to °C : x-32.0; x/1.8    (executed left to right)')
+
+        conv_str = str(input(' : '))
+        # cleanup and make list if needend
+        conv_str = list(conv_str.replace(' ', '').split(';'))
+
+    return unit, conv_str
 
 
 def col_option_input(columns):
@@ -107,6 +179,11 @@ def build_template_prompt(debug=False):
     """Launch the prompt to help make a template."""
     template_dict = {}
     options_dict = {}
+
+    known_obstypes =  copy.copy(tlk_obstypes)
+    new_units = {}
+
+
     print('This prompt will help to build a template for your data and metadata. Answer the prompt and hit Enter. \n \n')
 
     print(' *******      File locations   *********** \n')
@@ -183,18 +260,23 @@ def build_template_prompt(debug=False):
         template_dict['_time']['format'] = input(f'Type your time format (ex. %H:%M:%S), (your first timestamp: {example}) : ')
 
     # Obstype mapping in long format:
-    obstype_desc = {
-        'name': 'name (name of the stations represented by strings)',
-        'temp': "temp (temperature)",
-        'radiation_temp': "radiation_temp (radiation temperature)",
-        'humidity': "humidity (humidity)",
-        'precip': "precip (precipitation intensity)",
-        'precip_sum': "precip_sum (precipitation cumulated)",
-        'wind_speed': "wind_speed (wind speed)",
-        'wind_gust': "wind_gust (wind gust)",
-        'wind_direction': "wind_direction (wind direction in degrees)",
-        'pressure': "pressure (measured pressure)",
-        'pressure_at_sea_level': "pressure_at_sea_level (altitude corrected pressure)"}
+    obstype_desc = {'name': 'name (name of the stations represented by strings)'}
+    obstype_desc.update({ob.name: ob.get_description() for ob in known_obstypes.values()})
+    obstype_desc.update({'ADD NEW OBSERVATION TYPE': "add a new observation type if it is not present in this list."})
+
+    # obstype_desc = {
+    #     'name': 'name (name of the stations represented by strings)',
+    #     'temp': "temp (temperature)",
+    #     'radiation_temp': "radiation_temp (radiation temperature)",
+    #     'humidity': "humidity (humidity)",
+    #     'precip': "precip (precipitation intensity)",
+    #     'precip_sum': "precip_sum (precipitation cumulated)",
+    #     'wind_speed': "wind_speed (wind speed)",
+    #     'wind_gust': "wind_gust (wind gust)",
+    #     'wind_direction': "wind_direction (wind direction in degrees)",
+    #     'pressure': "pressure (measured pressure)",
+    #     'pressure_at_sea_level': "pressure_at_sea_level (altitude corrected pressure)",
+    #     'ADD NEW OBSERVATION TYPE': "add a new observation type if it is not present in this list."}
     inv_obstype_desc = {val: key for key, val in obstype_desc.items()}
     obstype_options = list(obstype_desc.values())
 
@@ -213,27 +295,43 @@ def build_template_prompt(debug=False):
             desc_return = col_option_input(obstype_options)
             if desc_return is None:
                 continue  # when enter x
-            obstype = inv_obstype_desc[desc_return]
 
-            if obstype == 'temp':
-                _unit_num = input(' In Celcius (1), or Kelvin (2) : ')
-                units = {1: 'Celcius', 2: 'Kelvin'}[int(_unit_num)]
+            # 1) add a new obstype
+            if inv_obstype_desc[desc_return] == 'ADD NEW OBSERVATION TYPE':
+                print("NIEW OBSTYPE TOEVOEGEN!!!")
+                new_obstype, cur_unit = add_new_obstype()
 
-                print(units)
-            elif obstype == 'name':
+                known_obstypes[new_obstype.name] = new_obstype #add to knonw obstypes
+                obstype = new_obstype.name
+                units = cur_unit
+                description = new_obstype.get_description()
+            # 2) name column is mapped
+            elif inv_obstype_desc[desc_return] == 'name':
                 template_dict['name'] = {'orig_name': col}
+                obstype_options.remove('name (name of the stations represented by strings)')
                 continue
+            # 3) existing obstype
             else:
-                units = input(' What are the units : ')
+                obstype = inv_obstype_desc[desc_return]
 
-            description = input('Some more details on the observation : ')
+                # add unit
+                units, conv_str = get_unit(known_obstypes[obstype])
+                if conv_str is not None:
+                    # add new units to the dict
+                    new_units[obstype] = {'unit': units,
+                                          'conv': conv_str}
+
+
+                description = input('Some more details on the observation (optional): ')
+
+                obstype_options.remove(obstype_desc[obstype])
 
             # update template
             template_dict[obstype] = {'orig_name': col,
                                       'units': units,
                                       'description': description
                                       }
-            obstype_options.remove(obstype_desc[obstype])
+
 
     if format_option == 2:
         print('\n Does these columns represent stations: ')
@@ -254,16 +352,26 @@ def build_template_prompt(debug=False):
             sys.exit('invalid obstype for wide dataset, see last message. ')
         wide_obstype = inv_obstype_desc[desc_return]
 
-        if wide_obstype == 'temp':
-            _unit_num = input(' In Celcius (1), or Kelvin (2) : ')
-            units = {1: 'Celcius', 2: 'Kelvin'}[int(_unit_num)]
+        # 1) add a new obstype
+        if wide_obstype == 'ADD NEW OBSERVATION TYPE':
+            print("NIEW OBSTYPE TOEVOEGEN!!!")
+            new_obstype, cur_unit = add_new_obstype()
 
-            print(units)
+            known_obstypes[new_obstype.name] = new_obstype #add to knonw obstypes
+            units = cur_unit
+            description = new_obstype.get_description()
 
+        # 2) Knonw obstype
         else:
-            units = input(' What are the units : ')
+            # add unit
+            units, conv_str = get_unit(known_obstypes[wide_obstype])
+            if conv_str is not None:
+                # add new units to the dict
+                new_units[obstype] = {'unit': units,
+                                      'conv': conv_str}
 
-        description = input('Some more details on the observation : ')
+        description = input('Some more details on the observation (optional): ')
+
 
         # update template
         template_dict[wide_obstype] = {'units': units,
@@ -349,10 +457,7 @@ def build_template_prompt(debug=False):
 
     # check if a least one mapped observation type exist
     if (format_option != 2):
-        #NOTE: Maybe this is to strict that at leas one obstype should be one of the default,
-        # but if do not have a good idea on how to loosen the restriction towards user-defined
-        # observation types, since the obervation types are stored in the Dataset.
-        present_obs = [key for key in template_dict.keys() if key in tlk_obstypes.keys()]
+        present_obs = [key for key in template_dict.keys() if key in known_obstypes.keys()]
         if not bool(present_obs):
             print('ERROR! There is no observation type included in the template! Add at least one observation type when mapping the data file.')
             sys.exit('Template invalid, see last message. ')
@@ -546,6 +651,8 @@ def build_template_prompt(debug=False):
     # Tips for the user
     # =============================================================================
 
+
+
     apply_tips = yes_no_ques("Do you want some help creating your Dataset?")
     if apply_tips is True:
 
@@ -598,6 +705,34 @@ def build_template_prompt(debug=False):
 
         if gaps_update:
             print(f'your_dataset.update_qc_settings(gapsize_in_records = {gapsize})')
+
+        # add new obstypes if needed
+        to_add_obstypes = [newobsname for newobsname in known_obstypes.keys() if newobsname not in tlk_obstypes.keys()]
+        if bool(to_add_obstypes):
+            print('\n# Define non-standard observation types, and add them to the dataset: \n')
+            for newob in to_add_obstypes:
+                new_obstype = known_obstypes[newob]
+                print('new_obstype = metobs_toolkit.Obstype(')
+                print(f'                 obsname="{new_obstype.name}",')
+                print(f'                 std_unit="{new_obstype.get_standard_unit()}",')
+                print(f'                 description="{new_obstype.get_description()}",')
+                print(f'                 unit_aliases={new_obstype.units_aliases},')
+                print(f'                 unit_conversions={new_obstype.conv_table})')
+                print("\n\n #add the new obstype to your dataset. \n")
+                print('your_dataset.add_new_observationtype(Obstype=new_obstype)')
+                print('\n\n')
+
+        # add new units if needed
+
+        if bool(new_units):
+            print('\n# Define non-standard units, and add them to the corresponding units: \n')
+            for obstype, unit_info in new_units.items():
+                print('your_dataset.add_new_unit(')
+                print(f'                         obstype="{obstype}",')
+                print(f'                         new_unit="{unit_info["unit"]}",')
+                print(f'                         conversion_expression={unit_info["conv"]})')
+
+                print('\n\n')
 
 
         print('\n#4. Import your data : \n')

@@ -203,6 +203,12 @@ class Obstype:
         else:
             return str(self.description)
 
+    def get_all_units(self):
+        """Return a list with all the known unit (in standard naming)."""
+        units = list(self.units_aliases.keys())
+        units.append(self.get_standard_unit())
+        return list(set(units))
+
     def get_standard_unit(self):
         """Return the standard unit of the observation type."""
         return self.std_unit

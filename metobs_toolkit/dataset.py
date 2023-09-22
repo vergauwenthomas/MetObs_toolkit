@@ -420,7 +420,7 @@ class Dataset:
 
         # Test if the obsname is already in use
         if Obstype.name in self.obstypes.keys():
-            logger.warning(f'{Obstype.name} is already a known observation type: {self.obstypes[obsname]}')
+            logger.warning(f'{Obstype.name} is already a known observation type: {self.obstypes[Obstype.name]}')
             return
 
         # Update the known obstypes
