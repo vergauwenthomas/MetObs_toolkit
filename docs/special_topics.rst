@@ -156,7 +156,7 @@ As an example, here is the defenition of the temperature observation type:
                              'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8},
                          )
 
-Similar as this example a user can create an observation type and add it to a :py:meth:`Dataset<metobs_toolkit.dataset.Dataset>`,
+Similar as this example a user can create a new observation type and add it to a :py:meth:`Dataset<metobs_toolkit.dataset.Dataset>`,
 using the :py:meth:`add_new_observationtype()<metobs_toolkit.dataset.Dataset.add_new_observationtype>` method.
 
 .. code-block:: python
@@ -220,5 +220,4 @@ example on how to create a new observation type for a :py:meth:`Modeldata<metobs
    # Collect the U-wind component for your stations:
    model_data = your_dataset.get_modeldata(modeldata=model_data,
                                            obstype = 'wind_u_comp')
-
 
