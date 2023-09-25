@@ -6,6 +6,7 @@ This module contains the Modeldata class and all its methods.
 A Modeldata holds all timeseries coming from a model and methods to use them.
 """
 import os
+import copy
 import sys
 import pickle
 import pandas as pd
@@ -25,7 +26,7 @@ from metobs_toolkit.plotting_functions import (model_timeseries_plot,
 # from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype as Obstype_class
 from metobs_toolkit.obstype_modeldata import model_obstypes, ModelObstype, ModelObstype_Vectorfield
-
+from metobs_toolkit.obstype_modeldata import compute_amplitude, compute_angle
 from metobs_toolkit.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -272,19 +273,39 @@ class Modeldata:
         if self.df.empty:
             logger.warning('No data to set units for.')
             return
-        if obstype not in self.df.columns:
-            logger.warning('{obstype} not found as observationtype in the Modeldata.')
-            return
+
         if obstype not in self.obstypes:
-            logger.warning('{obstype} not found as a known observationtype in the Modeldata.')
-            return
+           logger.warning(f'{obstype} not found as a known observationtype in the Modeldata.')
+           return
+        if isinstance(self.obstypes[obstype], ModelObstype):
+            # scalar obstype
+            if obstype not in self.df.columns:
+                logger.warning(f'{obstype} not found as observationtype in the Modeldata.')
+                return
+        if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
+            # vector obstype
+            if self.obstypes[obstype].get_u_column() not in self.df.columns:
+                logger.warning(f'{self.obstypes[obstype].get_u_column()} not found as observationtype in the Modeldata.')
+                return
+            if self.obstypes[obstype].get_v_column() not in self.df.columns:
+                logger.warning(f'{self.obstypes[obstype].get_v_column()} not found as observationtype in the Modeldata.')
+                return
 
         cur_unit = self.obstypes[obstype].get_modelunit(self.modelname)
-        converted_data = self.obstypes[obstype].convert_to_standard_units(input_data=self.df[obstype],
-                                                                          input_unit=cur_unit)
 
-        # Update the data and the current unit
-        self.df[obstype] = converted_data
+        if isinstance(self.obstypes[obstype], ModelObstype):
+            converted_data = self.obstypes[obstype].convert_to_standard_units(input_data=self.df[obstype],
+                                                                                  input_unit=cur_unit)
+            # Update the data and the current unit
+            self.df[obstype] = converted_data
+        if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
+            u_comp_name = self.obstypes[obstype].get_u_column()
+            v_comp_name = self.obstypes[obstype].get_v_column()
+            u_comp, v_comp = self.obstypes[obstype].convert_to_standard_units(input_df=self.df,
+                                                                              input_unit=cur_unit)
+
+            self.df[u_comp_name] = u_comp
+            self.df[v_comp_name] = v_comp
         logger.info(f'{obstype} are converted from {cur_unit} --> {self.obstypes[obstype].get_standard_unit()}.')
 
     def exploid_2d_vector_field(self, obstype):
@@ -311,11 +332,13 @@ class Modeldata:
 
         # get amplitude of 2D vectors
         logger.info(f'Computing the amplited of the 2D vector field of {obstype}')
-        amp_data, amp_obstype = self.obstypes[obstype].compute_amplitude(df=self.df)
+        amp_data, amp_obstype = compute_amplitude(modelobs_vectorfield=copy.deepcopy(self.obstypes[obstype]),
+                                                  df=self.df)
 
-        # get direction of 2D vectors
+        # # get direction of 2D vectors
         logger.info(f'Computing the direction of the 2D vector field of {obstype}')
-        dir_data, dir_obstype = self.obstypes[obstype].compute_angle(df=self.df)
+        dir_data, dir_obstype = compute_angle(modelobs_vectorfield=copy.deepcopy(self.obstypes[obstype]),
+                                              df=self.df)
 
 
         #  ------ update the attributes ---------
@@ -877,7 +900,7 @@ class Modeldata:
         # Generate title
         title = f'{self.modelname}'
         if dataset is not None:
-            title = f'{title} and {dataset_obs_orig_name} observations.'
+            title = f'{title} and {self.obstypes[obstype_dataset].name} observations.'
 
         # make plot of the observations
         if dataset is not None:
