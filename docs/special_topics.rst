@@ -164,7 +164,7 @@ using the :py:meth:`add_new_observationtype()<metobs_toolkit.dataset.Dataset.add
    import metobs_toolkit
 
    #create an new observationtype
-   your_obstype = metobs_toolkit.Obstype(
+   wind_component_east = metobs_toolkit.Obstype(
                          obsname='wind_u_comp', #The name of the observation type
                          std_unit= 'm/s', #The standard unit
                          description="2m - u component of the wind (5min averages)", #A more detailed description (optional)
@@ -177,7 +177,7 @@ using the :py:meth:`add_new_observationtype()<metobs_toolkit.dataset.Dataset.add
 
    #add your observation type to a dataset
    your_dataset = metobs_toolkit.Dataset()
-   your_dataset.add_new_observationtype(new_obstype=your_obstype)
+   your_dataset.add_new_observationtype(Obstype=wind_component_east)
 
    # Now you can import a datafile with wind_u_comp data!
 
@@ -198,7 +198,7 @@ example on how to create a new observation type for a :py:meth:`Modeldata<metobs
    import metobs_toolkit
 
    #create an new observationtype
-   your_obstype = metobs_toolkit.Obstype(
+   wind_component_east = metobs_toolkit.Obstype(
                          obsname='wind_u_comp', #The name of the observation type
                          std_unit= 'm/s', #The standard unit
                          description="10m - east component of the wind ", #A more detailed description (optional)
@@ -212,7 +212,7 @@ example on how to create a new observation type for a :py:meth:`Modeldata<metobs
    model_data = metobs_toolkit.Modeldata("ERA5_hourly")
 
    # add new obstype to model_data
-   model_data.add_obstype(Obstype=new_obstype,
+   model_data.add_obstype(Obstype=wind_component_east,
                           bandname='u_component_of_wind_10m', #See: https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY#bands
                           band_units='m/s',
                           )
