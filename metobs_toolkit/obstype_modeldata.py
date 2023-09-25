@@ -6,6 +6,7 @@ Created on Wed Sep 13 13:43:15 2023
 @author: thoverga
 """
 import sys
+import copy
 import math
 import numpy as np
 import logging
@@ -87,6 +88,14 @@ class ModelObstype(Obstype):
 
         self.modl_equi_dict = model_equivalent_dict
         self._is_valid()
+
+    def __repr__(self):
+        """Instance representation."""
+        return f"ModelObstype instance of {self.name}"
+
+    def __str__(self):
+        """Text representation."""
+        return f"ModelObstype instance of {self.name}"
 
     def get_info(self):
         """Print out detailed information of the observation type.
@@ -199,6 +208,14 @@ class ModelObstype_Vectorfield(Obstype):
         self.modl_comp_dict = mod_comp_dict
         self._is_valid()
 
+    def __repr__(self):
+        """Instance representation."""
+        return f"ModelObstype_Vectorfield instance of {self.name}"
+
+    def __str__(self):
+        """Text representation."""
+        return f"ModelObstype_Vectorfield instance of {self.name}"
+
     def get_info(self):
         """Print out detailed information of the observation type.
 
@@ -252,92 +269,6 @@ class ModelObstype_Vectorfield(Obstype):
         return f'u_comp_{self.name}'
     def get_v_column(self):
         return f'v_comp_{self.name}'
-
-    def compute_amplitude(self, df):
-        # Compute the data
-        data =((df[self.get_u_column()].pow(2)) + (df[self.get_v_column()].pow(2))).pow(1./2)
-        # Create a new obstype for the amplitude
-        amplitude_obstype = Obstype(obsname = f'{self.name}_amplitude',
-                                    std_unit = self.std_unit,
-                                    description=f'2D-vector amplitde of {self.name} components.',
-                                    unit_aliases = self.units_aliases,
-                                    unit_conversions = self.conv_table)
-        # convert to model obstype
-        mod_equi = {}
-        for key, val in self.modl_comp_dict.items():
-            mod_equi[key] = val['u_comp']
-            mod_equi[key]['name'] = f"{val['u_comp']['name']} and {val['v_comp']['name']}"
-
-        amplitude_obstype = ModelObstype(amplitude_obstype,
-                                         model_equivalent_dict=mod_equi
-                                         )
-        # amplitude_obstype.plotlabel=f"Amplitude of 2D-{self.name} field ({self.std_unit})"
-        return data, amplitude_obstype
-
-    def compute_angle(self, df):
-
-        def unit_vector(vector):
-            """ Returns the unit vector of the vector.  """
-            return vector / np.linalg.norm(vector)
-
-        def angle_between(u_comp, v_comp):
-            """ Returns the angle in radians between vectors 'v1' and 'v2'::
-
-                    >>> angle_between((1, 0, 0), (0, 1, 0))
-                    1.5707963267948966
-                    >>> angle_between((1, 0, 0), (1, 0, 0))
-                    0.0
-                    >>> angle_between((1, 0, 0), (-1, 0, 0))
-                    3.141592653589793
-            """
-
-            v2 = (u_comp, v_comp)
-            v1_u = unit_vector((0,1)) #North unit arrow
-            v2_u = unit_vector(v2)
-
-            angle_rad = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
-            angle_degrees = angle_rad * ((180.0/math.pi))
-            # return angle_degrees
-            # fix the quadrants
-            if (v2[0] >= 0) & (v2[1] >= 0):
-                # N-E quadrant
-                return angle_degrees
-            if (v2[0] >= 0) & (v2[1] < 0):
-                # S-E quadrant
-                return angle_degrees
-            if (v2[0] < 0) & (v2[1] < 0):
-                # S-W quadrant
-                return 180.0 + (180. - angle_degrees)
-            if (v2[0] < 0) & (v2[1] >= 0):
-                # N-W quadrant
-                return 360.0 - angle_degrees
-
-        u_column = self.get_u_column()
-        v_column = self.get_v_column()
-
-        data = df.apply(lambda x: angle_between(x[u_column], x[v_column]), axis=1)
-        # Create a new obstype for the amplitude
-        direction_obstype = Obstype(obsname = f'{self.name}_direction',
-                                    std_unit = '° from north (CW)',
-                                    description=f'Direction of 2D-vector of {self.name} components.',
-                                    unit_aliases = direction_aliases,
-                                    unit_conversions = {})
-        # convert to model obstype
-        mod_equi = {}
-        for key, val in self.modl_comp_dict.items():
-            mod_equi[key] = val['u_comp']
-            mod_equi[key]['name'] = f"{val['u_comp']['name']} and {val['v_comp']['name']}"
-            mod_equi[key]['units'] = '° from north (CW)'
-
-        direction_obstype = ModelObstype(direction_obstype,
-                                         model_equivalent_dict=mod_equi
-                                         )
-        # direction_obstype.plotlabel=f"Direction of 2D-{self.name} field ({self.std_unit})"
-        return data, direction_obstype
-
-
-
-
 
 
     def add_new_band(self, mapname, bandname_u_comp, bandname_v_comp, bandunit,
@@ -399,7 +330,166 @@ class ModelObstype_Vectorfield(Obstype):
             if len(set([comp['units'] for comp in self.modl_comp_dict[datasetname].values()])) > 1:
                 sys.exit(f'The units of the u and v component for {self.name} in the {datasetname} dataset are not equal.')
 
+    def convert_to_standard_units(self, input_df, input_unit):
+        """Convert data from a known unit to the standard unit.
 
+        The data c must be a pandas dataframe with both the u and v component
+        prensent as columns.
+
+        Parameters
+        ----------
+        input_data : (collection of) numeric
+            The data to convert to the standard unit.
+        input_unit : str
+            The known unit the inputdata is in.
+
+        Returns
+        -------
+        data_u_component :  numeric/numpy.array
+            The u component of the data in standard units.
+        data_v_component :
+            The v component of the data in standard units.
+
+        """
+        # check if input unit is known
+        known = self.test_if_unit_is_known(input_unit)
+
+        # error when unit is not know
+        if not known:
+            sys.exit(f'{input_unit} is an unknown unit for {self.name}. No coversion possible!')
+
+        # Get conversion
+        std_unit_name = self._get_std_unit_name(input_unit)
+        if std_unit_name == self.std_unit:
+            # No conversion needed because already the standard unit
+            return input_df[self.get_u_column()], input_df[self.get_v_column()]
+
+        conv_expr_list = self.conv_table[std_unit_name]
+
+        # covert data u component
+        data_u = input_df[self.get_u_column()]
+        data_v = input_df[self.get_v_column()]
+        for conv in conv_expr_list:
+            data_u = expression_calculator(conv, data_u)
+            data_v = expression_calculator(conv, data_v)
+
+        return data_u, data_v
+
+#%% New obs creator functions
+def compute_amplitude(modelobs_vectorfield, df):
+    """Compute amplitude of 2D vectorfield components.
+
+    The amplitude column is added to the dataframe and a new ModelObstype,
+    representing the amplitude is returned. All attributes wrt the units are
+    inherited from the ModelObstype_vectorfield.
+
+    Parameters
+    ----------
+    modelobs_vectorfield : ModelObstype_Vectorfield
+        The vectorfield observation type to compute the vector amplitudes for.
+    df : pandas.DataFrame
+        The dataframe with the vector components present as columns.
+
+    Returns
+    -------
+    data : pandas.DataFrame
+        The df with an extra column representing the amplitudes.
+    amplitude_obstype : ModelObstype
+        The (scalar) Modelobstype representation of the amplitudes.
+
+    """
+    # Compute the data
+    data =((df[modelobs_vectorfield.get_u_column()].pow(2)) + (df[modelobs_vectorfield.get_v_column()].pow(2))).pow(1./2)
+    # Create a new obstype for the amplitude
+    amplitude_obstype = Obstype(obsname = f'{modelobs_vectorfield.name}_amplitude',
+                                std_unit = modelobs_vectorfield.std_unit,
+                                description=f'2D-vector amplitde of {modelobs_vectorfield.name} components.',
+                                unit_aliases = modelobs_vectorfield.units_aliases,
+                                unit_conversions = modelobs_vectorfield.conv_table)
+    # convert to model obstype
+    new_mod_equi = {}
+    for key, val in modelobs_vectorfield.modl_comp_dict.items():
+        new_mod_equi[key] = val['u_comp']
+        new_mod_equi[key]['name'] = f"{val['u_comp']['name']} and {val['v_comp']['name']}"
+
+    amplitude_obstype = ModelObstype(amplitude_obstype,
+                                     model_equivalent_dict=new_mod_equi
+                                     )
+
+    return data, amplitude_obstype
+
+def compute_angle(modelobs_vectorfield, df):
+    """Compute vector direction of 2D vectorfield components.
+
+    The direction column is added to the dataframe and a new ModelObstype,
+    representing the angle is returned. The values represents the angles in
+    degrees, from north in clock-wise rotation.
+
+    Parameters
+    ----------
+    modelobs_vectorfield : ModelObstype_Vectorfield
+        The vectorfield observation type to compute the vector directions for.
+    df : pandas.DataFrame
+        The dataframe with the vector components present as columns.
+
+    Returns
+    -------
+    data : pandas.DataFrame
+        The df with an extra column representing the directions.
+    amplitude_obstype : ModelObstype
+        The (scalar) Modelobstype representation of the angles.
+
+    """
+
+    def unit_vector(vector):
+        """ Returns the unit vector of the vector.  """
+        return vector / np.linalg.norm(vector)
+
+    def angle_between(u_comp, v_comp):
+        """ Returns the angle in ° from North (CW) from 2D Vector components.
+        """
+
+        v2 = (u_comp, v_comp)
+        v1_u = unit_vector((0,1)) #North unit arrow
+        v2_u = unit_vector(v2)
+
+        angle_rad = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+        angle_degrees = angle_rad * ((180.0/math.pi))
+        # return angle_degrees
+        # fix the quadrants
+        if (v2[0] >= 0) & (v2[1] >= 0):
+            # N-E quadrant
+            return angle_degrees
+        if (v2[0] >= 0) & (v2[1] < 0):
+            # S-E quadrant
+            return angle_degrees
+        if (v2[0] < 0) & (v2[1] < 0):
+            # S-W quadrant
+            return 180.0 + (180. - angle_degrees)
+        if (v2[0] < 0) & (v2[1] >= 0):
+            # N-W quadrant
+            return 360.0 - angle_degrees
+
+    u_column = modelobs_vectorfield.get_u_column()
+    v_column = modelobs_vectorfield.get_v_column()
+
+    data = df.apply(lambda x: angle_between(x[u_column], x[v_column]), axis=1)
+    # Create a new obstype for the amplitude
+    direction_obstype = Obstype(obsname = f'{modelobs_vectorfield.name}_direction',
+                                std_unit = '° from north (CW)',
+                                description=f'Direction of 2D-vector of {modelobs_vectorfield.name} components.',
+                                unit_aliases = direction_aliases,
+                                unit_conversions = {})
+    # convert to model obstype
+    new_mod_equi = {}
+    for key, val in modelobs_vectorfield.modl_comp_dict.items():
+        new_mod_equi[key] = val['u_comp']
+        new_mod_equi[key]['name'] = f"{val['u_comp']['name']} and {val['v_comp']['name']}"
+        new_mod_equi[key]['units'] = '° from north (CW)'
+
+    direction_obstype = ModelObstype(direction_obstype,
+                                     model_equivalent_dict=new_mod_equi)
+    return data, direction_obstype
 
 # =============================================================================
 # Define obstypes
@@ -409,6 +499,7 @@ temp_model = ModelObstype(temperature, model_equivalent_dict=tlk_std_modeldata_o
 pressure_model = ModelObstype(pressure, model_equivalent_dict=tlk_std_modeldata_obstypes['pressure'])
 
 # Special obstypes
+wind.name = 'wind' #otherwise it is windspeed, which is confusing for vectorfield
 wind_model = ModelObstype_Vectorfield(wind,
                                       u_comp_model_equivalent_dict=tlk_std_modeldata_obstypes['u_wind'],
                                       v_comp_model_equivalent_dict=tlk_std_modeldata_obstypes['v_wind'])
