@@ -45,7 +45,6 @@ new_obstype = metobs_toolkit.Obstype(obsname='special_pressure',
                                  unit_conversions={'hpa': ["x * 100"]},
                                  )
 
-
 # add new obstype to model_data
 model_data.add_obstype(Obstype=new_obstype,
                                   bandname='surface_pressure',
@@ -60,9 +59,30 @@ tend = datetime(2022, 10,4, 4)
 model_data = dataset.get_modeldata(modeldata = model_data, obstype = 'special_pressure',startdt = tstart, enddt = tend)
 
 assert model_data.df.shape[0] == 168, 'No modeldata extracted from gee for new unit and obstype!'
-
+assert model_data.df.columns.to_list() ==  ['special_pressure'], 'Something is wrong with column names'
 
 model_data.make_plot(obstype_model='special_pressure')
+#%% Test 2D vector fields
+
+model_data = dataset.get_modeldata(modeldata = model_data,
+                                   obstype = 'wind',
+                                   startdt = tstart,
+                                   enddt = tend)
+
+print(model_data)
+
+assert model_data.df.columns.to_list() ==  ['wind_amplitude', 'wind_direction'], 'Something is wrong with column names'
+
+
+#%% Testing multiple field extraction
+model_data.get_gee_dataset_data(mapname = model_data.modelname,
+                                metadf = dataset.metadf,
+                                   obstype = ['temp', 'wind'],
+                                   startdt_utc = tstart,
+                                   enddt_utc = tend)
+
+assert model_data.df.columns.to_list() ==  ['temp', 'wind_amplitude', 'wind_direction'], 'Something is wrong with column names'
+
 
 
 #%% Import modeldata

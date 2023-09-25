@@ -221,12 +221,13 @@ assert n_obstypes == new_n_obstypes, 'Adding a new unit to unexisting obstype cr
 # test addition of obstype and unit
 dataset.add_new_unit(obstype='temp', new_unit='fake_temp', conversion_expression = ["x+100"])
 
-dataset.add_new_observationtype(obsname='wetbulptemp',
-                                    standard_units='Celcius',
-                                    obstype_description='THe wet bulb temperature',
-                                    unit_alias_dict={'Celcius': ['°C'],
+wetbulp_obstype = metobs_toolkit.Obstype(obsname='wetbulptemp',
+                                    std_unit='Celcius',
+                                    description='THe wet bulb temperature',
+                                    unit_aliases={'Celcius': ['°C'],
                                                       'Kelvin': ['K']},
-                                    unit_conv_dict={'Kelvin': ['x-273']})
+                                    unit_conversions={'Kelvin': ['x-273']})
+dataset.add_new_observationtype(wetbulp_obstype)
 new_n_obstypes = len(dataset.obstypes)
 
 assert n_obstypes == new_n_obstypes - 1 , 'Adding a new obstype not stored in dataset!'
