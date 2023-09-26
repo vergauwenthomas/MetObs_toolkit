@@ -87,11 +87,13 @@ assert model_data.df.columns.to_list() ==  ['temp', 'wind_amplitude', 'wind_dire
 
 #%% Import modeldata
 model_data = metobs_toolkit.Modeldata("ERA5_hourly")
-
+ #mutliple observations and vector components
 csv_file = os.path.join(lib_folder, 'tests', 'test_data', 'era5_modeldata_test.csv')
 
 model_data.set_model_from_csv(csv_file)
 
+assert model_data.df.columns.to_list() == ['temp', 'wind_amplitude', 'wind_direction'], 'something wrong with reading modeldata from csv (drive).'
+model_data.make_plot(obstype_model='wind_amplitude')
 #%% Test repr
 
 print(model_data)
@@ -113,9 +115,28 @@ if os.path.exists(fullpath):
 
 
 #%% test interpolation
+
+dataset = metobs_toolkit.Dataset()
+dataset.update_settings(input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+
+dataset.import_data_from_file()
+
 interpdf = model_data.interpolate_modeldata(dataset.df.index)
 
-assert interpdf[interpdf['temp'].isnull()].shape == (28, 1), 'Error in modeldata interpolation'
+
+# test that there are no nan values
+if not interpdf[interpdf['temp'].isnull()].empty:
+    sys.exit('Error in modeldata interpolation')
+
+
+assert interpdf.shape == (120957, 3), 'Error in modeldata interpolation'
+
+# check if other obstypes are interpolated as well
+assert interpdf['wind_amplitude'].shape[0] == 120957, 'Error in modeldata interpolation'
+assert interpdf['wind_amplitude'][interpdf['wind_amplitude'].isnull()].shape[0] == 0, 'Error in modeldata interpolation'
 
 
 
@@ -127,7 +148,7 @@ a = model_data.df.shape
 model_data.make_plot(stationnames=['vlinder01', 'vlinder02'])
 
 
-assert model_data.df.shape == (10052, 1), 'Shape of modeldata df changed after plotting.'
+assert model_data.df.shape == (10108, 3), 'Shape of modeldata df changed after plotting.'
 
 
 model_data.make_plot(dataset=dataset, show_outliers=False)
