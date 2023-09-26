@@ -96,7 +96,8 @@ autodoc_mock_imports = [
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for

@@ -14,8 +14,6 @@ import pandas as pd
 # from mysql.connector import errorcode
 from pytz import all_timezones
 
-from metobs_toolkit import observation_types
-
 logger = logging.getLogger(__name__)
 
 
@@ -148,13 +146,16 @@ def check_template_compatibility(template, df_columns, filetype):
         )
 
 
-def extract_options_from_template(templ):
+def extract_options_from_template(templ, known_obstypes):
     """Filter out options settings from the template dataframe.
 
     Parameters
     ----------
     templ : pandas.DataFrame()
         Template in a dataframe structure
+    known_obstypes : list
+        A list of known observation types. These consist of the default
+        obstypes and the ones added by the user.
 
     Returns
     -------
@@ -176,7 +177,7 @@ def extract_options_from_template(templ):
             # check options if valid
             possible_options = {'data_structure': ['long', 'wide', 'single_station'],
                                 'stationname': '_any_',
-                                'obstype': observation_types,
+                                'obstype': known_obstypes,
                                 'obstype_unit': '_any_',
                                 'obstype_description': '_any_',
                                 'timezone': all_timezones
@@ -225,8 +226,8 @@ def extract_options_from_template(templ):
     return new_templ, opt_kwargs
 
 
-def read_csv_template(file, data_long_format=True):
-    """ Import a template from a csv file.
+def read_csv_template(file, known_obstypes, data_long_format=True):
+    """Import a template from a csv file.
 
     Format options will be stored in a seperate dictionary. (Because these
     do not relate to any of the data columns.)
@@ -235,6 +236,9 @@ def read_csv_template(file, data_long_format=True):
     ----------
     file : str
         Path to the csv template file.
+    known_obstypes : list
+        A list of known observation types. These consist of the default
+        obstypes and the ones added by the user.
     data_long_format : bool, optional
         If True, this format structure has priority over the format structure
         in the template file. The default is True.
@@ -251,7 +255,7 @@ def read_csv_template(file, data_long_format=True):
                             kwargsdict={})
 
     # Extract structure options from template
-    templ, opt_kwargs = extract_options_from_template(templ)
+    templ, opt_kwargs = extract_options_from_template(templ, known_obstypes)
 
     # Drop emty rows
     templ = templ.dropna(axis="index", how="all")
@@ -369,6 +373,7 @@ def wide_to_long(df, template, obstype):
 def import_data_from_csv(input_file, template,
                          long_format, obstype,
                          obstype_units, obstype_description,
+                         known_obstypes,
                          kwargs_data_read):
     """Import data as a dataframe.
 
@@ -386,6 +391,9 @@ def import_data_from_csv(input_file, template,
        If format is wide, this is the observation unit.
     obstype_description : str
         If format is wide, this is the observation description.
+    known_obstypes : list
+        A list of known observation types. These consist of the default
+        obstypes and the ones added by the user.
     kwargs_data_read : dict
         Kwargs passed to the pd.read_csv() function.
 
@@ -469,7 +477,7 @@ def import_data_from_csv(input_file, template,
 
     # 8. map to numeric dtypes
     for col in df.columns:
-        if col in observation_types:
+        if col in known_obstypes:
             df[col] = pd.to_numeric(df[col], errors='coerce')
         if col in ['lon', 'lat']:
             df[col] = pd.to_numeric(df[col], errors='coerce')

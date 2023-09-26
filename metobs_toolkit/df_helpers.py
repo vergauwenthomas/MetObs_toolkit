@@ -13,7 +13,6 @@ import pandas as pd
 import numpy as np
 import geopandas as gpd
 import itertools
-from metobs_toolkit import observation_types
 import pytz
 import logging
 
@@ -54,7 +53,7 @@ def fmt_datetime_argument(dt, target_tz_str):
     else:  # timezon unaware
         # assume timezone is the timezone of the data!
         dt = pytz.timezone(target_tz_str).localize(dt)
-    return dt
+    return pd.to_datetime(dt)
 
 
 def xs_save(df, key, level, drop_level=True):
@@ -128,7 +127,8 @@ def format_outliersdf_to_doubleidx(outliersdf):
         return outliersdf
 
 
-def value_labeled_doubleidxdf_to_triple_idxdf(df ,value_col_name='value',
+def value_labeled_doubleidxdf_to_triple_idxdf(df, known_obstypes,
+                                              value_col_name='value',
                                               label_col_name='label'):
     """Convert double to triple index based on obstype column.
 
@@ -141,6 +141,9 @@ def value_labeled_doubleidxdf_to_triple_idxdf(df ,value_col_name='value',
     df : pd.DataFrame
         Dataframe with ['name', 'datetime'] as index and two columns: [obstype, obstype_final_label].
         Where obstype is an observation type.
+    known_obstypes : list
+        A list of known observation types. These consist of the default
+        obstypes and the ones added by the user.
     value_col_name : str, optional
         Name of the column for the values. The default is 'value'.
     label_col_name : str, optional
@@ -156,7 +159,7 @@ def value_labeled_doubleidxdf_to_triple_idxdf(df ,value_col_name='value',
     if df.empty:
         return df
 
-    present_obstypes = [col for col in df.columns if col in observation_types]
+    present_obstypes = [col for col in df.columns if col in known_obstypes]
 
     # get all values in triple index form
     values = (df[present_obstypes].stack(dropna=False)

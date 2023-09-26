@@ -10,7 +10,7 @@ import pandas as pd
 
 
 import metobs_toolkit.dataset as dataset
-from metobs_toolkit import observation_types
+
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +262,7 @@ class Dataset(dataset.Dataset):
         all the observation types.
 
         """
-        assert obstype in observation_types, f'{obstype} is not a known observation type'
+        assert obstype in self.obstypes.keys(), f'{obstype} is not a known observation type'
 
         def _updater(dictionary, obstype, argname, value):
             """Update nested dictionaries."""
@@ -553,7 +553,7 @@ class Dataset(dataset.Dataset):
         None.
 
         """
-        assert obstype in observation_types, f'{obstype} is not a known observation type'
+        assert obstype in self.obstypes.keys(), f'{obstype} is not a known observation type'
 
         # check buddy settings for updates
         buddy_attrs = {'buddy_radius': {'new_value': buddy_radius, 'dtype': 'numeric'},

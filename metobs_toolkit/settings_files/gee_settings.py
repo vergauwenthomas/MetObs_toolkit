@@ -52,8 +52,6 @@ gee_datasets = {
     "ERA5_hourly": {
         "location": "ECMWF/ERA5_LAND/HOURLY",  # GEE location
         "usage": "ERA5",  # Human readable application domain
-        "band_of_use": {"temp": {"name": "temperature_2m", "units": "K"}},
-        # band mapper to use for imagecollections (or None if no band available)
         "value_type": "numeric",  # categorical or numeric
         "dynamical": True,  # time evolution? To be used for timeseries
         "scale": 2500,
