@@ -714,16 +714,33 @@ class Modeldata:
         self.df = df
         self.df_tz = 'UTC'
 
-        # 4. Convert units
-        for obstype in df.columns:
+        # 4. Find which obstypes are present
+        data_present_obstypes = []
+        for col in self.df.columns:
+            if col in self.obstypes.keys():
+                # column is a regular obstype
+                data_present_obstypes.append(col)
+            else:
+                # check if column represents a vector component
+                for known_obs in self.obstypes.values():
+                    if isinstance(known_obs, ModelObstype_Vectorfield):
+                        comps = [known_obs.get_u_column(), known_obs.get_v_column()]
+                        if col in comps:
+                            data_present_obstypes.append(known_obs.name)
+        data_present_obstypes = list(set(data_present_obstypes))
+        # A. scalar obstypes (same name as column)
+
+
+        # 5. Convert units
+        for obstype in data_present_obstypes:
             self.convert_units_to_tlk(obstype)
             if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
                 self.exploid_2d_vector_field(obstype)
 
-    def interpolate_modeldata(self, to_multiidx, obstype="temp"):
+    def interpolate_modeldata(self, to_multiidx):
         """Interpolate modeldata in time.
 
-        Interpolate the modeldata timeseries, of an obstype, to a
+        Interpolate the modeldata timeseries, to a
         given name-datetime multiindex.
 
         The modeldata will be converted to the timezone of the multiindex.
@@ -735,14 +752,11 @@ class Modeldata:
         to_multiidx : pandas.MultiIndex
             A name - datetime (tz-aware) multiindex to interpolate the
             modeldata timeseries to.
-        obstype : str, optional
-            Observation type of the timeseries. obstype must be a column in the
-            Modeldata.df. The default is "temp".
 
         Returns
         -------
         returndf : pandas.DataFrame
-            A dataframe with to_multiidx as an index and obstype as a column.
+            A dataframe with to_multiidx as an index.
             The values are the interpolated values.
 
         """
@@ -780,9 +794,11 @@ class Modeldata:
             mergedf = mergedf.reset_index().set_index("datetime").sort_index()
 
             # interpolate missing modeldata
-            mergedf[obstype].interpolate(
+            mergedf = mergedf.drop(columns=['name'])
+            mergedf.interpolate(
                 method="time", limit_area="inside", inplace=True
             )
+            mergedf['name'] = sta
             # convert back to multiindex
             mergedf = mergedf.reset_index().set_index(["name", "datetime"]).sort_index()
             # filter only records
