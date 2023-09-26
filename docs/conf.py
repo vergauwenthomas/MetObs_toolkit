@@ -58,7 +58,7 @@ release = "0.0.1"
 
 extensions = [
     "sphinx.ext.autodoc",  # Autodocument functions
-    # "sphinx_rtd_theme",  # Use the read the docs theme
+    "sphinx_rtd_theme",  # Use the read the docs theme
     "sphinx.ext.viewcode",  # Button to go to source code
     "sphinx_copybutton",  # Copy button (for examples etc)
     "sphinx.ext.napoleon",  # To convert Numpydocstring to readable format
@@ -103,7 +103,7 @@ autosectionlabel_prefix_document = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-# html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
     "analytics_id": "G-XXXXXXXXXX",  #  Provided by Google in your dashboard
