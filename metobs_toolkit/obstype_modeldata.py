@@ -127,7 +127,7 @@ class ModelObstype(Obstype):
 
     def get_plot_y_label(self, mapname):
         """Return a string to represent the vertical axes of a plot."""
-        return f'{self.name} ({self.std_unit}) \ {mapname}: {self.modl_equi_dict[mapname]["name"]}'
+        return f'{self.name} ({self.std_unit}) \n {mapname}: {self.modl_equi_dict[mapname]["name"]}'
 
     def get_modelunit(self, mapname):
         """Return the units of the representing bandname of the obstype from a given gee dataset."""
@@ -263,7 +263,7 @@ class ModelObstype_Vectorfield(Obstype):
 
     def get_plot_y_label(self, mapname):
         """Return a string to represent the vertical axes of a plot."""
-        return f'{self.name} ({self.std_unit}) \ {mapname}: {self.modl_equi_dict[mapname]["u_comp"]["name"]} and {self.modl_equi_dict[mapname]["v_comp"]["name"]}'
+        return f'{self.name} ({self.std_unit}) \n {mapname}: {self.modl_equi_dict[mapname]["u_comp"]["name"]} and {self.modl_equi_dict[mapname]["v_comp"]["name"]}'
 
     def get_u_column(self):
         return f'u_comp_{self.name}'
