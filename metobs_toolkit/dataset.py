@@ -39,6 +39,7 @@ from metobs_toolkit.plotting_functions import (
     qc_stats_pie,
     folium_plot,
     add_stations_to_folium_map,
+    make_folium_html_plot,
 )
 
 from metobs_toolkit.qc_checks import (
@@ -669,6 +670,171 @@ class Dataset:
 
         return ax
 
+    def make_interactive_plot(self, obstype='temp', save=True, outputfile=None,
+                              starttime=None, endtime=None, vmin=None, vmax=None,
+                              mpl_cmap_name='viridis', radius=13, fill_alpha=0.6,
+                              max_fps=4,
+                              outlier_col='red', ok_col='black', gap_col='orange',
+                              fill_col='yellow'):
+        """Make interactive geospatial plot with time evolution.
+
+        This function uses the folium package to make an interactive geospatial
+        plot to illustrate the time evolution.
+
+
+
+        Parameters
+        ----------
+        obstype : str or metobs_toolkit.Obstype, optional
+            The observation type to plot. The default is 'temp'.
+        save : bool, optional
+            If true, the figure will be saved as an html-file. The default is True.
+        outputfile : str, optional
+            The path of the output html-file. The figure will be saved here, if
+            save is True. If outputfile is not given, and save is True, than
+            the figure will be saved in the default outputfolder (if given).
+            The default is None.
+        starttime : datetime.datetime, optional
+             Specifiy the start datetime for the plot. If None is given it will
+             use the start datetime of the dataset, defaults to None.
+        endtime : datetime.datetime, optional
+             Specifiy the end datetime for the plot. If None is given it will
+             use the end datetime of the dataset, defaults to None.
+        vmin : numeric, optional
+            The value corresponding with the minimum color. If None, the
+            minimum of the presented observations is used. The default is None.
+        vmax : numeric, optional
+            The value corresponding with the maximum color. If None, the
+            maximum of the presented observations is used. The default is None.
+        mpl_cmap_name : str, optional
+            The name of the matplotlib colormap to use. The default is 'viridis'.
+        radius : int, optional
+            The radius (in pixels) of the scatters. The default is 13.
+        fill_alpha : float ([0;1]), optional
+            The alpha of the fill color for the scatters. The default is 0.6.
+        max_fps : int (>0), optional
+            The maximum allowd frames per second for the time evolution. The
+            default is 4.
+        outlier_col : str, optional
+            The edge color of the scatters to identify an outliers. The default is 'red'.
+        ok_col : str, optional
+            The edge color of the scatters to identify an ok observation. The default is 'black'.
+        gap_col : str, optional
+            The edge color of the scatters to identify an missing/gap
+            observation. The default is 'orange'.
+        fill_col : str, optional
+            The edge color of the scatters to identify a fillded observation.
+            The default is 'yellow'.
+
+        Returns
+        -------
+        m : folium.folium.map
+            The interactive folium map.
+
+        Note
+        -------
+        The figure will only appear when this is runned in notebooks. If you do
+        not run this in a notebook, make shure to save the html file, and open it
+        with a browser.
+
+        """
+        # Check if obstype is known
+        if isinstance(obstype, str):
+            if obstype not in self.obstypes.keys():
+                logger.error(f'{obstype} is not found in the knonw observation types: {list(self.obstypes.keys())}')
+                return None
+            else:
+                obstype = self.obstypes[obstype]
+
+        if save:
+            if outputfile is None:
+                if self.settings.IO["output_folder"] is None:
+                    logger.error('No outputfile is given, and there is no default outputfolder specified.')
+                    return None
+                else:
+                    outputfile = os.path.join(self.output_folder, 'interactive_figure.html')
+            else:
+                # Check if outputfile has .html extension
+                if not outputfile.endswith('.html'):
+                    outputfile = outputfile + '.html'
+                    logger.warning(f'The .hmtl extension is added to the outputfile: {outputfile}')
+
+
+
+        # Check if the obstype is present in the data
+        if obstype.name not in self.df.columns:
+            logger.error(f'{obstype.name} is not found in your the Dataset.')
+            return None
+
+        # Check if geospatial data is available
+        if self.metadf['lat'].isnull().any():
+            _sta = self.metadf[self.metadf['lat'].isnull()]['lat']
+            logger.error(f'Stations without coordinates detected: {_sta}')
+            return None
+        if self.metadf['lon'].isnull().any():
+            _sta = self.metadf[self.metadf['lon'].isnull()]['lon']
+            logger.error(f'Stations without coordinates detected: {_sta}')
+            return None
+
+        # Construct dataframe
+        combdf = self.combine_all_to_obsspace()
+        combdf = xs_save(combdf, obstype.name, level='obstype')
+        # Merge geospatial info
+        combgdf = combdf.merge(self.metadf,
+                                how='left',
+                                left_on='name',
+                                right_index=True)
+
+        # Subset on start and endtime
+        starttime = fmt_datetime_argument(starttime, self.settings.time_settings['timezone'])
+        endtime = fmt_datetime_argument(endtime, self.settings.time_settings['timezone'])
+        combgdf = multiindexdf_datetime_subsetting(combgdf, starttime, endtime)
+        combgdf = combgdf.reset_index()
+
+        # to gdf
+        combgdf = metadf_to_gdf(combgdf, crs=4326)
+
+        # Make label color mapper
+        label_col_map = {}
+        # Ok label
+        label_col_map['ok'] = ok_col
+        # outlier labels
+        for val in self.settings.qc['qc_checks_info'].values():
+            label_col_map[val['outlier_flag']] = outlier_col
+
+        # missing labels (gaps and missing values)
+        for val in self.settings.gap['gaps_info'].values():
+            label_col_map[val['outlier_flag']] = gap_col
+
+        # fill labels
+        for val in self.settings.missing_obs['missing_obs_fill_info']['label'].values():
+            label_col_map[val] = fill_col
+        for val in self.settings.gap['gaps_fill_info']['label'].values():
+            label_col_map[val] = fill_col
+
+        # make time estimation
+        est_seconds = combgdf.shape[0]/2411.5 #normal laptop
+        logger.info(f'The figure will take approximatly (laptop) {"{:.1f}".format(est_seconds)} seconds to make.')
+
+        # Making the figure
+        m = make_folium_html_plot(gdf=combgdf,
+                                  variable_column='value',
+                                  var_display_name=obstype.name,
+                                  var_unit = obstype.get_standard_unit(),
+                                  label_column = 'label',
+                                  label_col_map = label_col_map,
+                                  vmin=vmin,
+                                  vmax=vmax,
+                                  radius=radius,
+                                  fill_alpha=fill_alpha,
+                                  mpl_cmap_name=mpl_cmap_name,
+                                  max_fps=int(max_fps)
+                                  )
+        if save:
+            logger.info(f'Saving the htlm figure at {outputfile}')
+            m.save(outputfile)
+        return m
+
     def make_geo_plot(
         self,
         variable="temp",
@@ -738,11 +904,11 @@ class Dataset:
         # check coordinates if available
         if self.metadf['lat'].isnull().any():
             _sta = self.metadf[self.metadf['lat'].isnull()]['lat']
-            logger.warning(f'Stations without coordinates detected: {_sta}')
+            logger.error(f'Stations without coordinates detected: {_sta}')
             return None
         if self.metadf['lon'].isnull().any():
             _sta = self.metadf[self.metadf['lon'].isnull()]['lon']
-            logger.warning(f'Stations without coordinates detected: {_sta}')
+            logger.error(f'Stations without coordinates detected: {_sta}')
             return None
 
         if bool(boundbox):

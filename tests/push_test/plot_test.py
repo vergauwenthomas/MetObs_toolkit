@@ -55,3 +55,14 @@ dataset.make_geo_plot()
 dataset.make_geo_plot(
     variable="wind_direction", timeinstance=datetime(2022, 9, 5, 12, 0)
 )
+
+#%% Interactive spatial plot
+
+outfile = os.path.join(str(lib_folder), 'development', 'delete_me')
+
+
+dataset.make_interactive_plot(outputfile=outfile, obstype='humidity', radius=11)
+
+assert os.path.exists(outfile + '.html'), 'interactive html is not saved!'
+
+

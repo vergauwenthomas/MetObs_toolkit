@@ -20,7 +20,7 @@ geopandas = "^0.9.0"
 pyproj = "~3.4"
 mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
-geemap = '^0.20.0'
+geemap = '^0.20.0' #includes folium and branca
 
 
 titanlib = { version = "^0.3", optional = true }
