@@ -20,8 +20,12 @@ from matplotlib.lines import Line2D
 import matplotlib.dates as mdates
 from matplotlib.collections import LineCollection
 
+import branca
+import branca.colormap as brcm
+
 import geemap.foliumap as foliumap
 import folium
+from folium import plugins as folium_plugins
 
 from metobs_toolkit.geometry_functions import find_plot_extent
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -68,7 +72,9 @@ def add_stations_to_folium_map(Map, metadf):
 # =============================================================================
 # Helpers
 # =============================================================================
-
+def _get_init_mapcenter(gdf):
+    center = gdf.dissolve().centroid.iloc[0]
+    return [center.y, center.x]
 
 def map_obstype(obstype, template):
     """Convert default obstype to the user-specific obstype."""
@@ -129,6 +135,104 @@ def make_cat_colormapper(catlist, cmapname):
 # Plotters
 # =============================================================================
 
+def make_folium_html_plot(gdf, variable_column, var_display_name, var_unit,
+                          label_column, label_col_map,
+                          vmin=None, vmax=None,
+                          radius=13, fill_alpha=0.6,
+                          mpl_cmap_name='viridis',
+                          max_fps=4,
+                          dt_disp_fmt='%Y-%m-%d %H:%M'):
+
+    # create a map
+    m = folium.Map(location=_get_init_mapcenter(gdf),
+                   tiles="cartodbpositron", zoom_start=10)
+
+    # add extra tiles
+    folium.TileLayer("OpenStreetMap", overlay=False, name='OSM').add_to(m)
+    folium.TileLayer("Stamen Terrain", overlay=False, name='Terrain',  show=False).add_to(m)
+    folium.TileLayer("stamentoner", overlay=False, name='Toner',  show=False).add_to(m)
+
+    # Coloring
+    if vmin is None:
+        vmin = gdf[variable_column].min()
+    if vmax is None:
+        vmax = gdf[variable_column].max()
+
+    # Create colormap to display on the map
+    norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax, clip=True)
+    mapper = matplotlib.cm.ScalarMappable(norm=norm,
+                                          cmap=matplotlib.colormaps[mpl_cmap_name])
+    colormap = brcm.LinearColormap(colors=mapper.cmap.colors,
+                                 index=None, vmin=vmin, vmax=vmax,
+                                 caption=f'{var_display_name} ({var_unit}) colorbar')
+
+    # linear colorscale for values
+    def map_value_to_hex(series, vmin, vmax, cmapname='viridis'):
+        norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax, clip=True)
+        mapper = matplotlib.cm.ScalarMappable(norm=norm, cmap=matplotlib.colormaps[cmapname])
+
+        return series.apply(lambda x: str(matplotlib.colors.to_hex(mapper.to_rgba(x))))
+
+    gdf['value_color'] = map_value_to_hex(gdf[variable_column], vmin, vmax,
+                                          cmapname=mpl_cmap_name)
+
+    # check if all labels are defined
+    if len([lab for lab in gdf[label_column].unique() if lab not in label_col_map.keys()]) > 0:
+        sys.exit(f'Unmapped labels found: {[lab for lab in gdf["label"].unique() if lab not in label_mapper.keys()]}')
+
+    gdf['label_color'] = gdf[label_column].map(label_col_map)
+
+    # Serialize Data to Features
+    def make_scater_feature(row):
+        dtstring = pd.to_datetime([row['datetime']]).strftime(dt_disp_fmt)[0]
+        coords = [[row['geometry'].x, row['geometry'].y]]
+        popup_str = f" <b>{row['name']}</b>  <br> {'{:.1f}'.format(row[variable_column])} {var_unit} <br> {row[label_column]}"
+
+        features_instance = {
+                    "type": "Feature",
+                    "geometry": {
+                            "type": "MultiPoint",
+                            "coordinates": coords,
+                            },
+                    "properties": {
+                        "times": [dtstring],
+                        "popup": popup_str,
+                        'tooltip':f'{row["name"]}',
+                        "id": "geenidee",
+                        "icon": "circle",
+                        "iconstyle": {
+                            "fillColor": row['value_color'],
+                            "fillOpacity": fill_alpha,
+                            "stroke": "false",
+                            "radius": radius,
+                            'color': row['label_color'],
+                            },
+                        },
+                    }
+        return features_instance
+    features = gdf.apply(make_scater_feature, axis=1).to_list()
+
+    # Add data to the map
+    folium_plugins.TimestampedGeoJson(
+                            {
+                                "type": "FeatureCollection",
+                                "features": features,
+                                },
+                            period='PT1H',
+                            duration='PT1H',
+                            add_last_point=False,
+                            auto_play=False,
+                            loop=False,
+                            max_speed=max_fps, #fps
+                            loop_button=True,
+                            date_options='YYYY/MM/DD HH:mm:ss',
+                            time_slider_drag_update=True).add_to(m)
+
+    m.add_child(colormap)
+    # add control
+    folium.LayerControl().add_to(m)
+
+    return m
 
 def geospatial_plot(plotdf, variable, timeinstance, title, legend, legend_title, vmin, vmax,
                     plotsettings, categorical_fields, static_fields,
