@@ -795,7 +795,6 @@ class Dataset:
         combgdf = metadf_to_gdf(combgdf, crs=4326)
 
         # Make label color mapper
-
         label_col_map = {}
         # Ok label
         label_col_map['ok'] = ok_col
@@ -803,7 +802,6 @@ class Dataset:
         for val in self.settings.qc['qc_checks_info'].values():
             label_col_map[val['outlier_flag']] = outlier_col
 
-        #TODO add gap, missing gapfill and missingfill colors
         # missing labels (gaps and missing values)
         for val in self.settings.gap['gaps_info'].values():
             label_col_map[val['outlier_flag']] = gap_col
