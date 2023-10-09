@@ -37,6 +37,10 @@ except:
     pass
 
 print(sys.path)
+#%%
+logofile = os.path.join(basefolder, 'docs', 'logo_wide_1280x640.jpeg')
+
+
 # %%
 
 
@@ -127,3 +131,10 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 
 html_static_path = ["_static"]
+
+# add logo
+html_logo = logofile
+html_theme_options = {
+    'logo_only': True,
+    'display_version': True,
+}

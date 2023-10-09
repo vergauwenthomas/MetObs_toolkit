@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep  6 16:08:24 2023
-
-@author: thoverga
+Class defenition for regular observation types. The default observationtypes
+are define here aswell.
 """
 
 import sys

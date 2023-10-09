@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 13 13:43:15 2023
-
-@author: thoverga
+Class defenition of model observationtypes. These are regular observationtypes
+witht extra attributes and methods for interacting with the google earht engine.
 """
 import sys
 import copy
