@@ -302,10 +302,14 @@ class Obstype:
             all_std_unit_names.append(std_unit)
             all_aliases.extend(alias_units)
 
+        # add empty alias for all obstype present in conv table if no aliases are given
         for unit in self.conv_table.keys():
             if unit not in all_std_unit_names:
                 if unit not in all_aliases:
                     add_to_aliases[unit] = []
+        # add std unit to aliases if it is not already present
+        if self.get_standard_unit() not in all_std_unit_names:
+            add_to_aliases[self.get_standard_unit()] = []
 
         self.units_aliases.update(add_to_aliases)
 
