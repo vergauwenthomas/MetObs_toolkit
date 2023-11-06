@@ -4,33 +4,14 @@ Examples
 .. contents:: Table of Contents
 
 
-Some examples to get you started.
+The following examples can be used to get you started using the basic functionallities
+of the toolkit. These examples are making use of the demo data files that are comes with the toolkit.
 
-Making a Dataset
-====================
-
-.. literalinclude:: ../examples/introduction_example.py
-   :language: python
-   :linenos:
-   :lines: 20-70
-
-
-Extracting a Station
-====================
+Making a Dataset and inspecting it
+========================================
 
 .. literalinclude:: ../examples/introduction_example.py
    :language: python
-   :linenos:
-   :lines: 100-122
-
-
-Writing to a file
-====================
-
-.. literalinclude:: ../examples/introduction_example.py
-   :language: python
-   :linenos:
-   :lines: 126-139
 
 
 Physiography information
