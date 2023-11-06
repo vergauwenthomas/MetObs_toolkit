@@ -19,8 +19,6 @@ Physiography information
 
 .. literalinclude:: ../examples/lcz_example.py
    :language: python
-   :linenos:
-   :lines: 44-95
 
 
 Applying Qualitycontrol
@@ -31,10 +29,6 @@ Applying Qualitycontrol
    :linenos:
    :lines: 21-159
 
-Making spatial plots
-========================
-TODO: make example
-
 
 Making timeseries plots
 ========================
@@ -44,10 +38,3 @@ Making timeseries plots
    :linenos:
    :lines: 46-102
 
-Making spatial plots
-========================
-
-.. literalinclude:: ../examples/plotting_example.py
-   :language: python
-   :linenos:
-   :lines: 104-123

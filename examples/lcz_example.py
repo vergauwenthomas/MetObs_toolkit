@@ -1,112 +1,108 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Sep 23 12:01:35 2022
+Example script on GEE interactions.
 
 @author: thoverga
 """
-import os
-from pathlib import Path
-
-main_folder = Path(__file__).resolve().parents[1]
-testdata_file = os.path.join(
-    str(main_folder), "tests", "test_data", "vlinderdata_small.csv"
-)
-metadata = os.path.join(str(main_folder), "static_data", "vlinder_metadata.csv")
-
-
-# import sys
-# sys.path.append(str(main_folder))
-
-
 import metobs_toolkit
 
 
-# %%
 
 # =============================================================================
-# Import data
+# Import data (See previous example script for explanations)
 # =============================================================================
-
-
-# 1. Importing a dataset containing mulitple different stations is a function in the Dataset class. First we need to initiate a Dataset with a name of choise.
-aug_2020_all_vlinders = metobs_toolkit.Dataset()
-aug_2020_all_vlinders.update_settings(
-    input_data_file=testdata_file,  # A demo data file, downloaded with brian tool: https://vlinder.ugent.be/vlinderdata/multiple_vlinders.php
-    input_metadata_file=metadata,
+your_dataset = metobs_toolkit.Dataset()
+your_dataset.update_settings(
+    input_data_file=metobs_toolkit.demo_datafile, # path to the data file
+    input_metadata_file=metobs_toolkit.demo_metadatafile,
+    template_file=metobs_toolkit.demo_template,
 )
-# Coordinates needed to extract LCZ!
-aug_2020_all_vlinders.import_data_from_file()
 
-
-# The metadata is stored in the metadf attribute:
-
-print(aug_2020_all_vlinders.metadf.head())
-
-# you can see that there is no LCZ information yet. Als long as the coordinates are present, the lcz can be extracted.
+your_dataset.import_data_from_file()
 
 
 # =============================================================================
-#  Get LCZ
+# Using the Google Earth Engine
 # =============================================================================
 
-# To use the LCZ functions, you need a google develeopers account to make use of google earth engine (gee).
-# Creating first such an account, thans simply use this function to extract the LCZ for all stations in your metadata
 
-lcz_values = aug_2020_all_vlinders.get_lcz()
+# The Google Earth Engine (GEE) is used to extract geospatial information at the
+# locations of the stations.
+# To make use of the GEE, you need to setup a google developers account (free of charge).
+# The details and steps are documented at the following page: https://vergauwenthomas.github.io/MetObs_toolkit/gee_authentication.html#
 
+# Follow the steps on the 'Using Google Earth Engine' page and then continue.
+
+# =============================================================================
+# Extracting LCZ from GEE
+# =============================================================================
+# The metadata of your stations is stored in the .metadf attribute of your dataset.
+
+print(your_dataset.metadf)
+
+# In order to extract geospatial information for you stations, the lat and lon (latitude and longitude)
+# of your stations must be present in the metadf. If so, than geospatial
+# information will be extracted from GEE at these locations.
+
+# To extract the Local Climate Zones (LCZ's) of your stations:
+
+lcz_values = your_dataset.get_lcz()
+
+# The first time, in each session, you are asked to authenticated by Google.
+# Select your google account and billing project that you have set up and accept
+# the terms of condition.
+# NOTE: For small datarequest the read-only scopes are sufficient, for large
+# datarequests this is insufficient because the data will be written directly to your google Drive.
+
+
+# The LCZ's for all your stations are extracted
 print(lcz_values)
-# Now the metadata is updated with lcz information for each station in the 'lcz' column:
-print(aug_2020_all_vlinders.metadf.head())
+# and the lcz column in your metadata of your dataset is updated
+print(your_dataset.metadf['lcz'].head())
 
-
-# =============================================================================
-# Analysing LCZ
-# =============================================================================
-
-# You can recompute the lcz for all stations by calling the get_lcz function on the metadata.
-
-# To make a geospatial map of the LCZ of all stations:
-aug_2020_all_vlinders.make_geo_plot(variable="lcz")
+# To make a geospatial plot you can use the following method:
+your_dataset.make_geo_plot(variable="lcz")
 
 # =============================================================================
-# Other physiography
+# Other geospatial info
 # =============================================================================
 
-# it is possible to extract the landcover fractions of all stations. This is done
-# by defining a radius in meters to create a circular buffer around each station.
+# Similar as LCZ extraction you can extract the altitude of the stations (from
+# a digital elevation model):
+
+altitudes = your_dataset.get_altitude() #The altitudes are in meters above sea level.
+
+
+# A more detailed description of the landcover/land use in the microenvironment
+# can be extracted in the form of landcover fractions in a circular buffer for each station.
 
 # You can select to aggregate the landcoverclasses to water - pervious and impervious,
-# or set aggregation to false to extract the landcoverclasses as present in the worldcover dataset.
+# or set aggregation to false to extract the landcoverclasses as present in the worldcover_10m dataset.
 
-# aggregated
-agg_landcover = aug_2020_all_vlinders.get_landcover(
-    buffers=[100, 250], # in meters
-    overwrite=True,
-    aggregate=True
-)
+aggregated_landcover = your_dataset.get_landcover(
+                                        buffers=[100, 250], # a list of bufferradii in meters
+                                        aggregate=True #if True, aggregate landcover classes to the water, pervious and impervious.
+                                        )
 
-print(agg_landcover)
-
-# (the metadata is updated as well)
-print(aug_2020_all_vlinders.metadf)
-
-
-# one can also extract the elevation for all stations from a DEM dataset. The syntax is the same
-# as for the LCZ
-
-
-altitude = aug_2020_all_vlinders.get_altitude()
-
-print(altitude)  # altitude in meters
+print(aggregated_landcover)
 
 # =============================================================================
 # Interactive plotting a GEE dataset
 # =============================================================================
 
-# To make an interactive plot of a GEE dataset one can use the following function:
+# You can make an interactive spatial plot to visualize the stations spatially.
+# This is done by creating an html file, that can be opened in your browser.
 
-aug_2020_all_vlinders.make_gee_plot(gee_map = 'worldcover',
-                                    show_stations = True,
-                                    save=False,
-                                    )
+# First specify the location you want to save the plot
+import os
+spatial_plot_file= os.path.join(os.getcwd(), 'example_spatial_plot.html')
+print(spatial_plot_file)
+
+
+# To make an interactive plot of a GEE dataset one can use the following function:
+your_dataset.make_gee_plot(gee_map='worldcover',
+                           save=True,
+                           outputfile =spatial_plot_file
+                           )
+
