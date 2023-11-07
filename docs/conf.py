@@ -65,6 +65,7 @@ extensions = [
     "sphinx.ext.autosummary",  # Create neat summary tables
     "myst_parser",  # for including md files (readme)
     "sphinx.ext.autosectionlabel", #for cross linking
+    "nbsphinx", #to render the notebook examples in the doc
 ]
 
 
