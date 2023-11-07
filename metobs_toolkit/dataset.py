@@ -3103,6 +3103,8 @@ station with the default name: {self.settings.app["default_name"]}.'
     #     print('Download the file (as a .csv), and send it by email to:  mivieijra@meteo.be.')
 
     #     return
+    def printdummy(self):
+        print('dummy')
 
     def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
         """Make an interactive plot of a google earth dataset.
@@ -3200,6 +3202,8 @@ station with the default name: {self.settings.app["default_name"]}.'
             print(f'Gee Map will be save at {filepath}')
             logger.info(f'Gee Map will be save at {filepath}')
             Map.save(filepath)
+        else:
+            return Map
 
 
 def _can_qc_be_applied(dataset, obstype, checkname):
