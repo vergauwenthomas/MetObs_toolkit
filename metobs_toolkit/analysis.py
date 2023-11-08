@@ -38,6 +38,10 @@ class Analysis():
         self._lc_cor_obstype = None
         self._lc_groupby_labels = None
 
+        #add empty lcz column to metadf if it is not present
+        if 'lcz' not in self.metadf.columns:
+            self.metadf['lcz'] = np.nan
+
     def __str__(self):
         """Print a overview of the analysis."""
         if self.df.empty:
