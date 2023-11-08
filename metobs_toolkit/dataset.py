@@ -430,9 +430,12 @@ class Dataset:
         try:
             sta_df = self.df.xs(stationname, level="name", drop_level=False)
             sta_metadf = self.metadf.loc[stationname].to_frame().transpose()
+            sta_metadf.index.name = 'name'
         except KeyError:
             logger.warning(f"{stationname} not found in the dataset.")
             return None
+
+
 
         try:
             sta_outliers = self.outliersdf.xs(
@@ -3104,8 +3107,6 @@ station with the default name: {self.settings.app["default_name"]}.'
     #     print('Download the file (as a .csv), and send it by email to:  mivieijra@meteo.be.')
 
     #     return
-    def printdummy(self):
-        print('dummy')
 
     def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
         """Make an interactive plot of a google earth dataset.
