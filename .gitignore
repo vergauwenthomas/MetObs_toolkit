@@ -37,6 +37,8 @@ tests/*.html
 
 
 # pychache
+*.ipynb_checkpoints*
+
 *__pycache__*
 .spyproject
 *.pyc
