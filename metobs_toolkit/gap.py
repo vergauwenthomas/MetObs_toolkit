@@ -197,7 +197,10 @@ class Gap:
 
             # combine timestamps of observations and outliers
             sta_outl = xs_save(outliersdf, self.name, level="name").index
-            sta_comb = sta_obs.append(sta_outl)
+            if sta_outl.empty:
+                sta_comb = sta_obs
+            else:
+                sta_comb = sta_obs.append(sta_outl)
 
         # find minimium timediff before
         before_diff = _find_closes_occuring_date(
