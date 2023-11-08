@@ -84,7 +84,8 @@ from metobs_toolkit.df_helpers import (
     conv_applied_qc_to_df,
     get_freqency_series,
     value_labeled_doubleidxdf_to_triple_idxdf,
-    xs_save
+    xs_save,
+    concat_save
 )
 
 from metobs_toolkit.analysis import Analysis
@@ -189,7 +190,7 @@ class Dataset:
         other.df = other.df.drop(common_indexes)
 
         # set new df
-        new.df = pd.concat([self.df, other.df])
+        new.df = concat_save([self.df, other.df])
         new.df = new.df.sort_index()
 
         #  ----- outliers df ---------
@@ -197,7 +198,7 @@ class Dataset:
         other_outliers = other.outliersdf.reset_index()
         other_outliers = other_outliers[other_outliers['obstype'].isin(self_obstypes)]
         other_outliers = other_outliers.set_index(['name', 'datetime', 'obstype'])
-        new.outliersdf = pd.concat([self.outliersdf, other_outliers])
+        new.outliersdf = concat_save([self.outliersdf, other_outliers])
         new.outliersdf = new.outliersdf.sort_index()
 
         #  ------- Gaps -------------
@@ -214,7 +215,7 @@ class Dataset:
 
         # ---------- metadf -----------
         # Use the metadf from self and add new rows if they are present in other
-        new.metadf = pd.concat([self.metadf, other.metadf])
+        new.metadf = concat_save([self.metadf, other.metadf])
         new.metadf = new.metadf.drop_duplicates(keep='first')
         new.metadf = new.metadf.sort_index()
 
@@ -268,7 +269,7 @@ class Dataset:
 
         checknames = ["duplicated_timestamp"]  # KEEP order
 
-        new._applied_qc = pd.concat(
+        new._applied_qc = concat_save(
             [
                 new._applied_qc,
                 conv_applied_qc_to_df(
@@ -1020,7 +1021,7 @@ class Dataset:
         filldf_debias = make_gapfill_df(debias_gaps)
 
         # combine both fill df's
-        comb_df = pd.concat([filldf_interp, filldf_debias])
+        comb_df = concat_save([filldf_interp, filldf_debias])
 
         # update attr
         self.gapfilldf = comb_df
@@ -1425,10 +1426,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(
@@ -1454,10 +1455,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(
@@ -1483,10 +1484,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(
@@ -1511,10 +1512,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(obstypes=obstype, ordered_checknames="step"),
@@ -1537,10 +1538,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(
@@ -1649,10 +1650,10 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+                self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
-            self._applied_qc = pd.concat(
+            self._applied_qc = concat_save(
                 [
                     self._applied_qc,
                     conv_applied_qc_to_df(
@@ -1763,10 +1764,10 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+                self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
-            self._applied_qc = pd.concat(
+            self._applied_qc = concat_save(
                 [
                     self._applied_qc,
                     conv_applied_qc_to_df(
@@ -1871,10 +1872,10 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+                self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
-            self._applied_qc = pd.concat(
+            self._applied_qc = concat_save(
                 [
                     self._applied_qc,
                     conv_applied_qc_to_df(
@@ -2011,7 +2012,7 @@ class Dataset:
         # combine all
         # =============================================================================
 
-        combdf = pd.concat([df, outliersdf, gapsdf, gapsfilldf, missingdf, missingfilldf]).sort_index()
+        combdf = concat_save([df, outliersdf, gapsdf, gapsfilldf, missingdf, missingfilldf]).sort_index()
         combdf.index.names = ['name', 'datetime', 'obstype']
         # To be shure?
         combdf = combdf[~combdf.index.duplicated(keep='first')]
@@ -2092,7 +2093,7 @@ class Dataset:
 
     def update_outliersdf(self, add_to_outliersdf):
         """Update the outliersdf attribute."""
-        self.outliersdf = pd.concat([self.outliersdf, add_to_outliersdf])
+        self.outliersdf = concat_save([self.outliersdf, add_to_outliersdf])
 
     def coarsen_time_resolution(
         self, origin=None, origin_tz=None, freq=None, method=None, limit=None
@@ -2360,9 +2361,9 @@ class Dataset:
                 # these will be cached by the missing and gap check
                 # no_record_candidates = target_records[~target_records.isin(mergedstadf['target_datetime'])].values
 
-                merged_df = pd.concat([merged_df, correct_mapped])
+                merged_df = concat_save([merged_df, correct_mapped])
                 if verbose:
-                    _total_verbose_df = pd.concat([_total_verbose_df, mergedstadf])
+                    _total_verbose_df = concat_save([_total_verbose_df, mergedstadf])
 
         # overwrite the df with the synced observations
         merged_df = (
@@ -2855,7 +2856,7 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         checknames = ["duplicated_timestamp", "invalid_input"]  # KEEP order
 
-        self._applied_qc = pd.concat(
+        self._applied_qc = concat_save(
             [
                 self._applied_qc,
                 conv_applied_qc_to_df(
@@ -2992,7 +2993,7 @@ station with the default name: {self.settings.app["default_name"]}.'
             df_list.append(lc_frac_df)
 
         # concat all df for different buffers to one
-        frac_df = pd.concat(df_list)
+        frac_df = concat_save(df_list)
         frac_df = frac_df.sort_index()
 
         if overwrite:

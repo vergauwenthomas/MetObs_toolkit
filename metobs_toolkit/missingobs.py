@@ -16,6 +16,7 @@ import logging
 from metobs_toolkit.df_helpers import (
     _find_closes_occuring_date,
     xs_save,
+    concat_save
 )
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ class Missingob_collection:
 
     def __add__(self, other):
         """Append two collections of missing observations."""
-        comb_series = pd.concat([self.series, other.series])
+        comb_series = concat_save([self.series, other.series])
 
         # drop duplicates and sort
         comb_df = comb_series.reset_index()  # needed to find duplicates
@@ -333,7 +334,7 @@ class Missingob_collection:
                                                 'datetime': sta_missing},
                                           index=None).reset_index(drop=True)
 
-            missing_obsspace_df = pd.concat([missing_obsspace_df, sta_missing_df])
+            missing_obsspace_df = concat_save([missing_obsspace_df, sta_missing_df])
 
         # convert to mulittindex
         missing_obsspace_df = missing_obsspace_df.set_index(['name', 'datetime'])
