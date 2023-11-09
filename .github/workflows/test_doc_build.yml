@@ -20,7 +20,8 @@ jobs:
       - name: Sphinx build
         run: |
           poetry --version
-          sphinx-build -a -E docs _build
+          poetry run sphinx-build --version
+          poetry run sphinx-build -a -E docs _build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
