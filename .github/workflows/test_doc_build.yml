@@ -12,13 +12,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip install poetry==1.3.2
-          pip install numpy==1.26.0
       - name: poetry create doc environment
         run: |
           poetry --version
           poetry update
           poetry --version
-          poetry install --with documentation,dev
+          poetry install --with documentation
       - name: Sphinx build
         run: |
           poetry --version
