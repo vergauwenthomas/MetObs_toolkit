@@ -3204,8 +3204,7 @@ station with the default name: {self.settings.app["default_name"]}.'
             print(f'Gee Map will be save at {filepath}')
             logger.info(f'Gee Map will be save at {filepath}')
             Map.save(filepath)
-        else:
-            return Map
+        return Map
 
 
 def _can_qc_be_applied(dataset, obstype, checkname):
