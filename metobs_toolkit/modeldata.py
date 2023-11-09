@@ -267,7 +267,7 @@ class Modeldata:
 
         Note
         -------
-        All possible mathematical operations for the conv_expr are [+, -, *, /].
+        All possible mathematical operations for the conv_expr are [+, -, \*, /].
         x represent the value in the current units. So "x - 273.15" represents
         the conversion from Kelvin to Celcius.
 
@@ -344,7 +344,7 @@ class Modeldata:
 
         Note
         -------
-        All possible mathematical operations for the conv_expr are [+, -, *, /].
+        All possible mathematical operations for the conv_expr are [+, -, \*, /].
         x represent the value in the current units. So "x - 273.15" represents
         the conversion from Kelvin to Celcius.
 

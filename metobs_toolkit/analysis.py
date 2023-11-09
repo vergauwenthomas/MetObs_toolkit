@@ -131,7 +131,7 @@ class Analysis():
             A filter expression using columnnames present in either df or metadf.
             The following timestamp derivatives can be used as well: [minute, hour,
             month, year, day_of_year, week_of_year, season]. The quarry_str may
-            contain number and expressions like <, >, ==, >=, *, +, .... Multiple filters
+            contain number and expressions like <, >, ==, >=, \*, +, .... Multiple filters
             can be combine to one expression by using & (AND) and | (OR).
 
         Returns
@@ -147,7 +147,7 @@ class Analysis():
 
         Note
         ------
-        Make shure to use " of ' to indicate string values in the expression if
+        Make shure to use \" of \' to indicate string values in the expression if
         needed.
 
         """
@@ -801,7 +801,7 @@ class Analysis():
 
         * cor matrix: the Pearson correlation matrix
         * significance matrix: the significance (p-)values of the correlations.
-        * combined matrix: A human readable combination of the correlations and their p values. Indicate by *, ** or *** representing p-values < 0.05, 0.01 and 0.001 respectively.
+        * combined matrix: A human readable combination of the correlations and their p values. Indicate by \*, \*\* or \*\*\* representing p-values < 0.05, 0.01 and 0.001 respectively.
 
         This dictionary is also stored as a lc_cor_dict attribute.
 
@@ -814,7 +814,7 @@ class Analysis():
             These variables should either a categorical observation type, a categorical column in the metadf or
             a time aggregation. All possible time aggreagetions are: ['minute',
             'hour', 'month', 'year', 'day_of_year',
-            'week_of_year', 'season']. The default is ['lcz', 'datetime'].. The default is ['hour'].
+            'week_of_year', 'season']. The default is ['hour'].
 
         Returns
         -------
@@ -1097,7 +1097,7 @@ def filter_data(df, metadf, quarry_str):
         A filter expression using columnnames present in either df or metadf.
         The following timestamp derivatives can be used as well: [minute, hour,
         month, year, day_of_year, week_of_year, season]. The quarry_str may
-        contain number and expressions like <, >, ==, >=, *, +, .... Multiple filters
+        contain number and expressions like <, >, ==, >=, \*, +, .... Multiple filters
         can be combine to one expression by using & (AND) and | (OR).
 
     Returns
