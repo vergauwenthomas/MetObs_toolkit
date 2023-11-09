@@ -21,6 +21,7 @@ from metobs_toolkit.gap_filling import (
 
 from metobs_toolkit.df_helpers import (
     format_outliersdf_to_doubleidx,
+    concat_save,
     get_likely_frequency,
     _find_closes_occuring_date
 )
@@ -196,7 +197,10 @@ class Gap:
 
             # combine timestamps of observations and outliers
             sta_outl = xs_save(outliersdf, self.name, level="name").index
-            sta_comb = sta_obs.append(sta_outl)
+            if sta_outl.empty:
+                sta_comb = sta_obs
+            else:
+                sta_comb = sta_obs.append(sta_outl)
 
         # find minimium timediff before
         before_diff = _find_closes_occuring_date(
@@ -420,7 +424,7 @@ def gaps_to_df(gapslist):
         default_df.index.name = 'name'
         return default_df
 
-    return pd.concat(gapdflist)
+    return concat_save(gapdflist)
 
 
 def remove_gaps_from_obs(gaplist, obsdf):
@@ -688,7 +692,7 @@ def make_gapfill_df(gapslist):
 
         concatlist.append(subgapfill)
 
-    filldf = pd.concat(concatlist).sort_index()
+    filldf = concat_save(concatlist).sort_index()
 
     # When gapfill could (paritally) not been fulfilled,
     # their values (=Nan) must be removed from gapfill,
@@ -774,15 +778,13 @@ def missing_timestamp_and_gap_check(df, gapsize_n):
                 missing_idx
             ).index.to_list()
 
-            missing_timestamp_series = pd.concat(
-                [
-                    missing_timestamp_series,
-                    pd.Series(
-                        index=[station] * len(datetime_of_missing_records),
-                        data=datetime_of_missing_records,
-                    ),
-                ]
-            )
+            missing_timestamp_series = concat_save(
+                                            [missing_timestamp_series,
+                                            pd.Series(
+                                                index=[station] * len(datetime_of_missing_records),
+                                                data=datetime_of_missing_records),
+                                            ]
+                                        )
 
     missing_obs_collection = Missingob_collection(missing_timestamp_series)
     df = df.sort_index()

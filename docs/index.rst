@@ -3,11 +3,11 @@ Welcome to MetObs-Toolkit's documentation!
 -------------------------------------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    intro
+   examples/index
    template_mapping
-   examples
    gee_authentication
    special_topics
    gui

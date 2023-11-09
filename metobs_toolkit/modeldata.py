@@ -267,7 +267,7 @@ class Modeldata:
 
         Note
         -------
-        All possible mathematical operations for the conv_expr are [+, -, *, /].
+        All possible mathematical operations for the conv_expr are [+, -, \*, /].
         x represent the value in the current units. So "x - 273.15" represents
         the conversion from Kelvin to Celcius.
 
@@ -344,7 +344,7 @@ class Modeldata:
 
         Note
         -------
-        All possible mathematical operations for the conv_expr are [+, -, *, /].
+        All possible mathematical operations for the conv_expr are [+, -, \*, /].
         x represent the value in the current units. So "x - 273.15" represents
         the conversion from Kelvin to Celcius.
 
@@ -407,6 +407,9 @@ class Modeldata:
                                     )
 
         if not df.empty:
+            self.df = df
+            self.modelname = mapname
+
             self._df_units[obstype] = geeinfo['band_of_use'][obstype]['units']
             if conv_expr is None:
                 # use standard units
@@ -423,8 +426,6 @@ class Modeldata:
         else:
             self._data_stored_at_drive = True
 
-        self.df = df
-        self.modelname = mapname
 
     def get_ERA5_data(self, metadf, startdt_utc, enddt_utc, obstype='temp'):
         """Extract timeseries of the ERA5_hourly dataset.

@@ -803,8 +803,8 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
         The dataframe containing the observations
     metadf: Pandas.DataFrame
         The dataframe containing the metadata (e.g. latitude, longitude...)
-     obstype: String, optional
-         The observation type that has to be checked. The default is 'temp'
+    obstype: String, optional
+        The observation type that has to be checked. The default is 'temp'
     buddy_radius : numeric
         The radius to define neighbours in meters.
     min_sample_size : int

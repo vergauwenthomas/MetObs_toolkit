@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "MetObs-toolkit"
-version = "0.1.2"
+version = "0.1.2beta"
 description = "A Meteorological observations toolkit for scientists"
 authors = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 maintainers = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 license = "LICENSE"
 readme = "README.md"
-documentation = "https://python-poetry.org/docs/"
+documentation = "https://vergauwenthomas.github.io/MetObs_toolkit/"
 packages = [{include = "metobs_toolkit"}]
 keywords = ["meteorology", "observations", "urban climate"]
 
@@ -22,14 +22,24 @@ mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
 geemap = '^0.20.0'
 
+[tool.poetry.group.titan.dependencies]
+#titanlib requires C-compilers, which are not by default present on windows.
+#Make a seperate group for titan
+titanlib = '^0.3'
 
-titanlib = { version = "^0.3", optional = true }
-[tool.poetry.extras]
-titanlib = ["titanlib"]
-#titanlib = "^0.3" #can give errors due to no default C-compiler in windows ....
+
+[tool.poetry.group.documentation.dependencies]
+#Group of dep packages for building the documentation
+
+sphinx = '^7.2'
+nbsphinx = '^0.9'
+sphinx-copybutton = '^0.5.1'
+sphinx-rtd-theme = '^1.3.0'
+myst_parser = '^2.0.0'
 
 
 [tool.poetry.group.dev.dependencies]
+#To run poetry tests
 poetry = "^1.3.2"
 
 [build-system]
