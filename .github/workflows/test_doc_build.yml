@@ -17,7 +17,7 @@ jobs:
           poetry --version
           poetry update
           poetry --version
-          poetry install --with documentation
+          poetry install --only documentation
       - name: Sphinx build
         run: |
           poetry --version
