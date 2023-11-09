@@ -14,28 +14,26 @@ DOCDIR=${WORKDIR}/docs
 DISTDIR=${WORKDIR}/dist
 TESTDIR=${WORKDIR}/tests
 EXAMPLESDIR=${WORKDIR}/examples
+DOCEXAMPLEDIR=${WORKDIR}/docs/examples
 
 
 #1 install the package using poetry
 
 poetry update #to update the poetry.lock with the latest versions of the depending packages
-poetry install --all-extras
+poetry install --with documentation,dev
 
 
 #list all packages installed (for debugging)
 poetry show
 
 
-
-
-#2. Update documentation
+#2. build documentation
 cd ${DOCDIR}
 source build_doc
 cd ${DEPLOY_DIR}
 
 
 #3 build the package
-
 echo "Removing old builds before building the package ..."
 cd ${DISTDIR}
 rm *.whl
@@ -48,8 +46,8 @@ poetry build
 
 
 
-echo "Export requirements file ..."
-poetry export -f requirements.txt --output requirements.txt
+#echo "Export requirements file ..."
+#poetry export -f requirements.txt --output requirements.txt
 
 
 
@@ -68,6 +66,7 @@ make_test_log () {
 
 
 #Run examples
+echo 'Running regular examples'
 cd ${EXAMPLESDIR}
 filenames=`ls ./*.py`
 for t in $filenames; do
@@ -76,13 +75,35 @@ for t in $filenames; do
 	echo Running ${t} as a test
 	poetry run python ${example_file} >> ${logfile} 2>&1
 	if [ $? -eq 0 ]; then
-    		echo "succeeded !!"
+   		echo "succeeded !!"
 	else
     		echo "FAIL!!"
 	fi
 
 done
 
+#Run examples included in the documentation
+echo 'Running the documentation examples as test'
+cd ${DOCEXAMPLEDIR}
+#delete all .py versions of the examples (rebuild them from the notebooks)
+rm ${DOCEXAMPLEDIR}/*.py
+#convert nb to python files
+jupyter nbconvert --to python *.ipynb
+
+cd ${DOCEXAMPLEDIR}
+filenames=`ls ./*.py`
+for t in $filenames; do
+	example_file=${DOCEXAMPLEDIR}/${t}
+	logfile="$(make_test_log ${t})"
+	echo Running ${t} as a test
+	poetry run python ${example_file} >> ${logfile} 2>&1
+	if [ $? -eq 0 ]; then
+   		echo "succeeded !!"
+	else
+    		echo "FAIL!!"
+	fi
+
+done
 
 
 
