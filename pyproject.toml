@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "MetObs-toolkit"
-version = "0.1.3a0"
+version = "0.1.2beta"
 description = "A Meteorological observations toolkit for scientists"
 authors = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 maintainers = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 license = "LICENSE"
 readme = "README.md"
-documentation = "https://python-poetry.org/docs/"
+documentation = "https://vergauwenthomas.github.io/MetObs_toolkit/"
 packages = [{include = "metobs_toolkit"}]
 keywords = ["meteorology", "observations", "urban climate"]
 
