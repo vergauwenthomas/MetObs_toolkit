@@ -247,7 +247,15 @@ def metadf_to_gdf(df, crs=4326):
         coordsdf, geometry=gpd.points_from_xy(coordsdf.lon, coordsdf.lat)
     )
     geodf = geodf.set_crs(epsg=crs)
+    metadata_columns = geodf.columns
     geodf = concat_save([geodf, missing_coords_df])
+
+    # Because empyt and Nan columns are skipped in the concat save, add them
+    # again if needed
+    for col in metadata_columns:
+        if col not in geodf:
+            geodf[col] = np.nan
+
 
     geodf = geodf.sort_index()
     return geodf
