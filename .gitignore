@@ -17,6 +17,8 @@ deploiment/*
 #Exclude local package builds
 dist/*
 
+#exclude the python versions of the doc example notebooks
+docs/examples/*.py
 
 #Exclude local documentation builds
 docs/_*
