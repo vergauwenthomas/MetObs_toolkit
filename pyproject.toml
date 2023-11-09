@@ -11,16 +11,21 @@ packages = [{include = "metobs_toolkit"}]
 keywords = ["meteorology", "observations", "urban climate"]
 
 [tool.poetry.dependencies]
-python = "^3.9" #can be converted to 3.8 but furher investigation needed
+python = "^3.9"
 pandas = "^1.3.0"
-#numpy = "^1.17.3"
+numpy = "^1.17.3"
 matplotlib = "^3.0.0"
-#mysql-connector-python = "^8.0.6"
 geopandas = "^0.9.0"
 pyproj = "~3.4"
 mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
 geemap = '^0.20.0'
+
+[tool.poetry.group.setup.dependencies]
+#setuptools = '^68.2'
+future = '0.18.1'
+
+
 
 [tool.poetry.group.titan.dependencies]
 #titanlib requires C-compilers, which are not by default present on windows.
@@ -40,7 +45,7 @@ myst_parser = '^2.0.0'
 
 [tool.poetry.group.dev.dependencies]
 #To run poetry tests
-poetry = "^1.3.2"
+poetry = "^1.7"
 
 [build-system]
 requires = ["poetry-core"]
