@@ -20,7 +20,7 @@ DOCEXAMPLEDIR=${WORKDIR}/docs/examples
 #1 install the package using poetry
 
 poetry update #to update the poetry.lock with the latest versions of the depending packages
-poetry install --with documentation,dev
+poetry install --with documentation,dev,titan
 
 
 #list all packages installed (for debugging)
