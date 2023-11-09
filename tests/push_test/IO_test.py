@@ -25,7 +25,8 @@ testdatafile = os.path.join(
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=testdatafile)
+dataset.update_settings(input_data_file=testdatafile,
+                        template_file=metobs_toolkit.demo_template)
 dataset.show_settings()
 
 dataset.import_data_from_file()
