@@ -15,7 +15,7 @@ jobs:
       - name: poetry create doc environment
         run: |
           poetry --version
-          poetry install --only documentation
+          poetry install --with documentation
           poetry show
       - name: Sphinx build
         run: |
