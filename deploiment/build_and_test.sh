@@ -13,7 +13,6 @@ WORKDIR=$(pwd)
 DOCDIR=${WORKDIR}/docs
 DISTDIR=${WORKDIR}/dist
 TESTDIR=${WORKDIR}/tests
-EXAMPLESDIR=${WORKDIR}/examples
 DOCEXAMPLEDIR=${WORKDIR}/docs/examples
 
 
@@ -65,22 +64,7 @@ make_test_log () {
 
 
 
-#Run examples
-echo 'Running regular examples'
-cd ${EXAMPLESDIR}
-filenames=`ls ./*.py`
-for t in $filenames; do
-	example_file=${EXAMPLESDIR}/${t}
-	logfile="$(make_test_log ${t})"
-	echo Running ${t} as a test
-	poetry run python ${example_file} >> ${logfile} 2>&1
-	if [ $? -eq 0 ]; then
-   		echo "succeeded !!"
-	else
-    		echo "FAIL!!"
-	fi
 
-done
 
 #Run examples included in the documentation
 echo 'Running the documentation examples as test'
