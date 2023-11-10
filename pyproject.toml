@@ -23,10 +23,10 @@ geemap = '^0.20.0'
 
 
 
-[tool.poetry.group.titan.dependencies]
+#[tool.poetry.group.titan.dependencies]
 #titanlib requires C-compilers, which are not by default present on windows.
 #Make a seperate group for titan
-titanlib = '^0.3'
+#titanlib = '^0.3'
 
 
 [tool.poetry.group.documentation.dependencies]
