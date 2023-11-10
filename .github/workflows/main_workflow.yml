@@ -47,7 +47,7 @@ jobs:
 #--- Package os installation ---
    os_install_testing:
       name: test package installation on multiple os
-      if: (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master')
+      #if: (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master')
       runs-on: ${{ matrix.os }}
       strategy:
         fail-fast: true
