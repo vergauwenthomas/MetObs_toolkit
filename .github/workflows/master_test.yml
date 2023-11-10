@@ -43,30 +43,30 @@ jobs:
              #poetry run python tests/push_test/gui_launch_test.py
              poetry run python tests/push_test/analysis_test.py
 
-  versiontest:
-    name: check if version is valid
-    needs: run-tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: navigate
-        run: |
-          pwd
-          ls
-      - name: get version
-        id: 'version_info'
-        run: |
-          CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
-          echo "current version (init) = ${CURRENT_VERSION}"
-          echo "::set-output name=current_version::$CURRENT_VERSION"
-          PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
-          echo "current version (pyproject) = ${PYPROJECT_VERSION}"
-          echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
-      - name: version-is-correct
-        if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
-        run: |
-          echo "version tags are not aligned!"
-          exit 1
+   versiontest:
+     name: check if version is valid
+     needs: run-tests
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v3
+       - name: navigate
+         run: |
+           pwd
+           ls
+       - name: get version
+         id: 'version_info'
+         run: |
+           CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
+           echo "current version (init) = ${CURRENT_VERSION}"
+           echo "::set-output name=current_version::$CURRENT_VERSION"
+           PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
+           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
+           echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
+       - name: version-is-correct
+         if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
+         run: |
+           echo "version tags are not aligned!"
+           exit 1
 
 
    doctests:
