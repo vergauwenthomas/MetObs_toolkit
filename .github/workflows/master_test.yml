@@ -62,7 +62,9 @@ jobs:
           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
       - name: version-is-correct
         if: ${{ steps.version_info.outputs.CURRENT_VERSION == steps.version_info.outputs.PYPROJECT_VERSION }}
-        run: echo "version tag is alined"
+        run: |
+          echo "version tags ar not aligned!"
+          exit 1
   # doctests:
   #   name: documentation-test
   #   #needs: run-tests
