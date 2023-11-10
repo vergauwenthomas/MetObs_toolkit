@@ -60,12 +60,12 @@ jobs:
          run: rm -f poetry.lock
        - name: Install dependencies and build
          run: |
-             poetry update
+             poetry update --without titan,documentation
              poetry install --without titan,documentation
        - name: Run tests
          run: |
               poetry run python tests/push_test/import_test.py
-            
+
    windows_install_testing:
       name: Installation on Windows latest
       runs-on: windows-latest
@@ -82,13 +82,13 @@ jobs:
          run: del "poetry.lock" 2> nul
        - name: Install dependencies and build
          run: |
-             poetry update
+             poetry update --without titan,documentation
              poetry install --without titan,documentation
        - name: Run tests
          run: |
               poetry run python tests\push_test\import_test.py
-   
-              
+
+
 
 #---- Version Control -----#
    versiontest:
