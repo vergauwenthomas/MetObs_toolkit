@@ -3,6 +3,7 @@ name: Test pushed version
 on: [push]
 
 jobs:
+#---- Run tests -----#
    run-tests:
      name: run test scripts
      runs-on: ${{ matrix.os }}
@@ -42,7 +43,7 @@ jobs:
              poetry run python tests/push_test/breaking_test.py
              #poetry run python tests/push_test/gui_launch_test.py
              poetry run python tests/push_test/analysis_test.py
-
+#---- Version Control -----#
    versiontest:
      name: check if version is valid
      needs: run-tests
@@ -68,7 +69,7 @@ jobs:
            echo "version tags are not aligned!"
            exit 1
 
-
+#---- Documentation build -----#
    doctests:
      name: documentation-test
      #needs: versiontest
@@ -98,3 +99,34 @@ jobs:
          run: |
              poetry show
              poetry run sphinx-build -a -E docs _build
+
+#---- Deploy documentation -----#
+   deploy_doc:
+      name: Deploy main documentation
+      needs: doctest
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/master'
+      steps:
+        - uses: peaceiris/actions-gh-pages@v3
+           with:
+              publish_branch: gh-pages
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              publish_dir: _build/
+              force_orphan: true
+
+   deploy_doc_dev:
+      name: Deploy main documentation
+      needs: doctest
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/dev'
+      steps:
+        - uses: peaceiris/actions-gh-pages@v3
+           with:
+              publish_branch: gh-pages-dev
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              publish_dir: _build/
+              force_orphan: true
+
+
+
+
