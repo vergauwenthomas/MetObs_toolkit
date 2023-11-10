@@ -107,25 +107,13 @@ jobs:
       runs-on: ubuntu-latest
       if: github.ref == 'refs/heads/master'
       steps:
-        - uses: peaceiris/actions-gh-pages@v3
-           with:
-             publish_branch: gh-pages
-             github_token: ${{ secrets.GITHUB_TOKEN }}
-             publish_dir: _build/
-             force_orphan: true
+          uses: peaceiris/actions-gh-pages@v3
+          with:
+            publish_branch: gh-pages
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            publish_dir: _build/
+            force_orphan: true
 
-   deploy_doc_dev:
-      name: Deploy main documentation
-      needs: doctest
-      runs-on: ubuntu-latest
-      if: github.ref == 'refs/heads/dev'
-      steps:
-        - uses: peaceiris/actions-gh-pages@v3
-           with:
-             publish_branch: gh-pages-dev
-             github_token: ${{ secrets.GITHUB_TOKEN }}
-             publish_dir: _build/
-             force_orphan: true
 
 
 
