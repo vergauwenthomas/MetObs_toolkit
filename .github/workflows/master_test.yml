@@ -61,7 +61,7 @@ jobs:
           PYPROJECT_VERSION="$(grep -E 'version'  pyproject.toml | cut -d ' ' -f3)"
           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
       - name: version-is-correct
-        if: ${{ steps.version_info.outputs.CURRENT_VERSION !== steps.version_info.outputs.PYPROJECT_VERSION }}
+        if: ${{ steps.version_info.outputs.CURRENT_VERSION == steps.version_info.outputs.PYPROJECT_VERSION }}
         run: |
           echo "version tags ar not aligned!"
           exit 1
