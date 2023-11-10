@@ -56,8 +56,6 @@ jobs:
        - name: Install poetry
          run: |
              pip install poetry
-       - name: delete poetry lock if present
-         run: rm -f poetry.lock
        - name: Install dependencies and build
          run: |
              poetry update --without titan,documentation
@@ -78,8 +76,6 @@ jobs:
        - name: Install poetry
          run: |
              pip install poetry
-       - name: delete poetry lock if present
-         run: del "poetry.lock" 2> nul
        - name: Install dependencies and build
          run: |
              poetry update --without titan,documentation
@@ -97,10 +93,6 @@ jobs:
      runs-on: ubuntu-latest
      steps:
        - uses: actions/checkout@v3
-       - name: navigate
-         run: |
-           pwd
-           ls
        - name: get version
          id: 'version_info'
          run: |
