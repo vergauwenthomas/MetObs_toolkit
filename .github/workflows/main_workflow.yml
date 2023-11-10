@@ -60,8 +60,7 @@ jobs:
        - name: Install dependencies and build
          run: |
              poetry update
-             poetry install --without titan, documentation
-             poetry build
+             poetry install --without titan,documentation
        - name: Run tests
          run: |
               poetry run python tests/push_test/import_test.py
@@ -81,8 +80,7 @@ jobs:
        - name: Install dependencies and build
          run: |
              poetry update
-             poetry install --without titan, documentation
-             poetry build
+             poetry install --without titan,documentation
        - name: Run tests
          run: |
               poetry run python tests\push_test\import_test.py
