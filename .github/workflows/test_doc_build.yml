@@ -11,10 +11,11 @@ jobs:
       - uses: actions/setup-python@v3
       - name: Install dependencies
         run: |
-          pip install sphinx==6.2.1 sphinx_rtd_theme sphinx-copybutton myst_parser nbsphinx
+          pip install sphinx==6.2.1 sphinx_rtd_theme sphinx-copybutton myst_parser nbsphinx setuptools
           pip install poetry
-      - name: poetry create requirements
+      - name: poetry create requirements file
         run: |
+          poetry --version
           poetry update
           poetry export -f requirements.txt --output requirements.txt
       - name: install package using pip
