@@ -48,6 +48,10 @@ jobs:
     #needs: run-tests
     runs-on: ubuntu-latest
     steps:
+      - name: navigate
+        run: |
+          pwd
+          ls
       - name: get version
         run: |
           CURRENT_VERSION="$(grep -E '__version__'  metobs_toolkit/__init__.py | cut -d ' ' -f3)"
