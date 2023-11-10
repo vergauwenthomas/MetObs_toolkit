@@ -6,22 +6,45 @@ on:
 permissions:
     contents: write
 jobs:
-  docs:
-    runs-on: ubuntu-latest
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # You can use PyPy versions in python-version.
+      # For example, pypy-2.7 and pypy-3.8
+      matrix:
+        python-version: ["3.9"]
+        # os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
+        node-version: [12.x]
+
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-      - name: Install dependencies
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          #cache: 'poetry'
+      # You can test your matrix by printing the current Python version
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: install pandoc (system wide)
         run: |
-          pip install poetry
-      - name: poetry create doc environment
+            sudo apt-get -y install pandoc
+      - name: Install poetry
         run: |
-          poetry update
-          poetry install --with documentation,dev,titan
-      - name: Sphinx build
+            pip install poetry
+      - name: Install dependencies and build
         run: |
-          sphinx-build -a -E docs _build
-      - name: Deploy
+            poetry update
+            poetry install --all-extras
+            poetry build
+      - name: Build documentation
+        run: |
+            poetry show
+            poetry run sphinx-build -a -E docs _build
+
+      - name: Deploy documentation online
         uses: peaceiris/actions-gh-pages@v3
         with:
           publish_branch: gh-pages
