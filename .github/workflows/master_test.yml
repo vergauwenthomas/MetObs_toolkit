@@ -34,10 +34,6 @@ jobs:
             poetry update
             poetry install --all-extras
             poetry build
-      - name: Build documentation
-        run: |
-            poetry show
-            poetry run sphinx-build -a -E docs _build
       - name: Run tests
         run: |
             cd tests

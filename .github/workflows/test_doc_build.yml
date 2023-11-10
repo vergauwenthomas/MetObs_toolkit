@@ -1,34 +1,41 @@
-name: Build and deploy documentation (test)
-on:
-  push
-permissions:
-    contents: write
+name: test Build documentation
+
+on: [push]
+
 jobs:
-  docs:
-    runs-on: ubuntu-latest
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # You can use PyPy versions in python-version.
+      # For example, pypy-2.7 and pypy-3.8
+      matrix:
+        python-version: ["3.9"]
+        # os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
+        node-version: [12.x]
+
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-      - name: Install dependencies
-        run: |
-          python3 --version
-          python3 -m pip install sphinx==6.2.1 sphinx_rtd_theme sphinx-copybutton myst_parser nbsphinx setuptools
-          python3 -m pip install poetry
-      - name: poetry create requirements file
-        run: |
-          poetry --version
-          poetry update
-          poetry export -f requirements.txt --output requirements.txt
-      - name: install package using pip
-        run: |
-          python3 -m pip install -r requirements.txt
-      - name: Sphinx build
-        run: |
-          sphinx-build -a -E docs _build
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - uses: docker://pandoc/core:2.9
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          publish_branch: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: _build/
-          force_orphan: true
+          python-version: ${{ matrix.python-version }}
+          #cache: 'poetry'
+      # You can test your matrix by printing the current Python version
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Install poetry
+        run: |
+            pip install poetry
+
+      - name: Install dependencies and build
+        run: |
+            poetry update
+            poetry install --all-extras
+            poetry build
+      - name: Build documentation
+        run: |
+            poetry show
+            poetry run sphinx-build -a -E docs _build
