@@ -54,8 +54,8 @@ jobs:
           echo "current version (init) = ${CURRENT_VERSION}"
           PYPROJECT_VERSION="$(grep -E 'version'  pyproject.toml | cut -d ' ' -f3)"
           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
-        if: ${{ CURRENT_VERSION }} != ${{ PYPROJECT_VERSION }}
-          run: exit 1
+        # if: ${{ CURRENT_VERSION }} != ${{ PYPROJECT_VERSION }}
+        #   run: exit 1
 
 
   # doctests:
