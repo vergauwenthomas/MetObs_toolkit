@@ -54,13 +54,14 @@ jobs:
           pwd
           ls
       - name: get version
+        id: 'version_info'
         run: |
           CURRENT_VERSION="$(grep -E '__version__'  metobs_toolkit/__init__.py | cut -d ' ' -f3)"
           echo "current version (init) = ${CURRENT_VERSION}"
           PYPROJECT_VERSION="$(grep -E 'version'  pyproject.toml | cut -d ' ' -f3)"
           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
-        if: ${{ CURRENT_VERSION }} != ${{ PYPROJECT_VERSION }}
-          run: exit 1
+        if: ${{ steps.version_info.outputs.CURRENT_VERSION }} != ${{ steps.version_info.outputsPYPROJECT_VERSION }}
+        run: exit 1
 
 
   # doctests:
