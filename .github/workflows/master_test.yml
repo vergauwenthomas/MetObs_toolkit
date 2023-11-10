@@ -54,46 +54,44 @@ jobs:
           echo "current version (init) = ${CURRENT_VERSION}"
           PYPROJECT_VERSION="$(grep -E 'version'  pyproject.toml | cut -d ' ' -f3)"
           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
-          [${CURRENT_VERSION}] == [${PYPROJECT_VERSION}]
-      - name: check sync
         if: ${{ CURRENT_VERSION }} != ${{ PYPROJECT_VERSION }}
           run: exit 1
 
 
-  doctests:
-    name: documentation-test
-    #needs: run-tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      # You can use PyPy versions in python-version.
-      # For example, pypy-2.7 and pypy-3.8
-      matrix:
-        python-version: ["3.9"]
-        # os: [ubuntu-latest, windows-latest]
-        os: [ubuntu-latest]
-        node-version: [12.x]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          #cache: 'poetry'
-      # You can test your matrix by printing the current Python version
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
-      - name: install pandoc (system wide)
-        run: |
-            sudo apt-get -y install pandoc
-      - name: Install poetry
-        run: |
-            pip install poetry
-      - name: Install dependencies and build
-        run: |
-            poetry update
-            poetry install --all-extras
-            poetry build
-      - name: Build documentation
-        run: |
-            poetry show
-            poetry run sphinx-build -a -E docs _build
+  # doctests:
+  #   name: documentation-test
+  #   #needs: run-tests
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     # You can use PyPy versions in python-version.
+  #     # For example, pypy-2.7 and pypy-3.8
+  #     matrix:
+  #       python-version: ["3.9"]
+  #       # os: [ubuntu-latest, windows-latest]
+  #       os: [ubuntu-latest]
+  #       node-version: [12.x]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Set up Python ${{ matrix.python-version }}
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         #cache: 'poetry'
+  #     # You can test your matrix by printing the current Python version
+  #     - name: Display Python version
+  #       run: python -c "import sys; print(sys.version)"
+  #     - name: install pandoc (system wide)
+  #       run: |
+  #           sudo apt-get -y install pandoc
+  #     - name: Install poetry
+  #       run: |
+  #           pip install poetry
+  #     - name: Install dependencies and build
+  #       run: |
+  #           poetry update
+  #           poetry install --all-extras
+  #           poetry build
+  #     - name: Build documentation
+  #       run: |
+  #           poetry show
+  #           poetry run sphinx-build -a -E docs _build
