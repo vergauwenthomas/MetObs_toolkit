@@ -103,7 +103,7 @@ jobs:
 #---- Deploy documentation -----#
    deploy_doc:
       name: Deploy main documentation
-      needs: doctests
+      needs: [doctests,run-tests,versiontest]
       runs-on: ubuntu-latest
       if: github.ref == 'refs/heads/master'
       steps:
@@ -112,6 +112,21 @@ jobs:
            uses: peaceiris/actions-gh-pages@v3
            with:
             publish_branch: gh-pages
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            publish_dir: _build/
+            force_orphan: true
+
+   deploy_doc_dev:
+      name: Deploy dev documentation
+      needs: [doctests]
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/dev'
+      steps:
+         - uses: actions/checkout@v3
+         - name: deploy artifact
+           uses: peaceiris/actions-gh-pages@v3
+           with:
+            publish_branch: gh-pages-dev
             github_token: ${{ secrets.GITHUB_TOKEN }}
             publish_dir: _build/
             force_orphan: true
