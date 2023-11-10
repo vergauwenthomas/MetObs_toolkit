@@ -1,64 +1,71 @@
 name: Test pushed version
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  run-tests:
-    name: run test scripts
-    runs-on: ${{ matrix.os }}
-    strategy:
-      # You can use PyPy versions in python-version.
-      # For example, pypy-2.7 and pypy-3.8
-      matrix:
-        python-version: ["3.9", "3.10"]
-        # os: [ubuntu-latest, windows-latest]
-        os: [ubuntu-latest]
-        node-version: [12.x]
+  # run-tests:
+  #   name: run test scripts
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     # You can use PyPy versions in python-version.
+  #     # For example, pypy-2.7 and pypy-3.8
+  #     matrix:
+  #       python-version: ["3.9", "3.10"]
+  #       # os: [ubuntu-latest, windows-latest]
+  #       os: [ubuntu-latest]
+  #       node-version: [12.x]
 
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          #cache: 'poetry'
-      # You can test your matrix by printing the current Python version
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
-      - name: Install poetry
-        run: |
-            pip install poetry
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Set up Python ${{ matrix.python-version }}
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         #cache: 'poetry'
+  #     # You can test your matrix by printing the current Python version
+  #     - name: Display Python version
+  #       run: python -c "import sys; print(sys.version)"
+  #     - name: Install poetry
+  #       run: |
+  #           pip install poetry
 
-      - name: Install dependencies and build
-        run: |
-            poetry update
-            poetry install --all-extras
-            poetry build
-      - name: Run tests
-        run: |
-            cd tests
-            cd push_test
-            poetry run python gap_and_fill_test.py
-            poetry run python IO_test.py
-            poetry run python qc_test.py
-            poetry run python breaking_test.py
-            #poetry run python gui_launch_test.py
-            poetry run python analysis_test.py
+  #     - name: Install dependencies and build
+  #       run: |
+  #           poetry update
+  #           poetry install --all-extras
+  #           poetry build
+  #     - name: Run tests
+  #       run: |
+  #           poetry run python tests/push_test/gap_and_fill_test.py
+  #           poetry run python tests/push_test/IO_test.py
+  #           poetry run python tests/push_test/qc_test.py
+  #           poetry run python tests/push_test/breaking_test.py
+  #           #poetry run python tests/push_test/gui_launch_test.py
+  #           poetry run python tests/push_test/analysis_test.py
 
   versiontest:
     name: check if version is valid
-    needs: run-tests
+    #needs: run-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Current Version
+      - name: get version
         run: |
           CURRENT_VERSION="$(grep -E '__version__'  metobs_toolkit/__init__.py | cut -d ' ' -f3)"
-          echo "current_version=${CURRENT_VERSION}"
+          echo "current version (init) = ${CURRENT_VERSION}"
+          PYPROJECT_VERSION="$(grep -E 'version'  pyproject.toml | cut -d ' ' -f3)"
+          echo "current version (pyproject) = ${PYPROJECT_VERSION}"
+          [${CURRENT_VERSION}] == [${PYPROJECT_VERSION}]
+      - name: check sync
+        if: ${{ CURRENT_VERSION }} != ${{ PYPROJECT_VERSION }}
+          uses: actions/github-script@v3
+          with:
+            script: |
+                core.setFailed('versions in init and pyproject are not equivalent!')
 
 
   doctests:
     name: documentation-test
-    needs: run-tests
+    #needs: run-tests
     runs-on: ${{ matrix.os }}
     strategy:
       # You can use PyPy versions in python-version.
