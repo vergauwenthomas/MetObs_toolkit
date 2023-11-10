@@ -45,44 +45,49 @@ jobs:
              poetry run python tests/push_test/analysis_test.py
 
 #--- Package os installation ---
-   os_install_testing:
-      name: test package installation on multiple os
-      #if: (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master')
-      runs-on: ${{ matrix.os }}
-      strategy:
-        fail-fast: true
-        matrix:
-          os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
-          python-version: ["3.9"]
-      defaults:
-        run:
-          shell: bash
+   mac_install_testing:
+      name: Installation on Mac latest
+      runs-on: macos-latest
       steps:
-        #---
-        #       check-out repo and set-up python
-        #----
-        - name: Check out repository
-          uses: actions/checkout@v3
-        - name: Set up python ${{ matrix.python-version }}
-          id: setup-python
-          uses: actions/setup-python@v4
-          with:
-            python-version: ${{ matrix.python-version }}
-        #--
-        #  -----  install & configure poetry  -----
-        #--
-        - name: Install poetry
-          run: |
-              pip install poetry
-        - name: Install the toolkit
-          run: |
-              poetry update
-              poetry install --without titan,documentation
-              poetry show
-        - name: Run import test
-          run: |
+       - uses: actions/checkout@v3
+       - name: Set up Python39
+         uses: actions/setup-python@v4
+         with:
+           python-version: "3.9"
+       - name: Install poetry
+         run: |
+             pip install poetry
+       - name: Install dependencies and build
+         run: |
+             poetry update
+             poetry install --without titan, documentation
+             poetry build
+       - name: Run tests
+         run: |
               poetry run python tests/push_test/import_test.py
-
+            
+   windows_install_testing:
+      name: Installation on Windows latest
+      runs-on: windows-latest
+      steps:
+       - uses: actions/checkout@v3
+       - name: Set up Python39
+         uses: actions/setup-python@v4
+         with:
+           python-version: "3.9"
+       - name: Install poetry
+         run: |
+             pip install poetry
+       - name: Install dependencies and build
+         run: |
+             poetry update
+             poetry install --without titan, documentation
+             poetry build
+       - name: Run tests
+         run: |
+              poetry run python tests\push_test\import_test.py
+   
+              
 
 #---- Version Control -----#
    versiontest:
@@ -144,7 +149,7 @@ jobs:
 #---- Deploy documentation -----#
    deploy_doc:
       name: Deploy main documentation
-      needs: [doctests,run-tests,versiontest,os_install_testing]
+      needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
       runs-on: ubuntu-latest
       if: github.ref == 'refs/heads/master'
       steps:
