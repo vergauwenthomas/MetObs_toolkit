@@ -34,7 +34,6 @@ jobs:
          run: |
              poetry update
              poetry install
-             poetry build
        - name: Run tests
          run: |
              poetry run python tests/push_test/gap_and_fill_test.py
@@ -57,6 +56,8 @@ jobs:
        - name: Install poetry
          run: |
              pip install poetry
+       - name: delete poetry lock if present
+         run: rm -f poetry.lock
        - name: Install dependencies and build
          run: |
              poetry update
@@ -77,6 +78,8 @@ jobs:
        - name: Install poetry
          run: |
              pip install poetry
+       - name: delete poetry lock if present
+         run: del "poetry.lock" 2> nul
        - name: Install dependencies and build
          run: |
              poetry update
