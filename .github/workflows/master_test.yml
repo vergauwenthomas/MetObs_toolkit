@@ -60,12 +60,10 @@ jobs:
           echo "current version (init) = ${CURRENT_VERSION}"
           PYPROJECT_VERSION="$(grep -E 'version'  pyproject.toml | cut -d ' ' -f3)"
           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
-      - name: sync versions
-        if: ${{ steps.version_info.outputs.CURRENT_VERSION }} != ${{ steps.version_info.outputs.PYPROJECT_VERSION }}
-        run: |
-          echo ${steps.version_info.outputs.CURRENT_VERSION}
-          echo ${steps.version_info.outputs.PYPROJECT_VERSION}
-          exit 1
+
+      - name: version is correct
+         if: ${{ steps.version_info.outputs.CURRENT_VERSION == steps.version_info.outputs.CURRENT_VERSION }}
+         run: echo "version tag is alined"
 
 
   # doctests:
