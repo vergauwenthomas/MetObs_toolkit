@@ -26,10 +26,12 @@ jobs:
       # You can test your matrix by printing the current Python version
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
+      - name: install pandoc (system wide)
+        run: |
+            sudo apt-get -y install pandoc
       - name: Install poetry
         run: |
             pip install poetry
-
       - name: Install dependencies and build
         run: |
             poetry update
