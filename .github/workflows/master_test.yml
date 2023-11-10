@@ -3,49 +3,49 @@ name: Test pushed version
 on: [push]
 
 jobs:
-  # run-tests:
-  #   name: run test scripts
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     # You can use PyPy versions in python-version.
-  #     # For example, pypy-2.7 and pypy-3.8
-  #     matrix:
-  #       python-version: ["3.9", "3.10"]
-  #       # os: [ubuntu-latest, windows-latest]
-  #       os: [ubuntu-latest]
-  #       node-version: [12.x]
+   run-tests:
+     name: run test scripts
+     runs-on: ${{ matrix.os }}
+     strategy:
+       # You can use PyPy versions in python-version.
+       # For example, pypy-2.7 and pypy-3.8
+       matrix:
+         python-version: ["3.9", "3.10"]
+         # os: [ubuntu-latest, windows-latest]
+         os: [ubuntu-latest]
+         node-version: [12.x]
 
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Set up Python ${{ matrix.python-version }}
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #         #cache: 'poetry'
-  #     # You can test your matrix by printing the current Python version
-  #     - name: Display Python version
-  #       run: python -c "import sys; print(sys.version)"
-  #     - name: Install poetry
-  #       run: |
-  #           pip install poetry
+     steps:
+       - uses: actions/checkout@v3
+       - name: Set up Python ${{ matrix.python-version }}
+         uses: actions/setup-python@v4
+         with:
+           python-version: ${{ matrix.python-version }}
+           #cache: 'poetry'
+       # You can test your matrix by printing the current Python version
+       - name: Display Python version
+         run: python -c "import sys; print(sys.version)"
+       - name: Install poetry
+         run: |
+             pip install poetry
 
-  #     - name: Install dependencies and build
-  #       run: |
-  #           poetry update
-  #           poetry install --all-extras
-  #           poetry build
-  #     - name: Run tests
-  #       run: |
-  #           poetry run python tests/push_test/gap_and_fill_test.py
-  #           poetry run python tests/push_test/IO_test.py
-  #           poetry run python tests/push_test/qc_test.py
-  #           poetry run python tests/push_test/breaking_test.py
-  #           #poetry run python tests/push_test/gui_launch_test.py
-  #           poetry run python tests/push_test/analysis_test.py
+       - name: Install dependencies and build
+         run: |
+             poetry update
+             poetry install --all-extras
+             poetry build
+       - name: Run tests
+         run: |
+             poetry run python tests/push_test/gap_and_fill_test.py
+             poetry run python tests/push_test/IO_test.py
+             poetry run python tests/push_test/qc_test.py
+             poetry run python tests/push_test/breaking_test.py
+             #poetry run python tests/push_test/gui_launch_test.py
+             poetry run python tests/push_test/analysis_test.py
 
   versiontest:
     name: check if version is valid
-    #needs: run-tests
+    needs: run-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -67,40 +67,34 @@ jobs:
         run: |
           echo "version tags are not aligned!"
           exit 1
-  # doctests:
-  #   name: documentation-test
-  #   #needs: run-tests
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     # You can use PyPy versions in python-version.
-  #     # For example, pypy-2.7 and pypy-3.8
-  #     matrix:
-  #       python-version: ["3.9"]
-  #       # os: [ubuntu-latest, windows-latest]
-  #       os: [ubuntu-latest]
-  #       node-version: [12.x]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Set up Python ${{ matrix.python-version }}
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #         #cache: 'poetry'
-  #     # You can test your matrix by printing the current Python version
-  #     - name: Display Python version
-  #       run: python -c "import sys; print(sys.version)"
-  #     - name: install pandoc (system wide)
-  #       run: |
-  #           sudo apt-get -y install pandoc
-  #     - name: Install poetry
-  #       run: |
-  #           pip install poetry
-  #     - name: Install dependencies and build
-  #       run: |
-  #           poetry update
-  #           poetry install --all-extras
-  #           poetry build
-  #     - name: Build documentation
-  #       run: |
-  #           poetry show
-  #           poetry run sphinx-build -a -E docs _build
+
+
+   doctests:
+     name: documentation-test
+     #needs: run-tests
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v3
+       - name: Set up Python39
+         uses: actions/setup-python@v4
+         with:
+           python-version: '3.9'
+           #cache: 'poetry'
+       # You can test your matrix by printing the current Python version
+       - name: Display Python version
+         run: python -c "import sys; print(sys.version)"
+       - name: install pandoc (system wide)
+         run: |
+             sudo apt-get -y install pandoc
+       - name: Install poetry
+         run: |
+             pip install poetry
+       - name: Install dependencies and build
+         run: |
+             poetry update
+             poetry install --all-extras
+             poetry build
+       - name: Build documentation
+         run: |
+             poetry show
+             poetry run sphinx-build -a -E docs _build
