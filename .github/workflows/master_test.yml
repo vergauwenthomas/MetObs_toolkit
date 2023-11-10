@@ -56,14 +56,16 @@ jobs:
       - name: get version
         id: 'version_info'
         run: |
-          CURRENT_VERSION="$(grep -E '__version__'  metobs_toolkit/__init__.py | cut -d ' ' -f3)"
+          CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
           echo "current version (init) = ${CURRENT_VERSION}"
-          PYPROJECT_VERSION="$(grep -E 'version'  pyproject.toml | cut -d ' ' -f3)"
+          echo "::set-output name=current_version::$CURRENT_VERSION"
+          PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
+          echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
       - name: version-is-correct
-        if: ${{ steps.version_info.outputs.CURRENT_VERSION == steps.version_info.outputs.PYPROJECT_VERSION }}
+        if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
         run: |
-          echo "version tags ar not aligned!"
+          echo "version tags are not aligned!"
           exit 1
   # doctests:
   #   name: documentation-test
