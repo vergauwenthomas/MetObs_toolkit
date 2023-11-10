@@ -57,10 +57,7 @@ jobs:
           [${CURRENT_VERSION}] == [${PYPROJECT_VERSION}]
       - name: check sync
         if: ${{ CURRENT_VERSION }} != ${{ PYPROJECT_VERSION }}
-          uses: actions/github-script@v3
-          with:
-            script: |
-                core.setFailed('versions in init and pyproject are not equivalent!')
+          run: exit 1
 
 
   doctests:
