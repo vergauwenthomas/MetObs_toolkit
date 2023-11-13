@@ -29,11 +29,15 @@ jobs:
              poetry update --without titan,documentation
              poetry install --without titan,documentation
              poetry build
+       - name: get distribution file name
+         run: |
+             rel_path=$(find dist/ -name 'metobs_toolkit-*.tar.gz' -print -quit)
+             filename=$(basename "$rel_path")
        - name: save package as artifact
          uses: actions/upload-artifact@v3
          with:
            name: package_build
-           path: dist/*.tar.gz
+           path: ${rel_path}
        - name: build package with all extras
          run: |
              poetry update
