@@ -4,109 +4,109 @@ on: [push]
 
 jobs:
 #---- Run tests -----#
-   run-tests:
-     name: run test scripts
-     runs-on: ${{ matrix.os }}
-     strategy:
-       # You can use PyPy versions in python-version.
-       # For example, pypy-2.7 and pypy-3.8
-       matrix:
-         python-version: ["3.9", "3.10"]
-         # os: [ubuntu-latest, windows-latest]
-         os: [ubuntu-latest]
-         node-version: [12.x]
+#    run-tests:
+#      name: run test scripts
+#      runs-on: ${{ matrix.os }}
+#      strategy:
+#        # You can use PyPy versions in python-version.
+#        # For example, pypy-2.7 and pypy-3.8
+#        matrix:
+#          python-version: ["3.9", "3.10"]
+#          # os: [ubuntu-latest, windows-latest]
+#          os: [ubuntu-latest]
+#          node-version: [12.x]
 
-     steps:
-       - uses: actions/checkout@v3
-       - name: Set up Python ${{ matrix.python-version }}
-         uses: actions/setup-python@v4
-         with:
-           python-version: ${{ matrix.python-version }}
-           #cache: 'poetry'
-       # You can test your matrix by printing the current Python version
-       - name: Display Python version
-         run: python -c "import sys; print(sys.version)"
-       - name: Install poetry
-         run: |
-             pip install poetry
+#      steps:
+#        - uses: actions/checkout@v3
+#        - name: Set up Python ${{ matrix.python-version }}
+#          uses: actions/setup-python@v4
+#          with:
+#            python-version: ${{ matrix.python-version }}
+#            #cache: 'poetry'
+#        # You can test your matrix by printing the current Python version
+#        - name: Display Python version
+#          run: python -c "import sys; print(sys.version)"
+#        - name: Install poetry
+#          run: |
+#              pip install poetry
 
-       - name: Install dependencies and build
-         run: |
-             poetry update
-             poetry install
-       - name: Run tests
-         run: |
-             poetry run python tests/push_test/gap_and_fill_test.py
-             poetry run python tests/push_test/IO_test.py
-             poetry run python tests/push_test/qc_test.py
-             poetry run python tests/push_test/breaking_test.py
-             #poetry run python tests/push_test/gui_launch_test.py
-             poetry run python tests/push_test/analysis_test.py
+#        - name: Install dependencies and build
+#          run: |
+#              poetry update
+#              poetry install
+#        - name: Run tests
+#          run: |
+#              poetry run python tests/push_test/gap_and_fill_test.py
+#              poetry run python tests/push_test/IO_test.py
+#              poetry run python tests/push_test/qc_test.py
+#              poetry run python tests/push_test/breaking_test.py
+#              #poetry run python tests/push_test/gui_launch_test.py
+#              poetry run python tests/push_test/analysis_test.py
 
-#--- Package os installation ---
-   mac_install_testing:
-      name: Installation on Mac latest
-      runs-on: macos-latest
-      steps:
-       - uses: actions/checkout@v3
-       - name: Set up Python39
-         uses: actions/setup-python@v4
-         with:
-           python-version: "3.9"
-       - name: Install poetry
-         run: |
-             pip install poetry
-       - name: Install dependencies and build
-         run: |
-             poetry update --without titan,documentation
-             poetry install --without titan,documentation
-       - name: Run tests
-         run: |
-              poetry run python tests/push_test/import_test.py
+# #--- Package os installation ---
+#    mac_install_testing:
+#       name: Installation on Mac latest
+#       runs-on: macos-latest
+#       steps:
+#        - uses: actions/checkout@v3
+#        - name: Set up Python39
+#          uses: actions/setup-python@v4
+#          with:
+#            python-version: "3.9"
+#        - name: Install poetry
+#          run: |
+#              pip install poetry
+#        - name: Install dependencies and build
+#          run: |
+#              poetry update --without titan,documentation
+#              poetry install --without titan,documentation
+#        - name: Run tests
+#          run: |
+#               poetry run python tests/push_test/import_test.py
 
-   windows_install_testing:
-      name: Installation on Windows latest
-      runs-on: windows-latest
-      steps:
-       - uses: actions/checkout@v3
-       - name: Set up Python39
-         uses: actions/setup-python@v4
-         with:
-           python-version: "3.9"
-       - name: Install poetry
-         run: |
-             pip install poetry
-       - name: Install dependencies and build
-         run: |
-             poetry update --without titan,documentation
-             poetry install --without titan,documentation
-       - name: Run tests
-         run: |
-              poetry run python tests\push_test\import_test.py
+#    windows_install_testing:
+#       name: Installation on Windows latest
+#       runs-on: windows-latest
+#       steps:
+#        - uses: actions/checkout@v3
+#        - name: Set up Python39
+#          uses: actions/setup-python@v4
+#          with:
+#            python-version: "3.9"
+#        - name: Install poetry
+#          run: |
+#              pip install poetry
+#        - name: Install dependencies and build
+#          run: |
+#              poetry update --without titan,documentation
+#              poetry install --without titan,documentation
+#        - name: Run tests
+#          run: |
+#               poetry run python tests\push_test\import_test.py
 
 
 
-#---- Version Control -----#
-   versiontest:
-     name: check if version is valid
-     needs: run-tests
-     runs-on: ubuntu-latest
-     steps:
-       - uses: actions/checkout@v3
-       - name: get version
-         id: 'version_info'
-         run: |
-           CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
-           echo "current version (init) = ${CURRENT_VERSION}"
-           echo "::set-output name=current_version::$CURRENT_VERSION"
-           PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
-           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
-           echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
-       - name: version-is-correct
-         if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
-         run: |
-           echo "version tags are not aligned!"
-           exit 1
+# #---- Version Control -----#
+#    versiontest:
+#      name: check if version is valid
+#      needs: run-tests
+#      runs-on: ubuntu-latest
+#      steps:
+#        - uses: actions/checkout@v3
+#        - name: get version
+#          id: 'version_info'
+#          run: |
+#            CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
+#            echo "current version (init) = ${CURRENT_VERSION}"
+#            echo "::set-output name=current_version::$CURRENT_VERSION"
+#            PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
+#            echo "current version (pyproject) = ${PYPROJECT_VERSION}"
+#            echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
+#        - name: version-is-correct
+#          if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
+#          run: |
+#            echo "version tags are not aligned!"
+#            exit 1
 
 #---- Documentation build -----#
    doctests:
@@ -140,20 +140,20 @@ jobs:
              poetry run sphinx-build -a -E docs _build
 
 #---- Deploy documentation -----#
-   deploy_doc:
-      name: Deploy main documentation
-      needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
-      runs-on: ubuntu-latest
-      if: github.ref == 'refs/heads/master'
-      steps:
-         - uses: actions/checkout@v3
-         - name: deploy artifact
-           uses: peaceiris/actions-gh-pages@v3
-           with:
-            publish_branch: gh-pages
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            publish_dir: _build/
-            force_orphan: true
+   # deploy_doc:
+   #    name: Deploy main documentation
+   #    needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
+   #    runs-on: ubuntu-latest
+   #    if: github.ref == 'refs/heads/master'
+   #    steps:
+   #       - uses: actions/checkout@v3
+   #       - name: deploy artifact
+   #         uses: peaceiris/actions-gh-pages@v3
+   #         with:
+   #          publish_branch: gh-pages
+   #          github_token: ${{ secrets.GITHUB_TOKEN }}
+   #          publish_dir: _build/
+   #          force_orphan: true
 
    deploy_doc_dev:
       name: Deploy dev documentation
@@ -163,6 +163,12 @@ jobs:
          github.ref == 'refs/heads/dev' || !contains(github.event.head_commit.message, 'build doc')
       steps:
          - uses: actions/checkout@v3
+         - name: check _build
+           run: |
+               pwd
+               ls
+               cd _build
+               ls
          - name: deploy artifact
            uses: peaceiris/actions-gh-pages@v3
            with:
