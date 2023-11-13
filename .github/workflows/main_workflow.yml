@@ -237,14 +237,23 @@ jobs:
           run: |
               pwd
               ls
+        - name: make _build dir
+          run: |
+             mkdir _build
+             cd _build
         - name: download artifact
           uses: actions/download-artifact@v3
           with:
             name: doc_build
+        - name: navigate
+          run: cd ..
         - name: printout
           run: |
               pwd
               ls
+              cd _build
+              ls
+              cd ..
         - name: deploy artifact
           uses: peaceiris/actions-gh-pages@v3
           with:
