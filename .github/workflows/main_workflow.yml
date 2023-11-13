@@ -1,4 +1,4 @@
-=name: Test pushed version
+name: Test pushed version
 
 on: [push]
 
