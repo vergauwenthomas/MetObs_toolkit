@@ -1,4 +1,4 @@
-name: Test pushed version
+=name: Test pushed version
 
 on: [push]
 
@@ -7,6 +7,8 @@ jobs:
    packageing:
      name: Build the package
      runs-on: ubuntu-latest
+     outputs:
+      pkg_file: ${{ steps.base_def.outputs.filename }}
      steps:
        - uses: actions/checkout@v3
        - name: Set up Python39
@@ -30,6 +32,7 @@ jobs:
              poetry install --without titan,documentation
              poetry build
        - name: get distribution file name
+         id: base_def
          run: |
              rel_path=$(find dist/ -name 'metobs_toolkit-*.tar.gz' -print -quit)
              filename=$(basename "$rel_path")
@@ -37,7 +40,7 @@ jobs:
          uses: actions/upload-artifact@v3
          with:
            name: package_build
-           path: ${rel_path}
+           path: dist/*.tar.gz
        - name: build package with all extras
          run: |
              poetry update
@@ -112,6 +115,8 @@ jobs:
       needs: packageing
       runs-on: macos-latest
       steps:
+        - env:
+             pkg_file: ${{needs.packageing.outputs.pkg_file}}
         - uses: actions/checkout@v3
         - name: Set up Python39
           uses: actions/setup-python@v4
@@ -124,7 +129,7 @@ jobs:
 
         - name: Install the package
           run: |
-              python3 -m pip install ./metobs_toolkit-*.tar.gz
+              python3 -m pip install ${pkg_file}
         - name: Run tests
           run: |
               python tests/push_test/import_test.py
@@ -134,6 +139,8 @@ jobs:
       needs: packageing
       runs-on: windows-latest
       steps:
+        - env:
+             pkg_file: ${{needs.packageing.outputs.pkg_file}}
         - uses: actions/checkout@v3
         - name: Set up Python39
           uses: actions/setup-python@v4
@@ -146,7 +153,7 @@ jobs:
 
         - name: Install the package
           run: |
-              python3 -m pip install metobs_toolkit-*.tar.gz
+              python3 -m pip install $pkg_file
         - name: Run tests
           run: |
               python tests\push_test\import_test.py
