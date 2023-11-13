@@ -3,12 +3,12 @@ name: Test pushed version
 on: [push]
 
 jobs:
---- Build the package and save as artifacts----
-    packageing:
+#--- Build the package and save as artifacts----
+   packageing:
       name: Build the package
       runs-on: ubuntu-latest
       outputs:
-      pkg_file: ${{ steps.base_def.outputs.filename }}
+        pkg_file: ${{ steps.base_def.outputs.filename }}
       steps:
         - uses: actions/checkout@v3
         - name: Set up Python39
@@ -224,7 +224,7 @@ jobs:
                 _build
 
 #---- Deploy documentation -----#
-deploy_doc:
+   deploy_doc:
     name: Deploy main documentation
     needs: [packageing, doctests]
     #needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
