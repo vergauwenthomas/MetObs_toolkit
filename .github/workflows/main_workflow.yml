@@ -56,69 +56,6 @@ jobs:
             path: only_titan_req.txt
 
 
-
-   # packageing_all_groups:
-   #   name: Build the package for seperate groups
-   #   needs: packageing
-   #   runs-on: ubuntu-latest
-   #   steps:
-   #     - uses: actions/checkout@v3
-   #     - name: Set up Python39
-   #       uses: actions/setup-python@v4
-   #       with:
-   #         python-version: '3.9'
-   #         #cache: 'poetry'
-   #     # You can test your matrix by printing the current Python version
-   #     - name: Display Python version
-   #       run: python -c "import sys; print(sys.version)"
-   #     - name: remove previous builds
-   #       run: |
-   #           rm -f dist/metobs_toolkit-*.whl
-   #           rm -f dist/metobs_toolkit-*.tar.gz
-   #     - name: Install poetry
-   #       run: |
-   #           pip install poetry
-   #     - name: Install dependencies and build
-   #       run: |
-   #           poetry update
-   #           poetry install --all-extras
-   #           poetry build
-   #     - name: save package as artifact
-   #       uses: actions/upload-artifact@v3
-   #       with:
-   #         name: package_build_all_groups
-   #         path: dist/*.tar.gz
-
-
-
-   # testing:
-   #   name: test the package
-   #   needs: packageing
-   #   runs-on: ubuntu-latest
-   #   steps:
-   #     - uses: actions/checkout@v3
-   #     - name: Set up Python39
-   #       uses: actions/setup-python@v4
-   #       with:
-   #         python-version: '3.9'
-   #     - name: Display Python version
-   #       run: python -c "import sys; print(sys.version)"
-   #     - uses: actions/checkout@v3
-   #     - name: print
-   #       run: |
-   #           pwd
-   #           ls
-   #     - name: Download builded documentation
-   #       uses: actions/download-artifact@v3
-   #       with:
-   #         name: package_build
-   #     - name: print
-   #       run: |
-   #           pwd
-   #           ls
-
-
-
 #---- Run tests -----#
    run-tests:
        name: run test scripts
@@ -205,7 +142,7 @@ jobs:
 
         - name: Install the package
           run: |
-              python3 -m pip install ./metobs_toolkit-*.tar.gz
+              python3 -m pip install metobs_toolkit-*.tar.gz
         - name: Run tests
           run: |
               python tests\push_test\import_test.py
