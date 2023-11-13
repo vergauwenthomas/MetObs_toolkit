@@ -38,19 +38,18 @@ jobs:
          run: |
              poetry update
              poetry install --all-extras
-        - name: export documentation requirement group
-          run: |
-              poetry export -f requirements.txt --without-hashes --only documentation -o only_doc_req.txt
-          uses: actions/upload-artifact@v3
-          with:
+       - name: export documentation requirement group
+         run: |
+             poetry export -f requirements.txt --without-hashes --only documentation -o only_doc_req.txt
+         uses: actions/upload-artifact@v3
+         with:
             name: documentation_requirements
             path: only_doc_req.txt
-
-        - name: export titan requirement group
-          run: |
-              poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
-          uses: actions/upload-artifact@v3
-          with:
+       - name: export titan requirement group
+         run: |
+             poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
+         uses: actions/upload-artifact@v3
+         with:
             name: titan_requirements
             path: only_titan_req.txt
 
@@ -119,44 +118,44 @@ jobs:
 
 
 #---- Run tests -----#
-    run-tests:
-      name: run test scripts
-      needs: packageing
-      runs-on: ${{ matrix.os }}
-      strategy:
+   run-tests:
+       name: run test scripts
+       needs: packageing
+       runs-on: ${{ matrix.os }}
+       strategy:
         # You can use PyPy versions in python-version.
         # For example, pypy-2.7 and pypy-3.8
-        matrix:
-          python-version: ["3.9", "3.10"]
+         matrix:
+           python-version: ["3.9", "3.10"]
           # os: [ubuntu-latest, windows-latest]
-          os: [ubuntu-latest]
-          node-version: [12.x]
-      steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python ${{ matrix.python-version }}
-          uses: actions/setup-python@v4
-          with:
-            python-version: ${{ matrix.python-version }}
+           os: [ubuntu-latest]
+           node-version: [12.x]
+       steps:
+         - uses: actions/checkout@v3
+         - name: Set up Python ${{ matrix.python-version }}
+           uses: actions/setup-python@v4
+           with:
+             python-version: ${{ matrix.python-version }}
             #cache: 'poetry'
         # You can test your matrix by printing the current Python version
-        - name: Display Python version
-          run: python -c "import sys; print(sys.version)"
-        - name: Download the package build
-          uses: actions/download-artifact@v3
-          with:
-            name: package_build
-        - name: Install the package
-          run: |
-              python3 -m pip install ./metobs_toolkit-*.tar.gz
-       - name: get titanlib requirements
-         uses: actions/download-artifact@v3
-         with:
-           name: titan_requirements
-        - name: install titanlib
+         - name: Display Python version
+           run: python -c "import sys; print(sys.version)"
+         - name: Download the package build
+           uses: actions/download-artifact@v3
+           with:
+             name: package_build
+         - name: Install the package
+           run: |
+               python3 -m pip install ./metobs_toolkit-*.tar.gz
+         - name: get titanlib requirements
+           uses: actions/download-artifact@v3
+           with:
+             name: titan_requirements
+         - name: install titanlib
            run: |
                pip install -r only_titan_req.txt
-        - name: Run tests
-          run: |
+         - name: Run tests
+           run: |
               python tests/push_test/gap_and_fill_test.py
               python tests/push_test/IO_test.py
               python tests/push_test/qc_test.py
@@ -165,7 +164,7 @@ jobs:
               python tests/push_test/analysis_test.py
 
 #--- Package os installation ---
-    mac_install_testing:
+   mac_install_testing:
       name: Installation on Mac latest
       needs: packageing
       runs-on: macos-latest
@@ -187,7 +186,7 @@ jobs:
           run: |
               python tests/push_test/import_test.py
 
-    windows_install_testing:
+   windows_install_testing:
       name: Installation on Windows latest
       runs-on: windows-latest
       steps:
@@ -210,7 +209,7 @@ jobs:
 
 
 #---- Version Control -----#
-    versiontest:
+   versiontest:
       name: check if version is valid
       needs: run-tests
       runs-on: ubuntu-latest
@@ -232,7 +231,7 @@ jobs:
             exit 1
 
 #---- Documentation build -----#
-    doctests:
+   doctests:
       name: documentation-test
       #needs: versiontest
       runs-on: ubuntu-latest
@@ -256,13 +255,13 @@ jobs:
         - name: Install the package
           run: |
               python3 -m pip install ./metobs_toolkit-*.tar.gz
-       - name: get documentation requirements
-         uses: actions/download-artifact@v3
-         with:
-           name: documentation_requirements
+        - name: get documentation requirements
+          uses: actions/download-artifact@v3
+          with:
+            name: documentation_requirements
         - name: install doc depending packages
-           run: |
-               pip install -r only_doc_req.txt
+          run: |
+              pip install -r only_doc_req.txt
         - name: Build documentation
           run: |
               sphinx-build -a -E docs _build
@@ -278,22 +277,23 @@ jobs:
                 _build
 
 #---- Deploy documentation -----#
-    deploy_doc:
+   deploy_doc:
       name: Deploy main documentation
       needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
       runs-on: ubuntu-latest
-      --noif: github.ref == 'refs/heads/master'
+      if: |
+          github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
       steps:
           - uses: actions/checkout@v3
           - name: deploy artifact
             uses: peaceiris/actions-gh-pages@v3
             with:
-            publish_branch: gh-pages
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            publish_dir: _build/
-            force_orphan: true
+              publish_branch: gh-pages
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              publish_dir: _build/
+              force_orphan: true
 
-    deploy_doc_dev:
+   deploy_doc_dev:
       name: Deploy dev documentation
       needs: [doctests]
       runs-on: ubuntu-latest
@@ -312,28 +312,20 @@ jobs:
           - name: deploy artifact
             uses: peaceiris/actions-gh-pages@v3
             with:
-            publish_branch: gh-pages-dev
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            publish_dir: .
-            force_orphan: true
-
-
-
-
+              publish_branch: gh-pages-dev
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              publish_dir: .
+              force_orphan: true
 
 # ---- delete artifacts that are not for storage -----
-   cleanup_artifacts
-
-   steps:
-    needs: [doctests,run-tests,versiontest,mac_install_testing,
-            windows_install_testing,deploy_doc, deploy_doc_dev]
-    name: delete artifacts
- #needs: versiontest
-    runs-on: ubuntu-latest
-    steps:
-     - uses: actions/checkout@v3
-     - uses: geekyeggo/delete-artifact@v2
-       with:
+   cleanup_artifacts:
+     name: delete artifacts
+     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing,deploy_doc_dev, deploy_doc]
+     runs-on: ubuntu-latest
+     steps:
+      - uses: actions/checkout@v3
+      - uses: geekyeggo/delete-artifact@v2
+        with:
           name: |
               package_build
               documentation_requirements
