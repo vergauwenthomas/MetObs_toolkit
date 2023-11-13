@@ -212,55 +212,66 @@ jobs:
         - name: Build documentation
           run: |
               sphinx-build -a -E docs _build
-        - name: save documentation build
+        - name: deploy documentation
           #if: |
           #  github.ref == 'refs/heads/dev' ||
           #  github.ref == 'refs/head/main' ||
           #  contains(github.event.head_commit.message, 'build doc')
-          uses: actions/upload-artifact@v3
-          with:
-            name: doc_build
-            path: |
-                _build
-
-#---- Deploy documentation -----#
-   deploy_doc:
-    name: Deploy main documentation
-    needs: [packageing, doctests]
-    #needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
-    runs-on: ubuntu-latest
-    #if: |
-    #    github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    steps:
-        - uses: actions/checkout@v3
-        - name: printout
-          run: |
-              pwd
-              ls
-        - name: make _build dir
-          run: |
-             mkdir _build
-             cd _build
-        - name: download artifact
-          uses: actions/download-artifact@v3
-          with:
-            name: doc_build
-        - name: navigate
-          run: cd ..
-        - name: printout
-          run: |
-              pwd
-              ls
-              cd _build
-              ls
-              cd ..
-        - name: deploy artifact
           uses: peaceiris/actions-gh-pages@v3
           with:
             publish_branch: gh-pages
             github_token: ${{ secrets.GITHUB_TOKEN }}
             publish_dir: _build/
             force_orphan: true
+        #- name: save documentation build
+          #if: |
+          #  github.ref == 'refs/heads/dev' ||
+          #  github.ref == 'refs/head/main' ||
+          #  contains(github.event.head_commit.message, 'build doc')
+        #  uses: actions/upload-artifact@v3
+        #  with:
+        #    name: doc_build
+        #    path: |
+        #        _build
+
+#---- Deploy documentation -----#
+ #  deploy_doc:
+ #   name: Deploy main documentation
+ #   needs: [packageing, doctests]
+    #needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
+ #   runs-on: ubuntu-latest
+    #if: |
+    #    github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+ #   steps:
+ #       - uses: actions/checkout@v3
+ #       - name: printout
+ #        run: |
+ #             pwd
+ #             ls
+ #       - name: make _build dir
+ #         run: |
+ #            mkdir _build
+ #            cd _build
+ #       - name: download artifact
+ #         uses: actions/download-artifact@v3
+ #         with:
+ #           name: doc_build
+ #       - name: navigate
+ #         run: cd ..
+ #       - name: printout
+ #         run: |
+ #             pwd
+ #             ls
+ #             cd _build
+ #             ls
+ #             cd ..
+ #       - name: deploy artifact
+ #         uses: peaceiris/actions-gh-pages@v3
+ #         with:
+ #           publish_branch: gh-pages
+ #           github_token: ${{ secrets.GITHUB_TOKEN }}
+ #           publish_dir: _build/
+ #           force_orphan: true
 
 
    # deploy_doc:
