@@ -3,7 +3,7 @@ name: Test pushed version
 on: [push]
 
 jobs:
-   Packageing:
+   packageing:
      name: Build the package
      runs-on: ubuntu-latest
      steps:
@@ -28,17 +28,17 @@ jobs:
              poetry update
              poetry install --all-extras
              poetry build
-      - name: save package as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: package_build
-          path: dist/*.tar.gz
+       - name: save package as artifact
+         uses: actions/upload-artifact@v3
+         with:
+           name: package_build
+           path: dist/*.tar.gz
 
 
 
    testing:
      name: test the package
-     needs: Packageing
+     needs: packageing
      runs-on: ubuntu-latest
      steps:
        - uses: actions/checkout@v3
