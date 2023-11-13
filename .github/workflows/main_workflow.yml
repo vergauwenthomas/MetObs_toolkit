@@ -7,8 +7,6 @@ jobs:
    packageing:
      name: Build the package
      runs-on: ubuntu-latest
-     outputs:
-      pkg_file: ${{ steps.base_def.outputs.filename }}
      steps:
        - uses: actions/checkout@v3
        - name: Set up Python39
@@ -35,7 +33,8 @@ jobs:
          id: base_def
          run: |
              rel_path=$(find dist/ -name 'metobs_toolkit-*.tar.gz' -print -quit)
-             filename=$(basename "$rel_path")
+             echo "filename=$(basename "$rel_path")" >> $GITHUB_OUTPUT
+             
        - name: save package as artifact
          uses: actions/upload-artifact@v3
          with:
@@ -115,8 +114,6 @@ jobs:
       needs: packageing
       runs-on: macos-latest
       steps:
-        - env:
-             pkg_file: ${{needs.packageing.outputs.pkg_file}}
         - uses: actions/checkout@v3
         - name: Set up Python39
           uses: actions/setup-python@v4
@@ -129,7 +126,7 @@ jobs:
 
         - name: Install the package
           run: |
-              python3 -m pip install ${pkg_file}
+              python3 -m pip install ${{packageing.base_def.outputs.filename}}
         - name: Run tests
           run: |
               python tests/push_test/import_test.py
@@ -139,8 +136,6 @@ jobs:
       needs: packageing
       runs-on: windows-latest
       steps:
-        - env:
-             pkg_file: ${{needs.packageing.outputs.pkg_file}}
         - uses: actions/checkout@v3
         - name: Set up Python39
           uses: actions/setup-python@v4
@@ -153,7 +148,7 @@ jobs:
 
         - name: Install the package
           run: |
-              python3 -m pip install $pkg_file
+              python3 -m pip install ${{packageing.base_def.outputs.filename}}
         - name: Run tests
           run: |
               python tests\push_test\import_test.py
