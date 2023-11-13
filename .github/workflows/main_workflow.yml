@@ -228,10 +228,14 @@ jobs:
       name: Deploy main documentation
       needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
       runs-on: ubuntu-latest
-      if: |
-          github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+      #if: |
+      #    github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
       steps:
           - uses: actions/checkout@v3
+          - name: printout
+            run: |
+                pwd
+                ls
           - name: deploy artifact
             uses: peaceiris/actions-gh-pages@v3
             with:
