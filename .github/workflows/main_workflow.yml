@@ -7,6 +7,8 @@ jobs:
    packageing:
      name: Build the package
      runs-on: ubuntu-latest
+     outputs:
+      pkg_file: ${{ steps.base_def.outputs.filename }}
      steps:
        - uses: actions/checkout@v3
        - name: Set up Python39
@@ -91,7 +93,7 @@ jobs:
              name: package_build
          - name: Install the package
            run: |
-               python3 -m pip install ./metobs_toolkit-*.tar.gz
+               python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
          - name: get titanlib requirements
            uses: actions/download-artifact@v3
            with:
@@ -126,7 +128,7 @@ jobs:
 
         - name: Install the package
           run: |
-              python3 -m pip install ${{packageing.base_def.outputs.filename}}
+              python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
         - name: Run tests
           run: |
               python tests/push_test/import_test.py
@@ -148,7 +150,7 @@ jobs:
 
         - name: Install the package
           run: |
-              python3 -m pip install ${{packageing.base_def.outputs.filename}}
+              python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
         - name: Run tests
           run: |
               python tests\push_test\import_test.py
