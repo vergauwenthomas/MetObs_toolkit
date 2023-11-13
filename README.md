@@ -1,8 +1,7 @@
 [![PyPI version](https://badge.fury.io/py/metobs-toolkit.svg)](https://badge.fury.io/py/metobs-toolkit)
 [![status](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d/status.svg)](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d)
 [![Installation testing](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/os_istall_test.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/os_istall_test.yml)
-[![Test pushed version](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/master_test.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/master_test.yml)
-[![Build and deploy documentation](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/build_and_deploy_doc_dev.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/build_and_deploy_doc_dev.yml)
+[![Tests passing](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml)
 [![PyPi Installation testing](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/os_pip_install_test.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/os_pip_install_test.yml)
 
 
