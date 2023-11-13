@@ -41,6 +41,7 @@ jobs:
        - name: export documentation requirement group
          run: |
              poetry export -f requirements.txt --without-hashes --only documentation -o only_doc_req.txt
+       - name: convert doc requirments to artifact
          uses: actions/upload-artifact@v3
          with:
             name: documentation_requirements
@@ -48,6 +49,7 @@ jobs:
        - name: export titan requirement group
          run: |
              poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
+       - name: convert titan requirements to artifact
          uses: actions/upload-artifact@v3
          with:
             name: titan_requirements
