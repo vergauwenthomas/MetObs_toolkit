@@ -169,6 +169,10 @@ jobs:
          github.ref == 'refs/heads/dev' || contains(github.event.head_commit.message, 'build doc')
       steps:
          - uses: actions/checkout@v3
+         - name: Download builded documentation
+           uses: actions/download-artifact@v3
+           with:
+             name: doc_build
          - name: check _build
            run: |
                pwd
