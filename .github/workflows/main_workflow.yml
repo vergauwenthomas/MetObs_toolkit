@@ -190,6 +190,7 @@ jobs:
 
    windows_install_testing:
       name: Installation on Windows latest
+      needs: packageing
       runs-on: windows-latest
       steps:
         - uses: actions/checkout@v3
@@ -213,7 +214,6 @@ jobs:
 #---- Version Control -----#
    versiontest:
       name: check if version is valid
-      needs: run-tests
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v3
@@ -235,7 +235,7 @@ jobs:
 #---- Documentation build -----#
    doctests:
       name: documentation-test
-      #needs: versiontest
+      needs: packageing
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v3
