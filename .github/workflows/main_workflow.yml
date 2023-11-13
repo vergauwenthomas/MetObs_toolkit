@@ -184,7 +184,7 @@ jobs:
            with:
             publish_branch: gh-pages-dev
             github_token: ${{ secrets.GITHUB_TOKEN }}
-            publish_dir: _build/
+            publish_dir: .
             force_orphan: true
 
 
