@@ -138,6 +138,12 @@ jobs:
          run: |
              poetry show
              poetry run sphinx-build -a -E docs _build
+       - name: save documentation build
+         uses: actions/upload-artifact@v3
+         with:
+           name: doc_build
+           path: |
+                _build
 
 #---- Deploy documentation -----#
    # deploy_doc:
