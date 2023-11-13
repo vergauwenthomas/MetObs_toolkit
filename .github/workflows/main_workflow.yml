@@ -213,10 +213,10 @@ jobs:
           run: |
               sphinx-build -a -E docs _build
         - name: save documentation build
-          if: |
-            github.ref == 'refs/heads/dev' ||
-            github.ref == 'refs/head/main' ||
-            contains(github.event.head_commit.message, 'build doc')
+          #if: |
+          #  github.ref == 'refs/heads/dev' ||
+          #  github.ref == 'refs/head/main' ||
+          #  contains(github.event.head_commit.message, 'build doc')
           uses: actions/upload-artifact@v3
           with:
             name: doc_build
