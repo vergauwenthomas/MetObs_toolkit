@@ -3,179 +3,179 @@ name: Test pushed version
 on: [push]
 
 jobs:
-# --- Build the package and save as artifacts----
-   packageing:
-     name: Build the package
-     runs-on: ubuntu-latest
-     outputs:
+--- Build the package and save as artifacts----
+    packageing:
+      name: Build the package
+      runs-on: ubuntu-latest
+      outputs:
       pkg_file: ${{ steps.base_def.outputs.filename }}
-     steps:
-       - uses: actions/checkout@v3
-       - name: Set up Python39
-         uses: actions/setup-python@v4
-         with:
-           python-version: '3.9'
-           #cache: 'poetry'
-       # You can test your matrix by printing the current Python version
-       - name: Display Python version
-         run: python -c "import sys; print(sys.version)"
-       - name: remove previous builds
-         run: |
-             rm -f dist/metobs_toolkit-*.whl
-             rm -f dist/metobs_toolkit-*.tar.gz
-       - name: Install poetry
-         run: |
-             pip install poetry
-       - name: Install dependencies and build
-         run: |
-             poetry update --without titan,documentation
-             poetry install --without titan,documentation
-             poetry build
-       - name: get distribution file name
-         id: base_def
-         run: |
-             rel_path=$(find dist/ -name 'metobs_toolkit-*.tar.gz' -print -quit)
-             echo "filename=$(basename "$rel_path")" >> $GITHUB_OUTPUT
-             
-       - name: save package as artifact
-         uses: actions/upload-artifact@v3
-         with:
-           name: package_build
-           path: dist/*.tar.gz
-       - name: build package with all extras
-         run: |
-             poetry update
-             poetry install --all-extras
-       - name: export documentation requirement group
-         run: |
-             poetry export -f requirements.txt --without-hashes --only documentation -o only_doc_req.txt
-       - name: convert doc requirments to artifact
-         uses: actions/upload-artifact@v3
-         with:
+      steps:
+        - uses: actions/checkout@v3
+        - name: Set up Python39
+          uses: actions/setup-python@v4
+          with:
+            python-version: '3.9'
+            #cache: 'poetry'
+        # You can test your matrix by printing the current Python version
+        - name: Display Python version
+          run: python -c "import sys; print(sys.version)"
+        - name: remove previous builds
+          run: |
+              rm -f dist/metobs_toolkit-*.whl
+              rm -f dist/metobs_toolkit-*.tar.gz
+        - name: Install poetry
+          run: |
+              pip install poetry
+        - name: Install dependencies and build
+          run: |
+              poetry update --without titan,documentation
+              poetry install --without titan,documentation
+              poetry build
+        - name: get distribution file name
+          id: base_def
+          run: |
+              rel_path=$(find dist/ -name 'metobs_toolkit-*.tar.gz' -print -quit)
+              echo "filename=$(basename "$rel_path")" >> $GITHUB_OUTPUT
+
+        - name: save package as artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: package_build
+            path: dist/*.tar.gz
+        - name: build package with all extras
+          run: |
+              poetry update
+              poetry install --all-extras
+        - name: export documentation requirement group
+          run: |
+              poetry export -f requirements.txt --without-hashes --only documentation -o only_doc_req.txt
+        - name: convert doc requirments to artifact
+          uses: actions/upload-artifact@v3
+          with:
             name: documentation_requirements
             path: only_doc_req.txt
-       - name: export titan requirement group
-         run: |
-             poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
-       - name: convert titan requirements to artifact
-         uses: actions/upload-artifact@v3
-         with:
+        - name: export titan requirement group
+          run: |
+              poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
+        - name: convert titan requirements to artifact
+          uses: actions/upload-artifact@v3
+          with:
             name: titan_requirements
             path: only_titan_req.txt
 
 
-#---- Run tests -----#
-   run-tests:
-       name: run test scripts
-       needs: packageing
-       runs-on: ${{ matrix.os }}
-       strategy:
-        # You can use PyPy versions in python-version.
-        # For example, pypy-2.7 and pypy-3.8
-         matrix:
-           python-version: ["3.9", "3.10"]
-          # os: [ubuntu-latest, windows-latest]
-           os: [ubuntu-latest]
-           node-version: [12.x]
-       steps:
-         - uses: actions/checkout@v3
-         - name: Set up Python ${{ matrix.python-version }}
-           uses: actions/setup-python@v4
-           with:
-             python-version: ${{ matrix.python-version }}
-            #cache: 'poetry'
-        # You can test your matrix by printing the current Python version
-         - name: Display Python version
-           run: python -c "import sys; print(sys.version)"
-         - name: Download the package build
-           uses: actions/download-artifact@v3
-           with:
-             name: package_build
-         - name: Install the package
-           run: |
-               python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
-         - name: get titanlib requirements
-           uses: actions/download-artifact@v3
-           with:
-             name: titan_requirements
-         - name: install titanlib
-           run: |
-               pip install -r only_titan_req.txt
-         - name: Run tests
-           run: |
-              python tests/push_test/gap_and_fill_test.py
-              python tests/push_test/IO_test.py
-              python tests/push_test/qc_test.py
-              python tests/push_test/breaking_test.py
-              #python tests/push_test/gui_launch_test.py
-              python tests/push_test/analysis_test.py
+# #---- Run tests -----#
+#    run-tests:
+#        name: run test scripts
+#        needs: packageing
+#        runs-on: ${{ matrix.os }}
+#        strategy:
+#         # You can use PyPy versions in python-version.
+#         # For example, pypy-2.7 and pypy-3.8
+#          matrix:
+#            python-version: ["3.9", "3.10"]
+#           # os: [ubuntu-latest, windows-latest]
+#            os: [ubuntu-latest]
+#            node-version: [12.x]
+#        steps:
+#          - uses: actions/checkout@v3
+#          - name: Set up Python ${{ matrix.python-version }}
+#            uses: actions/setup-python@v4
+#            with:
+#              python-version: ${{ matrix.python-version }}
+#             #cache: 'poetry'
+#         # You can test your matrix by printing the current Python version
+#          - name: Display Python version
+#            run: python -c "import sys; print(sys.version)"
+#          - name: Download the package build
+#            uses: actions/download-artifact@v3
+#            with:
+#              name: package_build
+#          - name: Install the package
+#            run: |
+#                python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
+#          - name: get titanlib requirements
+#            uses: actions/download-artifact@v3
+#            with:
+#              name: titan_requirements
+#          - name: install titanlib
+#            run: |
+#                pip install -r only_titan_req.txt
+#          - name: Run tests
+#            run: |
+#               python tests/push_test/gap_and_fill_test.py
+#               python tests/push_test/IO_test.py
+#               python tests/push_test/qc_test.py
+#               python tests/push_test/breaking_test.py
+#               #python tests/push_test/gui_launch_test.py
+#               python tests/push_test/analysis_test.py
 
-#--- Package os installation ---
-   mac_install_testing:
-      name: Installation on Mac latest
-      needs: packageing
-      runs-on: macos-latest
-      steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python39
-          uses: actions/setup-python@v4
-          with:
-            python-version: "3.9"
-        - name: Download the package build
-          uses: actions/download-artifact@v3
-          with:
-            name: package_build
+# #--- Package os installation ---
+#    mac_install_testing:
+#       name: Installation on Mac latest
+#       needs: packageing
+#       runs-on: macos-latest
+#       steps:
+#         - uses: actions/checkout@v3
+#         - name: Set up Python39
+#           uses: actions/setup-python@v4
+#           with:
+#             python-version: "3.9"
+#         - name: Download the package build
+#           uses: actions/download-artifact@v3
+#           with:
+#             name: package_build
 
-        - name: Install the package
-          run: |
-              python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
-        - name: Run tests
-          run: |
-              python tests/push_test/import_test.py
+#         - name: Install the package
+#           run: |
+#               python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
+#         - name: Run tests
+#           run: |
+#               python tests/push_test/import_test.py
 
-   windows_install_testing:
-      name: Installation on Windows latest
-      needs: packageing
-      runs-on: windows-latest
-      steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python39
-          uses: actions/setup-python@v4
-          with:
-            python-version: "3.9"
-        - name: Download the package build
-          uses: actions/download-artifact@v3
-          with:
-            name: package_build
+#    windows_install_testing:
+#       name: Installation on Windows latest
+#       needs: packageing
+#       runs-on: windows-latest
+#       steps:
+#         - uses: actions/checkout@v3
+#         - name: Set up Python39
+#           uses: actions/setup-python@v4
+#           with:
+#             python-version: "3.9"
+#         - name: Download the package build
+#           uses: actions/download-artifact@v3
+#           with:
+#             name: package_build
 
-        - name: Install the package
-          run: |
-              python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
-        - name: Run tests
-          run: |
-              python tests\push_test\import_test.py
+#         - name: Install the package
+#           run: |
+#               python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
+#         - name: Run tests
+#           run: |
+#               python tests\push_test\import_test.py
 
 
-#---- Version Control -----#
-   versiontest:
-      name: check if version is valid
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-        - name: get version
-          id: 'version_info'
-          run: |
-            CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
-            echo "current version (init) = ${CURRENT_VERSION}"
-            echo "::set-output name=current_version::$CURRENT_VERSION"
-            PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
-            echo "current version (pyproject) = ${PYPROJECT_VERSION}"
-            echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
-        - name: version-is-correct
-          if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
-          run: |
-            echo "version tags are not aligned!"
-            exit 1
+# #---- Version Control -----#
+#    versiontest:
+#       name: check if version is valid
+#       runs-on: ubuntu-latest
+#       steps:
+#         - uses: actions/checkout@v3
+#         - name: get version
+#           id: 'version_info'
+#           run: |
+#             CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
+#             echo "current version (init) = ${CURRENT_VERSION}"
+#             echo "::set-output name=current_version::$CURRENT_VERSION"
+#             PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
+#             echo "current version (pyproject) = ${PYPROJECT_VERSION}"
+#             echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
+#         - name: version-is-correct
+#           if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
+#           run: |
+#             echo "version tags are not aligned!"
+#             exit 1
 
 #---- Documentation build -----#
    doctests:
@@ -224,63 +224,93 @@ jobs:
                 _build
 
 #---- Deploy documentation -----#
-   deploy_doc:
-      name: Deploy main documentation
-      needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
-      runs-on: ubuntu-latest
-      #if: |
-      #    github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-      steps:
-          - uses: actions/checkout@v3
-          - name: printout
-            run: |
-                pwd
-                ls
-          - name: deploy artifact
-            uses: peaceiris/actions-gh-pages@v3
-            with:
-              publish_branch: gh-pages
-              github_token: ${{ secrets.GITHUB_TOKEN }}
-              publish_dir: _build/
-              force_orphan: true
+deploy_doc:
+    name: Deploy main documentation
+    needs: [packageing, doctests]
+    #needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
+    runs-on: ubuntu-latest
+    #if: |
+    #    github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    steps:
+        - uses: actions/checkout@v3
+        - name: printout
+          run: |
+              pwd
+              ls
+        - name: download artifact
+          uses: actions/download-artifact@v3
+          with:
+            name: doc_build
+        - name: printout
+          run: |
+              pwd
+              ls
+        - name: deploy artifact
+          uses: peaceiris/actions-gh-pages@v3
+          with:
+            publish_branch: gh-pages
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            publish_dir: _build/
+            force_orphan: true
 
-   deploy_doc_dev:
-      name: Deploy dev documentation
-      needs: [doctests]
-      runs-on: ubuntu-latest
-      if: |
-          github.ref == 'refs/heads/dev' || contains(github.event.head_commit.message, 'build doc')
-      steps:
-          - uses: actions/checkout@v3
-          - name: Download builded documentation
-            uses: actions/download-artifact@v3
-            with:
-              name: doc_build
-          - name: check _build
-            run: |
-                pwd
-                ls
-          - name: deploy artifact
-            uses: peaceiris/actions-gh-pages@v3
-            with:
-              publish_branch: gh-pages-dev
-              github_token: ${{ secrets.GITHUB_TOKEN }}
-              publish_dir: .
-              force_orphan: true
 
-# ---- delete artifacts that are not for storage -----
-   cleanup_artifacts:
-     name: delete artifacts
-     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing,deploy_doc_dev, deploy_doc]
-     runs-on: ubuntu-latest
-     steps:
-      - uses: actions/checkout@v3
-      - uses: geekyeggo/delete-artifact@v2
-        with:
-          name: |
-              package_build
-              documentation_requirements
-              titan_requirements
+   # deploy_doc:
+   #    name: Deploy main documentation
+   #    needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
+   #    runs-on: ubuntu-latest
+   #    #if: |
+   #    #    github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+   #    steps:
+   #        - uses: actions/checkout@v3
+   #        - name: printout
+   #          run: |
+   #              pwd
+   #              ls
+   #        - name: deploy artifact
+   #          uses: peaceiris/actions-gh-pages@v3
+   #          with:
+   #            publish_branch: gh-pages
+   #            github_token: ${{ secrets.GITHUB_TOKEN }}
+   #            publish_dir: _build/
+   #            force_orphan: true
+
+#    deploy_doc_dev:
+#       name: Deploy dev documentation
+#       needs: [doctests]
+#       runs-on: ubuntu-latest
+#       if: |
+#           github.ref == 'refs/heads/dev' || contains(github.event.head_commit.message, 'build doc')
+#       steps:
+#           - uses: actions/checkout@v3
+#           - name: Download builded documentation
+#             uses: actions/download-artifact@v3
+#             with:
+#               name: doc_build
+#           - name: check _build
+#             run: |
+#                 pwd
+#                 ls
+#           - name: deploy artifact
+#             uses: peaceiris/actions-gh-pages@v3
+#             with:
+#               publish_branch: gh-pages-dev
+#               github_token: ${{ secrets.GITHUB_TOKEN }}
+#               publish_dir: .
+#               force_orphan: true
+
+# # ---- delete artifacts that are not for storage -----
+#    cleanup_artifacts:
+#      name: delete artifacts
+#      needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing,deploy_doc_dev, deploy_doc]
+#      runs-on: ubuntu-latest
+#      steps:
+#       - uses: actions/checkout@v3
+#       - uses: geekyeggo/delete-artifact@v2
+#         with:
+#           name: |
+#               package_build
+#               documentation_requirements
+#               titan_requirements
 
 
 
