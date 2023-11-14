@@ -119,6 +119,8 @@ After the code review, and all review marks are resolved, your contributions wil
  ## Versioning/Tagging
  From time to time the *dev* branch will be merged with the master with a new [*Release tag*](https://github.com/vergauwenthomas/MetObs_toolkit/releases). The new release will be deployed to [PyPi index](https://pypi.org/project/MetObs-toolkit/) with the adequate versioning specified.
 
+# Support
+For general support or questions, you can refer them to @vergauwenthomas, or by mail to (thomas.vergauwen@meteo.be).
 
- # Acknowledgement
+# Acknowledgement
 This file is inspired by the [RavenPy](https://github.com/CSHS-CWRA/RavenPy) project. Thank you for the inspiration!”. 
