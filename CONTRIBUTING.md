@@ -50,14 +50,14 @@ Any form of feedback is much appreciated. The best way to send feedback is to fi
 
 
 ## Get Started
-Ready to make code contributions? Here is how to set up a developer's environment for the toolkit. 
+Ready to make code contributions? Here is how to set up a developer's environment for the toolkit.
 
 ### Required software
 The following software (or equivalent) is required to set up a developer environment:
 * [Anaconda](https://anaconda.org/)
 * [Pandoc](https://pandoc.org/index.html)
 
-Make sure you have this software installed before proceeding. 
+Make sure you have this software installed before proceeding.
 
 ### Setup a developer environment
 1. Clone the MetObs-toolkit locally:
@@ -76,7 +76,6 @@ Make sure you have this software installed before proceeding.
 
   # Install dependencies in the developers' environment
   cd MetObs_toolkit
-  rm -f poetry.lock
   poetry install --with documentation
   ```
 3. Create a branch for local development which is a copy of the **dev** branch.:
@@ -93,7 +92,7 @@ Make sure you have this software installed before proceeding.
 4. Test your changes locally. The [build_and_test.sh](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/deploiment/build_and_test.sh) script builds the package and runs a series of tests. All tests must be successful before your contributions can be merged in the dev branch.
 
   ```
-  source deploiment/build_and_test.sh  
+  source deploiment/build_and_test.sh
   ```
 5. Push your code online:
    ```
@@ -108,7 +107,7 @@ Make sure you have this software installed before proceeding.
    git push
    ```
 
-   
+
 ## Pull Request Guidelines
 Once your branch has been *pushed* to github, you can create a *Pull request* in github. Make sure that you have **referred the corresponding issues** to the *Pull request*.
 If your code adaptations are still *work-in-progress* add the https://github.com/vergauwenthomas/MetObs_toolkit/labels/WIP label to it. For each push, github will perform a list of checks (package building, version control, functionality test, os-tests, documentation build test), in order to merge your contributions these tests must all be successful.
@@ -116,6 +115,6 @@ If your code adaptations are still *work-in-progress* add the https://github.com
 If your code is ready for review, you can add the https://github.com/vergauwenthomas/MetObs_toolkit/labels/Ready_for_Review label to it.
 
 After the code review, and all review marks are resolved, your contributions will be merged to the *dev* branch.
- 
+
  ## Versioning/Tagging
  From time to time the *dev* branch will be merged with the master with a new [*Release tag*](https://github.com/vergauwenthomas/MetObs_toolkit/releases). The new release will be deployed to [PyPi index](https://pypi.org/project/MetObs-toolkit/) with the adequate versioning specified.
