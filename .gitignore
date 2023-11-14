@@ -6,7 +6,7 @@ temp_output/*
 *~lock*
 *.swp
 *poetry.lock
-
+poetry.lock
 
 #Exclude deploy scripts
 deploiment/*_log
