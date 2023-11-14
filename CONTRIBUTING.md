@@ -1,19 +1,17 @@
-============
-Contributing
-============
+
+# Contributing
+
 
 All contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.
 
 You can contribute in many ways:
 
-Types of Contributions
-----------------------
+## Types of Contributions
 
-Feature Requests
-~~~~~~~~~~~~~~~~
+### Feature Requests
 
 If you are interested in a new Feature, you can add it as an [issue](https://github.com/vergauwenthomas/MetObs_toolkit/issues)
-with the *enhanced* label.
+with the https://github.com/vergauwenthomas/MetObs_toolkit/labels/enhancement label.
 
 In the issues describe clearly new feature or functionallity you want to see implemented in the toolkit. If the request is specific for your application/data, make shure to
 add a sample of your data, a template and a description.
@@ -21,10 +19,8 @@ add a sample of your data, a template and a description.
 Assign yourself to the issue if you want to (help) implement the new request.
 
 
-Report Bugs
-~~~~~~~~~~~
-
-Report bugs at the as a new [issue](https://github.com/vergauwenthomas/MetObs_toolkit/issues) with the *enhanced* label.
+### Report Bugs
+Report bugs at the as a new [issue](https://github.com/vergauwenthomas/MetObs_toolkit/issues) with the https://github.com/vergauwenthomas/MetObs_toolkit/labels/bug label.
 
 If you are reporting a bug, please include:
 
@@ -34,144 +30,92 @@ If you are reporting a bug, please include:
 * Detailed steps to reproduce the bug.
 * If possible, provide a pickled version of your dataset (use [.save_dataset()](https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.save_dataset)). Limit the size of the dataset as much as possible.
 
-Fix Bugs
-~~~~~~~~
+### Fix Bugs
 
-Look through the GitHub issues for bugs. Anything tagged with "bug" and "invalid" is open to whoever wants to implement it.
-If you found yourself not so familiar with python you can start by filtering to the "easy"-labels.
+Look through the GitHub issues for bugs. Anything tagged with https://github.com/vergauwenthomas/MetObs_toolkit/labels/bug and https://github.com/vergauwenthomas/MetObs_toolkit/labels/invalid is open to whoever wants to implement it.
+If you find yourself not so familiar with Python you can start by filtering to the https://github.com/vergauwenthomas/MetObs_toolkit/labels/easy and https://github.com/vergauwenthomas/MetObs_toolkit/labels/good_first_issue labels.
 
-The "tricky"-label indicates that this issue might affect multiple modules of the toolkit, the data structures or is technical more challenging. Contact @vergauwenthomas to discuss a plan-of-attack in advance.
-
-
-Implement Features
-~~~~~~~~~~~~~~~~~~
-
-Look through the GitHub issues for features. Anything tagged with "enhancement" and "feature" is open to whoever wants to implement it.
-
-Write Documentation
-~~~~~~~~~~~~~~~~~~~
-
-The MetObs-toolkit could always use more documentation or spell checkers. Use the "documentation"-flag to indicate that your issue is documentation related.
-
-Submit Feedback
-~~~~~~~~~~~~~~~
-
-The best way to send feedback is to file an issue at https://github.com/CSHS-CWRA/ravenpy/issues.
-
-If you are proposing a feature:
-
-* Explain in detail how it would work.
-* Keep the scope as narrow as possible, to make it easier to implement.
-* Remember that this is a volunteer-driven project, and that contributions
-  are welcome :)
-
-Get Started!
-------------
-
-Ready to contribute? Here's how to set up `ravenpy` for local development.
-
-1. Fork the `ravenpy` repo on GitHub.
-2. Clone your fork locally::
-
-    $ git clone git@github.com:your_name_here/ravenpy.git
-
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
-
-    $ mkvirtualenv ravenpy
-    $ cd ravenpy/
-    $ pip install -e ".[dev]"
-
-4. To ensure a consistent style, please install the pre-commit hooks to your repo::
-
-    $ pre-commit install
-
-   Special style and formatting checks will be run when you commit your changes. You
-   can always run the hooks on their own with::
-
-    $ pre-commit run -a
-
-5. Create a branch for local development::
-
-    $ git checkout -b name-of-your-bugfix-or-feature
-
-   Now you can make your changes locally.
-
-6. When you're done making changes, check that your changes pass flake8, black, and the
-   tests, including testing other Python versions with tox::
-
-    $ flake8 ravenpy tests
-    $ black --check ravenpy tests
-    $ pytest tests
-    $ tox
-
-   To get flake8, black, and tox, just pip install them into your virtualenv.
-
-6. Commit your changes and push your branch to GitHub::
-
-    $ git add .
-    $ git commit -m "Your detailed description of your changes."
-    $ git push origin name-of-your-bugfix-or-feature
-
-7. If you are editing the docs, compile and open them with::
-
-    $ make docs
-    # or to simply generate the html
-    $ cd docs/
-    $ make html
-
-8. Submit a pull request through the GitHub website.
-
-Pull Request Guidelines
------------------------
-
-Before you submit a pull request, check that it meets these guidelines:
-
-1. The pull request should include tests.
-2. If the pull request adds functionality, the docs should be updated. Put
-   your new functionality into a function with a docstring, and add the
-   feature to the list in README.rst.
-3. The pull request should work for Python 3.8, 3.9, 3.10, and 3.11. Check
-   https://github.com/CSHS-CWRA/RavenPy/actions/workflows/main.yml
-   and make sure that the tests pass for all supported Python versions.
-
-Tips
-----
-
-To run a subset of tests::
-
-    $ pytest tests.test_ravenpy
+The https://github.com/vergauwenthomas/MetObs_toolkit/labels/tricky label indicates that this issue might affect multiple modules of the toolkit, the data structures or is technical more challenging. Contact @vergauwenthomas to discuss a plan-of-attack in advance.
 
 
-Versioning/Tagging
-------------------
+### Implement Features
 
-A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then run::
+Look through the GitHub issues for features. Anything tagged with https://github.com/vergauwenthomas/MetObs_toolkit/labels/enhancement and https://github.com/vergauwenthomas/MetObs_toolkit/labels/Feature is open to whoever wants to implement it.
 
-    $ bumpversion patch # possible: major / minor / patch
-    $ git push
-    $ git push --tags
+### Write Documentation
+The MetObs-toolkit could always use more documentation or spell checkers. Use the https://github.com/vergauwenthomas/MetObs_toolkit/labels/documentation to indicate that your issue is documentation-related.
 
-Packaging
----------
+### Submit Feedback
+Any form of feedback is much appreciated. The best way to send feedback is to file [an issue](https://github.com/vergauwenthomas/MetObs_toolkit/issues). If you cannot find a suitable label, you do not have to specify one.
 
-When a new version has been minted (features have been successfully integrated test coverage and stability is adequate),
-maintainers should update the pip-installable package (wheel and source release) on PyPI as well as the binary on conda-forge.
 
-The Automated Approach
-~~~~~~~~~~~~~~~~~~~~~~
+## Get Started
+Ready to make code contributions? Here is how to set up a developer's environment for the toolkit. 
 
-The simplest way to package `ravenpy` is to "publish" a version on GitHuh. GitHub CI Actions are presently configured to build the library and publish the packages on PyPI automatically.
+### Required software
+The following software (or equivalent) is required to set up a developer environment:
+* [Anaconda](https://anaconda.org/)
+* [Pandoc](https://pandoc.org/index.html)
 
-Tagged versions will trigger a GitHub Workflow (`tag-testpypi.yml`) that will attempt to build and publish the release on `TestPyPI <https://test.pypi.org>`_.
+Make sure you have this software installed before proceeding. 
 
-.. note::
-    Should this step fail, changes may be needed in the package; Be sure to remove this tag on GitHub and locally, address any existing problems, and recreate the tag.
+### Setup a developer environment
+1. Clone the MetObs-toolkit locally:
 
-To upload a new version to `PyPI <https://pypi.org/>`_, simply create a new "Published" release version on GitHub to trigger the upload workflow (`publish-pypi.yml`). When publishing on GitHub, the maintainer can either set the release notes manually (based on the `HISTORY.rst`), or set GitHub to generate release notes automatically. The choice of method is up to the maintainer.
+  ```
+  git clone git@github.com:vergauwenthomas/MetObs_toolkit.git
+  ```
+2. Create a conda environment and install the required packages.
+  ```
+  # Setup a developers' environment
+  conda create -n metobs_dev python==3.9 poetry
+  conda activate metobs_dev
 
-.. warning::
-    A published version on TestPyPI/PyPI can never be overwritten. Be sure to verify that the package published at https://test.pypi.org/project/ravenpy/ matches expectations before publishing a release version on GitHub.
+  #optional: install Spyder as IDE
+  #conda install spyder
 
-The Manual Approach
+  # Install dependencies in the developers' environment
+  cd MetObs_toolkit
+  rm -f poetry.lock
+  poetry install --with documentation
+  ```
+3. Create a branch for local development which is a copy of the **dev** branch.:
+ ```
+  # checkout the dev branch
+  git checkout dev
+  git pull
+
+  # Create a new local branch and switch to it.
+  git branch name-of-your-bugfix-or-feature
+  git checkout name-of-your-bugfix-or-feature
+  ```
+ Now you can make local changes.
+4. Test your changes locally. The [build_and_test.sh](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/deploiment/build_and_test.sh) script builds the package and runs a series of tests. All tests must be successful before your contributions can be merged in the dev branch.
+
+  ```
+  source deploiment/build_and_test.sh  
+  ```
+5. Push your code online:
+   ```
+   # Add your changes to your commit
+   git add -A
+   # Write commit text
+   git commit -m "Some text describing your code changes in this commit"
+   # Push your branch online
+   #only the first time:
+   git push --set-upstream origin name-of-your-bugfix-or-feature
+   #all other times
+   git push
+   ```
+
+   
+## Pull Request Guidelines
+Once your branch has been *pushed* to github, you can create a *Pull request* in github. Make sure that you have **referred the corresponding issues** to the *Pull request*.
+If your code adaptations are still *work-in-progress* add the https://github.com/vergauwenthomas/MetObs_toolkit/labels/WIP label to it. For each push, github will perform a list of checks (package building, version control, functionality test, os-tests, documentation build test), in order to merge your contributions these tests must all be successful.
+
+If your code is ready for review, you can add the https://github.com/vergauwenthomas/MetObs_toolkit/labels/Ready_for_Review label to it.
+
+After the code review, and all review marks are resolved, your contributions will be merged to the *dev* branch.
+ 
+ ## Versioning/Tagging
+ From time to time the *dev* branch will be merged with the master with a new *Release tag*. The new release will be deployed to [PyPi index](https://pypi.org/project/MetObs-toolkit/) with the adequate versioning specified.
