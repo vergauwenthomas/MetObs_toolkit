@@ -118,4 +118,4 @@ If your code is ready for review, you can add the https://github.com/vergauwenth
 After the code review, and all review marks are resolved, your contributions will be merged to the *dev* branch.
  
  ## Versioning/Tagging
- From time to time the *dev* branch will be merged with the master with a new *Release tag*. The new release will be deployed to [PyPi index](https://pypi.org/project/MetObs-toolkit/) with the adequate versioning specified.
+ From time to time the *dev* branch will be merged with the master with a new [*Release tag*](https://github.com/vergauwenthomas/MetObs_toolkit/releases). The new release will be deployed to [PyPi index](https://pypi.org/project/MetObs-toolkit/) with the adequate versioning specified.
