@@ -66,6 +66,7 @@ extensions = [
     "myst_parser",  # for including md files (readme)
     "sphinx.ext.autosectionlabel", #for cross linking
     "nbsphinx", #to render the notebook examples in the doc
+#    "sphinx_mdinclude", #to render .md files as rst --> hmtl
 ]
 
 
@@ -74,6 +75,14 @@ extensions = [
 
 templates_path = ["_templates"]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
+
+#Specify how to render the following file formats:
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.txt': 'markdown',
+    '.md': 'markdown',
+}
+
 
 # When building the doc, sphinx will try to import all the depending packages,
 # this is not needed and problematic when building the docs in a clean docker on gitlab.

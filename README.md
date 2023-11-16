@@ -1,3 +1,5 @@
+# MetObs-toolkit
+
 [![PyPI version](https://badge.fury.io/py/metobs-toolkit.svg)](https://badge.fury.io/py/metobs-toolkit)
 [![status](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d/status.svg)](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d)
 [![Tests passing](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml)
@@ -7,7 +9,6 @@
 
 
 
-# MetObs-toolkit
 The MetObs-toolkit provides a comprehensive framework for scientists to process raw meteorological data for analysis.
 This repo contains all the software for the [metobs_toolkit](https://test.pypi.org/project/metobs-toolkit/).
 
