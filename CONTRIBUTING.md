@@ -10,7 +10,8 @@ You can contribute in many ways:
 ### Feature Requests
 
 If you are interested in a new Feature, you can add it as an [issue](https://github.com/vergauwenthomas/MetObs_toolkit/issues)
-with the https://github.com/vergauwenthomas/MetObs_toolkit/labels/enhancement label.
+with the ![Static Badge](https://img.shields.io/badge/enhancement%20-%20%23a2eeef?link=https%3A%2F%2Fgithub.com%2Fvergauwenthomas%2FMetObs_toolkit%2Flabels%2Fenhancement)
+ label.
 
 In the issues describe clearly the new feature or functionality you want to see implemented in the toolkit. If the request is specific to your application/data, make sure to
 add a sample of your pickled Dataset (use [.save_dataset()](https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.save_dataset)).
@@ -18,7 +19,7 @@ add a sample of your pickled Dataset (use [.save_dataset()](https://vergauwentho
 Assign yourself to the issue if you want to (help) implement the new request. All help is much appreciated!
 
 ### Report Bugs
-Report bugs at the as a new [issue](https://github.com/vergauwenthomas/MetObs_toolkit/issues) with the https://github.com/vergauwenthomas/MetObs_toolkit/labels/bug label.
+Report bugs at the as a new [issue](https://github.com/vergauwenthomas/MetObs_toolkit/issues) with the ![Static Badge](https://img.shields.io/badge/bug%20-%20%23d73a4a) label.
 
 If you are reporting a bug, please include:
 
@@ -30,17 +31,21 @@ If you are reporting a bug, please include:
 
 ### Fix Bugs
 
-Look through the GitHub issues for bugs. Anything tagged with https://github.com/vergauwenthomas/MetObs_toolkit/labels/bug and https://github.com/vergauwenthomas/MetObs_toolkit/labels/invalid is open to whoever wants to implement it.
-If you find yourself not so familiar with Python you can start by filtering to the https://github.com/vergauwenthomas/MetObs_toolkit/labels/easy and https://github.com/vergauwenthomas/MetObs_toolkit/labels/good_first_issue labels.
+Look through the GitHub issues for bugs. Anything tagged with ![Static Badge](https://img.shields.io/badge/bug%20-%20%23d73a4a) and ![Static Badge](https://img.shields.io/badge/invalid%20-%20%23e4e669)
+ is open to whoever wants to implement it.
+If you find yourself not so familiar with Python you can start by filtering to the ![Static Badge](https://img.shields.io/badge/easy%20-%20%23FED16F)
+ and ![Static Badge](https://img.shields.io/badge/good_first_issue%20-%20%237057ff) labels.
 
-The https://github.com/vergauwenthomas/MetObs_toolkit/labels/tricky label indicates that this issue might affect multiple modules of the toolkit, the data structures or is technical more challenging. Contact @vergauwenthomas to discuss a *plan-of-attack* in advance.
+The ![Static Badge](https://img.shields.io/badge/tricky%20-%20%230EFDA4)
+ label indicates that this issue might affect multiple modules of the toolkit, the data structures or is technical more challenging. Contact @vergauwenthomas to discuss a *plan-of-attack* in advance.
 
 ### Implement Features
 
-Look through the GitHub issues for features. Anything tagged with https://github.com/vergauwenthomas/MetObs_toolkit/labels/enhancement and https://github.com/vergauwenthomas/MetObs_toolkit/labels/Feature is open to whoever wants to implement it.
+Look through the GitHub issues for features. Anything tagged with ![Static Badge](https://img.shields.io/badge/enhancement%20-%20%23a2eeef?link=https%3A%2F%2Fgithub.com%2Fvergauwenthomas%2FMetObs_toolkit%2Flabels%2Fenhancement)
+ and ![Static Badge](https://img.shields.io/badge/Feature%20-%20%230E8A16) is open to whoever wants to implement it.
 
 ### Write Documentation
-The MetObs-toolkit could always use more documentation or spell checkers. Use the https://github.com/vergauwenthomas/MetObs_toolkit/labels/documentation to indicate that your issue is documentation-related.
+The MetObs-toolkit could always use more documentation or spell checkers. Use the ![Static Badge](https://img.shields.io/badge/documentation%20-%20%230075ca) to indicate that your issue is documentation-related.
 
 ### Submit Feedback
 Any form of feedback is much appreciated. The best way to send feedback is to file [an issue](https://github.com/vergauwenthomas/MetObs_toolkit/issues). If you cannot find a suitable label, you do not have to specify one.
@@ -108,9 +113,9 @@ Make sure you have this software installed before proceeding.
 
 ## Pull Request Guidelines
 Once your branch has been *pushed* to github, you can create a *Pull request* in github. Make sure that you have **referred the corresponding issues** to the *Pull request*.
-If your code adaptations are still *work-in-progress* add the https://github.com/vergauwenthomas/MetObs_toolkit/labels/WIP label to it. For each push, github will perform a list of checks (package building, version control, functionality test, os-tests, documentation build test), in order to merge your contributions these tests must all be successful.
+If your code adaptations are still *work-in-progress* add the ![Static Badge](https://img.shields.io/badge/WIP%20-%20%23A21079) label to it. For each push, github will perform a list of checks (package building, version control, functionality test, os-tests, documentation build test), in order to merge your contributions these tests must all be successful.
 
-If your code is ready for review, you can add the https://github.com/vergauwenthomas/MetObs_toolkit/labels/Ready_for_Review label to it.
+If your code is ready for review, you can add the ![Static Badge](https://img.shields.io/badge/Ready_for_Review%20-%20%230315E4) label to it.
 
 After the code review, and all review marks are resolved, your contributions will be merged to the *dev* branch.
 
