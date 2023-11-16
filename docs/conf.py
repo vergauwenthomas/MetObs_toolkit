@@ -66,7 +66,6 @@ extensions = [
     "myst_parser",  # for including md files (readme)
     "sphinx.ext.autosectionlabel", #for cross linking
     "nbsphinx", #to render the notebook examples in the doc
-#    "sphinx_mdinclude", #to render .md files as rst --> hmtl
 ]
 
 
