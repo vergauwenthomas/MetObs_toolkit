@@ -75,6 +75,14 @@ extensions = [
 templates_path = ["_templates"]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
+#Specify how to render the following file formats:
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.txt': 'markdown',
+    '.md': 'markdown',
+}
+
+
 # When building the doc, sphinx will try to import all the depending packages,
 # this is not needed and problematic when building the docs in a clean docker on gitlab.
 # So specify which packages can be mocked
@@ -127,3 +135,11 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 
 html_static_path = ["_static"]
+
+html_logo = "logo_small.svg"
+html_theme_options = {
+    'logo_only': True,
+    'display_version': False,
+}
+
+

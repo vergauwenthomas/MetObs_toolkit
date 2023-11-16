@@ -11,7 +11,7 @@ Welcome to MetObs-Toolkit's documentation!
    gee_authentication
    special_topics
    gui
-
+   contributing_link.md
 
 MetObs toolkit Documentation
 -----------------------------
@@ -19,6 +19,7 @@ MetObs toolkit Documentation
    :maxdepth: 2
 
    MetObs_documentation
+
 
 Metobs for developpers
 -----------------------------
