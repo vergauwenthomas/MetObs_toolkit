@@ -46,7 +46,6 @@ The MetObs-toolkit could always use more documentation or spell checkers. Use th
 Any form of feedback is much appreciated. The best way to send feedback is to file [an issue](https://github.com/vergauwenthomas/MetObs_toolkit/issues). If you cannot find a suitable label, you do not have to specify one.
 
 
-
 ## Get Started
 Ready to make code contributions? Here is how to set up a developer's environment for the toolkit.
 
