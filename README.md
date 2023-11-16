@@ -16,6 +16,39 @@ This repo contains all the software for the [metobs_toolkit](https://test.pypi.o
 
 Documentation can be found [here](https://vergauwenthomas.github.io/MetObs_toolkit/).
 
+## Installing the package
+Install the package using pip:
+
+```bash 
+pip3 install metobs-toolkit
+ ```
+To install the PyPi version of the toolkit. To install the github versions one can use these commands:
+
+```bash
+#main versions
+pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
+
+#development version
+pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
+
+#specific release from github
+pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.1.1
+ ```
+For some advanced quality control methods, the [Titanlib package](https://github.com/metno/titanlib) is used. Since the installation of titanlib requires a c++ compiler, we have chosen not to include it in the toolkit. If you want to use the Titanlib functionality you must install both the toolkit and Titanlib:
+
+```bash
+pip3 install metobs-toolkit titanlib
+ ```
+
+To use the package, import it in Python:
+
+
+```python 
+import metobs_toolkit
+
+#Check your version
+metobs_toolkit.__version__
+ ```
 ## Exercises and demos
 In the context of a [FAIRNESS (COST action)](https://www.fairness-ca20108.eu/) summer school, a set of well-documented exercises and demos are made. 
 
@@ -26,12 +59,6 @@ In the context of a [FAIRNESS (COST action)](https://www.fairness-ca20108.eu/) s
 | [Filling gaps](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/examples/Gap_filling_excercise_03.ipynb) | Introduction to gap filling methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/examples/Gap_filling_excercise_03.ipynb)|
 | [Analysis](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/examples/Urban_analysis_excercise_04.ipynb) | Introduction analysis methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/examples/Urban_analysis_excercise_04.ipynb)|
 
-
-
-## Installing the package
-Install the package by:
-
-`pip install MetObs-toolkit`
 
 ## Related
 * A graphical user interface for the MetObs-Toolkit: [MetObs_GUI](https://github.com/vergauwenthomas/MetObs_GUI)
