@@ -11,7 +11,6 @@ Welcome to MetObs-Toolkit's documentation!
    gee_authentication
    special_topics
    gui
-   readme_link.md
    contributing_link.md
 
 MetObs toolkit Documentation
