@@ -24,9 +24,9 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-def interpolate_gap(
-    gap, obsdf, outliersdf, dataset_res, obstype, method, max_consec_fill
-):
+def interpolate_gap(gap, obsdf, outliersdf, dataset_res, obstype,
+                    method, max_consec_fill):
+    """Interpolate a specific gap."""
     outliersdf = format_outliersdf_to_doubleidx(outliersdf)
 
     # 1 get trailing and leading + exploded index
@@ -39,50 +39,45 @@ def interpolate_gap(
 
     # 2 check if there is a trailing and leading gap
     if gap.startgap == gap.leading_timestamp:
-        message =f"No leading timestamp found for gap {gap}"
+        message = f"No leading timestamp found for gap {gap}"
         logger.info(message)
-        gap.gapfill_errormessage[obstype]=message
+        gap.gapfill_errormessage[obstype] = message
         return empty_interp
 
     if gap.endgap == gap.trailing_timestamp:
         message = f"No trailing timestamp found for gap {gap}"
         logger.info(message)
-        gap.gapfill_errormessage[obstype]=message
+        gap.gapfill_errormessage[obstype] = message
         return empty_interp
-
 
     # 3. Get leading and trailing val
     if not bool(gap.leading_val):
         # empty dict --> no value in the obs
-        message =f"No cadidate for leading {obstype} observation found for {gap}"
+        message = f"No cadidate for leading {obstype} observation found for {gap}"
         logger.info(message)
-        gap.gapfill_errormessage[obstype]=message
+        gap.gapfill_errormessage[obstype] = message
         return empty_interp
 
     if not bool(gap.trailing_val):
         # empty dict --> no value in the obs
-        message =f"No cadidate for trailing {obstype} observation found for {gap}"
+        message = f"No cadidate for trailing {obstype} observation found for {gap}"
         logger.info(message)
-        gap.gapfill_errormessage[obstype]=message
+        gap.gapfill_errormessage[obstype] = message
         return empty_interp
-
 
     leading_dt = gap.leading_timestamp
     leading_val = gap.leading_val[obstype]
     trailing_dt = gap.trailing_timestamp
     trailing_val = gap.trailing_val[obstype]
 
-
     # Make interpolation series
     gaps_series = pd.Series(data=np.nan, index=gap.exp_gap_idx.droplevel("name"))
-    gaps_series = pd.concat(
-        [
-            gaps_series,
-            pd.Series(
-                index=[leading_dt, trailing_dt], data=[leading_val, trailing_val]
-            ),
-        ]
-    )
+    gaps_series = pd.concat([gaps_series,
+                             pd.Series(
+                                 index=[leading_dt, trailing_dt], data=[leading_val, trailing_val]
+                             ),
+                             ]
+                            )
     gaps_series = gaps_series.sort_index()
 
     # Interpolate series
@@ -123,14 +118,15 @@ def interpolate_gap(
 
 
 def get_sample_size(sample_duration_hours, sta):
+    """Get the number of records for a sample duration."""
     stares = sta.metadf["dataset_resolution"].squeeze()
     sample_size = timedelta(hours=sample_duration_hours) / stares
     return int(sample_size)
 
 
-def create_leading_trailing_debias_periods(
-    station, gap, debias_period_settings, obstype
-):
+def create_leading_trailing_debias_periods(station, gap,
+                                           debias_period_settings, obstype):
+    """Get the leading and trailing periods of a gap."""
     # Get samplesizes
     debias_pref_sample_size_leading = get_sample_size(
         debias_period_settings["prefered_leading_sample_duration_hours"], station
@@ -178,7 +174,7 @@ def create_leading_trailing_debias_periods(
     if (leading_period.shape[0] >= debias_pref_sample_size_leading) & (
         trailing_period.shape[0] >= debias_pref_sample_size_trailing
     ):
-        logger.debug(f"leading and trailing periods are both available for debiassing.")
+        logger.debug("leading and trailing periods are both available for debiassing.")
         # both periods are oke
         leading_df = leading_period[-debias_pref_sample_size_leading:]
         trailing_df = trailing_period[:debias_pref_sample_size_trailing]
@@ -187,7 +183,7 @@ def create_leading_trailing_debias_periods(
         trailing_period.shape[0] >= debias_pref_sample_size_trailing
     ):
         logger.debug(
-            f"leading periods for debiassing does not have a preferable size. Try translation/shrinkage ..."
+            "leading periods for debiassing does not have a preferable size. Try translation/shrinkage ..."
         )
 
         # leading period to small, trailing period is OK
@@ -209,9 +205,7 @@ def create_leading_trailing_debias_periods(
             translation_trailing = missing_records
 
             leading_df = leading_period
-            trailing_df = trailing_period[
-                0 : (debias_pref_sample_size_trailing + translation_trailing)
-            ]
+            trailing_df = trailing_period[0: (debias_pref_sample_size_trailing + translation_trailing)]
 
             logger.debug(
                 f"A translation of {translation_trailing} records is done towards the trailing period. (n_leading + n_trailing is conserved: {leading_df.shape[0] + trailing_df.shape[0]}"
@@ -222,9 +216,7 @@ def create_leading_trailing_debias_periods(
             translation_trailing = poss_extention_trailing
 
             leading_df = leading_period
-            trailing_df = trailing_period[
-                0 : debias_pref_sample_size_trailing + translation_trailing
-            ]
+            trailing_df = trailing_period[0: debias_pref_sample_size_trailing + translation_trailing]
             logger.debug(
                 f"A translation of {translation_trailing} records is done towards the trailing period. Since there was not engough translation space for the trailing obs, the condition n_leading + n_trailing is NOT conserved: {leading_df.shape[0] + trailing_df.shape[0]}. \
                   Both leading and trailing sizes still achieves minimal size restrictions."
@@ -243,7 +235,7 @@ def create_leading_trailing_debias_periods(
     ):
         # leading period is ok, trailing period is to short
         logger.debug(
-            f"trailing periods for debiassing does not have a preferable size. Try translation/shrinkage ..."
+            "trailing periods for debiassing does not have a preferable size. Try translation/shrinkage ..."
         )
         missing_records = debias_pref_sample_size_trailing - trailing_period.shape[0]
 
@@ -261,9 +253,7 @@ def create_leading_trailing_debias_periods(
             # translation without shrinkage is possible
             translation_leading = missing_records
 
-            leading_df = leading_period[
-                -(debias_pref_sample_size_leading + translation_leading) :
-            ]
+            leading_df = leading_period[-(debias_pref_sample_size_leading + translation_leading):]
             trailing_df = trailing_period
             logger.debug(
                 f"A translation of {translation_leading} records is done towards the leading period. (n_leading + n_trailing is conserved: {leading_df.shape[0] + trailing_df.shape[0]}"
@@ -319,6 +309,7 @@ def create_leading_trailing_debias_periods(
 
 
 def get_time_specific_biases(model, obs, obstype, period):
+    """Get hourly biases."""
     diff = model - obs
     diff = diff.reset_index().set_index("datetime")
     diff["hours"] = diff.index.hour
@@ -335,6 +326,7 @@ def get_time_specific_biases(model, obs, obstype, period):
 def make_era_bias_correction(leading_model, trailing_model,
                              gap_model, leading_obs, trailing_obs,
                              obstype):
+    """Make debias correction of the modeldata for a gap."""
     error_message = ''
     # 1. get lead timestamp biases
     lead_biases = get_time_specific_biases(
@@ -357,8 +349,6 @@ def make_era_bias_correction(leading_model, trailing_model,
     gap_model["minutes"] = gap_model.index.get_level_values("datetime").minute
     gap_model["seconds"] = gap_model.index.get_level_values("datetime").second
 
-
-    # testing
     gap_model = gap_model.reset_index()
 
     gap_model = gap_model.merge(
@@ -368,10 +358,9 @@ def make_era_bias_correction(leading_model, trailing_model,
     )
 
     gap_model = gap_model.merge(
-         right=trail_biases[["hours", "minutes", "seconds", obstype + "_bias_trail"]],
-         how="left",
-         on=["hours", "minutes", "seconds"],
-     )
+                     right=trail_biases[["hours", "minutes", "seconds", obstype + "_bias_trail"]],
+                     how="left",
+                     on=["hours", "minutes", "seconds"])
 
     gap_model = gap_model.set_index(['name', 'datetime'])
 
@@ -381,14 +370,12 @@ def make_era_bias_correction(leading_model, trailing_model,
     no_debias = gap_model[(gap_model[obstype + '_bias_lead'].isnull()) |
                           (gap_model[obstype + '_bias_trail'].isnull())].index
     if not no_debias.empty:
-        error_message =f'No debias possible for these gap records: {no_debias},the gap will be filled by model data without bias correction. '
+        error_message = f'No debias possible for these gap records: {no_debias},the gap will be filled by model data without bias correction. '
         logger.warning(error_message)
 
-
     # set weights to zero if not debias correction can be applied on that record
-    gap_model.loc[no_debias, obstype+'_bias_trail'] = 0.
-    gap_model.loc[no_debias, obstype+'_bias_lead'] = 0.
-
+    gap_model.loc[no_debias, obstype + '_bias_trail'] = 0.
+    gap_model.loc[no_debias, obstype + '_bias_lead'] = 0.
 
     # 5. compute the debiased fill value
     # leave this dataframe for debugging
@@ -402,7 +389,6 @@ def make_era_bias_correction(leading_model, trailing_model,
                          gap_model['minutes'].astype(str).str.zfill(2) + ':' +
                          gap_model['seconds'].astype(str).str.zfill(2))
     gap_model = gap_model.rename(columns={obstype: f'{obstype}_model_value'})
-
 
     # 6. make returen
     returnseries = gap_model[obstype + "_debiased_value"]

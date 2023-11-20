@@ -31,6 +31,14 @@ testdata = {
             'kwargs':{},
             'coarsen': '20T',
             },
+    # paper dataset (based on the demo dataset)
+    'paper_dataset' : {
+            'datafile': join(test_data_dir, 'paper_dataset', 'datafile.csv'),
+            'metadatafile':join(test_data_dir, 'paper_dataset', 'metadatafile.csv'),
+            'template': join(test_data_dir, 'paper_dataset', 'templatefile.csv'),
+            'kwargs':{},
+            'coarsen': '20T',
+            },
 
     # wide test dataset
     'debug_wide' : {
@@ -87,6 +95,14 @@ testdata = {
               'kwargs':{'freq_estimation_method' : 'median'},
               'coarsen': '60T',
 
+                    },
+      # Siebe stations (6 vlinders for 15 days)
+      'siebevlinder':{
+              'datafile': join(test_data_dir,'testdata_testday', 'Siebe','vlindersdata.csv'),
+              'metadatafile': None,
+              'template': metobs_toolkit.demo_template,
+              'kwargs':{},
+              'coarsen': '60T',
                     }
 
     }

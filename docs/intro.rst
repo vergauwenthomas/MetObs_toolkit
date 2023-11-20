@@ -16,14 +16,33 @@ To install the package one can use pip:
 
    pip3 install metobs-toolkit
 
-.. note::
+To install the PyPi version of the toolkit. To install the github versions one can use these commands:
 
-   Now, this is a development version, so to install you need to specify the latest version explicitly: pip3 install metobs-toolkit==0.1.1ax (where x is the latest version).
+.. code-block:: console
+
+   #main versions
+   pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
+
+   #development version
+   pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
+
+   #specific release from github
+   pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.1.1
+
+
+For some advanced quality control methods, the `Titanlib <https://github.com/metno/titanlib>`_ package is used.
+Since the installation of Titanlib requires a c++ compiler, we have chosen not to include it in the toolkit. If you want to use
+the Titanlib functionality you must install both the toolkit and Titanlib:
+
+.. code-block:: console
+
+   pip3 install metobs-toolkit titanlib
+
 
 .. note::
    To install the package in a notebook, one has to add ! in front of the pip install command.
 
-and import it in python
+and import it in Python
 
 .. code-block:: python
 
@@ -36,7 +55,7 @@ and import it in python
 How to use this toolkit
 =========================
 
-This toolkit is a python package based on object-oriented programming (OOP). Here you can find a short description of the classes that are directly used by the users:
+This toolkit is a Python package based on object-oriented programming (OOP). Here you can find a short description of the classes that are directly used by the users:
 
 
 Dataset()
@@ -67,7 +86,7 @@ Dataset.gaps
     When a sequence of (repeating) missing observations is found, a test is performed to check if the length(*) of the series is larger than a threshold (i.e. the gap definition).
     If the series is larger than the threshold, we interpret it as a *gap* and it is removed from the missing_obs-container.
 
-    (*): Note that the definition of a gap is based on a number of consecutive repeating missing records! The minimal gap size is therefore depending on the observational frequency of each station.
+    (*): Note that the definition of a gap is based on a number of consecutive repeating missing records! The minimal gap size is therefore dependent on the observational frequency of each station.
 
 Dataset.metadf
     When metadata is provided, it will be stored in the Dataset.metadf. The metadf is stored as tabular data where each row represents a station. When variables are computed that depend only
@@ -106,7 +125,7 @@ The Analysis methods are based on aggregating the observations to get insight in
 Modeldata()
 -------------
 The :py:meth:`Modeldata<metobs_toolkit.modeldata.Modeldata>` holds time-series of data from a source other than observations (i.g. a model). The time-series are taken at the same coordinates as the stations and the
-names of the stations are used as wel.
+names of the stations are used as well.
 
 This class is used for comparing other sources to observations and for filling in missing observations and gaps in the observations.
 

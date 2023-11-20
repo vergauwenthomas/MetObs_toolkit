@@ -3,29 +3,31 @@
 """
 This module contains the Analysis class and all its methods.
 
-A Analysis holds a set of 'good' observations and the methods will analyse them.
+A Analysis holds a set of 'good' observations and the methods will analyse it.
 """
 from datetime import datetime
 import pandas as pd
 import numpy as np
-import math
 import logging
 import copy
 from scipy.stats import pearsonr
 
-from metobs_toolkit.plotting_functions import (diurnal_plot,
+from metobs_toolkit.plotting_functions import (cycle_plot,
                                                heatmap_plot,
                                                correlation_scatter)
 
-from metobs_toolkit.df_helpers import (init_multiindexdf,
-                                        datetime_subsetting,
-                                        subset_stations,
-                                        fmt_datetime_argument)
+from metobs_toolkit.df_helpers import (datetime_subsetting,
+                                       subset_stations,
+                                       fmt_datetime_argument)
 
 logger = logging.getLogger(__name__)
+
+
 class Analysis():
-    """ The Analysis class contains methods for analysing diurnal cycles and landcover effects"""
+    """The Analysis class contains methods for analysing observations."""
+
     def __init__(self, obsdf, metadf, settings, data_template):
+        """Initialize an Analysis."""
         self.df = obsdf
         self.metadf = metadf
         self.settings = settings
@@ -36,9 +38,14 @@ class Analysis():
         self._lc_cor_obstype = None
         self._lc_groupby_labels = None
 
+        #add empty lcz column to metadf if it is not present
+        if 'lcz' not in self.metadf.columns:
+            self.metadf['lcz'] = np.nan
+
     def __str__(self):
+        """Print a overview of the analysis."""
         if self.df.empty:
-            return f"Empty Analysis instance."
+            return "Empty Analysis instance."
         add_info = ''
         n_stations = self.df.index.get_level_values('name').unique().shape[0]
         n_obs_tot = self.df.shape[0]
@@ -56,9 +63,6 @@ class Analysis():
         if bool(self.lc_cor_dict):
             add_info += f"     *landcover correlations are computed on group: {self._lc_groupby_labels}  \n"
 
-
-
-
         return (f"Analysis instance containing: \n \
     *{n_stations} stations \n \
     *{self.df.columns.to_list()} observation types \n \
@@ -66,17 +70,17 @@ class Analysis():
     *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt})" + add_info)
 
     def __repr__(self):
+        """Print a overview of the analysis."""
         return self.__str__()
 
     # =============================================================================
     #     Setters
     # =============================================================================
 
-
     def subset_period(self, startdt, enddt):
-        """
-        Subset the observations of the Analysis to a specific period. The same
-        timezone is assumed as the data.
+        """Subset the observations of the Analysis to a specific period.
+
+        The same timezone is assumed as the data.
 
         Parameters
         ----------
@@ -93,12 +97,11 @@ class Analysis():
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
-
         """
-        if not isinstance(startdt, type(datetime(2020,1,1))):
+        if not isinstance(startdt, type(datetime(2020, 1, 1))):
             logger.info(f' {startdt} not a datetime type. Ignore subsetting!')
             return
-        if not isinstance(enddt, type(datetime(2020,1,1))):
+        if not isinstance(enddt, type(datetime(2020, 1, 1))):
             logger.info(f' {enddt} not a datetime type. Ignore subsetting!')
             return
 
@@ -111,12 +114,11 @@ class Analysis():
     #   Helpers
     # =============================================================================
 
-
     def apply_filter(self, expression):
-        """
-        Method to filter an Analysis by a user definde string expression. This
-        can be used to filter the observation to specific meteorological conditions
-        (i.e. low windspeeds, high humidity, cold temperatures, ...)
+        """Filter an Analysis by a user definde string expression.
+
+        This can be used to filter the observation to specific meteorological
+        conditions (i.e. low windspeeds, high humidity, cold temperatures, ...)
 
         The filter expression contains only columns present in the Analysis.df
         and/or the Analysis.metadf.
@@ -125,12 +127,11 @@ class Analysis():
 
         Parameters
         ----------
-
         expression : str
             A filter expression using columnnames present in either df or metadf.
             The following timestamp derivatives can be used as well: [minute, hour,
             month, year, day_of_year, week_of_year, season]. The quarry_str may
-            contain number and expressions like <, >, ==, >=, *, +, .... Multiple filters
+            contain number and expressions like <, >, ==, >=, \*, +, .... Multiple filters
             can be combine to one expression by using & (AND) and | (OR).
 
         Returns
@@ -146,30 +147,24 @@ class Analysis():
 
         Note
         ------
-        Make shure to use " of ' to indicate string values in the expression if
+        Make shure to use \" of \' to indicate string values in the expression if
         needed.
 
-
         """
-
-        child_df, child_metadf = filter_data(df = self.df,
-                                             metadf = self.metadf,
-                                             quarry_str = expression)
+        child_df, child_metadf = filter_data(df=self.df,
+                                             metadf=self.metadf,
+                                             quarry_str=expression)
 
         return Analysis(obsdf=child_df,
-                        metadf = child_metadf,
-                        settings = self.settings,
-                        data_template = self.data_template)
-
-
-
+                        metadf=child_metadf,
+                        settings=self.settings,
+                        data_template=self.data_template)
 
     def aggregate_df(self, df=None, agg=['lcz', 'hour'], method='mean'):
-        """
-        Aggregate observations to a (list of) categories.
+        """Aggregate observations to a (list of) categories.
 
-        The output will be a dataframe that is aggregated to one, or more categories.
-        A commen example is aggregating to LCZ's.
+        The output will be a dataframe that is aggregated to one, or more
+        categories. A commen example is aggregating to LCZ's.
 
 
         Parameters
@@ -179,14 +174,17 @@ class Analysis():
             Analysis instance is used. The default is None.
         agg : list, optional
             The list of columnnames to aggregate to. If 'lcz' is included, the
-            lcz information is extracted from the Analysis.metadf. The default is ['lcz', 'datetime'].
+            lcz information is extracted from the Analysis.metadf. The default
+            is ['lcz', 'datetime'].
         method : str, optional
-            list of functions and/or function names, e.g. [np.sum, 'mean']. The default is 'mean'.
+            list of functions and/or function names, e.g. [np.sum, 'mean']. The
+            default is 'mean'.
 
         Returns
         -------
         pandas.DataFrame
-            A dataframe with the agg columns as an index. The values are the aggregated values.
+            A dataframe with the agg columns as an index. The values are the
+            aggregated values.
 
         Note
         -------
@@ -194,7 +192,6 @@ class Analysis():
         not present in the return, since these values cannot be aggregated.
 
         """
-
         if df is None:
             df = copy.deepcopy(self.df)
         df = df.reset_index()
@@ -208,11 +205,8 @@ class Analysis():
                 # look in metadf
                 if agg_key in self.metadf.columns:
                     df = pd.merge(df, self.metadf[[agg_key]],
-                                      how='left', left_on='name',
-                                      right_index=True)
-
-
-
+                                  how='left', left_on='name',
+                                  right_index=True)
 
         # Check if all agg keys are present or defined:
         possible_agg_keys = time_agg_keys
@@ -220,14 +214,12 @@ class Analysis():
         unmapped = [agg_key for agg_key in agg if agg_key not in possible_agg_keys]
         assert len(unmapped) == 0, f'cannot aggregate to unknown labels: {unmapped}.'
 
-
         # make time-derivate columns if required
         df = _make_time_derivatives(df, agg)
 
-
         # check if not all values are Nan
         for agg_name in agg:
-            assert df[agg_name].isnull().all() == False, f'Aggregation to {agg_name} not possible because no valid values found for {agg_name}.'
+            assert not df[agg_name].isnull().all(), f'Aggregation to {agg_name} not possible because no valid values found for {agg_name}.'
 
         # remove datetime column if present, because no aggregation can be done on
         # datetime and it gives a descrepation warning
@@ -239,15 +231,12 @@ class Analysis():
         if 'name' not in agg:
             df = df.drop(columns=['name'], errors='ignore')
 
-
-
         # Aggregate the df
-        agg_df = df.groupby(agg).agg(method, numeric_only=True) #descrepation warning
+        agg_df = df.groupby(agg).agg(method, numeric_only=True)  # descrepation warning
         # sort index
         agg_df = agg_df.reset_index()
         agg_df = agg_df.set_index(agg)
         return agg_df
-
 
     # =============================================================================
     #   Analyse method
@@ -257,7 +246,6 @@ class Analysis():
                              startdt=None, enddt=None, plot=True,
                              errorbands=False, title=None, y_label=None,
                              legend=True, _return_all_stats=False):
-
         """
         Create an anual cycle for aggregated groups.
 
@@ -303,17 +291,16 @@ class Analysis():
         as if it has the same timezone as the observations.
 
         """
-
         # title
         desc_dict = self.data_template[obstype].to_dict()
 
-        if not 'description' in desc_dict:
+        if 'description' not in desc_dict:
             desc_dict['description'] = obstype
         if not isinstance(desc_dict['description'], str):
             desc_dict['description'] = obstype
 
         if title is None:
-            title=f'Anual {desc_dict["description"]} cycle plot per {groupby}.'
+            title = f'Anual {desc_dict["description"]} cycle plot per {groupby}.'
         else:
             title = str(title)
 
@@ -326,25 +313,21 @@ class Analysis():
         else:
             y_label = str(y_label)
 
-
         stats = self.get_aggregated_cycle_statistics(obstype=obstype,
-                                             stations=stations,
-                                             aggregation=groupby,
-                                             aggregation_method=agg_method,
-                                             horizontal_axis='month',
-                                             startdt=startdt,
-                                             enddt=enddt,
-                                             plot=plot,
-                                             title=title,
-                                             y_label=y_label,
-                                             legend=legend,
-                                             errorbands=errorbands,
-                                             verbose=_return_all_stats,
-                                             )
+                                                     stations=stations,
+                                                     aggregation=groupby,
+                                                     aggregation_method=agg_method,
+                                                     horizontal_axis='month',
+                                                     startdt=startdt,
+                                                     enddt=enddt,
+                                                     plot=plot,
+                                                     title=title,
+                                                     y_label=y_label,
+                                                     legend=legend,
+                                                     errorbands=errorbands,
+                                                     verbose=_return_all_stats,
+                                                     )
         return stats
-
-
-
 
     def get_diurnal_statistics(self, colorby='name', obstype='temp',
                                stations=None, startdt=None,
@@ -392,11 +375,10 @@ class Analysis():
         as if it has the same timezone as the observations.
 
         """
-
         # title
         desc_dict = self.data_template[obstype].to_dict()
 
-        if not 'description' in desc_dict:
+        if 'description' not in desc_dict:
             desc_dict['description'] = obstype
         if not isinstance(desc_dict['description'], str):
             desc_dict['description'] = obstype
@@ -404,14 +386,14 @@ class Analysis():
         if title is None:
             if startdt is None:
                 if enddt is None:
-                    title=f'Hourly average {obstype} diurnal cycle'
+                    title = f'Hourly average {obstype} diurnal cycle'
                 else:
-                    title=f'Hourly average {obstype} diurnal cycle until {enddt}'
+                    title = f'Hourly average {obstype} diurnal cycle until {enddt}'
             else:
                 if enddt is None:
-                    title=f'Hourly average {obstype} diurnal cycle from {startdt}'
+                    title = f'Hourly average {obstype} diurnal cycle from {startdt}'
                 else:
-                    title=f'Hourly average {obstype} diurnal cycle for period {startdt} - {enddt}'
+                    title = f'Hourly average {obstype} diurnal cycle for period {startdt} - {enddt}'
 
         else:
             title = str(title)
@@ -425,26 +407,21 @@ class Analysis():
         else:
             y_label = str(y_label)
 
-
         stats = self.get_aggregated_cycle_statistics(obstype=obstype,
-                                             stations=stations,
-                                             aggregation=[colorby],
-                                             aggregation_method='mean',
-                                             horizontal_axis='hour',
-                                             startdt=startdt,
-                                             enddt=enddt,
-                                             plot=plot,
-                                             title=title,
-                                             y_label=y_label,
-                                             legend=legend,
-                                             errorbands=errorbands,
-                                             verbose=_return_all_stats,
-                                             )
+                                                     stations=stations,
+                                                     aggregation=[colorby],
+                                                     aggregation_method='mean',
+                                                     horizontal_axis='hour',
+                                                     startdt=startdt,
+                                                     enddt=enddt,
+                                                     plot=plot,
+                                                     title=title,
+                                                     y_label=y_label,
+                                                     legend=legend,
+                                                     errorbands=errorbands,
+                                                     verbose=_return_all_stats,
+                                                     )
         return stats
-
-
-
-
 
     def get_diurnal_statistics_with_reference(self, refstation, colorby='name',
                                               obstype='temp',
@@ -453,7 +430,7 @@ class Analysis():
                                               plot=True, title=None,
                                               y_label=None, legend=True,
                                               errorbands=False,
-                                              show_zero_horizontal = True,
+                                              show_zero_horizontal=True,
                                               _return_all_stats=False):
         """
         Create an average diurnal cycle for the observation differences of a reference station.
@@ -505,23 +482,20 @@ class Analysis():
         as if it has the same timezone as the observations.
 
         """
-
         obsdf = self.df
         obsdf = obsdf[obstype].reset_index()
 
         # extract refernce from observations
         refdf = obsdf[obsdf['name'] == refstation]
-        obsdf = obsdf[obsdf['name']!= refstation]
+        obsdf = obsdf[obsdf['name'] != refstation]
 
         assert not refdf.empty, f'Error: No reference observation found (after filtering) for {refstation}'
-        assert not obsdf.empty, f'Error: No observation found (after filtering)'
-
-
+        assert not obsdf.empty, 'Error: No observation found (after filtering)'
 
         # Syncronize observations with the reference observations
-        refdf = refdf.rename(columns={obstype: 'ref_'+obstype, 'datetime': 'ref_datetime'})
+        refdf = refdf.rename(columns={obstype: 'ref_' + obstype, 'datetime': 'ref_datetime'})
         mergedf = pd.merge_asof(left=obsdf.sort_values('datetime'),
-                                right=refdf[['ref_datetime', 'ref_'+obstype]].sort_values('ref_datetime'),
+                                right=refdf[['ref_datetime', 'ref_' + obstype]].sort_values('ref_datetime'),
                                 right_on="ref_datetime",
                                 left_on="datetime",
                                 direction="nearest",
@@ -538,7 +512,7 @@ class Analysis():
 
         # title
         desc_dict = self.data_template[obstype].to_dict()
-        if not 'description' in desc_dict:
+        if 'description' not in desc_dict:
             desc_dict['description'] = obstype
         if not isinstance(desc_dict['description'], str):
             desc_dict['description'] = obstype
@@ -546,14 +520,14 @@ class Analysis():
         if title is None:
             if startdt is None:
                 if enddt is None:
-                    title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference,'
+                    title = f'Hourly average {obstype} diurnal cycle, with {refstation} as reference,'
                 else:
-                    title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, until {enddt}'
+                    title = f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, until {enddt}'
             else:
                 if enddt is None:
-                    title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, from {startdt}'
+                    title = f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, from {startdt}'
                 else:
-                    title=f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdt} - {enddt}'
+                    title = f'Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdt} - {enddt}'
 
         else:
             title = str(title)
@@ -567,43 +541,37 @@ class Analysis():
         else:
             y_label = str(y_label)
 
-
         stats = self.get_aggregated_cycle_statistics(obstype=obstype,
-                                             stations=stations,
-                                             aggregation=[colorby],
-                                             aggregation_method='mean',
-                                             horizontal_axis='hour',
-                                             startdt=startdt,
-                                             enddt=enddt,
-                                             plot=plot,
-                                             title=title,
-                                             y_label=y_label,
-                                             legend=legend,
-                                             errorbands=errorbands,
-                                             verbose=_return_all_stats,
-                                             _obsdf=mergedf,
-                                             _show_zero_line= show_zero_horizontal
-                                             )
+                                                     stations=stations,
+                                                     aggregation=[colorby],
+                                                     aggregation_method='mean',
+                                                     horizontal_axis='hour',
+                                                     startdt=startdt,
+                                                     enddt=enddt,
+                                                     plot=plot,
+                                                     title=title,
+                                                     y_label=y_label,
+                                                     legend=legend,
+                                                     errorbands=errorbands,
+                                                     verbose=_return_all_stats,
+                                                     _obsdf=mergedf,
+                                                     _show_zero_line=show_zero_horizontal
+                                                     )
         return stats
 
-
-
-
-
     def get_aggregated_cycle_statistics(self, obstype='temp',
-                                          aggregation=['lcz', 'datetime'],
-                                          aggregation_method='mean',
-                                          horizontal_axis='hour',
-                                          stations=None,
-                                          startdt=None, enddt=None, plot=True,
-                                          title=None, y_label=None, legend=True,
-                                          errorbands=False, verbose=False,
-                                          _obsdf=None, _show_zero_line=False):
+                                        aggregation=['lcz', 'datetime'],
+                                        aggregation_method='mean',
+                                        horizontal_axis='hour',
+                                        stations=None,
+                                        startdt=None, enddt=None, plot=True,
+                                        title=None, y_label=None, legend=True,
+                                        errorbands=False, verbose=False,
+                                        _obsdf=None, _show_zero_line=False):
+        """Create an average cycle for an aggregated categorie.
 
-        """
-        Create an average cycle for an aggregated categorie. A commen
-        example is to aggregate to the LCZ's, so to get the diurnal cycle per LCZ
-        rather than per station.
+        A commen example is to aggregate to the LCZ's, so to get the diurnal
+        cycle per LCZ rather than per station.
 
         (In the plot, each aggregated category different from datetime, is represed by a line.)
 
@@ -652,7 +620,6 @@ class Analysis():
         as if it has the same timezone as the observations.
 
         """
-
         if _obsdf is None:
             obsdf = self.df[[obstype]]
         else:
@@ -660,13 +627,12 @@ class Analysis():
 
         assert not obsdf.empty, f'Error: No observations in the analysis.df: {self.df}'
         # Filter stations
-        if not stations is None:
+        if stations is not None:
             if isinstance(stations, str):
                 stations = [stations]
 
             obsdf = subset_stations(obsdf, stations)
         assert not obsdf.empty, f'Error: No more observations after subsetting to {stations}'
-
 
         # Filter datetimes
         obsdf = datetime_subsetting(df=obsdf,
@@ -674,28 +640,25 @@ class Analysis():
                                     endtime=enddt)
         assert not obsdf.empty, f'Error: No more observations after subsetting to {startdt} and {enddt}'
 
-
-
-
-        agg_column_name = obstype #aggregate the measured obstypes
         startdt = obsdf.index.get_level_values('datetime').min()
         enddt = obsdf.index.get_level_values('datetime').max()
 
         # add hour to aggregation (will be the x-axis)
-        if not horizontal_axis in aggregation:
+        if horizontal_axis not in aggregation:
             aggregation.insert(0, horizontal_axis)
 
         # add other methods for errorbands and stats
-        methods =['mean', 'std', 'median']
+        methods = ['mean', 'std', 'median']
         methods.append(aggregation_method)
         methods = list(set(methods))
 
         # compute the aggregation statistics
-        aggdf = self.aggregate_df(df = obsdf, agg=aggregation,
+        aggdf = self.aggregate_df(df=obsdf,
+                                  agg=aggregation,
                                   method=methods)
 
         # since only one observation type is in the stats, drop the column
-        #level with the obstye, this is not relevant
+        # level with the obstye, this is not relevant
         aggdf = aggdf.droplevel(0, axis='columns')
 
         # format dataframe for plotting
@@ -703,20 +666,23 @@ class Analysis():
         aggdf = aggdf.reset_index()
         for idx_col in aggdf:
             if idx_col == horizontal_axis:
-                continue #if numeric, let it be numeric!
+                continue  # if numeric, let it be numeric!
             aggdf[idx_col] = aggdf[idx_col].astype(str)
         aggdf = aggdf.set_index(aggregation)
 
         # sorting cateigories (months and seisons)
 
-        seasons = ['winter', 'spring', 'summer', 'autumn' ]
+        seasons = ['winter', 'spring', 'summer', 'autumn']
         months = ['January', 'February', 'March', 'April', 'May', 'June',
-                        'July', 'August', 'September', 'October', 'November',
-                        'December']
+                  'July', 'August', 'September', 'October', 'November',
+                  'December']
+
         season_order_dict = {}
         months_order_dict = {}
-        for i, item in enumerate(seasons): season_order_dict[item] = i
-        for i, item in enumerate(months): months_order_dict[item] = i
+        for i, item in enumerate(seasons):
+            season_order_dict[item] = i
+        for i, item in enumerate(months):
+            months_order_dict[item] = i
 
         # Sort columns
         aggdf = aggdf.reset_index()
@@ -734,10 +700,9 @@ class Analysis():
         # reset the index
         aggdf = aggdf.set_index(aggregation)
 
-
         # unstack aggregation
-        aggregation.remove(horizontal_axis) #let horizontal axes be the index
-        all_stats = aggdf.unstack(aggregation) #return on verbose
+        aggregation.remove(horizontal_axis)  # let horizontal axes be the index
+        all_stats = aggdf.unstack(aggregation)  # return on verbose
 
         # Sort index if categorical
         if all_stats.index.name == 'season':
@@ -745,26 +710,23 @@ class Analysis():
         if all_stats.index.name == 'month':
             all_stats = all_stats.reindex(months)
 
-
         # split in values and std
         values_df = all_stats[aggregation_method]
         std_df = all_stats['std']
-
 
         # make shure all data is numeric
         values_df = values_df.astype(float)
         std_df = std_df.astype(float)
 
         # squize all column levels to one category for plotting
-        if len(aggregation) > 1: #more than one level for the columns
+        if len(aggregation) > 1:  # more than one level for the columns
             values_df.columns = [' ,'.join(col).strip() for col in values_df.columns.values]
             std_df.columns = [' ,'.join(col).strip() for col in std_df.columns.values]
-
 
         if plot:
             # description of the obstype
             desc_dict = self.data_template[obstype].to_dict()
-            if not 'description' in desc_dict:
+            if 'description' not in desc_dict:
                 desc_dict['description'] = obstype
 
             if not isinstance(desc_dict['description'], str):
@@ -776,7 +738,7 @@ class Analysis():
             if title is None:
                 startdtstr = datetime.strftime(startdt, format=self.settings.app["print_fmt_datetime"])
                 enddtstr = datetime.strftime(enddt, format=self.settings.app["print_fmt_datetime"])
-                title=f'{aggregation_method} - {horizontal_axis } {obstype} cycle for period {startdtstr} - {enddtstr} grouped by {aggregation}'
+                title = f'{aggregation_method} - {horizontal_axis } {obstype} cycle for period {startdtstr} - {enddtstr} grouped by {aggregation}'
 
             # ylabel
             if y_label is None:
@@ -787,38 +749,35 @@ class Analysis():
             else:
                 y_label = str(y_label)
 
-
             # generate errorbands df
             if errorbands:
                 stddf = std_df
             else:
                 stddf = None
 
-
-
             # Make plot
-            ax = diurnal_plot(diurnaldf = values_df,
-                             errorbandsdf = stddf,
-                             title = title,
-                             plot_settings = self.settings.app['plot_settings']['diurnal'],
-                             aggregation = aggregation,
-                             lcz_dict = None,
-                             data_template=self.data_template,
-                             obstype=obstype,
-                             y_label = y_label,
-                             legend=legend,
-                             show_zero_horizontal = _show_zero_line)
+            ax = cycle_plot(cycledf=values_df,
+                            errorbandsdf=stddf,
+                            title=title,
+                            plot_settings=self.settings.app['plot_settings']['diurnal'],
+                            aggregation=aggregation,
+                            data_template=self.data_template,
+                            obstype=obstype,
+                            y_label=y_label,
+                            legend=legend,
+                            show_zero_horizontal=_show_zero_line)
 
             ax.set_ylabel(y_label)
             if horizontal_axis == 'hour':
                 # extract timezone
-                tzstring = self.df.index.get_level_values('datetime').tz.zone
+                tzstring = str(self.df.index.get_level_values('datetime').tz)
 
                 ax.xaxis.set_major_formatter('{x:.0f} h')
                 ax.set_xlabel(f'Hours (timezone: {tzstring})')
 
-
         if verbose:
+            if plot:
+                return values_df, all_stats, ax
             return values_df, all_stats
 
         return values_df
@@ -828,7 +787,8 @@ class Analysis():
     # =============================================================================
 
     def get_lc_correlation_matrices(self, obstype=['temp'], groupby_labels=['hour']):
-        """
+        """Compute pearson correlation coeficients.
+
         A method to compute the Pearson correlation between an obervation type
         and present landcover fractions in the metadf.
 
@@ -838,15 +798,15 @@ class Analysis():
         A dictionary is returnd where each key represents a unique combination of
         the groupby_labels. The value is a dictionary with the following keys
         and values:
+
         * cor matrix: the Pearson correlation matrix
         * significance matrix: the significance (p-)values of the correlations.
-        * combined matrix: A human readable combination of the correlations and their p values. Indicate by *, ** or *** representing p-values < 0.05, 0.01 and 0.001 respectively.
+        * combined matrix: A human readable combination of the correlations and their p values. Indicate by \*, \*\* or \*\*\* representing p-values < 0.05, 0.01 and 0.001 respectively.
 
         This dictionary is also stored as a lc_cor_dict attribute.
 
         Parameters
         ----------
-
         obstype : str, or list optional
             The observation type(s) to compute the correlations on. The default is ['temp'].
         groupby_labels : list, optional
@@ -854,7 +814,7 @@ class Analysis():
             These variables should either a categorical observation type, a categorical column in the metadf or
             a time aggregation. All possible time aggreagetions are: ['minute',
             'hour', 'month', 'year', 'day_of_year',
-            'week_of_year', 'season']. The default is ['lcz', 'datetime'].. The default is ['hour'].
+            'week_of_year', 'season']. The default is ['hour'].
 
         Returns
         -------
@@ -862,7 +822,6 @@ class Analysis():
             A nested dictionary with unique combinations of groupby values.
 
         """
-
         if not isinstance(obstype, list):
             obstype = [obstype]
 
@@ -880,15 +839,14 @@ class Analysis():
         for group_lab in groupby_labels:
             assert group_lab in df.columns, f'"{group_lab}" is found in the observations of possible groupby_labels.'
 
-
         # subset columns
-        relev_columns = [label for label in groupby_labels] #to avoid deep copy import
+        relev_columns = [label for label in groupby_labels]  # to avoid deep copy import
         relev_columns.append('name')
         relev_columns.extend(obstype)
         df = df[relev_columns]
 
         # find landcover columnnames in the metadf
-        lc_columns = [col for col in self.metadf.columns if (('_' in col ) & (col.endswith('m')))]
+        lc_columns = [col for col in self.metadf.columns if (('_' in col) & (col.endswith('m')))]
 
         # get landcover data
         lc_df = self.metadf[lc_columns]
@@ -897,20 +855,17 @@ class Analysis():
             logger.warning('No landcover columns found in the metadf. Landcover correlations cannot be computed.')
             return None
 
-
         # merge together
-        df = df.merge(lc_df, how='left', left_on='name', right_index = True)
+        df = df.merge(lc_df, how='left', left_on='name', right_index=True)
 
         # remove name column if it is not explicit in the groupby labels
         if 'name' not in groupby_labels:
             df = df.drop(columns=['name'])
 
-
-
         # create return
         cor_dict = {}
 
-        #Iterate over all groups
+        # Iterate over all groups
 
         # avoid futur pandas warning for groupby labels of len==1
         if len(groupby_labels) == 1:
@@ -918,10 +873,9 @@ class Analysis():
         else:
             groups = df.groupby(groupby_labels)
 
-
         for group_lab, groupdf in groups:
             # No correlations can be computed when no variance is found
-            if groupdf.shape[0] <=1:
+            if groupdf.shape[0] <= 1:
                 logger.warning(f'No variance found in correlationd group {group_lab}. Correlation thus not be computed for this group: {groupdf}.')
                 continue
             # drop groupby labels
@@ -930,7 +884,7 @@ class Analysis():
             rho = groupdf.corr(method='pearson')
             pval = groupdf.corr(method=lambda x, y: pearsonr(x, y)[1]) - np.eye(*rho.shape)
             # represent p values by stars
-            p_stars = pval.applymap(lambda x: ''.join(['*' for t in [.05, .01, .001] if x<=t]))
+            p_stars = pval.applymap(lambda x: ''.join(['*' for t in [.05, .01, .001] if x <= t]))
 
             # combined human readable df
             comb_df = pd.DataFrame(index=rho.index)
@@ -941,7 +895,6 @@ class Analysis():
                                    'significance matrix': pval,
                                    'combined matrix': comb_df}
 
-
         # Update attribute
         self.lc_cor_dict = cor_dict
         self._lc_cor_obstype = obstype
@@ -949,11 +902,11 @@ class Analysis():
 
         return cor_dict
 
+    def plot_correlation_heatmap(self, groupby_value=None, title=None, _return_ax=False):
+        """Make a heatmap plot af a correaltion matrix.
 
-    def plot_correlation_heatmap(self, groupby_value=None, title=None):
-        """
-        Make a heatmap plot af a correaltion matrix. To specify which correlation
-        matrix to plot, specify the group value using the groupby_value argument.
+        To specify which correlation matrix to plot, specify the group value
+        using the groupby_value argument.
 
         All possible groupby_values are the keys of the lc_cor_dict attribute.
 
@@ -988,17 +941,20 @@ class Analysis():
         # check if groupby value exists
         assert groupby_value in self.lc_cor_dict.keys(), f'{groupby_value} not found as a groupby value. These are all the possible values: {self.lc_cor_dict.keys()}'
 
-
         if title is None:
             title = f'Correlation heatmap for group: {self._lc_groupby_labels} = {groupby_value}'
 
-        heatmap_plot(cor_dict = self.lc_cor_dict[groupby_value],
-                     title=title,
-                     heatmap_settings = self.settings.app['plot_settings']['correlation_heatmap'])
+        ax = heatmap_plot(cor_dict=self.lc_cor_dict[groupby_value],
+                          title=title,
+                          heatmap_settings=self.settings.app['plot_settings']['correlation_heatmap'])
+
+        if _return_ax:
+            return ax
 
 
     def plot_correlation_variation(self, title=None):
-        """
+        """Create correlation scatter plot.
+
         Make a scatter plot of the correlations to visualise differences between
         multiple group values.
 
@@ -1024,9 +980,7 @@ class Analysis():
         ------
         If to many possible group values exist, one can use the apply_filter()
         method to reduce the group values.
-
         """
-
         # check if there are correlation matrices
         assert bool(self.lc_cor_dict), 'No correlation matrices found, use the metod get_lc_correlation_matrices first.'
 
@@ -1036,24 +990,22 @@ class Analysis():
             logger.warning('The variance plot can not be made.')
             return
 
-
-
         if title is None:
             title = f'Correlation scatter for group: {self._lc_groupby_labels}'
 
-
-        correlation_scatter(full_cor_dict = self.lc_cor_dict,
-                            groupby_labels = self._lc_groupby_labels,
-                            obstypes =self._lc_cor_obstype,
-                            title=title,
-                            cor_scatter_settings = self.settings.app['plot_settings']['correlation_scatter'])
-
+        ax = correlation_scatter(full_cor_dict=self.lc_cor_dict,
+                                 groupby_labels=self._lc_groupby_labels,
+                                 obstypes=self._lc_cor_obstype,
+                                 title=title,
+                                 cor_scatter_settings=self.settings.app['plot_settings']['correlation_scatter'])
+        return ax
 
 
 def _make_time_derivatives(df, required, get_all=False):
-    """ construct time derivated columns if required.
-        datetime must be a column."""
+    """Construct time derivated columns if required.
 
+    datetime must be a column.
+    """
     if ('minute' in required) | (get_all):
         df['minute'] = df['datetime'].dt.minute
     if ('hour' in required) | (get_all):
@@ -1072,15 +1024,12 @@ def _make_time_derivatives(df, required, get_all=False):
     return df
 
 
-
 def get_seasons(datetimeseries,
-                start_day_spring = '01/03' ,
-                start_day_summer = '01/06',
-                start_day_autumn = '01/09',
-                start_day_winter = '01/12'):
-
-    """
-    Convert a datetimeseries to a season label (i.g. categorical).
+                start_day_spring='01/03',
+                start_day_summer='01/06',
+                start_day_autumn='01/09',
+                start_day_winter='01/12'):
+    """Convert a datetimeseries to a season label (i.g. categorical).
 
     Parameters
     ----------
@@ -1104,13 +1053,10 @@ def get_seasons(datetimeseries,
     output : dataframe
         A obtained dataframe that has where a label for the seasons has been added.
     """
-
-
     spring_startday = datetime.strptime(start_day_spring, '%d/%m')
     summer_startday = datetime.strptime(start_day_summer, '%d/%m')
     autumn_startday = datetime.strptime(start_day_autumn, '%d/%m')
     winter_startday = datetime.strptime(start_day_winter, '%d/%m')
-
 
     seasons = pd.Series(index=['spring', 'summer', 'autumn', 'winter'],
                         data=[spring_startday, summer_startday, autumn_startday, winter_startday],
@@ -1123,25 +1069,18 @@ def get_seasons(datetimeseries,
 
     labels = ['winter', 'spring', 'summer', 'autumn', 'winter']
 
-
-
-    return pd.cut(x = datetimeseries.dt.day_of_year,
-                  bins = bins,
+    return pd.cut(x=datetimeseries.dt.day_of_year,
+                  bins=bins,
                   labels=labels,
                   ordered=False,
                   )
 
 
-
-
-
-
-
 def filter_data(df, metadf, quarry_str):
-    """
-    Function to filter a dataframe by a user definde string expression. This
-    can be used to filter the observation to specific meteorological conditions
-    (i.e. low windspeeds, high humidity, cold temperatures, ...)
+    """Filter a dataframe by a user definde string expression.
+
+    This can be used to filter the observation to specific meteorological
+    conditions (i.e. low windspeeds, high humidity, cold temperatures, ...)
 
     The filter expression contains only columns present in the df and/or the
     metadf.
@@ -1158,7 +1097,7 @@ def filter_data(df, metadf, quarry_str):
         A filter expression using columnnames present in either df or metadf.
         The following timestamp derivatives can be used as well: [minute, hour,
         month, year, day_of_year, week_of_year, season]. The quarry_str may
-        contain number and expressions like <, >, ==, >=, *, +, .... Multiple filters
+        contain number and expressions like <, >, ==, >=, \*, +, .... Multiple filters
         can be combine to one expression by using & (AND) and | (OR).
 
     Returns
@@ -1169,8 +1108,6 @@ def filter_data(df, metadf, quarry_str):
         The filtered metadf.
 
     """
-
-
     # save index order and names for reconstruction
     df_init_idx = list(df.index.names)
     metadf_init_idx = list(metadf.index.names)
@@ -1183,14 +1120,13 @@ def filter_data(df, metadf, quarry_str):
     df_init_cols = df.columns
     metadf_init_cols = metadf.columns
 
-
     # create time derivative columns
     df = _make_time_derivatives(df, required=' ', get_all=True)
 
     # merge together on name
     mergedf = df.merge(metadf, how='left', on='name')
 
-    #apply filter
+    # apply filter
     filtered = mergedf.query(expr=quarry_str)
 
     # split to df and metadf

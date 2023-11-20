@@ -25,7 +25,8 @@ testdatafile = os.path.join(
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=testdatafile)
+dataset.update_settings(input_data_file=testdatafile,
+                        template_file=metobs_toolkit.demo_template)
 dataset.show_settings()
 
 dataset.import_data_from_file()
@@ -43,7 +44,7 @@ dataset = metobs_toolkit.Dataset()
 dataset.update_settings(
     input_data_file=metobs_toolkit.demo_datafile,
     input_metadata_file=metobs_toolkit.demo_metadatafile,
-    data_template_file=metobs_toolkit.demo_template,
+    template_file=metobs_toolkit.demo_template,
 )
 
 
@@ -69,7 +70,7 @@ widetemplate = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_t
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=widedatafile,
                         # input_metadata_file=static_data,
-                        data_template_file= widetemplate,
+                        template_file= widetemplate,
                         )
 
 
@@ -79,6 +80,25 @@ dataset.import_data_from_file(long_format=False,
 
 assert dataset.df.shape == (597, 1), 'Shape of unsynced widedata is not correct.'
 
+
+
+#%% Import wide dataset with all options in the template
+
+widetemplate_with_options = os.path.join(str(lib_folder), 'tests', 'test_data',  'wide_test_template_with_options.csv')
+
+dataset2 = metobs_toolkit.Dataset()
+dataset2.update_settings(input_data_file=widedatafile,
+                        # input_metadata_file=static_data,
+                        template_file= widetemplate_with_options,
+                        )
+dataset2.import_data_from_file()
+
+
+assert dataset2.df.shape == dataset.df.shape, 'Opening with options in template does not give same results'
+assert dataset2.df.columns.to_list() == dataset.df.columns.to_list(), 'Opening with options in template does not give same results'
+
+#%% Test syncronizing wide
+
 # Sycnronize data
 test = dataset.sync_observations(tollerance='5T', verbose=True)
 
@@ -86,6 +106,7 @@ test = dataset.sync_observations(tollerance='5T', verbose=True)
 assert dataset.df.shape == (182, 1), 'Shape after syncronizing widedata is not correct.'
 
 assert dataset.missing_obs.series.shape == (15,), 'Number of missing obs after sync wide data not correct'
+
 
 #%% import wide dataset (One station)
 
@@ -101,8 +122,7 @@ singlestationmetadata = os.path.join(str(lib_folder), 'tests', 'test_data',  'si
 dataset_single = metobs_toolkit.Dataset()
 dataset_single.update_settings(input_data_file=singlestationdatafile,
                         input_metadata_file=singlestationmetadata,
-                        data_template_file= singlestationtemplate,
-                        metadata_template_file=singlestationtemplate
+                        template_file= singlestationtemplate,
                         )
 
 
@@ -116,6 +136,25 @@ assert dataset_single.df.index.get_level_values('name')[0] == 'whats_the_name', 
 assert dataset_single.metadf.shape == (1,9), 'Shape metadf for single station is not correct'
 
 assert dataset_single.metadf['lat'].iloc[0] ==2.51558, 'Metadf latitde is not merged correct.'
+assert dataset_single.df.index.get_level_values('name').unique()[0] == 'whats_the_name', 'single station name not represented correctly.'
+
+
+# import wide dataset (One station) with options in the template
+singlestationtemplate_with_options = os.path.join(str(lib_folder), 'tests', 'test_data',  'single_station_template_with_options.csv')
+
+
+dataset_single2 = metobs_toolkit.Dataset()
+dataset_single2.update_settings(input_data_file=singlestationdatafile,
+                        input_metadata_file=singlestationmetadata,
+                        template_file= singlestationtemplate_with_options,
+                        )
+dataset_single2.import_data_from_file()
+
+
+assert dataset_single2.df.shape == dataset_single.df.shape, 'Opening with options in template does not give same results'
+assert dataset_single2.df.columns.to_list() == dataset_single.df.columns.to_list(), 'Opening with options in template does not give same results'
+
+assert dataset_single2.df.index.get_level_values('name').unique()[0] == 'whats_the_name_2', 'Opening with options in template does not give same results'
 
 #%%
 

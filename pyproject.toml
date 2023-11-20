@@ -1,34 +1,47 @@
 [tool.poetry]
 name = "MetObs-toolkit"
-version = "0.1.1a2"
+version = "0.1.2beta"
 description = "A Meteorological observations toolkit for scientists"
 authors = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 maintainers = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 license = "LICENSE"
 readme = "README.md"
-documentation = "https://python-poetry.org/docs/"
+documentation = "https://vergauwenthomas.github.io/MetObs_toolkit/"
 packages = [{include = "metobs_toolkit"}]
 keywords = ["meteorology", "observations", "urban climate"]
 
 [tool.poetry.dependencies]
-python = "^3.9" #can be converted to 3.8 (but to risky so close to the summerschool)
+python = "^3.9"
 pandas = "^1.3.0"
-numpy = "^1.17.3"
+#numpy = "^1.17.3" #in pandas
 matplotlib = "^3.0.0"
-mysql-connector-python = "^8.0.6"
 geopandas = "^0.9.0"
 pyproj = "~3.4"
 mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
 geemap = '^0.20.0'
-titanlib = "^0.3" #can give errors due to C-compiler in windows ....
 
 
 
+[tool.poetry.group.titan.dependencies]
+#titanlib requires C-compilers, which are not by default present on windows.
+#Make a seperate group for titan
+titanlib = '^0.3'
+
+
+[tool.poetry.group.documentation.dependencies]
+#Group of dep packages for building the documentation
+sphinx = '^7.2'
+nbsphinx = '^0.9'
+sphinx-copybutton = '^0.5.1'
+sphinx-rtd-theme = '^1.3.0'
+myst_parser = '^2.0.0'
+pandoc = '^2.1' #Check on PyPi (not in local conda env) + with system wide install
 
 
 [tool.poetry.group.dev.dependencies]
-poetry = "^1.3.2"
+#To run poetry tests
+poetry = "^1.7"
 
 [build-system]
 requires = ["poetry-core"]

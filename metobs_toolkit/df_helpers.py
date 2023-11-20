@@ -20,9 +20,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 def fmt_datetime_argument(dt, target_tz_str):
-    """
+    """Convert naive datetime to tz-aware.
+
     Helper function to format the datetime, a user enters as argument, to the
     correct timezone.
 
@@ -48,18 +48,17 @@ def fmt_datetime_argument(dt, target_tz_str):
 
     # check if datime is timezone aware
     if (dt.tzinfo is not None and dt.tzinfo.utcoffset(dt) is not None):
-        #timezone aware
+        # timezone aware
         dt = dt.astimezone(pytz.timezone(target_tz_str))
 
-    else: #timezon unaware
+    else:  # timezon unaware
         # assume timezone is the timezone of the data!
         dt = pytz.timezone(target_tz_str).localize(dt)
     return dt
 
 
-
 def xs_save(df, key, level, drop_level=True):
-    """ wrapper on pandas xs, but returns an empty df when key is not found """
+    """Similar as pandas xs, but returns an empty df when key is not found."""
     try:
         return df.xs(key, level=level, drop_level=drop_level)
     except KeyError:
@@ -71,29 +70,39 @@ def xs_save(df, key, level, drop_level=True):
 
         levels = [[name] for name in names]
         codes = [[] for name in names]
-        idx = pd.MultiIndex(
-                            levels=levels,
+        idx = pd.MultiIndex(levels=levels,
                             codes=codes,
                             names=names,
                             )
 
-
     return pd.DataFrame(index=idx, columns=columns)
 
 
+def concat_save(df_list, **kwargs):
+    """Concat dataframes row-wise without triggering the Futurwarning of concating empyt df's."""
 
+    if all([isinstance(df, pd.DataFrame) for df in df_list]):
+        # This line will filter columns with all NAN values (so empty dfs + all NA entries are filtered out)
+        return pd.concat([df.dropna(axis=1, how='all') for df in df_list], **kwargs)
+    if all([isinstance(df, pd.Series) for df in df_list]):
+        # This line will filter out empty series
+        return pd.concat([ser for ser in df_list if not ser.empty], **kwargs)
+    sys.exit('Cannot concat Dataframes and Series together')
 
 def init_multiindex():
+    """Construct a name-datetime pandas multiindex."""
     return pd.MultiIndex(
         levels=[["name"], ["datetime"]], codes=[[], []], names=["name", "datetime"]
     )
 
 
 def init_multiindexdf():
+    """Construct a name-datetime pandas multiindexdataframe."""
     return pd.DataFrame(index=init_multiindex())
 
 
 def init_triple_multiindex():
+    """Construct a name-datetime-obstype pandas multiindex."""
     my_index = pd.MultiIndex(
         levels=[["name"], ["datetime"], ["obstype"]],
         codes=[[], [], []],
@@ -103,12 +112,12 @@ def init_triple_multiindex():
 
 
 def init_triple_multiindexdf():
+    """Construct a name-datetime-obstype pandas multiindexdataframe."""
     return pd.DataFrame(index=init_triple_multiindex())
 
 
 def format_outliersdf_to_doubleidx(outliersdf):
-    """
-    Convert outliersdf to multiindex dataframe if needed.
+    """Convert outliersdf to multiindex dataframe if needed.
 
     This is applied when the obstype level in the index is not relevant.
 
@@ -124,14 +133,16 @@ def format_outliersdf_to_doubleidx(outliersdf):
         The outliersdfdataframe where the 'obstype' level is dropped, if it was present.
 
     """
-
     if "obstype" in outliersdf.index.names:
         return outliersdf.droplevel("obstype")
     else:
         return outliersdf
 
-def value_labeled_doubleidxdf_to_triple_idxdf(df,value_col_name='value', label_col_name = 'label'):
-    """
+
+def value_labeled_doubleidxdf_to_triple_idxdf(df ,value_col_name='value',
+                                              label_col_name='label'):
+    """Convert double to triple index based on obstype column.
+
     This function converts a double index dataframe with an 'obstype' column,
     and a 'obstype_final_label' column to a triple index dataframe where the
     obstype values are added to the index.
@@ -164,21 +175,21 @@ def value_labeled_doubleidxdf_to_triple_idxdf(df,value_col_name='value', label_c
               .rename(columns={'level_2': 'obstype', 0: value_col_name})
               .set_index(['name', 'datetime', 'obstype']))
 
-
     # make a triple label dataframe
     labelsdf = pd.DataFrame()
     for obstype in present_obstypes:
-        subdf = df.loc[:, [obstype+'_final_label']]
+        subdf = df.loc[:, [obstype + '_final_label']]
         subdf['obstype'] = obstype
         subdf = subdf.reset_index()
         subdf = subdf.set_index(['name', 'datetime', 'obstype'])
-        subdf = subdf.rename(columns={obstype+'_final_label': label_col_name})
+        subdf = subdf.rename(columns={obstype + '_final_label': label_col_name})
 
-        labelsdf = pd.concat([labelsdf, subdf])
+        labelsdf = concat_save([labelsdf, subdf])
 
     values[label_col_name] = labelsdf[label_col_name]
 
     return values
+
 
 def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
     if where == "before":
@@ -193,19 +204,23 @@ def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
     else:
         return min(diff).total_seconds()
 
+
 def remove_outliers_from_obs(obsdf, outliersdf):
+    """Remove outlier records from observation records."""
     # TODO this function can only be used with care!!!
     # because all timestamps will be removed that have an oulier in one specific obstype !!!!
     return obsdf.loc[~obsdf.index.isin(outliersdf.index)]
 
 
 def conv_tz_multiidxdf(df, timezone):
+    """Convert datetime index to other timezone."""
     df.index = df.index.set_levels(df.index.levels[1].tz_convert(timezone), level=1)
     return df
 
 
 def metadf_to_gdf(df, crs=4326):
-    """
+    """Make geopandas dataframe.
+
     Function to convert a dataframe with 'lat' en 'lon' columnst to a geopandas
     dataframe with a geometry column containing points.
 
@@ -224,7 +239,6 @@ def metadf_to_gdf(df, crs=4326):
         The geodataframe equivalent of the df.
 
     """
-
     # only conver to points if coordinates are present
     coordsdf = df[(~df["lat"].isnull()) & (~df["lon"].isnull())]
     missing_coords_df = df[(df["lat"].isnull()) | (df["lon"].isnull())]
@@ -233,14 +247,22 @@ def metadf_to_gdf(df, crs=4326):
         coordsdf, geometry=gpd.points_from_xy(coordsdf.lon, coordsdf.lat)
     )
     geodf = geodf.set_crs(epsg=crs)
-    geodf = pd.concat([geodf, missing_coords_df])
+    metadata_columns = geodf.columns
+    geodf = concat_save([geodf, missing_coords_df])
+
+    # Because empyt and Nan columns are skipped in the concat save, add them
+    # again if needed
+    for col in metadata_columns:
+        if col not in geodf:
+            geodf[col] = np.nan
+
 
     geodf = geodf.sort_index()
     return geodf
 
 
 def multiindexdf_datetime_subsetting(df, starttime, endtime):
-    "The multiindex equivalent of datetime_subsetting"
+    """Multiindex equivalent of datetime_subsetting."""
     dt_df = df.reset_index().set_index("datetime")
     subset_dt_df = datetime_subsetting(dt_df, starttime, endtime)
 
@@ -259,25 +281,25 @@ def multiindexdf_datetime_subsetting(df, starttime, endtime):
     return returndf
 
 
-
 # =============================================================================
 # filters
 # =============================================================================
 def subset_stations(df, stationslist):
+    """Subset stations by name from a dataframe."""
     df = df.loc[df.index.get_level_values(
                 'name').isin(stationslist)]
 
     present_stations = df.index.get_level_values('name')
     not_present_stations = list(set(stationslist) - set(present_stations))
-    if len(not_present_stations)!=0:
+    if len(not_present_stations) != 0:
         logger.warning(f'The stations: {not_present_stations} not found in the dataframe.')
 
     return df
 
 
-
 def datetime_subsetting(df, starttime, endtime):
-    """
+    """Subset dataaframe by timeperiod.
+
     Wrapper function for subsetting a dataframe with a 'datetime' column or index with a start- and
     endtime.
 
@@ -296,13 +318,12 @@ def datetime_subsetting(df, starttime, endtime):
         Subset of the df.
 
     """
-
     idx_names = list(df.index.names)
     df = df.reset_index()
     df = df.set_index('datetime')
 
     if isinstance(starttime, type(None)):
-        starttime = df.index.min() # will select from the beginning of the df
+        starttime = df.index.min()  # will select from the beginning of the df
     else:
         if starttime.tzinfo is None:
             # set timezone when unaware
@@ -315,8 +336,6 @@ def datetime_subsetting(df, starttime, endtime):
             # set timezone when unaware
             endtime = endtime.replace(tzinfo=df.index.tzinfo)
 
-
-
     subset = df[(df.index >= starttime) & (df.index <= endtime)]
     subset = subset.reset_index()
     subset = subset.set_index(idx_names)
@@ -325,6 +344,7 @@ def datetime_subsetting(df, starttime, endtime):
 
 
 def conv_applied_qc_to_df(obstypes, ordered_checknames):
+    """Construct dataframe with applied QC info."""
     if isinstance(obstypes, str):
         obstypes = [obstypes]
     if isinstance(ordered_checknames, str):
@@ -349,14 +369,9 @@ def conv_applied_qc_to_df(obstypes, ordered_checknames):
 # =============================================================================
 # Records frequencies
 # =============================================================================
-
-
-def get_likely_frequency(
-    timestamps, method="highest", simplify=True, max_simplify_error="2T"
-):
-
-    """
-    Find the most likely observation frequency of a datetimeindex.
+def get_likely_frequency(timestamps, method="highest",
+                         simplify=True, max_simplify_error="2T"):
+    """Find the most likely observation frequency of a datetimeindex.
 
     Parameters
     ----------
@@ -378,12 +393,10 @@ def get_likely_frequency(
         The assumed (and simplified) frequency of the datetimeindex.
 
     """
-
     assert method in [
         "highest",
         "median",
     ], f"The method for frequency estimation ({method}) is not known. Use one of [highest, median]"
-
 
     try:
         pd.to_timedelta(max_simplify_error)
@@ -392,19 +405,12 @@ def get_likely_frequency(
             f'{max_simplify_error} is not valid timeindication. Example: "5T" indicates 5 minutes.'
         )
 
-    # freqdist = abs(timestamps.to_series().diff().value_counts()).sort_values(
-    #     ascending=True
-    # )
-    freqs_blacklist = [pd.Timedelta(0), np.nan] #avoid a zero frequency
-
+    freqs_blacklist = [pd.Timedelta(0), np.nan]  # avoid a zero frequency
 
     freqs = timestamps.to_series().diff()
     freqs = freqs[~freqs.isin(freqs_blacklist)]
 
-
-
     if method == "highest":
-
         assume_freq = freqs.min()  # highest frequency
 
     elif method == "median":
@@ -447,7 +453,6 @@ def get_likely_frequency(
         else:
             assume_freq = simplify_freq
 
-
     if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
         # select the second highest frequency
         assume_freq = abs(
@@ -457,9 +462,10 @@ def get_likely_frequency(
     return assume_freq
 
 
-def get_freqency_series(df, method="highest", simplify=True, max_simplify_error="2T"):
+def get_freqency_series(df, method="highest", simplify=True,
+                        max_simplify_error="2T"):
+    """Get the most likely frequencies of all stations.
 
-    """
     Find the most likely observation frequency for all stations individually
     based on the df. If an observation has less than two observations, assign
     the most commum frequency to it an raise a warning.
@@ -484,7 +490,6 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
         A pandas series with 'name' as index and likely frequencies as values.
 
     """
-
     problematic_stations = []
     freqs = {}
     for station in df.index.get_level_values(level="name").unique():
@@ -517,6 +522,5 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
         )
         for prob_station in problematic_stations:
             freqs[prob_station] = assign_med_freq
-
 
     return pd.Series(data=freqs)

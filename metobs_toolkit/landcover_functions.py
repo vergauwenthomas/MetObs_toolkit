@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 19 11:28:36 2022
+Functions that are used for GEE interactions.
 
 @author: thoverga
 """
-
 
 import sys
 import logging
@@ -24,11 +23,11 @@ logger = logging.getLogger(__name__)
 
 
 def connect_to_gee():
+    """Authenticate to GEE if needed."""
     if not ee.data._credentials:  # check if ee connection is initialized
         ee.Authenticate()
         ee.Initialize()
     return
-
 
 # =============================================================================
 # Top level functions (can be called by dataset)
@@ -36,6 +35,7 @@ def connect_to_gee():
 
 
 def lcz_extractor(metadf, mapinfo):
+    """Extract LCZ for all stations in the metadf."""
     # make return in case something went wrong
     default_return = pd.Series(
         index=metadf.index, data="Location_unknown", name="lcz", dtype=object
@@ -56,6 +56,7 @@ def lcz_extractor(metadf, mapinfo):
 
 
 def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
+    """Get landcover fractions for all buffers from GEE."""
     # make return in case something went wrong
     default_return = (pd.DataFrame(index=metadf.index), buffer)
 
@@ -91,6 +92,7 @@ def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
 
 
 def height_extractor(metadf, mapinfo):
+    """Get altitude for all stations from GEE."""
     # make return in case something went wrong
     default_return = pd.Series(
         index=metadf.index, data="Location_unknown", name="altitude", dtype=object
@@ -121,8 +123,8 @@ def _datetime_to_gee_datetime(datetime):
     return ee.Date(utcdt.replace(tzinfo=None))
 
 
-
 def get_ee_obj(mapinfo, band=None):
+    """Get an image from a GEE object."""
     if mapinfo["is_image"]:
         obj = ee.Image(mapinfo["location"])
     elif mapinfo["is_imagecollection"]:
@@ -137,6 +139,7 @@ def get_ee_obj(mapinfo, band=None):
 
 
 def coords_to_geometry(lat=[], lon=[], proj="EPSG:4326"):
+    """Convert coordinates to GEE geometries."""
     if len(lat) == 1:
         return ee.Geometry.Point(coords=[lon[0], lat[0]], proj=proj)
     else:
@@ -149,7 +152,8 @@ def coords_to_geometry(lat=[], lon=[], proj="EPSG:4326"):
 
 
 def _validate_metadf(metadf):
-    """
+    """Test if metadf is valid for GEE extraction.
+
     Returns True if metadata is suitable for gee extraction.
 
     :param metadf: metadata dataframe
@@ -174,14 +178,14 @@ def _validate_metadf(metadf):
 
 
 def _addDate(image):
-    """add the image datetime as a band"""
+    """Add the image datetime as a band."""
     img_date = ee.Date(image.date())
     img_date = ee.Number.parse(img_date.format("YYYYMMddHHmmss"))
     return image.addBands(ee.Image(img_date).rename("datetime"))
 
 
 def _df_to_features_point_collection(df):
-    """Convert a dataframe to a featurecollections row-wise"""
+    """Convert a dataframe to a featurecollections row-wise."""
     features = []
     for index, row in df.reset_index().iterrows():
         #     construct the geometry from dataframe
@@ -196,7 +200,7 @@ def _df_to_features_point_collection(df):
 
 
 def _df_to_features_buffer_collection(df, bufferradius):
-    """Convert a dataframe to a featurecollections row-wise"""
+    """Convert a dataframe to a featurecollections row-wise."""
     features = []
     for index, row in df.reset_index().iterrows():
         #     construct the geometry from dataframe
@@ -213,6 +217,7 @@ def _df_to_features_buffer_collection(df, bufferradius):
 
 
 def coordinates_available(metadf, latcol="lat", loncol="lon"):
+    """Test if all coordinates are available."""
     if metadf[latcol].isnull().all():
         logger.warning("No coordinates are found!")
         return False
@@ -234,14 +239,12 @@ def _estimate_data_size(metadf, startdt, enddt, mapinfo):
 
 
 def extract_pointvalues(metadf, mapinfo, output_column_name):
-    """
-    Extract values for point locations from a GEE dataset.
-    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
+    """Extract values for point locations from a GEE dataset.
 
+    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
 
     A dataframe with the extracted values is returned.
     The values are mapped to human classes if the dataset value type is labeld as categorical.
-
 
     Parameters
     ----------
@@ -299,18 +302,16 @@ def extract_pointvalues(metadf, mapinfo, output_column_name):
             f'gee dataset {mapinfo["location"]} is neighter image nor imagecollection.'
         )
 
-
     # extract properties
     if not bool(results['features']):
         # no data retrieved
         logger.warning(f'Something went wrong, gee did not return any data: {results}')
         logger.info(f'(Could it be that (one) these coordinates are not on the map: {metadf}?)')
         return pd.DataFrame()
+
     # =============================================================================
     # to dataframe
     # =============================================================================
-
-
 
     properties = [x["properties"] for x in results["features"]]
     df = pd.DataFrame(properties)
@@ -331,14 +332,12 @@ def extract_pointvalues(metadf, mapinfo, output_column_name):
 
 
 def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
-    """
-    Extract values for circular buffers for a given radius arround a point locations from a GEE categorical dataset.
-    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
+    """Extract buffer fractions from a GEE categorical dataset.
 
+    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
 
     A dataframe with the extracted values is returned.
     The values are mapped to human classes if the dataset value type is labeld as categorical.
-
 
     Parameters
     ----------
@@ -414,8 +413,11 @@ def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
 def gee_extract_timeseries(
     metadf, mapinfo, startdt, enddt, obstype="temp", latcolname="lat", loncolname="lon"
 ):
-    """
-    Extract a timeseries, for a given obstype, for point locations from a GEE dataset. The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
+    """Extract timeseries data at the stations location from a GEE dataset.
+
+    Extract a timeseries, for a given obstype, for point locations from a GEE
+    dataset. The pointlocations are defined in a dataframe by EPSG:4326 lat lon
+    coordinates.
 
     The startdate is included, the enddate is excluded.
 
@@ -445,7 +447,6 @@ def gee_extract_timeseries(
         column with the same name as the obstype.
 
     """
-
     scale = mapinfo["scale"]
     bandname = mapinfo["band_of_use"][obstype]["name"]
 
@@ -480,7 +481,6 @@ def gee_extract_timeseries(
             scale=scale,  # Cell size of raster
         )
         return feature
-
 
     raster = get_ee_obj(mapinfo, bandname)  # dataset
     results = (
@@ -547,7 +547,7 @@ def gee_extract_timeseries(
         logger.info("The google server is handling your request ...")
         sleep(3)
         finished = False
-        while finished == False:
+        while finished is False:
             if task.status()["state"] == "READY":
                 logger.info("Awaitening execution ...")
                 sleep(4)
