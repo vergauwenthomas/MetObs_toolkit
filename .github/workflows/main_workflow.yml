@@ -272,10 +272,10 @@ jobs:
 
 # ---- build the JOSS - paper -------
    paper:
-     if: |
-            github.ref == 'refs/heads/dev' ||
-            github.ref == 'refs/head/main' ||
-            contains(github.event.head_commit.message, 'build paper')
+#     if: |
+#            github.ref == 'refs/heads/dev' ||
+#            github.ref == 'refs/head/main' ||
+#            contains(github.event.head_commit.message, 'build paper')
      runs-on: ubuntu-latest
      name: Paper Draft
      steps:
