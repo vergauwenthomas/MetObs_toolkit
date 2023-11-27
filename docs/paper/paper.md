@@ -86,9 +86,6 @@ The user obtains a cleaned-up dataset ready for analysis. A set of typical analy
 
 \autoref{fig:overview_fig} gives an overview of the main framework of the MetObs-toolkit, but it is an evolving project that responds to the community's needs and input. As an example, the development of a graphical user interface (GUI) for the toolkit is planned. A GUI would increase the ease of use by enabling to create templates, adjust QC settings and plot data interactively. 
 
-It is to be expected that some novel functionalities will be added in the coming years and the documentation will be updated accordingly. 
-
-
 
 
 # Acknowledgments
