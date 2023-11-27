@@ -81,7 +81,7 @@ The MetObs-toolkit provides a comprehensive framework for scientists to process 
 
 Firstly, the raw data is mapped to the toolkit standards by use of a template. Once the raw data is imported into the Toolkit Dataset, missing observations are identified and methods to resample and synchronize observations can be used.
 
-Quality control is performed in the form of a series of checks. These checks are designed to examen data types, irregular timestamps, max-min thresholds, repetitions criteria, spike tests, allowed variation in time windows and spatial tests. Advanced quality control methods are available through the implementation of TITAN into the toolkit. The user can choose to keep the outliers or convert them to missing records (which can be filled).
+Quality control is performed in the form of a series of checks. These checks are designed to examine data types, irregular timestamps, max-min thresholds, repetitions criteria, spike tests, allowed variation in time windows and spatial tests. Advanced quality control methods are available through the implementation of TITAN into the toolkit. The user can choose to keep the outliers or convert them to missing records (which can be filled).
 
 Gap filling is applied by using interpolation methods and/or importing ERA5 reanalysis [@era5] time series to fill the gaps. The latter is stored as a Toolkit Modeldata, which has a set of methods to directly import the required time series through the use of the Google Earth engine API.
 The user obtains a cleaned-up dataset ready for analysis. A set of typical analysis techniques such as filters, aggregation schemes, and landcover correlation estimates are implemented in the Toolkit-Analysis class.
