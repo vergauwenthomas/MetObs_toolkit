@@ -22,7 +22,8 @@ class Dataset(dataset.Dataset):
                         output_folder=None,
                         input_data_file=None,
                         input_metadata_file=None,
-                        template_file=None
+                        template_file=None,
+                        only_metadata=False
                         ):
         """Update the most common input-output (IO) settings.
 
@@ -41,6 +42,10 @@ class Dataset(dataset.Dataset):
         template_file : string, optional
             Path to the mapper-template csv file to be used on the observations
             and metadata. The default is None.
+        only_metadata : bool, optional
+            If True, only the metadata file will mapped. Methods based on meta-
+            data are available, methods that requires observations are not.
+            The default is False.
 
         Returns
         -------
@@ -52,6 +57,7 @@ class Dataset(dataset.Dataset):
             input_data_file=input_data_file,
             input_metadata_file=input_metadata_file,
             template_file=template_file,
+            only_metadata=only_metadata
         )
 
     def update_timezone(self, timezonestr):

@@ -285,7 +285,8 @@ def read_csv_template(file, known_obstypes, data_long_format=True):
 # Metadata
 # =============================================================================
 
-def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
+def import_metadata_from_csv(input_file, template, kwargs_metadata_read,
+                             without_orig_name=False):
     """Import metadata as a dataframe.
 
     Parameters
@@ -296,6 +297,11 @@ def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
         Template dictionary.
     kwargs_metadata_read : dict
         Extra user-specific kwargs to pass to the pd.read_csv() function.
+    without_orig_name : bool, optional
+        If False, the template is assumed to have a nested dict structure with
+        the originals names indicated by orig_name keys. (This is done when
+        using the template for data). Must be True in only-metadata mode. The
+        default is False.
 
     Returns
     -------
@@ -313,8 +319,20 @@ def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
     check_template_compatibility(template, df.columns, filetype='metadata')
 
     # rename columns to toolkit attriute names
-    column_mapper = {val['orig_name']: key for key, val in template.items()}
+    if without_orig_name:
+        column_mapper = {key : val['varname'] for key, val in template.items()}
+    else:
+        column_mapper = {val['orig_name']: key for key, val in template.items()}
     df = df.rename(columns=column_mapper)
+
+    # Typecast lat and lon
+
+    for col in df.columns:
+        if col in ['lon', 'lat']:
+            try:
+                df[col] = pd.to_numeric(df[col])
+            except Exception as e:
+                sys.exit(f'Could not convert (all) coordinates to numerical: \n {e}')
 
     return df
 

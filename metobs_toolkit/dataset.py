@@ -415,6 +415,11 @@ class Dataset:
         None.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+            logger.warning('This method is not available in ONLY-METADATA mode!')
+            return
+
         # Test if the obstype is of the correct class.
         if not isinstance(Obstype, Obstype_class):
             sys.exit(f"{Obstype} is not an instance of metobs_toolkit.obstypes.Obstype.")
@@ -454,6 +459,11 @@ class Dataset:
         None.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+            logger.warning('This method is not available in ONLY-METADATA mode!')
+            return
+
         # test if observation is present
         if not obstype in self.obstypes.keys():
             logger.warning(f'{obstype} is not a known obstype! No unit can be added.')
@@ -496,6 +506,11 @@ class Dataset:
             The station object.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+            logger.warning('This method is not available in ONLY-METADATA mode!')
+            return
+
         from metobs_toolkit.station import Station
 
         logger.info(f"Extract {stationname} from dataset.")
@@ -609,6 +624,10 @@ class Dataset:
         as if it has the same timezone as the observations.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+            logger.warning('This method is not available in ONLY-METADATA mode!')
+            return
 
         if stationnames is None:
             logger.info(f"Make {obstype}-timeseries plot for all stations")
@@ -738,6 +757,11 @@ class Dataset:
         with a browser.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+            logger.warning('This method is not available in ONLY-METADATA mode!')
+            return
+
         # Check if obstype is known
         if isinstance(obstype, str):
             if obstype not in self.obstypes.keys():
@@ -891,6 +915,11 @@ class Dataset:
         as if it has the same timezone as the observations.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+            logger.warning('This method is not available in ONLY-METADATA mode!')
+            return
+
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
 
@@ -1022,6 +1051,11 @@ class Dataset:
         to this method.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+            logger.warning('This method is not available in ONLY-METADATA mode!')
+            return
+
         if modeldata is None:
             Modl = Modeldata(modelname)
 
@@ -1114,6 +1148,11 @@ class Dataset:
         the dataset is coarsend.
 
         """
+         # test if observation data exists
+        if self.settings.only_metadata:
+            logger.warning('This method is not available in ONLY-METADATA mode!')
+            return
+
         if n_gapsize is None:
             n_gapsize = self.settings.gap['gaps_settings']['gaps_finder']['gapsize_n']
             if not self.metadf["assumed_import_frequency"].eq(self.metadf['dataset_resolution']).all():
@@ -1218,6 +1257,10 @@ class Dataset:
 
         """
         #  ----------- Validate ----------------------------------------
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
 
         # check if modeldata is available
         if modeldata is None:
@@ -1313,6 +1356,11 @@ class Dataset:
 
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         # TODO logging
         fill_settings = self.settings.gap["gaps_fill_settings"]["linear"]
 
@@ -1353,6 +1401,11 @@ class Dataset:
         None.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         # TODO logging
         fill_settings = self.settings.missing_obs['missing_obs_fill_settings']['linear']
         fill_info = self.settings.missing_obs['missing_obs_fill_info']
@@ -1383,6 +1436,11 @@ class Dataset:
             of the gaps as columns.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         return gaps_to_df(self.gaps)
 
     def get_gaps_info(self):
@@ -1393,6 +1451,11 @@ class Dataset:
         None.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         if bool(self.gaps):
             # there are gaps
             for gap in self.gaps:
@@ -1409,6 +1472,11 @@ class Dataset:
         None.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         # empty obs protector in the .get_info method.
         self.missing_obs.get_info()
 
@@ -1427,6 +1495,11 @@ class Dataset:
             The Analysis instance of the Dataset.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         # combine all to obsspace and include gapfill
         if add_gapfilled_values:
             mergedf = self.combine_all_to_obsspace()
@@ -1482,6 +1555,11 @@ class Dataset:
             A dataframe containing all gap filled values and the use method.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         # check if modeldata is available
         if modeldata is None:
             logger.warning(
@@ -1573,6 +1651,11 @@ class Dataset:
         None.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         logger.info("Writing the dataset to a csv file")
 
         assert (
@@ -1673,6 +1756,11 @@ class Dataset:
         None.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         if repetitions:
             apliable = _can_qc_be_applied(self, obstype, "repetitions")
             if apliable:
@@ -1857,6 +1945,10 @@ class Dataset:
         None.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
 
         logger.info("Applying the toolkit buddy check")
 
@@ -1974,6 +2066,11 @@ class Dataset:
         a c++ compiler installed. See the titanlib documentation: https://github.com/metno/titanlib/wiki/Installation.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         logger.info("Applying the titan buddy check")
 
         try:
@@ -2092,6 +2189,11 @@ class Dataset:
         guaranteed!
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         logger.info("Applying the titan SCT check")
 
         try:
@@ -2183,6 +2285,10 @@ class Dataset:
             record is labeld.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
         # TODO: label values from settings not hardcoding
 
         # TODO: use the repr_outl_as_nan argumenten here
@@ -2311,6 +2417,11 @@ class Dataset:
             A table containing the label frequencies per check presented
             as percentages.
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         # cobmine all and get final label
         comb_df = self.combine_all_to_obsspace()
 
@@ -2358,6 +2469,10 @@ class Dataset:
 
     def update_outliersdf(self, add_to_outliersdf):
         """Update the outliersdf attribute."""
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
         self.outliersdf = pd.concat([self.outliersdf, add_to_outliersdf])
 
     def coarsen_time_resolution(
@@ -2396,6 +2511,11 @@ class Dataset:
         None.
 
         """
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
+
         if freq is None:
             freq = self.settings.time_settings["target_time_res"]
         if method is None:
@@ -2514,6 +2634,10 @@ class Dataset:
         """
         # get columns pressent in metadf, because the input df can have columns
         # that does not have to be mapped to the toolkit
+        # test if observation data exists
+        if self.settings.only_metadata:
+           logger.warning('This method is not available in ONLY-METADATA mode!')
+           return
 
         assert not self.input_df.empty, 'To syncronize a dataset, the (pure) input dataframe cannot be empty.'
 
@@ -2749,6 +2873,10 @@ class Dataset:
         None.
 
         """
+        if self.settings.only_metadata:
+            self._import_only_metadata(kwargs_metadata_read)
+            return
+
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         if freq_estimation_method is None:
@@ -2918,6 +3046,43 @@ station with the default name: {self.settings.app["default_name"]}.'
             freq_estimation_simplify_error=freq_estimation_simplify_error,
         )
 
+    def _import_only_metadata(self, kwargs_metadata_read={}):
+
+        logger.info('Importing metadata in ONLY-METADATA-mode.')
+
+        # 1. Reading the template file
+        template, options_kwargs = read_csv_template(file=self.settings.templates["template_file"],
+                                                     known_obstypes=list(self.obstypes.keys()),
+                                                     data_long_format=True, #will not be used
+                                                     )
+
+        # 2. Read metadata
+        if self.settings.IO["input_metadata_file"] is None:
+            sys.exit(
+                "No metadata file is defined, no metadata attributes can be set!"
+            )
+
+        logger.info(
+            f'Importing metadata from file: {self.settings.IO["input_metadata_file"]}'
+        )
+        meta_df = import_metadata_from_csv(
+            input_file=self.settings.IO["input_metadata_file"],
+            template=template,
+            kwargs_metadata_read=kwargs_metadata_read,
+            without_orig_name=True,
+        )
+
+        #3.  update dataset object
+        self.data_template = pd.DataFrame().from_dict(template)
+
+
+
+        meta_df = meta_df[~meta_df.index.duplicated(keep="first")]
+        meta_df = meta_df.set_index('name')
+        self.metadf = metadf_to_gdf(meta_df)
+
+
+
     # def import_data_from_database(
     #     self, start_datetime=None, end_datetime=None, coarsen_timeres=False
     # ):
@@ -3085,6 +3250,9 @@ station with the default name: {self.settings.app["default_name"]}.'
             metadf = metadf[~metadf.index.duplicated(keep="first")]
 
             self.metadf = metadf_to_gdf(metadf)
+
+
+
 
     def _apply_qc_on_import(self):
         # if the name is Nan, remove these records from df, and metadf (before)
