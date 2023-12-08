@@ -131,7 +131,7 @@ def yes_no_ques(text):
     valid_input = False
 
     while valid_input is False:
-        prompt = input(f' {text}. (y/n) : ')
+        prompt = input(f' {text} (y/n) : ')
 
         if (prompt == 'y') | (prompt == 'Y'):
             valid_input = True
@@ -186,190 +186,211 @@ def build_template_prompt(debug=False):
 
     print('This prompt will help to build a template for your data and metadata. Answer the prompt and hit Enter. \n \n')
 
-    print(' *******      File locations   *********** \n')
-    datafilepath = usr_input_file('Give the full path to your data file')
+    with_data = yes_no_ques("Do you have a file with observational data?")
     meta_avail = yes_no_ques('Do you have a file with the metadata?')
-    if meta_avail:
+
+    if ((with_data == False) & (meta_avail==False)):
+        sys.exit('No data of any type (observations or metadata) is present, there is nothing I can do here.' )
+
+    print(' *******      File locations   *********** \n')
+    if ((with_data == False) & (meta_avail==True)):
+        only_metadata_mode=True
         metadatafilepath = usr_input_file('Give the full path to your metadata file')
+        format_option = 1 #will not be used but for avoiding dupl code
+
+    elif ((with_data == True) & (meta_avail==False)):
+        only_metadata_mode=False
+        datafilepath = usr_input_file('Give the full path to your data file')
+    elif ((with_data == True) & (meta_avail==True)):
+        only_metadata_mode=False
+        datafilepath = usr_input_file('Give the full path to your data file')
+        metadatafilepath = usr_input_file('Give the full path to your metadata file')
+
+
+
+    # datafilepath = usr_input_file('Give the full path to your data file')
+    # # meta_avail = yes_no_ques('Do you have a file with the metadata?')
+    # if meta_avail:
+    #     metadatafilepath = usr_input_file('Give the full path to your metadata file')
 
     # =============================================================================
     # Map data file
     # =============================================================================
+    if only_metadata_mode==False:
+        print('\n\n *******      Data File   ***********')
 
-    print('\n\n *******      Data File   ***********')
+        # datafilepath = usr_input_file('Give the full path to your data file')
+        print(' ... opening the data file ...')
+        data = _read_csv_to_df(datafilepath, {})
+        columnnames = data.columns.to_list()
 
-    # datafilepath = usr_input_file('Give the full path to your data file')
-    print(' ... opening the data file ...')
-    data = _read_csv_to_df(datafilepath, {})
-    columnnames = data.columns.to_list()
+        format_dict = {'Long format (station observations are stacked as rows)': 1,
+                       'Wide format (columns represent different stations)': 2,
+                       'Single station format (columns represent observation(s) of one station)': 3}
 
-    format_dict = {'Long format (station observations are stacked as rows)': 1,
-                   'Wide format (columns represent different stations)': 2,
-                   'Single station format (columns represent observation(s) of one station)': 3}
+        print('How is your dataset structured : \n')
+        format_option = col_option_input(format_dict.keys())
+        print(f' \n... oke, {format_option} selected ...\n')
+        format_option = format_dict[format_option]
+        if debug:
+            print(f'format numeric option: {format_option}')
+        if format_option == 1:
+            options_dict['data_structure'] = 'long'
+        if format_option == 2:
+            options_dict['data_structure'] = 'wide'
+        if format_option == 3:
+            options_dict['data_structure'] = 'single_station'
 
-    print('How is your dataset structured : \n')
-    format_option = col_option_input(format_dict.keys())
-    print(f' \n... oke, {format_option} selected ...\n')
-    format_option = format_dict[format_option]
-    if debug:
-        print(f'format numeric option: {format_option}')
-    if format_option == 1:
-        options_dict['data_structure'] = 'long'
-    if format_option == 2:
-        options_dict['data_structure'] = 'wide'
-    if format_option == 3:
-        options_dict['data_structure'] = 'single_station'
+        # Datatime mapping
+        dt_dict = {'In a single column (ex: 2023/06/07 16:12:30)': 1,
+                   'By a column with dates, and another column with times': 2}
+        print('How are the timestamps present in your data file : \n')
+        datetime_option = col_option_input(dt_dict.keys())
+        datetime_option = dt_dict[datetime_option]
 
-    # Datatime mapping
-    dt_dict = {'In a single column (ex: 2023/06/07 16:12:30)': 1,
-               'By a column with dates, and another column with times': 2}
-    print('How are the timestamps present in your data file : \n')
-    datetime_option = col_option_input(dt_dict.keys())
-    datetime_option = dt_dict[datetime_option]
+        if datetime_option == 1:
 
-    if datetime_option == 1:
+            # Datetime mapping
+            template_dict['datetime'] = {}
+            print('\n Which is your timestamp columnname: ')
+            template_dict['datetime']['orig_name'] = col_option_input(columnnames)
+            columnnames.remove(template_dict['datetime']['orig_name'])
 
-        # Datetime mapping
-        template_dict['datetime'] = {}
-        print('\n Which is your timestamp columnname: ')
-        template_dict['datetime']['orig_name'] = col_option_input(columnnames)
-        columnnames.remove(template_dict['datetime']['orig_name'])
+            example = data[template_dict['datetime']['orig_name']].iloc[0]
+            template_dict['datetime']['format'] = input(f'Type your datetime format (ex. %Y-%m-%d %H:%M:%S), (your first timestamp: {example}) : ')
 
-        example = data[template_dict['datetime']['orig_name']].iloc[0]
-        template_dict['datetime']['format'] = input(f'Type your datetime format (ex. %Y-%m-%d %H:%M:%S), (your first timestamp: {example}) : ')
+        else:
+            # Date mapping
+            template_dict['_date'] = {}
+            print('Which column represents the DATES : ')
+            template_dict['_date']['orig_name'] = col_option_input(columnnames)
+            columnnames.remove(template_dict['_date']['orig_name'])
 
-    else:
-        # Date mapping
-        template_dict['_date'] = {}
-        print('Which column represents the DATES : ')
-        template_dict['_date']['orig_name'] = col_option_input(columnnames)
-        columnnames.remove(template_dict['_date']['orig_name'])
+            example = data[template_dict['_date']['orig_name']].iloc[0]
+            template_dict['_date']['format'] = input(f'Type your date format (ex. %Y-%m-%d), (your first timestamp: {example}) : ')
 
-        example = data[template_dict['_date']['orig_name']].iloc[0]
-        template_dict['_date']['format'] = input(f'Type your date format (ex. %Y-%m-%d), (your first timestamp: {example}) : ')
+            print(' \n')
 
-        print(' \n')
+            # Time mapping
+            template_dict['_time'] = {}
+            print('Which column represents the TIMES : ')
+            template_dict['_time']['orig_name'] = col_option_input(columnnames)
 
-        # Time mapping
-        template_dict['_time'] = {}
-        print('Which column represents the TIMES : ')
-        template_dict['_time']['orig_name'] = col_option_input(columnnames)
+            columnnames.remove(template_dict['_time']['orig_name'])
+            example = data[template_dict['_time']['orig_name']].iloc[0]
+            template_dict['_time']['format'] = input(f'Type your time format (ex. %H:%M:%S), (your first timestamp: {example}) : ')
 
-        columnnames.remove(template_dict['_time']['orig_name'])
-        example = data[template_dict['_time']['orig_name']].iloc[0]
-        template_dict['_time']['format'] = input(f'Type your time format (ex. %H:%M:%S), (your first timestamp: {example}) : ')
+        # Obstype mapping in long format:
+        obstype_desc = {'name': 'name (name of the stations represented by strings)'}
+        obstype_desc.update({ob.name: ob.get_description() for ob in known_obstypes.values()})
+        obstype_desc.update({'ADD NEW OBSERVATION TYPE': "add a new observation type if it is not present in this list."})
 
-    # Obstype mapping in long format:
-    obstype_desc = {'name': 'name (name of the stations represented by strings)'}
-    obstype_desc.update({ob.name: ob.get_description() for ob in known_obstypes.values()})
-    obstype_desc.update({'ADD NEW OBSERVATION TYPE': "add a new observation type if it is not present in this list."})
+        inv_obstype_desc = {val: key for key, val in obstype_desc.items()}
+        obstype_options = list(obstype_desc.values())
 
-    inv_obstype_desc = {val: key for key, val in obstype_desc.items()}
-    obstype_options = list(obstype_desc.values())
+        if (format_option == 1) | (format_option == 3):
+            # long format
+            print('What do the following columns represent: \n')
 
-    if (format_option == 1) | (format_option == 3):
-        # long format
-        print('What do the following columns represent: \n')
+            for col in columnnames:
+                contin = yes_no_ques(f'\n add column {col} to the template?')
 
-        for col in columnnames:
-            contin = yes_no_ques(f'\n add column {col} to the template?')
+                if contin is False:
+                    continue
 
-            if contin is False:
-                continue
+                print(f'\n {col} : ')
 
-            print(f'\n {col} : ')
+                desc_return = col_option_input(obstype_options)
+                if desc_return is None:
+                    continue  # when enter x
 
+                # 1) add a new obstype
+                if inv_obstype_desc[desc_return] == 'ADD NEW OBSERVATION TYPE':
+                    new_obstype, cur_unit = add_new_obstype()
+
+                    known_obstypes[new_obstype.name] = new_obstype #add to knonw obstypes
+                    obstype = new_obstype.name
+                    units = cur_unit
+                    description = new_obstype.get_description()
+                # 2) name column is mapped
+                elif inv_obstype_desc[desc_return] == 'name':
+                    template_dict['name'] = {'orig_name': col}
+                    obstype_options.remove('name (name of the stations represented by strings)')
+                    continue
+                # 3) existing obstype
+                else:
+                    obstype = inv_obstype_desc[desc_return]
+
+                    # add unit
+                    units, conv_str = get_unit(known_obstypes[obstype])
+                    if conv_str is not None:
+                        # add new units to the dict
+                        new_units[obstype] = {'unit': units,
+                                              'conv': conv_str}
+
+
+                    description = input('Some more details on the observation (optional): ')
+
+                    obstype_options.remove(obstype_desc[obstype])
+
+                # update template
+                template_dict[obstype] = {'orig_name': col,
+                                          'units': units,
+                                          'description': description
+                                          }
+
+
+        if format_option == 2:
+            print('\n Does these columns represent stations: ')
+            for col in columnnames:
+                print(f'  {col} ')
+
+            cont = yes_no_ques('')
+            if cont is False:
+                print('\n In a Wide-format, REMOVE THE COLUMNS that do not represent different satations, before proceding! \n')
+            else:
+                stationnames = columnnames
+
+            print('\n What observation type does you data represent : ')
+            obstype_options.remove(obstype_desc['name'])
             desc_return = col_option_input(obstype_options)
             if desc_return is None:
-                continue  # when enter x
+                print('This is not an option, select an observation type.')
+                sys.exit('invalid obstype for wide dataset, see last message. ')
+            wide_obstype = inv_obstype_desc[desc_return]
 
             # 1) add a new obstype
-            if inv_obstype_desc[desc_return] == 'ADD NEW OBSERVATION TYPE':
+            if wide_obstype == 'ADD NEW OBSERVATION TYPE':
+                print("NIEW OBSTYPE TOEVOEGEN!!!")
                 new_obstype, cur_unit = add_new_obstype()
-
+                wide_obstype = new_obstype.name
                 known_obstypes[new_obstype.name] = new_obstype #add to knonw obstypes
-                obstype = new_obstype.name
                 units = cur_unit
                 description = new_obstype.get_description()
-            # 2) name column is mapped
-            elif inv_obstype_desc[desc_return] == 'name':
-                template_dict['name'] = {'orig_name': col}
-                obstype_options.remove('name (name of the stations represented by strings)')
-                continue
-            # 3) existing obstype
-            else:
-                obstype = inv_obstype_desc[desc_return]
 
+            # 2) Knonw obstype
+            else:
                 # add unit
-                units, conv_str = get_unit(known_obstypes[obstype])
+                units, conv_str = get_unit(known_obstypes[wide_obstype])
                 if conv_str is not None:
                     # add new units to the dict
-                    new_units[obstype] = {'unit': units,
+                    new_units[wide_obstype] = {'unit': units,
                                           'conv': conv_str}
-
 
                 description = input('Some more details on the observation (optional): ')
 
-                obstype_options.remove(obstype_desc[obstype])
 
             # update template
-            template_dict[obstype] = {'orig_name': col,
-                                      'units': units,
-                                      'description': description
-                                      }
-
-
-    if format_option == 2:
-        print('\n Does these columns represent stations: ')
-        for col in columnnames:
-            print(f'  {col} ')
-
-        cont = yes_no_ques('')
-        if cont is False:
-            print('\n In a Wide-format, REMOVE THE COLUMNS that do not represent different satations, before proceding! \n')
-        else:
-            stationnames = columnnames
-
-        print('\n What observation type does you data represent : ')
-        obstype_options.remove(obstype_desc['name'])
-        desc_return = col_option_input(obstype_options)
-        if desc_return is None:
-            print('This is not an option, select an observation type.')
-            sys.exit('invalid obstype for wide dataset, see last message. ')
-        wide_obstype = inv_obstype_desc[desc_return]
-
-        # 1) add a new obstype
-        if wide_obstype == 'ADD NEW OBSERVATION TYPE':
-            print("NIEW OBSTYPE TOEVOEGEN!!!")
-            new_obstype, cur_unit = add_new_obstype()
-            wide_obstype = new_obstype.name
-            known_obstypes[new_obstype.name] = new_obstype #add to knonw obstypes
-            units = cur_unit
-            description = new_obstype.get_description()
-
-        # 2) Knonw obstype
-        else:
-            # add unit
-            units, conv_str = get_unit(known_obstypes[wide_obstype])
-            if conv_str is not None:
-                # add new units to the dict
-                new_units[wide_obstype] = {'unit': units,
-                                      'conv': conv_str}
-
-            description = input('Some more details on the observation (optional): ')
-
-
-        # update template
-        template_dict[wide_obstype] = {'units': units,
-                                       'description': description
-                                       }
-        # update options
-        options_dict['obstype'] = wide_obstype
-        options_dict['obstype_unit'] = units
-        options_dict['obstype_description'] = description
-    if debug:
-        print(f'format option: {format_option}')
-        print(f'template_dict: {template_dict}')
+            template_dict[wide_obstype] = {'units': units,
+                                           'description': description
+                                           }
+            # update options
+            options_dict['obstype'] = wide_obstype
+            options_dict['obstype_unit'] = units
+            options_dict['obstype_description'] = description
+        if debug:
+            print(f'format option: {format_option}')
+            print(f'template_dict: {template_dict}')
     # =============================================================================
     # Map metadatafile
     # =============================================================================
@@ -430,74 +451,74 @@ def build_template_prompt(debug=False):
     print('\n \n *******      Testing template compatibility   ***********')
     print('\n   ... Oke, that is all the info for the mapping. Now i will do some basic tests to see if the mapping works.')
 
+    if only_metadata_mode==False:
+        #  ------- tests on data ---------
+        # apply tests the first row
+        data_test = data.iloc[0].to_dict()
 
-    #  ------- tests on data ---------
-    # apply tests the first row
-    data_test = data.iloc[0].to_dict()
+        # test if a stationname column is available in a long format
+        print (' *  ... checking data columns ... ')
+        if ((format_option == 1) & (not 'name' in template_dict)):
+            print(' \n WARNING: There is no information which column in the data file represents the names of the stations. The toolkit will assume that the observations are from ONE station! \n')
+            format_option = 3
 
-    # test if a stationname column is available in a long format
-    print (' *  ... checking data columns ... ')
-    if ((format_option == 1) & (not 'name' in template_dict)):
-        print(' \n WARNING: There is no information which column in the data file represents the names of the stations. The toolkit will assume that the observations are from ONE station! \n')
-        format_option = 3
-
-    # check if a least one mapped observation type exist
-    if (format_option != 2):
-        present_obs = [key for key in template_dict.keys() if key in known_obstypes.keys()]
-        if not bool(present_obs):
-            print('ERROR! There is no observation type included in the template! Add at least one observation type when mapping the data file.')
-            sys.exit('Template invalid, see last message. ')
-
-
-    # test datetime format
-    print (' *  ... checking timestamps formats ... ')
-    if 'datetime' in template_dict:
-        escape = False
-        while not escape:
-            test_dt = data_test[template_dict['datetime']['orig_name']]
-            try:
-                _ = datetime.strptime(test_dt,
-                                      template_dict['datetime']['format'])
-                print ('   ... testing datetime format is ...  OK!')
-                escape=True
-            except:
-                print(f'ERROR: the {template_dict["datetime"]["format"]} does not work for {test_dt}')
-                template_dict['datetime']['format'] = input('\n Try new timestamp format (ex. %Y-%m-%d %H:%M:%S) : ')
-
-    if '_date' in template_dict:
-        escape = False
-        while not escape:
-            test_dt = data_test[template_dict['_date']['orig_name']]
-            try:
-                _ = datetime.strptime(test_dt,
-                                      template_dict['_date']['format'])
-                print ('   ... testing date format is OK!')
-                escape=True
-            except:
-                print(f'ERROR: the {template_dict["_date"]["format"]} does not work for {test_dt}')
-                template_dict['_date']['format'] = input('\n Try new date format (ex. %Y-%m-%d) : ')
-    if '_time' in template_dict:
-        escape = False
-        while not escape:
-            test_dt = data_test[template_dict['_time']['orig_name']]
-            try:
-                _ = datetime.strptime(test_dt,
-                                      template_dict['_time']['format'])
-                print ('   ... testing time format is OK!')
-                escape=True
-            except:
-                print(f'ERROR: the {template_dict["_time"]["format"]} does not work for {test_dt}')
-                template_dict['_time']['format'] = input('\n Try new time format (ex. %H:%M:%S) : ')
+        # check if a least one mapped observation type exist
+        if (format_option != 2):
+            present_obs = [key for key in template_dict.keys() if key in known_obstypes.keys()]
+            if not bool(present_obs):
+                print('ERROR! There is no observation type included in the template! Add at least one observation type when mapping the data file.')
+                sys.exit('Template invalid, see last message. ')
 
 
-    # check if all data columns are mapped
-    print (' *  ... checking for unmapped data columns ... ')
-    if (format_option == 1) | (format_option == 3):
-        present_columns = list(data_test.keys())
-        mapped_cols = [val['orig_name'] for val in template_dict.values()]
-        for col in present_columns:
-            if not col in mapped_cols:
-                print(f' Warning! {col} in the datafile is not present in the template, and thus it will not be used.')
+        # test datetime format
+        print (' *  ... checking timestamps formats ... ')
+        if 'datetime' in template_dict:
+            escape = False
+            while not escape:
+                test_dt = data_test[template_dict['datetime']['orig_name']]
+                try:
+                    _ = datetime.strptime(test_dt,
+                                          template_dict['datetime']['format'])
+                    print ('   ... testing datetime format is ...  OK!')
+                    escape=True
+                except:
+                    print(f'ERROR: the {template_dict["datetime"]["format"]} does not work for {test_dt}')
+                    template_dict['datetime']['format'] = input('\n Try new timestamp format (ex. %Y-%m-%d %H:%M:%S) : ')
+
+        if '_date' in template_dict:
+            escape = False
+            while not escape:
+                test_dt = data_test[template_dict['_date']['orig_name']]
+                try:
+                    _ = datetime.strptime(test_dt,
+                                          template_dict['_date']['format'])
+                    print ('   ... testing date format is OK!')
+                    escape=True
+                except:
+                    print(f'ERROR: the {template_dict["_date"]["format"]} does not work for {test_dt}')
+                    template_dict['_date']['format'] = input('\n Try new date format (ex. %Y-%m-%d) : ')
+        if '_time' in template_dict:
+            escape = False
+            while not escape:
+                test_dt = data_test[template_dict['_time']['orig_name']]
+                try:
+                    _ = datetime.strptime(test_dt,
+                                          template_dict['_time']['format'])
+                    print ('   ... testing time format is OK!')
+                    escape=True
+                except:
+                    print(f'ERROR: the {template_dict["_time"]["format"]} does not work for {test_dt}')
+                    template_dict['_time']['format'] = input('\n Try new time format (ex. %H:%M:%S) : ')
+
+
+        # check if all data columns are mapped
+        print (' *  ... checking for unmapped data columns ... ')
+        if (format_option == 1) | (format_option == 3):
+            present_columns = list(data_test.keys())
+            mapped_cols = [val['orig_name'] for val in template_dict.values()]
+            for col in present_columns:
+                if not col in mapped_cols:
+                    print(f' Warning! {col} in the datafile is not present in the template, and thus it will not be used.')
 
 
 
@@ -524,7 +545,7 @@ def build_template_prompt(debug=False):
 
         # test if all stationnames are present in the metadata
         print (' *  ... checking compatible station names ... ')
-        if ((format_option == 1) & ('name' in template_dict)):
+        if ((format_option == 1) & ('name' in template_dict) & (only_metadata_mode==False)):
             stanames_data = data[template_dict['name']['orig_name']].unique()
             stanames_metadata = metadata[metatemplate_dict['name']['orig_name']].unique()
 
@@ -591,20 +612,21 @@ def build_template_prompt(debug=False):
 
     template_dict.update(metatemplate_dict) #this is why name in data and metadata should have the same mapping !!
 
+    if only_metadata_mode==False:
 
-    print('\n \n *******      Extra options    ***********')
+        print('\n \n *******      Extra options    ***********')
 
-    if ((format_option == 3) & (not 'name' in template_dict)):#single station with no name information
-        staname = input('\n What is the name of your station : ')
-        options_dict['stationname'] = staname
+        if ((format_option == 3) & (not 'name' in template_dict)):#single station with no name information
+            staname = input('\n What is the name of your station : ')
+            options_dict['stationname'] = staname
 
-    tzchange = yes_no_ques('\n Are the timestamps in UTC?')
-    if tzchange is False:
-        print('\n Select a timezone: ')
-        tzstring = col_option_input(pytz.all_timezones)
-        options_dict['timezone'] = tzstring
-    else:
-        options_dict['timezone'] = 'UTC'
+        tzchange = yes_no_ques('\n Are the timestamps in UTC?')
+        if tzchange is False:
+            print('\n Select a timezone: ')
+            tzstring = col_option_input(pytz.all_timezones)
+            options_dict['timezone'] = tzstring
+        else:
+            options_dict['timezone'] = 'UTC'
 
     # =============================================================================
     # Saving the template
@@ -620,11 +642,14 @@ def build_template_prompt(debug=False):
     df = df.rename(columns={'orig_name' : 'template column name'})
     df = df.reset_index()
 
-    # add options
-    options_df = pd.DataFrame().from_dict(options_dict, orient='index',
-                                          columns=['options_values']).reset_index().rename(columns={'index': 'options'})
+    if only_metadata_mode==False:
+        # add options
+        options_df = pd.DataFrame().from_dict(options_dict, orient='index',
+                                              columns=['options_values']).reset_index().rename(columns={'index': 'options'})
 
-    df = pd.concat([df,options_df], ignore_index=False, axis=1) #add optionscolumns
+        df = pd.concat([df,options_df], ignore_index=False, axis=1) #add optionscolumns
+    else:
+        df=df
 
     # write to csv
     templatefilepath = os.path.join(save_dir, 'template.csv')
@@ -653,18 +678,19 @@ def build_template_prompt(debug=False):
             output_folder = input(' Give the path of your output direcory : ')
             output_update = True
 
-
-        gaps_change = yes_no_ques('Do you want to use the default gaps defenition?')
-        gaps_update = False
-        if gaps_change is False:
-            gapsize = int(input(' What is the minimum number of consecutive missing records to define as a gap? (default=40) : '))
-            gaps_update = True
+        if only_metadata_mode==False:
+            gaps_change = yes_no_ques('Do you want to use the default gaps defenition?')
+            gaps_update = False
+            if gaps_change is False:
+                gapsize = int(input(' What is the minimum number of consecutive missing records to define as a gap? (default=40) : '))
+                gaps_update = True
 
         print('\n\n ========= RUN THIS CODE ========= \n\n')
 
 
         print('\n#1. Define the paths to your files: \n')
-        print(f'data_file = "{datafilepath}"')
+        if only_metadata_mode==False:
+            print(f'data_file = "{datafilepath}"')
         if bool(metatemplate_dict):
             print(f'meta_data_file = "{metadatafilepath}"')
 
@@ -676,49 +702,53 @@ def build_template_prompt(debug=False):
 
         print('\n#3. Update the paths to your files: \n')
         print('your_dataset.update_settings(')
-        print('    input_data_file = data_file,')
+        if only_metadata_mode==False:
+            print('    input_data_file = data_file,')
         if bool(metatemplate_dict):
             print('    input_metadata_file = meta_data_file,')
         print('    template_file = template,')
         if output_update:
             print(f'    output_folder = "{output_folder}",')
+        if only_metadata_mode==True:
+            print(f'    only_metadata = True,')
         print('    )')
 
         # extra case specific options
-        if ((gaps_update)):
-            print('\n#3B. Update specific settings (optional): \n')
+        if only_metadata_mode==False:
+            if ((gaps_update)):
+                print('\n#3B. Update specific settings (optional): \n')
 
 
-        if gaps_update:
-            print(f'your_dataset.update_qc_settings(gapsize_in_records = {gapsize})')
+            if gaps_update:
+                print(f'your_dataset.update_qc_settings(gapsize_in_records = {gapsize})')
 
-        # add new obstypes if needed
-        to_add_obstypes = [newobsname for newobsname in known_obstypes.keys() if newobsname not in tlk_obstypes.keys()]
-        if bool(to_add_obstypes):
-            print('\n# Define non-standard observation types, and add them to the dataset: \n')
-            for newob in to_add_obstypes:
-                new_obstype = known_obstypes[newob]
-                print('new_obstype = metobs_toolkit.Obstype(')
-                print(f'                 obsname="{new_obstype.name}",')
-                print(f'                 std_unit="{new_obstype.get_standard_unit()}",')
-                print(f'                 description="{new_obstype.get_description()}",')
-                print(f'                 unit_aliases={new_obstype.units_aliases},')
-                print(f'                 unit_conversions={new_obstype.conv_table})')
-                print("\n\n #add the new obstype to your dataset. \n")
-                print('your_dataset.add_new_observationtype(Obstype=new_obstype)')
-                print('\n\n')
+            # add new obstypes if needed
+            to_add_obstypes = [newobsname for newobsname in known_obstypes.keys() if newobsname not in tlk_obstypes.keys()]
+            if bool(to_add_obstypes):
+                print('\n# Define non-standard observation types, and add them to the dataset: \n')
+                for newob in to_add_obstypes:
+                    new_obstype = known_obstypes[newob]
+                    print('new_obstype = metobs_toolkit.Obstype(')
+                    print(f'                 obsname="{new_obstype.name}",')
+                    print(f'                 std_unit="{new_obstype.get_standard_unit()}",')
+                    print(f'                 description="{new_obstype.get_description()}",')
+                    print(f'                 unit_aliases={new_obstype.units_aliases},')
+                    print(f'                 unit_conversions={new_obstype.conv_table})')
+                    print("\n\n #add the new obstype to your dataset. \n")
+                    print('your_dataset.add_new_observationtype(Obstype=new_obstype)')
+                    print('\n\n')
 
-        # add new units if needed
+            # add new units if needed
 
-        if bool(new_units):
-            print('\n# Define non-standard units, and add them to the corresponding units: \n')
-            for obstype, unit_info in new_units.items():
-                print('your_dataset.add_new_unit(')
-                print(f'                         obstype="{obstype}",')
-                print(f'                         new_unit="{unit_info["unit"]}",')
-                print(f'                         conversion_expression={unit_info["conv"]})')
+            if bool(new_units):
+                print('\n# Define non-standard units, and add them to the corresponding units: \n')
+                for obstype, unit_info in new_units.items():
+                    print('your_dataset.add_new_unit(')
+                    print(f'                         obstype="{obstype}",')
+                    print(f'                         new_unit="{unit_info["unit"]}",')
+                    print(f'                         conversion_expression={unit_info["conv"]})')
 
-                print('\n\n')
+                    print('\n\n')
 
 
         print('\n#4. Import your data : \n')

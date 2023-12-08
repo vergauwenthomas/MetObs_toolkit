@@ -41,6 +41,7 @@ class Settings:
             "input_data_file": None,
             "input_metadata_file": None,
         }
+        self.only_metadata=False #True if data is ignored/not provided
 
         # Update (instance and class variables) what can be updated by setingsfiles
         # self._update_db_settings()
@@ -267,7 +268,8 @@ class Settings:
             self.time_settings["timezone"] = timezonestr
 
     def update_IO(self, output_folder=None, input_data_file=None,
-                  input_metadata_file=None, template_file=None):
+                  input_metadata_file=None, template_file=None,
+                  only_metadata=False):
         """
         Update some settings that are relevent before data is imported.
 
@@ -286,6 +288,10 @@ class Settings:
             Path to the mapper-template csv file to be used on the observations
             and metadata. If not given, the default template is used. The
             default is None.
+        only_metadata : bool, optional
+            If True, only the metadata file will mapped. Methods based on meta-
+            data are available, methods that requires observations are not.
+            The default is False.
 
         Returns
         -------
@@ -317,6 +323,12 @@ class Settings:
                 f'Update template file:  {self.templates["template_file"]}  -->  {template_file}'
             )
             self.templates["template_file"] = template_file
+
+        if only_metadata:
+            logger.info(
+                f'Update to use only metadata:  {self.only_metadata}  -->  {only_metadata}'
+            )
+            self.only_metadata = only_metadata
 
     def copy_template_csv_files(self, target_folder):
         """Copy the default template.
