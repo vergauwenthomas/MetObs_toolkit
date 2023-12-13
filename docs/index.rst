@@ -12,6 +12,7 @@ Welcome to MetObs-Toolkit's documentation!
    special_topics
    gui
    contributing_link.md
+   paper/index
 
 MetObs toolkit Documentation
 -----------------------------

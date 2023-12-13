@@ -33,10 +33,8 @@ tests/test_data/testdata_testday
 *log
 
 #exclude figures in test data
-tests/*.png
-tests/*.html
-
-
+tests/**/*.png
+tests/**/*.html
 
 # pychache
 *.ipynb_checkpoints*
