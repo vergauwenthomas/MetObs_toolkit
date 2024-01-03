@@ -96,9 +96,8 @@ Test your GEE access
 
     dataset = metobs_toolkit.Dataset()
     dataset.update_settings(input_data_file=metobs_toolkit.demo_datafile,
-                            input_metadata_file=metobs_toolkit.demo_datafiles,
-                            data_template_file=metobs_toolkit.demo_template,
-                            metadata_template_file=metobs_toolkit.demo_template)
+                            input_metadata_file=metobs_toolkit.demo_metadatafile,
+                            template_file=metobs_toolkit.demo_template)
 
     dataset.import_data_from_file()
 
