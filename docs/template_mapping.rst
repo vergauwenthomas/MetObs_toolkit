@@ -46,8 +46,8 @@ The toolkit has standard names for observation types and metadata. Here these st
    * - pressure_at_sea_level
      - air pressure (corrected to sea level)
      - numeric
-   * - windspeed
-     - windspeed
+   * - wind_speed
+     - wind speed
      - numeric
    * - wind_gust
      - wind gust
