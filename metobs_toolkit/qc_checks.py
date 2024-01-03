@@ -312,7 +312,7 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_info, checks_s
 
     Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
 
-    In order to perform this check, at least N observations chould be in that time window.
+    In order to perform this check, at least N observations should be in that time window.
 
 
     Parameters

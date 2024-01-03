@@ -2225,7 +2225,7 @@ class Dataset:
 
         Parameters
         ----------
-        tollerance, Timedelta or str
+        tollerance :  Timedelta or str
             The tollerance string or object representing the maximum translation in time.
             Ex: '5T' is 5 minuts, '1H', is one hour.
         verbose : bool, optional
