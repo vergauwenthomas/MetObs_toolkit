@@ -397,6 +397,9 @@ class Dataset:
         with open(full_path, 'rb') as inp:
             dataset = pickle.load(inp)
 
+        #convert metadf to a geodataframe (if coordinates are available)
+        dataset.metadf = metadf_to_gdf(dataset.metadf)
+
         return dataset
 
     def add_new_observationtype(self, Obstype):
