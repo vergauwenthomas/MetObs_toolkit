@@ -226,7 +226,7 @@ jobs:
 
 
 #---- Deploy documentation MAIN-----#
-   deploy_doc:
+   deploy_doc_main:
     name: Deploy main documentation
     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
     runs-on: ubuntu-latest
@@ -271,8 +271,8 @@ jobs:
             force_orphan: true
 
 #---- Deploy documentation dev -----#
-   deploy_doc:
-    name: Deploy main documentation
+   deploy_doc_dev:
+    name: Deploy Dev documentation
     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
     runs-on: ubuntu-latest
     if: |
@@ -321,7 +321,7 @@ jobs:
 # ---- delete artifacts that are not for storage -----
    cleanup_artifacts:
      name: delete artifacts
-     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing, deploy_doc]
+     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing, deploy_doc_main]
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v3
