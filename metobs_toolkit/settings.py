@@ -35,7 +35,6 @@ class Settings:
         self.missing_obs = {}
         self.templates = {}
         self.gee = {}
-        self.alaro = {}
         self.IO = {
             "output_folder": None,
             "input_data_file": None,
@@ -50,41 +49,11 @@ class Settings:
         self._update_gap_settings()
         self._update_templates()
         self._update_gee_settings()
-        self._update_alaro_settings()
+
     # =============================================================================
     #     Update settings from files in initialisation
     # =============================================================================
 
-    # def _update_db_settings(self):
-    #     """
-    #     Update the database settings of self using the default settings templates
-    #     and the 'db_user' and 'db_passw' envrionment variables if available.
-    #     :return: No return
-    #     :rtype: No return
-    #     """
-        # logger.debug("Updating Database settings.")
-        # f = open(os.path.join(Settings._settings_files_path, "server_login.json"))
-        # login_data = json.load(f)
-        # f.close()
-
-        # self.db["db_host"] = login_data["host"]
-
-        # # self.db_host = Settings.db_host
-        # self.db["db_database"] = login_data["database"]
-        # self.db["db_obs_table"] = login_data["obs_table"]
-        # self.db["db_meta_table"] = login_data["meta_table"]
-
-        # self.db["db_user"] = os.getenv("VLINDER_DB_USER_NAME")
-        # self.db["db_passw"] = os.getenv("VLINDER_DB_USER_PASW")
-
-        # # import db templates
-        # from .data_templates.db_templates import (
-        #     vlinder_metadata_db_template,
-        #     vlinder_observations_db_template,
-        # )
-
-        # self.db["vlinder_db_meta_template"] = vlinder_metadata_db_template
-        # self.db["vlinder_db_obs_template"] = vlinder_observations_db_template
 
     def _update_time_res_settings(self):
         """
@@ -228,18 +197,6 @@ class Settings:
         from .settings_files.gee_settings import gee_datasets
 
         self.gee["gee_dataset_info"] = gee_datasets
-
-    def _update_alaro_settings(self):
-        """
-        Update the Alaro settings using the default settings templates.
-
-        Returns
-        -------
-        None.
-        """
-        logger.debug("Updating gee settings.")
-        from .settings_files.alaro_25_settings import al25_mapinfo
-        self.alaro["info"] = al25_mapinfo
 
     def update_timezone(self, timezonestr):
         """

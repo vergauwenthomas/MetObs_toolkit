@@ -89,6 +89,7 @@ def get_unit(obstype):
     return unit, conv_str
 
 
+
 def col_option_input(columns):
     """Convert options to numerics and ask for input."""
     mapper = {}
@@ -307,7 +308,6 @@ def build_template_prompt(debug=False):
                     new_units[obstype] = {'unit': units,
                                           'conv': conv_str}
 
-
                 description = input('Some more details on the observation (optional): ')
 
                 obstype_options.remove(obstype_desc[obstype])
@@ -317,7 +317,6 @@ def build_template_prompt(debug=False):
                                       'units': units,
                                       'description': description
                                       }
-
 
     if format_option == 2:
         print('\n Does these columns represent stations: ')
@@ -340,7 +339,6 @@ def build_template_prompt(debug=False):
 
         # 1) add a new obstype
         if wide_obstype == 'ADD NEW OBSERVATION TYPE':
-            print("NIEW OBSTYPE TOEVOEGEN!!!")
             new_obstype, cur_unit = add_new_obstype()
             wide_obstype = new_obstype.name
             known_obstypes[new_obstype.name] = new_obstype #add to knonw obstypes
@@ -591,6 +589,20 @@ def build_template_prompt(debug=False):
 
     template_dict.update(metatemplate_dict) #this is why name in data and metadata should have the same mapping !!
 
+    print('\n \n *******      Extra options    ***********')
+
+
+    if ((format_option == 3) & (not 'name' in template_dict)):#single station with no name information
+        staname = input('\n What is the name of your station : ')
+        options_dict['stationname'] = staname
+
+    tzchange = yes_no_ques('\n Are the timestamps in UTC?')
+    if tzchange is False:
+        print('\n Select a timezone: ')
+        tzstring = col_option_input(pytz.all_timezones)
+        options_dict['timezone'] = tzstring
+    else:
+        options_dict['timezone'] = 'UTC'
 
     print('\n \n *******      Extra options    ***********')
 

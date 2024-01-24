@@ -55,7 +55,6 @@ def fmt_datetime_argument(dt, target_tz_str):
         dt = pytz.timezone(target_tz_str).localize(dt)
     return pd.to_datetime(dt)
 
-
 def xs_save(df, key, level, drop_level=True):
     """Similar as pandas xs, but returns an empty df when key is not found."""
     try:
@@ -75,6 +74,18 @@ def xs_save(df, key, level, drop_level=True):
                             )
 
     return pd.DataFrame(index=idx, columns=columns)
+
+
+def concat_save(df_list, **kwargs):
+    """Concat dataframes row-wise without triggering the Futurwarning of concating empyt df's."""
+
+    if all([isinstance(df, pd.DataFrame) for df in df_list]):
+        # This line will filter columns with all NAN values (so empty dfs + all NA entries are filtered out)
+        return pd.concat([df.dropna(axis=1, how='all') for df in df_list], **kwargs)
+    if all([isinstance(df, pd.Series) for df in df_list]):
+        # This line will filter out empty series
+        return pd.concat([ser for ser in df_list if not ser.empty], **kwargs)
+    sys.exit('Cannot concat Dataframes and Series together')
 
 
 def init_multiindex():
@@ -127,6 +138,7 @@ def format_outliersdf_to_doubleidx(outliersdf):
         return outliersdf
 
 
+
 def value_labeled_doubleidxdf_to_triple_idxdf(df, known_obstypes,
                                               value_col_name='value',
                                               label_col_name='label'):
@@ -176,7 +188,7 @@ def value_labeled_doubleidxdf_to_triple_idxdf(df, known_obstypes,
         subdf = subdf.set_index(['name', 'datetime', 'obstype'])
         subdf = subdf.rename(columns={obstype + '_final_label': label_col_name})
 
-        labelsdf = pd.concat([labelsdf, subdf])
+        labelsdf = concat_save([labelsdf, subdf])
 
     values[label_col_name] = labelsdf[label_col_name]
 
@@ -239,7 +251,15 @@ def metadf_to_gdf(df, crs=4326):
         coordsdf, geometry=gpd.points_from_xy(coordsdf.lon, coordsdf.lat)
     )
     geodf = geodf.set_crs(epsg=crs)
-    geodf = pd.concat([geodf, missing_coords_df])
+    metadata_columns = geodf.columns
+    geodf = concat_save([geodf, missing_coords_df])
+
+    # Because empyt and Nan columns are skipped in the concat save, add them
+    # again if needed
+    for col in metadata_columns:
+        if col not in geodf:
+            geodf[col] = np.nan
+
 
     geodf = geodf.sort_index()
     return geodf

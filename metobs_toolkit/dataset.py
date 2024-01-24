@@ -85,7 +85,8 @@ from metobs_toolkit.df_helpers import (
     conv_applied_qc_to_df,
     get_freqency_series,
     value_labeled_doubleidxdf_to_triple_idxdf,
-    xs_save
+    xs_save,
+    concat_save
 )
 
 from metobs_toolkit.obstypes import tlk_obstypes
@@ -197,7 +198,7 @@ class Dataset:
         other.df = other.df.drop(common_indexes)
 
         # set new df
-        new.df = pd.concat([self.df, other.df])
+        new.df = concat_save([self.df, other.df])
         new.df = new.df.sort_index()
 
         #  ----- outliers df ---------
@@ -205,7 +206,7 @@ class Dataset:
         other_outliers = other.outliersdf.reset_index()
         other_outliers = other_outliers[other_outliers['obstype'].isin(self_obstypes)]
         other_outliers = other_outliers.set_index(['name', 'datetime', 'obstype'])
-        new.outliersdf = pd.concat([self.outliersdf, other_outliers])
+        new.outliersdf = concat_save([self.outliersdf, other_outliers])
         new.outliersdf = new.outliersdf.sort_index()
 
         #  ------- Gaps -------------
@@ -222,7 +223,7 @@ class Dataset:
 
         # ---------- metadf -----------
         # Use the metadf from self and add new rows if they are present in other
-        new.metadf = pd.concat([self.metadf, other.metadf])
+        new.metadf = concat_save([self.metadf, other.metadf])
         new.metadf = new.metadf.drop_duplicates(keep='first')
         new.metadf = new.metadf.sort_index()
 
@@ -276,7 +277,7 @@ class Dataset:
 
         checknames = ["duplicated_timestamp"]  # KEEP order
 
-        new._applied_qc = pd.concat(
+        new._applied_qc = concat_save(
             [
                 new._applied_qc,
                 conv_applied_qc_to_df(
@@ -509,9 +510,12 @@ class Dataset:
         try:
             sta_df = self.df.xs(stationname, level="name", drop_level=False)
             sta_metadf = self.metadf.loc[stationname].to_frame().transpose()
+            sta_metadf.index.name = 'name'
         except KeyError:
             logger.warning(f"{stationname} not found in the dataset.")
             return None
+
+
 
         try:
             sta_outliers = self.outliersdf.xs(
@@ -1078,6 +1082,7 @@ class Dataset:
                                       enddt_utc=enddt_utc,
                                       obstype=obstype,
                                       )
+
         print(f'(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})')
         logger.info(f'(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})')
         return Modl
@@ -1286,7 +1291,7 @@ class Dataset:
         filldf_debias = make_gapfill_df(debias_gaps)
 
         # combine both fill df's
-        comb_df = pd.concat([filldf_interp, filldf_debias])
+        comb_df = concat_save([filldf_interp, filldf_debias])
 
         # update attr
         self.gapfilldf = comb_df
@@ -1691,10 +1696,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(
@@ -1720,10 +1725,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(
@@ -1749,10 +1754,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(
@@ -1777,10 +1782,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(obstypes=obstype, ordered_checknames="step"),
@@ -1803,10 +1808,10 @@ class Dataset:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = pd.concat([self.outliersdf, outl_df])
+                    self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = pd.concat(
+                self._applied_qc = concat_save(
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(
@@ -1915,10 +1920,10 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+                self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
-            self._applied_qc = pd.concat(
+            self._applied_qc = concat_save(
                 [
                     self._applied_qc,
                     conv_applied_qc_to_df(
@@ -2029,10 +2034,10 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+                self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
-            self._applied_qc = pd.concat(
+            self._applied_qc = concat_save(
                 [
                     self._applied_qc,
                     conv_applied_qc_to_df(
@@ -2137,10 +2142,10 @@ class Dataset:
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
-                self.outliersdf = pd.concat([self.outliersdf, outliersdf])
+                self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
-            self._applied_qc = pd.concat(
+            self._applied_qc = concat_save(
                 [
                     self._applied_qc,
                     conv_applied_qc_to_df(
@@ -2279,7 +2284,7 @@ class Dataset:
         # combine all
         # =============================================================================
 
-        combdf = pd.concat([df, outliersdf, gapsdf, gapsfilldf, missingdf, missingfilldf]).sort_index()
+        combdf = concat_save([df, outliersdf, gapsdf, gapsfilldf, missingdf, missingfilldf]).sort_index()
         combdf.index.names = ['name', 'datetime', 'obstype']
         # To be shure?
         combdf = combdf[~combdf.index.duplicated(keep='first')]
@@ -2361,7 +2366,8 @@ class Dataset:
 
     def update_outliersdf(self, add_to_outliersdf):
         """Update the outliersdf attribute."""
-        self.outliersdf = pd.concat([self.outliersdf, add_to_outliersdf])
+        self.outliersdf = concat_save([self.outliersdf, add_to_outliersdf])
+
 
     def coarsen_time_resolution(
         self, origin=None, origin_tz=None, freq=None, method=None, limit=None
@@ -2490,7 +2496,7 @@ class Dataset:
 
         Parameters
         ----------
-        tollerance, Timedelta or str
+        tollerance :  Timedelta or str
             The tollerance string or object representing the maximum translation in time.
             Ex: '5T' is 5 minuts, '1H', is one hour.
         verbose : bool, optional
@@ -2605,6 +2611,7 @@ class Dataset:
 
                 # drop all records per statiotion for which there are no obsecvations
                 present_obs = list(self.obstypes.keys())
+
                 stadf = stadf.loc[stadf[present_obs].dropna(axis=0, how='all').index]
 
                 stadf = stadf.reset_index()
@@ -2629,9 +2636,10 @@ class Dataset:
                 # these will be cached by the missing and gap check
                 # no_record_candidates = target_records[~target_records.isin(mergedstadf['target_datetime'])].values
 
-                merged_df = pd.concat([merged_df, correct_mapped])
+                merged_df = concat_save([merged_df, correct_mapped])
+
                 if verbose:
-                    _total_verbose_df = pd.concat([_total_verbose_df, mergedstadf])
+                    _total_verbose_df = concat_save([_total_verbose_df, mergedstadf])
 
         # overwrite the df with the synced observations
         merged_df = (
@@ -2800,6 +2808,7 @@ class Dataset:
             self.update_timezone(options_kwargs['timezone'])
             logger.info(f'Set timezone = {options_kwargs["timezone"]} from options in template.')
 
+
         # Read observations into pandas dataframe
         df, template = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
@@ -2921,72 +2930,6 @@ station with the default name: {self.settings.app["default_name"]}.'
             freq_estimation_simplify_error=freq_estimation_simplify_error,
         )
 
-    # def import_data_from_database(
-    #     self, start_datetime=None, end_datetime=None, coarsen_timeres=False
-    # ):
-    #     """
-    #     Function to import data directly from the framboos database and
-    #     updating the network and station objects.
-
-    #     Parameters
-    #     ----------
-
-    #     start_datetime : datetime, optional
-    #         Start datetime of the observations. The default is None and using
-    #         yesterday's midnight.
-    #     end_datetime : datetime, optional
-    #         End datetime of the observations. The default is None and using
-    #         todays midnight.
-    #     coarsen_timeres : Bool, optional
-    #         If True, the observations will be interpolated to a coarser
-    #         time resolution as is defined in the Settings. The default
-    #         is False.
-
-    #     Returns
-    #     ----------
-
-    #     None.
-
-    #     Note
-    #     ----------
-    #     A Ugent VPN connection must be present, as well as the username and password
-    #     stored in the settings.
-
-    #     """
-    #     if start_datetime is None:
-    #         start_datetime = datetime.date.today() - datetime.timedelta(days=1)
-    #     if end_datetime is None:
-    #         end_datetime = datetime.date.today()
-
-    #     # Read observations into pandas dataframe
-    #     df = import_data_from_db(
-    #         self.settings.db, start_datetime=start_datetime, end_datetime=end_datetime
-    #     )
-
-    #     if df.empty:  # No data has, probably connection error
-    #         return
-
-    #     # Make data template
-    #     self.data_template = pd.DataFrame().from_dict(
-    #         template_to_package_space(self.settings.db["vlinder_db_obs_template"])
-    #     )
-
-    #     # convert dataframe to multiindex (datetime - name)
-    #     df = df.set_index(["name", df.index])
-    #     df = df.sort_index()
-
-    #     # If an ID has changed or not present in the metadatafile,
-    #     # the stationname and metadata is Nan
-    #     # These observations will be removed
-    #     unknown_obs = df[df.index.get_level_values("name").isnull()]
-    #     if not unknown_obs.empty:
-    #         logger.warning(
-    #             "There is an unknown station in the dataset \
-    #                        (probaply due to an ID that is not present in \
-    #                        the metadata file). This will be removed from the dataset."
-    #         )
-    #         df = df[~df.index.get_level_values("name").isnull()]
-    #     self._construct_dataset(df)
 
     def _construct_dataset(
         self,
@@ -3000,6 +2943,7 @@ station with the default name: {self.settings.app["default_name"]}.'
         """Construct the Dataset class from a IO dataframe.
 
         The df, metadf, outliersdf, gaps, missing timestamps and observationtypes attributes are set.
+
 
         The observations are converted to the toolkit standard units if possible.
 
@@ -3131,7 +3075,7 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         checknames = ["duplicated_timestamp", "invalid_input"]  # KEEP order
 
-        self._applied_qc = pd.concat(
+        self._applied_qc = concat_save(
             [
                 self._applied_qc,
                 conv_applied_qc_to_df(
@@ -3301,7 +3245,7 @@ station with the default name: {self.settings.app["default_name"]}.'
             df_list.append(lc_frac_df)
 
         # concat all df for different buffers to one
-        frac_df = pd.concat(df_list)
+        frac_df = concat_save(df_list)
         frac_df = frac_df.sort_index()
 
         if overwrite:
@@ -3315,103 +3259,7 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         return frac_df
 
-    # def fairness_coordinates_for_alaro_25_csv_creator(self, outputfolder=None,
-    #                 filename='summerschool_modeldata_metadata.csv',
-    #                 lat_min=None, lon_min=None,
-    #                 lat_max=None, lon_max=None):
-    #     """
-    #     This is for the participants of the Cost FAIRNESS Summerschool in Ghent.
-    #     It will create a small csv file with the locations and names of your stations.
-    #     This information is needed to extract timeseries of Alaro 2.5km modeldata.
 
-    #     A spatial plot will be provided aswell. If no bounding box coordinates are given,
-    #     a boundingboux is create to encapsulate your stations.
-
-    #     A csv file will be saved in the outputfolder. Email this file to mivieijra@meteo.be.
-
-    #     Parameters
-    #     ----------
-    #     outputfolder : string, optional
-    #         The autput folder to store the csv file. If None, the default
-    #         autputfolder will be used. The default is None.
-    #     filename : string, optional
-    #         Name of the csv file. The default is
-    #         'summerschool_modeldata_metadata.csv'.
-    #     lat_min : num, optional
-    #         Minimum latitude of the bounding box. If None, a boundingbox will
-    #         be computed that fits your stations. The default is None.
-    #     lon_min : num, optional
-    #         Minimum longitude of the bounding box. If None, a boundingbox will
-    #         be computed that fits your stations. The default is None.
-    #     lat_max : num, optional
-    #         Maximum latitude of the bounding box. If None, a boundingbox will
-    #         be computed that fits your stations. The default is None.
-    #     lon_max : num, optional
-    #         Maximum longitude of the bounding box. If None, a boundingbox will
-    #         be computed that fits your stations. The default is None.
-
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-
-    #     # checks
-    #     # check if metadata is available
-    #     if self.metadf['lat'].isnull().all():
-    #         logger.warning('No coordinates are found in the metadata. A csv cannot be created.')
-    #         return
-
-    #     if self.metadf['lon'].isnull().all():
-    #         logger.warning('No coordinates are found in the metadata. A csv cannot be created.')
-    #         return
-
-    #     if ((outputfolder is None) & (self.settings.IO['output_folder'] is None)):
-    #         logger.warning('No outputfolder is specified.')
-    #         return
-
-    #     if outputfolder is None:
-    #         outputfolder =self. settings.IO['output_folder']
-
-    #     user_bounds = [lat_min, lon_min, lat_max, lon_max]
-    #     if any([x is None for x in user_bounds]):
-    #         # use default bounds
-    #         make_bounds=True
-    #         logger.info('Since not (all) bounds are given, the bounds are the total bounds of the present stations.')
-    #     else:
-    #         make_bounds=False
-
-    #     metadf = self.metadf.copy()
-    #     metadf= metadf[metadf['lat'].notna()]
-    #     metadf= metadf[metadf['lon'].notna()]
-
-    #     if make_bounds:
-    #         # lonmin, latmin, lonmax, latmax
-    #         bounds = tuple(metadf.total_bounds)
-    #     else:
-    #         bounds = tuple([float(lon_min), float(lat_min),
-    #                         float(lon_max), float(lat_max)])
-
-    #     # add bounds as a column (avoid creating two files with data, and readin in problems in R)
-    #     metadf['bbox'] = [bounds for _ in range(len(metadf))]
-    #     # reset index so no problems in R
-    #     metadf = metadf.reset_index()
-    #     # subset to relevant columns
-    #     savedf = metadf[['name', 'lat', 'lon', 'bbox']]
-
-    #     # Write to a csv file
-    #     if not filename.endswith('.csv'):
-    #         filename += '.csv'
-
-    #     filepath = os.path.join(outputfolder, filename)
-    #     savedf.to_csv(filepath,
-    #                   sep=',',
-    #                   index=False,
-    #                   decimal='.')
-    #     print(f'\n File is writen to : {filepath}. \n')
-    #     print('Download the file (as a .csv), and send it by email to:  mivieijra@meteo.be.')
-
-    #     return
 
     def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
         """Make an interactive plot of a google earth dataset.
@@ -3509,6 +3357,9 @@ station with the default name: {self.settings.app["default_name"]}.'
             print(f'Gee Map will be save at {filepath}')
             logger.info(f'Gee Map will be save at {filepath}')
             Map.save(filepath)
+
+        return Map
+
 
 
 def _can_qc_be_applied(dataset, obstype, checkname):

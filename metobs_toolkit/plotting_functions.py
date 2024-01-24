@@ -6,7 +6,7 @@ Created on Fri Oct 21 11:26:52 2022
 @author: thoverga
 """
 
-
+import sys
 import pandas as pd
 import math
 import numpy as np
@@ -75,6 +75,7 @@ def add_stations_to_folium_map(Map, metadf):
 def _get_init_mapcenter(gdf):
     center = gdf.dissolve().centroid.iloc[0]
     return [center.y, center.x]
+
 
 def map_obstype(obstype, template):
     """Convert default obstype to the user-specific obstype."""
@@ -149,8 +150,8 @@ def make_folium_html_plot(gdf, variable_column, var_display_name, var_unit,
 
     # add extra tiles
     folium.TileLayer("OpenStreetMap", overlay=False, name='OSM').add_to(m)
-    folium.TileLayer("Stamen Terrain", overlay=False, name='Terrain',  show=False).add_to(m)
-    folium.TileLayer("stamentoner", overlay=False, name='Toner',  show=False).add_to(m)
+    folium.TileLayer("Stamen Terrain", overlay=False, name='Terrain', show=False).add_to(m)
+    folium.TileLayer("stamentoner", overlay=False, name='Toner', show=False).add_to(m)
 
     # Coloring
     if vmin is None:
@@ -163,8 +164,8 @@ def make_folium_html_plot(gdf, variable_column, var_display_name, var_unit,
     mapper = matplotlib.cm.ScalarMappable(norm=norm,
                                           cmap=matplotlib.colormaps[mpl_cmap_name])
     colormap = brcm.LinearColormap(colors=mapper.cmap.colors,
-                                 index=None, vmin=vmin, vmax=vmax,
-                                 caption=f'{var_display_name} ({var_unit}) colorbar')
+                                   index=None, vmin=vmin, vmax=vmax,
+                                   caption=f'{var_display_name} ({var_unit}) colorbar')
 
     # linear colorscale for values
     def map_value_to_hex(series, vmin, vmax, cmapname='viridis'):
@@ -178,7 +179,7 @@ def make_folium_html_plot(gdf, variable_column, var_display_name, var_unit,
 
     # check if all labels are defined
     if len([lab for lab in gdf[label_column].unique() if lab not in label_col_map.keys()]) > 0:
-        sys.exit(f'Unmapped labels found: {[lab for lab in gdf["label"].unique() if lab not in label_mapper.keys()]}')
+        sys.exit(f'Unmapped labels found: {[lab for lab in gdf["label"].unique() if lab not in label_col_map.keys()]}')
 
     gdf['label_color'] = gdf[label_column].map(label_col_map)
 
@@ -234,7 +235,8 @@ def make_folium_html_plot(gdf, variable_column, var_display_name, var_unit,
 
     return m
 
-def geospatial_plot(plotdf, variable, timeinstance, title, legend, legend_title, vmin, vmax,
+def geospatial_plot(plotdf, variable, timeinstance, title, legend, legend_title,
+                    vmin, vmax,
                     plotsettings, categorical_fields, static_fields,
                     display_name_mapper, world_boundaries_map, data_template,
                     boundbox):
@@ -507,12 +509,21 @@ def timeseries_plot(mergedf, title, ylabel, colorby, show_legend,
     colorby_name_colorscheme : dict
         A colormapper for the station names. If None, a new colormapper will
         be created. The default is None.
+<<<<<<< HEAD
 
     Returns
     -------
     ax : matplotlib.pyplot.axes
         The plotted axes.
 
+=======
+
+    Returns
+    -------
+    ax : matplotlib.pyplot.axes
+        The plotted axes.
+
+>>>>>>> master
     colormapper : dict
         The use colormap.
 
@@ -778,10 +789,17 @@ def model_timeseries_plot(df, obstype, title, ylabel, settings,
     -------
     ax : matplotlib.pyplot.axes
         The plotted axes.
+<<<<<<< HEAD
 
     colormapper : dict
         The use colormap.
 
+=======
+
+    colormapper : dict
+        The use colormap.
+
+>>>>>>> master
     """
     plot_settings = settings.app["plot_settings"]
 
@@ -989,9 +1007,15 @@ def heatmap_plot(cor_dict, title, heatmap_settings):
 def correlation_scatter(full_cor_dict, groupby_labels, obstypes, title,
                         cor_scatter_settings):
     """Plot the correlation variation as a scatterplot.
+<<<<<<< HEAD
 
     The statistical significance is indicate by the scattertype.
 
+=======
+
+    The statistical significance is indicate by the scattertype.
+
+>>>>>>> master
     Parameters
     ----------
     full_cor_dict : dict

@@ -312,7 +312,7 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_info, checks_s
 
     Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
 
-    In order to perform this check, at least N observations chould be in that time window.
+    In order to perform this check, at least N observations should be in that time window.
 
 
     Parameters
@@ -427,6 +427,7 @@ def repetitions_check(obsdf, obstype, checks_info, checks_settings):
 
     Looking for values of an observation type that are repeated at least with
     the frequency specified in the qc_settings. These values are labeled.
+
 
     Parameters
     ------------
@@ -803,7 +804,7 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
         The dataframe containing the observations
     metadf: Pandas.DataFrame
         The dataframe containing the metadata (e.g. latitude, longitude...)
-     obstype: String, optional
+    obstype: String, optional
         The observation type that has to be checked. The default is 'temp'
     buddy_radius : numeric
         The radius to define neighbours in meters.

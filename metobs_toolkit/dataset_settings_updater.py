@@ -10,8 +10,6 @@ import pandas as pd
 
 
 import metobs_toolkit.dataset as dataset
-
-
 logger = logging.getLogger(__name__)
 
 

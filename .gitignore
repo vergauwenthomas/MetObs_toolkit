@@ -6,7 +6,7 @@ temp_output/*
 *~lock*
 *.swp
 *poetry.lock
-
+poetry.lock
 
 #Exclude deploy scripts
 deploiment/*_log
@@ -17,6 +17,8 @@ deploiment/*
 #Exclude local package builds
 dist/*
 
+#exclude the python versions of the doc example notebooks
+docs/examples/*.py
 
 #Exclude local documentation builds
 docs/_*
@@ -35,8 +37,9 @@ tests/*.png
 tests/*.html
 
 
-
 # pychache
+*.ipynb_checkpoints*
+
 *__pycache__*
 .spyproject
 *.pyc

@@ -46,13 +46,12 @@ class Modeldata:
 
         self._settings = Settings()
         self.mapinfo = self._settings.gee["gee_dataset_info"]
-        self.mapinfo.update(self._settings.alaro['info'])
 
         self.df_tz = 'UTC'  # the timezone of the datetimes stored in the df
 
         self.obstypes = model_obstypes  # Dict name: Obstype-instance
 
-        self._is_alaro25 = False
+
 
     def __str__(self):
         """Print overview information of the modeldata."""
@@ -175,6 +174,7 @@ class Modeldata:
         else:
             val_typ = 'categorical'
 
+
         # Dataset defenition
         new_info = {
             mapname: {
@@ -277,6 +277,7 @@ class Modeldata:
         if obstype not in self.obstypes:
            logger.warning(f'{obstype} not found as a known observationtype in the Modeldata.')
            return
+
         if isinstance(self.obstypes[obstype], ModelObstype):
             # scalar obstype
             if obstype not in self.df.columns:
@@ -307,6 +308,7 @@ class Modeldata:
             self.df[u_comp_name] = u_comp
             self.df[v_comp_name] = v_comp
         logger.info(f'{obstype} are converted from {cur_unit} --> {self.obstypes[obstype].get_standard_unit()}.')
+
 
     def exploid_2d_vector_field(self, obstype):
         """Compute amplitude and direction of 2D vector field components.
@@ -356,7 +358,6 @@ class Modeldata:
         self.obstypes[dir_obstype.name] = dir_obstype
 
 
-
     def get_gee_dataset_data(self, mapname, metadf,
                              startdt_utc, enddt_utc, obstype='temp'):
         """Extract timeseries of a gee dataset.
@@ -393,7 +394,6 @@ class Modeldata:
         writen to a file and saved on your google drive. In this case, you need
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
-
 
         """
         # ====================================================================
@@ -458,6 +458,7 @@ class Modeldata:
                                     latcolname="lat",
                                     loncolname="lon",
                                     )
+
         self.df = df
         self.modelname = mapname
 
@@ -507,10 +508,9 @@ class Modeldata:
         method.
 
         """
-
         # Check obstypes
         if isinstance(obstype, str):
-            obstype = [obstype] #convert to list
+            obstype = [obstype]  # convert to list
 
         obstypes = obstype  # better naming
 
@@ -528,70 +528,6 @@ class Modeldata:
                                   startdt_utc=startdt_utc,
                                   enddt_utc=enddt_utc,
                                   obstype=obstypes)
-
-    # def set_alaro_25_model_from_csv(self, csvpath):
-    #     """Set Alaro 2.5km model as modeldata.
-
-    #     (This is for the participants of the Cost FAIRNESS Summerschool in Ghent.)
-
-    #     This method will import the data from the ALARO model, that was send
-    #     to you.
-
-
-    #     Parameters
-    #     ----------
-    #     csvpath : str
-    #         Path to the datafile with ALARO timeseries. (This file was send
-    #         to you by email).
-
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-    #     # update name
-    #     if self.modelname != 'ALARO_2.5':
-    #         logger.info(f'Converting modelname: {self.modelname} --> ALARO_2.5')
-    #         self.modelname = 'ALARO_2.5'
-
-    #     info = self.mapinfo['ALARO_2.5']
-
-    #     # read in file
-    #     df = pd.read_csv(csvpath, sep=",")
-
-    #     # Subset to columns in the template
-    #     keep_cols = [val['name'] for val in info['band_of_use'].values()]
-    #     keep_cols.append(info['other_mapping']['datetime']['name'])
-    #     keep_cols.append(info['other_mapping']['name']['name'])
-    #     df = df[keep_cols]
-
-    #     # rename columns to 'defaults'
-    #     rename_dict = {val['name']: key for key, val in info['band_of_use'].items()}
-    #     rename_dict[info['other_mapping']['datetime']['name']] = 'datetime'
-    #     rename_dict[info['other_mapping']['name']['name']] = 'name'
-    #     df = df.rename(columns=rename_dict)
-
-    #     # unit conversion
-    #     for col in info['conversions'].keys():
-    #         df[col] = df[col] * info['conversions'][col]
-
-    #     # format datatime
-    #     df["datetime"] = pd.to_datetime(df["datetime"],
-    #                                     format=info['other_mapping']['datetime']['fmt'])
-
-    #     df["datetime"] = df["datetime"].dt.tz_localize(info['other_mapping']['datetime']['tz'])
-
-    #     # Make multiidx structure:
-    #     df = df.set_index(['name', 'datetime'])
-
-    #     # 3. update attributes
-    #     self.df = df
-    #     self.df_tz = info['other_mapping']['datetime']['tz']
-
-    #     unit_dict = {key: val['units'] for key, val in info['band_of_use'].items() if 'units' in val}
-    #     self._df_units.update(unit_dict)
-
-    #     self._is_alaro25 = True
 
     def save_modeldata(self, outputfolder=None, filename='saved_modeldata.pkl', ):
         """Save a Modeldata instance to a (pickle) file.
@@ -740,8 +676,8 @@ class Modeldata:
     def interpolate_modeldata(self, to_multiidx):
         """Interpolate modeldata in time.
 
-        Interpolate the modeldata timeseries, to a
-        given name-datetime multiindex.
+        Interpolate the modeldata timeseries, to a given name-datetime
+        multiindex.
 
         The modeldata will be converted to the timezone of the multiindex.
 
