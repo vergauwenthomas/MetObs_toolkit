@@ -23,6 +23,9 @@ from matplotlib.collections import LineCollection
 import branca
 import branca.colormap as brcm
 
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+
 import geemap.foliumap as foliumap
 import folium
 from folium import plugins as folium_plugins
@@ -240,7 +243,7 @@ def make_folium_html_plot(gdf, variable_column, var_display_name, var_unit,
 def geospatial_plot(plotdf, variable, timeinstance, title, legend, legend_title,
                     vmin, vmax,
                     plotsettings, categorical_fields, static_fields,
-                    display_name_mapper, world_boundaries_map, data_template,
+                    display_name_mapper, data_template,
                     boundbox):
     """Make geospatial plot of a variable (matplotlib).
 
@@ -272,8 +275,6 @@ def geospatial_plot(plotdf, variable, timeinstance, title, legend, legend_title,
     display_name_mapper : dict
         Must contain at least {varname: varname_str_rep}, where the
         varname_str_rep is the string representation of the variable to plot.
-    world_boundaries_map : str
-        Location of the world boundaries shape file.
     data_template : dict
         The dataset template for string representations.
     boundbox : shapely.box
@@ -330,7 +331,6 @@ def geospatial_plot(plotdf, variable, timeinstance, title, legend, legend_title,
         is_categorical=is_categorical,
         k_quantiles=default_settings["n_for_categorical"],
         cmap=default_settings["cmap"],
-        world_boundaries_map=world_boundaries_map,
         figsize=default_settings["figsize"],
         extent=use_extent,
         title=title,
@@ -349,7 +349,6 @@ def _spatial_plot(
     is_categorical,
     k_quantiles,
     cmap,
-    world_boundaries_map,
     figsize,
     extent,
     title,
@@ -359,7 +358,10 @@ def _spatial_plot(
 ):
     # TODO: docstring + beter positionion of the lengends
     gdf = gpd.GeoDataFrame(gdf)
-    fig, ax = plt.subplots(1, 1, figsize=figsize)
+    gdf = gdf.to_crs('epsg:4326')
+
+    fig, ax = plt.subplots(1, 1, figsize=figsize,
+                           subplot_kw={'projection':ccrs.PlateCarree()})
 
     # Make color scheme
     if use_quantiles:
@@ -382,11 +384,8 @@ def _spatial_plot(
         legend_kwds = {'label': legend_title}
         divider = make_axes_locatable(ax)
 
-        cax = divider.append_axes("right", size="5%", pad=0.1)
+        cax = divider.append_axes("right", size="5%", pad=0.1, axes_class=matplotlib.axes._axes.Axes)
 
-    # world map as underlayer
-    world_boundaries = gpd.read_file(world_boundaries_map)
-    world_boundaries.plot(ax=ax)
 
     # add observations as scatters
     gdf.plot(
@@ -413,6 +412,11 @@ def _spatial_plot(
     # set extent
     ax.set_xlim(left=extent[0], right=extent[2])
     ax.set_ylim(bottom=extent[1], top=extent[3])
+
+    ax.add_feature(cfeature.LAND)
+    ax.add_feature(cfeature.BORDERS)
+    ax.add_feature(cfeature.COASTLINE)
+
 
     ax.set_title(title)
 

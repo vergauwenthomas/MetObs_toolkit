@@ -106,11 +106,6 @@ class Settings:
         self.app["print_max_n"] = int(print_settings["max_print_per_line"])
         # 2. Plot settings
         self.app["plot_settings"] = plot_settings
-        self.app["world_boundary_map"] = os.path.join(
-            Settings._settings_files_path,
-            "world_boundaries",
-            "WB_countries_Admin0_10m.shp",
-        )
 
         # 3. display name mappers
         self.app["display_name_mapper"] = vars_display

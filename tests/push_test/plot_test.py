@@ -56,6 +56,10 @@ dataset.make_geo_plot(
     variable="wind_direction", timeinstance=datetime(2022, 9, 5, 12, 0)
 )
 
+dataset.make_geo_plot(
+    variable="temp", timeinstance=datetime(2022, 9, 5, 12, 0)
+)
+
 #%% Interactive spatial plot
 
 outfile = os.path.join(str(lib_folder), 'development', 'delete_me')

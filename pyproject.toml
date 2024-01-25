@@ -17,6 +17,7 @@ pandas = "^1.3.0"
 matplotlib = "^3.0.0"
 geopandas = "^0.9.0"
 pyproj = "~3.4"
+cartopy = '^0.20'
 mapclassify = "^2.4.0"
 earthengine-api = "^0.1.340"
 geemap = '^0.20.0'
