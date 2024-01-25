@@ -1,0 +1,6 @@
+metobs\_toolkit.analysis.filter\_data
+=====================================
+
+.. currentmodule:: metobs_toolkit.analysis
+
+.. autofunction:: filter_data

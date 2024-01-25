@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contributing &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="JOSS publication" href="paper/index.html" />
+    <link rel="prev" title="Using the GUI" href="gui.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Using the GUI</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#types-of-contributions">Types of Contributions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#feature-requests">Feature Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#report-bugs">Report Bugs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fix-bugs">Fix Bugs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#implement-features">Implement Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#write-documentation">Write Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#submit-feedback">Submit Feedback</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#get-started">Get Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#required-software">Required software</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setup-a-developer-environment">Setup a developer environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pull-request-guidelines">Pull Request Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#versioning-tagging">Versioning/Tagging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support">Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#acknowledgement">Acknowledgement</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contributing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/contributing_link.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Link to this heading"></a></h1>
+<p>All contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.</p>
+<p>You can contribute in many ways:</p>
+<section id="types-of-contributions">
+<h2>Types of Contributions<a class="headerlink" href="#types-of-contributions" title="Link to this heading"></a></h2>
+<section id="feature-requests">
+<h3>Feature Requests<a class="headerlink" href="#feature-requests" title="Link to this heading"></a></h3>
+<p>If you are interested in a new Feature, you can add it as an <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/issues">issue</a>
+with the <img alt="Static Badge" src="https://img.shields.io/badge/enhancement%20-%20%23a2eeef?link=https%3A%2F%2Fgithub.com%2Fvergauwenthomas%2FMetObs_toolkit%2Flabels%2Fenhancement" />
+label.</p>
+<p>In the issues describe clearly the new feature or functionality you want to see implemented in the toolkit. If the request is specific to your application/data, make sure to
+add a sample of your pickled Dataset (use <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.save_dataset">.save_dataset()</a>).</p>
+<p>Assign yourself to the issue if you want to (help) implement the new request. All help is much appreciated!</p>
+</section>
+<section id="report-bugs">
+<h3>Report Bugs<a class="headerlink" href="#report-bugs" title="Link to this heading"></a></h3>
+<p>Report bugs at the as a new <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/issues">issue</a> with the <img alt="Static Badge" src="https://img.shields.io/badge/bug%20-%20%23d73a4a" /> label.</p>
+<p>If you are reporting a bug, please include:</p>
+<ul class="simple">
+<li><p>Your operating system name and version.</p></li>
+<li><p>The version of the MetObs-toolkit (use <code class="docutils literal notranslate"><span class="pre">metobs_toolkit.__version__</span></code>).</p></li>
+<li><p>Any details about your local setup that might be helpful in troubleshooting.</p></li>
+<li><p>Detailed steps to reproduce the bug.</p></li>
+<li><p>If possible, provide a pickled version of your dataset (use <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.save_dataset">.save_dataset()</a>). Limit the size of the dataset as much as possible.</p></li>
+</ul>
+</section>
+<section id="fix-bugs">
+<h3>Fix Bugs<a class="headerlink" href="#fix-bugs" title="Link to this heading"></a></h3>
+<p>Look through the GitHub issues for bugs. Anything tagged with <img alt="Static Badge" src="https://img.shields.io/badge/bug%20-%20%23d73a4a" /> and <img alt="Static Badge" src="https://img.shields.io/badge/invalid%20-%20%23e4e669" />
+is open to whoever wants to implement it.
+If you find yourself not so familiar with Python you can start by filtering to the <img alt="Static Badge" src="https://img.shields.io/badge/easy%20-%20%23FED16F" />
+and <img alt="Static Badge" src="https://img.shields.io/badge/good_first_issue%20-%20%237057ff" /> labels.</p>
+<p>The <img alt="Static Badge" src="https://img.shields.io/badge/tricky%20-%20%230EFDA4" />
+label indicates that this issue might affect multiple modules of the toolkit, the data structures or is technical more challenging. Contact &#64;vergauwenthomas to discuss a <em>plan-of-attack</em> in advance.</p>
+</section>
+<section id="implement-features">
+<h3>Implement Features<a class="headerlink" href="#implement-features" title="Link to this heading"></a></h3>
+<p>Look through the GitHub issues for features. Anything tagged with <img alt="Static Badge" src="https://img.shields.io/badge/enhancement%20-%20%23a2eeef?link=https%3A%2F%2Fgithub.com%2Fvergauwenthomas%2FMetObs_toolkit%2Flabels%2Fenhancement" />
+and <img alt="Static Badge" src="https://img.shields.io/badge/Feature%20-%20%230E8A16" /> is open to whoever wants to implement it.</p>
+</section>
+<section id="write-documentation">
+<h3>Write Documentation<a class="headerlink" href="#write-documentation" title="Link to this heading"></a></h3>
+<p>The MetObs-toolkit could always use more documentation or spell checkers. Use the <img alt="Static Badge" src="https://img.shields.io/badge/documentation%20-%20%230075ca" /> to indicate that your issue is documentation-related.</p>
+</section>
+<section id="submit-feedback">
+<h3>Submit Feedback<a class="headerlink" href="#submit-feedback" title="Link to this heading"></a></h3>
+<p>Any form of feedback is much appreciated. The best way to send feedback is to file <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/issues">an issue</a>. If you cannot find a suitable label, you do not have to specify one.</p>
+</section>
+</section>
+<section id="get-started">
+<h2>Get Started<a class="headerlink" href="#get-started" title="Link to this heading"></a></h2>
+<p>Ready to make code contributions? Here is how to set up a developer’s environment for the toolkit.</p>
+<section id="required-software">
+<h3>Required software<a class="headerlink" href="#required-software" title="Link to this heading"></a></h3>
+<p>The following software (or equivalent) is required to set up a developer environment:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://anaconda.org/">Anaconda</a></p></li>
+<li><p><a class="reference external" href="https://pandoc.org/index.html">Pandoc</a></p></li>
+</ul>
+<p>Make sure you have this software installed before proceeding.</p>
+</section>
+<section id="setup-a-developer-environment">
+<h3>Setup a developer environment<a class="headerlink" href="#setup-a-developer-environment" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Clone the MetObs-toolkit locally:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">vergauwenthomas</span><span class="o">/</span><span class="n">MetObs_toolkit</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Create a conda environment and install the required packages.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Setup a developers&#39; environment</span>
+<span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">metobs_dev</span> <span class="n">python</span><span class="o">==</span><span class="mf">3.9</span> <span class="n">poetry</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">metobs_dev</span>
+
+<span class="c1">#optional: install Spyder as IDE</span>
+<span class="c1">#conda install spyder</span>
+
+<span class="c1"># Install dependencies in the developers&#39; environment</span>
+<span class="n">cd</span> <span class="n">MetObs_toolkit</span>
+<span class="n">poetry</span> <span class="n">install</span> <span class="o">--</span><span class="k">with</span> <span class="n">documentation</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Create a branch for local development which is a copy of the <strong>dev</strong> branch.:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="c1"># checkout the dev branch</span>
+ <span class="n">git</span> <span class="n">checkout</span> <span class="n">dev</span>
+ <span class="n">git</span> <span class="n">pull</span>
+
+ <span class="c1"># Create a new local branch and switch to it.</span>
+ <span class="n">git</span> <span class="n">branch</span> <span class="n">name</span><span class="o">-</span><span class="n">of</span><span class="o">-</span><span class="n">your</span><span class="o">-</span><span class="n">bugfix</span><span class="o">-</span><span class="ow">or</span><span class="o">-</span><span class="n">feature</span>
+ <span class="n">git</span> <span class="n">checkout</span> <span class="n">name</span><span class="o">-</span><span class="n">of</span><span class="o">-</span><span class="n">your</span><span class="o">-</span><span class="n">bugfix</span><span class="o">-</span><span class="ow">or</span><span class="o">-</span><span class="n">feature</span>
+</pre></div>
+</div>
+<p>Now you can make local changes.</p>
+<ol class="arabic simple" start="4">
+<li><p>Test your changes locally. The <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/deploiment/build_and_test.sh">build_and_test.sh</a> script builds the package and runs a series of tests. All tests must be successful before your contributions can be merged in the dev branch.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">deploiment</span><span class="o">/</span><span class="n">build_and_test</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+<ol class="arabic" start="5">
+<li><p>Push your code online:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add your changes to your commit</span>
+<span class="n">git</span> <span class="n">add</span> <span class="o">-</span><span class="n">A</span>
+<span class="c1"># Write commit text</span>
+<span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s2">&quot;Some text describing your code changes in this commit&quot;</span>
+<span class="c1"># Push your branch online</span>
+<span class="c1">#only the first time:</span>
+<span class="n">git</span> <span class="n">push</span> <span class="o">--</span><span class="nb">set</span><span class="o">-</span><span class="n">upstream</span> <span class="n">origin</span> <span class="n">name</span><span class="o">-</span><span class="n">of</span><span class="o">-</span><span class="n">your</span><span class="o">-</span><span class="n">bugfix</span><span class="o">-</span><span class="ow">or</span><span class="o">-</span><span class="n">feature</span>
+<span class="c1">#all other times</span>
+<span class="n">git</span> <span class="n">push</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+<section id="pull-request-guidelines">
+<h2>Pull Request Guidelines<a class="headerlink" href="#pull-request-guidelines" title="Link to this heading"></a></h2>
+<p>Once your branch has been <em>pushed</em> to github, you can create a <em>Pull request</em> in github. Make sure that you have <strong>referred the corresponding issues</strong> to the <em>Pull request</em>.
+If your code adaptations are still <em>work-in-progress</em> add the <img alt="Static Badge" src="https://img.shields.io/badge/WIP%20-%20%23A21079" /> label to it. For each push, github will perform a list of checks (package building, version control, functionality test, os-tests, documentation build test), in order to merge your contributions these tests must all be successful.</p>
+<p>If your code is ready for review, you can add the <img alt="Static Badge" src="https://img.shields.io/badge/Ready_for_Review%20-%20%230315E4" /> label to it.</p>
+<p>After the code review, and all review marks are resolved, your contributions will be merged to the <em>dev</em> branch.</p>
+</section>
+<section id="versioning-tagging">
+<h2>Versioning/Tagging<a class="headerlink" href="#versioning-tagging" title="Link to this heading"></a></h2>
+<p>From time to time the <em>dev</em> branch will be merged with the master with a new <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/releases"><em>Release tag</em></a>. The new release will be deployed to <a class="reference external" href="https://pypi.org/project/MetObs-toolkit/">PyPi index</a> with the adequate versioning specified.</p>
+</section>
+<section id="support">
+<h2>Support<a class="headerlink" href="#support" title="Link to this heading"></a></h2>
+<p>For general support or questions, you can refer them to &#64;vergauwenthomas, or by mail to (thomas.vergauwen&#64;meteo.be).</p>
+</section>
+<section id="acknowledgement">
+<h2>Acknowledgement<a class="headerlink" href="#acknowledgement" title="Link to this heading"></a></h2>
+<p>This file is inspired by the <a class="reference external" href="https://github.com/CSHS-CWRA/RavenPy">RavenPy</a> project. Thank you for the inspiration!”.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="gui.html" class="btn btn-neutral float-left" title="Using the GUI" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="paper/index.html" class="btn btn-neutral float-right" title="JOSS publication" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+metobs\_toolkit.obstypes.Obstype
+================================
+
+.. currentmodule:: metobs_toolkit.obstypes
+
+.. autoclass:: Obstype
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Obstype.add_unit
+      ~Obstype.convert_to_standard_units
+      ~Obstype.get_all_units
+      ~Obstype.get_description
+      ~Obstype.get_info
+      ~Obstype.get_orig_name
+      ~Obstype.get_plot_y_label
+      ~Obstype.get_standard_unit
+      ~Obstype.set_description
+      ~Obstype.set_original_name
+      ~Obstype.set_original_unit
+      ~Obstype.test_if_unit_is_known
+   
+   
+
+   
+   
+   

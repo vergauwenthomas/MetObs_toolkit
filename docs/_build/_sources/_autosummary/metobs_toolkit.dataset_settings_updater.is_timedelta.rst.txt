@@ -1,0 +1,6 @@
+metobs\_toolkit.dataset\_settings\_updater.is\_timedelta
+========================================================
+
+.. currentmodule:: metobs_toolkit.dataset_settings_updater
+
+.. autofunction:: is_timedelta

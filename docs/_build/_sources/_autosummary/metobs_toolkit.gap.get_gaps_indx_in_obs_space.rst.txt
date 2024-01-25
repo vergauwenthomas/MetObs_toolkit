@@ -1,0 +1,6 @@
+metobs\_toolkit.gap.get\_gaps\_indx\_in\_obs\_space
+===================================================
+
+.. currentmodule:: metobs_toolkit.gap
+
+.. autofunction:: get_gaps_indx_in_obs_space

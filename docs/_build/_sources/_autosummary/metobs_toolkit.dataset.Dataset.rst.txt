@@ -1,0 +1,60 @@
+metobs\_toolkit.dataset.Dataset
+===============================
+
+.. currentmodule:: metobs_toolkit.dataset
+
+.. autoclass:: Dataset
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Dataset.add_new_observationtype
+      ~Dataset.add_new_unit
+      ~Dataset.apply_buddy_check
+      ~Dataset.apply_quality_control
+      ~Dataset.apply_titan_buddy_check
+      ~Dataset.apply_titan_sct_resistant_check
+      ~Dataset.coarsen_time_resolution
+      ~Dataset.combine_all_to_obsspace
+      ~Dataset.fill_gaps_automatic
+      ~Dataset.fill_gaps_era5
+      ~Dataset.fill_gaps_linear
+      ~Dataset.fill_missing_obs_linear
+      ~Dataset.get_altitude
+      ~Dataset.get_analysis
+      ~Dataset.get_gaps_df
+      ~Dataset.get_gaps_info
+      ~Dataset.get_info
+      ~Dataset.get_landcover
+      ~Dataset.get_lcz
+      ~Dataset.get_missing_obs_info
+      ~Dataset.get_modeldata
+      ~Dataset.get_qc_stats
+      ~Dataset.get_station
+      ~Dataset.import_data_from_file
+      ~Dataset.import_dataset
+      ~Dataset.make_gee_plot
+      ~Dataset.make_geo_plot
+      ~Dataset.make_interactive_plot
+      ~Dataset.make_plot
+      ~Dataset.save_dataset
+      ~Dataset.show
+      ~Dataset.show_settings
+      ~Dataset.sync_observations
+      ~Dataset.update_gaps_and_missing_from_outliers
+      ~Dataset.update_outliersdf
+      ~Dataset.write_to_csv
+   
+   
+
+   
+   
+   

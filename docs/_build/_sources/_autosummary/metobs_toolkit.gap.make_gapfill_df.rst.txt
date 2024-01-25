@@ -1,0 +1,6 @@
+metobs\_toolkit.gap.make\_gapfill\_df
+=====================================
+
+.. currentmodule:: metobs_toolkit.gap
+
+.. autofunction:: make_gapfill_df

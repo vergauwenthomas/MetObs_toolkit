@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>metobs_toolkit.station.Station &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="metobs_toolkit.analysis" href="metobs_toolkit.analysis.html" />
+    <link rel="prev" title="metobs_toolkit.station" href="metobs_toolkit.station.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="metobs_toolkit.html">metobs_toolkit</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.analysis.html">metobs_toolkit.analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.data_import.html">metobs_toolkit.data_import</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset.html">metobs_toolkit.dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset_settings_updater.html">metobs_toolkit.dataset_settings_updater</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap.html">metobs_toolkit.gap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.modeldata.html">metobs_toolkit.modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstype_modeldata.html">metobs_toolkit.obstype_modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstypes.html">metobs_toolkit.obstypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.plotting_functions.html">metobs_toolkit.plotting_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.printing.html">metobs_toolkit.printing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_checks.html">metobs_toolkit.qc_checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_statistics.html">metobs_toolkit.qc_statistics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.settings.html">metobs_toolkit.settings</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="metobs_toolkit.station.html">metobs_toolkit.station</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">metobs_toolkit.station.Station</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.writing_files.html">metobs_toolkit.writing_files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+          <li class="breadcrumb-item"><a href="metobs_toolkit.station.html">metobs_toolkit.station</a></li>
+      <li class="breadcrumb-item active">metobs_toolkit.station.Station</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/metobs_toolkit.station.Station.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="metobs-toolkit-station-station">
+<h1>metobs_toolkit.station.Station<a class="headerlink" href="#metobs-toolkit-station-station" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">metobs_toolkit.station.</span></span><span class="sig-name descname"><span class="pre">Station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapfilldf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_fill_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_qc_checked_obstypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_applied_qc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/station.html#Station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.station.Station" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset" title="metobs_toolkit.dataset.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></a></p>
+<p>A class holding all information of one station. Inherit all from Dataset.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.add_new_observationtype" title="metobs_toolkit.station.Station.add_new_observationtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_new_observationtype</span></code></a></p></td>
+<td><p>Add a new observation type to the known observation types.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.add_new_unit" title="metobs_toolkit.station.Station.add_new_unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_new_unit</span></code></a></p></td>
+<td><p>Add a new unit to a known observation type.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.apply_buddy_check" title="metobs_toolkit.station.Station.apply_buddy_check"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_buddy_check</span></code></a></p></td>
+<td><p>Apply the buddy check on the observations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.apply_quality_control" title="metobs_toolkit.station.Station.apply_quality_control"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_quality_control</span></code></a></p></td>
+<td><p>Apply quality control methods to the dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.apply_titan_buddy_check" title="metobs_toolkit.station.Station.apply_titan_buddy_check"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_titan_buddy_check</span></code></a></p></td>
+<td><p>Apply the TITAN buddy check on the observations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.apply_titan_sct_resistant_check" title="metobs_toolkit.station.Station.apply_titan_sct_resistant_check"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_titan_sct_resistant_check</span></code></a></p></td>
+<td><p>Apply the TITAN spatial consistency test (resistant).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.coarsen_time_resolution" title="metobs_toolkit.station.Station.coarsen_time_resolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coarsen_time_resolution</span></code></a></p></td>
+<td><p>Resample the observations to coarser timeresolution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.combine_all_to_obsspace" title="metobs_toolkit.station.Station.combine_all_to_obsspace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">combine_all_to_obsspace</span></code></a></p></td>
+<td><p>Make one dataframe with all observations and their labels.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.fill_gaps_automatic" title="metobs_toolkit.station.Station.fill_gaps_automatic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_gaps_automatic</span></code></a></p></td>
+<td><p>Fill the gaps by using linear interpolation or debiased modeldata.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.fill_gaps_era5" title="metobs_toolkit.station.Station.fill_gaps_era5"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_gaps_era5</span></code></a></p></td>
+<td><p>Fill the gaps using a Modeldata object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.fill_gaps_linear" title="metobs_toolkit.station.Station.fill_gaps_linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_gaps_linear</span></code></a></p></td>
+<td><p>Fill the gaps using linear interpolation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.fill_missing_obs_linear" title="metobs_toolkit.station.Station.fill_missing_obs_linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_missing_obs_linear</span></code></a></p></td>
+<td><p>Interpolate missing observations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_altitude" title="metobs_toolkit.station.Station.get_altitude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_altitude</span></code></a></p></td>
+<td><p>Extract Altitudes for all stations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_analysis" title="metobs_toolkit.station.Station.get_analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_analysis</span></code></a></p></td>
+<td><p>Create an Analysis instance from the Dataframe.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_gaps_df" title="metobs_toolkit.station.Station.get_gaps_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaps_df</span></code></a></p></td>
+<td><p>List all gaps into an overview dataframe.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_gaps_info" title="metobs_toolkit.station.Station.get_gaps_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaps_info</span></code></a></p></td>
+<td><p>Print out detailed information of the gaps.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_info" title="metobs_toolkit.station.Station.get_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_info</span></code></a></p></td>
+<td><p>Alias of show().</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_landcover" title="metobs_toolkit.station.Station.get_landcover"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_landcover</span></code></a></p></td>
+<td><p>Extract landcover for all stations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_lcz" title="metobs_toolkit.station.Station.get_lcz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lcz</span></code></a></p></td>
+<td><p>Extract local climate zones for all stations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_missing_obs_info" title="metobs_toolkit.station.Station.get_missing_obs_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_missing_obs_info</span></code></a></p></td>
+<td><p>Print out detailed information of the missing observations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_modeldata" title="metobs_toolkit.station.Station.get_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_modeldata</span></code></a></p></td>
+<td><p>Make Modeldata for the Dataset.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_qc_stats" title="metobs_toolkit.station.Station.get_qc_stats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_qc_stats</span></code></a></p></td>
+<td><p>Get quality control statistics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.get_station" title="metobs_toolkit.station.Station.get_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station</span></code></a></p></td>
+<td><p>Filter out one station of the Dataset.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.import_data_from_file" title="metobs_toolkit.station.Station.import_data_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_data_from_file</span></code></a></p></td>
+<td><p>Read observations from a csv file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.import_dataset" title="metobs_toolkit.station.Station.import_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_dataset</span></code></a></p></td>
+<td><p>Import a Dataset instance from a (pickle) file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.make_gee_plot" title="metobs_toolkit.station.Station.make_gee_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_gee_plot</span></code></a></p></td>
+<td><p>Make an interactive plot of a google earth dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.make_geo_plot" title="metobs_toolkit.station.Station.make_geo_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_geo_plot</span></code></a></p></td>
+<td><p>Make geospatial plot.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.make_interactive_plot" title="metobs_toolkit.station.Station.make_interactive_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_interactive_plot</span></code></a></p></td>
+<td><p>Make interactive geospatial plot with time evolution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.make_plot" title="metobs_toolkit.station.Station.make_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_plot</span></code></a></p></td>
+<td><p>This function creates a timeseries plot for the dataset.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.save_dataset" title="metobs_toolkit.station.Station.save_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_dataset</span></code></a></p></td>
+<td><p>Save a Dataset instance to a (pickle) file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.setup_metadata_dtyes" title="metobs_toolkit.station.Station.setup_metadata_dtyes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_metadata_dtyes</span></code></a></p></td>
+<td><p>Make sure the dtypes are not lost when subsetting.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.show" title="metobs_toolkit.station.Station.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a></p></td>
+<td><p>Show detailed information of the Dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.show_settings" title="metobs_toolkit.station.Station.show_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_settings</span></code></a></p></td>
+<td><p>Show detailed information of the stored Settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.sync_observations" title="metobs_toolkit.station.Station.sync_observations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync_observations</span></code></a></p></td>
+<td><p>Simplify and syncronize the observation timestamps.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.update_gaps_and_missing_from_outliers" title="metobs_toolkit.station.Station.update_gaps_and_missing_from_outliers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_gaps_and_missing_from_outliers</span></code></a></p></td>
+<td><p>Interpret the outliers as missing observations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.update_outliersdf" title="metobs_toolkit.station.Station.update_outliersdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_outliersdf</span></code></a></p></td>
+<td><p>Update the outliersdf attribute.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.station.Station.write_to_csv" title="metobs_toolkit.station.Station.write_to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_to_csv</span></code></a></p></td>
+<td><p>Write Dataset to a csv file.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.__add__">
+<span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.__add__" title="Link to this definition"></a></dt>
+<dd><p>Addition of two Datasets.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.add_new_observationtype">
+<span class="sig-name descname"><span class="pre">add_new_observationtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Obstype</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.add_new_observationtype" title="Link to this definition"></a></dt>
+<dd><p>Add a new observation type to the known observation types.</p>
+<p>The observation can only be added if it is not already present in the
+knonw observation types. If that is the case that you probably need to
+use use the Dataset.add_new_unit() method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Obstype</strong> (<em>metobs_toolkit.obstype.Obstype</em>) – The new Obstype to add.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.add_new_unit">
+<span class="sig-name descname"><span class="pre">add_new_unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conversion_expression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.add_new_unit" title="Link to this definition"></a></dt>
+<dd><p>Add a new unit to a known observation type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>str</em>) – The observation type to add the new unit to.</p></li>
+<li><p><strong>new_unit</strong> (<em>str</em>) – The new unit name.</p></li>
+<li><p><strong>conversion_expression</strong> (<em>list</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – <p>The conversion expression to the standard unit of the observation
+type. The expression is a (list of) strings with simple algebraic
+operations, where x represent the value in the new unit, and the
+result is the value in the standard unit. Two examples for
+temperature (with a standard unit in Celcius):</p>
+<blockquote>
+<div><p>[“x - 273.15”] #if the new_unit is Kelvin
+[“x-32.0”, “x/1.8”] #if the new unit is Farenheit</p>
+</div></blockquote>
+<p>The default is [].</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.apply_buddy_check">
+<span class="sig-name descname"><span class="pre">apply_buddy_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_constant_altitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">haversine_approx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_epsg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'31370'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.apply_buddy_check" title="Link to this definition"></a></dt>
+<dd><p>Apply the buddy check on the observations.</p>
+<p>The buddy check compares an observation against its neighbours (i.e.
+buddies). The check looks for buddies in a neighbourhood specified by
+a certain radius. The buddy check flags observations if the
+(absolute value of the) difference between the observations and the
+average of the neighbours normalized by the standard deviation in the
+circle is greater than a predefined threshold.</p>
+<p>This check is based on the buddy check from titanlib. Documentation on
+the titanlib buddy check can be found
+<a class="reference external" href="https://github.com/metno/titanlib/wiki/Buddy-check">here</a>.</p>
+<p>The observation and outliers attributes will be updated accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – Name of the observationtype you want to apply the checks on. The
+default is ‘temp’.</p></li>
+<li><p><strong>use_constant_altitude</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use a constant altitude for all stations. The default is False.</p></li>
+<li><p><strong>haversine_approx</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use the haversine approximation (earth is a sphere) to calculate
+distances between stations. The default is True.</p></li>
+<li><p><strong>metric_epsg</strong> (<em>str</em><em>, </em><em>optional</em>) – EPSG code for the metric CRS to calculate distances in. Only used when
+haversine approximation is set to False. Thus becoming a better
+distance approximation but not global applicable The default is ‘31370’
+(which is suitable for Belgium).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.apply_quality_control">
+<span class="sig-name descname"><span class="pre">apply_quality_control</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gross_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repetitions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_variation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.apply_quality_control" title="Link to this definition"></a></dt>
+<dd><p>Apply quality control methods to the dataset.</p>
+<p>The default settings are used, and can be changed in the
+settings_files/qc_settings.py</p>
+<p>The checks are performed in a sequence: gross_vallue –&gt;
+persistance –&gt; …, Outliers by a previous check are ignored in the
+following checks!</p>
+<p>The dataset is updated inline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – Name of the observationtype you want to apply the checks on. The
+default is ‘temp’.</p></li>
+<li><p><strong>gross_value</strong> (<em>Bool</em><em>, </em><em>optional</em>) – If True the gross_value check is applied if False not. The default
+is True.</p></li>
+<li><p><strong>persistance</strong> (<em>Bool</em><em>, </em><em>optional</em>) – If True the persistance check is applied if False not. The default
+is True.. The default is True.</p></li>
+<li><p><strong>repetition</strong> (<em>Bool</em><em>, </em><em>optional</em>) – If True the repetations check is applied if False not. The default
+is True.</p></li>
+<li><p><strong>step</strong> (<em>Bool</em><em>, </em><em>optional</em>) – If True the step check is applied if False not. The default is True.</p></li>
+<li><p><strong>window_variation</strong> (<em>Bool</em><em>, </em><em>optional</em>) – If True the window_variation check is applied if False not. The
+default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.apply_titan_buddy_check">
+<span class="sig-name descname"><span class="pre">apply_titan_buddy_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_constant_altitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.apply_titan_buddy_check" title="Link to this definition"></a></dt>
+<dd><p>Apply the TITAN buddy check on the observations.</p>
+<p>The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
+buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
+(absolute value of the) difference between the observations and the average of the neighbours
+normalized by the standard deviation in the circle is greater than a predefined threshold.</p>
+<p>See the <a class="reference external" href="https://github.com/metno/titanlib/wiki/Buddy-check">titanlib documentation on the buddy check</a>
+for futher details.</p>
+<p>The observation and outliers attributes will be updated accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – Name of the observationtype you want to apply the checks on. The
+default is ‘temp’.</p></li>
+<li><p><strong>use_constant_altitude</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use a constant altitude for all stations. The default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To update the check settings, use the update_titan_qc_settings method
+of the Dataset class.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>To use this method, you must install titanlib. Windows users must have
+a c++ compiler installed. See the titanlib documentation: <a class="reference external" href="https://github.com/metno/titanlib/wiki/Installation">https://github.com/metno/titanlib/wiki/Installation</a>.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.apply_titan_sct_resistant_check">
+<span class="sig-name descname"><span class="pre">apply_titan_sct_resistant_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.apply_titan_sct_resistant_check" title="Link to this definition"></a></dt>
+<dd><p>Apply the TITAN spatial consistency test (resistant).</p>
+<p>The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
+nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation
+(OI) to compute an expected value for each observation. The background for the OI is computed from
+a general vertical profile of observations in the area.</p>
+<p>See the <a class="reference external" href="https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant">titanlib documentation on the sct check</a>
+for futher details.</p>
+<p>The observation and outliers attributes will be updated accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – Name of the observationtype you want to apply the checks on. The
+default is ‘temp’.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To update the check settings, use the update_titan_qc_settings method
+of the Dataset class.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>To use this method, you must install titanlib. Windows users must have
+a c++ compiler installed. See the titanlib documentation: <a class="reference external" href="https://github.com/metno/titanlib/wiki/Installation">https://github.com/metno/titanlib/wiki/Installation</a>.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This method is a python wrapper on titanlib c++ scripts, and it is prone
+to segmentation faults. The perfomance of this check is thus not
+guaranteed!</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.coarsen_time_resolution">
+<span class="sig-name descname"><span class="pre">coarsen_time_resolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin_tz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.coarsen_time_resolution" title="Link to this definition"></a></dt>
+<dd><p>Resample the observations to coarser timeresolution.</p>
+<p>The assumed dataset resolution (stored in the metadf attribute) will be
+updated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origin</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Define the origin (first timestamp) for the obervations. The origin
+is timezone naive, and is assumed to have the same timezone as the
+obervations. If None, the earliest occuring timestamp is used as
+origin. The default is None.</p></li>
+<li><p><strong>origin_tz</strong> (<em>str</em><em>, </em><em>optional</em>) – Timezone string of the input observations. Element of
+pytz.all_timezones. If None, the timezone from the settings is
+used. The default is None.</p></li>
+<li><p><strong>freq</strong> (<em>DateOffset</em><em>, </em><em>Timedelta</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – The offset string or object representing target conversion.
+Ex: ‘15T’ is 15 minuts, ‘1H’, is one hour. If None, the target time
+resolution of the dataset.settings is used. The default is None.</p></li>
+<li><p><strong>method</strong> (<em>'nearest'</em><em> or </em><em>'bfill'</em><em>, </em><em>optional</em>) – Method to apply for the resampling. If None, the resample method of
+the dataset.settings is used. The default is None.</p></li>
+<li><p><strong>limit</strong> (<em>int</em><em>, </em><em>optional</em>) – Limit of how many values to fill with one original observations. If
+None, the target limit of the dataset.settings is used. The default
+is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.combine_all_to_obsspace">
+<span class="sig-name descname"><span class="pre">combine_all_to_obsspace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repr_outl_as_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_outliers_by_gaps_and_missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.combine_all_to_obsspace" title="Link to this definition"></a></dt>
+<dd><p>Make one dataframe with all observations and their labels.</p>
+<p>Combine all observations, outliers, missing observations and gaps into
+one Dataframe. All observation types are combined an a label is added
+in a serperate column.</p>
+<p>When gaps and missing records are updated from outliers one has to choice
+to represent these records as outliers or gaps. There can not be duplicates
+in the return dataframe.</p>
+<p>By default the observation values of the outliers are saved, one can
+choice to use these values or NaN’s.
+following checks!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>repr_outl_as_nan</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, Nan’s are use for the values of the outliers. The
+default is False.</p></li>
+<li><p><strong>overwrite_outliers_by_gaps_and_missing</strong> (<em>Bool</em><em>, </em><em>optional</em>) – <dl class="simple">
+<dt>If True, records that are labeld as gap/missing and outlier are</dt><dd><p>labeled as gaps/missing. This has only effect when the gaps/missing
+observations are updated from the outliers. The default is True.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>combdf</strong> – A dataframe containing a continious time resolution of records, where each
+record is labeld.</p>
+</dd>
+<dt class="field-even">rtype<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame()</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.fill_gaps_automatic">
+<span class="sig-name descname"><span class="pre">fill_gaps_automatic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_interpolate_duration_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.fill_gaps_automatic" title="Link to this definition"></a></dt>
+<dd><p>Fill the gaps by using linear interpolation or debiased modeldata.</p>
+<p>The method that is applied to perform the gapfill will be determined by
+the duration of the gap.</p>
+<p>When the duration of a gap is smaller or equal than
+max_interpolation_duration, the linear interpolation method is applied
+else the debiased modeldata method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modeldata</strong> (<em>metobs_toolkit.Modeldata</em>) – The modeldata to use for the gapfill. This model data should the required
+timeseries to fill all gaps present in the dataset.</p></li>
+<li><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – Name of the observationtype you want to apply gap filling on. The
+modeldata must contain this observation type as well. The
+default is ‘temp’.</p></li>
+<li><p><strong>max_interpolate_duration_str</strong> (<em>Timedelta</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Maximum duration to apply interpolation for gapfill when using the
+automatic gapfill method. Gaps with longer durations will be filled
+using debiased modeldata. The default is None.</p></li>
+<li><p><strong>overwrite_fill</strong> (<em>bool</em><em>, </em><em>optional</em>) – If a gap has already filled values, the interpolation of this gap
+is skipped if overwrite_fill is False. If set to True, the gapfill
+values and info will be overwitten. The default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p><strong>comb_df</strong> –</p>
+<dl class="simple">
+<dt>gapfilldf<span class="classifier">pandas.DataFrame</span></dt><dd><p>A dataframe containing all the filled records.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TYPE</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.fill_gaps_era5">
+<span class="sig-name descname"><span class="pre">fill_gaps_era5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'debias'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.fill_gaps_era5" title="Link to this definition"></a></dt>
+<dd><p>Fill the gaps using a Modeldata object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modeldata</strong> (<em>metobs_toolkit.Modeldata</em>) – The modeldata to use for the gapfill. This model data should the required
+timeseries to fill all gaps present in the dataset.</p></li>
+<li><p><strong>method</strong> (<em>'debias'</em><em>, </em><em>optional</em>) – Specify which method to use. The default is ‘debias’.</p></li>
+<li><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – Name of the observationtype you want to apply gap filling on. The
+modeldata must contain this observation type as well. The
+default is ‘temp’.</p></li>
+<li><p><strong>overwrite_fill</strong> (<em>bool</em><em>, </em><em>optional</em>) – If a gap has already filled values, the interpolation of this gap
+is skipped if overwrite_fill is False. If set to True, the gapfill
+values and info will be overwitten. The default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Gapfilldf</strong> – A dataframe containing all gap filled values and the use method.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.fill_gaps_linear">
+<span class="sig-name descname"><span class="pre">fill_gaps_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.fill_gaps_linear" title="Link to this definition"></a></dt>
+<dd><p>Fill the gaps using linear interpolation.</p>
+<p>The gapsfilldf attribute of the Datasetinstance will be updated if
+the gaps are not filled yet or if overwrite_fill is set to True.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>string</em><em>, </em><em>optional</em>) – Fieldname to visualise. This can be an observation or station
+attribute. The default is ‘temp’.</p></li>
+<li><p><strong>overwrite_fill</strong> (<em>bool</em><em>, </em><em>optional</em>) – If a gap has already filled values, the interpolation of this gap
+is skipped if overwrite_fill is False. If set to True, the gapfill
+values and info will be overwitten. The default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>gapfilldf</strong> – A dataframe containing all the filled records.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.fill_missing_obs_linear">
+<span class="sig-name descname"><span class="pre">fill_missing_obs_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.fill_missing_obs_linear" title="Link to this definition"></a></dt>
+<dd><p>Interpolate missing observations.</p>
+<p>Fill in the missing observation rectords using interpolation. The
+missing_fill_df attribute of the Dataset will be updated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obstype</strong> (<em>string</em><em>, </em><em>optional</em>) – Fieldname to visualise. This can be an observation or station
+attribute. The default is ‘temp’.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_altitude">
+<span class="sig-name descname"><span class="pre">get_altitude</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_altitude" title="Link to this definition"></a></dt>
+<dd><p>Extract Altitudes for all stations.</p>
+<p>Function to extract the Altitude from the SRTM Digital Elevation Data
+global map on the Google engine for all stations.</p>
+<p>A ‘altitude’ column will be added to the metadf, and series is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>altitude_series</strong> – A series with the stationnames as index and the altitudes as values.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.Series()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_analysis">
+<span class="sig-name descname"><span class="pre">get_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_gapfilled_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_analysis" title="Link to this definition"></a></dt>
+<dd><p>Create an Analysis instance from the Dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>add_gapfilled_values</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, all filled values (from gapfill and missing observation fill),
+are added to the analysis records aswell. The default is False.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Analysis instance of the Dataset.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>metobs_toolkit.Analysis</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_gaps_df">
+<span class="sig-name descname"><span class="pre">get_gaps_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_gaps_df" title="Link to this definition"></a></dt>
+<dd><p>List all gaps into an overview dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A DataFrame with stationnames as index, and the start, end and duretion
+of the gaps as columns.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_gaps_info">
+<span class="sig-name descname"><span class="pre">get_gaps_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_gaps_info" title="Link to this definition"></a></dt>
+<dd><p>Print out detailed information of the gaps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_info">
+<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_all_settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_disp_n_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_info" title="Link to this definition"></a></dt>
+<dd><p>Alias of show().</p>
+<p>A function to print out a detailed overview information about the Dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>show_all_settings</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True all the settings are printed out. The default is False.</p></li>
+<li><p><strong>max_disp_n_gaps</strong> (<em>int</em><em>, </em><em>optional</em>) – The maximum number of gaps to display detailed information of.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_landcover">
+<span class="sig-name descname"><span class="pre">get_landcover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[100]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gee_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'worldcover'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_landcover" title="Link to this definition"></a></dt>
+<dd><p>Extract landcover for all stations.</p>
+<p>Extract the landcover fractions in a buffer with a specific radius for
+all stations. If an aggregation scheme is define, one can choose to
+aggregate the landcoverclasses.</p>
+<p>The landcover fractions will be added to the Dataset.metadf if overwrite
+is True. Presented as seperate columns where each column represent the
+landcovertype and corresponding buffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>buffers</strong> (<em>num</em><em>, </em><em>optional</em>) – The list of buffer radia in dataset units (meters for ESA worldcover) . The default is 100.</p></li>
+<li><p><strong>aggregate</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the classes will be aggregated with the corresponding
+aggregation scheme. The default is True.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the Datset.metadf will be updated with the generated
+landcoverfractions. The default is True.</p></li>
+<li><p><strong>gee_map</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the dataset to use. This name should be present in the
+settings.gee[‘gee_dataset_info’]. If aggregat is True, an aggregation
+scheme should included as well. The default is ‘worldcover’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>frac_df</strong> – A Dataframe with index: name, buffer_radius and the columns are the
+fractions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_lcz">
+<span class="sig-name descname"><span class="pre">get_lcz</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_lcz" title="Link to this definition"></a></dt>
+<dd><p>Extract local climate zones for all stations.</p>
+<p>Function to extract the Local CLimate zones (LCZ) from the
+wudapt global LCZ map on the Google engine for all stations.</p>
+<p>A ‘LCZ’ column will be added to the metadf, and series is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>lcz_series</strong> – A series with the stationnames as index and the LCZ as values.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.Series()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_missing_obs_info">
+<span class="sig-name descname"><span class="pre">get_missing_obs_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_missing_obs_info" title="Link to this definition"></a></dt>
+<dd><p>Print out detailed information of the missing observations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_modeldata">
+<span class="sig-name descname"><span class="pre">get_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modelname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ERA5_hourly'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modeldata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_modeldata" title="Link to this definition"></a></dt>
+<dd><p>Make Modeldata for the Dataset.</p>
+<p>Make a metobs_toolkit.Modeldata object with modeldata at the locations
+of the stations present in the dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modelname</strong> (<em>str</em><em>, </em><em>optional</em>) – Which dataset to download timeseries from. This is only used when
+no modeldata is provided. The default is ‘ERA5_hourly’.</p></li>
+<li><p><strong>modeldata</strong> (<em>metobs_toolkit.Modeldata</em><em>, </em><em>optional</em>) – Use the modelname attribute and the gee information stored in the
+modeldata instance to extract timeseries.</p></li>
+<li><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – Name of the observationtype you want to apply gap filling on. The
+modeldata must contain this observation type as well. The
+default is ‘temp’.</p></li>
+<li><p><strong>stations</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>optional</em>) – Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.</p></li>
+<li><p><strong>startdt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.</p></li>
+<li><p><strong>enddt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Modl</strong> – The extracted modeldata for period and a set of stations.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>metobs_toolkit.Modeldata</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When extracting large amounts of data, the timeseries data will be
+writen to a file and saved on your google drive. In this case, you need
+to provide the Modeldata with the data using the .set_model_from_csv()
+method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only 2mT extraction of ERA5 is implemented for all Modeldata instances.
+To extract other variables, one must create a Modeldata instance in
+advance, add or update a gee_dataset and give this Modeldata instance
+to this method.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_qc_stats">
+<span class="sig-name descname"><span class="pre">get_qc_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_qc_stats" title="Link to this definition"></a></dt>
+<dd><p>Get quality control statistics.</p>
+<p>Compute frequency statistics on the qc labels for an observationtype.
+The output is a dataframe containing the frequency statistics presented
+as percentages.</p>
+<p>These frequencies can also be presented as a collection of piecharts
+per check.</p>
+<p>With stationnames you can subset the data to one ore multiple stations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>str</em><em>, </em><em>optional</em>) – Observation type to analyse the QC labels on. The default is
+‘temp’.</p></li>
+<li><p><strong>stationname</strong> (<em>str</em><em>, </em><em>optional</em>) – Stationname to subset the quality labels on. If None, all
+stations are used. The default is None.</p></li>
+<li><p><strong>make_plot</strong> (<em>Bool</em><em>, </em><em>optional</em>) – If True, a plot with piecharts is generated. The default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>dataset_qc_stats</strong> – A table containing the label frequencies per check presented
+as percentages.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.get_station">
+<span class="sig-name descname"><span class="pre">get_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.get_station" title="Link to this definition"></a></dt>
+<dd><p>Filter out one station of the Dataset.</p>
+<p>Extract a metobs_toolkit.Station object from the dataset by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>stationname</strong> (<em>string</em>) – The name of the station.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The station object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>metobs_toolkit.Station</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.import_data_from_file">
+<span class="sig-name descname"><span class="pre">import_data_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">long_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype_description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_estimation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_estimation_simplify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_estimation_simplify_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs_data_read</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs_metadata_read</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.import_data_from_file" title="Link to this definition"></a></dt>
+<dd><p>Read observations from a csv file.</p>
+<p>The paths are defined in the Settings.input_file. The input file
+columns should have a template that is stored in
+Settings.template_list.</p>
+<p>If the metadata is stored in a seperate file, and the
+Settings.input_metadata_file is correct, than this metadata is also
+imported (if a suitable template is in the Settings.template_list.)</p>
+<p>The dataset is by default assumed to be in long-format (each column represent an observation type, one column indicates the stationname).
+Wide-format can be used if</p>
+<ul class="simple">
+<li><p>the ‘wide’ option is present in the template (this is done automatically if the themplate was made using the metobs_toolkit.build_template_prompt())</p></li>
+<li><p>‘long_format’ is set to False and if the observation type is specified (obstype, obstype_unit and obstype_description)</p></li>
+</ul>
+<p>An estimation of the observational frequency is made per station. This is used
+to find missing observations and gaps.</p>
+<dl class="simple">
+<dt>The Dataset attributes are set and the following checks are executed:</dt><dd><ul class="simple">
+<li><p>Duplicate check</p></li>
+<li><p>Invalid input check</p></li>
+<li><p>Find missing observations</p></li>
+<li><p>Find gaps</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>long_format</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if the inputdata has a long-format, False if it has a wide-format. The default is True.</p></li>
+<li><p><strong>obstype</strong> (<em>str</em><em>, </em><em>optional</em>) – If the dataformat is wide, specify which observation type the
+observations represent. The obstype should be an element of
+metobs_toolkit.observation_types. The default is None.</p></li>
+<li><p><strong>obstype_unit</strong> (<em>str</em><em>, </em><em>optional</em>) – If the dataformat is wide, specify the unit of the obstype. The
+default is None.</p></li>
+<li><p><strong>obstype_description</strong> (<em>str</em><em>, </em><em>optional</em>) – If the dataformat is wide, specify the description of the obstype.
+The default is None.</p></li>
+<li><p><strong>freq_estimation_method</strong> (<em>'highest'</em><em> or </em><em>'median'</em><em>, </em><em>optional</em>) – Select wich method to use for the frequency estimation. If
+‘highest’, the highest apearing frequency is used. If ‘median’, the
+median of the apearing frequencies is used. If None, the method
+stored in the
+Dataset.settings.time_settings[‘freq_estimation_method’] is used.
+The default is None.</p></li>
+<li><p><strong>freq_estimation_simplify</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the likely frequency is converted to round hours, or round minutes.
+The “freq_estimation_simplify_error’ is used as a constrain. If the constrain is not met,
+the simplification is not performed. If None, the method
+stored in the
+Dataset.settings.time_settings[‘freq_estimation_simplify’] is used.
+The default is None.</p></li>
+<li><p><strong>freq_estimation_simplify_error</strong> (<em>Timedelta</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – The tollerance string or object representing the maximum translation in time to form a simplified frequency estimation.
+Ex: ‘5T’ is 5 minuts, ‘1H’, is one hour. If None, the method
+stored in the
+Dataset.settings.time_settings[‘freq_estimation_simplify_error’] is
+used. The default is None.</p></li>
+<li><p><strong>kwargs_data_read</strong> (<em>dict</em><em>, </em><em>optional</em>) – Keyword arguments collected in a dictionary to pass to the
+pandas.read_csv() function on the data file. The default is {}.</p></li>
+<li><p><strong>kwargs_metadata_read</strong> (<em>dict</em><em>, </em><em>optional</em>) – Keyword arguments collected in a dictionary to pass to the
+pandas.read_csv() function on the metadata file. The default is {}.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If options are present in the template, these will have priority over the arguments of this function.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.import_dataset">
+<span class="sig-name descname"><span class="pre">import_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'saved_dataset.pkl'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.import_dataset" title="Link to this definition"></a></dt>
+<dd><p>Import a Dataset instance from a (pickle) file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_path</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The path to the folder to save the file. If None, the outputfolder
+from the Settings is used. The default is None.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the output file. The default is ‘saved_dataset.pkl’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Dataset instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>metobs_toolkit.Dataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.make_gee_plot">
+<span class="sig-name descname"><span class="pre">make_gee_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gee_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.make_gee_plot" title="Link to this definition"></a></dt>
+<dd><p>Make an interactive plot of a google earth dataset.</p>
+<p>The location of the stations can be plotted on top of it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gee_map</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the dataset to use. This name should be present in the
+settings.gee[‘gee_dataset_info’]. If aggregat is True, an aggregation
+scheme should included as well. The default is ‘worldcover’</p></li>
+<li><p><strong>show_stations</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the stations will be plotted as markers. The default is True.</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the map will be saved as an html file in the output_folder
+as defined in the settings if the outputfile is not set. The
+default is False.</p></li>
+<li><p><strong>outputfile</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify the path of the html file if save is True. If None, and save
+is true, the html file will be saved in the output_folder. The
+default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Map</strong> – The folium Map instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>geemap.foliumap.Map</p>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>To display the interactive map a graphical backend is required, which
+is often missing on (free) cloud platforms. Therefore it is better to
+set save=True, and open the .html in your browser</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.make_geo_plot">
+<span class="sig-name descname"><span class="pre">make_geo_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeinstance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.make_geo_plot" title="Link to this definition"></a></dt>
+<dd><p>Make geospatial plot.</p>
+<p>This functions creates a geospatial plot for a field
+(observations or attributes) of all stations.</p>
+<p>If the field is timedepending, than the timeinstance is used to plot
+the field status at that datetime.</p>
+<p>If the field is categorical than the leged will have categorical
+values, else a colorbar is used.</p>
+<p>All styling attributes are extracted from the Settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variable</strong> (<em>string</em><em>, </em><em>optional</em>) – Fieldname to visualise. This can be an observation type or station
+or ‘lcz’. The default is ‘temp’.</p></li>
+<li><p><strong>title</strong> (<em>string</em><em>, </em><em>optional</em>) – Title of the figure, if None a default title is generated. The default is None.</p></li>
+<li><p><strong>timeinstance</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Datetime moment of the geospatial plot. If None, the first occuring (not Nan) record is used. The default is None.</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>optional</em>) – I True, a legend is added to the plot. The default is True.</p></li>
+<li><p><strong>vmin</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The value corresponding with the minimum color. If None, the minimum of the presented observations is used. The default is None.</p></li>
+<li><p><strong>vmax</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The value corresponding with the maximum color. If None, the maximum of the presented observations is used. The default is None.</p></li>
+<li><p><strong>legend_title</strong> (<em>string</em><em>, </em><em>optional</em>) – Title of the legend, if None a default title is generated. The default is None.</p></li>
+<li><p><strong>boundbox</strong> (<em>[</em><em>lon-west</em><em>, </em><em>lat-south</em><em>, </em><em>lon-east</em><em>, </em><em>lat-north</em><em>]</em><em>, </em><em>optional</em>) – The boundbox to indicate the domain to plot. The elemenst are numeric.
+If the list is empty, a boundbox is created automatically. The default
+is [].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>axis</strong> – The geoaxes of the plot is returned.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.pyplot.geoaxes</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.make_interactive_plot">
+<span class="sig-name descname"><span class="pre">make_interactive_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starttime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_cmap_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">13</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outlier_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ok_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orange'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'yellow'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.make_interactive_plot" title="Link to this definition"></a></dt>
+<dd><p>Make interactive geospatial plot with time evolution.</p>
+<p>This function uses the folium package to make an interactive geospatial
+plot to illustrate the time evolution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>str</em><em> or </em><em>metobs_toolkit.Obstype</em><em>, </em><em>optional</em>) – The observation type to plot. The default is ‘temp’.</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – If true, the figure will be saved as an html-file. The default is True.</p></li>
+<li><p><strong>outputfile</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of the output html-file. The figure will be saved here, if
+save is True. If outputfile is not given, and save is True, than
+the figure will be saved in the default outputfolder (if given).
+The default is None.</p></li>
+<li><p><strong>starttime</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Specifiy the start datetime for the plot. If None is given it will
+use the start datetime of the dataset, defaults to None.</p></li>
+<li><p><strong>endtime</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Specifiy the end datetime for the plot. If None is given it will
+use the end datetime of the dataset, defaults to None.</p></li>
+<li><p><strong>vmin</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The value corresponding with the minimum color. If None, the
+minimum of the presented observations is used. The default is None.</p></li>
+<li><p><strong>vmax</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The value corresponding with the maximum color. If None, the
+maximum of the presented observations is used. The default is None.</p></li>
+<li><p><strong>mpl_cmap_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the matplotlib colormap to use. The default is ‘viridis’.</p></li>
+<li><p><strong>radius</strong> (<em>int</em><em>, </em><em>optional</em>) – The radius (in pixels) of the scatters. The default is 13.</p></li>
+<li><p><strong>fill_alpha</strong> (<em>float</em><em> (</em><em>[</em><em>0;1</em><em>]</em><em>)</em><em>, </em><em>optional</em>) – The alpha of the fill color for the scatters. The default is 0.6.</p></li>
+<li><p><strong>max_fps</strong> (<em>int</em><em> (</em><em>&gt;0</em><em>)</em><em>, </em><em>optional</em>) – The maximum allowd frames per second for the time evolution. The
+default is 4.</p></li>
+<li><p><strong>outlier_col</strong> (<em>str</em><em>, </em><em>optional</em>) – The edge color of the scatters to identify an outliers. The default is ‘red’.</p></li>
+<li><p><strong>ok_col</strong> (<em>str</em><em>, </em><em>optional</em>) – The edge color of the scatters to identify an ok observation. The default is ‘black’.</p></li>
+<li><p><strong>gap_col</strong> (<em>str</em><em>, </em><em>optional</em>) – The edge color of the scatters to identify an missing/gap
+observation. The default is ‘orange’.</p></li>
+<li><p><strong>fill_col</strong> (<em>str</em><em>, </em><em>optional</em>) – The edge color of the scatters to identify a fillded observation.
+The default is ‘yellow’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>m</strong> – The interactive folium map.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>folium.folium.map</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The figure will only appear when this is runned in notebooks. If you do
+not run this in a notebook, make shure to save the html file, and open it
+with a browser.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.make_plot">
+<span class="sig-name descname"><span class="pre">make_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starttime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_filled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.make_plot" title="Link to this definition"></a></dt>
+<dd><p>This function creates a timeseries plot for the dataset. The variable observation type
+is plotted for all stationnames from a starttime to an endtime.</p>
+<p>All styling attributes are extracted from the Settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stationnames</strong> (<em>list</em><em>, </em><em>optional</em>) – A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.</p></li>
+<li><p><strong>obstype</strong> (<em>string</em><em>, </em><em>optional</em>) – Fieldname to visualise. This can be an observation or station
+attribute. The default is ‘temp’.</p></li>
+<li><p><strong>colorby</strong> (<em>'label'</em><em> or </em><em>'name'</em><em>, </em><em>optional</em>) – Indicate how colors should be assigned to the lines. ‘label’ will color the lines by their quality control label. ‘name’ will color by each station, defaults to ‘name’.</p></li>
+<li><p><strong>starttime</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.</p></li>
+<li><p><strong>endtime</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.</p></li>
+<li><p><strong>title</strong> (<em>string</em><em>, </em><em>optional</em>) – Title of the figure, if None a default title is generated. The default is None.</p></li>
+<li><p><strong>y_label</strong> (<em>string</em><em>, </em><em>optional</em>) – y-axes label of the figure, if None a default label is generated. The default is None.</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, a legend is added to the plot. The default is True.</p></li>
+<li><p><strong>show_outliers</strong> (<em>bool</em><em>, </em><em>optional</em>) – If true the observations labeld as outliers will be included in
+the plot. This is only true when colorby == ‘name’. The default
+is True.</p></li>
+<li><p><strong>show_filled</strong> (<em>bool</em><em>, </em><em>optional</em>) – If true the filled values for gaps and missing observations will
+be included in the plot. This is only true when colorby == ‘name’.
+The default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>axis</strong> – The timeseries axes of the plot is returned.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.pyplot.axes</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.save_dataset">
+<span class="sig-name descname"><span class="pre">save_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputfolder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'saved_dataset.pkl'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.save_dataset" title="Link to this definition"></a></dt>
+<dd><p>Save a Dataset instance to a (pickle) file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputfolder</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The path to the folder to save the file. If None, the outputfolder
+from the Settings is used. The default is None.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the output file. The default is ‘saved_dataset.pkl’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.setup_metadata_dtyes">
+<span class="sig-name descname"><span class="pre">setup_metadata_dtyes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/station.html#Station.setup_metadata_dtyes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.station.Station.setup_metadata_dtyes" title="Link to this definition"></a></dt>
+<dd><p>Make sure the dtypes are not lost when subsetting.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_all_settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_disp_n_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.show" title="Link to this definition"></a></dt>
+<dd><p>Show detailed information of the Dataset.</p>
+<p>A function to print out a detailed overview information about the Dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>show_all_settings</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True all the settings are printed out. The default is False.</p></li>
+<li><p><strong>max_disp_n_gaps</strong> (<em>int</em><em>, </em><em>optional</em>) – The maximum number of gaps to display detailed information of.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.show_settings">
+<span class="sig-name descname"><span class="pre">show_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.show_settings" title="Link to this definition"></a></dt>
+<dd><p>Show detailed information of the stored Settings.</p>
+<p>A function that prints out all the settings, structured per thematic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.sync_observations">
+<span class="sig-name descname"><span class="pre">sync_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tollerance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_force_resolution_minutes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_drop_target_nan_dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.sync_observations" title="Link to this definition"></a></dt>
+<dd><p>Simplify and syncronize the observation timestamps.</p>
+<p>To simplify the resolution (per station), a tollerance is use to shift timestamps. The tollerance indicates the
+maximum translation in time that can be applied to an observation.</p>
+<p>The sycronisation tries to group stations that have an equal simplified resolution, and syncronize them. The origin
+of the sycronized timestamps will be set to round hours, round 10-minutes or round-5 minutes if possible given the tollerance.</p>
+<p>The observations present in the input file are used.</p>
+<p>After syncronization, the IO outliers, missing observations and gaps are recomputed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tollerance</strong> (<em>Timedelta</em><em> or </em><em>str</em>) – The tollerance string or object representing the maximum translation in time.
+Ex: ‘5T’ is 5 minuts, ‘1H’, is one hour.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, a dataframe illustrating the mapping from original datetimes to simplified and syncronized is returned. The default is True.</p></li>
+<li><p><strong>_drop_target_nan_dt</strong> (<em>bool</em><em>, </em><em>optional</em>) – If record has no target datetime, the datetimes will be listed as Nat. To remove them,
+set this to True. Default is False.</p></li>
+<li><p><strong>_force_resolution_minutes</strong> (<em>bool</em><em>, </em><em>optional</em>) – force the resolution estimate to this frequency in minutes. If None, the frequency is estimated. The default is None.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Keep in mind that this method will overwrite the df, outliersdf, missing timestamps and gaps.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the used observations are from the input file, previously coarsend timeresolutions are ignored.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dataframe containing the original observations with original timestamps and the corresponding target timestamps.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame (if verbose is True)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.update_gaps_and_missing_from_outliers">
+<span class="sig-name descname"><span class="pre">update_gaps_and_missing_from_outliers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_gapsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.update_gaps_and_missing_from_outliers" title="Link to this definition"></a></dt>
+<dd><p>Interpret the outliers as missing observations.</p>
+<p>If there is a sequence
+of these outliers for a station, larger than n_gapsize than this will
+be interpreted as a gap.</p>
+<p>The outliers are not removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>str</em><em>, </em><em>optional</em>) – Use the outliers on this observation type to update the gaps and
+missing timestamps. The default is ‘temp’.</p></li>
+<li><p><strong>n_gapsize</strong> (<em>int</em><em>, </em><em>optional</em>) – The minimum number of consecutive missing observations to define
+as a gap. If None, n_gapsize is taken from the settings defenition
+of gaps. The default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Gaps and missing observations resulting from an outlier on a specific
+obstype, are assumed to be gaps/missing observation for all obstypes.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Be aware that n_gapsize is used for the current resolution of the Dataset,
+this is different from the gap check applied on the inported data, if
+the dataset is coarsend.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.update_outliersdf">
+<span class="sig-name descname"><span class="pre">update_outliersdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_to_outliersdf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.update_outliersdf" title="Link to this definition"></a></dt>
+<dd><p>Update the outliersdf attribute.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.station.Station.write_to_csv">
+<span class="sig-name descname"><span class="pre">write_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_fill_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_final_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tlk_obsnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_outliers_by_gaps_and_missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seperate_metadata_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metobs_toolkit.station.Station.write_to_csv" title="Link to this definition"></a></dt>
+<dd><p>Write Dataset to a csv file.</p>
+<p>Write the dataset to a file where the observations, metadata and
+(if available) the quality labels per observation type are merged
+together.</p>
+<p>A final qualty control label for each
+quality-controlled-observation type can be added in the outputfile.</p>
+<p>The file will be writen to the outputfolder specified in the settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>string</em><em>, </em><em>optional</em>) – Specify an observation type to subset all observations to. If None,
+all available observation types are writen to file. The default is
+None.</p></li>
+<li><p><strong>filename</strong> (<em>string</em><em>, </em><em>optional</em>) – The name of the output csv file. If none, a standard-filename
+is generated based on the period of data. The default is None.</p></li>
+<li><p><strong>include_outliers</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the outliers will be present in the csv file. The default is True.</p></li>
+<li><p><strong>include_fill_values</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the filled gap and missing observation values will be
+present in the csv file. The default is True.</p></li>
+<li><p><strong>add_final_labels</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, a column is added containing the final label of an observation. The default is True.</p></li>
+<li><p><strong>use_tlk_obsnames</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the standard naming of the metobs_toolkit is used, else
+the original names for obstypes is used. The default is True.</p></li>
+<li><p><strong>overwrite_outliers_by_gaps_and_missing</strong> (<em>bool</em><em>, </em><em>optional</em>) – If the gaps and missing observations are updated using outliers,
+interpret these records as gaps/missing outliers if True. Else these
+will be interpreted as outliers. The default is True.</p></li>
+<li><p><strong>seperate_metadata_file</strong> (<em>bool</em><em>, </em><em>optional</em>) – If true, the metadat is writen to a seperate file, else the metadata
+is merged to the observation in one file. The default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="metobs_toolkit.station.html" class="btn btn-neutral float-left" title="metobs_toolkit.station" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="metobs_toolkit.analysis.html" class="btn btn-neutral float-right" title="metobs_toolkit.analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

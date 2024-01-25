@@ -1,0 +1,6 @@
+metobs\_toolkit.gap.get\_station\_gaps
+======================================
+
+.. currentmodule:: metobs_toolkit.gap
+
+.. autofunction:: get_station_gaps

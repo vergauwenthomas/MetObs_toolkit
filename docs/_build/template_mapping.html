@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapping to the toolkit &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using Google Earth Engine" href="gee_authentication.html" />
+    <link rel="prev" title="Working with specific observation types" href="examples/using_obstypes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mapping to the toolkit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#toolkit-standards">Toolkit Standards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-structures">Data structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#metadata-structures">Metadata structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#template-creation">Template creation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Mapping to the toolkit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/template_mapping.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mapping-to-the-toolkit">
+<h1>Mapping to the toolkit<a class="headerlink" href="#mapping-to-the-toolkit" title="Link to this heading"></a></h1>
+<p>The MetObs-toolkit uses standard names and formats for your data. To use the toolkit,
+your observational data must be converted to the toolkit standards this is referred to as <strong>mapping</strong>.</p>
+<p>To specify how the mapping must be done a <strong>template</strong> is used. This template contains
+all the information on how to convert your tabular data to the toolkit standards.
+Since the structure of data files differs for different networks, this template is
+unique for each data file. A template is saved as a tabular .csv file to reuse and share them.</p>
+<p>On this page, you can find information on how to construct a template.</p>
+<section id="toolkit-standards">
+<span id="link-target"></span><h2>Toolkit Standards<a class="headerlink" href="#toolkit-standards" title="Link to this heading"></a></h2>
+<p>The toolkit has standard names for observation types and metadata. Here these standards are presented and described.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Standard observation types</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 38%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Standard name</p></th>
+<th class="head"><p>Toolkit description</p></th>
+<th class="head"><p>Type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>temp</p></td>
+<td><p>temperature</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-odd"><td><p>humidity</p></td>
+<td><p>Relative humidity</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-even"><td><p>precip</p></td>
+<td><p>precipitation intensity</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-odd"><td><p>precip_sum</p></td>
+<td><p>accumulated precipitation</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-even"><td><p>pressure</p></td>
+<td><p>air pressure (measured)</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-odd"><td><p>pressure_at_sea_level</p></td>
+<td><p>air pressure (corrected to sea level)</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-even"><td><p>wind_speed</p></td>
+<td><p>wind speed</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-odd"><td><p>wind_gust</p></td>
+<td><p>wind gust</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-even"><td><p>wind_direction</p></td>
+<td><p>wind direction as ° from the north, clock-wise</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-odd"><td><p>radiation_temp</p></td>
+<td><p>radiation temperature (black globe observations)</p></td>
+<td><p>numeric</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Standard Metadata</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 42%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Standard name</p></th>
+<th class="head"><p>Toolkit description</p></th>
+<th class="head"><p>Type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>the name of the stations (must be unique for each station)</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>lat</p></td>
+<td><p>the latitude of the station</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-even"><td><p>lon</p></td>
+<td><p>the longitude of the station</p></td>
+<td><p>numeric</p></td>
+</tr>
+<tr class="row-odd"><td><p>location</p></td>
+<td><p>location (the city/region of the stations) (OPTIONAL)</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-even"><td><p>call_name</p></td>
+<td><p>call_name (an informal name of the stations) (OPTIONAL)</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>network</p></td>
+<td><p>network (the name of the network the stations belong to) (OPTIONAL)</p></td>
+<td><p>string</p></td>
+</tr>
+</tbody>
+</table>
+<p>In the template, you map your observations and metadata to one of these standards. What is not mapped, will not be used in the toolkit.</p>
+</section>
+<section id="data-structures">
+<h2>Data structures<a class="headerlink" href="#data-structures" title="Link to this heading"></a></h2>
+<p>To make a template you must be aware of which format your data is in. The toolkit can handle the following data structures:</p>
+<dl>
+<dt><strong>long-format</strong></dt><dd><p>Observations are stacked in rows per station. One column represents the station names.</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">long-format example</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>timestamp</p></th>
+<th class="head"><p>2mT-passive</p></th>
+<th class="head"><p>2m-rel-hum</p></th>
+<th class="head"><p>ID</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2022-06-07 13:20:00</p></td>
+<td><p>16.4</p></td>
+<td><p>77.3</p></td>
+<td><p>station_A</p></td>
+</tr>
+<tr class="row-odd"><td><p>2022-06-07 13:30:00</p></td>
+<td><p>16.7</p></td>
+<td><p>75.6</p></td>
+<td><p>station_A</p></td>
+</tr>
+<tr class="row-even"><td><p>2022-06-07 13:20:00</p></td>
+<td><p>18.3</p></td>
+<td><p>68.9</p></td>
+<td><p>station_B</p></td>
+</tr>
+<tr class="row-odd"><td><p>2022-06-07 13:30:00</p></td>
+<td><p>18.6</p></td>
+<td><p>71.9</p></td>
+<td><p>station_B</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+<dt><strong>Wide-format</strong></dt><dd><p>Columns represent different stations. The data represents one observation type.</p>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Wide-format example (temperature)</span><a class="headerlink" href="#id4" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>timestamp</p></th>
+<th class="head"><p>station_A</p></th>
+<th class="head"><p>station_B</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2022-06-07 13:20:00</p></td>
+<td><p>16.4</p></td>
+<td><p>18.3</p></td>
+</tr>
+<tr class="row-odd"><td><p>2022-06-07 13:30:00</p></td>
+<td><p>16.7</p></td>
+<td><p>18.6</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+<dt><strong>Single-station-format</strong></dt><dd><p>The same as a long format but without a column indicating the station names.
+Be aware that the toolkit interprets it as <strong>observations coming from one station</strong>.</p>
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">Single-station-format example</span><a class="headerlink" href="#id5" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>timestamp</p></th>
+<th class="head"><p>2mT-passive</p></th>
+<th class="head"><p>2m-rel-hum</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2022-06-07 13:20:00</p></td>
+<td><p>16.4</p></td>
+<td><p>77.3</p></td>
+</tr>
+<tr class="row-odd"><td><p>2022-06-07 13:30:00</p></td>
+<td><p>16.7</p></td>
+<td><p>75.6</p></td>
+</tr>
+<tr class="row-even"><td><p>2022-06-07 13:40:00</p></td>
+<td><p>17.2</p></td>
+<td><p>77.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>2022-06-07 13:50:00</p></td>
+<td><p>17.2</p></td>
+<td><p>76.9</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</section>
+<section id="metadata-structures">
+<h2>Metadata structures<a class="headerlink" href="#metadata-structures" title="Link to this heading"></a></h2>
+<p>The metadata <strong>must be in a Wide-format</strong>. Here an example</p>
+<table class="docutils align-default" id="id6">
+<caption><span class="caption-text">Metadata example</span><a class="headerlink" href="#id6" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Northening</p></th>
+<th class="head"><p>Eastening</p></th>
+<th class="head"><p>Networkname</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>station_A</p></td>
+<td><p>51.3664</p></td>
+<td><p>4.67785</p></td>
+<td><p>demo-network</p></td>
+</tr>
+<tr class="row-odd"><td><p>station_B</p></td>
+<td><p>51.6752</p></td>
+<td><p>5.1332</p></td>
+<td><p>demo-network</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="template-creation">
+<h2>Template creation<a class="headerlink" href="#template-creation" title="Link to this heading"></a></h2>
+<p>Once you have converted your tabular data files to either long-, wide-, or single-station-format, and saved them as a .csv file, a template can be made.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want to use a metadata file, make sure it is converted to a wide-format and saved as a .csv file.</p>
+</div>
+<p>The fastest and simplest way to make a template is by using the <em>metobs_toolkit.build_template_prompt()</em> function.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="c1">#create a template</span>
+<span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">build_template_prompt</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This function will prompt questions and build a template that matches your data file (and metadata) file.
+The <em>template.csv</em> file will be stored at a location of your choice.</p>
+<p>To use this template, feed the path to the <em>template.csv</em> file to the data_template_file (and metadata_template_file)
+arguments of the <a class="reference internal" href="_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset_settings_updater.Dataset.update_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.update_settings"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update_settings()</span></code></a> method.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When the prompt ask’s if you need further help, and you type yes, some more questions are prompted.
+Once all information is given to the prompt, it will print out a piece of code that you have to run to load your data into the toolkit.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="examples/using_obstypes.html" class="btn btn-neutral float-left" title="Working with specific observation types" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gee_authentication.html" class="btn btn-neutral float-right" title="Using Google Earth Engine" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

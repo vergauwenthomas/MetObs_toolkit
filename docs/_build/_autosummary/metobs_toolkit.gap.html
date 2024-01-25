@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>metobs_toolkit.gap &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="metobs_toolkit.gap.apply_debias_era5_gapfill" href="metobs_toolkit.gap.apply_debias_era5_gapfill.html" />
+    <link rel="prev" title="metobs_toolkit.df_helpers.xs_save" href="metobs_toolkit.df_helpers.xs_save.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="metobs_toolkit.html">metobs_toolkit</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.analysis.html">metobs_toolkit.analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.data_import.html">metobs_toolkit.data_import</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset.html">metobs_toolkit.dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset_settings_updater.html">metobs_toolkit.dataset_settings_updater</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">metobs_toolkit.gap</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.apply_debias_era5_gapfill.html">metobs_toolkit.gap.apply_debias_era5_gapfill</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.apply_interpolate_gaps.html">metobs_toolkit.gap.apply_interpolate_gaps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.gaps_to_df.html">metobs_toolkit.gap.gaps_to_df</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.get_gaps_indx_in_obs_space.html">metobs_toolkit.gap.get_gaps_indx_in_obs_space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.get_station_gaps.html">metobs_toolkit.gap.get_station_gaps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.make_gapfill_df.html">metobs_toolkit.gap.make_gapfill_df</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.missing_timestamp_and_gap_check.html">metobs_toolkit.gap.missing_timestamp_and_gap_check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.remove_gaps_from_obs.html">metobs_toolkit.gap.remove_gaps_from_obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.remove_gaps_from_outliers.html">metobs_toolkit.gap.remove_gaps_from_outliers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.Gap.html">metobs_toolkit.gap.Gap</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.modeldata.html">metobs_toolkit.modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstype_modeldata.html">metobs_toolkit.obstype_modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstypes.html">metobs_toolkit.obstypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.plotting_functions.html">metobs_toolkit.plotting_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.printing.html">metobs_toolkit.printing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_checks.html">metobs_toolkit.qc_checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_statistics.html">metobs_toolkit.qc_statistics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.settings.html">metobs_toolkit.settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.station.html">metobs_toolkit.station</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.writing_files.html">metobs_toolkit.writing_files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+          <li class="breadcrumb-item"><a href="metobs_toolkit.html">metobs_toolkit</a></li>
+      <li class="breadcrumb-item active">metobs_toolkit.gap</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/metobs_toolkit.gap.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-metobs_toolkit.gap">
+<span id="metobs-toolkit-gap"></span><h1>metobs_toolkit.gap<a class="headerlink" href="#module-metobs_toolkit.gap" title="Link to this heading"></a></h1>
+<p>This module contains the Gap class and all its methods.</p>
+<p>A Gap contains all information and methods of a data-gap.</p>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.gap.apply_debias_era5_gapfill.html#metobs_toolkit.gap.apply_debias_era5_gapfill" title="metobs_toolkit.gap.apply_debias_era5_gapfill"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_debias_era5_gapfill</span></code></a></p></td>
+<td><p>Fill all gaps using ERA5 debiaset modeldata.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="metobs_toolkit.gap.apply_interpolate_gaps.html#metobs_toolkit.gap.apply_interpolate_gaps" title="metobs_toolkit.gap.apply_interpolate_gaps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_interpolate_gaps</span></code></a></p></td>
+<td><p>Fill all gaps with interpolation and update attributes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.gap.gaps_to_df.html#metobs_toolkit.gap.gaps_to_df" title="metobs_toolkit.gap.gaps_to_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gaps_to_df</span></code></a></p></td>
+<td><p>Combine all gaps into a dataframe as an overview.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="metobs_toolkit.gap.get_gaps_indx_in_obs_space.html#metobs_toolkit.gap.get_gaps_indx_in_obs_space" title="metobs_toolkit.gap.get_gaps_indx_in_obs_space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaps_indx_in_obs_space</span></code></a></p></td>
+<td><p>Get all gaps in obsspace.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.gap.get_station_gaps.html#metobs_toolkit.gap.get_station_gaps" title="metobs_toolkit.gap.get_station_gaps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_gaps</span></code></a></p></td>
+<td><p>Extract a Gap_collection specific to one station.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="metobs_toolkit.gap.make_gapfill_df.html#metobs_toolkit.gap.make_gapfill_df" title="metobs_toolkit.gap.make_gapfill_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_gapfill_df</span></code></a></p></td>
+<td><p>Create a dataframe with all filled values of all gaps.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.gap.missing_timestamp_and_gap_check.html#metobs_toolkit.gap.missing_timestamp_and_gap_check" title="metobs_toolkit.gap.missing_timestamp_and_gap_check"><code class="xref py py-obj docutils literal notranslate"><span class="pre">missing_timestamp_and_gap_check</span></code></a></p></td>
+<td><p>Find missing timestamps and gaps in the observations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="metobs_toolkit.gap.remove_gaps_from_obs.html#metobs_toolkit.gap.remove_gaps_from_obs" title="metobs_toolkit.gap.remove_gaps_from_obs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_gaps_from_obs</span></code></a></p></td>
+<td><p>Remove station - datetime records that are in the gaps from the obsdf.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.gap.remove_gaps_from_outliers.html#metobs_toolkit.gap.remove_gaps_from_outliers" title="metobs_toolkit.gap.remove_gaps_from_outliers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_gaps_from_outliers</span></code></a></p></td>
+<td><p>Remove station - datetime records that are in the gaps from the outliersdf.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.gap.Gap.html#metobs_toolkit.gap.Gap" title="metobs_toolkit.gap.Gap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Gap</span></code></a></p></td>
+<td><p>Gap class holds all gap information and methods for gaps.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="metobs_toolkit.df_helpers.xs_save.html" class="btn btn-neutral float-left" title="metobs_toolkit.df_helpers.xs_save" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="metobs_toolkit.gap.apply_debias_era5_gapfill.html" class="btn btn-neutral float-right" title="metobs_toolkit.gap.apply_debias_era5_gapfill" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

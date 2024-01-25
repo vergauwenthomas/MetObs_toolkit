@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo example: Analysis &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/nbsphinx-code-cells.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Working with specific observation types" href="using_obstypes.html" />
+    <link rel="prev" title="Demo example: filling gaps and missing observations" href="filling_example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="doc_example.html">Demo example: Using a Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gee_example.html">Demo example: Using a Google Earth engine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qc_example.html">Demo example: Applying Quality Control.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filling_example.html">Demo example: filling gaps and missing observations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Demo example: Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Creating-an-Analysis">Creating an Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Analysis-methods">Analysis methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Filtering-data">Filtering data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Diurnal-cycle">Diurnal cycle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Analysis-exercise">Analysis exercise</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_obstypes.html">Working with specific observation types</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+      <li class="breadcrumb-item active">Demo example: Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/analysis_example.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Demo-example:-Analysis">
+<h1>Demo example: Analysis<a class="headerlink" href="#Demo-example:-Analysis" title="Link to this heading"></a></h1>
+<p>This example is the continuation of the previous example: <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/examples/filling_example.html">filling gaps and missing observations</a>. This example serves as an introduction to the Analysis module.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span>
+    <span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="c1"># path to the data file</span>
+    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+    <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1">#Update Gap definition</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_qc_settings</span><span class="p">(</span><span class="n">gapsize_in_records</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+
+<span class="c1">#Import the data</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span>
+
+<span class="c1">#Coarsen to 15-minutes frequencies</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">coarsen_time_resolution</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="s1">&#39;15T&#39;</span><span class="p">)</span>
+
+<span class="c1">#Apply default quality control</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">apply_quality_control</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span> <span class="c1">#we use the default settings in this example</span>
+
+<span class="c1">#Interpret the outliers as missing observations and gaps.</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_gaps_and_missing_from_outliers</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                                                   <span class="n">n_gapsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="c1">#Fill missing observations (using default settings)</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">fill_missing_obs_linear</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+
+<span class="c1">#Fill gaps with linear interpolation.</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">fill_gaps_linear</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+<br/><br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>temp</th>
+      <th>temp_final_label</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">vlinder01</th>
+      <th>2022-09-02 15:30:00+00:00</th>
+      <td>26.453659</td>
+      <td>gap_interpolation</td>
+    </tr>
+    <tr>
+      <th>2022-09-02 15:45:00+00:00</th>
+      <td>26.207317</td>
+      <td>gap_interpolation</td>
+    </tr>
+    <tr>
+      <th>2022-09-02 16:00:00+00:00</th>
+      <td>25.960976</td>
+      <td>gap_interpolation</td>
+    </tr>
+    <tr>
+      <th>2022-09-02 16:15:00+00:00</th>
+      <td>25.714634</td>
+      <td>gap_interpolation</td>
+    </tr>
+    <tr>
+      <th>2022-09-02 16:30:00+00:00</th>
+      <td>25.468293</td>
+      <td>gap_interpolation</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">vlinder28</th>
+      <th>2022-09-15 07:00:00+00:00</th>
+      <td>14.114815</td>
+      <td>gap_interpolation</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 07:15:00+00:00</th>
+      <td>14.251852</td>
+      <td>gap_interpolation</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 07:30:00+00:00</th>
+      <td>14.388889</td>
+      <td>gap_interpolation</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 07:45:00+00:00</th>
+      <td>14.525926</td>
+      <td>gap_interpolation</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 08:00:00+00:00</th>
+      <td>14.662963</td>
+      <td>gap_interpolation</td>
+    </tr>
+  </tbody>
+</table>
+<p>5111 rows × 2 columns</p>
+</div></div>
+</div>
+<section id="Creating-an-Analysis">
+<h2>Creating an Analysis<a class="headerlink" href="#Creating-an-Analysis" title="Link to this heading"></a></h2>
+<p>The built-in analysis functionality is centered around the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/intro.html#analysis">Analysis</a> class. First, create an <em>Analysis</em> object using the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.get_analysis">get_analysis()</a> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">analysis</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_analysis</span><span class="p">(</span><span class="n">add_gapfilled_values</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">analysis</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Analysis instance containing:
+     *28 stations
+     *[&#39;humidity&#39;, &#39;precip&#39;, &#39;precip_sum&#39;, &#39;pressure&#39;, &#39;pressure_at_sea_level&#39;, &#39;radiation_temp&#39;, &#39;temp&#39;, &#39;wind_direction&#39;, &#39;wind_gust&#39;, &#39;wind_speed&#39;] observation types
+     *38820 observation records
+     *Coordinates are available for all stations.
+
+     *records range: 2022-09-01 00:00:00+00:00 --&gt; 2022-09-15 23:45:00+00:00 (total duration:  14 days 23:45:00)     *Coordinates are available for all stations.
+</pre></div></div>
+</div>
+</section>
+<section id="Analysis-methods">
+<h2>Analysis methods<a class="headerlink" href="#Analysis-methods" title="Link to this heading"></a></h2>
+<p>An overview of the available analysis methods can be seen in the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis">Analysis documentation</a>. The relevant methods depends on your data and your interest. As an example, a demonstration of the filter and diurnal cycle of the demo data.</p>
+<section id="Filtering-data">
+<h3>Filtering data<a class="headerlink" href="#Filtering-data" title="Link to this heading"></a></h3>
+<p>It is common to filter your data according to specific meteorological phenomena or periods in time. To do this you can use the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis.apply_filter">apply_filter()</a> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#filter to non-windy afternoons in the Autumn.</span>
+<span class="n">subset</span> <span class="o">=</span> <span class="n">analysis</span><span class="o">.</span><span class="n">apply_filter</span><span class="p">(</span><span class="s1">&#39;wind_speed &lt;= 2.5 &amp; season==&quot;autumn&quot; &amp; hour &gt; 12 &amp; hour &lt; 20&#39;</span><span class="p">)</span>
+
+<span class="n">subset</span><span class="o">.</span><span class="n">df</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>humidity</th>
+      <th>precip</th>
+      <th>precip_sum</th>
+      <th>pressure</th>
+      <th>pressure_at_sea_level</th>
+      <th>radiation_temp</th>
+      <th>temp</th>
+      <th>wind_direction</th>
+      <th>wind_gust</th>
+      <th>wind_speed</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">vlinder01</th>
+      <th>2022-09-01 18:00:00+00:00</th>
+      <td>47.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>101453.0</td>
+      <td>101717.0</td>
+      <td>NaN</td>
+      <td>22.9</td>
+      <td>45.0</td>
+      <td>4.8</td>
+      <td>1.8</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 18:15:00+00:00</th>
+      <td>48.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>101448.0</td>
+      <td>101712.0</td>
+      <td>NaN</td>
+      <td>22.4</td>
+      <td>45.0</td>
+      <td>4.8</td>
+      <td>1.7</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 18:30:00+00:00</th>
+      <td>50.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>101461.0</td>
+      <td>101725.0</td>
+      <td>NaN</td>
+      <td>21.8</td>
+      <td>45.0</td>
+      <td>3.2</td>
+      <td>0.6</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 18:45:00+00:00</th>
+      <td>55.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>101468.0</td>
+      <td>101733.0</td>
+      <td>NaN</td>
+      <td>20.3</td>
+      <td>45.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 19:00:00+00:00</th>
+      <td>58.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>101460.0</td>
+      <td>101726.0</td>
+      <td>NaN</td>
+      <td>18.8</td>
+      <td>45.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">vlinder28</th>
+      <th>2022-09-15 18:45:00+00:00</th>
+      <td>76.0</td>
+      <td>0.0</td>
+      <td>17.8</td>
+      <td>101314.0</td>
+      <td>101266.0</td>
+      <td>NaN</td>
+      <td>15.7</td>
+      <td>15.0</td>
+      <td>8.1</td>
+      <td>0.8</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 19:00:00+00:00</th>
+      <td>76.0</td>
+      <td>0.0</td>
+      <td>17.8</td>
+      <td>101320.0</td>
+      <td>101272.0</td>
+      <td>NaN</td>
+      <td>15.5</td>
+      <td>15.0</td>
+      <td>4.8</td>
+      <td>0.6</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 19:15:00+00:00</th>
+      <td>77.0</td>
+      <td>0.0</td>
+      <td>17.8</td>
+      <td>101325.0</td>
+      <td>101277.0</td>
+      <td>NaN</td>
+      <td>15.3</td>
+      <td>5.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 19:30:00+00:00</th>
+      <td>78.0</td>
+      <td>0.0</td>
+      <td>17.8</td>
+      <td>101339.0</td>
+      <td>101291.0</td>
+      <td>NaN</td>
+      <td>15.1</td>
+      <td>65.0</td>
+      <td>4.8</td>
+      <td>0.9</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 19:45:00+00:00</th>
+      <td>79.0</td>
+      <td>0.0</td>
+      <td>17.8</td>
+      <td>101343.0</td>
+      <td>101295.0</td>
+      <td>NaN</td>
+      <td>15.0</td>
+      <td>65.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+    </tr>
+  </tbody>
+</table>
+<p>6347 rows × 10 columns</p>
+</div></div>
+</div>
+</section>
+</section>
+<section id="Diurnal-cycle">
+<h2>Diurnal cycle<a class="headerlink" href="#Diurnal-cycle" title="Link to this heading"></a></h2>
+<p>To make a diurnal cycle plot of your Analysis use the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis.get_diurnal_statistics">get_diurnal_statistics()</a> method:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dirunal_statistics</span> <span class="o">=</span> <span class="n">subset</span><span class="o">.</span><span class="n">get_diurnal_statistics</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                                                   <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;humidity&#39;</span><span class="p">,</span>
+                                                   <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                   <span class="n">errorbands</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                  <span class="p">)</span>
+<span class="c1">#Note that in this example statistics are computed for a short period and only for the non-windy autumn afternoons.</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_analysis_example_7_0.png" src="../_images/examples_analysis_example_7_0.png" />
+</div>
+</div>
+</section>
+<section id="Analysis-exercise">
+<h2>Analysis exercise<a class="headerlink" href="#Analysis-exercise" title="Link to this heading"></a></h2>
+<p>For a more detailed reference you can use this <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/examples/Urban_analysis_excercise_04.ipynb">Analysis exercise</a>, which was created in the context of the <a class="reference external" href="https://www.cost.eu/actions/CA20108/">COST FAIRNESS</a> summer school 2023 in Ghent.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="filling_example.html" class="btn btn-neutral float-left" title="Demo example: filling gaps and missing observations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="using_obstypes.html" class="btn btn-neutral float-right" title="Working with specific observation types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

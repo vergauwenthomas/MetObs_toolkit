@@ -1,0 +1,6 @@
+metobs\_toolkit.geometry\_functions.find\_plot\_extent
+======================================================
+
+.. currentmodule:: metobs_toolkit.geometry_functions
+
+.. autofunction:: find_plot_extent

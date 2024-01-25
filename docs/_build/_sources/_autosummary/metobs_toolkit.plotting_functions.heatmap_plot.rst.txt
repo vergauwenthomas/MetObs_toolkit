@@ -1,0 +1,6 @@
+metobs\_toolkit.plotting\_functions.heatmap\_plot
+=================================================
+
+.. currentmodule:: metobs_toolkit.plotting_functions
+
+.. autofunction:: heatmap_plot

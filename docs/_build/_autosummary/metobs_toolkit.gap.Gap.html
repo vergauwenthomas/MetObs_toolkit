@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>metobs_toolkit.gap.Gap &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="metobs_toolkit.gap_filling" href="metobs_toolkit.gap_filling.html" />
+    <link rel="prev" title="metobs_toolkit.gap.remove_gaps_from_outliers" href="metobs_toolkit.gap.remove_gaps_from_outliers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="metobs_toolkit.html">metobs_toolkit</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.analysis.html">metobs_toolkit.analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.data_import.html">metobs_toolkit.data_import</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset.html">metobs_toolkit.dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset_settings_updater.html">metobs_toolkit.dataset_settings_updater</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="metobs_toolkit.gap.html">metobs_toolkit.gap</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.apply_debias_era5_gapfill.html">metobs_toolkit.gap.apply_debias_era5_gapfill</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.apply_interpolate_gaps.html">metobs_toolkit.gap.apply_interpolate_gaps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.gaps_to_df.html">metobs_toolkit.gap.gaps_to_df</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.get_gaps_indx_in_obs_space.html">metobs_toolkit.gap.get_gaps_indx_in_obs_space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.get_station_gaps.html">metobs_toolkit.gap.get_station_gaps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.make_gapfill_df.html">metobs_toolkit.gap.make_gapfill_df</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.missing_timestamp_and_gap_check.html">metobs_toolkit.gap.missing_timestamp_and_gap_check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.remove_gaps_from_obs.html">metobs_toolkit.gap.remove_gaps_from_obs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gap.remove_gaps_from_outliers.html">metobs_toolkit.gap.remove_gaps_from_outliers</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">metobs_toolkit.gap.Gap</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.modeldata.html">metobs_toolkit.modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstype_modeldata.html">metobs_toolkit.obstype_modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstypes.html">metobs_toolkit.obstypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.plotting_functions.html">metobs_toolkit.plotting_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.printing.html">metobs_toolkit.printing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_checks.html">metobs_toolkit.qc_checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_statistics.html">metobs_toolkit.qc_statistics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.settings.html">metobs_toolkit.settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.station.html">metobs_toolkit.station</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.writing_files.html">metobs_toolkit.writing_files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+          <li class="breadcrumb-item"><a href="metobs_toolkit.html">metobs_toolkit</a></li>
+          <li class="breadcrumb-item"><a href="metobs_toolkit.gap.html">metobs_toolkit.gap</a></li>
+      <li class="breadcrumb-item active">metobs_toolkit.gap.Gap</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/metobs_toolkit.gap.Gap.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="metobs-toolkit-gap-gap">
+<h1>metobs_toolkit.gap.Gap<a class="headerlink" href="#metobs-toolkit-gap-gap" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="metobs_toolkit.gap.Gap">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">metobs_toolkit.gap.</span></span><span class="sig-name descname"><span class="pre">Gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/gap.html#Gap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.gap.Gap" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gap class holds all gap information and methods for gaps.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.gap.Gap.apply_interpolate_gap" title="metobs_toolkit.gap.Gap.apply_interpolate_gap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_interpolate_gap</span></code></a></p></td>
+<td><p>Fill a Gap using a linear interpolation gapfill method for an obstype.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.gap.Gap.get_info" title="metobs_toolkit.gap.Gap.get_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_info</span></code></a></p></td>
+<td><p>Print detailed information of a gap.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.gap.Gap.to_df" title="metobs_toolkit.gap.Gap.to_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_df</span></code></a></p></td>
+<td><p>Convert a Gap object to a dataframe (with one row).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.gap.Gap.update_gaps_indx_in_obs_space" title="metobs_toolkit.gap.Gap.update_gaps_indx_in_obs_space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_gaps_indx_in_obs_space</span></code></a></p></td>
+<td><p>Get the gap records in observation-space.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.gap.Gap.update_leading_trailing_obs" title="metobs_toolkit.gap.Gap.update_leading_trailing_obs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_leading_trailing_obs</span></code></a></p></td>
+<td><p>Update leading and trailing periods in the attributes.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.gap.Gap.apply_interpolate_gap">
+<span class="sig-name descname"><span class="pre">apply_interpolate_gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_consec_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/gap.html#Gap.apply_interpolate_gap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.gap.Gap.apply_interpolate_gap" title="Link to this definition"></a></dt>
+<dd><p>Fill a Gap using a linear interpolation gapfill method for an obstype.</p>
+<p>The filled datetimes (in dataset resolution) are returned in the form
+af a multiindex pandas Series (name – datetime) as index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obsdf</strong> (<em>Dataset.df</em>) – <dl class="simple">
+<dt>The Dataset.df attribute. (Needed to extract trailing/leading</dt><dd><p>observations.)</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>outliersdf</strong> (<em>Dataset.outliersdf</em>) – <dl class="simple">
+<dt>The Dataset.outliersdf attribute.(Needed to extract trailing/leading</dt><dd><p>observations.))</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>resolutionseries</strong> (<em>Datetime.timedelta</em>) – Resolution of the station observations in the dataset.</p></li>
+<li><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – The observational type to apply gapfilling on. The default is ‘temp’.</p></li>
+<li><p><strong>method</strong> (<em>String</em><em>, </em><em>optional</em>) – Method to pass to the Numpy.interpolate function. The default is ‘time’.</p></li>
+<li><p><strong>max_consec_fill</strong> (<em>Integer</em><em>, </em><em>optional</em>) – Value to pass to the limit argument of Numpy.interpolate. The default is 100.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Multiindex Series with filled gap values in dataset space.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pandas.Series</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.gap.Gap.get_info">
+<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/gap.html#Gap.get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.gap.Gap.get_info" title="Link to this definition"></a></dt>
+<dd><p>Print detailed information of a gap.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.gap.Gap.to_df">
+<span class="sig-name descname"><span class="pre">to_df</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/gap.html#Gap.to_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.gap.Gap.to_df" title="Link to this definition"></a></dt>
+<dd><p>Convert a Gap object to a dataframe (with one row).</p>
+<p>The station name is the index and two colums (‘start_gap’, ‘end_gap’)
+are constructed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Gap in dataframe format.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.gap.Gap.update_gaps_indx_in_obs_space">
+<span class="sig-name descname"><span class="pre">update_gaps_indx_in_obs_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_res</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/gap.html#Gap.update_gaps_indx_in_obs_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.gap.Gap.update_gaps_indx_in_obs_space" title="Link to this definition"></a></dt>
+<dd><p>Get the gap records in observation-space.</p>
+<p>Explode the gap, to the dataset resolution and format to a multiindex
+with name – datetime.</p>
+<p>In addition the last observation before the gap (leading), and first
+observation (after) the gap are computed and stored in the df attribute.
+(the outliers are used to look for leading and trailing observations.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obsdf</strong> (<em>Dataset.df</em>) – <dl class="simple">
+<dt>The Dataset.df attribute. (Needed to extract trailing/leading</dt><dd><p>observations.)</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>outliersdf</strong> (<em>Dataset.outliersdf</em>) – <dl class="simple">
+<dt>The Dataset.outliersdf attribute.(Needed to extract trailing/leading</dt><dd><p>observations.))</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>resolutionseries</strong> (<em>Datetime.timedelta</em>) – Resolution of the station observations in the dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.gap.Gap.update_leading_trailing_obs">
+<span class="sig-name descname"><span class="pre">update_leading_trailing_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outliersdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/gap.html#Gap.update_leading_trailing_obs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.gap.Gap.update_leading_trailing_obs" title="Link to this definition"></a></dt>
+<dd><p>Update leading and trailing periods in the attributes.</p>
+<p>Add the leading (last obs before gap) and trailing (first obs after gap)
+as extra columns to the self.df.</p>
+<p>One can specify to look for leading and trailing in the obsdf or in both
+the obsdf and outliersdf.</p>
+<p>The gap leading and trailing timestamps and value attributes are updated.</p>
+<p>If no leading/trailing timestamp is found, it is set to the gaps startdt/enddt.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obsdf</strong> (<em>pandas.DataFrame</em>) – Dataset.df</p></li>
+<li><p><strong>outliersdf</strong> (<em>pandas.DataFrame</em>) – Dataset.outliersdf</p></li>
+<li><p><strong>obs_only</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, only the obsdf will be used to search for leading and trailing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="metobs_toolkit.gap.remove_gaps_from_outliers.html" class="btn btn-neutral float-left" title="metobs_toolkit.gap.remove_gaps_from_outliers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="metobs_toolkit.gap_filling.html" class="btn btn-neutral float-right" title="metobs_toolkit.gap_filling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

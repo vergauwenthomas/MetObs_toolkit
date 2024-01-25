@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>metobs_toolkit.missingobs.Missingob_collection &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="metobs_toolkit.obstype_modeldata" href="metobs_toolkit.obstype_modeldata.html" />
+    <link rel="prev" title="metobs_toolkit.missingobs" href="metobs_toolkit.missingobs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="metobs_toolkit.html">metobs_toolkit</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.analysis.html">metobs_toolkit.analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.data_import.html">metobs_toolkit.data_import</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset.html">metobs_toolkit.dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset_settings_updater.html">metobs_toolkit.dataset_settings_updater</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap.html">metobs_toolkit.gap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">metobs_toolkit.missingobs.Missingob_collection</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.modeldata.html">metobs_toolkit.modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstype_modeldata.html">metobs_toolkit.obstype_modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstypes.html">metobs_toolkit.obstypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.plotting_functions.html">metobs_toolkit.plotting_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.printing.html">metobs_toolkit.printing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_checks.html">metobs_toolkit.qc_checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_statistics.html">metobs_toolkit.qc_statistics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.settings.html">metobs_toolkit.settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.station.html">metobs_toolkit.station</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.writing_files.html">metobs_toolkit.writing_files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+          <li class="breadcrumb-item"><a href="metobs_toolkit.html">metobs_toolkit</a></li>
+          <li class="breadcrumb-item"><a href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
+      <li class="breadcrumb-item active">metobs_toolkit.missingobs.Missingob_collection</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/metobs_toolkit.missingobs.Missingob_collection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="metobs-toolkit-missingobs-missingob-collection">
+<h1>metobs_toolkit.missingobs.Missingob_collection<a class="headerlink" href="#metobs-toolkit-missingobs-missingob-collection" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="metobs_toolkit.missingobs.Missingob_collection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">metobs_toolkit.missingobs.</span></span><span class="sig-name descname"><span class="pre">Missingob_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_obs_series</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/missingobs.html#Missingob_collection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.missingobs.Missingob_collection" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class object handling a set of missing observations.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.missingobs.Missingob_collection.get_info" title="metobs_toolkit.missingobs.Missingob_collection.get_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_info</span></code></a></p></td>
+<td><p>Print out detailed information on the missing observations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.missingobs.Missingob_collection.get_missing_indx_in_obs_space" title="metobs_toolkit.missingobs.Missingob_collection.get_missing_indx_in_obs_space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_missing_indx_in_obs_space</span></code></a></p></td>
+<td><p>Find which missing timestamps are expected in the observation space.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.missingobs.Missingob_collection.get_station_missingobs" title="metobs_toolkit.missingobs.Missingob_collection.get_station_missingobs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_missingobs</span></code></a></p></td>
+<td><p>Get the missing observations of a specific station.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.missingobs.Missingob_collection.interpolate_missing" title="metobs_toolkit.missingobs.Missingob_collection.interpolate_missing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_missing</span></code></a></p></td>
+<td><p>Fill the missing observations using an interpolation method.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.missingobs.Missingob_collection.remove_missing_from_obs" title="metobs_toolkit.missingobs.Missingob_collection.remove_missing_from_obs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_missing_from_obs</span></code></a></p></td>
+<td><p>Drop the missing observation from an observational dataframe, if they are present.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.missingobs.Missingob_collection.remove_missing_from_outliers" title="metobs_toolkit.missingobs.Missingob_collection.remove_missing_from_outliers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_missing_from_outliers</span></code></a></p></td>
+<td><p>Drop the missing observation from an outlier dataframe, if they are present.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.missingobs.Missingob_collection.__add__">
+<span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/missingobs.html#Missingob_collection.__add__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.missingobs.Missingob_collection.__add__" title="Link to this definition"></a></dt>
+<dd><p>Append two collections of missing observations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.missingobs.Missingob_collection.get_info">
+<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_disp_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/missingobs.html#Missingob_collection.get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.missingobs.Missingob_collection.get_info" title="Link to this definition"></a></dt>
+<dd><p>Print out detailed information on the missing observations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>max_disp_list</strong> (<em>int</em><em>, </em><em>optional</em>) – Max size of lists to print out. If listsize is larger, the length of
+the list is printed. The default is 7.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.missingobs.Missingob_collection.get_missing_indx_in_obs_space">
+<span class="sig-name descname"><span class="pre">get_missing_indx_in_obs_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutionseries</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/missingobs.html#Missingob_collection.get_missing_indx_in_obs_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.missingobs.Missingob_collection.get_missing_indx_in_obs_space" title="Link to this definition"></a></dt>
+<dd><p>Find which missing timestamps are expected in the observation space.</p>
+<p>Because of time coarsening not all missing timestamps are expected in observation space.</p>
+<p>This function handles each station seperatly because stations can have differnent resolution/timerange.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obsdf</strong> (<em>pandas.DataFrame</em><em>(</em><em>)</em>) – Dataset.df.</p></li>
+<li><p><strong>resolutionseries</strong> (<em>pandas.Series</em><em>(</em><em>) or </em><em>Timedelta</em>) – Dataset.metadf[‘dataset_resolution’].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>missing_obsspace</strong> – The multiindex (name - datetime) is returned with the missing timestamps that are expexted in the observation space.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.MultiIndex</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.missingobs.Missingob_collection.get_station_missingobs">
+<span class="sig-name descname"><span class="pre">get_station_missingobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/missingobs.html#Missingob_collection.get_station_missingobs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.missingobs.Missingob_collection.get_station_missingobs" title="Link to this definition"></a></dt>
+<dd><p>Get the missing observations of a specific station.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the station to extract the missing observation from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A subset of the missing observations from a specific station.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Metobs_toolkit.Missingob_collection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.missingobs.Missingob_collection.interpolate_missing">
+<span class="sig-name descname"><span class="pre">interpolate_missing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolutionseries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/missingobs.html#Missingob_collection.interpolate_missing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.missingobs.Missingob_collection.interpolate_missing" title="Link to this definition"></a></dt>
+<dd><p>Fill the missing observations using an interpolation method.</p>
+<p>The “fill_df” and “fill_technique” attributes will be updated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obsdf</strong> (<em>Metobs_toolkit.Dataset.df</em>) – The observations that can be used for the interpolation.</p></li>
+<li><p><strong>resolutionseries</strong> (<em>pd.Series</em>) – The dataset resolution series for all stations..</p></li>
+<li><p><strong>obstype</strong> (<em>element</em><em> of </em><em>Metobs_toolkit.observational_types</em><em>, </em><em>optional</em>) – Select which observation type you wish to interpolate. The default is ‘temp’.</p></li>
+<li><p><strong>method</strong> (<em>valid input for pandas.DataFrame.interpolate method arg</em><em>, </em><em>optional</em>) – Which interpolation method to use. The default is ‘time’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.missingobs.Missingob_collection.remove_missing_from_obs">
+<span class="sig-name descname"><span class="pre">remove_missing_from_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/missingobs.html#Missingob_collection.remove_missing_from_obs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.missingobs.Missingob_collection.remove_missing_from_obs" title="Link to this definition"></a></dt>
+<dd><p>Drop the missing observation from an observational dataframe, if they are present.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obsdf</strong> (<em>pandas.DataFrame</em>) – Multiindex observational dataframe.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>obsdf</strong> – Multiindex observational dataframe without records linked to missing
+observations.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.missingobs.Missingob_collection.remove_missing_from_outliers">
+<span class="sig-name descname"><span class="pre">remove_missing_from_outliers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outldf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/missingobs.html#Missingob_collection.remove_missing_from_outliers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.missingobs.Missingob_collection.remove_missing_from_outliers" title="Link to this definition"></a></dt>
+<dd><p>Drop the missing observation from an outlier dataframe, if they are present.</p>
+<p>This will ignore the observation types! So all outliers of any
+observation type, at an missing timestamp are removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obsdf</strong> (<em>pandas.DataFrame</em>) – Multiindex (name-datetime-obstype) observational dataframe.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>obsdf</strong> – Multiindex observational dataframe without records linked to missing
+observations.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="metobs_toolkit.missingobs.html" class="btn btn-neutral float-left" title="metobs_toolkit.missingobs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="metobs_toolkit.obstype_modeldata.html" class="btn btn-neutral float-right" title="metobs_toolkit.obstype_modeldata" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

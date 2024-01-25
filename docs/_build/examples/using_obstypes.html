@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Working with specific observation types &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/nbsphinx-code-cells.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Mapping to the toolkit" href="../template_mapping.html" />
+    <link rel="prev" title="Demo example: Analysis" href="analysis_example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="doc_example.html">Demo example: Using a Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gee_example.html">Demo example: Using a Google Earth engine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qc_example.html">Demo example: Applying Quality Control.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filling_example.html">Demo example: filling gaps and missing observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis_example.html">Demo example: Analysis</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Working with specific observation types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Default-observation-types">Default observation types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Creating-and-Updating-observations">Creating and Updating observations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Obstypes-for-Modeldata">Obstypes for Modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Special-observation-types">Special observation types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#2D-Vector-fields">2D-Vector fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+      <li class="breadcrumb-item active">Working with specific observation types</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/using_obstypes.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Working-with-specific-observation-types">
+<h1>Working with specific observation types<a class="headerlink" href="#Working-with-specific-observation-types" title="Link to this heading"></a></h1>
+<p>In this demo, you can find a demonstration on how to use Observation types.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="c1">#Initialize an empty Dataset</span>
+<span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<section id="Default-observation-types">
+<h2>Default observation types<a class="headerlink" href="#Default-observation-types" title="Link to this heading"></a></h2>
+<p>An observation record must always be linked to an <em>observation type</em> which is specified by the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.obstypes.Obstype.html">Obstype class</a>. An Obstype represents one observation type (i.g. temperature), and it handles unit conversions and string representations of an observation type.</p>
+<p>By default a set of standard observationtypes are stored in a Dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+ --------  General ---------
+
+Empty instance of a Dataset.
+
+ --------  Observation types ---------
+
+temp observation with:
+     * standard unit: Celsius
+     * data column as None in None
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;]}
+     * description: 2m - temperature
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;]}
+
+     * originates from data column: None with None as native unit.
+humidity observation with:
+     * standard unit: %
+     * data column as None in None
+     * known units and aliases: {&#39;%&#39;: [&#39;percent&#39;, &#39;percentage&#39;]}
+     * description: 2m - relative humidity
+     * conversions to known units: {}
+
+     * originates from data column: None with None as native unit.
+radiation_temp observation with:
+     * standard unit: Celsius
+     * data column as None in None
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;]}
+     * description: 2m - Black globe
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;]}
+
+     * originates from data column: None with None as native unit.
+pressure observation with:
+     * standard unit: pa
+     * data column as None in None
+     * known units and aliases: {&#39;pa&#39;: [&#39;Pascal&#39;, &#39;pascal&#39;, &#39;Pa&#39;], &#39;hpa&#39;: [&#39;hecto pascal&#39;, &#39;hPa&#39;], &#39;psi&#39;: [&#39;Psi&#39;], &#39;bar&#39;: [&#39;Bar&#39;]}
+     * description: atmospheric pressure (at station)
+     * conversions to known units: {&#39;hpa&#39;: [&#39;x * 100&#39;], &#39;psi&#39;: [&#39;x * 6894.7573&#39;], &#39;bar&#39;: [&#39;x * 100000.&#39;]}
+
+     * originates from data column: None with None as native unit.
+pressure_at_sea_level observation with:
+     * standard unit: pa
+     * data column as None in None
+     * known units and aliases: {&#39;pa&#39;: [&#39;Pascal&#39;, &#39;pascal&#39;, &#39;Pa&#39;], &#39;hpa&#39;: [&#39;hecto pascal&#39;, &#39;hPa&#39;], &#39;psi&#39;: [&#39;Psi&#39;], &#39;bar&#39;: [&#39;Bar&#39;]}
+     * description: atmospheric pressure (at sea level)
+     * conversions to known units: {&#39;hpa&#39;: [&#39;x * 100&#39;], &#39;psi&#39;: [&#39;x * 6894.7573&#39;], &#39;bar&#39;: [&#39;x * 100000.&#39;]}
+
+     * originates from data column: None with None as native unit.
+precip observation with:
+     * standard unit: mm/m²
+     * data column as None in None
+     * known units and aliases: {&#39;mm/m²&#39;: [&#39;mm&#39;, &#39;liter&#39;, &#39;liters&#39;, &#39;l/m²&#39;, &#39;milimeter&#39;]}
+     * description: precipitation intensity
+     * conversions to known units: {}
+
+     * originates from data column: None with None as native unit.
+precip_sum observation with:
+     * standard unit: mm/m²
+     * data column as None in None
+     * known units and aliases: {&#39;mm/m²&#39;: [&#39;mm&#39;, &#39;liter&#39;, &#39;liters&#39;, &#39;l/m²&#39;, &#39;milimeter&#39;]}
+     * description: Cummulated precipitation
+     * conversions to known units: {}
+
+     * originates from data column: None with None as native unit.
+wind observation with:
+     * standard unit: m/s
+     * data column as None in None
+     * known units and aliases: {&#39;m/s&#39;: [&#39;meters/second&#39;, &#39;m/sec&#39;], &#39;km/h&#39;: [&#39;kilometers/hour&#39;, &#39;kph&#39;], &#39;mph&#39;: [&#39;miles/hour&#39;]}
+     * description: wind speed
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+
+     * originates from data column: None with None as native unit.
+wind_gust observation with:
+     * standard unit: m/s
+     * data column as None in None
+     * known units and aliases: {&#39;m/s&#39;: [&#39;meters/second&#39;, &#39;m/sec&#39;], &#39;km/h&#39;: [&#39;kilometers/hour&#39;, &#39;kph&#39;], &#39;mph&#39;: [&#39;miles/hour&#39;]}
+     * description: wind gust
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+
+     * originates from data column: None with None as native unit.
+wind_direction observation with:
+     * standard unit: ° from north (CW)
+     * data column as None in None
+     * known units and aliases: {&#39;° from north (CW)&#39;: [&#39;°&#39;, &#39;degrees&#39;]}
+     * description: wind direction
+     * conversions to known units: {}
+
+     * originates from data column: None with None as native unit.
+
+ --------  Settings ---------
+
+(to show all settings use the .show_settings() method, or set show_all_settings = True)
+
+ --------  Outliers ---------
+
+No outliers.
+
+ --------  Meta data ---------
+
+No metadata is found.
+</pre></div></div>
+</div>
+<p>From the output it is clear that an Obstype holds a <strong>standard unit</strong>. This standard unit is the preferred unit to store and visualize the data in. The toolkit will convert all observations to their standard unit, on all import methods. <em>(This is also true for the Modeldata, which is converted to the standard units upon import)</em>.</p>
+<p>A <strong>description</strong> (optional) holds a more detailed description of the observation type.</p>
+<p>Multiple <strong>known units</strong> can be defined, as long as the conversion to the standard unit is defined.</p>
+<p><strong>Aliases</strong> are equivalent names for the same unit.</p>
+<p>At last, each Obstype has a unique <strong>name</strong> for convenions. You can use this name to refer to the Obstype in the Dataset methods.</p>
+<p>As an example take a look at the temperature observation and see what the standard unit, other units and aliases looks like:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">temperature_obstype</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">]</span> <span class="c1">#temp is the name of the observationtype</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">temperature_obstype</span><span class="p">)</span>
+
+<span class="n">temperature_obstype</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Obstype instance of temp
+temp observation with:
+     * standard unit: Celsius
+     * data column as None in None
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;]}
+     * description: 2m - temperature
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;]}
+
+     * originates from data column: None with None as native unit.
+</pre></div></div>
+</div>
+</section>
+<section id="Creating-and-Updating-observations">
+<h2>Creating and Updating observations<a class="headerlink" href="#Creating-and-Updating-observations" title="Link to this heading"></a></h2>
+<p>If you want to create a new observationtype you can do this by creating an Obstype and adding it to your (empty) Dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">co2_concentration</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Obstype</span><span class="p">(</span><span class="n">obsname</span><span class="o">=</span><span class="s1">&#39;co2&#39;</span><span class="p">,</span>
+                                           <span class="n">std_unit</span><span class="o">=</span><span class="s1">&#39;ppm&#39;</span><span class="p">)</span>
+
+<span class="c1">#add other units to it (if needed)</span>
+<span class="n">co2_concentration</span><span class="o">.</span><span class="n">add_unit</span><span class="p">(</span><span class="n">unit_name</span><span class="o">=</span><span class="s1">&#39;ppb&#39;</span><span class="p">,</span>
+                           <span class="n">conversion</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x / 1000&#39;</span><span class="p">],</span> <span class="c1">#1 ppb = 0.001 ppm</span>
+                          <span class="p">)</span>
+
+<span class="c1">#Set a description</span>
+<span class="n">co2_concentration</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;The CO2 concentration measured at 2m above surface&#39;</span><span class="p">)</span>
+
+<span class="c1">#add it to your dataset</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">add_new_observationtype</span><span class="p">(</span><span class="n">co2_concentration</span><span class="p">)</span>
+
+<span class="c1">#You can see the CO2 concentration is now added to the dataset</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+ --------  General ---------
+
+Empty instance of a Dataset.
+
+ --------  Observation types ---------
+
+temp observation with:
+     * standard unit: Celsius
+     * data column as None in None
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;]}
+     * description: 2m - temperature
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;]}
+
+     * originates from data column: None with None as native unit.
+humidity observation with:
+     * standard unit: %
+     * data column as None in None
+     * known units and aliases: {&#39;%&#39;: [&#39;percent&#39;, &#39;percentage&#39;]}
+     * description: 2m - relative humidity
+     * conversions to known units: {}
+
+     * originates from data column: None with None as native unit.
+radiation_temp observation with:
+     * standard unit: Celsius
+     * data column as None in None
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;]}
+     * description: 2m - Black globe
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;]}
+
+     * originates from data column: None with None as native unit.
+pressure observation with:
+     * standard unit: pa
+     * data column as None in None
+     * known units and aliases: {&#39;pa&#39;: [&#39;Pascal&#39;, &#39;pascal&#39;, &#39;Pa&#39;], &#39;hpa&#39;: [&#39;hecto pascal&#39;, &#39;hPa&#39;], &#39;psi&#39;: [&#39;Psi&#39;], &#39;bar&#39;: [&#39;Bar&#39;]}
+     * description: atmospheric pressure (at station)
+     * conversions to known units: {&#39;hpa&#39;: [&#39;x * 100&#39;], &#39;psi&#39;: [&#39;x * 6894.7573&#39;], &#39;bar&#39;: [&#39;x * 100000.&#39;]}
+
+     * originates from data column: None with None as native unit.
+pressure_at_sea_level observation with:
+     * standard unit: pa
+     * data column as None in None
+     * known units and aliases: {&#39;pa&#39;: [&#39;Pascal&#39;, &#39;pascal&#39;, &#39;Pa&#39;], &#39;hpa&#39;: [&#39;hecto pascal&#39;, &#39;hPa&#39;], &#39;psi&#39;: [&#39;Psi&#39;], &#39;bar&#39;: [&#39;Bar&#39;]}
+     * description: atmospheric pressure (at sea level)
+     * conversions to known units: {&#39;hpa&#39;: [&#39;x * 100&#39;], &#39;psi&#39;: [&#39;x * 6894.7573&#39;], &#39;bar&#39;: [&#39;x * 100000.&#39;]}
+
+     * originates from data column: None with None as native unit.
+precip observation with:
+     * standard unit: mm/m²
+     * data column as None in None
+     * known units and aliases: {&#39;mm/m²&#39;: [&#39;mm&#39;, &#39;liter&#39;, &#39;liters&#39;, &#39;l/m²&#39;, &#39;milimeter&#39;]}
+     * description: precipitation intensity
+     * conversions to known units: {}
+
+     * originates from data column: None with None as native unit.
+precip_sum observation with:
+     * standard unit: mm/m²
+     * data column as None in None
+     * known units and aliases: {&#39;mm/m²&#39;: [&#39;mm&#39;, &#39;liter&#39;, &#39;liters&#39;, &#39;l/m²&#39;, &#39;milimeter&#39;]}
+     * description: Cummulated precipitation
+     * conversions to known units: {}
+
+     * originates from data column: None with None as native unit.
+wind observation with:
+     * standard unit: m/s
+     * data column as None in None
+     * known units and aliases: {&#39;m/s&#39;: [&#39;meters/second&#39;, &#39;m/sec&#39;], &#39;km/h&#39;: [&#39;kilometers/hour&#39;, &#39;kph&#39;], &#39;mph&#39;: [&#39;miles/hour&#39;]}
+     * description: wind speed
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+
+     * originates from data column: None with None as native unit.
+wind_gust observation with:
+     * standard unit: m/s
+     * data column as None in None
+     * known units and aliases: {&#39;m/s&#39;: [&#39;meters/second&#39;, &#39;m/sec&#39;], &#39;km/h&#39;: [&#39;kilometers/hour&#39;, &#39;kph&#39;], &#39;mph&#39;: [&#39;miles/hour&#39;]}
+     * description: wind gust
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+
+     * originates from data column: None with None as native unit.
+wind_direction observation with:
+     * standard unit: ° from north (CW)
+     * data column as None in None
+     * known units and aliases: {&#39;° from north (CW)&#39;: [&#39;°&#39;, &#39;degrees&#39;]}
+     * description: wind direction
+     * conversions to known units: {}
+
+     * originates from data column: None with None as native unit.
+co2 observation with:
+     * standard unit: ppm
+     * data column as None in None
+     * known units and aliases: {&#39;ppm&#39;: [], &#39;ppb&#39;: []}
+     * description: The CO2 concentration measured at 2m above surface
+     * conversions to known units: {&#39;ppb&#39;: [&#39;x / 1000&#39;]}
+
+     * originates from data column: None with None as native unit.
+
+ --------  Settings ---------
+
+(to show all settings use the .show_settings() method, or set show_all_settings = True)
+
+ --------  Outliers ---------
+
+No outliers.
+
+ --------  Meta data ---------
+
+No metadata is found.
+</pre></div></div>
+</div>
+<p>You can also update (the units) of the know observationtypes :</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">add_new_unit</span><span class="p">(</span><span class="n">obstype</span> <span class="o">=</span> <span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                          <span class="n">new_unit</span><span class="o">=</span> <span class="s1">&#39;your_new_unit&#39;</span><span class="p">,</span>
+                          <span class="n">conversion_expression</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x+3&#39;</span><span class="p">,</span> <span class="s1">&#39;x * 2&#39;</span><span class="p">])</span>
+<span class="c1"># The conversion means: 1 [your_new_unit] = (1 + 3) * 2 [°C]</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+temp observation with:
+     * standard unit: Celsius
+     * data column as None in None
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;], &#39;your_new_unit&#39;: []}
+     * description: 2m - temperature
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;], &#39;your_new_unit&#39;: [&#39;x+3&#39;, &#39;x * 2&#39;]}
+
+     * originates from data column: None with None as native unit.
+</pre></div></div>
+</div>
+</section>
+<section id="Obstypes-for-Modeldata">
+<h2>Obstypes for Modeldata<a class="headerlink" href="#Obstypes-for-Modeldata" title="Link to this heading"></a></h2>
+<p>Obstypes are also used in Modeldata to interpret and convert the modeldata-data. Similar as with a Dataset, a set of default obstypes is stored in each Modeldata. To add a new band, and thus a new obstype, to your modeldata you can you this method:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="n">era</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">)</span>
+<span class="n">era</span><span class="o">.</span><span class="n">obstypes</span>
+<span class="c1">#Create a new observation type</span>
+<span class="n">precipitation</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Obstype</span><span class="p">(</span><span class="n">obsname</span><span class="o">=</span><span class="s1">&#39;cumulated_precip&#39;</span><span class="p">,</span>
+                                      <span class="n">std_unit</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                                      <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Cumulated total precipitation since midnight per squared meter&#39;</span><span class="p">)</span>
+
+<span class="c1">#Add it to the Modeldata, and specify the corresponding band.</span>
+<span class="n">era</span><span class="o">.</span><span class="n">add_obstype</span><span class="p">(</span><span class="n">Obstype</span><span class="o">=</span><span class="n">precipitation</span><span class="p">,</span>
+                <span class="n">bandname</span><span class="o">=</span><span class="s1">&#39;total_precipitation&#39;</span><span class="p">,</span> <span class="c1">#look this up: https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY#bands</span>
+                <span class="n">band_units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                <span class="n">band_description</span><span class="o">=</span><span class="s2">&quot;Accumulated liquid and frozen water, including rain and snow, that falls to the Earth&#39;s surface. It is the sum of large-scale precipitation (that precipitation which is generated by large-scale weather patterns, such as troughs and cold fronts) and convective precipitation (generated by convection which occurs when air at lower levels in the atmosphere is warmer and less dense than the air above, so it rises). ...&quot;</span><span class="p">,</span>
+               <span class="p">)</span>
+
+
+<span class="c1"># Define locations</span>
+<span class="n">lat</span> <span class="o">=</span> <span class="p">[</span><span class="mf">50.849</span><span class="p">]</span>
+<span class="n">lon</span> <span class="o">=</span> <span class="p">[</span><span class="mf">4.357</span><span class="p">]</span>
+<span class="n">name</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Brussels&#39;</span><span class="p">]</span>
+<span class="n">metadf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span>
+                            <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">,</span>
+                            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">})</span>
+<span class="c1"># Define a time period</span>
+<span class="n">tstart</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">tend</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">15</span><span class="p">)</span>
+
+
+<span class="c1">#Extract the data</span>
+<span class="n">era</span><span class="o">.</span><span class="n">get_gee_dataset_data</span><span class="p">(</span><span class="n">mapname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
+                         <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
+                         <span class="n">startdt_utc</span><span class="o">=</span><span class="n">tstart</span><span class="p">,</span>
+                         <span class="n">enddt_utc</span><span class="o">=</span><span class="n">tend</span><span class="p">,</span>
+                         <span class="n">obstypes</span><span class="o">=</span><span class="p">[</span><span class="n">precipitation</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                        <span class="p">)</span>
+<span class="n">era</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Modeldata instance containing:
+     * Modelname: ERA5_hourly
+     * 1 timeseries
+     * The following obstypes are available: [&#39;cumulated_precip&#39;]
+     * Data has these units: [&#39;m&#39;]
+     * From 2023-01-11 23:00:00+00:00 --&gt; 2023-01-14 23:00:00+00:00 (with tz=UTC)
+
+ (Data is stored in the .df attribute)
+
+ ------ Known gee datasets -----------
+The following datasets are found:
+
+ --------------------------------
+global_lcz_map :
+
+ No mapped observation types for global_lcz_map.
+
+ INFO:
+
+{&#39;location&#39;: &#39;RUB/RUBCLIM/LCZ/global_lcz_map/v1&#39;, &#39;usage&#39;: &#39;LCZ&#39;, &#39;band_of_use&#39;: &#39;LCZ_Filter&#39;, &#39;value_type&#39;: &#39;categorical&#39;, &#39;dynamical&#39;: False, &#39;scale&#39;: 100, &#39;is_image&#39;: False, &#39;is_imagecollection&#39;: True, &#39;categorical_mapper&#39;: {1: &#39;Compact highrise&#39;, 2: &#39;Compact midrise&#39;, 3: &#39;Compact lowrise&#39;, 4: &#39;Open highrise&#39;, 5: &#39;Open midrise&#39;, 6: &#39;Open lowrise&#39;, 7: &#39;Lightweight lowrise&#39;, 8: &#39;Large lowrise&#39;, 9: &#39;Sparsely built&#39;, 10: &#39;Heavy industry&#39;, 11: &#39;Dense Trees (LCZ A)&#39;, 12: &#39;Scattered Trees (LCZ B)&#39;, 13: &#39;Bush, scrub (LCZ C)&#39;, 14: &#39;Low plants (LCZ D)&#39;, 15: &#39;Bare rock or paved (LCZ E)&#39;, 16: &#39;Bare soil or sand (LCZ F)&#39;, 17: &#39;Water (LCZ G)&#39;}, &#39;credentials&#39;: &#39;Demuzere M.; Kittner J.; Martilli A.; Mills, G.; Moede, C.; Stewart, I.D.; van Vliet, J.; Bechtel, B. A global map of local climate zones to support earth system modelling and urban-scale environmental science. Earth System Science Data 2022, 14 Volume 8: 3835-3873. doi:10.5194/essd-14-3835-2022&#39;}
+
+ --------------------------------
+DEM :
+
+ No mapped observation types for DEM.
+
+ INFO:
+
+{&#39;location&#39;: &#39;CGIAR/SRTM90_V4&#39;, &#39;usage&#39;: &#39;elevation&#39;, &#39;band_of_use&#39;: &#39;elevation&#39;, &#39;value_type&#39;: &#39;numeric&#39;, &#39;dynamical&#39;: False, &#39;scale&#39;: 100, &#39;is_image&#39;: True, &#39;is_imagecollection&#39;: False, &#39;credentials&#39;: &#39;SRTM Digital Elevation Data Version 4&#39;}
+
+ --------------------------------
+ERA5_hourly :
+
+temp observation with:
+     * Known datasetsbands: {&#39;ERA5_hourly&#39;: &#39;temperature_2m&#39;}
+     * standard unit: Celsius
+     * description: 2m - temperature
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;], &#39;your_new_unit&#39;: [&#39;x+3&#39;, &#39;x * 2&#39;]}
+
+pressure observation with:
+     * Known datasetsbands: {&#39;ERA5_hourly&#39;: &#39;surface_pressure&#39;}
+     * standard unit: pa
+     * description: atmospheric pressure (at station)
+     * conversions to known units: {&#39;hpa&#39;: [&#39;x * 100&#39;], &#39;psi&#39;: [&#39;x * 6894.7573&#39;], &#39;bar&#39;: [&#39;x * 100000.&#39;]}
+
+wind observation with:
+     * Known Vector-East-component datasetsbands: {&#39;ERA5_hourly&#39;: &#39;u_component_of_wind_10m&#39;}
+     * Known Vector-North-component datasetsbands: {&#39;ERA5_hourly&#39;: &#39;v_component_of_wind_10m&#39;}
+     * standard unit: m/s
+     * description: wind speed
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+
+cumulated_precip observation with:
+     * Known datasetsbands: {&#39;ERA5_hourly&#39;: &#39;total_precipitation&#39;}
+     * standard unit: m
+     * description: Cumulated total precipitation since midnight per squared meter
+     * conversions to known units: {&#39;ppb&#39;: [&#39;x / 1000&#39;]}
+
+
+ INFO:
+
+{&#39;location&#39;: &#39;ECMWF/ERA5_LAND/HOURLY&#39;, &#39;usage&#39;: &#39;ERA5&#39;, &#39;value_type&#39;: &#39;numeric&#39;, &#39;dynamical&#39;: True, &#39;scale&#39;: 2500, &#39;is_image&#39;: False, &#39;is_imagecollection&#39;: True, &#39;time_res&#39;: &#39;1H&#39;, &#39;credentials&#39;: &#39;&#39;}
+
+ --------------------------------
+worldcover :
+
+ No mapped observation types for worldcover.
+
+ INFO:
+
+{&#39;location&#39;: &#39;ESA/WorldCover/v200&#39;, &#39;usage&#39;: &#39;landcover&#39;, &#39;band_of_use&#39;: &#39;Map&#39;, &#39;value_type&#39;: &#39;categorical&#39;, &#39;dynamical&#39;: False, &#39;scale&#39;: 10, &#39;is_image&#39;: False, &#39;is_imagecollection&#39;: True, &#39;categorical_mapper&#39;: {10: &#39;Tree cover&#39;, 20: &#39;Shrubland&#39;, 30: &#39;Grassland&#39;, 40: &#39;Cropland&#39;, 50: &#39;Built-up&#39;, 60: &#39;Bare / sparse vegetation&#39;, 70: &#39;Snow and ice&#39;, 80: &#39;Permanent water bodies&#39;, 90: &#39;Herbaceous wetland&#39;, 95: &#39;Mangroves&#39;, 100: &#39;Moss and lichen&#39;}, &#39;aggregation&#39;: {&#39;water&#39;: [70, 80, 90, 95], &#39;pervious&#39;: [10, 20, 30, 40, 60, 100], &#39;impervious&#39;: [50]}, &#39;colorscheme&#39;: {10: &#39;006400&#39;, 20: &#39;ffbb22&#39;, 30: &#39;ffff4c&#39;, 40: &#39;f096ff&#39;, 50: &#39;fa0000&#39;, 60: &#39;b4b4b4&#39;, 70: &#39;f0f0f0&#39;, 80: &#39;0064c8&#39;, 90: &#39;0096a0&#39;, 95: &#39;00cf75&#39;, 100: &#39;fae6a0&#39;}, &#39;credentials&#39;: &#39;https://spdx.org/licenses/CC-BY-4.0.html&#39;}
+</pre></div></div>
+</div>
+</section>
+<section id="Special-observation-types">
+<h2>Special observation types<a class="headerlink" href="#Special-observation-types" title="Link to this heading"></a></h2>
+<section id="2D-Vector-fields">
+<h3>2D-Vector fields<a class="headerlink" href="#2D-Vector-fields" title="Link to this heading"></a></h3>
+<p>At a specific height, the wind can be seen (by approximation) as a 2D vector field. The vector components are often stored in different bands/variables in a model.</p>
+<p>A common problem is that observation measures the amplitude and direction of a vectorfield, while the models store the vector components. So we need to transform the vector components to an amplitude and direction.</p>
+<p>This can be done in the MetObs toolkit by using the <strong>ModelObstype_Vectorfield</strong>. This class is similar to the ModelObstype class but has the functionality to convert components to amplitude and direction.</p>
+<p>By default, the <em>wind</em> obstype is stored in each Modeldata.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">era</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_HOURLY&#39;</span><span class="p">)</span>
+<span class="n">era</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="s1">&#39;wind&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+wind observation with:
+     * Known Vector-East-component datasetsbands: {&#39;ERA5_hourly&#39;: &#39;u_component_of_wind_10m&#39;}
+     * Known Vector-North-component datasetsbands: {&#39;ERA5_hourly&#39;: &#39;v_component_of_wind_10m&#39;}
+     * standard unit: m/s
+     * description: wind speed
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+
+</pre></div></div>
+</div>
+<p>When extracting the wind data from era5 it will 1. Download the u and v wind components for your period and locations. 2. Convert each component to its standard units (m/s for the wind components) 3. Compute the amplitude and the direction (in degrees from North, clockwise).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="n">lat</span> <span class="o">=</span> <span class="p">[</span><span class="mf">50.849</span><span class="p">]</span>
+<span class="n">lon</span> <span class="o">=</span> <span class="p">[</span><span class="mf">4.357</span><span class="p">]</span>
+<span class="n">name</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Brussels&#39;</span><span class="p">]</span>
+<span class="n">metadf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span>
+                            <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">,</span>
+                            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">})</span>
+
+<span class="n">tstart</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">tend</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2023</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">15</span><span class="p">)</span>
+
+
+<span class="n">era</span><span class="o">.</span><span class="n">get_gee_dataset_data</span><span class="p">(</span><span class="n">mapname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
+                         <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
+                         <span class="n">startdt_utc</span><span class="o">=</span><span class="n">tstart</span><span class="p">,</span>
+                         <span class="n">enddt_utc</span><span class="o">=</span><span class="n">tend</span><span class="p">,</span>
+                         <span class="n">obstypes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;wind&#39;</span><span class="p">]</span>
+                        <span class="p">)</span>
+<span class="n">era</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Modeldata instance containing:
+     * Modelname: ERA5_hourly
+     * 1 timeseries
+     * The following obstypes are available: [&#39;wind_amplitude&#39;, &#39;wind_direction&#39;]
+     * Data has these units: [&#39;m/s&#39;, &#39;° from north (CW)&#39;]
+     * From 2023-01-11 23:00:00+00:00 --&gt; 2023-01-14 23:00:00+00:00 (with tz=UTC)
+
+ (Data is stored in the .df attribute)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">era</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">obstype_model</span><span class="o">=</span><span class="s1">&#39;wind_amplitude&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;ERA5_hourly&#39;}, ylabel=&#39;wind_amplitude (m/s) \n ERA5_hourly: u_component_of_wind_10m and v_component_of_wind_10m&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_using_obstypes_16_1.png" src="../_images/examples_using_obstypes_16_1.png" />
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="analysis_example.html" class="btn btn-neutral float-left" title="Demo example: Analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../template_mapping.html" class="btn btn-neutral float-right" title="Mapping to the toolkit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

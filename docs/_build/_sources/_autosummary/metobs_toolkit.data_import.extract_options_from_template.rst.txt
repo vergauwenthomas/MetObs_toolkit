@@ -1,0 +1,6 @@
+metobs\_toolkit.data\_import.extract\_options\_from\_template
+=============================================================
+
+.. currentmodule:: metobs_toolkit.data_import
+
+.. autofunction:: extract_options_from_template

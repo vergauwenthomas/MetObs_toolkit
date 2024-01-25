@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>metobs_toolkit.analysis.Analysis &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="metobs_toolkit.modeldata" href="metobs_toolkit.modeldata.html" />
+    <link rel="prev" title="metobs_toolkit.analysis.get_seasons" href="metobs_toolkit.analysis.get_seasons.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="metobs_toolkit.html">metobs_toolkit</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="metobs_toolkit.analysis.html">metobs_toolkit.analysis</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.analysis.filter_data.html">metobs_toolkit.analysis.filter_data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.analysis.get_seasons.html">metobs_toolkit.analysis.get_seasons</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">metobs_toolkit.analysis.Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.data_import.html">metobs_toolkit.data_import</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset.html">metobs_toolkit.dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.dataset_settings_updater.html">metobs_toolkit.dataset_settings_updater</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap.html">metobs_toolkit.gap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.modeldata.html">metobs_toolkit.modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstype_modeldata.html">metobs_toolkit.obstype_modeldata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstypes.html">metobs_toolkit.obstypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.plotting_functions.html">metobs_toolkit.plotting_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.printing.html">metobs_toolkit.printing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_checks.html">metobs_toolkit.qc_checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.qc_statistics.html">metobs_toolkit.qc_statistics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.settings.html">metobs_toolkit.settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.station.html">metobs_toolkit.station</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.writing_files.html">metobs_toolkit.writing_files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+          <li class="breadcrumb-item"><a href="metobs_toolkit.analysis.html">metobs_toolkit.analysis</a></li>
+      <li class="breadcrumb-item active">metobs_toolkit.analysis.Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/metobs_toolkit.analysis.Analysis.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="metobs-toolkit-analysis-analysis">
+<h1>metobs_toolkit.analysis.Analysis<a class="headerlink" href="#metobs-toolkit-analysis-analysis" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">metobs_toolkit.analysis.</span></span><span class="sig-name descname"><span class="pre">Analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obsdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_template</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The Analysis class contains methods for analysing observations.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.aggregate_df" title="metobs_toolkit.analysis.Analysis.aggregate_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggregate_df</span></code></a></p></td>
+<td><p>Aggregate observations to a (list of) categories.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.apply_filter" title="metobs_toolkit.analysis.Analysis.apply_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_filter</span></code></a></p></td>
+<td><p>Filter an Analysis by a user definde string expression.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.get_aggregated_cycle_statistics" title="metobs_toolkit.analysis.Analysis.get_aggregated_cycle_statistics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_aggregated_cycle_statistics</span></code></a></p></td>
+<td><p>Create an average cycle for an aggregated categorie.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.get_anual_statistics" title="metobs_toolkit.analysis.Analysis.get_anual_statistics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_anual_statistics</span></code></a></p></td>
+<td><p>Create an anual cycle for aggregated groups.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.get_diurnal_statistics" title="metobs_toolkit.analysis.Analysis.get_diurnal_statistics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_diurnal_statistics</span></code></a></p></td>
+<td><p>Create an average diurnal cycle for the observations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.get_diurnal_statistics_with_reference" title="metobs_toolkit.analysis.Analysis.get_diurnal_statistics_with_reference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_diurnal_statistics_with_reference</span></code></a></p></td>
+<td><p>Create an average diurnal cycle for the observation differences of a reference station.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.get_lc_correlation_matrices" title="metobs_toolkit.analysis.Analysis.get_lc_correlation_matrices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lc_correlation_matrices</span></code></a></p></td>
+<td><p>Compute pearson correlation coeficients.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.plot_correlation_heatmap" title="metobs_toolkit.analysis.Analysis.plot_correlation_heatmap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_correlation_heatmap</span></code></a></p></td>
+<td><p>Make a heatmap plot af a correaltion matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.plot_correlation_variation" title="metobs_toolkit.analysis.Analysis.plot_correlation_variation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_correlation_variation</span></code></a></p></td>
+<td><p>Create correlation scatter plot.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.analysis.Analysis.subset_period" title="metobs_toolkit.analysis.Analysis.subset_period"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subset_period</span></code></a></p></td>
+<td><p>Subset the observations of the Analysis to a specific period.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.aggregate_df">
+<span class="sig-name descname"><span class="pre">aggregate_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['lcz',</span> <span class="pre">'hour']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.aggregate_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.aggregate_df" title="Link to this definition"></a></dt>
+<dd><p>Aggregate observations to a (list of) categories.</p>
+<p>The output will be a dataframe that is aggregated to one, or more
+categories. A commen example is aggregating to LCZ’s.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em><em> or </em><em>None</em>) – The observations to aggregate. If None, the df attribute of the
+Analysis instance is used. The default is None.</p></li>
+<li><p><strong>agg</strong> (<em>list</em><em>, </em><em>optional</em>) – The list of columnnames to aggregate to. If ‘lcz’ is included, the
+lcz information is extracted from the Analysis.metadf. The default
+is [‘lcz’, ‘datetime’].</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – list of functions and/or function names, e.g. [np.sum, ‘mean’]. The
+default is ‘mean’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dataframe with the agg columns as an index. The values are the
+aggregated values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Present columns that ar non-numeric and are not in the agg list, are
+not present in the return, since these values cannot be aggregated.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.apply_filter">
+<span class="sig-name descname"><span class="pre">apply_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expression</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.apply_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.apply_filter" title="Link to this definition"></a></dt>
+<dd><p>Filter an Analysis by a user definde string expression.</p>
+<p>This can be used to filter the observation to specific meteorological
+conditions (i.e. low windspeeds, high humidity, cold temperatures, …)</p>
+<p>The filter expression contains only columns present in the Analysis.df
+and/or the Analysis.metadf.</p>
+<p>A New Analysis object is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>expression</strong> (<em>str</em>) – A filter expression using columnnames present in either df or metadf.
+The following timestamp derivatives can be used as well: [minute, hour,
+month, year, day_of_year, week_of_year, season]. The quarry_str may
+contain number and expressions like &lt;, &gt;, ==, &gt;=, *, +, …. Multiple filters
+can be combine to one expression by using &amp; (AND) and | (OR).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>filtered_analysis</strong> – The filtered Analysis.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>metobs_toolkit.Analysis</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All timestamp derivative values are numeric except for ‘season’,
+possible values are [‘winter’, ‘spring’, ‘summer’, ‘autumn’].</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Make shure to use ” of ‘ to indicate string values in the expression if
+needed.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.get_aggregated_cycle_statistics">
+<span class="sig-name descname"><span class="pre">get_aggregated_cycle_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['lcz',</span> <span class="pre">'datetime']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizontal_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errorbands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_obsdf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_show_zero_line</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.get_aggregated_cycle_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.get_aggregated_cycle_statistics" title="Link to this definition"></a></dt>
+<dd><p>Create an average cycle for an aggregated categorie.</p>
+<p>A commen example is to aggregate to the LCZ’s, so to get the diurnal
+cycle per LCZ rather than per station.</p>
+<p>(In the plot, each aggregated category different from datetime, is represed by a line.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>str</em><em>, </em><em>optional</em>) – Element of the metobs_toolkit.observation_types The default is ‘temp’.</p></li>
+<li><p><strong>aggregation</strong> (<em>list</em><em>, </em><em>optional</em>) – List of variables to aggregate to. These variables should either a
+categorical observation type, a categorical column in the metadf or
+a time aggregation. All possible time aggreagetions are: [‘minute’,
+‘hour’, ‘month’, ‘year’, ‘day_of_year’,
+‘week_of_year’, ‘season’]. The default is [‘lcz’, ‘datetime’].</p></li>
+<li><p><strong>aggregation_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Which (numpy) function is used to aggregate the observations. The default is ‘mean’.</p></li>
+<li><p><strong>horizontal_axis</strong> (<em>str</em><em>, </em><em>optional</em>) – Which aggregated value will be represented on the horizontal axis
+of the plot. The default is ‘hour’.</p></li>
+<li><p><strong>stations</strong> (<em>list</em><em>, </em><em>optional</em>) – List of station names to use. If None, all present stations will be used. The default is None.</p></li>
+<li><p><strong>startdt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – The start datetime of the observations to use. If None, all timestamps will be used. The default is None.</p></li>
+<li><p><strong>enddt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – The end datetime of the observations to use. If None, all timestamps will be used. The default is None.</p></li>
+<li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, a diurnal plot is made. The default is True.</p></li>
+<li><p><strong>title</strong> (<em>string</em><em>, </em><em>optional</em>) – Title of the figure, if None a default title is generated. The default is None.</p></li>
+<li><p><strong>y_label</strong> (<em>string</em><em>, </em><em>optional</em>) – y-axes label of the figure, if None a default label is generated. The default is None.</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>optional</em>) – I True, a legend is added to the plot. The default is True.</p></li>
+<li><p><strong>errorbands</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the std is representd in the plot by colored bands. The default is False.</p></li>
+<li><p><strong>verbose</strong> (<em>True</em><em>, </em><em>optional</em>) – If True, an additional dataframe with aggregation information is returned . The default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df</strong> – The dataframe containing the aggregated values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame()</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.get_anual_statistics">
+<span class="sig-name descname"><span class="pre">get_anual_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">groupby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['name']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agg_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errorbands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_return_all_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.get_anual_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.get_anual_statistics" title="Link to this definition"></a></dt>
+<dd><p>Create an anual cycle for aggregated groups.</p>
+<dl class="simple">
+<dt>(In the plot, unique combination of groupby categories is presented</dt><dd><p>as a line.)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>groupby</strong> (<em>list string</em><em>, </em><em>optional</em>) – Variables to aggregate to. These can be columns in the metadf, or
+time aggregations (‘hour’, ‘year’, ‘week_of_year’, …]. ‘name’ will
+aggregate to the stationnames. The default is [‘name’].</p></li>
+<li><p><strong>obstype</strong> (<em>str</em><em>, </em><em>optional</em>) – Element of the metobs_toolkit.observation_types The default is ‘temp’.</p></li>
+<li><p><strong>agg_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Function names to use for aggregation, e.g. [np.sum, ‘mean’]. The
+default is ‘mean’.</p></li>
+<li><p><strong>stations</strong> (<em>list</em><em>, </em><em>optional</em>) – List of station names to use. If None, all present stations will be used. The default is None.</p></li>
+<li><p><strong>startdt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – The start datetime of the observations to use. If None, all timestamps will be used. The default is None.</p></li>
+<li><p><strong>enddt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – The end datetime of the observations to use. If None, all timestamps will be used. The default is None.</p></li>
+<li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, an anual plot is made. The default is True.</p></li>
+<li><p><strong>errorbands</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the std is representd in the plot by colored bands. The default is False.</p></li>
+<li><p><strong>title</strong> (<em>string</em><em>, </em><em>optional</em>) – Title of the figure, if None a default title is generated. The default is None.</p></li>
+<li><p><strong>y_label</strong> (<em>string</em><em>, </em><em>optional</em>) – y-axes label of the figure, if None a default label is generated. The default is None.</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>optional</em>) – I True, a legend is added to the plot. The default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df</strong> – The dataframe containing the aggregated values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame()</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.get_diurnal_statistics">
+<span class="sig-name descname"><span class="pre">get_diurnal_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">colorby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errorbands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_return_all_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.get_diurnal_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.get_diurnal_statistics" title="Link to this definition"></a></dt>
+<dd><p>Create an average diurnal cycle for the observations.</p>
+<p>(In the plot, each station is represed by a line.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>colorby</strong> (<em>'name'</em><em> or </em><em>'lcz'</em><em>, </em><em>optional</em>) – If ‘name’ the plotted lines will be colored per station, if ‘lcz’ the colors represent the stations lcz. The default is ‘name’.</p></li>
+<li><p><strong>obstype</strong> (<em>str</em><em>, </em><em>optional</em>) – Element of the metobs_toolkit.observation_types The default is ‘temp’.</p></li>
+<li><p><strong>stations</strong> (<em>list</em><em>, </em><em>optional</em>) – List of station names to use. If None, all present stations will be used. The default is None.</p></li>
+<li><p><strong>startdt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – The start datetime of the observations to use. If None, all timestamps will be used. The default is None.</p></li>
+<li><p><strong>enddt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – The end datetime of the observations to use. If None, all timestamps will be used. The default is None.</p></li>
+<li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, an diurnal plot is made. The default is True.</p></li>
+<li><p><strong>title</strong> (<em>string</em><em>, </em><em>optional</em>) – Title of the figure, if None a default title is generated. The default is None.</p></li>
+<li><p><strong>y_label</strong> (<em>string</em><em>, </em><em>optional</em>) – y-axes label of the figure, if None a default label is generated. The default is None.</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>optional</em>) – I True, a legend is added to the plot. The default is True.</p></li>
+<li><p><strong>errorbands</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the std is representd in the plot by colored bands. The default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df</strong> – The dataframe containing the aggregated values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame()</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.get_diurnal_statistics_with_reference">
+<span class="sig-name descname"><span class="pre">get_diurnal_statistics_with_reference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refstation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tollerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'30T'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errorbands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_zero_horizontal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_return_all_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.get_diurnal_statistics_with_reference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.get_diurnal_statistics_with_reference" title="Link to this definition"></a></dt>
+<dd><p>Create an average diurnal cycle for the observation differences of a reference station.</p>
+<p>All observational values are converted to differences with the closest
+(in time) reference observation. No reference observation is found when
+the time difference is larger than the tollerance.</p>
+<p>(In the plot, each station is represed by a line.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>refstation</strong> (<em>str</em><em>,</em>) – Name of the station to use as a reference.</p></li>
+<li><p><strong>colorby</strong> (<em>'name'</em><em> or </em><em>'lcz'</em><em>, </em><em>optional</em>) – If ‘name’ the plotted lines will be colored per station, if ‘lcz’ the colors represent the stations lcz. The default is ‘name’.</p></li>
+<li><p><strong>obstype</strong> (<em>str</em><em>, </em><em>optional</em>) – Element of the metobs_toolkit.observation_types The default is ‘temp’.</p></li>
+<li><p><strong>tollerance</strong> (<em>Timedelta</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – The tollerance string or object representing the maximum translation in time to find a reference
+observation for each observation. Ex: ‘5T’ is 5 minutes, ‘1H’, is one hour. The default is ‘30T’.</p></li>
+<li><p><strong>stations</strong> (<em>list</em><em>, </em><em>optional</em>) – List of station names to use. If None, all present stations will be used. The default is None.</p></li>
+<li><p><strong>startdt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – The start datetime of the observations to use. If None, all timestamps will be used. The default is None.</p></li>
+<li><p><strong>enddt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – The end datetime of the observations to use. If None, all timestamps will be used. The default is None.</p></li>
+<li><p><strong>plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, a diurnal plot is made. The default is True.</p></li>
+<li><p><strong>title</strong> (<em>string</em><em>, </em><em>optional</em>) – Title of the figure, if None a default title is generated. The default is None.</p></li>
+<li><p><strong>y_label</strong> (<em>string</em><em>, </em><em>optional</em>) – y-axes label of the figure, if None a default label is generated. The default is None.</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>optional</em>) – I True, a legend is added to the plot. The default is True.</p></li>
+<li><p><strong>errorbands</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the std is representd in the plot by colored bands. The upper bound represents +1 x std, the lower bound -1 x std. The default is False.</p></li>
+<li><p><strong>show_zero_horizontal</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True a horizontal line is drawn in the plot at zero. The default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df</strong> – The dataframe containing the aggregated values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame()</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.get_lc_correlation_matrices">
+<span class="sig-name descname"><span class="pre">get_lc_correlation_matrices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['temp']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groupby_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['hour']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.get_lc_correlation_matrices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.get_lc_correlation_matrices" title="Link to this definition"></a></dt>
+<dd><p>Compute pearson correlation coeficients.</p>
+<p>A method to compute the Pearson correlation between an obervation type
+and present landcover fractions in the metadf.</p>
+<p>The correlations are computed per group as defined by unique combinations
+of the groupby_labels.</p>
+<p>A dictionary is returnd where each key represents a unique combination of
+the groupby_labels. The value is a dictionary with the following keys
+and values:</p>
+<ul class="simple">
+<li><p>cor matrix: the Pearson correlation matrix</p></li>
+<li><p>significance matrix: the significance (p-)values of the correlations.</p></li>
+<li><p>combined matrix: A human readable combination of the correlations and their p values. Indicate by *, ** or *** representing p-values &lt; 0.05, 0.01 and 0.001 respectively.</p></li>
+</ul>
+<p>This dictionary is also stored as a lc_cor_dict attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obstype</strong> (<em>str</em><em>, or </em><em>list optional</em>) – The observation type(s) to compute the correlations on. The default is [‘temp’].</p></li>
+<li><p><strong>groupby_labels</strong> (<em>list</em><em>, </em><em>optional</em>) – List of variables to form one group, resulting in one correlation.
+These variables should either a categorical observation type, a categorical column in the metadf or
+a time aggregation. All possible time aggreagetions are: [‘minute’,
+‘hour’, ‘month’, ‘year’, ‘day_of_year’,
+‘week_of_year’, ‘season’]. The default is [‘hour’].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cor_dict</strong> – A nested dictionary with unique combinations of groupby values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.plot_correlation_heatmap">
+<span class="sig-name descname"><span class="pre">plot_correlation_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">groupby_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_return_ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.plot_correlation_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.plot_correlation_heatmap" title="Link to this definition"></a></dt>
+<dd><p>Make a heatmap plot af a correaltion matrix.</p>
+<p>To specify which correlation matrix to plot, specify the group value
+using the groupby_value argument.</p>
+<p>All possible groupby_values are the keys of the lc_cor_dict attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>groupby_value</strong> (<em>str</em><em>, </em><em>num</em><em>, </em><em>None</em><em>, </em><em>optional</em>) – A groupby value to indicate which correlation matrix to visualise.
+If None is given, the first groupby value that is present is
+chosen.The default is None.</p></li>
+<li><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – Title of the figure. If None, a default title is constructed.The
+default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To list all possible groupby_values, one can use
+` print(Analysis_instance.lc_cor_dict.keys())`</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.plot_correlation_variation">
+<span class="sig-name descname"><span class="pre">plot_correlation_variation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.plot_correlation_variation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.plot_correlation_variation" title="Link to this definition"></a></dt>
+<dd><p>Create correlation scatter plot.</p>
+<p>Make a scatter plot of the correlations to visualise differences between
+multiple group values.</p>
+<p>Group values are represented by the horizontal axes, and correlations
+on the vertical axe.</p>
+<p>All correlations, that are not constant, are plotted as scatters with
+unique colors.</p>
+<p>The scatter marker indicates the p-value of the correlations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – Title of the figure. If None, a default title is constructed. The
+default is None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If to many possible group values exist, one can use the apply_filter()
+method to reduce the group values.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.analysis.Analysis.subset_period">
+<span class="sig-name descname"><span class="pre">subset_period</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">startdt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/analysis.html#Analysis.subset_period"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.analysis.Analysis.subset_period" title="Link to this definition"></a></dt>
+<dd><p>Subset the observations of the Analysis to a specific period.</p>
+<p>The same timezone is assumed as the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>startdt</strong> (<em>datetime.datetime</em>) – The start datetime to filter the observations to.</p></li>
+<li><p><strong>enddt</strong> (<em>datetime.datetime</em>) – The end datetime to filter the observations to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="metobs_toolkit.analysis.get_seasons.html" class="btn btn-neutral float-left" title="metobs_toolkit.analysis.get_seasons" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="metobs_toolkit.modeldata.html" class="btn btn-neutral float-right" title="metobs_toolkit.modeldata" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo example: Using a Dataset &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/nbsphinx-code-cells.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo example: Using a Google Earth engine" href="gee_example.html" />
+    <link rel="prev" title="Examples" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Demo example: Using a Dataset</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#The-Dataset">The Dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Importing-data">Importing data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Inspecting-the-Data">Inspecting the Data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Inspecting-a-Station">Inspecting a Station</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Making-timeseries-plots">Making timeseries plots</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Resampling-the-time-resolution">Resampling the time resolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Introduction-exercise">Introduction exercise</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gee_example.html">Demo example: Using a Google Earth engine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qc_example.html">Demo example: Applying Quality Control.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filling_example.html">Demo example: filling gaps and missing observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis_example.html">Demo example: Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using_obstypes.html">Working with specific observation types</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+      <li class="breadcrumb-item active">Demo example: Using a Dataset</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/doc_example.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Demo-example:-Using-a-Dataset">
+<h1>Demo example: Using a Dataset<a class="headerlink" href="#Demo-example:-Using-a-Dataset" title="Link to this heading"></a></h1>
+<p>This is an introduction to get started with the MetObs toolkit. These examples are making use of the demo data files that comes with the toolkit. Once the MetObs toolkit package is installed, you can import its functionality by:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+</pre></div>
+</div>
+</div>
+<section id="The-Dataset">
+<h2>The Dataset<a class="headerlink" href="#The-Dataset" title="Link to this heading"></a></h2>
+<p>A dataset is a collection of all observational data. Most of the methods are applied directly to a dataset. Start by creating an empty Dataset object:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>The most relevant attributes of a Dataset are: * .df –&gt; a pandas DataFrame where all the observational data are stored * .metadf –&gt; a pandas DataFrame where all the metadata for each station are stored * .settings –&gt; a Settings object to store all specific settings. * .missing_obs and .gaps –&gt; here the missing records and gaps are stored if present.</p>
+<p>Note that each Dataset will be equipped with the default settings.</p>
+<p>We created a dataset and stored in under the variable ‘your_dataset’. The show method prints out an overview of data in the dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># or .get_info()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+ --------  General ---------
+
+Empty instance of a Dataset.
+
+ --------  Settings ---------
+
+(to show all settings use the .show_settings() method, or set show_all_settings = True)
+
+ --------  Outliers ---------
+
+No outliers.
+
+ --------  Meta data ---------
+
+No metadata is found.
+</pre></div></div>
+</div>
+<p>TIP: to get an extensive overview of an object, call the .show() method on it.</p>
+</section>
+<section id="Importing-data">
+<h2>Importing data<a class="headerlink" href="#Importing-data" title="Link to this heading"></a></h2>
+<p>To import your data into a Dataset, the following files are required: * data file: This is the CSV file containing the observations * (optional) metadata file: The CSV file containing metadata for all stations. * template file: This is a CSV file that is used to interpret your data, and metadata file (if present).</p>
+<p>In practice you need to start by creating a template file for your data. More information on the creation of the template can be found in the documentation (under <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/template_mapping.html">Mapping to the toolkit</a>).</p>
+<p>TIP: <em>Use the template assistant of the toolkit for creating a template file by uncommenting and running the following cell.</em></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># metobs_toolkit.build_template_prompt()</span>
+</pre></div>
+</div>
+</div>
+<p>To import data, you must specify the paths to your data, metadata and template. For this example, we use the demo data, metadata and template that come with the toolkit.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span>
+    <span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="c1"># path to the data file</span>
+    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+    <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The settings of your Dataset are updated with the required paths. Now the data can be imported into your empty Dataset:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Inspecting-the-Data">
+<h2>Inspecting the Data<a class="headerlink" href="#Inspecting-the-Data" title="Link to this heading"></a></h2>
+<p>To get an overview of the data stored in your Dataset you can use</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+ --------  General ---------
+
+Dataset instance containing:
+     *28 stations
+     *[&#39;temp&#39;, &#39;radiation_temp&#39;, &#39;humidity&#39;, &#39;precip&#39;, &#39;precip_sum&#39;, &#39;wind_speed&#39;, &#39;wind_gust&#39;, &#39;wind_direction&#39;, &#39;pressure&#39;, &#39;pressure_at_sea_level&#39;] observation types
+     *120957 observation records
+     *256 records labeled as outliers
+     *0 gaps
+     *3 missing observations
+     *records range: 2022-09-01 00:00:00+00:00 --&gt; 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+     *time zone of the records: UTC
+     *Coordinates are available for all stations.
+
+
+ --------  Settings ---------
+
+(to show all settings use the .show_settings() method, or set show_all_settings = True)
+
+ --------  Outliers ---------
+
+A total of 256 found with these occurrences:
+
+{&#39;invalid input&#39;: 256}
+
+ --------  Meta data ---------
+
+The following metadata is found: [&#39;network&#39;, &#39;lat&#39;, &#39;lon&#39;, &#39;call_name&#39;, &#39;location&#39;, &#39;geometry&#39;, &#39;assumed_import_frequency&#39;, &#39;dataset_resolution&#39;]
+
+ The first rows of the metadf looks like:
+           network        lat       lon       call_name  location  \
+name
+vlinder01  Vlinder  50.980438  3.815763      Proefhoeve     Melle
+vlinder02  Vlinder  51.022379  3.709695          Sterre      Gent
+vlinder03  Vlinder  51.324583  4.952109         Centrum  Turnhout
+vlinder04  Vlinder  51.335522  4.934732  Stadsboerderij  Turnhout
+vlinder05  Vlinder  51.052655  3.675183  Watersportbaan      Gent
+
+                           geometry assumed_import_frequency  \
+name
+vlinder01  POINT (3.81576 50.98044)          0 days 00:05:00
+vlinder02  POINT (3.70969 51.02238)          0 days 00:05:00
+vlinder03  POINT (4.95211 51.32458)          0 days 00:05:00
+vlinder04  POINT (4.93473 51.33552)          0 days 00:05:00
+vlinder05  POINT (3.67518 51.05266)          0 days 00:05:00
+
+          dataset_resolution
+name
+vlinder01    0 days 00:05:00
+vlinder02    0 days 00:05:00
+vlinder03    0 days 00:05:00
+vlinder04    0 days 00:05:00
+vlinder05    0 days 00:05:00
+
+ -------- Missing observations info --------
+
+(Note: missing observations are defined on the frequency estimation of the native dataset.)
+  * 3 missing observations
+
+ name
+vlinder02   2022-09-10 17:10:00+00:00
+vlinder02   2022-09-10 17:15:00+00:00
+vlinder02   2022-09-10 17:45:00+00:00
+Name: datetime, dtype: datetime64[ns, UTC]
+
+  * For these stations: [&#39;vlinder02&#39;]
+  * The missing observations are not filled.
+(More details on the missing observation can be found in the .series and .fill_df attributes.)
+None
+
+ --------  Gaps ---------
+
+There are no gaps.
+None
+</pre></div></div>
+</div>
+<p>If you want to inspect the data in your Dataset directly, you can take a look at the .df and .metadf attributes</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">your_dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<span class="c1"># equivalent for the metadata</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">your_dataset</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+                                     temp  radiation_temp  humidity  precip  \
+name      datetime
+vlinder01 2022-09-01 00:00:00+00:00  18.8             NaN        65     0.0
+          2022-09-01 00:05:00+00:00  18.8             NaN        65     0.0
+          2022-09-01 00:10:00+00:00  18.8             NaN        65     0.0
+          2022-09-01 00:15:00+00:00  18.7             NaN        65     0.0
+          2022-09-01 00:20:00+00:00  18.7             NaN        65     0.0
+
+                                     precip_sum  wind_speed  wind_gust  \
+name      datetime
+vlinder01 2022-09-01 00:00:00+00:00         0.0         5.6       11.3
+          2022-09-01 00:05:00+00:00         0.0         5.5       12.9
+          2022-09-01 00:10:00+00:00         0.0         5.1       11.3
+          2022-09-01 00:15:00+00:00         0.0         6.0       12.9
+          2022-09-01 00:20:00+00:00         0.0         5.0       11.3
+
+                                     wind_direction  pressure  \
+name      datetime
+vlinder01 2022-09-01 00:00:00+00:00              65    101739
+          2022-09-01 00:05:00+00:00              75    101731
+          2022-09-01 00:10:00+00:00              75    101736
+          2022-09-01 00:15:00+00:00              85    101736
+          2022-09-01 00:20:00+00:00              65    101733
+
+                                     pressure_at_sea_level
+name      datetime
+vlinder01 2022-09-01 00:00:00+00:00               102005.0
+          2022-09-01 00:05:00+00:00               101997.0
+          2022-09-01 00:10:00+00:00               102002.0
+          2022-09-01 00:15:00+00:00               102002.0
+          2022-09-01 00:20:00+00:00               101999.0
+           network        lat       lon       call_name  location  \
+name
+vlinder01  Vlinder  50.980438  3.815763      Proefhoeve     Melle
+vlinder02  Vlinder  51.022379  3.709695          Sterre      Gent
+vlinder03  Vlinder  51.324583  4.952109         Centrum  Turnhout
+vlinder04  Vlinder  51.335522  4.934732  Stadsboerderij  Turnhout
+vlinder05  Vlinder  51.052655  3.675183  Watersportbaan      Gent
+
+                           geometry  lcz assumed_import_frequency  \
+name
+vlinder01  POINT (3.81576 50.98044)  NaN          0 days 00:05:00
+vlinder02  POINT (3.70969 51.02238)  NaN          0 days 00:05:00
+vlinder03  POINT (4.95211 51.32458)  NaN          0 days 00:05:00
+vlinder04  POINT (4.93473 51.33552)  NaN          0 days 00:05:00
+vlinder05  POINT (3.67518 51.05266)  NaN          0 days 00:05:00
+
+          dataset_resolution
+name
+vlinder01    0 days 00:05:00
+vlinder02    0 days 00:05:00
+vlinder03    0 days 00:05:00
+vlinder04    0 days 00:05:00
+vlinder05    0 days 00:05:00
+</pre></div></div>
+</div>
+<section id="Inspecting-a-Station">
+<h3>Inspecting a Station<a class="headerlink" href="#Inspecting-a-Station" title="Link to this heading"></a></h3>
+<p>If you are interested in one station, you can extract all the info for that one station from the dataset by:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">favorite_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">stationname</span><span class="o">=</span><span class="s2">&quot;vlinder02&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Favorite station now contains all the information of that one station. All methods that are applicable to a Dataset are also applicable to a Station. So to inspect your favorite station, you can:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">favorite_station</span><span class="o">.</span><span class="n">show</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+ --------  General ---------
+
+Dataset instance containing:
+     *1 stations
+     *[&#39;temp&#39;, &#39;radiation_temp&#39;, &#39;humidity&#39;, &#39;precip&#39;, &#39;precip_sum&#39;, &#39;wind_speed&#39;, &#39;wind_gust&#39;, &#39;wind_direction&#39;, &#39;pressure&#39;, &#39;pressure_at_sea_level&#39;] observation types
+     *4317 observation records
+     *256 records labeled as outliers
+     *0 gaps
+     *3 missing observations
+     *records range: 2022-09-01 00:00:00+00:00 --&gt; 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+     *time zone of the records: UTC
+     *Coordinates are available for all stations.
+
+
+ --------  Settings ---------
+
+(to show all settings use the .show_settings() method, or set show_all_settings = True)
+
+ --------  Outliers ---------
+
+A total of 256 found with these occurrences:
+
+{&#39;invalid input&#39;: 256}
+
+ --------  Meta data ---------
+
+The following metadata is found: [&#39;network&#39;, &#39;lat&#39;, &#39;lon&#39;, &#39;call_name&#39;, &#39;location&#39;, &#39;geometry&#39;, &#39;assumed_import_frequency&#39;, &#39;dataset_resolution&#39;]
+
+ The first rows of the metadf looks like:
+           network        lat       lon call_name location  \
+name
+vlinder02  Vlinder  51.022379  3.709695    Sterre     Gent
+
+                             geometry assumed_import_frequency  \
+name
+vlinder02  POINT (3.709695 51.022379)          0 days 00:05:00
+
+          dataset_resolution
+name
+vlinder02    0 days 00:05:00
+
+ -------- Missing observations info --------
+
+(Note: missing observations are defined on the frequency estimation of the native dataset.)
+  * 3 missing observations
+
+ name
+vlinder02   2022-09-10 17:10:00+00:00
+vlinder02   2022-09-10 17:15:00+00:00
+vlinder02   2022-09-10 17:45:00+00:00
+Name: datetime, dtype: datetime64[ns, UTC]
+
+  * For these stations: [&#39;vlinder02&#39;]
+  * The missing observations are not filled.
+(More details on the missing observation can be found in the .series and .fill_df attributes.)
+None
+
+ --------  Gaps ---------
+
+There are no gaps.
+None
+None
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Making-timeseries-plots">
+<h2>Making timeseries plots<a class="headerlink" href="#Making-timeseries-plots" title="Link to this heading"></a></h2>
+<p>To make timeseries plots, use the following syntax to plot the <em>temperature</em> observations of the full Dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur for all stations. &#39;}, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_doc_example_22_1.png" src="../_images/examples_doc_example_22_1.png" />
+</div>
+</div>
+<p>See the documentation of the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.make_plot">make_plot</a> method for more details. Here an example of common used arguments.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Import the standard datetime library to make timestamps from datetime objects</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span>
+    <span class="c1"># specify the names of the stations in a list, or use None to plot all of them.</span>
+    <span class="n">stationnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;vlinder01&#39;</span><span class="p">,</span> <span class="s1">&#39;vlinder03&#39;</span><span class="p">,</span> <span class="s1">&#39;vlinder05&#39;</span><span class="p">],</span>
+    <span class="c1"># what obstype to plot (default is &#39;temp&#39;)</span>
+    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;humidity&quot;</span><span class="p">,</span>
+    <span class="c1"># choose how to color the timeseries:</span>
+    <span class="c1">#&#39;name&#39; : a specific color per station</span>
+    <span class="c1">#&#39;label&#39;: a specific color per quality control label</span>
+    <span class="n">colorby</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span>
+    <span class="c1"># choose a start and endtime for the series (datetime).</span>
+    <span class="c1"># Default is None, which uses all available data</span>
+    <span class="n">starttime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">endtime</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span>
+    <span class="c1"># Specify a title if you do not want the default title</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;your custom title&#39;</span><span class="p">,</span>
+    <span class="c1"># Add legend to plot?, by default true</span>
+    <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="c1"># Plot observations that are labeled as outliers.</span>
+    <span class="n">show_outliers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;your custom title&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Vochtigheid (%) \n relative humidity&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_doc_example_24_1.png" src="../_images/examples_doc_example_24_1.png" />
+</div>
+</div>
+<p>as mentioned above, one can apply the same methods to a Station object:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">favorite_station</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder02&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_doc_example_26_1.png" src="../_images/examples_doc_example_26_1.png" />
+</div>
+</div>
+</section>
+<section id="Resampling-the-time-resolution">
+<h2>Resampling the time resolution<a class="headerlink" href="#Resampling-the-time-resolution" title="Link to this heading"></a></h2>
+<p>Coarsening the time resolution (i.g. frequency) of your data can be done by using the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.coarsen_time_resolution">coarsen_time_resolution()</a>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">coarsen_time_resolution</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="s1">&#39;30T&#39;</span><span class="p">)</span> <span class="c1">#&#39;30T&#39; means 30 minutes</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>temp</th>
+      <th>radiation_temp</th>
+      <th>humidity</th>
+      <th>precip</th>
+      <th>precip_sum</th>
+      <th>wind_speed</th>
+      <th>wind_gust</th>
+      <th>wind_direction</th>
+      <th>pressure</th>
+      <th>pressure_at_sea_level</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">vlinder01</th>
+      <th>2022-09-01 00:00:00+00:00</th>
+      <td>18.8</td>
+      <td>NaN</td>
+      <td>65</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>5.6</td>
+      <td>11.3</td>
+      <td>65</td>
+      <td>101739</td>
+      <td>102005.0</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 00:30:00+00:00</th>
+      <td>18.7</td>
+      <td>NaN</td>
+      <td>65</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>5.4</td>
+      <td>9.7</td>
+      <td>85</td>
+      <td>101732</td>
+      <td>101999.0</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 01:00:00+00:00</th>
+      <td>18.4</td>
+      <td>NaN</td>
+      <td>65</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>5.1</td>
+      <td>8.1</td>
+      <td>55</td>
+      <td>101736</td>
+      <td>102003.0</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 01:30:00+00:00</th>
+      <td>18.0</td>
+      <td>NaN</td>
+      <td>65</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>7.1</td>
+      <td>12.9</td>
+      <td>55</td>
+      <td>101736</td>
+      <td>102003.0</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 02:00:00+00:00</th>
+      <td>17.1</td>
+      <td>NaN</td>
+      <td>68</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>5.7</td>
+      <td>9.7</td>
+      <td>45</td>
+      <td>101723</td>
+      <td>101990.0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="Introduction-exercise">
+<h2>Introduction exercise<a class="headerlink" href="#Introduction-exercise" title="Link to this heading"></a></h2>
+<p>For a more detailed reference, you can use this <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/examples/Introduction_01.ipynb">introduction exercise</a>, that was created in the context of the <a class="reference external" href="https://www.cost.eu/actions/CA20108/">COST FAIRNESS</a> summerschool 2023 in Ghent.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gee_example.html" class="btn btn-neutral float-right" title="Demo example: Using a Google Earth engine" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

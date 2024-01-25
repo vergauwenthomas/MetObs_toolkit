@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo example: Applying Quality Control. &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/nbsphinx-code-cells.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo example: filling gaps and missing observations" href="filling_example.html" />
+    <link rel="prev" title="Demo example: Using a Google Earth engine" href="gee_example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="doc_example.html">Demo example: Using a Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gee_example.html">Demo example: Using a Google Earth engine</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Demo example: Applying Quality Control.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Quality-control-for-missing/duplicated-and-invalid-timestamps">Quality control for missing/duplicated and invalid timestamps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Quality-control-for-bad-observations">Quality control for bad observations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Quality-control-exercise">Quality control exercise</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="filling_example.html">Demo example: filling gaps and missing observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis_example.html">Demo example: Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using_obstypes.html">Working with specific observation types</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+      <li class="breadcrumb-item active">Demo example: Applying Quality Control.</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/qc_example.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Demo-example:-Applying-Quality-Control.">
+<h1>Demo example: Applying Quality Control.<a class="headerlink" href="#Demo-example:-Applying-Quality-Control." title="Link to this heading"></a></h1>
+<p>In this example we apply Quality Control (QC) on the demo data. ## Create your dataset We start by creating a dataset.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+<span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span>
+    <span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="c1"># path to the data file</span>
+    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+    <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>A number of quality control methods are available in the toolkit. We can classify them into two groups: 1. <strong>Quality control for missing/duplicated or invalid timestamps</strong>. This is applied to the raw data and is not based on the observational value but merely on the presence of a record. 2. <strong>Quality control for bad observations</strong>. These are not automatically executed. These checks are performed in a sequence of specific checks, that are looking for signatures of typically bad observations.</p>
+<section id="Quality-control-for-missing/duplicated-and-invalid-timestamps">
+<h2>Quality control for missing/duplicated and invalid timestamps<a class="headerlink" href="#Quality-control-for-missing/duplicated-and-invalid-timestamps" title="Link to this heading"></a></h2>
+<p>Since this is applied to the raw data, the following quality control checks are automatically performed when reading the data: * Nan check: Test if the value of an observation can be converted to a numeric value. * Missing check: Test if there are missing records. These missing records are labeled as <em>missing observation</em> or as <em>gap</em> (if there are consecutive missing records). * Duplicate check: Test if each observation (station name, timestamp, observation type) is unique.</p>
+<p>As an example you can see that there is a missing timestamp in the time series of some stations:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder02&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder02&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_qc_example_3_1.png" src="../_images/examples_qc_example_3_1.png" />
+</div>
+</div>
+</section>
+<section id="Quality-control-for-bad-observations">
+<h2>Quality control for bad observations<a class="headerlink" href="#Quality-control-for-bad-observations" title="Link to this heading"></a></h2>
+<p>The following checks are available: * <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.qc_checks.gross_value_check.html#metobs_toolkit.qc_checks.gross_value_check">Gross value check</a>: A threshold check that observations should be between the thresholds * <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.qc_checks.persistance_check.html#metobs_toolkit.qc_checks.persistance_check">Persistence check</a>: Test observations to change over
+a specific period. * <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.qc_checks.repetitions_check.html#metobs_toolkit.qc_checks.repetitions_check">Repetitions check</a>: Test if an observation changes after several records. * <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.qc_checks.step_check.html#metobs_toolkit.qc_checks.step_check">Spike check</a>: Test if observations do not produce spikes in time series. * <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.qc_checks.window_variation_check.html#metobs_toolkit.qc_checks.window_variation_check">Window variation
+check</a>: Test if the variation exceeds the threshold in moving time windows. * <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.qc_checks.toolkit_buddy_check.html#metobs_toolkit.qc_checks.toolkit_buddy_check">Toolkit Buddy check</a>: Spatial buddy check. * <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.qc_checks.titan_buddy_check.html#metobs_toolkit.qc_checks.titan_buddy_check">TITAN Buddy
+check</a>: The <a class="reference external" href="https://github.com/metno/titanlib/wiki/Buddy-check">Titanlib version of the buddy check</a>. * <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.qc_checks.titan_sct_resistant_check.html#metobs_toolkit.qc_checks.titan_sct_resistant_check">TITAN Spatial consistency test</a>: Apply the Titanlib (robust)
+<a class="reference external" href="https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant">Spatial-Consistency-Test</a> (SCT).</p>
+<p>Each check requires a set of specific settings, often stored per specific observation type. A set of default settings, for temperature observations, are stored in the settings of each dataset. Use the <em>show()</em> method, and scroll to the QC section to see all QC settings.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+All settings:
+
+ ---------------------------------------
+
+ ---------------- IO (settings) ----------------------
+
+* output_folder:
+
+  -None
+
+* input_data_file:
+
+  -/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/datafiles/demo_datafile.csv
+
+* input_metadata_file:
+
+  -/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/datafiles/demo_metadatafile.csv
+
+ ---------------- db (settings) ----------------------
+
+ ---------------- time_settings (settings) ----------------------
+
+* target_time_res:
+
+  -60T
+
+* resample_method:
+
+  -nearest
+
+* resample_limit:
+
+  -1
+
+* timezone:
+
+  -UTC
+
+* freq_estimation_method:
+
+  -highest
+
+* freq_estimation_simplify:
+
+  -True
+
+* freq_estimation_simplify_error:
+
+  -2T
+
+ ---------------- app (settings) ----------------------
+
+* print_fmt_datetime:
+
+  -%d/%m/%Y %H:%M:%S
+
+* print_max_n:
+
+  -40
+
+* plot_settings:
+
+  - time_series:
+
+    -{&#39;figsize&#39;: (15, 5), &#39;colormap&#39;: &#39;tab20&#39;, &#39;linewidth&#39;: 2, &#39;linestyle_ok&#39;: &#39;-&#39;, &#39;linestyle_fill&#39;: &#39;--&#39;, &#39;linezorder&#39;: 1, &#39;scattersize&#39;: 4, &#39;scatterzorder&#39;: 3, &#39;dashedzorder&#39;: 2, &#39;legend_n_columns&#39;: 5}
+
+  - spatial_geo:
+
+    -{&#39;extent&#39;: [2.260609, 49.25, 6.118359, 52.350618], &#39;cmap&#39;: &#39;inferno_r&#39;, &#39;n_for_categorical&#39;: 5, &#39;figsize&#39;: (10, 15), &#39;fmt&#39;: &#39;%d/%m/%Y %H:%M:%S UTC&#39;}
+
+  - pie_charts:
+
+    -{&#39;figsize&#39;: (10, 10), &#39;anchor_legend_big&#39;: (-0.25, 0.75), &#39;anchor_legend_small&#39;: (-3.5, 2.2), &#39;radius_big&#39;: 2.0, &#39;radius_small&#39;: 5.0}
+
+  - color_mapper:
+
+    -{&#39;duplicated_timestamp&#39;: &#39;#a32a1f&#39;, &#39;invalid_input&#39;: &#39;#900357&#39;, &#39;gross_value&#39;: &#39;#f1ff2b&#39;, &#39;persistance&#39;: &#39;#f0051c&#39;, &#39;repetitions&#39;: &#39;#056ff0&#39;, &#39;step&#39;: &#39;#05d4f0&#39;, &#39;window_variation&#39;: &#39;#05f0c9&#39;, &#39;buddy_check&#39;: &#39;#8300c4&#39;, &#39;titan_buddy_check&#39;: &#39;#8300c4&#39;, &#39;titan_sct_resistant_check&#39;: &#39;#c17fe1&#39;, &#39;gap&#39;: &#39;#f00592&#39;, &#39;missing_timestamp&#39;: &#39;#f78e0c&#39;, &#39;linear&#39;: &#39;#d406c6&#39;, &#39;model_debias&#39;: &#39;#6e1868&#39;, &#39;ok&#39;: &#39;#07f72b&#39;, &#39;not checked&#39;: &#39;#f7cf07&#39;, &#39;outlier&#39;: &#39;#f20000&#39;}
+
+  - diurnal:
+
+    -{&#39;figsize&#39;: (10, 10), &#39;alpha_error_bands&#39;: 0.3, &#39;cmap_continious&#39;: &#39;viridis&#39;, &#39;n_cat_max&#39;: 20, &#39;cmap_categorical&#39;: &#39;tab20&#39;, &#39;legend_n_columns&#39;: 5}
+
+  - anual:
+
+    -{&#39;figsize&#39;: (10, 10), &#39;alpha_error_bands&#39;: 0.3, &#39;cmap_continious&#39;: &#39;viridis&#39;, &#39;n_cat_max&#39;: 20, &#39;cmap_categorical&#39;: &#39;tab20&#39;, &#39;legend_n_columns&#39;: 5}
+
+  - correlation_heatmap:
+
+    -{&#39;figsize&#39;: (10, 10), &#39;vmin&#39;: -1, &#39;vmax&#39;: 1, &#39;cmap&#39;: &#39;cool&#39;, &#39;x_tick_rot&#39;: 65, &#39;y_tick_rot&#39;: 0}
+
+  - correlation_scatter:
+
+    -{&#39;figsize&#39;: (10, 10), &#39;p_bins&#39;: [0, 0.001, 0.01, 0.05, 999], &#39;bins_markers&#39;: [&#39;*&#39;, &#39;s&#39;, &#39;^&#39;, &#39;X&#39;], &#39;scatter_size&#39;: 40, &#39;scatter_edge_col&#39;: &#39;black&#39;, &#39;scatter_edge_line_width&#39;: 0.1, &#39;ymin&#39;: -1.1, &#39;ymax&#39;: 1.1, &#39;cmap&#39;: &#39;tab20&#39;, &#39;legend_ncols&#39;: 3, &#39;legend_text_size&#39;: 7}
+
+* world_boundary_map:
+
+  -/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/settings_files/world_boundaries/WB_countries_Admin0_10m.shp
+
+* display_name_mapper:
+
+  - network:
+
+    -network
+
+  - name:
+
+    -station name
+
+  - call_name:
+
+    -pseudo name
+
+  - location:
+
+    -region
+
+  - lat:
+
+    -latitude
+
+  - lon:
+
+    -longtitude
+
+  - temp:
+
+    -temperature
+
+  - radiation_temp:
+
+    -radiation temperature
+
+  - humidity:
+
+    -humidity
+
+  - precip:
+
+    -precipitation intensity
+
+  - precip_sum:
+
+    -cummulated precipitation
+
+  - wind_speed:
+
+    -wind speed
+
+  - wind_gust:
+
+    -wind gust speed
+
+  - wind_direction:
+
+    -wind direction
+
+  - pressure:
+
+    -air pressure
+
+  - pressure_at_sea_level:
+
+    -corrected pressure at sea level
+
+  - lcz:
+
+    -LCZ
+
+* static_fields:
+
+  -[&#39;network&#39;, &#39;name&#39;, &#39;lat&#39;, &#39;lon&#39;, &#39;call_name&#39;, &#39;location&#39;, &#39;lcz&#39;]
+
+* categorical_fields:
+
+  -[&#39;wind_direction&#39;, &#39;lcz&#39;]
+
+* location_info:
+
+  -[&#39;network&#39;, &#39;lat&#39;, &#39;lon&#39;, &#39;lcz&#39;, &#39;call_name&#39;, &#39;location&#39;]
+
+* default_name:
+
+  -unknown_name
+
+ ---------------- qc (settings) ----------------------
+
+* qc_check_settings:
+
+  - duplicated_timestamp:
+
+    -{&#39;keep&#39;: False}
+
+  - persistance:
+
+    -{&#39;temp&#39;: {&#39;time_window_to_check&#39;: &#39;1h&#39;, &#39;min_num_obs&#39;: 5}}
+
+  - repetitions:
+
+    -{&#39;temp&#39;: {&#39;max_valid_repetitions&#39;: 5}}
+
+  - gross_value:
+
+    -{&#39;temp&#39;: {&#39;min_value&#39;: -15.0, &#39;max_value&#39;: 39.0}}
+
+  - window_variation:
+
+    -{&#39;temp&#39;: {&#39;max_increase_per_second&#39;: 0.0022222222222222222, &#39;max_decrease_per_second&#39;: 0.002777777777777778, &#39;time_window_to_check&#39;: &#39;1h&#39;, &#39;min_window_members&#39;: 3}}
+
+  - step:
+
+    -{&#39;temp&#39;: {&#39;max_increase_per_second&#39;: 0.0022222222222222222, &#39;max_decrease_per_second&#39;: -0.002777777777777778}}
+
+  - buddy_check:
+
+    -{&#39;temp&#39;: {&#39;radius&#39;: 15000, &#39;num_min&#39;: 2, &#39;threshold&#39;: 1.5, &#39;max_elev_diff&#39;: 200, &#39;elev_gradient&#39;: -0.0065, &#39;min_std&#39;: 1.0}}
+
+* qc_checks_info:
+
+  - duplicated_timestamp:
+
+    -{&#39;outlier_flag&#39;: &#39;duplicated timestamp outlier&#39;, &#39;numeric_flag&#39;: 1, &#39;apply_on&#39;: &#39;record&#39;}
+
+  - invalid_input:
+
+    -{&#39;outlier_flag&#39;: &#39;invalid input&#39;, &#39;numeric_flag&#39;: 2, &#39;apply_on&#39;: &#39;obstype&#39;}
+
+  - gross_value:
+
+    -{&#39;outlier_flag&#39;: &#39;gross value outlier&#39;, &#39;numeric_flag&#39;: 4, &#39;apply_on&#39;: &#39;obstype&#39;}
+
+  - persistance:
+
+    -{&#39;outlier_flag&#39;: &#39;persistance outlier&#39;, &#39;numeric_flag&#39;: 5, &#39;apply_on&#39;: &#39;obstype&#39;}
+
+  - repetitions:
+
+    -{&#39;outlier_flag&#39;: &#39;repetitions outlier&#39;, &#39;numeric_flag&#39;: 6, &#39;apply_on&#39;: &#39;obstype&#39;}
+
+  - step:
+
+    -{&#39;outlier_flag&#39;: &#39;in step outlier group&#39;, &#39;numeric_flag&#39;: 7, &#39;apply_on&#39;: &#39;obstype&#39;}
+
+  - window_variation:
+
+    -{&#39;outlier_flag&#39;: &#39;in window variation outlier group&#39;, &#39;numeric_flag&#39;: 8, &#39;apply_on&#39;: &#39;obstype&#39;}
+
+  - buddy_check:
+
+    -{&#39;outlier_flag&#39;: &#39;buddy check outlier&#39;, &#39;numeric_flag&#39;: 11, &#39;apply_on&#39;: &#39;obstype&#39;}
+
+  - titan_buddy_check:
+
+    -{&#39;outlier_flag&#39;: &#39;titan buddy check outlier&#39;, &#39;numeric_flag&#39;: 9, &#39;apply_on&#39;: &#39;obstype&#39;}
+
+  - titan_sct_resistant_check:
+
+    -{&#39;outlier_flag&#39;: &#39;sct resistant check outlier&#39;, &#39;numeric_flag&#39;: 10, &#39;apply_on&#39;: &#39;obstype&#39;}
+
+* titan_check_settings:
+
+  - titan_buddy_check:
+
+    -{&#39;temp&#39;: {&#39;radius&#39;: 50000, &#39;num_min&#39;: 2, &#39;threshold&#39;: 1.5, &#39;max_elev_diff&#39;: 200, &#39;elev_gradient&#39;: -0.0065, &#39;min_std&#39;: 1.0, &#39;num_iterations&#39;: 1}}
+
+  - titan_sct_resistant_check:
+
+    -{&#39;temp&#39;: {&#39;num_min_outer&#39;: 3, &#39;num_max_outer&#39;: 10, &#39;inner_radius&#39;: 20000, &#39;outer_radius&#39;: 50000, &#39;num_iterations&#39;: 10, &#39;num_min_prof&#39;: 5, &#39;min_elev_diff&#39;: 100, &#39;min_horizontal_scale&#39;: 250, &#39;max_horizontal_scale&#39;: 100000, &#39;kth_closest_obs_horizontal_scale&#39;: 2, &#39;vertical_scale&#39;: 200, &#39;mina_deviation&#39;: 10, &#39;maxa_deviation&#39;: 10, &#39;minv_deviation&#39;: 1, &#39;maxv_deviation&#39;: 1, &#39;eps2&#39;: 0.5, &#39;tpos&#39;: 5, &#39;tneg&#39;: 8, &#39;basic&#39;: True, &#39;debug&#39;: False}}
+
+* titan_specific_labeler:
+
+  - titan_buddy_check:
+
+    -{&#39;ok&#39;: [0], &#39;outl&#39;: [1]}
+
+  - titan_sct_resistant_check:
+
+    -{&#39;ok&#39;: [0, -999, 11, 12], &#39;outl&#39;: [1]}
+
+ ---------------- gap (settings) ----------------------
+
+* gaps_settings:
+
+  - gaps_finder:
+
+    -{&#39;gapsize_n&#39;: 40}
+
+* gaps_info:
+
+  - gap:
+
+    -{&#39;label_columnname&#39;: &#39;is_gap&#39;, &#39;outlier_flag&#39;: &#39;gap&#39;, &#39;negative_flag&#39;: &#39;no gap&#39;, &#39;numeric_flag&#39;: 12, &#39;apply_on&#39;: &#39;record&#39;}
+
+  - missing_timestamp:
+
+    -{&#39;label_columnname&#39;: &#39;is_missing_timestamp&#39;, &#39;outlier_flag&#39;: &#39;missing timestamp&#39;, &#39;negative flag&#39;: &#39;not missing&#39;, &#39;numeric_flag&#39;: 13, &#39;apply_on&#39;: &#39;record&#39;}
+
+* gaps_fill_settings:
+
+  - linear:
+
+    -{&#39;method&#39;: &#39;time&#39;, &#39;max_consec_fill&#39;: 100}
+
+  - model_debias:
+
+    -{&#39;debias_period&#39;: {&#39;prefered_leading_sample_duration_hours&#39;: 48, &#39;prefered_trailing_sample_duration_hours&#39;: 48, &#39;minimum_leading_sample_duration_hours&#39;: 24, &#39;minimum_trailing_sample_duration_hours&#39;: 24}}
+
+  - automatic:
+
+    -{&#39;max_interpolation_duration_str&#39;: &#39;5H&#39;}
+
+* gaps_fill_info:
+
+  - label_columnname:
+
+    -final_label
+
+  - label:
+
+    -{&#39;linear&#39;: &#39;gap_interpolation&#39;, &#39;model_debias&#39;: &#39;gap_debiased_era5&#39;}
+
+  - numeric_flag:
+
+    -21
+
+ ---------------- missing_obs (settings) ----------------------
+
+* missing_obs_fill_settings:
+
+  - linear:
+
+    -{&#39;method&#39;: &#39;time&#39;}
+
+* missing_obs_fill_info:
+
+  - label_columnname:
+
+    -final_label
+
+  - label:
+
+    -{&#39;linear&#39;: &#39;missing_obs_interpolation&#39;}
+
+  - numeric_flag:
+
+    -23
+
+ ---------------- templates (settings) ----------------------
+
+* template_file:
+
+  -/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/datafiles/demo_templatefile.csv
+
+ ---------------- gee (settings) ----------------------
+
+* gee_dataset_info:
+
+  - global_lcz_map:
+
+    -{&#39;location&#39;: &#39;RUB/RUBCLIM/LCZ/global_lcz_map/v1&#39;, &#39;usage&#39;: &#39;LCZ&#39;, &#39;band_of_use&#39;: &#39;LCZ_Filter&#39;, &#39;value_type&#39;: &#39;categorical&#39;, &#39;dynamical&#39;: False, &#39;scale&#39;: 100, &#39;is_image&#39;: False, &#39;is_imagecollection&#39;: True, &#39;categorical_mapper&#39;: {1: &#39;Compact highrise&#39;, 2: &#39;Compact midrise&#39;, 3: &#39;Compact lowrise&#39;, 4: &#39;Open highrise&#39;, 5: &#39;Open midrise&#39;, 6: &#39;Open lowrise&#39;, 7: &#39;Lightweight lowrise&#39;, 8: &#39;Large lowrise&#39;, 9: &#39;Sparsely built&#39;, 10: &#39;Heavy industry&#39;, 11: &#39;Dense Trees (LCZ A)&#39;, 12: &#39;Scattered Trees (LCZ B)&#39;, 13: &#39;Bush, scrub (LCZ C)&#39;, 14: &#39;Low plants (LCZ D)&#39;, 15: &#39;Bare rock or paved (LCZ E)&#39;, 16: &#39;Bare soil or sand (LCZ F)&#39;, 17: &#39;Water (LCZ G)&#39;}, &#39;credentials&#39;: &#39;Demuzere M.; Kittner J.; Martilli A.; Mills, G.; Moede, C.; Stewart, I.D.; van Vliet, J.; Bechtel, B. A global map of local climate zones to support earth system modelling and urban-scale environmental science. Earth System Science Data 2022, 14 Volume 8: 3835-3873. doi:10.5194/essd-14-3835-2022&#39;}
+
+  - DEM:
+
+    -{&#39;location&#39;: &#39;CGIAR/SRTM90_V4&#39;, &#39;usage&#39;: &#39;elevation&#39;, &#39;band_of_use&#39;: &#39;elevation&#39;, &#39;value_type&#39;: &#39;numeric&#39;, &#39;dynamical&#39;: False, &#39;scale&#39;: 100, &#39;is_image&#39;: True, &#39;is_imagecollection&#39;: False, &#39;credentials&#39;: &#39;SRTM Digital Elevation Data Version 4&#39;}
+
+  - ERA5_hourly:
+
+    -{&#39;location&#39;: &#39;ECMWF/ERA5_LAND/HOURLY&#39;, &#39;usage&#39;: &#39;ERA5&#39;, &#39;band_of_use&#39;: {&#39;temp&#39;: {&#39;name&#39;: &#39;temperature_2m&#39;, &#39;units&#39;: &#39;K&#39;}}, &#39;value_type&#39;: &#39;numeric&#39;, &#39;dynamical&#39;: True, &#39;scale&#39;: 2500, &#39;is_image&#39;: False, &#39;is_imagecollection&#39;: True, &#39;time_res&#39;: &#39;1H&#39;, &#39;credentials&#39;: &#39;&#39;}
+
+  - worldcover:
+
+    -{&#39;location&#39;: &#39;ESA/WorldCover/v200&#39;, &#39;usage&#39;: &#39;landcover&#39;, &#39;band_of_use&#39;: &#39;Map&#39;, &#39;value_type&#39;: &#39;categorical&#39;, &#39;dynamical&#39;: False, &#39;scale&#39;: 10, &#39;is_image&#39;: False, &#39;is_imagecollection&#39;: True, &#39;categorical_mapper&#39;: {10: &#39;Tree cover&#39;, 20: &#39;Shrubland&#39;, 30: &#39;Grassland&#39;, 40: &#39;Cropland&#39;, 50: &#39;Built-up&#39;, 60: &#39;Bare / sparse vegetation&#39;, 70: &#39;Snow and ice&#39;, 80: &#39;Permanent water bodies&#39;, 90: &#39;Herbaceous wetland&#39;, 95: &#39;Mangroves&#39;, 100: &#39;Moss and lichen&#39;}, &#39;aggregation&#39;: {&#39;water&#39;: [70, 80, 90, 95], &#39;pervious&#39;: [10, 20, 30, 40, 60, 100], &#39;impervious&#39;: [50]}, &#39;colorscheme&#39;: {10: &#39;006400&#39;, 20: &#39;ffbb22&#39;, 30: &#39;ffff4c&#39;, 40: &#39;f096ff&#39;, 50: &#39;fa0000&#39;, 60: &#39;b4b4b4&#39;, 70: &#39;f0f0f0&#39;, 80: &#39;0064c8&#39;, 90: &#39;0096a0&#39;, 95: &#39;00cf75&#39;, 100: &#39;fae6a0&#39;}, &#39;credentials&#39;: &#39;https://spdx.org/licenses/CC-BY-4.0.html&#39;}
+
+</pre></div></div>
+</div>
+<p>Use the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset_settings_updater.Dataset.update_qc_settings">update_qc_settings()</a> method to update the default settings.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">update_qc_settings</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                                <span class="n">gross_value_max_value</span><span class="o">=</span><span class="mf">26.3</span><span class="p">,</span>
+                                <span class="n">persis_time_win_to_check</span><span class="o">=</span><span class="s1">&#39;30T&#39;</span> <span class="c1">#30 minutes</span>
+                                <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>To apply the quality control on the full dataset use the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.apply_quality_control">apply_quality_control()</a> method. Spatial quality control checks can be applied by using the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.apply_buddy_check">apply_buddy_check()</a>,
+<a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.apply_titan_buddy_check">apply_titan_buddy_check()</a> and <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.apply_titan_sct_resistant_check">apply_titan_sct_resistant_check()</a> methods.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">apply_quality_control</span><span class="p">(</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>  <span class="c1"># which observations to check</span>
+        <span class="n">gross_value</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># apply gross_value check?</span>
+        <span class="n">persistance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># apply persistence check?</span>
+        <span class="n">step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># apply the step check?</span>
+        <span class="n">window_variation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># apply internal consistency check?</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Use the dataset.show() or the time series plot methods to see the effect of the quality control.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span> <span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur for all stations. &#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_qc_example_11_1.png" src="../_images/examples_qc_example_11_1.png" />
+</div>
+</div>
+<p>If you are interested in the performance of the applied QC, you can use the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.apply_titan_sct_resistant_check">get_qc_stats()</a> method to get an overview of the frequency statistics.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_qc_stats</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span> <span class="n">make_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_qc_example_13_0.png" src="../_images/examples_qc_example_13_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+({&#39;ok&#39;: 64.28984788359789,
+  &#39;QC outliers&#39;: 35.707671957671955,
+  &#39;missing (gaps)&#39;: 0.0,
+  &#39;missing (individual)&#39;: 0.00248015873015873},
+ {&#39;repetitions outlier&#39;: 29.658564814814813,
+  &#39;gross value outlier&#39;: 4.869378306878307,
+  &#39;persistance outlier&#39;: 1.0085978835978835,
+  &#39;in step outlier group&#39;: 0.17113095238095238,
+  &#39;duplicated timestamp outlier&#39;: 0.0,
+  &#39;invalid input&#39;: 0.0,
+  &#39;in window variation outlier group&#39;: 0.0,
+  &#39;buddy check outlier&#39;: 0.0,
+  &#39;titan buddy check outlier&#39;: 0.0,
+  &#39;sct resistant check outlier&#39;: 0.0},
+ {&#39;duplicated_timestamp&#39;: {&#39;not checked&#39;: 0.0, &#39;ok&#39;: 100.0, &#39;outlier&#39;: 0.0},
+  &#39;invalid_input&#39;: {&#39;not checked&#39;: 0.0, &#39;ok&#39;: 100.0, &#39;outlier&#39;: 0.0},
+  &#39;repetitions&#39;: {&#39;not checked&#39;: 0.0,
+   &#39;ok&#39;: 70.34143518518519,
+   &#39;outlier&#39;: 29.658564814814813},
+  &#39;gross_value&#39;: {&#39;not checked&#39;: 29.658564814814813,
+   &#39;ok&#39;: 65.47205687830689,
+   &#39;outlier&#39;: 4.869378306878307},
+  &#39;persistance&#39;: {&#39;not checked&#39;: 34.52794312169312,
+   &#39;ok&#39;: 64.46345899470899,
+   &#39;outlier&#39;: 1.0085978835978835},
+  &#39;step&#39;: {&#39;not checked&#39;: 35.53654100529101,
+   &#39;ok&#39;: 64.29232804232805,
+   &#39;outlier&#39;: 0.17113095238095238},
+  &#39;window_variation&#39;: {&#39;not checked&#39;: 35.707671957671955,
+   &#39;ok&#39;: 64.29232804232805,
+   &#39;outlier&#39;: 0.0},
+  &#39;buddy_check&#39;: {&#39;not checked&#39;: 100.0, &#39;ok&#39;: 0.0, &#39;outlier&#39;: 0.0},
+  &#39;titan_buddy_check&#39;: {&#39;not checked&#39;: 100.0, &#39;ok&#39;: 0.0, &#39;outlier&#39;: 0.0},
+  &#39;titan_sct_resistant_check&#39;: {&#39;not checked&#39;: 100.0,
+   &#39;ok&#39;: 0.0,
+   &#39;outlier&#39;: 0.0},
+  &#39;is_gap&#39;: {&#39;not checked&#39;: 0, &#39;ok&#39;: 100.0, &#39;outlier&#39;: 0.0},
+  &#39;is_missing_timestamp&#39;: {&#39;not checked&#39;: 0,
+   &#39;ok&#39;: 99.99751984126983,
+   &#39;outlier&#39;: 0.00248015873015873}})
+</pre></div></div>
+</div>
+</section>
+<section id="Quality-control-exercise">
+<h2>Quality control exercise<a class="headerlink" href="#Quality-control-exercise" title="Link to this heading"></a></h2>
+<p>For a more detailed reference you can use this <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/examples/Quality_control_excercise_02.ipynb">Quality control exercise</a>, which was created in the context of the <a class="reference external" href="https://www.cost.eu/actions/CA20108/">COST FAIRNESS</a> summer school 2023 in Ghent.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="gee_example.html" class="btn btn-neutral float-left" title="Demo example: Using a Google Earth engine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="filling_example.html" class="btn btn-neutral float-right" title="Demo example: filling gaps and missing observations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

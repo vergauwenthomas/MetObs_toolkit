@@ -1,0 +1,6 @@
+metobs\_toolkit.df\_helpers.fmt\_datetime\_argument
+===================================================
+
+.. currentmodule:: metobs_toolkit.df_helpers
+
+.. autofunction:: fmt_datetime_argument

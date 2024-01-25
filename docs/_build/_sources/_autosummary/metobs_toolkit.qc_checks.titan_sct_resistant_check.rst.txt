@@ -1,0 +1,6 @@
+metobs\_toolkit.qc\_checks.titan\_sct\_resistant\_check
+=======================================================
+
+.. currentmodule:: metobs_toolkit.qc_checks
+
+.. autofunction:: titan_sct_resistant_check

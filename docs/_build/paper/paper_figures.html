@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JOSS publication figures creator &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/nbsphinx-code-cells.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MetObs toolkit Documentation for Users" href="../MetObs_documentation.html" />
+    <link rel="prev" title="JOSS publication" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">JOSS publication</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#about-joss">About JOSS</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#joss-paper">JOSS paper</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">JOSS publication figures creator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Creation-of-the-Dataset">Creation of the Dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Styling-settings">Styling settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Timeseries-for-each-station">Timeseries for each station</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Timeseries-with-quality-control-labels">Timeseries with quality control labels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Fill-gaps-and-plot-timeseries-of-Vlinder28">Fill gaps and plot timeseries of Vlinder28</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Diurnal-Analysis">Diurnal Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Interactive-spatial">Interactive spatial</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">JOSS publication</a></li>
+      <li class="breadcrumb-item active">JOSS publication figures creator</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/paper/paper_figures.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="JOSS-publication-figures-creator">
+<h1>JOSS publication figures creator<a class="headerlink" href="#JOSS-publication-figures-creator" title="Link to this heading"></a></h1>
+<p>This script will create the figures that are used in the JOSS publication of the Metob-toolkit.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+<br/></pre></div>
+</div>
+</div>
+<section id="Creation-of-the-Dataset">
+<h2>Creation of the Dataset<a class="headerlink" href="#Creation-of-the-Dataset" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">datadf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+<span class="n">metadf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+<span class="c1"># Subset to regio ghent</span>
+<span class="n">ghent_stations</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;vlinder24&#39;</span><span class="p">,</span> <span class="s1">&#39;vlinder25&#39;</span><span class="p">,</span> <span class="s1">&#39;vlinder05&#39;</span><span class="p">,</span> <span class="s1">&#39;vlinder27&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;vlinder02&#39;</span><span class="p">,</span> <span class="s1">&#39;vlinder01&#39;</span><span class="p">,</span> <span class="s1">&#39;vlinder28&#39;</span><span class="p">]</span>
+
+
+<span class="n">datadf</span> <span class="o">=</span> <span class="n">datadf</span><span class="p">[</span><span class="n">datadf</span><span class="p">[</span><span class="s1">&#39;Vlinder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">ghent_stations</span><span class="p">)]</span>
+<span class="n">metadf</span> <span class="o">=</span> <span class="n">metadf</span><span class="p">[</span><span class="n">metadf</span><span class="p">[</span><span class="s1">&#39;Vlinder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">ghent_stations</span><span class="p">)]</span>
+
+<span class="c1"># subset period</span>
+<span class="n">datadf</span><span class="p">[</span><span class="s1">&#39;dummy_dt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datadf</span><span class="p">[</span><span class="s1">&#39;Datum&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">datadf</span><span class="p">[</span><span class="s1">&#39;Tijd (UTC)&#39;</span><span class="p">]</span>
+<span class="n">datadf</span><span class="p">[</span><span class="s1">&#39;dummy_dt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">datadf</span><span class="p">[</span><span class="s1">&#39;dummy_dt&#39;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">%H:%M:%S&#39;</span><span class="p">)</span>
+
+<span class="c1">#Subset to period</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="n">startdt</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">enddt</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">datadf</span> <span class="o">=</span> <span class="n">datadf</span><span class="p">[(</span><span class="n">datadf</span><span class="p">[</span><span class="s1">&#39;dummy_dt&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">startdt</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">datadf</span><span class="p">[</span><span class="s1">&#39;dummy_dt&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">enddt</span><span class="p">)]</span>
+<span class="n">datadf</span> <span class="o">=</span> <span class="n">datadf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dummy_dt&#39;</span><span class="p">])</span>
+
+<span class="c1"># Inducing outliers as demo</span>
+<span class="n">datadf</span> <span class="o">=</span> <span class="n">datadf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">datadf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">180</span><span class="p">:</span><span class="mi">200</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+<span class="c1"># save in paper folder</span>
+<span class="n">folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="n">datadf</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s1">&#39;datafile.csv&#39;</span><span class="p">))</span>
+<span class="n">metadf</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s1">&#39;metadatafile.csv&#39;</span><span class="p">))</span>
+
+<span class="c1">#Importing raw data</span>
+<span class="n">use_dataset</span> <span class="o">=</span> <span class="s1">&#39;paper_dataset&#39;</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span><span class="n">output_folder</span><span class="o">=</span><span class="n">folder</span><span class="p">,</span>
+                        <span class="n">input_data_file</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s1">&#39;datafile.csv&#39;</span><span class="p">),</span>
+                        <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s1">&#39;metadatafile.csv&#39;</span><span class="p">),</span>
+                        <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+<span class="n">dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Styling-settings">
+<h2>Styling settings<a class="headerlink" href="#Styling-settings" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># change color for printing (avoid yellow!)</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s1">&#39;plot_settings&#39;</span><span class="p">][</span><span class="s1">&#39;color_mapper&#39;</span><span class="p">][</span><span class="s1">&#39;gross_value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;#fc0303&quot;</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Timeseries-for-each-station">
+<h2>Timeseries for each station<a class="headerlink" href="#Timeseries-for-each-station" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#1. Coarsen resolution and apply quality control with non-defaults as demonstration</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">coarsen_time_resolution</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="s1">&#39;20T&#39;</span><span class="p">)</span>
+
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">make_plot</span><span class="p">()</span>
+
+<span class="c1">#translate axes</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Temperature for all stations&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;T2m in °C&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/paper_paper_figures_7_0.png" src="../_images/paper_paper_figures_7_0.png" />
+</div>
+</div>
+</section>
+<section id="Timeseries-with-quality-control-labels">
+<h2>Timeseries with quality control labels<a class="headerlink" href="#Timeseries-with-quality-control-labels" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#update QC settings</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">update_qc_settings</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span> <span class="n">gapsize_in_records</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">dupl_timestamp_keep</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">persis_time_win_to_check</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">persis_min_num_obs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">rep_max_valid_repetitions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">gross_value_min_value</span><span class="o">=</span><span class="mf">10.7</span><span class="p">,</span>
+                           <span class="n">gross_value_max_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">win_var_max_increase_per_sec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">win_var_max_decrease_per_sec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">win_var_time_win_to_check</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">win_var_min_num_obs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">step_max_increase_per_sec</span><span class="o">=</span><span class="mf">5.</span><span class="o">/</span><span class="mf">3600.</span><span class="p">,</span>
+                           <span class="n">step_max_decrease_per_sec</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="n">dataset</span><span class="o">.</span><span class="n">update_titan_qc_settings</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span> <span class="n">buddy_radius</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                                   <span class="n">buddy_num_min</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">buddy_threshold</span><span class="o">=</span><span class="mf">2.2</span><span class="p">,</span>
+                                   <span class="n">buddy_max_elev_diff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">buddy_elev_gradient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">buddy_min_std</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                   <span class="n">buddy_num_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">buddy_debug</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="n">dataset</span><span class="o">.</span><span class="n">apply_quality_control</span><span class="p">()</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">apply_titan_buddy_check</span><span class="p">(</span><span class="n">use_constant_altitude</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Create the plot</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+<span class="c1">#translate axes</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Temperature for all stations&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;T2m in °C&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+buddy radius for the TITAN buddy check updated:  50000--&gt; 10000.0
+buddy num min for the TITAN buddy check updated:  2--&gt; 3
+buddy threshold for the TITAN buddy check updated:  1.5--&gt; 2.2
+buddy min std for the TITAN buddy check updated:  1.0--&gt; 1.0
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/paper_paper_figures_9_1.png" src="../_images/paper_paper_figures_9_1.png" />
+</div>
+</div>
+</section>
+<section id="Fill-gaps-and-plot-timeseries-of-Vlinder28">
+<h2>Fill gaps and plot timeseries of Vlinder28<a class="headerlink" href="#Fill-gaps-and-plot-timeseries-of-Vlinder28" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Update gaps and missing from outliers</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">update_gaps_and_missing_from_outliers</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span> <span class="n">n_gapsize</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+
+<span class="c1"># 2. update settings</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">update_gap_and_missing_fill_settings</span><span class="p">(</span><span class="n">gap_interpolation_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                             <span class="n">gap_interpolation_max_consec_fill</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                             <span class="n">gap_debias_prefered_leading_period_hours</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+                                             <span class="n">gap_debias_prefered_trailing_period_hours</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                             <span class="n">gap_debias_minimum_leading_period_hours</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+                                             <span class="n">gap_debias_minimum_trailing_period_hours</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                             <span class="n">automatic_max_interpolation_duration_str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                             <span class="n">missing_obs_interpolation_method</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="c1"># 3. Get modeldata</span>
+
+<span class="n">era5</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
+                      <span class="n">modeldata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                      <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s1">&#39;era.pkl&#39;</span><span class="p">)):</span>
+    <span class="n">era5</span><span class="o">.</span><span class="n">save_modeldata</span><span class="p">(</span><span class="n">outputfolder</span><span class="o">=</span><span class="n">folder</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;era.pkl&#39;</span><span class="p">)</span>
+
+
+<span class="n">dummy_mod</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Modeldata</span><span class="p">(</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">)</span>
+<span class="n">era5</span> <span class="o">=</span> <span class="n">dummy_mod</span><span class="o">.</span><span class="n">import_modeldata</span><span class="p">(</span><span class="n">folder_path</span><span class="o">=</span><span class="n">folder</span><span class="p">,</span>
+                                  <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;era.pkl&#39;</span><span class="p">)</span>
+
+<span class="c1"># 4. convert units of model</span>
+<span class="n">era5</span><span class="o">.</span><span class="n">convert_units_to_tlk</span><span class="p">(</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+
+<span class="c1"># 5. fill missing obs</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">fill_missing_obs_linear</span><span class="p">()</span>
+
+<span class="c1"># 6. fill gaps</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">fill_gaps_era5</span><span class="p">(</span><span class="n">era5</span><span class="p">)</span>
+
+<span class="c1"># 7. Make plot (of single station for clearity)</span>
+<span class="n">ax3</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder28&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+
+<span class="c1">#translate axes</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Temperature for vlinder28&#39;</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;T2m in °C&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is ERA5_hourly)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/paper_paper_figures_11_1.png" src="../_images/paper_paper_figures_11_1.png" />
+</div>
+</div>
+</section>
+<section id="Diurnal-Analysis">
+<h2>Diurnal Analysis<a class="headerlink" href="#Diurnal-Analysis" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># Get Meta data</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">get_landcover</span><span class="p">(</span><span class="n">buffers</span><span class="o">=</span><span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">500</span><span class="p">],</span> <span class="n">aggregate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Create analysis from the dataset</span>
+<span class="n">ana</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_analysis</span><span class="p">(</span><span class="n">add_gapfilled_values</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Make diurnal cycle analysis with plot</span>
+<span class="n">ax4</span> <span class="o">=</span> <span class="n">ana</span><span class="o">.</span><span class="n">get_diurnal_statistics</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                                 <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                                 <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                 <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                 <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Hourly average temperature diurnal cycle&#39;</span><span class="p">,</span>
+                                 <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                 <span class="n">errorbands</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">_return_all_stats</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/paper_paper_figures_13_0.png" src="../_images/paper_paper_figures_13_0.png" />
+</div>
+</div>
+</section>
+<section id="Interactive-spatial">
+<h2>Interactive spatial<a class="headerlink" href="#Interactive-spatial" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dataset</span><span class="o">.</span><span class="n">make_gee_plot</span><span class="p">(</span><span class="n">gee_map</span><span class="o">=</span><span class="s1">&#39;worldcover&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+
+    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
+
+        &lt;script&gt;
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        &lt;/script&gt;
+
+    &lt;style&gt;html, body {width: 100%;height: 100%;margin: 0;padding: 0;}&lt;/style&gt;
+    &lt;style&gt;#map {position:absolute;top:0;bottom:0;right:0;left:0;}&lt;/style&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;
+
+            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
+            &lt;style&gt;
+                #map_07be6c64fabad617b8db5ec77d68227b {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            &lt;/style&gt;
+
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.min.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.css&quot;/&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.css&quot;/&gt;
+    &lt;script src=&quot;https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css&quot;/&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_07be6c64fabad617b8db5ec77d68227b&quot; &gt;&lt;/div&gt;
+
+
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+  &lt;title&gt;jQuery UI Draggable - Default functionality&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css&quot;&gt;
+
+  &lt;script src=&quot;https://code.jquery.com/jquery-1.12.4.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;https://code.jquery.com/ui/1.12.1/jquery-ui.js&quot;&gt;&lt;/script&gt;
+
+  &lt;script&gt;
+  $( function() {
+    $( &quot;#maplegend&quot; ).draggable({
+                    start: function (event, ui) {
+                        $(this).css({
+                            right: &quot;auto&quot;,
+                            top: &quot;auto&quot;,
+                            bottom: &quot;auto&quot;
+                        });
+                    }
+                });
+});
+
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+
+&lt;div id=&#x27;maplegend&#x27; class=&#x27;maplegend&#x27;
+    style=&#x27;position: absolute; z-index:9999; border:2px solid grey; background-color:rgba(255, 255, 255, 0.8);
+     border-radius:6px; padding: 10px; font-size:14px; right: 20px; bottom: 20px;&#x27;&gt;
+
+&lt;div class=&#x27;legend-title&#x27;&gt;worldcover covers&lt;/div&gt;
+&lt;div class=&#x27;legend-scale&#x27;&gt;
+  &lt;ul class=&#x27;legend-labels&#x27;&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#006400;opacity:1.0;&#x27;&gt;&lt;/span&gt;Tree cover&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#ffbb22;opacity:1.0;&#x27;&gt;&lt;/span&gt;Shrubland&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#ffff4c;opacity:1.0;&#x27;&gt;&lt;/span&gt;Grassland&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#f096ff;opacity:1.0;&#x27;&gt;&lt;/span&gt;Cropland&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#fa0000;opacity:1.0;&#x27;&gt;&lt;/span&gt;Built-up&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#b4b4b4;opacity:1.0;&#x27;&gt;&lt;/span&gt;Bare / sparse vegetation&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#f0f0f0;opacity:1.0;&#x27;&gt;&lt;/span&gt;Snow and ice&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#0064c8;opacity:1.0;&#x27;&gt;&lt;/span&gt;Permanent water bodies&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#0096a0;opacity:1.0;&#x27;&gt;&lt;/span&gt;Herbaceous wetland&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#00cf75;opacity:1.0;&#x27;&gt;&lt;/span&gt;Mangroves&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#fae6a0;opacity:1.0;&#x27;&gt;&lt;/span&gt;Moss and lichen&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+&lt;style type=&#x27;text/css&#x27;&gt;
+  .maplegend .legend-title {
+    text-align: left;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 90%;
+    }
+  .maplegend .legend-scale ul {
+    margin: 0;
+    margin-bottom: 5px;
+    padding: 0;
+    float: left;
+    list-style: none;
+    }
+  .maplegend .legend-scale ul li {
+    font-size: 80%;
+    list-style: none;
+    margin-left: 0;
+    line-height: 18px;
+    margin-bottom: 2px;
+    }
+  .maplegend ul.legend-labels li span {
+    display: block;
+    float: left;
+    height: 16px;
+    width: 30px;
+    margin-right: 5px;
+    margin-left: 0;
+    border: 1px solid #999;
+    }
+  .maplegend .legend-source {
+    font-size: 80%;
+    color: #777;
+    clear: both;
+    }
+  .maplegend a {
+    color: #777;
+    }
+&lt;/style&gt;
+
+&lt;/body&gt;
+&lt;script&gt;
+
+
+            var map_07be6c64fabad617b8db5ec77d68227b = L.map(
+                &quot;map_07be6c64fabad617b8db5ec77d68227b&quot;,
+                {
+                    center: [20.0, 0.0],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 2,
+                    zoomControl: true,
+                    preferCanvas: false,
+                    eeInitialize: true,
+                    addGoogleMap: true,
+                    pluginLatlngpopup: false,
+                    pluginFullscreen: true,
+                    pluginDraw: true,
+                    DrawExport: false,
+                    pluginMinimap: false,
+                    locateControl: false,
+                    searchControl: true,
+                    layersControl: true,
+                }
+            );
+
+
+
+
+
+            var tile_layer_a644c34c6ec19788a9b790bc02e97392 = L.tileLayer(
+                &quot;https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
+                {&quot;attribution&quot;: &quot;Data by \u0026copy; \u003ca target=\&quot;_blank\&quot; href=\&quot;http://openstreetmap.org\&quot;\u003eOpenStreetMap\u003c/a\u003e, under \u003ca target=\&quot;_blank\&quot; href=\&quot;http://www.openstreetmap.org/copyright\&quot;\u003eODbL\u003c/a\u003e.&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 30, &quot;maxZoom&quot;: 30, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+                tile_layer_a644c34c6ec19788a9b790bc02e97392.addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+            var tile_layer_29f469ea9fee1ac228e8bfbe704be786 = L.tileLayer(
+                &quot;https://mt1.google.com/vt/lyrs=m\u0026x={x}\u0026y={y}\u0026z={z}&quot;,
+                {&quot;attribution&quot;: &quot;Google&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 22, &quot;maxZoom&quot;: 22, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+                tile_layer_29f469ea9fee1ac228e8bfbe704be786.addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+            L.control.fullscreen(
+                {&quot;forceSeparateButton&quot;: false, &quot;position&quot;: &quot;topleft&quot;, &quot;title&quot;: &quot;Full Screen&quot;, &quot;titleCancel&quot;: &quot;Exit Full Screen&quot;}
+            ).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+            var options = {
+              position: &quot;topleft&quot;,
+              draw: {},
+              edit: {},
+            }
+            // FeatureGroup is to store editable layers.
+            var drawnItems_draw_control_cf15654f725f4560cf828c65406abaf4 = new L.featureGroup().addTo(
+                map_07be6c64fabad617b8db5ec77d68227b
+            );
+            options.edit.featureGroup = drawnItems_draw_control_cf15654f725f4560cf828c65406abaf4;
+            var draw_control_cf15654f725f4560cf828c65406abaf4 = new L.Control.Draw(
+                options
+            ).addTo( map_07be6c64fabad617b8db5ec77d68227b );
+            map_07be6c64fabad617b8db5ec77d68227b.on(L.Draw.Event.CREATED, function(e) {
+                var layer = e.layer,
+                    type = e.layerType;
+                var coords = JSON.stringify(layer.toGeoJSON());
+                layer.on(&#x27;click&#x27;, function() {
+                    alert(coords);
+                    console.log(coords);
+                });
+                drawnItems_draw_control_cf15654f725f4560cf828c65406abaf4.addLayer(layer);
+             });
+            map_07be6c64fabad617b8db5ec77d68227b.on(&#x27;draw:created&#x27;, function(e) {
+                drawnItems_draw_control_cf15654f725f4560cf828c65406abaf4.addLayer(e.layer);
+            });
+
+
+
+            L.Control.geocoder(
+                {&quot;collapsed&quot;: true, &quot;defaultMarkGeocode&quot;: true, &quot;position&quot;: &quot;topleft&quot;}
+            ).on(&#x27;markgeocode&#x27;, function(e) {
+                map_07be6c64fabad617b8db5ec77d68227b.setView(e.geocode.center, 11);
+            }).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+
+            map_07be6c64fabad617b8db5ec77d68227b.fitBounds(
+                [[20, 0], [20, 0]],
+                {&quot;maxZoom&quot;: 2}
+            );
+
+
+            var tile_layer_a9367723cf7a02ee71baa465e8e269d8 = L.tileLayer(
+                &quot;https://mt1.google.com/vt/lyrs=s\u0026x={x}\u0026y={y}\u0026z={z}&quot;,
+                {&quot;attribution&quot;: &quot;Google&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 22, &quot;maxZoom&quot;: 22, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+                tile_layer_a9367723cf7a02ee71baa465e8e269d8.addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+            var tile_layer_a5b19658dbfe47c4e156faa6e173745a = L.tileLayer(
+                &quot;https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/09c6cbfba515fe96a3231dccfee7e816-e23d5004c771ccd76cfcc91313562150/tiles/{z}/{x}/{y}&quot;,
+                {&quot;attribution&quot;: &quot;Google Earth Engine&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 24, &quot;maxZoom&quot;: 24, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1.0, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+                tile_layer_a5b19658dbfe47c4e156faa6e173745a.addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+            var marker_e1d5320da6d915dd68c6c0e5d043756b = L.marker(
+                [50.980438, 3.815763],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+        var popup_812a29a7d0da60db8c5c7031095d920a = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_5dbfbf7f06590ee38db9d9bbbd5aee42 = $(`&lt;div id=&quot;html_5dbfbf7f06590ee38db9d9bbbd5aee42&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder01&lt;/div&gt;`)[0];
+                popup_812a29a7d0da60db8c5c7031095d920a.setContent(html_5dbfbf7f06590ee38db9d9bbbd5aee42);
+
+
+
+        marker_e1d5320da6d915dd68c6c0e5d043756b.bindPopup(popup_812a29a7d0da60db8c5c7031095d920a)
+        ;
+
+
+
+
+            var marker_343fb0895611d3783a98363b57cc27fd = L.marker(
+                [51.022379, 3.709695],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+        var popup_f47f97c6ee0c2d05bf03176dadf2c2dd = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_872e7028d4f7efef5d274d19ed92cbcd = $(`&lt;div id=&quot;html_872e7028d4f7efef5d274d19ed92cbcd&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder02&lt;/div&gt;`)[0];
+                popup_f47f97c6ee0c2d05bf03176dadf2c2dd.setContent(html_872e7028d4f7efef5d274d19ed92cbcd);
+
+
+
+        marker_343fb0895611d3783a98363b57cc27fd.bindPopup(popup_f47f97c6ee0c2d05bf03176dadf2c2dd)
+        ;
+
+
+
+
+            var marker_9cdd9015ea6c5ca1dee089fcce320c6a = L.marker(
+                [51.052655, 3.675183],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+        var popup_bba9263e878c6e373e6b69445affee2f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_f469a60859c2b982d604372c47fb1e3e = $(`&lt;div id=&quot;html_f469a60859c2b982d604372c47fb1e3e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder05&lt;/div&gt;`)[0];
+                popup_bba9263e878c6e373e6b69445affee2f.setContent(html_f469a60859c2b982d604372c47fb1e3e);
+
+
+
+        marker_9cdd9015ea6c5ca1dee089fcce320c6a.bindPopup(popup_bba9263e878c6e373e6b69445affee2f)
+        ;
+
+
+
+
+            var marker_c975fa982a257601e0abfcd89eb418cd = L.marker(
+                [51.167015, 3.572062],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+        var popup_e3e01e063c021603f9a970095bdab4a9 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_78bf8b2cf38236385063e84947c31c2b = $(`&lt;div id=&quot;html_78bf8b2cf38236385063e84947c31c2b&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder24&lt;/div&gt;`)[0];
+                popup_e3e01e063c021603f9a970095bdab4a9.setContent(html_78bf8b2cf38236385063e84947c31c2b);
+
+
+
+        marker_c975fa982a257601e0abfcd89eb418cd.bindPopup(popup_e3e01e063c021603f9a970095bdab4a9)
+        ;
+
+
+
+
+            var marker_b1c081f9b7927a1d00df3c8161ca9490 = L.marker(
+                [51.15472, 3.708611],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+        var popup_8eb64929646b69b3707898bb552b99a3 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_3f8a50bf27a1373a03fd9fa6c1a4ed2e = $(`&lt;div id=&quot;html_3f8a50bf27a1373a03fd9fa6c1a4ed2e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder25&lt;/div&gt;`)[0];
+                popup_8eb64929646b69b3707898bb552b99a3.setContent(html_3f8a50bf27a1373a03fd9fa6c1a4ed2e);
+
+
+
+        marker_b1c081f9b7927a1d00df3c8161ca9490.bindPopup(popup_8eb64929646b69b3707898bb552b99a3)
+        ;
+
+
+
+
+            var marker_de1abbbeb06b7b8db507a059a6acbfba = L.marker(
+                [51.058099, 3.728067],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+        var popup_d0937d16ad7d4331d284c86657783fa6 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_48d99896e2d074fbe2bef2c571350456 = $(`&lt;div id=&quot;html_48d99896e2d074fbe2bef2c571350456&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder27&lt;/div&gt;`)[0];
+                popup_d0937d16ad7d4331d284c86657783fa6.setContent(html_48d99896e2d074fbe2bef2c571350456);
+
+
+
+        marker_de1abbbeb06b7b8db507a059a6acbfba.bindPopup(popup_d0937d16ad7d4331d284c86657783fa6)
+        ;
+
+
+
+
+            var marker_8faac85fdcd5bbda0b53bfcbaffd5b9d = L.marker(
+                [51.035293, 3.769741],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+        var popup_5f570573f1fba78ca6b2801184d5ccbd = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_ebfcb6708570de2a21f525c2e8b25d97 = $(`&lt;div id=&quot;html_ebfcb6708570de2a21f525c2e8b25d97&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder28&lt;/div&gt;`)[0];
+                popup_5f570573f1fba78ca6b2801184d5ccbd.setContent(html_ebfcb6708570de2a21f525c2e8b25d97);
+
+
+
+        marker_8faac85fdcd5bbda0b53bfcbaffd5b9d.bindPopup(popup_5f570573f1fba78ca6b2801184d5ccbd)
+        ;
+
+
+
+
+            var layer_control_997af9c659b44ed34dbc2b661da58b05_layers = {
+                base_layers : {
+                    &quot;openstreetmap&quot; : tile_layer_a644c34c6ec19788a9b790bc02e97392,
+                },
+                overlays :  {
+                    &quot;Google Maps&quot; : tile_layer_29f469ea9fee1ac228e8bfbe704be786,
+                    &quot;Google Satellite&quot; : tile_layer_a9367723cf7a02ee71baa465e8e269d8,
+                    &quot;worldcover&quot; : tile_layer_a5b19658dbfe47c4e156faa6e173745a,
+                },
+            };
+            let layer_control_997af9c659b44ed34dbc2b661da58b05 = L.control.layers(
+                layer_control_997af9c659b44ed34dbc2b661da58b05_layers.base_layers,
+                layer_control_997af9c659b44ed34dbc2b661da58b05_layers.overlays,
+                {&quot;autoZIndex&quot;: true, &quot;collapsed&quot;: true, &quot;position&quot;: &quot;topright&quot;}
+            ).addTo(map_07be6c64fabad617b8db5ec77d68227b);
+
+
+&lt;/script&gt;
+&lt;/html&gt;" width="100%" height="600"style="border:none !important;" "allowfullscreen" "webkitallowfullscreen" "mozallowfullscreen"></iframe></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="JOSS publication" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../MetObs_documentation.html" class="btn btn-neutral float-right" title="MetObs toolkit Documentation for Users" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

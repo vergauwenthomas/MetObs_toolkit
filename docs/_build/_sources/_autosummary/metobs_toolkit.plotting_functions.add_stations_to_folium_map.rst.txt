@@ -1,0 +1,6 @@
+metobs\_toolkit.plotting\_functions.add\_stations\_to\_folium\_map
+==================================================================
+
+.. currentmodule:: metobs_toolkit.plotting_functions
+
+.. autofunction:: add_stations_to_folium_map

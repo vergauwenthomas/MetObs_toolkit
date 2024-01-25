@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples/index.html" />
+    <link rel="prev" title="Welcome to MetObs-Toolkit’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-install">How to install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-use-this-toolkit">How to use this toolkit</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dataset">Dataset()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#station">Station()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis">Analysis()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#modeldata">Modeldata()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#settings">Settings()</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#schematic-overview">Schematic overview</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Introduction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
+<p>This package is designed for handling meteorological observations for urban or non-traditional networks. It includes tools to clean up and analyze your data.</p>
+<section id="how-to-install">
+<h2>How to install<a class="headerlink" href="#how-to-install" title="Link to this heading"></a></h2>
+<p>To use the package python 3.9 or higher is required.
+To install the package one can use pip:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip3 install metobs-toolkit</span>
+</pre></div>
+</div>
+<p>To install the PyPi version of the toolkit. To install the github versions one can use these commands:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span>main<span class="w"> </span>versions
+<span class="go">pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git</span>
+
+<span class="gp">#</span>development<span class="w"> </span>version
+<span class="go">pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev</span>
+
+<span class="gp">#</span>specific<span class="w"> </span>release<span class="w"> </span>from<span class="w"> </span>github
+<span class="go">pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.1.1</span>
+</pre></div>
+</div>
+<p>For some advanced quality control methods, the <a class="reference external" href="https://github.com/metno/titanlib">Titanlib</a> package is used.
+Since the instalation of titanlib requires a c++ compiler, it is categorized as a <em>extra-dependency</em>. This means that
+the user must install titanlib manually if this functionallity is required or use the following command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip3 install metobs-toolkit[titanlib]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To install the package in a notebook, one has to add ! in front of the pip install command.</p>
+</div>
+<p>and import it in Python</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="c1">#Check your version</span>
+<span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">__version__</span>
+</pre></div>
+</div>
+</section>
+<section id="how-to-use-this-toolkit">
+<h2>How to use this toolkit<a class="headerlink" href="#how-to-use-this-toolkit" title="Link to this heading"></a></h2>
+<p>This toolkit is a Python package based on object-oriented programming (OOP). Here you can find a short description of the classes that are directly used by the users:</p>
+<section id="dataset">
+<h3>Dataset()<a class="headerlink" href="#dataset" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset" title="metobs_toolkit.dataset.Dataset"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Dataset</span></code></a> class is at the heart of the toolkit and it holds all observations and metadata.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The dataset class has attributes that serve as ‘containers’ to hold data:</p>
+<dl>
+<dt>Dataset.df</dt><dd><p>All(*) records will start in the <em>df-container</em>. This container contains the observations that we assume to be correct.</p>
+<p>(*): One exception is the observations with a duplicated timestamp, these will be passed to the outliersdf-container directly.</p>
+</dd>
+<dt>Dataset.outliersdf</dt><dd><p>When applying quality control, some observations may be labeled as outliers. When an observation is labeled as an outlier, it is added to the <em>outliersdf-container</em>.
+The records labeled as outliers are still kept inside the df-container but the observation value is removed (set to Nan).</p>
+</dd>
+<dt>Dataset.missing_obs</dt><dd><p>When importing a datafile, an observation frequency is estimated for each station. A missing observation is a record that is not in the observations but is assumed by the station frequency.
+A missing observation is thus a record, without an observation value. These records are stored in the <em>missing_obs-container</em>.</p>
+</dd>
+<dt>Dataset.gaps</dt><dd><p>When a sequence of (repeating) missing observations is found, a test is performed to check if the length(*) of the series is larger than a threshold (i.e. the gap definition).
+If the series is larger than the threshold, we interpret it as a <em>gap</em> and it is removed from the missing_obs-container.</p>
+<p>(*): Note that the definition of a gap is based on a number of consecutive repeating missing records! The minimal gap size is therefore dependent on the observational frequency of each station.</p>
+</dd>
+<dt>Dataset.metadf</dt><dd><p>When metadata is provided, it will be stored in the Dataset.metadf. The metadf is stored as tabular data where each row represents a station. When variables are computed that depend only
+on a station (No time evolution and independent of the observation type), it is stored here. All land cover information and observation frequency estimations are stored here.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A <strong>record</strong> refers to a unique combination of timestamp, corresponding station, and observation type.</p>
+</div>
+</section>
+<section id="station">
+<h3>Station()<a class="headerlink" href="#station" title="Link to this heading"></a></h3>
+<p>A <a class="reference internal" href="_autosummary/metobs_toolkit.station.Station.html#metobs_toolkit.station.Station" title="metobs_toolkit.station.Station"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Station</span></code></a> is a class that has the same attributes and methods as a Dataset, but all the observations are limited to a specific station.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">your_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">stationname</span> <span class="o">=</span> <span class="s1">&#39;station_A&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="analysis">
+<h3>Analysis()<a class="headerlink" href="#analysis" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis" title="metobs_toolkit.analysis.Analysis"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Analysis</span></code></a> class is created from a Dataset and holds the observations that are assumed to be correct (the df-container of the Dataset). In contrast to the Dataset, the Analysis methods do not change the observations.
+The Analysis methods are based on aggregating the observations to get insight into diurnal/seasonal patterns and landcover effects.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset_analysis</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">analysis</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Creating an Analysis of a Station is not recommended, since there is not much scientific value in it.</p>
+</div>
+</section>
+<section id="modeldata">
+<h3>Modeldata()<a class="headerlink" href="#modeldata" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata" title="metobs_toolkit.modeldata.Modeldata"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Modeldata</span></code></a> holds time-series of data from a source other than observations (i.g. a model). The time-series are taken at the same coordinates as the stations and the
+names of the stations are used as well.</p>
+<p>This class is used for comparing other sources to observations and for filling in missing observations and gaps in the observations.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ERA5_timeseries</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
+                                             <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The toolkit makes use of the Google Earth Engine (GEE), to extract these time-series. To use the GEE API, follow these steps on <span class="xref std std-ref">Using Google Earth Engine</span>.</p>
+</section>
+<section id="settings">
+<h3>Settings()<a class="headerlink" href="#settings" title="Link to this heading"></a></h3>
+<p>Each Dataset holds its own set of <a class="reference internal" href="_autosummary/metobs_toolkit.settings.Settings.html#metobs_toolkit.settings.Settings" title="metobs_toolkit.settings.Settings"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Settings</span></code></a>. When creating a Dataset instance, the default settings are attached to it. When another class is created (i.g. Station, Modeldata, …) from a Dataset, the corresponding settings are inherited.
+There are methods to change some of the default settings (like quality control settings, timezone settings, gap fill settings, …). To list all the settings of a class one can use the <a class="reference internal" href="_autosummary/metobs_toolkit.settings.Settings.html#metobs_toolkit.settings.Settings.show" title="metobs_toolkit.settings.Settings.show"><code class="xref py py-meth docutils literal notranslate"><span class="pre">show</span></code></a> method on it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#Create a Dataset, the default settings are attached to it</span>
+<span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+
+<span class="c1">#Update the timezone from &#39;UTC&#39; (default) to Brussels local time</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_timezone</span><span class="p">(</span><span class="n">timezonestr</span><span class="o">=</span><span class="s1">&#39;Europe/Brussels&#39;</span><span class="p">)</span>
+
+<span class="c1">#create a Station instance from your dataset</span>
+<span class="n">your_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">stationname</span> <span class="o">=</span> <span class="s1">&#39;station_A&#39;</span><span class="p">)</span>
+
+<span class="c1">#Since the settings are inherited, your_stations has also the timezone set to Brussels local time.</span>
+
+<span class="c1"># print out all settings</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">your_station</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="schematic-overview">
+<h2>Schematic overview<a class="headerlink" href="#schematic-overview" title="Link to this heading"></a></h2>
+<a class="reference internal image-reference" href="_images/schematic_overview.png"><img alt="Alternative text" src="_images/schematic_overview.png" style="width: 700px;" /></a>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to MetObs-Toolkit’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples/index.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+metobs\_toolkit.obstype\_modeldata
+==================================
+
+.. automodule:: metobs_toolkit.obstype_modeldata
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      compute_amplitude
+      compute_angle
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      ModelObstype
+      ModelObstype_Vectorfield
+   
+   
+
+   
+   
+   
+
+
+
+

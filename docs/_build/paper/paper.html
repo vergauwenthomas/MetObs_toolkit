@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summary &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Summary</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/paper/paper.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="summary">
+<h1>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h1>
+<p>In-situ meteorological observations are highly important for weather and climate research. The evolution towards more affordable sensor technology and data communication has resulted in the emergence of novel meteorological networks alongside the traditional high-quality measurement networks of meteorological institutions. Examples include urban measurement networks intended to study the impact of cities [&#64;mocca] and networks consisting of devices of weather enthusiasts [&#64;crowdsourcing_status]. However, exploiting the data of such non-traditional networks comes with significant challenges [&#64;crowdsourcing]. Firstly, sensors and data communication protocols are usually low-cost, and this in general results in an increase of measurement errors, biases and data gaps. Secondly, data storage formats and temporal measurement frequencies are often not consistent or compatible. Finally, metadata, such as land use around a station and elevation, are not easily accessible or documented.</p>
+<p>The MetObs-toolkit is a Python package developed to address these issues and facilitate the use of non-traditional observations. The package provides automated quality control (QC) techniques to identify and flag erroneous observations, and includes methods to fill data gaps. Additionally, the package offers tools for analyzing the data, e.g. linkage with popular land-use datasets [&#64;worldcover; &#64;lcz_map] is included such that microclimate effects can be investigated with the MetObs-toolkit.</p>
+</section>
+<section id="statement-of-need">
+<h1>Statement of need<a class="headerlink" href="#statement-of-need" title="Link to this heading"></a></h1>
+<p>The primary objective of the MetObs-toolkit is  to enable scientists to process meteorological observations into datasets ready for analysis. The data cleaning process involves three steps:</p>
+<ol class="arabic simple">
+<li><p>resampling the time resolution if necessary,</p></li>
+<li><p>identifying erroneous and missing records, and</p></li>
+<li><p>filling the missing records.</p></li>
+</ol>
+<p>Sophisticated software such as TITAN [&#64;titan2020] and CrowdQC+ [&#64;CrowdQC] exists for identifying erroneous observations (QC), which is one aspect of cleaning a dataset. These packages offer a wide range of functionalities for this specific task, while MetObs aims to provide a framework for the entire flow from raw data to analysis. Moreover, researchers often face the challenge of coding scripts that can generate analyses, particularly when using geographical datasets such as landcover datasets. Traditionally, this requires the installation of numerous packages, storage of geographical datasets, and GIS manipulations (often manually done with specific GIS software). The toolkit implements one user-friendly framework for creating various plots, generating analysis statistics, and incorporating GIS data through the use of the Google Earth engine.
+By using the toolkit, scientists can set up a pipeline to process raw data into analysis in an easy-to-use (and install) manner. Additionally, the developed pipeline can be directly applied to other datasets without any formatting issues.</p>
+<p><img alt="A schematic overview of the main MetObs-toolkit functionalities.abel{fig:overview_fig}" src="../_images/overview_fig.png" /></p>
+</section>
+<section id="technical-implementation">
+<h1>Technical implementation<a class="headerlink" href="#technical-implementation" title="Link to this heading"></a></h1>
+<p>The MetObs-toolkit provides a comprehensive framework for scientists to process raw meteorological data for analysis by making intensive use of the pandas [&#64;pandas] and geopandas [&#64;geopandas] functionalities. The process consists of the following steps, visualized in the \autoref{fig:overview_fig}.</p>
+<p>Firstly, the raw data is mapped to the toolkit standards by use of a template. Once the raw data is imported into the Toolkit Dataset, missing observations are identified and methods to resample and synchronize observations can be used.</p>
+<p>Quality control is performed in the form of a series of checks. These checks are designed to examine data types, irregular timestamps, max-min thresholds, repetitions criteria, spike tests, allowed variation in time windows and spatial tests. Advanced quality control methods are available through the implementation of TITAN into the toolkit. The user can choose to keep the outliers or convert them to missing records (which can be filled).</p>
+<p>Gap filling is applied by using interpolation methods and/or importing ERA5 reanalysis [&#64;era5] time series to fill the gaps. The latter is stored as a Toolkit Modeldata, which has a set of methods to directly import the required time series through the use of the Google Earth engine API.
+The user obtains a cleaned-up dataset ready for analysis. A set of typical analysis techniques such as filters, aggregation schemes, and landcover correlation estimates are implemented in the Toolkit-Analysis class.</p>
+<p>\autoref{fig:overview_fig} gives an overview of the main framework of the MetObs-toolkit, but it is an evolving project that responds to the community’s needs and input. As an example, the development of a graphical user interface (GUI) for the toolkit is planned. A GUI would increase the ease of use by enabling to create templates, adjust QC settings and plot data interactively.</p>
+</section>
+<section id="acknowledgments">
+<h1>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Link to this heading"></a></h1>
+<p>The authors would like to thank all participants of the <a class="reference external" href="https://www.fairness-ca20108.eu/">COST FAIRNESS</a> (CA20108) summer school 2023 in Ghent for their role as beta testers. The input, ideas and feedback from these scientists, dealing with microclimate datasets in many European countries, were instrumental in improving the MetObs-toolkit.</p>
+<p>No specific funding has been obtained to build the MetObs-toolkit, but the authors have been supported by different Belgian and Flemish scientific grants.</p>
+<p>FWO: Sara (fellowship 1270723N) and Wout (fellowship 1157523N)</p>
+<p>BELSPO: Kobe (B2/223/P1/CORDEX.be II), Thomas (B2/202/P1/CS-MASK), Michiel (B2/212/P2/CLIMPACTH) and Steven (FED-tWIN Prf-2020-018_AURA)</p>
+<p>Andrei (VUB, SRP74/LSDS, OZR3893, Innoviris-Brussels ILSF-2023-12) and Ian (VITO, UG_PhD_2202)</p>
+</section>
+<section id="references">
+<h1>References<a class="headerlink" href="#references" title="Link to this heading"></a></h1>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
