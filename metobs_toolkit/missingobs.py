@@ -13,11 +13,7 @@ import numpy as np
 from datetime import timedelta
 import logging
 
-from metobs_toolkit.df_helpers import (
-    _find_closes_occuring_date,
-    xs_save,
-    concat_save
-)
+from metobs_toolkit.df_helpers import _find_closes_occuring_date, xs_save, concat_save
 
 logger = logging.getLogger(__name__)
 
@@ -33,16 +29,16 @@ class Missingob_collection:
 
     def __init__(self, missing_obs_series):
         """Init missing observations."""
-        missing_obs_series.name = 'datetime'
-        missing_obs_series.index.name = 'name'
+        missing_obs_series.name = "datetime"
+        missing_obs_series.index.name = "name"
 
         missing_obs_df = missing_obs_series.reset_index()  # needed to find duplicates
         missing_obs_df = missing_obs_df.drop_duplicates()
-        missing_obs_series = missing_obs_df.set_index('name')['datetime']
+        missing_obs_series = missing_obs_df.set_index("name")["datetime"]
         missing_obs_series = missing_obs_series.sort_index()
 
         missing_idx = missing_obs_series.reset_index()
-        missing_idx = missing_idx.set_index(['name', 'datetime'])
+        missing_idx = missing_idx.set_index(["name", "datetime"])
 
         self.series = missing_obs_series
         self.idx = missing_idx.index
@@ -53,17 +49,17 @@ class Missingob_collection:
 
     def __add__(self, other):
         """Append two collections of missing observations."""
-        comb_series = concat_save([self.series, other.series])
 
+        comb_series = concat_save([self.series, other.series])
         # drop duplicates and sort
         comb_df = comb_series.reset_index()  # needed to find duplicates
         comb_df = comb_df.drop_duplicates()
-        comb_series = comb_df.set_index('name')['datetime']
+        comb_series = comb_df.set_index("name")["datetime"]
         comb_series = comb_series.sort_index()
 
         self.series = comb_series
         comb_idx = comb_series.reset_index()
-        comb_idx = comb_idx.set_index(['name', 'datetime'])
+        comb_idx = comb_idx.set_index(["name", "datetime"])
         self.idx = comb_idx.index
         return self
 
@@ -74,13 +70,13 @@ class Missingob_collection:
     def __str__(self):
         """Print overview info of missing observations."""
         if self.series.empty:
-            return 'Empty missing observations.'
+            return "Empty missing observations."
 
         if not self.fill_df.empty:
-            return f'Missing observations with filled ({self.fill_technique}) \
-                values: \n {self.fill_df} \n Original missing observations on import: \n {self.idx}'
+            return f"Missing observations with filled ({self.fill_technique}) \
+                values: \n {self.fill_df} \n Original missing observations on import: \n {self.idx}"
 
-        return f'Missing observations: \n {self.series}'
+        return f"Missing observations: \n {self.series}"
 
     def __repr__(self):
         """Print overview info of missing observations."""
@@ -100,39 +96,49 @@ class Missingob_collection:
         None.
 
         """
-        print('\n -------- Missing observations info -------- \n')
+        print("\n -------- Missing observations info -------- \n")
         if self.series.empty:
-            print('Empty missing observations.')
+            print("Empty missing observations.")
             return
-        print('(Note: missing observations are defined on the frequency estimation of the native dataset.)')
+        print(
+            "(Note: missing observations are defined on the frequency estimation of the native dataset.)"
+        )
 
         n_missing = len(self)
         stations = self.series.index.unique().to_list()
 
-        print(f'  * {n_missing} missing observations')
+        print(f"  * {n_missing} missing observations")
         if n_missing <= max_disp_list:
-            print(f'\n {self.series} \n')
+            print(f"\n {self.series} \n")
 
         if len(stations) <= max_disp_list:
-            print(f'  * For these stations: {stations}')
+            print(f"  * For these stations: {stations}")
         else:
-            print(f'  * For {len(stations)} stations')
+            print(f"  * For {len(stations)} stations")
 
         if self.fill_df.empty:
-            print('  * The missing observations are not filled.')
+            print("  * The missing observations are not filled.")
         else:
-            filled_obstypes = [obs for obs in self.fill_df.columns if not obs.endswith('_final_label')]
-            print(f'  * Missing observations are filled with {self.fill_technique} for: ')
+            filled_obstypes = [
+                obs for obs in self.fill_df.columns if not obs.endswith("_final_label")
+            ]
+            print(
+                f"  * Missing observations are filled with {self.fill_technique} for: "
+            )
             for obstype in filled_obstypes:
-                print(f'    {obstype}: \n {self.fill_df[[obstype]]}')
+                print(f"    {obstype}: \n {self.fill_df[[obstype]]}")
 
             # print missing obs that could not be filled
-            print('  * Missing observations that could NOT be filled for: ')
+            print("  * Missing observations that could NOT be filled for: ")
             for obstype in filled_obstypes:
-                unfilled = self.idx[~self.idx.isin(self.fill_df[[obstype]].dropna().index)]
-                print(f'    {obstype}: \n {unfilled}')
+                unfilled = self.idx[
+                    ~self.idx.isin(self.fill_df[[obstype]].dropna().index)
+                ]
+                print(f"    {obstype}: \n {unfilled}")
 
-        print('(More details on the missing observation can be found in the .series and .fill_df attributes.)')
+        print(
+            "(More details on the missing observation can be found in the .series and .fill_df attributes.)"
+        )
         return
 
     def get_station_missingobs(self, name):
@@ -201,16 +207,18 @@ class Missingob_collection:
 
         """
         # to multiindex
-        outldf = outldf.reset_index().set_index(['name', 'datetime'])
+        outldf = outldf.reset_index().set_index(["name", "datetime"])
 
         # remove records inside the gaps
         suboutldf = self.remove_missing_from_obs(obsdf=outldf)
 
         # reset to triple index
-        outldf = suboutldf.reset_index().set_index(['name', 'datetime', 'obstype'])
+        outldf = suboutldf.reset_index().set_index(["name", "datetime", "obstype"])
         return outldf
 
-    def interpolate_missing(self, obsdf, resolutionseries, obstype='temp', method='time'):
+    def interpolate_missing(
+        self, obsdf, resolutionseries, obstype="temp", method="time"
+    ):
         """Fill the missing observations using an interpolation method.
 
         The "fill_df" and "fill_technique" attributes will be updated.
@@ -233,7 +241,7 @@ class Missingob_collection:
         """
         # create fill column for the obstype
         self.fill_df[obstype] = np.nan
-        self.fill_technique = 'interpolate'
+        self.fill_technique = "interpolate"
         # locate the missing observation in observation space
         missing_obsspace = self.get_missing_indx_in_obs_space(obsdf, resolutionseries)
 
@@ -241,27 +249,31 @@ class Missingob_collection:
         self.fill_df = pd.DataFrame(index=missing_obsspace)
 
         for staname, missingdt in missing_obsspace:
-            staobs = xs_save(obsdf, staname, level='name')[obstype]
+            staobs = xs_save(obsdf, staname, level="name")[obstype]
             # exclude nan values because they are no good leading/trailing
             staobs = staobs[~staobs.isnull()]
 
             # find leading and trailing datetimes
-            leading_seconds = _find_closes_occuring_date(refdt=missingdt,
-                                                         series_of_dt=staobs.index,
-                                                         where='before')
+            leading_seconds = _find_closes_occuring_date(
+                refdt=missingdt, series_of_dt=staobs.index, where="before"
+            )
 
             if np.isnan(leading_seconds):
-                logger.warn(f'missing obs: {staname}, at {missingdt} does not have a leading timestamp.')
+                logger.warn(
+                    f"missing obs: {staname}, at {missingdt} does not have a leading timestamp."
+                )
                 continue
 
             leading_dt = missingdt - timedelta(seconds=leading_seconds)
 
-            trailing_seconds = _find_closes_occuring_date(refdt=missingdt,
-                                                          series_of_dt=staobs.index,
-                                                          where='after')
+            trailing_seconds = _find_closes_occuring_date(
+                refdt=missingdt, series_of_dt=staobs.index, where="after"
+            )
 
             if np.isnan(trailing_seconds):
-                logger.warn(f'missing obs: {staname}, at {missingdt} does not have a trailing timestamp.')
+                logger.warn(
+                    f"missing obs: {staname}, at {missingdt} does not have a trailing timestamp."
+                )
                 continue
             trailing_dt = missingdt + timedelta(seconds=trailing_seconds)
 
@@ -271,13 +283,15 @@ class Missingob_collection:
 
             stadf = pd.DataFrame(
                 index=[leading_dt, missingdt, trailing_dt],
-                data={obstype: [leading_val, np.nan, trailing_val]}
+                data={obstype: [leading_val, np.nan, trailing_val]},
             )
 
             # interpolate the missing obs
-            stadf['interp'] = stadf[obstype].interpolate(method=method)
+            stadf["interp"] = stadf[obstype].interpolate(method=method)
 
-            self.fill_df.loc[(staname, missingdt), obstype] = stadf.loc[missingdt, 'interp']
+            self.fill_df.loc[(staname, missingdt), obstype] = stadf.loc[
+                missingdt, "interp"
+            ]
 
         # if no fill is applied (no leading/trailing), remove them from fill to keep them as missing
         if not self.fill_df.empty:
@@ -304,8 +318,7 @@ class Missingob_collection:
             The multiindex (name - datetime) is returned with the missing timestamps that are expexted in the observation space.
 
         """
-        missing_obsspace_df = pd.DataFrame(data={'name': [],
-                                                 'datetime': []})
+        missing_obsspace_df = pd.DataFrame(data={"name": [], "datetime": []})
 
         # per stationtion because stations can have different resolutions/timerange
         for sta in self.series.index.unique():
@@ -330,13 +343,13 @@ class Missingob_collection:
             # Convert to multiindex
             if sta_missing.empty:
                 continue
-            sta_missing_df = pd.DataFrame(data={'name': sta,
-                                                'datetime': sta_missing},
-                                          index=None).reset_index(drop=True)
+            sta_missing_df = pd.DataFrame(
+                data={"name": sta, "datetime": sta_missing}, index=None
+            ).reset_index(drop=True)
 
             missing_obsspace_df = concat_save([missing_obsspace_df, sta_missing_df])
 
         # convert to mulittindex
-        missing_obsspace_df = missing_obsspace_df.set_index(['name', 'datetime'])
+        missing_obsspace_df = missing_obsspace_df.set_index(["name", "datetime"])
 
         return missing_obsspace_df.index

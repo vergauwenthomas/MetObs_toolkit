@@ -1,0 +1,6 @@
+metobs\_toolkit.gap.gaps\_to\_df
+================================
+
+.. currentmodule:: metobs_toolkit.gap
+
+.. autofunction:: gaps_to_df

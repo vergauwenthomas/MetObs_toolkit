@@ -47,29 +47,15 @@ demo_template = os.path.join(
 
 
 # =============================================================================
-#  Static variables to be reached by users
-# =============================================================================
-observation_types = [
-    "temp",
-    "radiation_temp",
-    "humidity",
-    "precip",
-    "precip_sum",
-    "wind_speed",
-    "wind_gust",
-    "wind_direction",
-    "pressure",
-    "pressure_at_sea_level",
-]
-
-
-# =============================================================================
 # Import classes and function to be used by the user
 # =============================================================================
 
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
 from metobs_toolkit.modeldata import Modeldata
+from metobs_toolkit.obstypes import Obstype
+from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfield
+
 
 # import GUI
 from metobs_toolkit.data_templates.template_build_prompt import build_template_prompt
@@ -84,5 +70,5 @@ from metobs_toolkit.dataset_settings_updater import Dataset
 # =============================================================================
 
 # DO not change this manually!
-__version__ = "0.1.2beta"
 
+__version__ = "0.1.3a"

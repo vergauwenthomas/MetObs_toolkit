@@ -1,0 +1,6 @@
+metobs\_toolkit.plotting\_functions.folium\_plot
+================================================
+
+.. currentmodule:: metobs_toolkit.plotting_functions
+
+.. autofunction:: folium_plot

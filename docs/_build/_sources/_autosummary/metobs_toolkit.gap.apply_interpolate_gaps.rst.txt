@@ -1,0 +1,6 @@
+metobs\_toolkit.gap.apply\_interpolate\_gaps
+============================================
+
+.. currentmodule:: metobs_toolkit.gap
+
+.. autofunction:: apply_interpolate_gaps

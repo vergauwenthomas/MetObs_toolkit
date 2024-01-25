@@ -1,0 +1,6 @@
+metobs\_toolkit.geometry\_functions.box\_to\_extent\_list
+=========================================================
+
+.. currentmodule:: metobs_toolkit.geometry_functions
+
+.. autofunction:: box_to_extent_list

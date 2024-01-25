@@ -29,6 +29,7 @@ def connect_to_gee():
         ee.Initialize()
     return
 
+
 # =============================================================================
 # Top level functions (can be called by dataset)
 # =============================================================================
@@ -85,7 +86,9 @@ def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
 
     else:
         # map numeric classes to human
-        mapper = {str(num): human for num, human in mapinfo["categorical_mapper"].items()}
+        mapper = {
+            str(num): human for num, human in mapinfo["categorical_mapper"].items()
+        }
         freqs_df = freqs_df.rename(columns=mapper)
 
         return freqs_df, buffer
@@ -227,10 +230,10 @@ def coordinates_available(metadf, latcol="lat", loncol="lon"):
     return True
 
 
-def _estimate_data_size(metadf, startdt, enddt, mapinfo):
-    datatimerange = pd.date_range(start=startdt, end=enddt, freq=mapinfo["time_res"])
+def _estimate_data_size(metadf, startdt, enddt, time_res, n_bands=1):
+    datatimerange = pd.date_range(start=startdt, end=enddt, freq=time_res)
 
-    return metadf.shape[0] * len(datatimerange)
+    return metadf.shape[0] * len(datatimerange) * n_bands
 
 
 # =============================================================================
@@ -303,10 +306,12 @@ def extract_pointvalues(metadf, mapinfo, output_column_name):
         )
 
     # extract properties
-    if not bool(results['features']):
+    if not bool(results["features"]):
         # no data retrieved
-        logger.warning(f'Something went wrong, gee did not return any data: {results}')
-        logger.info(f'(Could it be that (one) these coordinates are not on the map: {metadf}?)')
+        logger.warning(f"Something went wrong, gee did not return any data: {results}")
+        logger.info(
+            f"(Could it be that (one) these coordinates are not on the map: {metadf}?)"
+        )
         return pd.DataFrame()
 
     # =============================================================================
@@ -411,7 +416,7 @@ def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
 
 
 def gee_extract_timeseries(
-    metadf, mapinfo, startdt, enddt, obstype="temp", latcolname="lat", loncolname="lon"
+    metadf, band_mapper, mapinfo, startdt, enddt, latcolname="lat", loncolname="lon"
 ):
     """Extract timeseries data at the stations location from a GEE dataset.
 
@@ -427,14 +432,15 @@ def gee_extract_timeseries(
     ----------
     metadf : pd.DataFrame
         dataframe containing coordinates and a column "name", representing the name for each location.
+    band_mapper : dict
+        the name of the band to extract data from as keys, the default name of
+        the corresponding obstype as values.
     mapinfo : Dict
         The information about the GEE dataset.
     startdt : datetime obj
         Start datetime for timeseries (included).
     enddt : datetime obj
         End datetime for timeseries (excluded).
-    obstype : String, optional
-        toolkit observation type. The default is 'temp'.
     latcolname : String, optional
         Columnname of latitude values. The default is 'lat'.
     loncolname : String, optional
@@ -444,18 +450,24 @@ def gee_extract_timeseries(
     -------
     pd.DataFrame
         A dataframe with name - datetime multiindex, all columns from the metadf + extracted timeseries
-        column with the same name as the obstype.
+        column with the same name as the obstypes.
 
     """
     scale = mapinfo["scale"]
-    bandname = mapinfo["band_of_use"][obstype]["name"]
+    bandnames = list(band_mapper.keys())
 
     # test if coordiantes are available
     if not coordinates_available(metadf, latcolname, loncolname):
         return pd.DataFrame()
 
     use_drive = False
-    _est_data_size = _estimate_data_size(metadf, startdt, enddt, mapinfo)
+    _est_data_size = _estimate_data_size(
+        metadf=metadf,
+        startdt=startdt,
+        enddt=enddt,
+        time_res=mapinfo["time_res"],
+        n_bands=len(bandnames),
+    )
     if _est_data_size > 4000:
         print(
             "THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!"
@@ -482,7 +494,10 @@ def gee_extract_timeseries(
         )
         return feature
 
-    raster = get_ee_obj(mapinfo, bandname)  # dataset
+    # Because the daterange is maxdate exclusive, add the time resolution to the enddt
+    enddt = enddt + pd.Timedelta(mapinfo["time_res"])
+
+    raster = get_ee_obj(mapinfo, bandnames)  # dataset
     results = (
         raster.filter(
             ee.Filter.date(
@@ -494,7 +509,7 @@ def gee_extract_timeseries(
         .flatten()
     )
 
-    def format_df(df, obstype, bandname):
+    def format_df(df, band_mapper):
         # format datetime
         df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d%H%M%S")
         # set timezone
@@ -505,9 +520,8 @@ def gee_extract_timeseries(
         df = df.sort_index()
 
         # rename to values to toolkit space
-        df = df.rename(columns={bandname: obstype})
-
-        return df[obstype].to_frame()
+        df = df.rename(columns=band_mapper)
+        return df
 
     if not use_drive:
         results = results.getInfo()
@@ -520,7 +534,10 @@ def gee_extract_timeseries(
         properties = [x["properties"] for x in results["features"]]
         df = pd.DataFrame(properties)
 
-        df = format_df(df, obstype, bandname)
+        if df.empty:
+            sys.exit("ERROR: the returned timeseries from GEE are empty.")
+
+        df = format_df(df, band_mapper)
         return df
 
     else:
@@ -534,13 +551,16 @@ def gee_extract_timeseries(
             f"The timeseries will be writen to your Drive in {_drivefolder}/{_filename} "
         )
 
+        data_columns = ["datetime", "name"]
+        data_columns.extend(bandnames)
+
         task = ee.batch.Export.table.toDrive(
             collection=results,
             description="extracting_era5",
             folder=_drivefolder,
             fileNamePrefix=_filename,
             fileFormat="CSV",
-            selectors=["datetime", "name", bandname],
+            selectors=data_columns,
         )
 
         task.start()

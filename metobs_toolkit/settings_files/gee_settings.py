@@ -52,8 +52,6 @@ gee_datasets = {
     "ERA5_hourly": {
         "location": "ECMWF/ERA5_LAND/HOURLY",  # GEE location
         "usage": "ERA5",  # Human readable application domain
-        "band_of_use": {"temp": {"name": "temperature_2m", "units": "K"}},
-        # band mapper to use for imagecollections (or None if no band available)
         "value_type": "numeric",  # categorical or numeric
         "dynamical": True,  # time evolution? To be used for timeseries
         "scale": 2500,
@@ -89,20 +87,19 @@ gee_datasets = {
             "pervious": [10, 20, 30, 40, 60, 100],
             "impervious": [50],
         },
-        'colorscheme': {
-            10:	'006400',
-            20:	'ffbb22',
-            30:	'ffff4c',
-            40:	'f096ff',
-            50:	'fa0000',
-            60:	'b4b4b4',
-            70:	'f0f0f0',
-            80:	'0064c8',
-            90:	'0096a0',
-            95:	'00cf75',
-            100:'fae6a0',
-    },
-
+        "colorscheme": {
+            10: "006400",
+            20: "ffbb22",
+            30: "ffff4c",
+            40: "f096ff",
+            50: "fa0000",
+            60: "b4b4b4",
+            70: "f0f0f0",
+            80: "0064c8",
+            90: "0096a0",
+            95: "00cf75",
+            100: "fae6a0",
+        },
         "credentials": "https://spdx.org/licenses/CC-BY-4.0.html",
     },
 }

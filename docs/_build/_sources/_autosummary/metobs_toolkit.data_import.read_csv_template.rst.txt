@@ -1,0 +1,6 @@
+metobs\_toolkit.data\_import.read\_csv\_template
+================================================
+
+.. currentmodule:: metobs_toolkit.data_import
+
+.. autofunction:: read_csv_template

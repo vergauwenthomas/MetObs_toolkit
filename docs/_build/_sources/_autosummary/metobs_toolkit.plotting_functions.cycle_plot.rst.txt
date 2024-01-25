@@ -1,0 +1,6 @@
+metobs\_toolkit.plotting\_functions.cycle\_plot
+===============================================
+
+.. currentmodule:: metobs_toolkit.plotting_functions
+
+.. autofunction:: cycle_plot

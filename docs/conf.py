@@ -37,6 +37,10 @@ except:
     pass
 
 print(sys.path)
+#%%
+logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
+
+
 # %%
 
 
@@ -64,8 +68,8 @@ extensions = [
     "sphinx.ext.napoleon",  # To convert Numpydocstring to readable format
     "sphinx.ext.autosummary",  # Create neat summary tables
     "myst_parser",  # for including md files (readme)
-    "sphinx.ext.autosectionlabel", #for cross linking
-    "nbsphinx", #to render the notebook examples in the doc
+    "sphinx.ext.autosectionlabel",  # for cross linking
+    "nbsphinx",  # to render the notebook examples in the doc
 ]
 
 
@@ -75,11 +79,11 @@ extensions = [
 templates_path = ["_templates"]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
-#Specify how to render the following file formats:
+# Specify how to render the following file formats:
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.txt': 'markdown',
-    '.md': 'markdown',
+    ".rst": "restructuredtext",
+    ".txt": "markdown",
+    ".md": "markdown",
 }
 
 
@@ -105,7 +109,8 @@ autodoc_mock_imports = [
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -136,10 +141,9 @@ html_theme_options = {
 
 html_static_path = ["_static"]
 
+
 html_logo = "logo_small.svg"
 html_theme_options = {
-    'logo_only': True,
-    'display_version': False,
+    "logo_only": True,
+    "display_version": True,
 }
-
-

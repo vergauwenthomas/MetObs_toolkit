@@ -1,0 +1,6 @@
+metobs\_toolkit.qc\_checks.toolkit\_buddy\_check
+================================================
+
+.. currentmodule:: metobs_toolkit.qc_checks
+
+.. autofunction:: toolkit_buddy_check

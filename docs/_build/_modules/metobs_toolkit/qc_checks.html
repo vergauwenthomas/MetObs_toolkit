@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>metobs_toolkit.qc_checks &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="../../index.html">
+
+              <img src="../../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">metobs_toolkit.qc_checks</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for metobs_toolkit.qc_checks</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Oct  6 13:44:54 2022</span>
+
+<span class="sd">@author: thoverga</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.df_helpers</span> <span class="kn">import</span> <span class="n">init_multiindex</span><span class="p">,</span> <span class="n">init_multiindexdf</span><span class="p">,</span> <span class="n">xs_save</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">titanlib</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+        <span class="s2">&quot;Titanlib is not installed, install it manually if you want to use this functionallity.&quot;</span>
+    <span class="p">)</span>
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Helper functions</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="make_outlier_df_for_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.make_outlier_df_for_check.html#metobs_toolkit.qc_checks.make_outlier_df_for_check">[docs]</a>
+<span class="k">def</span> <span class="nf">make_outlier_df_for_check</span><span class="p">(</span>
+    <span class="n">station_dt_list</span><span class="p">,</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">flag</span><span class="p">,</span> <span class="n">stationname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">datetimelist</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct obsdf and outliersdf from a list of outlier timestamps.</span>
+
+<span class="sd">    Helper function to create an outlier dataframe for the given station(s) and</span>
+<span class="sd">    datetimes. This will be returned by a quality control check and later added</span>
+<span class="sd">    to the dastes.outlierdf.</span>
+
+<span class="sd">    Multiple commum inputstructures can be handles</span>
+
+<span class="sd">    A multiindex dataframe with the relevant observationtypes i.e. the</span>
+<span class="sd">    values_in_dict and a specific quality flag column (i.g. the labels) is</span>
+<span class="sd">    returned.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    station_dt_list : MultiIndex or list of tuples: (name, datetime)</span>
+<span class="sd">        The stations with corresponding datetimes that are labeled as outliers.</span>
+<span class="sd">    obsdf : pandas.DataFrame</span>
+<span class="sd">        The observations dataframe to update.</span>
+<span class="sd">    obstype : str</span>
+<span class="sd">        The observation type of the outliers.</span>
+<span class="sd">    flag : String</span>
+<span class="sd">        The label for the outliers.</span>
+<span class="sd">    stationname : String, optional</span>
+<span class="sd">        It is possible to give the name of one station. The default is None.</span>
+<span class="sd">    datetimelist : DatetimeIndex or List, optional</span>
+<span class="sd">        The outlier timestamps for the stationname. The default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf : pandas.DataFrame</span>
+<span class="sd">        The updated observations dataframe.</span>
+<span class="sd">    outliersdf : pandas.DataFrame</span>
+<span class="sd">        The updated outliers dataframe.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">station_dt_list</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">):</span>
+        <span class="n">multi_idx</span> <span class="o">=</span> <span class="n">station_dt_list</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">station_dt_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>  <span class="c1"># list of tuples: (name, datetime)</span>
+        <span class="n">multi_idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span>
+            <span class="n">station_dt_list</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stationname</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datetimelist</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>
+            <span class="n">datetimelist</span> <span class="o">=</span> <span class="n">datetimelist</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datetimelist</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">indexarrays</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="n">stationname</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetimelist</span><span class="p">),</span> <span class="n">datetimelist</span><span class="p">))</span>
+            <span class="n">multi_idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span>
+                <span class="n">indexarrays</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type of datetimelist: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">datetimelist</span><span class="p">)</span><span class="si">}</span><span class="s2"> is not implemented.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># subset outliers</span>
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">multi_idx</span><span class="p">]</span>
+
+    <span class="c1"># make the triple multiindex</span>
+    <span class="n">outliersdf</span><span class="p">[</span><span class="s2">&quot;obstype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">outliersdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;obstype&quot;</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># add flag</span>
+    <span class="n">outliersdf</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flag</span>
+
+    <span class="c1"># subset columns</span>
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">outliersdf</span><span class="p">[[</span><span class="n">obstype</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">obstype</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">})</span>
+
+    <span class="c1"># replace values in obsdf by Nan</span>
+    <span class="n">obsdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">multi_idx</span><span class="p">,</span> <span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Quality assesment checks on data import</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="invalid_input_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.invalid_input_check.html#metobs_toolkit.qc_checks.invalid_input_check">[docs]</a>
+<span class="k">def</span> <span class="nf">invalid_input_check</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if values are numeric and not Nan.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas.DataFrame</span>
+<span class="sd">        The observations to check the values for. Must contain a column &#39;name&#39;.</span>
+<span class="sd">    checks_info : dict</span>
+<span class="sd">        Specific settings for the invalid check test.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    df : pandas.DataFrame</span>
+<span class="sd">        The observations with NaN values at the location of invalid input.</span>
+<span class="sd">    outl_df : pandas.DataFrame</span>
+<span class="sd">        The updated outliersdf.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">checkname</span> <span class="o">=</span> <span class="s2">&quot;invalid_input&quot;</span>
+
+    <span class="c1"># fast scan wich stations and obstypes have nan outliers</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">())</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span><span class="p">))</span>
+    <span class="p">)</span>
+
+    <span class="c1"># extract all obstype that have outliers</span>
+    <span class="n">outl_obstypes</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">any</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">outl_obstypes</span> <span class="o">=</span> <span class="n">outl_obstypes</span><span class="p">[</span><span class="n">outl_obstypes</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+
+    <span class="c1"># first loop over the smallest sample: outlier obstypes</span>
+    <span class="n">outl_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">outl_obstypes</span><span class="p">:</span>
+        <span class="c1"># get stations that have ouliers for this obstype</span>
+        <span class="n">outl_stations</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">groups</span><span class="p">[</span><span class="n">obstype</span><span class="p">],</span> <span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+
+        <span class="n">outl_multiidx</span> <span class="o">=</span> <span class="n">init_multiindex</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">sta</span> <span class="ow">in</span> <span class="n">outl_stations</span><span class="p">:</span>
+            <span class="c1"># apply check per station</span>
+            <span class="n">outl_idx</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">xs_save</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sta</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="n">obstype</span><span class="p">]</span>
+                <span class="o">.</span><span class="n">isnull</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">]</span>
+                <span class="o">.</span><span class="n">index</span>
+            <span class="p">)</span>
+            <span class="n">outl_multiidx</span> <span class="o">=</span> <span class="n">outl_multiidx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outl_idx</span><span class="p">)</span>
+
+        <span class="n">outl_dict</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="n">outl_multiidx</span>
+
+    <span class="c1"># create outliersdf for all outliers for all osbtypes</span>
+    <span class="n">outl_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">outliers</span> <span class="ow">in</span> <span class="n">outl_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">df</span><span class="p">,</span> <span class="n">specific_outl_df</span> <span class="o">=</span> <span class="n">make_outlier_df_for_check</span><span class="p">(</span>
+            <span class="n">station_dt_list</span><span class="o">=</span><span class="n">outliers</span><span class="p">,</span>
+            <span class="n">obsdf</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">flag</span><span class="o">=</span><span class="n">checks_info</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="s2">&quot;outlier_flag&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">outl_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">outl_df</span><span class="p">,</span> <span class="n">specific_outl_df</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">outl_df</span></div>
+
+
+
+<div class="viewcode-block" id="duplicate_timestamp_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.duplicate_timestamp_check.html#metobs_toolkit.qc_checks.duplicate_timestamp_check">[docs]</a>
+<span class="k">def</span> <span class="nf">duplicate_timestamp_check</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">,</span> <span class="n">checks_settings</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test for duplicate timestamps in the observations.</span>
+
+<span class="sd">    Looking for duplcate timestaps per station. Duplicated records are removed by the method specified in the qc_settings.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    df : pandas.DataFrame</span>
+<span class="sd">        The observations dataframe of the dataset object (Dataset.df)</span>
+<span class="sd">    checks_info : dict</span>
+<span class="sd">        The specific info (outlier labels) for quality control.</span>
+<span class="sd">    checks_settings : dict</span>
+<span class="sd">        The dictionary containing the settings for the quality control checks.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas.DataFrame()</span>
+<span class="sd">        The observations dataframe updated for duplicate timestamps. Duplicated timestamps are removed.</span>
+<span class="sd">    outl_df : pandas.DataFrame</span>
+<span class="sd">        The updated outliersdf.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">checkname</span> <span class="o">=</span> <span class="s2">&quot;duplicated_timestamp&quot;</span>
+
+    <span class="n">duplicates</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="s2">&quot;keep&quot;</span><span class="p">]),</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">duplicates</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot; Following records are labeld as duplicates: </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">duplicates</span><span class="p">]</span><span class="si">}</span><span class="s2">, and are removed&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Fill the outlierdf with the duplicates</span>
+    <span class="n">outliers</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="s2">&quot;keep&quot;</span><span class="p">])]</span>
+
+    <span class="c1"># convert values to nan in obsdf</span>
+    <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">outliers</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="c1"># ------- Create a outliersdf -----------#</span>
+    <span class="c1"># the &#39;make outliersdf&#39; function cannont be use because of duplicated indices</span>
+
+    <span class="n">outliers</span> <span class="o">=</span> <span class="n">outliers</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="s2">&quot;value_&quot;</span> <span class="o">+</span> <span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">outliers</span><span class="o">.</span><span class="n">columns</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">outliers</span> <span class="o">=</span> <span class="n">outliers</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">outliers</span><span class="p">[</span><span class="s2">&quot;_to_get_unique_idx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">outliers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">wide_to_long</span><span class="p">(</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">outliers</span><span class="p">,</span>
+        <span class="n">stubnames</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+        <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">,</span>
+        <span class="n">suffix</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;\w+&quot;</span><span class="p">,</span>  <span class="c1"># to use non-integer suffexes</span>
+        <span class="n">i</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="s2">&quot;_to_get_unique_idx&quot;</span><span class="p">],</span>
+        <span class="n">j</span><span class="o">=</span><span class="s2">&quot;obstype&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># remove the temorary level from the index</span>
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">outliersdf</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="s2">&quot;_to_get_unique_idx&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># add label column</span>
+    <span class="n">outliersdf</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">checks_info</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="s2">&quot;outlier_flag&quot;</span><span class="p">]</span>
+
+    <span class="c1"># drop duplicates in the obsdf, because this gives a lot of troubles</span>
+    <span class="c1"># The method does not really mater because the values are set to nan in the observations</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;first&quot;</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">outliersdf</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Quality assesment checks on dataset</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="gross_value_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.gross_value_check.html#metobs_toolkit.qc_checks.gross_value_check">[docs]</a>
+<span class="k">def</span> <span class="nf">gross_value_check</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">,</span> <span class="n">checks_settings</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter out gross outliers from the observations.</span>
+
+<span class="sd">    Looking for values of an observation type that are not physical. These values are labeled and the physical limits are specified in the qc_settings.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    df : pandas.DataFrame</span>
+<span class="sd">        The observations dataframe of the dataset object (Dataset.df)</span>
+<span class="sd">    obstype : str</span>
+<span class="sd">        The observation type to check for outliers.</span>
+<span class="sd">    checks_info : dict</span>
+<span class="sd">        The specific info (outlier labels) for quality control.</span>
+<span class="sd">    checks_settings : dict</span>
+<span class="sd">        The dictionary containing the settings for the quality control checks.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf : pandas.DataFrame()</span>
+<span class="sd">        The observations dataframe updated for gross values. These are</span>
+<span class="sd">        represented by Nan values.</span>
+<span class="sd">    outl_df : pandas.DataFrame</span>
+<span class="sd">        The updated outliersdf.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">checkname</span> <span class="o">=</span> <span class="s2">&quot;gross_value&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">specific_settings</span> <span class="o">=</span> <span class="n">checks_settings</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="n">obstype</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">checkname</span><span class="si">}</span><span class="s2"> settings found for obstype=</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">. Check is skipped!&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+
+    <span class="c1"># drop outliers from the series (these are Nan&#39;s)</span>
+    <span class="n">input_series</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+
+    <span class="c1"># find outlier observations as a list of tuples [(name, datetime), (name, datetime)]</span>
+    <span class="n">outl_obs</span> <span class="o">=</span> <span class="n">input_series</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+        <span class="p">(</span><span class="n">input_series</span> <span class="o">&lt;=</span> <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;min_value&quot;</span><span class="p">])</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">input_series</span> <span class="o">&gt;=</span> <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;max_value&quot;</span><span class="p">])</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+
+    <span class="c1"># make new obsdf and outlierdf</span>
+    <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span> <span class="o">=</span> <span class="n">make_outlier_df_for_check</span><span class="p">(</span>
+        <span class="n">station_dt_list</span><span class="o">=</span><span class="n">outl_obs</span><span class="p">,</span>
+        <span class="n">obsdf</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+        <span class="n">flag</span><span class="o">=</span><span class="n">checks_info</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="s2">&quot;outlier_flag&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span></div>
+
+
+
+<div class="viewcode-block" id="persistance_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.persistance_check.html#metobs_toolkit.qc_checks.persistance_check">[docs]</a>
+<span class="k">def</span> <span class="nf">persistance_check</span><span class="p">(</span>
+    <span class="n">station_frequencies</span><span class="p">,</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">,</span> <span class="n">checks_settings</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test observations to change over a specific period.</span>
+
+<span class="sd">    Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.</span>
+
+<span class="sd">    In order to perform this check, at least N observations should be in that time window.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    station_frequencies : pandas.Series</span>
+<span class="sd">        The frecuencies of all the stations. This is a column in the metadf</span>
+<span class="sd">        attribute of the Dataset.</span>
+<span class="sd">    obsdf : pandas.DataFrame</span>
+<span class="sd">        The observations dataframe of the dataset object (Dataset.df)</span>
+<span class="sd">    obstype : str</span>
+<span class="sd">        The observation type to check for outliers.</span>
+<span class="sd">    checks_info : dict</span>
+<span class="sd">        The specific info (outlier labels) for quality control.</span>
+<span class="sd">    checks_settings : dict</span>
+<span class="sd">        The dictionary containing the settings for the quality control checks.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf : pandas.DataFrame()</span>
+<span class="sd">        The observations dataframe updated for persistance outliers. These are</span>
+<span class="sd">        represented by Nan values.</span>
+<span class="sd">    outl_df : pandas.DataFrame</span>
+<span class="sd">        The updated outliersdf.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">checkname</span> <span class="o">=</span> <span class="s2">&quot;persistance&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">specific_settings</span> <span class="o">=</span> <span class="n">checks_settings</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="n">obstype</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">checkname</span><span class="si">}</span><span class="s2"> settings found for obstype=</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">. Check is skipped!&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+
+    <span class="n">invalid_windows_check_df</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;time_window_to_check&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">station_frequencies</span>
+        <span class="o">&lt;</span> <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;min_num_obs&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">invalid_stations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="n">invalid_windows_check_df</span><span class="p">[</span><span class="n">invalid_windows_check_df</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">invalid_stations</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The windows are too small for stations  </span><span class="si">{</span><span class="n">invalid_stations</span><span class="si">}</span><span class="s2"> to perform persistance check&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">subset_not_used</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">invalid_stations</span><span class="p">)]</span>
+    <span class="n">subset_used</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="o">~</span><span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">invalid_stations</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subset_used</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="c1"># drop outliers from the series (these are Nan&#39;s)</span>
+        <span class="n">input_series</span> <span class="o">=</span> <span class="n">subset_used</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+
+        <span class="c1"># apply persistance</span>
+        <span class="k">def</span> <span class="nf">is_unique</span><span class="p">(</span>
+            <span class="n">window</span><span class="p">,</span>
+        <span class="p">):</span>  <span class="c1"># comp order of N (while using the &#39;unique&#39; function is Nlog(N))</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">a</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+        <span class="c1"># TODO: Tis is very expensive if no coarsening is applied !!!! Can we speed this up?</span>
+        <span class="n">window_output</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">input_series</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rolling</span><span class="p">(</span>
+                <span class="n">window</span><span class="o">=</span><span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;time_window_to_check&quot;</span><span class="p">],</span>
+                <span class="n">closed</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span>
+                <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">min_periods</span><span class="o">=</span><span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;min_num_obs&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">is_unique</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">list_of_outliers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">outl_obs</span> <span class="o">=</span> <span class="n">window_output</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">window_output</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+        <span class="k">for</span> <span class="n">outlier</span> <span class="ow">in</span> <span class="n">outl_obs</span><span class="p">:</span>
+            <span class="n">outliers_list</span> <span class="o">=</span> <span class="n">get_outliers_in_daterange</span><span class="p">(</span>
+                <span class="n">input_series</span><span class="p">,</span>
+                <span class="n">outlier</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">outlier</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;time_window_to_check&quot;</span><span class="p">],</span>
+                <span class="n">station_frequencies</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">list_of_outliers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">outliers_list</span><span class="p">)</span>
+
+        <span class="n">list_of_outliers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">list_of_outliers</span><span class="p">))</span>
+
+        <span class="c1"># make new obsdf and outlierdf</span>
+        <span class="n">subset_used</span><span class="p">,</span> <span class="n">outlier_df</span> <span class="o">=</span> <span class="n">make_outlier_df_for_check</span><span class="p">(</span>
+            <span class="n">station_dt_list</span><span class="o">=</span><span class="n">list_of_outliers</span><span class="p">,</span>
+            <span class="n">obsdf</span><span class="o">=</span><span class="n">subset_used</span><span class="p">,</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">flag</span><span class="o">=</span><span class="n">checks_info</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="s2">&quot;outlier_flag&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">obsdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">subset_used</span><span class="p">,</span> <span class="n">subset_not_used</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">obsdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">subset_used</span><span class="p">,</span> <span class="n">subset_not_used</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">init_multiindexdf</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="repetitions_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.repetitions_check.html#metobs_toolkit.qc_checks.repetitions_check">[docs]</a>
+<span class="k">def</span> <span class="nf">repetitions_check</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">,</span> <span class="n">checks_settings</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if observation change after a number of records.</span>
+
+<span class="sd">    Looking for values of an observation type that are repeated at least with</span>
+<span class="sd">    the frequency specified in the qc_settings. These values are labeled.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    obsdf : pandas.DataFrame</span>
+<span class="sd">        The observations dataframe of the dataset object (Dataset.df)</span>
+<span class="sd">    obstype : str</span>
+<span class="sd">        The observation type to check for outliers.</span>
+<span class="sd">    checks_info : dict</span>
+<span class="sd">        The specific info (outlier labels) for quality control.</span>
+<span class="sd">    checks_settings : dict</span>
+<span class="sd">        The dictionary containing the settings for the quality control checks.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf : pandas.DataFrame()</span>
+<span class="sd">        The observations dataframe updated for repetitions outliers. These are</span>
+<span class="sd">        represented by Nan values.</span>
+<span class="sd">    outl_df : pandas.DataFrame</span>
+<span class="sd">        The updated outliersdf.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">checkname</span> <span class="o">=</span> <span class="s2">&quot;repetitions&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">specific_settings</span> <span class="o">=</span> <span class="n">checks_settings</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="n">obstype</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">checkname</span><span class="si">}</span><span class="s2"> settings found for obstype=</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">. Check is skipped!&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+
+    <span class="c1"># drop outliers from the series (these are Nan&#39;s)</span>
+    <span class="n">input_series</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+
+    <span class="c1"># find outlier datetimes</span>
+
+    <span class="c1"># add time interval between two consecutive records, group by consecutive records without missing records</span>
+
+    <span class="n">time_diff</span> <span class="o">=</span> <span class="n">input_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+    <span class="n">time_diff</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">input_series</span><span class="o">.</span><span class="n">index</span>  <span class="c1"># back to multiindex</span>
+
+    <span class="n">persistance_filter</span> <span class="o">=</span> <span class="p">((</span><span class="n">input_series</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span> <span class="o">!=</span> <span class="n">input_series</span><span class="p">))</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+    <span class="n">grouped</span> <span class="o">=</span> <span class="n">input_series</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">persistance_filter</span><span class="p">])</span>
+    <span class="c1"># the above line groups the observations which have the same value and consecutive datetimes.</span>
+    <span class="n">group_sizes</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+    <span class="n">outlier_groups</span> <span class="o">=</span> <span class="n">group_sizes</span><span class="p">[</span>
+        <span class="n">group_sizes</span> <span class="o">&gt;</span> <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;max_valid_repetitions&quot;</span><span class="p">]</span>
+    <span class="p">]</span>
+
+    <span class="c1"># add to outl_obs.</span>
+    <span class="n">outl_obs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">group_idx</span> <span class="ow">in</span> <span class="n">outlier_groups</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        <span class="n">groupseries</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">get_group</span><span class="p">(</span><span class="n">group_idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">groupseries</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Check if all observations are equal in group</span>
+            <span class="n">outl_obs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">groupseries</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+
+    <span class="c1"># make new obsdf and outlierdf</span>
+    <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span> <span class="o">=</span> <span class="n">make_outlier_df_for_check</span><span class="p">(</span>
+        <span class="n">station_dt_list</span><span class="o">=</span><span class="n">outl_obs</span><span class="p">,</span>
+        <span class="n">obsdf</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+        <span class="n">flag</span><span class="o">=</span><span class="n">checks_info</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="s2">&quot;outlier_flag&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span></div>
+
+
+
+<div class="viewcode-block" id="step_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.step_check.html#metobs_toolkit.qc_checks.step_check">[docs]</a>
+<span class="k">def</span> <span class="nf">step_check</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">,</span> <span class="n">checks_settings</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if observations do not produces spikes in timeseries.</span>
+
+<span class="sd">    Looking for jumps of the values of an observation type that are larger than</span>
+<span class="sd">    the limit specified in the qc_settings. These values are removed from the</span>
+<span class="sd">    input series and combined in the outlier df.</span>
+
+<span class="sd">    The purpose of this check is to flag observations with a value that is too</span>
+<span class="sd">    much different compared to the previous (not flagged) recorded value.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    obsdf : pandas.DataFrame</span>
+<span class="sd">        The observations dataframe of the dataset object (Dataset.df)</span>
+<span class="sd">    obstype : str</span>
+<span class="sd">        The observation type to check for outliers.</span>
+<span class="sd">    checks_info : dict</span>
+<span class="sd">        The specific info (outlier labels) for quality control.</span>
+<span class="sd">    checks_settings : dict</span>
+<span class="sd">        The dictionary containing the settings for the quality control checks.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf : pandas.DataFrame()</span>
+<span class="sd">        The observations dataframe updated for step outliers. These are</span>
+<span class="sd">        represented by Nan values.</span>
+<span class="sd">    outl_df : pandas.DataFrame</span>
+<span class="sd">        The updated outliersdf.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">checkname</span> <span class="o">=</span> <span class="s2">&quot;step&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">specific_settings</span> <span class="o">=</span> <span class="n">checks_settings</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="n">obstype</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">checkname</span><span class="si">}</span><span class="s2"> settings found for obstype=</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">. Check is skipped!&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+
+    <span class="c1"># drop outliers from the series (these are Nan&#39;s)</span>
+    <span class="n">input_series</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+
+    <span class="n">list_of_outliers</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">input_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="n">subdata</span> <span class="o">=</span> <span class="n">xs_save</span><span class="p">(</span><span class="n">input_series</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">time_diff</span> <span class="o">=</span> <span class="n">subdata</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+        <span class="n">time_diff</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">subdata</span><span class="o">.</span><span class="n">index</span>  <span class="c1"># back to multiindex</span>
+        <span class="c1"># define filter</span>
+        <span class="n">step_filter</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">subdata</span> <span class="o">-</span> <span class="n">subdata</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="o">&gt;</span> <span class="p">(</span>
+                <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;max_increase_per_second&quot;</span><span class="p">]</span>
+                <span class="o">*</span> <span class="n">time_diff</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="p">)</span> <span class="o">|</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">subdata</span> <span class="o">-</span> <span class="n">subdata</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="o">&lt;</span> <span class="p">(</span>
+                <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;max_decrease_per_second&quot;</span><span class="p">]</span>
+                <span class="o">*</span> <span class="n">time_diff</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="p">)</span>  <span class="c1"># &amp;</span>
+        <span class="c1"># (time_diff == station_frequencies[name]))</span>
+        <span class="n">outl_obs</span> <span class="o">=</span> <span class="n">step_filter</span><span class="p">[</span><span class="n">step_filter</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="n">list_of_outliers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">outl_obs</span><span class="p">)</span>
+
+    <span class="c1"># make new obsdf and outlierdf</span>
+    <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span> <span class="o">=</span> <span class="n">make_outlier_df_for_check</span><span class="p">(</span>
+        <span class="n">station_dt_list</span><span class="o">=</span><span class="n">list_of_outliers</span><span class="p">,</span>
+        <span class="n">obsdf</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+        <span class="n">flag</span><span class="o">=</span><span class="n">checks_info</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="s2">&quot;outlier_flag&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span></div>
+
+
+
+<div class="viewcode-block" id="window_variation_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.window_variation_check.html#metobs_toolkit.qc_checks.window_variation_check">[docs]</a>
+<span class="k">def</span> <span class="nf">window_variation_check</span><span class="p">(</span>
+    <span class="n">station_frequencies</span><span class="p">,</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">,</span> <span class="n">checks_settings</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if the variation exeeds threshold in moving time windows.</span>
+
+<span class="sd">    Looking for jumps of the values of an observation type that are larger than</span>
+<span class="sd">    the limit specified in the qc_settings. These values are removed from the</span>
+<span class="sd">    input series and combined in the outlier df.</span>
+
+<span class="sd">    There is a increament threshold (that is if there is a max value difference</span>
+<span class="sd">    and the maximum value occured later than the minimum value occured.)</span>
+<span class="sd">    And vice versa is there a decreament threshold.</span>
+
+<span class="sd">    The check is only applied if there are at leas N observations in the time window.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    station_frequencies : pandas.Series</span>
+<span class="sd">        The frecuencies of all the stations. This is a column in the metadf</span>
+<span class="sd">        attribute of the Dataset.</span>
+<span class="sd">    obsdf : pandas.DataFrame</span>
+<span class="sd">        The observations dataframe of the dataset object (Dataset.df)</span>
+<span class="sd">    obstype : str</span>
+<span class="sd">        The observation type to check for outliers.</span>
+<span class="sd">    checks_info : dict</span>
+<span class="sd">        The specific info (outlier labels) for quality control.</span>
+<span class="sd">    checks_settings : dict</span>
+<span class="sd">        The dictionary containing the settings for the quality control checks.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf : pandas.DataFrame()</span>
+<span class="sd">        The observations dataframe updated for window-variation-outliers. These are</span>
+<span class="sd">        represented by Nan values.</span>
+<span class="sd">    outl_df : pandas.DataFrame</span>
+<span class="sd">        The updated outliersdf.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">checkname</span> <span class="o">=</span> <span class="s2">&quot;window_variation&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">specific_settings</span> <span class="o">=</span> <span class="n">checks_settings</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="n">obstype</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">checkname</span><span class="si">}</span><span class="s2"> settings found for obstype=</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">. Check is skipped!&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+
+    <span class="n">invalid_windows_check_df</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;time_window_to_check&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">station_frequencies</span>
+        <span class="o">&lt;</span> <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;min_window_members&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">invalid_stations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">invalid_windows_check_df</span><span class="p">[</span><span class="n">invalid_windows_check_df</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">invalid_stations</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The windows are too small for stations  </span><span class="si">{</span><span class="n">invalid_stations</span><span class="si">}</span><span class="s2"> to perform window variation check&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">subset_not_used</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">invalid_stations</span><span class="p">)]</span>
+    <span class="n">subset_used</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="o">~</span><span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">invalid_stations</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subset_used</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="c1"># drop outliers from the series (these are Nan&#39;s)</span>
+        <span class="n">input_series</span> <span class="o">=</span> <span class="n">subset_used</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+
+        <span class="c1"># Calculate window thresholds (by linear extarpolation)</span>
+        <span class="n">windowsize_seconds</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span>
+            <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;time_window_to_check&quot;</span><span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+        <span class="n">max_window_increase</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;max_increase_per_second&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">windowsize_seconds</span>
+        <span class="p">)</span>
+        <span class="n">max_window_decrease</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;max_decrease_per_second&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">windowsize_seconds</span>
+        <span class="p">)</span>
+
+        <span class="c1"># apply steptest</span>
+        <span class="k">def</span> <span class="nf">variation_test</span><span class="p">(</span><span class="n">window</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">window</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">window</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_window_increase</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">window</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
+            <span class="p">):</span>
+                <span class="k">return</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">window</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">window</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_window_decrease</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">window</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
+            <span class="p">):</span>
+                <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="n">window_output</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">input_series</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rolling</span><span class="p">(</span>
+                <span class="n">window</span><span class="o">=</span><span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;time_window_to_check&quot;</span><span class="p">],</span>
+                <span class="n">closed</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span>
+                <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">min_periods</span><span class="o">=</span><span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;min_window_members&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">variation_test</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">list_of_outliers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">outl_obs</span> <span class="o">=</span> <span class="n">window_output</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">window_output</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="k">for</span> <span class="n">outlier</span> <span class="ow">in</span> <span class="n">outl_obs</span><span class="p">:</span>
+            <span class="n">outliers_list</span> <span class="o">=</span> <span class="n">get_outliers_in_daterange</span><span class="p">(</span>
+                <span class="n">input_series</span><span class="p">,</span>
+                <span class="n">outlier</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">outlier</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">specific_settings</span><span class="p">[</span><span class="s2">&quot;time_window_to_check&quot;</span><span class="p">],</span>
+                <span class="n">station_frequencies</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">list_of_outliers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">outliers_list</span><span class="p">)</span>
+
+        <span class="n">list_of_outliers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">list_of_outliers</span><span class="p">))</span>
+
+        <span class="c1"># make new obsdf and outlierdf</span>
+        <span class="n">subset_used</span><span class="p">,</span> <span class="n">outlier_df</span> <span class="o">=</span> <span class="n">make_outlier_df_for_check</span><span class="p">(</span>
+            <span class="n">station_dt_list</span><span class="o">=</span><span class="n">list_of_outliers</span><span class="p">,</span>
+            <span class="n">obsdf</span><span class="o">=</span><span class="n">subset_used</span><span class="p">,</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">flag</span><span class="o">=</span><span class="n">checks_info</span><span class="p">[</span><span class="n">checkname</span><span class="p">][</span><span class="s2">&quot;outlier_flag&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">obsdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">subset_used</span><span class="p">,</span> <span class="n">subset_not_used</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">obsdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">subset_used</span><span class="p">,</span> <span class="n">subset_not_used</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">init_multiindexdf</span><span class="p">()</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Toolkit buddy check</span>
+<span class="c1"># =============================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">_calculate_distance_matrix_with_haverine</span><span class="p">(</span><span class="n">metadf</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">radians</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">asin</span><span class="p">,</span> <span class="n">sqrt</span>
+
+    <span class="k">def</span> <span class="nf">haversine</span><span class="p">(</span><span class="n">lon1</span><span class="p">,</span> <span class="n">lat1</span><span class="p">,</span> <span class="n">lon2</span><span class="p">,</span> <span class="n">lat2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the great circle distance between two points.&quot;&quot;&quot;</span>
+        <span class="c1"># convert decimal degrees to radians</span>
+        <span class="n">lon1</span><span class="p">,</span> <span class="n">lat1</span><span class="p">,</span> <span class="n">lon2</span><span class="p">,</span> <span class="n">lat2</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">radians</span><span class="p">,</span> <span class="p">[</span><span class="n">lon1</span><span class="p">,</span> <span class="n">lat1</span><span class="p">,</span> <span class="n">lon2</span><span class="p">,</span> <span class="n">lat2</span><span class="p">])</span>
+
+        <span class="c1"># haversine formula</span>
+        <span class="n">dlon</span> <span class="o">=</span> <span class="n">lon2</span> <span class="o">-</span> <span class="n">lon1</span>
+        <span class="n">dlat</span> <span class="o">=</span> <span class="n">lat2</span> <span class="o">-</span> <span class="n">lat1</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">sin</span><span class="p">(</span><span class="n">dlat</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">cos</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">dlon</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">asin</span><span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="mi">6367000</span>  <span class="c1"># Radius of earth in meter.</span>
+        <span class="k">return</span> <span class="n">c</span> <span class="o">*</span> <span class="n">r</span>
+
+    <span class="n">distance_matrix</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">sta1</span><span class="p">,</span> <span class="n">row1</span> <span class="ow">in</span> <span class="n">metadf</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">distance_matrix</span><span class="p">[</span><span class="n">sta1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">sta2</span><span class="p">,</span> <span class="n">row2</span> <span class="ow">in</span> <span class="n">metadf</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">distance_matrix</span><span class="p">[</span><span class="n">sta1</span><span class="p">][</span><span class="n">sta2</span><span class="p">]</span> <span class="o">=</span> <span class="n">haversine</span><span class="p">(</span>
+                <span class="n">row1</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">row1</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">row2</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">row2</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">y</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">distance_matrix</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_calculate_distance_matrix</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">metric_epsg</span><span class="o">=</span><span class="s2">&quot;31370&quot;</span><span class="p">):</span>
+    <span class="n">metric_metadf</span> <span class="o">=</span> <span class="n">metadf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">epsg</span><span class="o">=</span><span class="n">metric_epsg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metric_metadf</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">g</span><span class="p">:</span> <span class="n">metric_metadf</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">g</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_find_spatial_buddies</span><span class="p">(</span><span class="n">distance_df</span><span class="p">,</span> <span class="n">buddy_radius</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get neighbouring stations using buddy radius.&quot;&quot;&quot;</span>
+    <span class="n">buddies</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">refstation</span><span class="p">,</span> <span class="n">distances</span> <span class="ow">in</span> <span class="n">distance_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">bud_stations</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[</span><span class="n">distances</span> <span class="o">&lt;=</span> <span class="n">buddy_radius</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+        <span class="n">bud_stations</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">refstation</span><span class="p">)</span>
+        <span class="n">buddies</span><span class="p">[</span><span class="n">refstation</span><span class="p">]</span> <span class="o">=</span> <span class="n">bud_stations</span>
+
+    <span class="k">return</span> <span class="n">buddies</span>
+
+
+<span class="c1"># filter altitude buddies</span>
+<span class="k">def</span> <span class="nf">_filter_to_altitude_buddies</span><span class="p">(</span><span class="n">spatial_buddies</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">max_altitude_diff</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter neighbours by maximum altitude difference.&quot;&quot;&quot;</span>
+    <span class="n">alt_buddies_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">refstation</span><span class="p">,</span> <span class="n">buddylist</span> <span class="ow">in</span> <span class="n">spatial_buddies</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">alt_diff</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">metadf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">buddylist</span><span class="p">,</span> <span class="s2">&quot;altitude&quot;</span><span class="p">])</span> <span class="o">-</span> <span class="n">metadf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">refstation</span><span class="p">,</span> <span class="s2">&quot;altitude&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">alt_buddies</span> <span class="o">=</span> <span class="n">alt_diff</span><span class="p">[</span><span class="n">alt_diff</span> <span class="o">&lt;=</span> <span class="n">max_altitude_diff</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+        <span class="n">alt_buddies_dict</span><span class="p">[</span><span class="n">refstation</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_buddies</span>
+    <span class="k">return</span> <span class="n">alt_buddies_dict</span>
+
+
+<span class="k">def</span> <span class="nf">_filter_to_samplesize</span><span class="p">(</span><span class="n">buddydict</span><span class="p">,</span> <span class="n">min_sample_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter stations that are to isolated using minimum sample size.&quot;&quot;&quot;</span>
+    <span class="n">to_check_stations</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">refstation</span><span class="p">,</span> <span class="n">buddies</span> <span class="ow">in</span> <span class="n">buddydict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buddies</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_sample_size</span><span class="p">:</span>
+            <span class="c1"># not enough buddies</span>
+            <span class="n">to_check_stations</span><span class="p">[</span><span class="n">refstation</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># remove buddies</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">to_check_stations</span><span class="p">[</span><span class="n">refstation</span><span class="p">]</span> <span class="o">=</span> <span class="n">buddies</span>
+    <span class="k">return</span> <span class="n">to_check_stations</span>
+
+
+<div class="viewcode-block" id="toolkit_buddy_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.toolkit_buddy_check.html#metobs_toolkit.qc_checks.toolkit_buddy_check">[docs]</a>
+<span class="k">def</span> <span class="nf">toolkit_buddy_check</span><span class="p">(</span>
+    <span class="n">obsdf</span><span class="p">,</span>
+    <span class="n">metadf</span><span class="p">,</span>
+    <span class="n">obstype</span><span class="p">,</span>
+    <span class="n">buddy_radius</span><span class="p">,</span>
+    <span class="n">min_sample_size</span><span class="p">,</span>
+    <span class="n">max_alt_diff</span><span class="p">,</span>
+    <span class="n">min_std</span><span class="p">,</span>
+    <span class="n">std_threshold</span><span class="p">,</span>
+    <span class="n">outl_flag</span><span class="p">,</span>
+    <span class="n">haversine_approx</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">metric_epsg</span><span class="o">=</span><span class="s2">&quot;31370&quot;</span><span class="p">,</span>
+    <span class="n">lapserate</span><span class="o">=-</span><span class="mf">0.0065</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Spatial buddy check.</span>
+
+<span class="sd">    The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for</span>
+<span class="sd">    buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the</span>
+<span class="sd">    (absolute value of the) difference between the observations and the average of the neighbours</span>
+<span class="sd">    normalized by the standard deviation in the circle is greater than a predefined threshold.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf: Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the observations</span>
+<span class="sd">    metadf: Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the metadata (e.g. latitude, longitude...)</span>
+<span class="sd">    obstype: String, optional</span>
+<span class="sd">        The observation type that has to be checked. The default is &#39;temp&#39;</span>
+<span class="sd">    buddy_radius : numeric</span>
+<span class="sd">        The radius to define neighbours in meters.</span>
+<span class="sd">    min_sample_size : int</span>
+<span class="sd">        The minimum sample size to calculate statistics on.</span>
+<span class="sd">    max_alt_diff : numeric</span>
+<span class="sd">        The maximum altitude difference allowed for buddies.</span>
+<span class="sd">    min_std : numeric</span>
+<span class="sd">        The minimum standard deviation for sample statistics. This should</span>
+<span class="sd">        represent the accuracty of the observations.</span>
+<span class="sd">    std_threshold : numeric</span>
+<span class="sd">        The threshold (std units) for flaggging observations as outliers.</span>
+<span class="sd">    outl_flag : str</span>
+<span class="sd">        Label to give to the outliers.</span>
+<span class="sd">    haversine_approx : bool, optional</span>
+<span class="sd">        Use the haversine approximation (earth is a sphere) to calculate</span>
+<span class="sd">        distances between stations. The default is True.</span>
+<span class="sd">    metric_epsg : str, optional</span>
+<span class="sd">        EPSG code for the metric CRS to calculate distances in. Only used when</span>
+<span class="sd">        haversine approximation is set to False. Thus becoming a better</span>
+<span class="sd">        distance approximation but not global applicable The default is &#39;31370&#39;</span>
+<span class="sd">        (which is suitable for Belgium).</span>
+<span class="sd">    lapserate : numeric, optional</span>
+<span class="sd">        Describes how the obstype changes with altitude (in meters). The default is -0.0065.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    obsdf: Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the unflagged-observations</span>
+<span class="sd">    outlier_df : Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the flagged observations</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">outliers_idx</span> <span class="o">=</span> <span class="n">init_multiindex</span><span class="p">()</span>
+
+    <span class="c1"># Get spatial buddies for each station</span>
+    <span class="k">if</span> <span class="n">haversine_approx</span><span class="p">:</span>
+        <span class="n">distance_df</span> <span class="o">=</span> <span class="n">_calculate_distance_matrix_with_haverine</span><span class="p">(</span><span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">distance_df</span> <span class="o">=</span> <span class="n">_calculate_distance_matrix</span><span class="p">(</span><span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span> <span class="n">metric_epsg</span><span class="o">=</span><span class="n">metric_epsg</span><span class="p">)</span>
+    <span class="n">buddies</span> <span class="o">=</span> <span class="n">_find_spatial_buddies</span><span class="p">(</span><span class="n">distance_df</span><span class="o">=</span><span class="n">distance_df</span><span class="p">,</span> <span class="n">buddy_radius</span><span class="o">=</span><span class="n">buddy_radius</span><span class="p">)</span>
+
+    <span class="c1"># Filter by altitude difference</span>
+    <span class="n">buddies</span> <span class="o">=</span> <span class="n">_filter_to_altitude_buddies</span><span class="p">(</span>
+        <span class="n">spatial_buddies</span><span class="o">=</span><span class="n">buddies</span><span class="p">,</span> <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span> <span class="n">max_altitude_diff</span><span class="o">=</span><span class="n">max_alt_diff</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Filter by samplesize</span>
+    <span class="n">buddydict</span> <span class="o">=</span> <span class="n">_filter_to_samplesize</span><span class="p">(</span>
+        <span class="n">buddydict</span><span class="o">=</span><span class="n">buddies</span><span class="p">,</span> <span class="n">min_sample_size</span><span class="o">=</span><span class="n">min_sample_size</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Apply buddy check station per station</span>
+    <span class="k">for</span> <span class="n">refstation</span><span class="p">,</span> <span class="n">buddies</span> <span class="ow">in</span> <span class="n">buddydict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buddies</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s2"> has not enough suitable buddies.&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Get observations</span>
+        <span class="n">buddies_obs</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">buddies</span><span class="p">)][</span><span class="n">obstype</span><span class="p">]</span>
+        <span class="c1"># Unstack</span>
+        <span class="n">buddies_obs</span> <span class="o">=</span> <span class="n">buddies_obs</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Make lapsrate correction:</span>
+        <span class="n">ref_alt</span> <span class="o">=</span> <span class="n">metadf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">refstation</span><span class="p">,</span> <span class="s2">&quot;altitude&quot;</span><span class="p">]</span>
+        <span class="n">buddy_correction</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">metadf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">buddies</span><span class="p">,</span> <span class="s2">&quot;altitude&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ref_alt</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">lapserate</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">bud</span> <span class="ow">in</span> <span class="n">buddies_obs</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">buddies_obs</span><span class="p">[</span><span class="n">bud</span><span class="p">]</span> <span class="o">=</span> <span class="n">buddies_obs</span><span class="p">[</span><span class="n">bud</span><span class="p">]</span> <span class="o">-</span> <span class="n">buddy_correction</span><span class="p">[</span><span class="n">bud</span><span class="p">]</span>
+
+        <span class="c1"># calucalate std and mean row wise</span>
+        <span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buddies_obs</span><span class="p">[</span><span class="n">buddies</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buddies_obs</span><span class="p">[</span><span class="n">buddies</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;samplesize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buddies_obs</span><span class="p">[</span><span class="n">buddies</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># from titan they use std adjust which is float std_adjusted = sqrt(variance + variance / n_buddies);</span>
+        <span class="c1"># This is not used</span>
+        <span class="c1"># buddies_obs[&#39;var&#39;] = buddies_obs[buddies].var(axis=1)</span>
+        <span class="c1"># buddies_obs[&#39;std_adj&#39;] =np.sqrt(buddies_obs[&#39;var&#39;] + buddies_obs[&#39;var&#39;]/buddies_obs[&#39;samplesize&#39;])</span>
+
+        <span class="c1"># replace where needed with min std</span>
+        <span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">cond</span><span class="o">=</span><span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_std</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="n">min_std</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Get refstation observations and merge</span>
+        <span class="n">ref_obs</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">refstation</span><span class="p">][</span>
+            <span class="n">obstype</span>
+        <span class="p">]</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+        <span class="n">buddies_obs</span> <span class="o">=</span> <span class="n">buddies_obs</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">ref_obs</span><span class="p">,</span>
+            <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>  <span class="c1"># both not needed because if right, than there is no buddy sample per definition.</span>
+            <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Calculate sigma</span>
+        <span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;chi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">abs</span><span class="p">(</span><span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">buddies_obs</span><span class="p">[</span><span class="n">refstation</span><span class="p">])</span>
+        <span class="p">)</span> <span class="o">/</span> <span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span>
+
+        <span class="n">outliers</span> <span class="o">=</span> <span class="n">buddies_obs</span><span class="p">[</span>
+            <span class="p">(</span><span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;chi&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">std_threshold</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="n">buddies_obs</span><span class="p">[</span><span class="s2">&quot;samplesize&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_sample_size</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Buddy outlier details for </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s2">: </span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">buddies</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># NOTE: the outliers (above) can be interesting to pass back to the dataset??</span>
+
+        <span class="c1"># to multiindex</span>
+        <span class="n">outliers</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refstation</span>
+        <span class="n">outliers</span> <span class="o">=</span> <span class="n">outliers</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">outliers_idx</span> <span class="o">=</span> <span class="n">outliers_idx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outliers</span><span class="p">)</span>
+
+    <span class="c1"># Update the outliers and replace the obsdf</span>
+    <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span> <span class="o">=</span> <span class="n">make_outlier_df_for_check</span><span class="p">(</span>
+        <span class="n">station_dt_list</span><span class="o">=</span><span class="n">outliers_idx</span><span class="p">,</span>
+        <span class="n">obsdf</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+        <span class="n">flag</span><span class="o">=</span><span class="n">outl_flag</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outlier_df</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Titan bindings</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="create_titanlib_points_dict">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.create_titanlib_points_dict.html#metobs_toolkit.qc_checks.create_titanlib_points_dict">[docs]</a>
+<span class="k">def</span> <span class="nf">create_titanlib_points_dict</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a dictionary of titanlib-points.</span>
+
+<span class="sd">    Titanlib uses point as dataformats. This method converts the dataframes to</span>
+<span class="sd">    a dictionnary of points.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf : pandas.DataFrame</span>
+<span class="sd">        Dataset.df</span>
+<span class="sd">    metadf : pandas.DataFrame</span>
+<span class="sd">        Dataset.metadf.</span>
+<span class="sd">    obstype : str</span>
+<span class="sd">        The observation type to pass to the points.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    points_dict : dict</span>
+<span class="sd">        The collection of datapoints.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[[</span><span class="n">obstype</span><span class="p">]]</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="c1"># merge metadata</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">right</span><span class="o">=</span><span class="n">metadf</span><span class="p">[[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;altitude&quot;</span><span class="p">]],</span>
+        <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+        <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span>
+        <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">dt_grouper</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
+
+    <span class="n">points_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">dt</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">dt_grouper</span><span class="p">:</span>
+
+        <span class="n">check_group</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="o">~</span><span class="n">group</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()]</span>
+
+        <span class="n">points_dict</span><span class="p">[</span><span class="n">dt</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">check_group</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
+            <span class="s2">&quot;names&quot;</span><span class="p">:</span> <span class="n">check_group</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
+            <span class="s2">&quot;lats&quot;</span><span class="p">:</span> <span class="n">check_group</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
+            <span class="s2">&quot;lons&quot;</span><span class="p">:</span> <span class="n">check_group</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
+            <span class="s2">&quot;elev&quot;</span><span class="p">:</span> <span class="n">check_group</span><span class="p">[</span><span class="s2">&quot;altitude&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
+            <span class="s2">&quot;ignore_names&quot;</span><span class="p">:</span> <span class="n">group</span><span class="p">[</span><span class="n">group</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
+        <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">points_dict</span></div>
+
+
+
+<div class="viewcode-block" id="titan_buddy_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.titan_buddy_check.html#metobs_toolkit.qc_checks.titan_buddy_check">[docs]</a>
+<span class="k">def</span> <span class="nf">titan_buddy_check</span><span class="p">(</span>
+    <span class="n">obsdf</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">,</span> <span class="n">checks_settings</span><span class="p">,</span> <span class="n">titan_specific_labeler</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply the Titanlib buddy check.</span>
+
+<span class="sd">    The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for</span>
+<span class="sd">    buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the</span>
+<span class="sd">    (absolute value of the) difference between the observations and the average of the neighbours</span>
+<span class="sd">    normalized by the standard deviation in the circle is greater than a predefined threshold.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    obsdf: Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the observations</span>
+<span class="sd">    metadf: Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the metadata (e.g. latitude, longitude...)</span>
+<span class="sd">    obstype: String, optional</span>
+<span class="sd">        The observation type that has to be checked. The default is &#39;temp&#39;</span>
+<span class="sd">    checks_info: Dictionary</span>
+<span class="sd">        Dictionary with the names of the outlier flags for each check</span>
+<span class="sd">    checks_settings: Dictionary</span>
+<span class="sd">        Dictionary with the settings for each check</span>
+<span class="sd">    titan_specific_labeler: Dictionary</span>
+<span class="sd">        Dictionary that maps numeric flags to &#39;ok&#39; or &#39;outlier&#39; flags for each titan check</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf: Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the unflagged-observations</span>
+<span class="sd">    outlier_df : Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the flagged observations</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;altitude&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cannot find altitude of weather stations. Check is skipped!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create points_dict</span>
+    <span class="n">pointsdict</span> <span class="o">=</span> <span class="n">create_titanlib_points_dict</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">)</span>
+
+    <span class="n">df_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">dt</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">pointsdict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
+        <span class="n">titan_points</span> <span class="o">=</span> <span class="n">titanlib</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="s2">&quot;lats&quot;</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="s2">&quot;lons&quot;</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="s2">&quot;elev&quot;</span><span class="p">]),</span>
+        <span class="p">)</span>
+
+        <span class="n">num_labels</span> <span class="o">=</span> <span class="n">titanlib</span><span class="o">.</span><span class="n">buddy_check</span><span class="p">(</span>
+            <span class="n">titan_points</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">obs</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;radius&quot;</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="p">),</span>  <span class="c1"># same radius for all stations</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;num_min&quot;</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="p">),</span>  <span class="c1"># same min neighbours for all stations</span>
+            <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">],</span>
+            <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;max_elev_diff&quot;</span><span class="p">],</span>
+            <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;elev_gradient&quot;</span><span class="p">],</span>
+            <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;min_std&quot;</span><span class="p">],</span>
+            <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;num_iterations&quot;</span><span class="p">],</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">)</span>  <span class="c1"># check all</span>
+
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">num_labels</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;num_label&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+        <span class="n">labels</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="s2">&quot;names&quot;</span><span class="p">]</span>
+        <span class="n">labels</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dt</span>
+        <span class="n">df_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+    <span class="n">checkeddf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df_list</span><span class="p">)</span>
+
+    <span class="c1"># Convert to toolkit format</span>
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">checkeddf</span><span class="p">[</span><span class="n">checkeddf</span><span class="p">[</span><span class="s2">&quot;num_label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">titan_specific_labeler</span><span class="p">[</span><span class="s2">&quot;outl&quot;</span><span class="p">])]</span>
+
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">outliersdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+
+    <span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">make_outlier_df_for_check</span><span class="p">(</span>
+        <span class="n">station_dt_list</span><span class="o">=</span><span class="n">outliersdf</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+        <span class="n">obsdf</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+        <span class="n">flag</span><span class="o">=</span><span class="n">checks_info</span><span class="p">[</span><span class="s2">&quot;titan_buddy_check&quot;</span><span class="p">][</span><span class="s2">&quot;outlier_flag&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span></div>
+
+
+
+<div class="viewcode-block" id="titan_sct_resistant_check">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.titan_sct_resistant_check.html#metobs_toolkit.qc_checks.titan_sct_resistant_check">[docs]</a>
+<span class="k">def</span> <span class="nf">titan_sct_resistant_check</span><span class="p">(</span>
+    <span class="n">obsdf</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">,</span> <span class="n">checks_settings</span><span class="p">,</span> <span class="n">titan_specific_labeler</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply the Titanlib (robust) Spatial-Consistency-Test (SCT).</span>
+
+<span class="sd">    The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the</span>
+<span class="sd">    nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation</span>
+<span class="sd">    (OI) to compute an expected value for each observation. The background for the OI is computed from</span>
+<span class="sd">    a general vertical profile of observations in the area.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -------------</span>
+<span class="sd">    obsdf: Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the observations</span>
+<span class="sd">    metadf: Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the metadata (e.g. latitude, longitude...)</span>
+<span class="sd">    obstype: String, optional</span>
+<span class="sd">        The observation type that has to be checked. The default is &#39;temp&#39;</span>
+<span class="sd">    checks_info: Dictionary</span>
+<span class="sd">        Dictionary with the names of the outlier flags for each check</span>
+<span class="sd">    checks_settings: Dictionary</span>
+<span class="sd">        Dictionary with the settings for each check</span>
+<span class="sd">    titan_specific_labeler: Dictionary</span>
+<span class="sd">        Dictionary that maps numeric flags to &#39;ok&#39; or &#39;outlier&#39; flags for each titan check</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obsdf: Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the unflagged-observations</span>
+<span class="sd">    outlier_df : Pandas.DataFrame</span>
+<span class="sd">        The dataframe containing the flagged observations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;altitude&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cannot find altitude of weather stations. Check is skipped!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create points_dict</span>
+    <span class="n">pointsdict</span> <span class="o">=</span> <span class="n">create_titanlib_points_dict</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">obstype</span><span class="p">)</span>
+
+    <span class="n">df_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">dt</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">pointsdict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;sct on observations at </span><span class="si">{</span><span class="n">dt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
+        <span class="n">titan_points</span> <span class="o">=</span> <span class="n">titanlib</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="s2">&quot;lats&quot;</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="s2">&quot;lons&quot;</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="s2">&quot;elev&quot;</span><span class="p">]),</span>
+        <span class="p">)</span>
+
+        <span class="n">flags</span><span class="p">,</span> <span class="n">scores</span> <span class="o">=</span> <span class="n">titanlib</span><span class="o">.</span><span class="n">sct_resistant</span><span class="p">(</span>
+            <span class="n">points</span><span class="o">=</span><span class="n">titan_points</span><span class="p">,</span>  <span class="c1"># points</span>
+            <span class="n">values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">obs</span><span class="p">),</span>  <span class="c1"># vlues</span>
+            <span class="n">obs_to_check</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span>  <span class="c1"># obs to check (check all)</span>
+            <span class="n">background_values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">),</span> <span class="mi">0</span><span class="p">),</span>  <span class="c1"># background values</span>
+            <span class="n">background_elab_type</span><span class="o">=</span><span class="n">titanlib</span><span class="o">.</span><span class="n">MedianOuterCircle</span><span class="p">,</span>  <span class="c1"># background elab type</span>
+            <span class="n">num_min_outer</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;num_min_outer&quot;</span><span class="p">],</span>  <span class="c1"># num min outer</span>
+            <span class="n">num_max_outer</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;num_max_outer&quot;</span><span class="p">],</span>  <span class="c1"># num mac outer</span>
+            <span class="n">inner_radius</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;inner_radius&quot;</span><span class="p">],</span>  <span class="c1"># inner radius</span>
+            <span class="n">outer_radius</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;outer_radius&quot;</span><span class="p">],</span>  <span class="c1"># outer radius</span>
+            <span class="n">num_iterations</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;num_iterations&quot;</span><span class="p">],</span>  <span class="c1"># num iterations</span>
+            <span class="n">num_min_prof</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;num_min_prof&quot;</span><span class="p">],</span>  <span class="c1"># num min prof</span>
+            <span class="n">min_elev_diff</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;min_elev_diff&quot;</span><span class="p">],</span>  <span class="c1"># min elev diff</span>
+            <span class="n">min_horizontal_scale</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span>
+                <span class="s2">&quot;min_horizontal_scale&quot;</span>
+            <span class="p">],</span>  <span class="c1"># min horizontal scale</span>
+            <span class="n">max_horizontal_scale</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span>
+                <span class="s2">&quot;max_horizontal_scale&quot;</span>
+            <span class="p">],</span>  <span class="c1"># max horizontal scale</span>
+            <span class="n">kth_closest_obs_horizontal_scale</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span>
+                <span class="s2">&quot;kth_closest_obs_horizontal_scale&quot;</span>
+            <span class="p">],</span>  <span class="c1"># kth closest obs horizontal scale</span>
+            <span class="n">vertical_scale</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;vertical_scale&quot;</span><span class="p">],</span>  <span class="c1"># vertical scale</span>
+            <span class="n">value_mina</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">x</span> <span class="o">-</span> <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;mina_deviation&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obs</span>
+            <span class="p">],</span>  <span class="c1"># values mina</span>
+            <span class="n">value_maxa</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">x</span> <span class="o">+</span> <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;maxa_deviation&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obs</span>
+            <span class="p">],</span>  <span class="c1"># values maxa</span>
+            <span class="n">value_minv</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">x</span> <span class="o">-</span> <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;minv_deviation&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obs</span>
+            <span class="p">],</span>  <span class="c1"># values minv</span>
+            <span class="n">value_maxv</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">x</span> <span class="o">+</span> <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;maxv_deviation&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obs</span>
+            <span class="p">],</span>  <span class="c1"># values maxv</span>
+            <span class="n">eps2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">),</span> <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;eps2&quot;</span><span class="p">]),</span>  <span class="c1"># eps2</span>
+            <span class="n">tpos</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">),</span> <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;tpos&quot;</span><span class="p">]),</span>  <span class="c1"># tpos</span>
+            <span class="n">tneg</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">),</span> <span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;tneg&quot;</span><span class="p">]),</span>  <span class="c1"># tneg</span>
+            <span class="n">debug</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;debug&quot;</span><span class="p">],</span>  <span class="c1"># debug</span>
+            <span class="n">basic</span><span class="o">=</span><span class="n">checks_settings</span><span class="p">[</span><span class="s2">&quot;basic&quot;</span><span class="p">],</span>
+        <span class="p">)</span>  <span class="c1"># basic</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Sleeping ... (to avoid segmentaton errors)&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;num_label&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+        <span class="n">labels</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="s2">&quot;names&quot;</span><span class="p">]</span>
+        <span class="n">labels</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dt</span>
+        <span class="n">df_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+    <span class="n">checkeddf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df_list</span><span class="p">)</span>
+
+    <span class="c1"># Convert to toolkit format</span>
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">checkeddf</span><span class="p">[</span><span class="n">checkeddf</span><span class="p">[</span><span class="s2">&quot;num_label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">titan_specific_labeler</span><span class="p">[</span><span class="s2">&quot;outl&quot;</span><span class="p">])]</span>
+
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">outliersdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+
+    <span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">make_outlier_df_for_check</span><span class="p">(</span>
+        <span class="n">station_dt_list</span><span class="o">=</span><span class="n">outliersdf</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+        <span class="n">obsdf</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+        <span class="n">flag</span><span class="o">=</span><span class="n">checks_info</span><span class="p">[</span><span class="s2">&quot;titan_sct_resistant_check&quot;</span><span class="p">][</span><span class="s2">&quot;outlier_flag&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Helpers</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="get_outliers_in_daterange">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.qc_checks.get_outliers_in_daterange.html#metobs_toolkit.qc_checks.get_outliers_in_daterange">[docs]</a>
+<span class="k">def</span> <span class="nf">get_outliers_in_daterange</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">time_window</span><span class="p">,</span> <span class="n">station_freq</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find all outliers in a window of a specific station.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_data : pandas.DataFrame</span>
+<span class="sd">        Dataframe with a datetimeindex to get the intersection with a</span>
+<span class="sd">        datetimerange from.</span>
+<span class="sd">    date : datetime.datetime</span>
+<span class="sd">        The center of the window.</span>
+<span class="sd">    name : str</span>
+<span class="sd">        The stationname.</span>
+<span class="sd">    time_window : datetimestring</span>
+<span class="sd">        Half the width of the window.</span>
+<span class="sd">    station_freq : pandas.Series</span>
+<span class="sd">        The series containing the frequencies per station.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    intersection : pandas.multiindex</span>
+<span class="sd">        A name-datetime multiindex for occuring outliers in the window.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">date</span> <span class="o">+</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">time_window</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">station_freq</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">date</span> <span class="o">-</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">time_window</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">station_freq</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+
+    <span class="n">daterange</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end_date</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">station_freq</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+
+    <span class="n">multi_idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">(</span>
+        <span class="n">arrays</span><span class="o">=</span><span class="p">[[</span><span class="n">name</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">daterange</span><span class="p">),</span> <span class="n">daterange</span><span class="o">.</span><span class="n">to_list</span><span class="p">()],</span>
+        <span class="n">sortorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">outlier_sub_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">multi_idx</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">intersection</span> <span class="o">=</span> <span class="n">outlier_sub_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">input_data</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">return</span> <span class="n">intersection</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

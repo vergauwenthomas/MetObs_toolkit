@@ -1,0 +1,6 @@
+metobs\_toolkit.plotting\_functions.correlation\_scatter
+========================================================
+
+.. currentmodule:: metobs_toolkit.plotting_functions
+
+.. autofunction:: correlation_scatter

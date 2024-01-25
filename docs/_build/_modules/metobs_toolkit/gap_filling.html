@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>metobs_toolkit.gap_filling &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="../../index.html">
+
+              <img src="../../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">metobs_toolkit.gap_filling</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for metobs_toolkit.gap_filling</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Tue Feb 28 17:05:26 2023</span>
+
+<span class="sd">@author: thoverga</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.df_helpers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">remove_outliers_from_obs</span><span class="p">,</span>
+    <span class="n">init_multiindexdf</span><span class="p">,</span>
+    <span class="n">format_outliersdf_to_doubleidx</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Gap fillers</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="interpolate_gap">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gap_filling.interpolate_gap.html#metobs_toolkit.gap_filling.interpolate_gap">[docs]</a>
+<span class="k">def</span> <span class="nf">interpolate_gap</span><span class="p">(</span>
+    <span class="n">gap</span><span class="p">,</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span><span class="p">,</span> <span class="n">dataset_res</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">max_consec_fill</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interpolate a specific gap.&quot;&quot;&quot;</span>
+    <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">format_outliersdf_to_doubleidx</span><span class="p">(</span><span class="n">outliersdf</span><span class="p">)</span>
+
+    <span class="c1"># 1 get trailing and leading + exploded index</span>
+    <span class="n">gap</span><span class="o">.</span><span class="n">update_gaps_indx_in_obs_space</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span><span class="p">,</span> <span class="n">dataset_res</span><span class="p">)</span>
+    <span class="n">gap</span><span class="o">.</span><span class="n">update_leading_trailing_obs</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span><span class="p">,</span> <span class="n">obs_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># initiate return value when no interpolation can be performed</span>
+    <span class="n">empty_interp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+    <span class="n">empty_interp</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obstype</span>
+
+    <span class="c1"># 2 check if there is a trailing and leading gap</span>
+    <span class="k">if</span> <span class="n">gap</span><span class="o">.</span><span class="n">startgap</span> <span class="o">==</span> <span class="n">gap</span><span class="o">.</span><span class="n">leading_timestamp</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No leading timestamp found for gap </span><span class="si">{</span><span class="n">gap</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="n">message</span>
+        <span class="k">return</span> <span class="n">empty_interp</span>
+
+    <span class="k">if</span> <span class="n">gap</span><span class="o">.</span><span class="n">endgap</span> <span class="o">==</span> <span class="n">gap</span><span class="o">.</span><span class="n">trailing_timestamp</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No trailing timestamp found for gap </span><span class="si">{</span><span class="n">gap</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="n">message</span>
+        <span class="k">return</span> <span class="n">empty_interp</span>
+
+    <span class="c1"># 3. Get leading and trailing val</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">gap</span><span class="o">.</span><span class="n">leading_val</span><span class="p">):</span>
+        <span class="c1"># empty dict --&gt; no value in the obs</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No cadidate for leading </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> observation found for </span><span class="si">{</span><span class="n">gap</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="n">message</span>
+        <span class="k">return</span> <span class="n">empty_interp</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">gap</span><span class="o">.</span><span class="n">trailing_val</span><span class="p">):</span>
+        <span class="c1"># empty dict --&gt; no value in the obs</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No cadidate for trailing </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> observation found for </span><span class="si">{</span><span class="n">gap</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="n">message</span>
+        <span class="k">return</span> <span class="n">empty_interp</span>
+
+    <span class="n">leading_dt</span> <span class="o">=</span> <span class="n">gap</span><span class="o">.</span><span class="n">leading_timestamp</span>
+    <span class="n">leading_val</span> <span class="o">=</span> <span class="n">gap</span><span class="o">.</span><span class="n">leading_val</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span>
+    <span class="n">trailing_dt</span> <span class="o">=</span> <span class="n">gap</span><span class="o">.</span><span class="n">trailing_timestamp</span>
+    <span class="n">trailing_val</span> <span class="o">=</span> <span class="n">gap</span><span class="o">.</span><span class="n">trailing_val</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span>
+
+    <span class="c1"># Make interpolation series</span>
+    <span class="n">gaps_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+    <span class="n">gaps_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">gaps_series</span><span class="p">,</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+                <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">leading_dt</span><span class="p">,</span> <span class="n">trailing_dt</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">leading_val</span><span class="p">,</span> <span class="n">trailing_val</span><span class="p">]</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">gaps_series</span> <span class="o">=</span> <span class="n">gaps_series</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+    <span class="c1"># Interpolate series</span>
+    <span class="n">gaps_series</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span>
+        <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+        <span class="n">limit</span><span class="o">=</span><span class="n">max_consec_fill</span><span class="p">,</span>  <span class="c1"># Maximum number of consecutive NaNs to fill. Must be greater than 0.</span>
+        <span class="n">limit_area</span><span class="o">=</span><span class="s2">&quot;inside&quot;</span><span class="p">,</span>
+        <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Subset only gap indixes</span>
+    <span class="n">gaps_fill_series</span> <span class="o">=</span> <span class="n">gaps_series</span><span class="p">[</span><span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)]</span>
+    <span class="n">gaps_fill_series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obstype</span>
+
+    <span class="c1"># update gapfill info (for the user)</span>
+    <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gaps_series</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+    <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">obstype</span><span class="p">,</span> <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="s2">&quot;datetime&quot;</span><span class="p">})</span>
+    <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
+
+    <span class="n">gapfill_df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;interpolation&quot;</span>
+    <span class="n">gapfill_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">leading_dt</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;leading observation&quot;</span>
+    <span class="n">gapfill_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trailing_dt</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;trailing observation&quot;</span>
+    <span class="n">gapfill_df</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gap</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+
+    <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_info</span> <span class="o">=</span> <span class="n">gapfill_df</span>
+
+    <span class="k">return</span> <span class="n">gaps_fill_series</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Debiasing period</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="get_sample_size">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gap_filling.get_sample_size.html#metobs_toolkit.gap_filling.get_sample_size">[docs]</a>
+<span class="k">def</span> <span class="nf">get_sample_size</span><span class="p">(</span><span class="n">sample_duration_hours</span><span class="p">,</span> <span class="n">sta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the number of records for a sample duration.&quot;&quot;&quot;</span>
+    <span class="n">stares</span> <span class="o">=</span> <span class="n">sta</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;dataset_resolution&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="n">sample_size</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">sample_duration_hours</span><span class="p">)</span> <span class="o">/</span> <span class="n">stares</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_size</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_leading_trailing_debias_periods">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gap_filling.create_leading_trailing_debias_periods.html#metobs_toolkit.gap_filling.create_leading_trailing_debias_periods">[docs]</a>
+<span class="k">def</span> <span class="nf">create_leading_trailing_debias_periods</span><span class="p">(</span>
+    <span class="n">station</span><span class="p">,</span> <span class="n">gap</span><span class="p">,</span> <span class="n">debias_period_settings</span><span class="p">,</span> <span class="n">obstype</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the leading and trailing periods of a gap.&quot;&quot;&quot;</span>
+    <span class="c1"># Get samplesizes</span>
+    <span class="n">debias_pref_sample_size_leading</span> <span class="o">=</span> <span class="n">get_sample_size</span><span class="p">(</span>
+        <span class="n">debias_period_settings</span><span class="p">[</span><span class="s2">&quot;prefered_leading_sample_duration_hours&quot;</span><span class="p">],</span> <span class="n">station</span>
+    <span class="p">)</span>
+    <span class="n">debias_pref_sample_size_trailing</span> <span class="o">=</span> <span class="n">get_sample_size</span><span class="p">(</span>
+        <span class="n">debias_period_settings</span><span class="p">[</span><span class="s2">&quot;prefered_trailing_sample_duration_hours&quot;</span><span class="p">],</span> <span class="n">station</span>
+    <span class="p">)</span>
+    <span class="n">debias_min_sample_size_leading</span> <span class="o">=</span> <span class="n">get_sample_size</span><span class="p">(</span>
+        <span class="n">debias_period_settings</span><span class="p">[</span><span class="s2">&quot;minimum_leading_sample_duration_hours&quot;</span><span class="p">],</span> <span class="n">station</span>
+    <span class="p">)</span>
+    <span class="n">debias_min_sample_size_trailing</span> <span class="o">=</span> <span class="n">get_sample_size</span><span class="p">(</span>
+        <span class="n">debias_period_settings</span><span class="p">[</span><span class="s2">&quot;minimum_trailing_sample_duration_hours&quot;</span><span class="p">],</span> <span class="n">station</span>
+    <span class="p">)</span>
+
+    <span class="c1"># get all observations that can be used for debias training</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">df</span>
+
+    <span class="c1"># remove blacklist</span>
+    <span class="c1"># TODO</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">remove_outliers_from_obs</span><span class="p">(</span>
+        <span class="n">obs</span><span class="p">,</span> <span class="n">format_outliersdf_to_doubleidx</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">outliersdf</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># add whitelist</span>
+    <span class="c1"># TODO</span>
+
+    <span class="c1"># only datetimes are relevant</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="n">obstype</span><span class="p">]]</span>
+
+    <span class="c1"># Select all leading and all trailing obs</span>
+    <span class="n">leading_period</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">gap</span><span class="o">.</span><span class="n">startgap</span><span class="p">]</span>
+    <span class="n">trailing_period</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">gap</span><span class="o">.</span><span class="n">endgap</span><span class="p">]</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">leading_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> leading records, </span><span class="si">{</span><span class="n">trailing_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> trailing records.&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># some derived integers</span>
+    <span class="n">poss_shrinkage_leading</span> <span class="o">=</span> <span class="n">leading_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">debias_min_sample_size_leading</span>
+    <span class="n">poss_shrinkage_trailing</span> <span class="o">=</span> <span class="n">trailing_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">debias_min_sample_size_trailing</span>
+    <span class="n">poss_extention_leading</span> <span class="o">=</span> <span class="n">leading_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">debias_pref_sample_size_leading</span>
+    <span class="n">poss_extention_trailing</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">trailing_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">debias_pref_sample_size_trailing</span>
+    <span class="p">)</span>
+
+    <span class="c1"># check if desired sample sizes for leading and trailing are possible</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">leading_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">debias_pref_sample_size_leading</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+        <span class="n">trailing_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">debias_pref_sample_size_trailing</span>
+    <span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;leading and trailing periods are both available for debiassing.&quot;</span><span class="p">)</span>
+        <span class="c1"># both periods are oke</span>
+        <span class="n">leading_df</span> <span class="o">=</span> <span class="n">leading_period</span><span class="p">[</span><span class="o">-</span><span class="n">debias_pref_sample_size_leading</span><span class="p">:]</span>
+        <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">trailing_period</span><span class="p">[:</span><span class="n">debias_pref_sample_size_trailing</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="p">(</span><span class="n">leading_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">debias_pref_sample_size_leading</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+        <span class="n">trailing_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">debias_pref_sample_size_trailing</span>
+    <span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;leading periods for debiassing does not have a preferable size. Try translation/shrinkage ...&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># leading period to small, trailing period is OK</span>
+
+        <span class="n">missing_records</span> <span class="o">=</span> <span class="n">debias_pref_sample_size_leading</span> <span class="o">-</span> <span class="n">leading_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># 1 if the leading period is smaller thatn the minimum leading size --&gt; return default</span>
+        <span class="k">if</span> <span class="n">poss_shrinkage_leading</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>  <span class="c1"># this might be to strict</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;The available leading debias samplesize is smaller than the minimum. A translation/shrinking is not possible.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 2 Try translation without shrinkage</span>
+
+        <span class="k">elif</span> <span class="n">missing_records</span> <span class="o">&lt;=</span> <span class="n">poss_extention_trailing</span><span class="p">:</span>
+            <span class="c1"># translation without shrinkage is possible</span>
+            <span class="n">translation_trailing</span> <span class="o">=</span> <span class="n">missing_records</span>
+
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">leading_period</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">trailing_period</span><span class="p">[</span>
+                <span class="mi">0</span> <span class="p">:</span> <span class="p">(</span><span class="n">debias_pref_sample_size_trailing</span> <span class="o">+</span> <span class="n">translation_trailing</span><span class="p">)</span>
+            <span class="p">]</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;A translation of </span><span class="si">{</span><span class="n">translation_trailing</span><span class="si">}</span><span class="s2"> records is done towards the trailing period. (n_leading + n_trailing is conserved: </span><span class="si">{</span><span class="n">leading_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">trailing_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 3. Try if a translation is within the limits of shrinkage</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">missing_records</span> <span class="o">-</span> <span class="n">poss_extention_trailing</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">poss_shrinkage_leading</span><span class="p">:</span>
+            <span class="n">translation_trailing</span> <span class="o">=</span> <span class="n">poss_extention_trailing</span>
+
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">leading_period</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">trailing_period</span><span class="p">[</span>
+                <span class="mi">0</span> <span class="p">:</span> <span class="n">debias_pref_sample_size_trailing</span> <span class="o">+</span> <span class="n">translation_trailing</span>
+            <span class="p">]</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;A translation of </span><span class="si">{</span><span class="n">translation_trailing</span><span class="si">}</span><span class="s2"> records is done towards the trailing period. Since there was not engough translation space for the trailing obs, the condition n_leading + n_trailing is NOT conserved: </span><span class="si">{</span><span class="n">leading_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">trailing_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. </span><span class="se">\</span>
+<span class="s2">                  Both leading and trailing sizes still achieves minimal size restrictions.&quot;</span>
+            <span class="p">)</span>
+        <span class="c1"># 4. If all else fails, it is not possible to make a leading period</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;The available leading samplesize can not reach minimal size restrictions.&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># no translation is possible, even with shrinking</span>
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>  <span class="c1"># this might be to strict</span>
+
+    <span class="k">elif</span> <span class="p">(</span><span class="n">leading_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">debias_pref_sample_size_leading</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+        <span class="n">trailing_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">debias_pref_sample_size_trailing</span>
+    <span class="p">):</span>
+        <span class="c1"># leading period is ok, trailing period is to short</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;trailing periods for debiassing does not have a preferable size. Try translation/shrinkage ...&quot;</span>
+        <span class="p">)</span>
+        <span class="n">missing_records</span> <span class="o">=</span> <span class="n">debias_pref_sample_size_trailing</span> <span class="o">-</span> <span class="n">trailing_period</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># 1 if the trailing period is smaller thatn the minimum trailing size --&gt; return default</span>
+        <span class="k">if</span> <span class="n">poss_shrinkage_trailing</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>  <span class="c1"># might be to strict</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;The available trailing debias samplesize is smaller than the minimum. A translation/shrinking is not possible.&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># return</span>
+
+        <span class="c1"># 2 Try translation without shrinkage</span>
+        <span class="k">elif</span> <span class="n">missing_records</span> <span class="o">&lt;=</span> <span class="n">poss_extention_leading</span><span class="p">:</span>
+            <span class="c1"># translation without shrinkage is possible</span>
+            <span class="n">translation_leading</span> <span class="o">=</span> <span class="n">missing_records</span>
+
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">leading_period</span><span class="p">[</span>
+                <span class="o">-</span><span class="p">(</span><span class="n">debias_pref_sample_size_leading</span> <span class="o">+</span> <span class="n">translation_leading</span><span class="p">)</span> <span class="p">:</span>
+            <span class="p">]</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">trailing_period</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;A translation of </span><span class="si">{</span><span class="n">translation_leading</span><span class="si">}</span><span class="s2"> records is done towards the leading period. (n_leading + n_trailing is conserved: </span><span class="si">{</span><span class="n">leading_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">trailing_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 3. Try if a translation is within the limits of shrinkage</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">missing_records</span> <span class="o">-</span> <span class="n">poss_extention_leading</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">poss_shrinkage_trailing</span><span class="p">:</span>
+            <span class="n">translation_leading</span> <span class="o">=</span> <span class="n">poss_extention_leading</span>
+
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">leading_period</span><span class="p">[</span>
+                <span class="o">-</span><span class="p">(</span><span class="n">debias_pref_sample_size_leading</span> <span class="o">+</span> <span class="n">translation_leading</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">trailing_period</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;A translation of </span><span class="si">{</span><span class="n">translation_leading</span><span class="si">}</span><span class="s2"> records is done towards the leading period. Since there was not engough translation space for the leading obs, the condition n_leading + n_trailing is NOT conserved: </span><span class="si">{</span><span class="n">leading_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">trailing_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. </span><span class="se">\</span>
+<span class="s2">                  Both leading and trailing sizes still achieves minimal size restrictions.&quot;</span>
+            <span class="p">)</span>
+        <span class="c1"># 4. If all else fails, it is not possible to make a trailing period</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># no translation is possible, even with shrinking</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;The available trailing samplesize can not reach minimal size restrictions.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>  <span class="c1"># this might be to strict</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Both leading and trailing periods are not to small</span>
+
+        <span class="c1"># 1 does both (leading and trailing) still acchieves the minimal size condition for shrinking?</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">poss_shrinkage_leading</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">poss_shrinkage_trailing</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Both leading and trailing periods do not have a prefered size, but still meet the minimal conditions.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">leading_period</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">trailing_period</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;Both leading and trailing periods do not have a prefered size, and eighter of them does NOT meet minimal condition.&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># either one of the periods does not reach minimal condition, so return default</span>
+            <span class="n">leading_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+            <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+
+    <span class="c1"># convert to multiindex</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">leading_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">leading_df</span> <span class="o">=</span> <span class="n">leading_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">trailing_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">trailing_df</span> <span class="o">=</span> <span class="n">trailing_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">leading_df</span><span class="p">,</span> <span class="n">trailing_df</span></div>
+
+
+
+<div class="viewcode-block" id="get_time_specific_biases">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gap_filling.get_time_specific_biases.html#metobs_toolkit.gap_filling.get_time_specific_biases">[docs]</a>
+<span class="k">def</span> <span class="nf">get_time_specific_biases</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">period</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get hourly biases.&quot;&quot;&quot;</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">model</span> <span class="o">-</span> <span class="n">obs</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">diff</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
+    <span class="n">diff</span><span class="p">[</span><span class="s2">&quot;hours&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">hour</span>
+    <span class="n">diff</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">minute</span>
+    <span class="n">diff</span><span class="p">[</span><span class="s2">&quot;seconds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">second</span>
+
+    <span class="n">biases</span> <span class="o">=</span> <span class="n">diff</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;hours&quot;</span><span class="p">,</span> <span class="s2">&quot;minutes&quot;</span><span class="p">,</span> <span class="s2">&quot;seconds&quot;</span><span class="p">])[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">biases</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_bias_&quot;</span> <span class="o">+</span> <span class="n">period</span>
+
+    <span class="n">biases</span> <span class="o">=</span> <span class="n">biases</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">biases</span></div>
+
+
+
+<div class="viewcode-block" id="make_era_bias_correction">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gap_filling.make_era_bias_correction.html#metobs_toolkit.gap_filling.make_era_bias_correction">[docs]</a>
+<span class="k">def</span> <span class="nf">make_era_bias_correction</span><span class="p">(</span>
+    <span class="n">leading_model</span><span class="p">,</span> <span class="n">trailing_model</span><span class="p">,</span> <span class="n">gap_model</span><span class="p">,</span> <span class="n">leading_obs</span><span class="p">,</span> <span class="n">trailing_obs</span><span class="p">,</span> <span class="n">obstype</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make debias correction of the modeldata for a gap.&quot;&quot;&quot;</span>
+    <span class="n">error_message</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="c1"># 1. get lead timestamp biases</span>
+    <span class="n">lead_biases</span> <span class="o">=</span> <span class="n">get_time_specific_biases</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">leading_model</span><span class="p">,</span> <span class="n">obs</span><span class="o">=</span><span class="n">leading_obs</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span> <span class="n">period</span><span class="o">=</span><span class="s2">&quot;lead&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># 2. get trailing timestamp biases</span>
+    <span class="n">trail_biases</span> <span class="o">=</span> <span class="n">get_time_specific_biases</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">trailing_model</span><span class="p">,</span> <span class="n">obs</span><span class="o">=</span><span class="n">trailing_obs</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span> <span class="n">period</span><span class="o">=</span><span class="s2">&quot;trail&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># 3. apply bias correction on modeldata in gap</span>
+
+    <span class="c1"># linear interpolation of bias along the gap method:</span>
+    <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;trail_weight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">gap_model</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;lead_weight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;trail_weight&quot;</span><span class="p">]</span>
+
+    <span class="c1"># aggregate to timestamps</span>
+    <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;hours&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gap_model</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">hour</span>
+    <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gap_model</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">minute</span>
+    <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;seconds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gap_model</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">second</span>
+
+    <span class="n">gap_model</span> <span class="o">=</span> <span class="n">gap_model</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="n">gap_model</span> <span class="o">=</span> <span class="n">gap_model</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">right</span><span class="o">=</span><span class="n">lead_biases</span><span class="p">[[</span><span class="s2">&quot;hours&quot;</span><span class="p">,</span> <span class="s2">&quot;minutes&quot;</span><span class="p">,</span> <span class="s2">&quot;seconds&quot;</span><span class="p">,</span> <span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_bias_lead&quot;</span><span class="p">]],</span>
+        <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+        <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;hours&quot;</span><span class="p">,</span> <span class="s2">&quot;minutes&quot;</span><span class="p">,</span> <span class="s2">&quot;seconds&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="n">gap_model</span> <span class="o">=</span> <span class="n">gap_model</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">right</span><span class="o">=</span><span class="n">trail_biases</span><span class="p">[[</span><span class="s2">&quot;hours&quot;</span><span class="p">,</span> <span class="s2">&quot;minutes&quot;</span><span class="p">,</span> <span class="s2">&quot;seconds&quot;</span><span class="p">,</span> <span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_bias_trail&quot;</span><span class="p">]],</span>
+        <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+        <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;hours&quot;</span><span class="p">,</span> <span class="s2">&quot;minutes&quot;</span><span class="p">,</span> <span class="s2">&quot;seconds&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="n">gap_model</span> <span class="o">=</span> <span class="n">gap_model</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Idea: if BOTH leadin and trailing (hourly) biases is available, than use</span>
+    <span class="c1"># use the debias corection (even if it is for a part of the gap!).</span>
+    <span class="c1"># If either one or both are missing, than no bias correction is applied</span>
+    <span class="n">no_debias</span> <span class="o">=</span> <span class="n">gap_model</span><span class="p">[</span>
+        <span class="p">(</span><span class="n">gap_model</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_bias_lead&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">())</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">gap_model</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_bias_trail&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">())</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">index</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">no_debias</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">error_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No debias possible for these gap records: </span><span class="si">{</span><span class="n">no_debias</span><span class="si">}</span><span class="s2">,the gap will be filled by model data without bias correction. &quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
+
+    <span class="c1"># set weights to zero if not debias correction can be applied on that record</span>
+    <span class="n">gap_model</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">no_debias</span><span class="p">,</span> <span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_bias_trail&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">gap_model</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">no_debias</span><span class="p">,</span> <span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_bias_lead&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="c1"># 5. compute the debiased fill value</span>
+    <span class="c1"># leave this dataframe for debugging</span>
+    <span class="n">gap_model</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_debiased_value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gap_model</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;lead_weight&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">gap_model</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_bias_lead&quot;</span><span class="p">])</span>
+        <span class="o">+</span> <span class="p">(</span><span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;trail_weight&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">gap_model</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_bias_trail&quot;</span><span class="p">])</span>
+    <span class="p">)</span>
+
+    <span class="c1"># 7. format gapmodel</span>
+    <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;hours&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s2">&quot;:&quot;</span>
+        <span class="o">+</span> <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s2">&quot;:&quot;</span>
+        <span class="o">+</span> <span class="n">gap_model</span><span class="p">[</span><span class="s2">&quot;seconds&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">gap_model</span> <span class="o">=</span> <span class="n">gap_model</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">obstype</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">_model_value&quot;</span><span class="p">})</span>
+
+    <span class="c1"># 6. make returen</span>
+    <span class="n">returnseries</span> <span class="o">=</span> <span class="n">gap_model</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_debiased_value&quot;</span><span class="p">]</span>
+    <span class="n">returnseries</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obstype</span>
+    <span class="k">return</span> <span class="n">returnseries</span><span class="p">,</span> <span class="n">gap_model</span><span class="p">,</span> <span class="n">error_message</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

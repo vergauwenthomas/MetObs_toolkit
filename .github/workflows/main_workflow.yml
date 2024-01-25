@@ -225,8 +225,8 @@ jobs:
             force_orphan: true
 
 
-#---- Deploy documentation -----#
-   deploy_doc:
+#---- Deploy documentation MAIN-----#
+   deploy_doc_main:
     name: Deploy main documentation
     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
     runs-on: ubuntu-latest
@@ -270,11 +270,58 @@ jobs:
             publish_dir: _build/
             force_orphan: true
 
+#---- Deploy documentation dev -----#
+   deploy_doc_dev:
+    name: Deploy Dev documentation
+    needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
+    runs-on: ubuntu-latest
+    if: |
+        github.ref == 'refs/heads/dev'
+    steps:
+        - uses: actions/checkout@v3
+        - name: Set up Python39
+          uses: actions/setup-python@v4
+          with:
+            python-version: '3.9'
+            #cache: 'poetry'
+        # You can test your matrix by printing the current Python version
+        - name: Display Python version
+          run: python -c "import sys; print(sys.version)"
+        - name: install pandoc (system wide)
+          run: |
+              sudo apt-get -y install pandoc
+        - name: Download the package build
+          uses: actions/download-artifact@v3
+          with:
+            name: package_build
+        - name: Install the package
+          run: |
+              python3 -m pip install ./metobs_toolkit-*.tar.gz
+        - name: get documentation requirements
+          uses: actions/download-artifact@v3
+          with:
+            name: documentation_requirements
+        - name: install doc depending packages
+          run: |
+              pip install -r only_doc_req.txt
+        - name: Build documentation
+          run: |
+              sphinx-build -a -E docs _build
+        - name: deploy documentation
+          uses: peaceiris/actions-gh-pages@v3
+          with:
+            publish_branch: gh-pages-dev
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            publish_dir: _build/
+            force_orphan: true
+
+
+
 
 # ---- delete artifacts that are not for storage -----
    cleanup_artifacts:
      name: delete artifacts
-     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing, deploy_doc]
+     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing, deploy_doc_main]
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v3
@@ -284,4 +331,3 @@ jobs:
              package_build
              documentation_requirements
              titan_requirements
-

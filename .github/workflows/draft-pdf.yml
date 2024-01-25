@@ -1,4 +1,10 @@
-on: [push]
+on:
+  push:
+    branches-ignore:
+      #cannot be ran on protected branches
+      - 'main' 
+      - 'dev'
+      - 'gh-pages'
 
 jobs:
   paper:

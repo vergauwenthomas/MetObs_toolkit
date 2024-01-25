@@ -92,7 +92,7 @@ Make sure you have this software installed before proceeding.
   git checkout name-of-your-bugfix-or-feature
   ```
  Now you can make local changes.
- 
+
 4. Test your changes locally. The [build_and_test.sh](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/deploiment/build_and_test.sh) script builds the package and runs a series of tests. All tests must be successful before your contributions can be merged in the dev branch.
 
   ```
@@ -126,4 +126,4 @@ After the code review, and all review marks are resolved, your contributions wil
 For general support or questions, you can refer them to @vergauwenthomas, or by mail to (thomas.vergauwen@meteo.be).
 
 ## Acknowledgement
-This file is inspired by the [RavenPy](https://github.com/CSHS-CWRA/RavenPy) project. Thank you for the inspiration!”. 
+This file is inspired by the [RavenPy](https://github.com/CSHS-CWRA/RavenPy) project. Thank you for the inspiration!”.

@@ -1,0 +1,6 @@
+metobs\_toolkit.df\_helpers.value\_labeled\_doubleidxdf\_to\_triple\_idxdf
+==========================================================================
+
+.. currentmodule:: metobs_toolkit.df_helpers
+
+.. autofunction:: value_labeled_doubleidxdf_to_triple_idxdf

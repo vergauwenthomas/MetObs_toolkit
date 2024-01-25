@@ -1,0 +1,6 @@
+metobs\_toolkit.analysis.get\_seasons
+=====================================
+
+.. currentmodule:: metobs_toolkit.analysis
+
+.. autofunction:: get_seasons

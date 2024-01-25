@@ -1,0 +1,6 @@
+metobs\_toolkit.plotting\_functions.make\_folium\_html\_plot
+============================================================
+
+.. currentmodule:: metobs_toolkit.plotting_functions
+
+.. autofunction:: make_folium_html_plot

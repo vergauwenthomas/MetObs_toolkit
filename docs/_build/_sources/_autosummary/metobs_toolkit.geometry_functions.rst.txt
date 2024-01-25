@@ -1,0 +1,22 @@
+metobs\_toolkit.geometry\_functions
+===================================
+
+.. automodule:: metobs_toolkit.geometry_functions
+
+
+
+
+
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+
+      box_to_extent_list
+      extent_list_to_box
+      find_extend_of_geodf
+      find_plot_extent
+      gpd_to_extent_box

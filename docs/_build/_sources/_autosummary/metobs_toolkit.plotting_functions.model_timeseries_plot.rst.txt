@@ -1,0 +1,6 @@
+metobs\_toolkit.plotting\_functions.model\_timeseries\_plot
+===========================================================
+
+.. currentmodule:: metobs_toolkit.plotting_functions
+
+.. autofunction:: model_timeseries_plot

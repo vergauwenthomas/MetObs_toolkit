@@ -22,19 +22,21 @@ docs/examples/*.py
 
 #Exclude local documentation builds
 docs/_*
+!docs/_build
 
 #logs
 *log
 #exclude data
-examples/*.csv
-examples/testdata.csv
+fairness_demo_exercises/*.csv
+fairness_demo_exercises/testdata.csv
 tests/test_data/testdata_testday
 # exclued logs
 *log
 
 #exclude figures in test data
-tests/**/*.png
-tests/**/*.html
+tests/*.png
+tests/*.html
+
 
 # pychache
 *.ipynb_checkpoints*
@@ -51,4 +53,4 @@ GUI/cache/*
 #Development stuff
 development/*
 #Documentation (build online)
-docs/_build
+#docs/_build

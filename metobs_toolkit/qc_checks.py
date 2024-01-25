@@ -12,11 +12,7 @@ import numpy as np
 import logging
 
 
-from metobs_toolkit.df_helpers import (
-    init_multiindex,
-    init_multiindexdf,
-    xs_save
-)
+from metobs_toolkit.df_helpers import init_multiindex, init_multiindexdf, xs_save
 
 
 logger = logging.getLogger(__name__)
@@ -25,15 +21,18 @@ logger = logging.getLogger(__name__)
 try:
     import titanlib
 except ModuleNotFoundError:
-    logger.warning("Titanlib is not installed, install it manually if you want to use this functionallity.")
+    logger.warning(
+        "Titanlib is not installed, install it manually if you want to use this functionallity."
+    )
 
 # =============================================================================
 # Helper functions
 # =============================================================================
 
 
-def make_outlier_df_for_check(station_dt_list, obsdf, obstype, flag,
-                              stationname=None, datetimelist=None):
+def make_outlier_df_for_check(
+    station_dt_list, obsdf, obstype, flag, stationname=None, datetimelist=None
+):
     """Construct obsdf and outliersdf from a list of outlier timestamps.
 
     Helper function to create an outlier dataframe for the given station(s) and
@@ -307,7 +306,9 @@ def gross_value_check(obsdf, obstype, checks_info, checks_settings):
     return obsdf, outlier_df
 
 
-def persistance_check(station_frequencies, obsdf, obstype, checks_info, checks_settings):
+def persistance_check(
+    station_frequencies, obsdf, obstype, checks_info, checks_settings
+):
     """Test observations to change over a specific period.
 
     Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
@@ -427,6 +428,7 @@ def repetitions_check(obsdf, obstype, checks_info, checks_settings):
 
     Looking for values of an observation type that are repeated at least with
     the frequency specified in the qc_settings. These values are labeled.
+
 
     Parameters
     ------------
@@ -579,8 +581,9 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
     return obsdf, outlier_df
 
 
-def window_variation_check(station_frequencies, obsdf, obstype,
-                           checks_info, checks_settings):
+def window_variation_check(
+    station_frequencies, obsdf, obstype, checks_info, checks_settings
+):
     """Test if the variation exeeds threshold in moving time windows.
 
     Looking for jumps of the values of an observation type that are larger than
@@ -632,9 +635,7 @@ def window_variation_check(station_frequencies, obsdf, obstype,
         pd.to_timedelta(specific_settings["time_window_to_check"]) / station_frequencies
         < specific_settings["min_window_members"]
     )
-    invalid_stations = list(
-        invalid_windows_check_df[invalid_windows_check_df].index
-    )
+    invalid_stations = list(invalid_windows_check_df[invalid_windows_check_df].index)
     if bool(invalid_stations):
         logger.warning(
             f"The windows are too small for stations  {invalid_stations} to perform window variation check"
@@ -722,6 +723,7 @@ def window_variation_check(station_frequencies, obsdf, obstype,
 # Toolkit buddy check
 # =============================================================================
 
+
 def _calculate_distance_matrix_with_haverine(metadf):
     from math import radians, cos, sin, asin, sqrt
 
@@ -733,7 +735,7 @@ def _calculate_distance_matrix_with_haverine(metadf):
         # haversine formula
         dlon = lon2 - lon1
         dlat = lat2 - lat1
-        a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
         c = 2 * asin(sqrt(a))
         r = 6367000  # Radius of earth in meter.
         return c * r
@@ -742,14 +744,13 @@ def _calculate_distance_matrix_with_haverine(metadf):
     for sta1, row1 in metadf.iterrows():
         distance_matrix[sta1] = {}
         for sta2, row2 in metadf.iterrows():
-            distance_matrix[sta1][sta2] = haversine(row1.geometry.x,
-                                                    row1.geometry.y,
-                                                    row2.geometry.x,
-                                                    row2.geometry.y)
+            distance_matrix[sta1][sta2] = haversine(
+                row1.geometry.x, row1.geometry.y, row2.geometry.x, row2.geometry.y
+            )
     return pd.DataFrame(distance_matrix)
 
 
-def _calculate_distance_matrix(metadf, metric_epsg='31370'):
+def _calculate_distance_matrix(metadf, metric_epsg="31370"):
     metric_metadf = metadf.to_crs(epsg=metric_epsg)
     return metric_metadf.geometry.apply(lambda g: metric_metadf.geometry.distance(g))
 
@@ -770,7 +771,9 @@ def _filter_to_altitude_buddies(spatial_buddies, metadf, max_altitude_diff):
     """Filter neighbours by maximum altitude difference."""
     alt_buddies_dict = {}
     for refstation, buddylist in spatial_buddies.items():
-        alt_diff = abs((metadf.loc[buddylist, 'altitude']) - metadf.loc[refstation, 'altitude'])
+        alt_diff = abs(
+            (metadf.loc[buddylist, "altitude"]) - metadf.loc[refstation, "altitude"]
+        )
         alt_buddies = alt_diff[alt_diff <= max_altitude_diff].index.to_list()
         alt_buddies_dict[refstation] = alt_buddies
     return alt_buddies_dict
@@ -788,8 +791,20 @@ def _filter_to_samplesize(buddydict, min_sample_size):
     return to_check_stations
 
 
-def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, max_alt_diff,
-                        min_std, std_threshold, outl_flag, haversine_approx=True, metric_epsg='31370', lapserate=-0.0065):
+def toolkit_buddy_check(
+    obsdf,
+    metadf,
+    obstype,
+    buddy_radius,
+    min_sample_size,
+    max_alt_diff,
+    min_std,
+    std_threshold,
+    outl_flag,
+    haversine_approx=True,
+    metric_epsg="31370",
+    lapserate=-0.0065,
+):
     """Spatial buddy check.
 
     The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
@@ -843,41 +858,42 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
     if haversine_approx:
         distance_df = _calculate_distance_matrix_with_haverine(metadf=metadf)
     else:
-        distance_df = _calculate_distance_matrix(metadf=metadf,
-                                                 metric_epsg=metric_epsg)
-    buddies = _find_spatial_buddies(distance_df=distance_df,
-                                    buddy_radius=buddy_radius)
+        distance_df = _calculate_distance_matrix(metadf=metadf, metric_epsg=metric_epsg)
+    buddies = _find_spatial_buddies(distance_df=distance_df, buddy_radius=buddy_radius)
 
     # Filter by altitude difference
-    buddies = _filter_to_altitude_buddies(spatial_buddies=buddies,
-                                          metadf=metadf,
-                                          max_altitude_diff=max_alt_diff)
+    buddies = _filter_to_altitude_buddies(
+        spatial_buddies=buddies, metadf=metadf, max_altitude_diff=max_alt_diff
+    )
 
     # Filter by samplesize
-    buddydict = _filter_to_samplesize(buddydict=buddies,
-                                      min_sample_size=min_sample_size)
+    buddydict = _filter_to_samplesize(
+        buddydict=buddies, min_sample_size=min_sample_size
+    )
 
     # Apply buddy check station per station
     for refstation, buddies in buddydict.items():
         if len(buddies) == 0:
-            logger.debug(f'{refstation} has not enough suitable buddies.')
+            logger.debug(f"{refstation} has not enough suitable buddies.")
             continue
 
         # Get observations
-        buddies_obs = obsdf[obsdf.index.get_level_values('name').isin(buddies)][obstype]
+        buddies_obs = obsdf[obsdf.index.get_level_values("name").isin(buddies)][obstype]
         # Unstack
-        buddies_obs = buddies_obs.unstack(level='name')
+        buddies_obs = buddies_obs.unstack(level="name")
 
         # Make lapsrate correction:
-        ref_alt = metadf.loc[refstation, 'altitude']
-        buddy_correction = ((metadf.loc[buddies, 'altitude'] - ref_alt) * (-1. * lapserate)).to_dict()
+        ref_alt = metadf.loc[refstation, "altitude"]
+        buddy_correction = (
+            (metadf.loc[buddies, "altitude"] - ref_alt) * (-1.0 * lapserate)
+        ).to_dict()
         for bud in buddies_obs.columns:
             buddies_obs[bud] = buddies_obs[bud] - buddy_correction[bud]
 
         # calucalate std and mean row wise
-        buddies_obs['mean'] = buddies_obs[buddies].mean(axis=1)
-        buddies_obs['std'] = buddies_obs[buddies].std(axis=1)
-        buddies_obs['samplesize'] = buddies_obs[buddies].count(axis=1)
+        buddies_obs["mean"] = buddies_obs[buddies].mean(axis=1)
+        buddies_obs["std"] = buddies_obs[buddies].std(axis=1)
+        buddies_obs["samplesize"] = buddies_obs[buddies].count(axis=1)
 
         # from titan they use std adjust which is float std_adjusted = sqrt(variance + variance / n_buddies);
         # This is not used
@@ -885,26 +901,36 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
         # buddies_obs['std_adj'] =np.sqrt(buddies_obs['var'] + buddies_obs['var']/buddies_obs['samplesize'])
 
         # replace where needed with min std
-        buddies_obs['std'] = buddies_obs['std'].where(cond=buddies_obs['std'] >= min_std,
-                                                      other=min_std)
+        buddies_obs["std"] = buddies_obs["std"].where(
+            cond=buddies_obs["std"] >= min_std, other=min_std
+        )
 
         # Get refstation observations and merge
-        ref_obs = obsdf[obsdf.index.get_level_values('name') == refstation][obstype].unstack(level='name')
-        buddies_obs = buddies_obs.merge(ref_obs,
-                                        how='left',  # both not needed because if right, than there is no buddy sample per definition.
-                                        left_index=True,
-                                        right_index=True)
+        ref_obs = obsdf[obsdf.index.get_level_values("name") == refstation][
+            obstype
+        ].unstack(level="name")
+        buddies_obs = buddies_obs.merge(
+            ref_obs,
+            how="left",  # both not needed because if right, than there is no buddy sample per definition.
+            left_index=True,
+            right_index=True,
+        )
         # Calculate sigma
-        buddies_obs['chi'] = (abs(buddies_obs['mean'] - buddies_obs[refstation])) / buddies_obs['std']
+        buddies_obs["chi"] = (
+            abs(buddies_obs["mean"] - buddies_obs[refstation])
+        ) / buddies_obs["std"]
 
-        outliers = buddies_obs[(buddies_obs['chi'] > std_threshold) & (buddies_obs['samplesize'] >= min_sample_size)]
+        outliers = buddies_obs[
+            (buddies_obs["chi"] > std_threshold)
+            & (buddies_obs["samplesize"] >= min_sample_size)
+        ]
 
-        logger.debug(f' Buddy outlier details for {refstation}: \n {buddies}')
+        logger.debug(f" Buddy outlier details for {refstation}: \n {buddies}")
         # NOTE: the outliers (above) can be interesting to pass back to the dataset??
 
         # to multiindex
-        outliers['name'] = refstation
-        outliers = outliers.reset_index().set_index(['name', 'datetime']).index
+        outliers["name"] = refstation
+        outliers = outliers.reset_index().set_index(["name", "datetime"]).index
         outliers_idx = outliers_idx.append(outliers)
 
     # Update the outliers and replace the obsdf
@@ -922,8 +948,9 @@ def toolkit_buddy_check(obsdf, metadf, obstype, buddy_radius, min_sample_size, m
 # Titan bindings
 # =============================================================================
 
+
 def create_titanlib_points_dict(obsdf, metadf, obstype):
-    """ Create a dictionary of titanlib-points.
+    """Create a dictionary of titanlib-points.
 
     Titanlib uses point as dataformats. This method converts the dataframes to
     a dictionnary of points.
@@ -947,12 +974,14 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
     obs = obs.reset_index()
 
     # merge metadata
-    obs = obs.merge(right=metadf[['lat', 'lon', 'altitude']],
-                    how='left',
-                    left_on='name',
-                    right_index=True)
+    obs = obs.merge(
+        right=metadf[["lat", "lon", "altitude"]],
+        how="left",
+        left_on="name",
+        right_index=True,
+    )
 
-    dt_grouper = obs.groupby('datetime')
+    dt_grouper = obs.groupby("datetime")
 
     points_dict = {}
     for dt, group in dt_grouper:
@@ -960,18 +989,20 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
         check_group = group[~group[obstype].isnull()]
 
         points_dict[dt] = {
-            'values': check_group[obstype].to_numpy(),
-            'names': check_group['name'].to_numpy(),
-            'lats': check_group['lat'].to_numpy(),
-            'lons': check_group['lon'].to_numpy(),
-            'elev': check_group['altitude'].to_numpy(),
-            'ignore_names': group[group[obstype].isnull()]['name'].to_numpy()
+            "values": check_group[obstype].to_numpy(),
+            "names": check_group["name"].to_numpy(),
+            "lats": check_group["lat"].to_numpy(),
+            "lons": check_group["lon"].to_numpy(),
+            "elev": check_group["altitude"].to_numpy(),
+            "ignore_names": group[group[obstype].isnull()]["name"].to_numpy(),
         }
 
     return points_dict
 
 
-def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler):
+def titan_buddy_check(
+    obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler
+):
     """Apply the Titanlib buddy check.
 
     The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
@@ -1004,57 +1035,64 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_info, checks_settings, tita
 
     """
     try:
-        _ = metadf['altitude']
+        _ = metadf["altitude"]
     except:
-        logger.warning(
-            "Cannot find altitude of weather stations. Check is skipped!"
-        )
+        logger.warning("Cannot find altitude of weather stations. Check is skipped!")
 
     # Create points_dict
     pointsdict = create_titanlib_points_dict(obsdf, metadf, obstype)
 
     df_list = []
     for dt, point in pointsdict.items():
-        obs = list(point['values'])
-        titan_points = titanlib.Points(np.asarray(point['lats']),
-                                       np.asarray(point['lons']),
-                                       np.asarray(point['elev']))
+        obs = list(point["values"])
+        titan_points = titanlib.Points(
+            np.asarray(point["lats"]),
+            np.asarray(point["lons"]),
+            np.asarray(point["elev"]),
+        )
 
         num_labels = titanlib.buddy_check(
-                titan_points,
-                np.asarray(obs),
-                np.asarray([checks_settings['radius']] * len(obs)),  # same radius for all stations
-                np.asarray([checks_settings['num_min']] * len(obs)),  # same min neighbours for all stations
-                checks_settings['threshold'],
-                checks_settings['max_elev_diff'],
-                checks_settings['elev_gradient'],
-                checks_settings['min_std'],
-                checks_settings['num_iterations'],
-                np.full(len(obs), 1))  # check all
+            titan_points,
+            np.asarray(obs),
+            np.asarray(
+                [checks_settings["radius"]] * len(obs)
+            ),  # same radius for all stations
+            np.asarray(
+                [checks_settings["num_min"]] * len(obs)
+            ),  # same min neighbours for all stations
+            checks_settings["threshold"],
+            checks_settings["max_elev_diff"],
+            checks_settings["elev_gradient"],
+            checks_settings["min_std"],
+            checks_settings["num_iterations"],
+            np.full(len(obs), 1),
+        )  # check all
 
-        labels = pd.Series(num_labels, name='num_label').to_frame()
-        labels['name'] = point['names']
-        labels['datetime'] = dt
+        labels = pd.Series(num_labels, name="num_label").to_frame()
+        labels["name"] = point["names"]
+        labels["datetime"] = dt
         df_list.append(labels)
 
     checkeddf = pd.concat(df_list)
 
     # Convert to toolkit format
-    outliersdf = checkeddf[checkeddf['num_label'].isin(titan_specific_labeler['outl'])]
+    outliersdf = checkeddf[checkeddf["num_label"].isin(titan_specific_labeler["outl"])]
 
-    outliersdf = outliersdf.set_index(['name', 'datetime'])
+    outliersdf = outliersdf.set_index(["name", "datetime"])
 
-    obsdf, outliersdf = make_outlier_df_for_check(station_dt_list=outliersdf.index,
-                                                  obsdf=obsdf,
-                                                  obstype=obstype,
-                                                  flag=checks_info["titan_buddy_check"]['outlier_flag'])
+    obsdf, outliersdf = make_outlier_df_for_check(
+        station_dt_list=outliersdf.index,
+        obsdf=obsdf,
+        obstype=obstype,
+        flag=checks_info["titan_buddy_check"]["outlier_flag"],
+    )
 
     return obsdf, outliersdf
 
 
-def titan_sct_resistant_check(obsdf, metadf, obstype,
-                              checks_info, checks_settings,
-                              titan_specific_labeler):
+def titan_sct_resistant_check(
+    obsdf, metadf, obstype, checks_info, checks_settings, titan_specific_labeler
+):
     """Apply the Titanlib (robust) Spatial-Consistency-Test (SCT).
 
     The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
@@ -1087,69 +1125,86 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
     import time
 
     try:
-        _ = metadf['altitude']
+        _ = metadf["altitude"]
     except:
-        logger.warning(
-            "Cannot find altitude of weather stations. Check is skipped!"
-        )
+        logger.warning("Cannot find altitude of weather stations. Check is skipped!")
 
     # Create points_dict
     pointsdict = create_titanlib_points_dict(obsdf, metadf, obstype)
 
     df_list = []
     for dt, point in pointsdict.items():
-        logger.debug(f'sct on observations at {dt}')
-        obs = list(point['values'])
-        titan_points = titanlib.Points(np.asarray(point['lats']),
-                                       np.asarray(point['lons']),
-                                       np.asarray(point['elev']))
+        logger.debug(f"sct on observations at {dt}")
+        obs = list(point["values"])
+        titan_points = titanlib.Points(
+            np.asarray(point["lats"]),
+            np.asarray(point["lons"]),
+            np.asarray(point["elev"]),
+        )
 
         flags, scores = titanlib.sct_resistant(
-                points=titan_points,  # points
-                values=np.asarray(obs),  # vlues
-                obs_to_check=np.full(len(obs), 1),  # obs to check (check all)
-                background_values=np.full(len(obs), 0),  # background values
-                background_elab_type=titanlib.MedianOuterCircle,  # background elab type
-                num_min_outer=checks_settings['num_min_outer'],  # num min outer
-                num_max_outer=checks_settings['num_max_outer'],  # num mac outer
-                inner_radius=checks_settings['inner_radius'],  # inner radius
-                outer_radius=checks_settings['outer_radius'],  # outer radius
-                num_iterations=checks_settings['num_iterations'],  # num iterations
-                num_min_prof=checks_settings['num_min_prof'],  # num min prof
-                min_elev_diff=checks_settings['min_elev_diff'],  # min elev diff
-                min_horizontal_scale=checks_settings['min_horizontal_scale'],  # min horizontal scale
-                max_horizontal_scale=checks_settings['max_horizontal_scale'],  # max horizontal scale
-                kth_closest_obs_horizontal_scale=checks_settings['kth_closest_obs_horizontal_scale'],  # kth closest obs horizontal scale
-                vertical_scale=checks_settings['vertical_scale'],  # vertical scale
-                value_mina=[x - checks_settings['mina_deviation'] for x in obs],  # values mina
-                value_maxa=[x + checks_settings['maxa_deviation'] for x in obs],  # values maxa
-                value_minv=[x - checks_settings['minv_deviation'] for x in obs],  # values minv
-                value_maxv=[x + checks_settings['maxv_deviation'] for x in obs],  # values maxv
-                eps2=np.full(len(obs), checks_settings['eps2']),  # eps2
-                tpos=np.full(len(obs), checks_settings['tpos']),  # tpos
-                tneg=np.full(len(obs), checks_settings['tneg']),  # tneg
-                debug=checks_settings['debug'],  # debug
-                basic=checks_settings['basic'])  # basic
+            points=titan_points,  # points
+            values=np.asarray(obs),  # vlues
+            obs_to_check=np.full(len(obs), 1),  # obs to check (check all)
+            background_values=np.full(len(obs), 0),  # background values
+            background_elab_type=titanlib.MedianOuterCircle,  # background elab type
+            num_min_outer=checks_settings["num_min_outer"],  # num min outer
+            num_max_outer=checks_settings["num_max_outer"],  # num mac outer
+            inner_radius=checks_settings["inner_radius"],  # inner radius
+            outer_radius=checks_settings["outer_radius"],  # outer radius
+            num_iterations=checks_settings["num_iterations"],  # num iterations
+            num_min_prof=checks_settings["num_min_prof"],  # num min prof
+            min_elev_diff=checks_settings["min_elev_diff"],  # min elev diff
+            min_horizontal_scale=checks_settings[
+                "min_horizontal_scale"
+            ],  # min horizontal scale
+            max_horizontal_scale=checks_settings[
+                "max_horizontal_scale"
+            ],  # max horizontal scale
+            kth_closest_obs_horizontal_scale=checks_settings[
+                "kth_closest_obs_horizontal_scale"
+            ],  # kth closest obs horizontal scale
+            vertical_scale=checks_settings["vertical_scale"],  # vertical scale
+            value_mina=[
+                x - checks_settings["mina_deviation"] for x in obs
+            ],  # values mina
+            value_maxa=[
+                x + checks_settings["maxa_deviation"] for x in obs
+            ],  # values maxa
+            value_minv=[
+                x - checks_settings["minv_deviation"] for x in obs
+            ],  # values minv
+            value_maxv=[
+                x + checks_settings["maxv_deviation"] for x in obs
+            ],  # values maxv
+            eps2=np.full(len(obs), checks_settings["eps2"]),  # eps2
+            tpos=np.full(len(obs), checks_settings["tpos"]),  # tpos
+            tneg=np.full(len(obs), checks_settings["tneg"]),  # tneg
+            debug=checks_settings["debug"],  # debug
+            basic=checks_settings["basic"],
+        )  # basic
 
-        logger.debug('Sleeping ... (to avoid segmentaton errors)')
+        logger.debug("Sleeping ... (to avoid segmentaton errors)")
         time.sleep(1)
 
-        labels = pd.Series(flags, name='num_label').to_frame()
-        labels['name'] = point['names']
-        labels['datetime'] = dt
+        labels = pd.Series(flags, name="num_label").to_frame()
+        labels["name"] = point["names"]
+        labels["datetime"] = dt
         df_list.append(labels)
 
     checkeddf = pd.concat(df_list)
 
     # Convert to toolkit format
-    outliersdf = checkeddf[checkeddf['num_label'].isin(titan_specific_labeler['outl'])]
+    outliersdf = checkeddf[checkeddf["num_label"].isin(titan_specific_labeler["outl"])]
 
-    outliersdf = outliersdf.set_index(['name', 'datetime'])
+    outliersdf = outliersdf.set_index(["name", "datetime"])
 
-    obsdf, outliersdf = make_outlier_df_for_check(station_dt_list=outliersdf.index,
-                                                  obsdf=obsdf,
-                                                  obstype=obstype,
-                                                  flag=checks_info["titan_sct_resistant_check"]['outlier_flag'])
+    obsdf, outliersdf = make_outlier_df_for_check(
+        station_dt_list=outliersdf.index,
+        obsdf=obsdf,
+        obstype=obstype,
+        flag=checks_info["titan_sct_resistant_check"]["outlier_flag"],
+    )
 
     return obsdf, outliersdf
 
@@ -1160,7 +1215,7 @@ def titan_sct_resistant_check(obsdf, metadf, obstype,
 
 
 def get_outliers_in_daterange(input_data, date, name, time_window, station_freq):
-    """ Find all outliers in a window of a specific station.
+    """Find all outliers in a window of a specific station.
 
     Parameters
     ----------
