@@ -789,17 +789,8 @@ def model_timeseries_plot(df, obstype, title, ylabel, settings,
     -------
     ax : matplotlib.pyplot.axes
         The plotted axes.
-<<<<<<< HEAD
-
     colormapper : dict
         The use colormap.
-
-=======
-
-    colormapper : dict
-        The use colormap.
-
->>>>>>> master
     """
     plot_settings = settings.app["plot_settings"]
 

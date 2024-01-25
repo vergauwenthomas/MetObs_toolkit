@@ -52,4 +52,4 @@ GUI/cache/*
 #Development stuff
 development/*
 #Documentation (build online)
-docs/_build
+#docs/_build

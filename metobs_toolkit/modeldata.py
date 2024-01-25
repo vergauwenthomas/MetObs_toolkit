@@ -84,13 +84,18 @@ class Modeldata:
     def add_obstype(self, Obstype, bandname, band_units, band_description=None):
         """Add a new Observation type for the current Modeldata.
 
+
         Parameters
         ----------
-        bandname : str
-            The name of the band that represents the obstype.
-        band_units:
         Obstype : metobs_toolkit.obstype.Obstype
             The new Obstype to add.
+        bandname : str
+            The name of the band that represents the obstype.
+        band_units : str
+            The unit the band is in. This unit must be a knonw-unit in the
+            Obstype.
+        band_description : str, optional
+            A detailed description of the band. The default is None.
 
         Returns
         -------
@@ -359,7 +364,7 @@ class Modeldata:
 
 
     def get_gee_dataset_data(self, mapname, metadf,
-                             startdt_utc, enddt_utc, obstype='temp'):
+                             startdt_utc, enddt_utc, obstypes=['temp']):
         """Extract timeseries of a gee dataset.
 
         The extraction can only be done if the gee dataset bandname (and units)
@@ -422,10 +427,9 @@ class Modeldata:
             return
 
         # Check obstypes
-        if isinstance(obstype, str):
-            obstype = [obstype] #convert to list
+        if isinstance(obstypes, str):
+            obstypes = [obstypes] #convert to list
 
-        obstypes = obstype  # better naming
 
         for obstype in obstypes:
         # is obstype mapped?
