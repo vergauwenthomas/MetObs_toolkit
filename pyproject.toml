@@ -24,8 +24,10 @@ mapclassify = "^2.4.0"
 # numpy = "^1.17.3" #in pandas
 matplotlib = "^3.0.0"
 pandas = "^1.3.0"
+pygeos = "^0.14"
 pyproj = "~3.4"
 python = "^3.9"
+shapely = "^2.0.2"
 
 [tool.poetry.group.dev.dependencies]
 # To run poetry tests
