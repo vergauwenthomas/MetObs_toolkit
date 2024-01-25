@@ -220,4 +220,3 @@ example on how to create a new observation type for a :py:meth:`Modeldata<metobs
    # Collect the U-wind component for your stations:
    model_data = your_dataset.get_modeldata(modeldata=model_data,
                                            obstype = 'wind_u_comp')
-

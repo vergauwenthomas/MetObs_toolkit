@@ -16,6 +16,3 @@ cd ..
 sphinx-build -a -E -v docs/ docs/_build/
 
 cd docs
-
-
-

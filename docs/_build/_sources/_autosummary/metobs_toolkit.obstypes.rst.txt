@@ -3,39 +3,29 @@ metobs\_toolkit.obstypes
 
 .. automodule:: metobs_toolkit.obstypes
 
-   
-   
-   
 
-   
-   
+
+
+
+
+
    .. rubric:: Functions
 
    .. autosummary::
       :toctree:
       :nosignatures:
-   
-      expression_calculator
-   
-   
 
-   
-   
+      expression_calculator
+
+
+
+
+
    .. rubric:: Classes
 
    .. autosummary::
       :toctree:
       :template: custom-class-template.rst
       :nosignatures:
-   
+
       Obstype
-   
-   
-
-   
-   
-   
-
-
-
-

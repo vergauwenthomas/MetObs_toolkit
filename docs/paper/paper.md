@@ -64,12 +64,12 @@ The MetObs-toolkit is a Python package developed to address these issues and fac
 
 
 # Statement of need
-The primary objective of the MetObs-toolkit is  to enable scientists to process meteorological observations into datasets ready for analysis. The data cleaning process involves three steps: 
+The primary objective of the MetObs-toolkit is  to enable scientists to process meteorological observations into datasets ready for analysis. The data cleaning process involves three steps:
 
 1.  resampling the time resolution if necessary,
 2.  identifying erroneous and missing records, and
 3.  filling the missing records.
-   
+
 Sophisticated software such as TITAN [@titan2020] and CrowdQC+ [@CrowdQC] exists for identifying erroneous observations (QC), which is one aspect of cleaning a dataset. These packages offer a wide range of functionalities for this specific task, while MetObs aims to provide a framework for the entire flow from raw data to analysis. Moreover, researchers often face the challenge of coding scripts that can generate analyses, particularly when using geographical datasets such as landcover datasets. Traditionally, this requires the installation of numerous packages, storage of geographical datasets, and GIS manipulations (often manually done with specific GIS software). The toolkit implements one user-friendly framework for creating various plots, generating analysis statistics, and incorporating GIS data through the use of the Google Earth engine.
 By using the toolkit, scientists can set up a pipeline to process raw data into analysis in an easy-to-use (and install) manner. Additionally, the developed pipeline can be directly applied to other datasets without any formatting issues.
 
@@ -86,7 +86,7 @@ Quality control is performed in the form of a series of checks. These checks are
 Gap filling is applied by using interpolation methods and/or importing ERA5 reanalysis [@era5] time series to fill the gaps. The latter is stored as a Toolkit Modeldata, which has a set of methods to directly import the required time series through the use of the Google Earth engine API.
 The user obtains a cleaned-up dataset ready for analysis. A set of typical analysis techniques such as filters, aggregation schemes, and landcover correlation estimates are implemented in the Toolkit-Analysis class.
 
-\autoref{fig:overview_fig} gives an overview of the main framework of the MetObs-toolkit, but it is an evolving project that responds to the community's needs and input. As an example, the development of a graphical user interface (GUI) for the toolkit is planned. A GUI would increase the ease of use by enabling to create templates, adjust QC settings and plot data interactively. 
+\autoref{fig:overview_fig} gives an overview of the main framework of the MetObs-toolkit, but it is an evolving project that responds to the community's needs and input. As an example, the development of a graphical user interface (GUI) for the toolkit is planned. A GUI would increase the ease of use by enabling to create templates, adjust QC settings and plot data interactively.
 
 
 

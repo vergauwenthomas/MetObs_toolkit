@@ -9,13 +9,13 @@ metobs\_toolkit.dataset\_settings\_updater.Dataset
    :inherited-members:
    :special-members: __call__, __add__, __mul__
 
-   
-   
+
+
    .. rubric:: Methods
 
    .. autosummary::
       :nosignatures:
-   
+
       ~Dataset.add_new_observationtype
       ~Dataset.add_new_unit
       ~Dataset.apply_buddy_check
@@ -58,9 +58,3 @@ metobs\_toolkit.dataset\_settings\_updater.Dataset
       ~Dataset.update_timezone
       ~Dataset.update_titan_qc_settings
       ~Dataset.write_to_csv
-   
-   
-
-   
-   
-   

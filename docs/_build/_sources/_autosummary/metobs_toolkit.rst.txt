@@ -3,21 +3,21 @@
 
 .. automodule:: metobs_toolkit
 
-   
-   
-   
 
-   
-   
-   
 
-   
-   
-   
 
-   
-   
-   
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -46,5 +46,3 @@
    metobs_toolkit.settings
    metobs_toolkit.station
    metobs_toolkit.writing_files
-
-

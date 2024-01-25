@@ -29,6 +29,7 @@ def connect_to_gee():
         ee.Initialize()
     return
 
+
 # =============================================================================
 # Top level functions (can be called by dataset)
 # =============================================================================
@@ -85,7 +86,9 @@ def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
 
     else:
         # map numeric classes to human
-        mapper = {str(num): human for num, human in mapinfo["categorical_mapper"].items()}
+        mapper = {
+            str(num): human for num, human in mapinfo["categorical_mapper"].items()
+        }
         freqs_df = freqs_df.rename(columns=mapper)
 
         return freqs_df, buffer
@@ -303,10 +306,12 @@ def extract_pointvalues(metadf, mapinfo, output_column_name):
         )
 
     # extract properties
-    if not bool(results['features']):
+    if not bool(results["features"]):
         # no data retrieved
-        logger.warning(f'Something went wrong, gee did not return any data: {results}')
-        logger.info(f'(Could it be that (one) these coordinates are not on the map: {metadf}?)')
+        logger.warning(f"Something went wrong, gee did not return any data: {results}")
+        logger.info(
+            f"(Could it be that (one) these coordinates are not on the map: {metadf}?)"
+        )
         return pd.DataFrame()
 
     # =============================================================================
@@ -456,12 +461,13 @@ def gee_extract_timeseries(
         return pd.DataFrame()
 
     use_drive = False
-    _est_data_size = _estimate_data_size(metadf=metadf,
-                                         startdt=startdt,
-                                         enddt=enddt,
-                                         time_res = mapinfo["time_res"],
-                                         n_bands=len(bandnames)
-                                         )
+    _est_data_size = _estimate_data_size(
+        metadf=metadf,
+        startdt=startdt,
+        enddt=enddt,
+        time_res=mapinfo["time_res"],
+        n_bands=len(bandnames),
+    )
     if _est_data_size > 4000:
         print(
             "THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!"
@@ -489,8 +495,7 @@ def gee_extract_timeseries(
         return feature
 
     # Because the daterange is maxdate exclusive, add the time resolution to the enddt
-    enddt = enddt + pd.Timedelta(mapinfo['time_res'])
-
+    enddt = enddt + pd.Timedelta(mapinfo["time_res"])
 
     raster = get_ee_obj(mapinfo, bandnames)  # dataset
     results = (
@@ -530,7 +535,7 @@ def gee_extract_timeseries(
         df = pd.DataFrame(properties)
 
         if df.empty:
-            sys.exit('ERROR: the returned timeseries from GEE are empty.')
+            sys.exit("ERROR: the returned timeseries from GEE are empty.")
 
         df = format_df(df, band_mapper)
         return df
@@ -548,7 +553,6 @@ def gee_extract_timeseries(
 
         data_columns = ["datetime", "name"]
         data_columns.extend(bandnames)
-
 
         task = ee.batch.Export.table.toDrive(
             collection=results,

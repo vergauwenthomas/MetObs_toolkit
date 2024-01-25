@@ -9,13 +9,13 @@ metobs\_toolkit.modeldata.Modeldata
    :inherited-members:
    :special-members: __call__, __add__, __mul__
 
-   
-   
+
+
    .. rubric:: Methods
 
    .. autosummary::
       :nosignatures:
-   
+
       ~Modeldata.add_gee_dataset
       ~Modeldata.add_obstype
       ~Modeldata.convert_units_to_tlk
@@ -29,9 +29,3 @@ metobs\_toolkit.modeldata.Modeldata
       ~Modeldata.make_plot
       ~Modeldata.save_modeldata
       ~Modeldata.set_model_from_csv
-   
-   
-
-   
-   
-   

@@ -24,7 +24,7 @@ def box_to_extent_list(bbox):
     return list(bbox.bounds)
 
 
-def find_extend_of_geodf(geodf, lat_size=1., lon_size=1.):
+def find_extend_of_geodf(geodf, lat_size=1.0, lon_size=1.0):
     """Construct a bounding box for the plot.
 
     If the geodf contains more than one point, the bounding box is
@@ -42,10 +42,12 @@ def find_extend_of_geodf(geodf, lat_size=1., lon_size=1.):
     # else: on station
     center_x, center_y = geodf_extent_box.centroid.x, geodf_extent_box.centroid.y
 
-    minx, maxx = center_x - (lon_size / 2.), center_x + (lon_size / 2.)
-    miny, maxy = center_y - (lat_size / 2.), center_y + (lat_size / 2.)
+    minx, maxx = center_x - (lon_size / 2.0), center_x + (lon_size / 2.0)
+    miny, maxy = center_y - (lat_size / 2.0), center_y + (lat_size / 2.0)
 
-    return box(min([minx, maxx]), min([miny, maxy]), max([minx, maxx]), max([miny, maxy]))
+    return box(
+        min([minx, maxx]), min([miny, maxy]), max([minx, maxx]), max([miny, maxy])
+    )
 
 
 def find_plot_extent(geodf, user_bounds, default_extentlist):

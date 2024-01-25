@@ -38,7 +38,7 @@ except:
 
 print(sys.path)
 #%%
-logofile = os.path.join(basefolder, 'docs', 'logo_wide_1280x640.jpeg')
+logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
 
 # %%
@@ -68,8 +68,8 @@ extensions = [
     "sphinx.ext.napoleon",  # To convert Numpydocstring to readable format
     "sphinx.ext.autosummary",  # Create neat summary tables
     "myst_parser",  # for including md files (readme)
-    "sphinx.ext.autosectionlabel", #for cross linking
-    "nbsphinx", #to render the notebook examples in the doc
+    "sphinx.ext.autosectionlabel",  # for cross linking
+    "nbsphinx",  # to render the notebook examples in the doc
 ]
 
 
@@ -79,11 +79,11 @@ extensions = [
 templates_path = ["_templates"]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
-#Specify how to render the following file formats:
+# Specify how to render the following file formats:
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.txt': 'markdown',
-    '.md': 'markdown',
+    ".rst": "restructuredtext",
+    ".txt": "markdown",
+    ".md": "markdown",
 }
 
 
@@ -144,6 +144,6 @@ html_static_path = ["_static"]
 
 html_logo = "logo_small.svg"
 html_theme_options = {
-    'logo_only': True,
-    'display_version': True,
+    "logo_only": True,
+    "display_version": True,
 }

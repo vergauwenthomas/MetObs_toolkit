@@ -3,18 +3,18 @@ metobs\_toolkit.data\_import
 
 .. automodule:: metobs_toolkit.data_import
 
-   
-   
-   
 
-   
-   
+
+
+
+
+
    .. rubric:: Functions
 
    .. autosummary::
       :toctree:
       :nosignatures:
-   
+
       check_template_compatibility
       compress_dict
       extract_options_from_template
@@ -24,17 +24,3 @@ metobs\_toolkit.data\_import
       read_csv_template
       template_to_package_space
       wide_to_long
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
-

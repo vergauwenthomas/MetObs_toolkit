@@ -3,18 +3,18 @@ metobs\_toolkit.landcover\_functions
 
 .. automodule:: metobs_toolkit.landcover_functions
 
-   
-   
-   
 
-   
-   
+
+
+
+
+
    .. rubric:: Functions
 
    .. autosummary::
       :toctree:
       :nosignatures:
-   
+
       connect_to_gee
       coordinates_available
       coords_to_geometry
@@ -25,17 +25,3 @@ metobs\_toolkit.landcover\_functions
       height_extractor
       lc_fractions_extractor
       lcz_extractor
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
-

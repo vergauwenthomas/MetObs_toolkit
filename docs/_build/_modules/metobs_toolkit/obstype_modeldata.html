@@ -10,7 +10,7 @@
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
+
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
         <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
@@ -21,19 +21,19 @@
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../index.html">
-            
+
               <img src="../../_static/logo_small.svg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
@@ -84,7 +84,7 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for metobs_toolkit.obstype_modeldata</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
@@ -99,10 +99,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">Obstype</span>
 
-<span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="p">(</span><span class="n">temperature</span><span class="p">,</span>
-                                     <span class="n">pressure</span><span class="p">,</span>
-                                     <span class="n">wind</span><span class="p">,</span>
-                                     <span class="n">direction_aliases</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">pressure</span><span class="p">,</span> <span class="n">wind</span><span class="p">,</span> <span class="n">direction_aliases</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -110,16 +107,34 @@
 <span class="c1"># Standard modeldata equivalents</span>
 <span class="c1"># =============================================================================</span>
 <span class="n">tlk_std_modeldata_obstypes</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;temp&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;ERA5_hourly&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;temperature_2m&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;Kelvin&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;band_desc&#39;</span><span class="p">:</span> <span class="s2">&quot;Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth&#39;s surface, taking account of the atmospheric conditions.&quot;</span><span class="p">}},</span>
-
-    <span class="s1">&#39;pressure&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;surface_pressure&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;pa&#39;</span><span class="p">,</span>
-                                 <span class="s1">&#39;band_desc&#39;</span><span class="p">:</span> <span class="s2">&quot;Pressure (force per unit area) of the atmosphere on the surface of land, sea and in-land water. It is a measure of the weight of all the air in a column vertically above the area of the Earth&#39;s surface represented at a fixed point. Surface pressure is often used in combination with temperature to calculate air density. The strong variation of pressure with altitude makes it difficult to see the low and high pressure systems over mountainous areas, so mean sea level pressure, rather than surface pressure, is normally used for this purpose. The units of this variable are Pascals (Pa). Surface pressure is often measured in hPa and sometimes is presented in the old units of millibars, mb (1 hPa = 1 mb = 100 Pa).&quot;</span><span class="p">}},</span>
-    <span class="s1">&#39;u_wind&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;u_component_of_wind_10m&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
-                                 <span class="s1">&#39;band_desc&#39;</span><span class="p">:</span> <span class="s2">&quot;Eastward component of the 10m wind. It is the horizontal speed of air moving towards the east, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the V component of 10m wind to give the speed and direction of the horizontal 10m wind.&quot;</span><span class="p">}},</span>
-    <span class="s1">&#39;v_wind&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;v_component_of_wind_10m&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
-                                  <span class="s1">&#39;band_desc&#39;</span><span class="p">:</span> <span class="s2">&quot;Northward component of the 10m wind. It is the horizontal speed of air moving towards the north, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the U component of 10m wind to give the speed and direction of the horizontal 10m wind.&quot;</span><span class="p">}},</span>
-
+    <span class="s2">&quot;temp&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;ERA5_hourly&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;temperature_2m&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;Kelvin&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;band_desc&quot;</span><span class="p">:</span> <span class="s2">&quot;Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth&#39;s surface, taking account of the atmospheric conditions.&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;pressure&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;ERA5_hourly&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;surface_pressure&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;pa&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;band_desc&quot;</span><span class="p">:</span> <span class="s2">&quot;Pressure (force per unit area) of the atmosphere on the surface of land, sea and in-land water. It is a measure of the weight of all the air in a column vertically above the area of the Earth&#39;s surface represented at a fixed point. Surface pressure is often used in combination with temperature to calculate air density. The strong variation of pressure with altitude makes it difficult to see the low and high pressure systems over mountainous areas, so mean sea level pressure, rather than surface pressure, is normally used for this purpose. The units of this variable are Pascals (Pa). Surface pressure is often measured in hPa and sometimes is presented in the old units of millibars, mb (1 hPa = 1 mb = 100 Pa).&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;u_wind&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;ERA5_hourly&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;u_component_of_wind_10m&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;band_desc&quot;</span><span class="p">:</span> <span class="s2">&quot;Eastward component of the 10m wind. It is the horizontal speed of air moving towards the east, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the V component of 10m wind to give the speed and direction of the horizontal 10m wind.&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;v_wind&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;ERA5_hourly&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;v_component_of_wind_10m&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;band_desc&quot;</span><span class="p">:</span> <span class="s2">&quot;Northward component of the 10m wind. It is the horizontal speed of air moving towards the north, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the U component of 10m wind to give the speed and direction of the horizontal 10m wind.&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
 <span class="p">}</span>
 
 
@@ -128,8 +143,7 @@
 <span class="k">class</span> <span class="nc">ModelObstype</span><span class="p">(</span><span class="n">Obstype</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extension of the Obstype class specific for the obstypes of Modeldata.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span>
-                 <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="p">{}):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiate an Modelobservation type.</span>
 
 <span class="sd">        A ModelObstype has the same properties as an Obstype but with some</span>
@@ -169,11 +183,13 @@
 <span class="sd">        None.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obsname</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                         <span class="n">std_unit</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">std_unit</span><span class="p">,</span>
-                         <span class="n">description</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
-                         <span class="n">unit_aliases</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
-                         <span class="n">unit_conversions</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">conv_table</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">std_unit</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">std_unit</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">unit_aliases</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
+            <span class="n">unit_conversions</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">conv_table</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span> <span class="o">=</span> <span class="n">model_equivalent_dict</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_valid</span><span class="p">()</span>
@@ -196,7 +212,7 @@
 <span class="sd">        None.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">databands</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">databands</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="n">info_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> observation with: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    * Known datasetsbands: </span><span class="si">{</span><span class="n">databands</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    * standard unit: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">std_unit</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
@@ -216,14 +232,14 @@
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.obstype_modeldata.ModelObstype.html#metobs_toolkit.obstype_modeldata.ModelObstype.get_bandname">[docs]</a>
     <span class="k">def</span> <span class="nf">get_bandname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapname</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the representing bandname of the obstype from a given gee dataset.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="ModelObstype.get_bandname_mapper">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.obstype_modeldata.ModelObstype.html#metobs_toolkit.obstype_modeldata.ModelObstype.get_bandname_mapper">[docs]</a>
     <span class="k">def</span> <span class="nf">get_bandname_mapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapname</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the representing bandname with tlk standard name as a dict.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]):</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">}</span></div>
+        <span class="k">return</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]):</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="ModelObstype.get_plot_y_label">
@@ -237,7 +253,7 @@
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.obstype_modeldata.ModelObstype.html#metobs_toolkit.obstype_modeldata.ModelObstype.get_modelunit">[docs]</a>
     <span class="k">def</span> <span class="nf">get_modelunit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapname</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the units of the representing bandname of the obstype from a given gee dataset.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s2">&quot;units&quot;</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="ModelObstype.has_mapped_band">
@@ -274,52 +290,66 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># test if banunit is valid</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_if_unit_is_known</span><span class="p">(</span><span class="n">bandunit</span><span class="p">):</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">bandunit</span><span class="si">}</span><span class="s1"> is an unknown unit for the </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> obstype.&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bandunit</span><span class="si">}</span><span class="s2"> is an unknown unit for the </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> obstype.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">mapname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="c1"># check if band is already knonw</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Update </span><span class="si">{</span><span class="n">bandname</span><span class="si">}</span><span class="s1"> of (known) map: </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Update </span><span class="si">{</span><span class="n">bandname</span><span class="si">}</span><span class="s2"> of (known) map: </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Add new map: </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s1"> with band: </span><span class="si">{</span><span class="n">bandname</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandname</span><span class="p">),</span>
-                                        <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandunit</span><span class="p">),</span>
-                                        <span class="s1">&#39;band_desc&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">band_desc</span><span class="p">)}</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Add new map: </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2"> with band: </span><span class="si">{</span><span class="n">bandname</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandname</span><span class="p">),</span>
+            <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandunit</span><span class="p">),</span>
+            <span class="s2">&quot;band_desc&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">band_desc</span><span class="p">),</span>
+        <span class="p">}</span></div>
 
 
     <span class="k">def</span> <span class="nf">_is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Test if all attributes are valid among each other.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">datasetname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="c1"># Check if unit is available</span>
-            <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">datasetname</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No units information is provided for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> for modeldata: </span><span class="si">{</span><span class="n">datasetname</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;units&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">datasetname</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No units information is provided for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> for modeldata: </span><span class="si">{</span><span class="n">datasetname</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
             <span class="c1"># check if the unit is known</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_if_unit_is_known</span><span class="p">(</span><span class="n">unit_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">datasetname</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]):</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Cannot create </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> ModelObstype because </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">datasetname</span><span class="p">][</span><span class="s2">&quot;units&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> is a unknown unit.&#39;</span><span class="p">)</span></div>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_if_unit_is_known</span><span class="p">(</span>
+                <span class="n">unit_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">datasetname</span><span class="p">][</span><span class="s2">&quot;units&quot;</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;Cannot create </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> ModelObstype because </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_equi_dict</span><span class="p">[</span><span class="n">datasetname</span><span class="p">][</span><span class="s2">&quot;units&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> is a unknown unit.&#39;</span>
+                <span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="ModelObstype_Vectorfield">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.html#metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield">[docs]</a>
 <span class="k">class</span> <span class="nc">ModelObstype_Vectorfield</span><span class="p">(</span><span class="n">Obstype</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span>
-                 <span class="n">u_comp_model_equivalent_dict</span><span class="o">=</span><span class="p">{},</span>
-                 <span class="n">v_comp_model_equivalent_dict</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">u_comp_model_equivalent_dict</span><span class="o">=</span><span class="p">{},</span> <span class="n">v_comp_model_equivalent_dict</span><span class="o">=</span><span class="p">{}</span>
+    <span class="p">):</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obsname</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                         <span class="n">std_unit</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">std_unit</span><span class="p">,</span>
-                         <span class="n">description</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
-                         <span class="n">unit_aliases</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
-                         <span class="n">unit_conversions</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">conv_table</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">std_unit</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">std_unit</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">unit_aliases</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
+            <span class="n">unit_conversions</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">conv_table</span><span class="p">,</span>
+        <span class="p">)</span>
 
-
-        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">u_comp_model_equivalent_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">v_comp_model_equivalent_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The mapped gee dataset are not equal for the vector components of </span><span class="si">{</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">u_comp_model_equivalent_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span>
+            <span class="n">v_comp_model_equivalent_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">):</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The mapped gee dataset are not equal for the vector components of </span><span class="si">{</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
 
         <span class="n">mod_comp_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">geedataset</span> <span class="ow">in</span> <span class="n">u_comp_model_equivalent_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">mod_comp_dict</span><span class="p">[</span><span class="n">geedataset</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;u_comp&#39;</span><span class="p">:</span> <span class="n">u_comp_model_equivalent_dict</span><span class="p">[</span><span class="n">geedataset</span><span class="p">],</span>
-                                         <span class="s1">&#39;v_comp&#39;</span><span class="p">:</span> <span class="n">v_comp_model_equivalent_dict</span><span class="p">[</span><span class="n">geedataset</span><span class="p">]}</span>
-
+            <span class="n">mod_comp_dict</span><span class="p">[</span><span class="n">geedataset</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;u_comp&quot;</span><span class="p">:</span> <span class="n">u_comp_model_equivalent_dict</span><span class="p">[</span><span class="n">geedataset</span><span class="p">],</span>
+                <span class="s2">&quot;v_comp&quot;</span><span class="p">:</span> <span class="n">v_comp_model_equivalent_dict</span><span class="p">[</span><span class="n">geedataset</span><span class="p">],</span>
+            <span class="p">}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span> <span class="o">=</span> <span class="n">mod_comp_dict</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_valid</span><span class="p">()</span>
@@ -342,8 +372,12 @@
 <span class="sd">        None.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">u_databands</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;u_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-        <span class="n">v_databands</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;v_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">u_databands</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;u_comp&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">v_databands</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;v_comp&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
         <span class="n">info_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> observation with: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    * Known Vector-East-component datasetsbands: </span><span class="si">{</span><span class="n">u_databands</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    * Known Vector-North-component datasetsbands: </span><span class="si">{</span><span class="n">v_databands</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
@@ -368,8 +402,10 @@
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.html#metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.get_bandname_mapper">[docs]</a>
     <span class="k">def</span> <span class="nf">get_bandname_mapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapname</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the representing bandname with tlk standard name as a dict.&quot;&quot;&quot;</span>
-        <span class="n">mapper</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s1">&#39;u_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]):</span> <span class="sa">f</span><span class="s1">&#39;u_comp_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                  <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s1">&#39;v_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]):</span> <span class="sa">f</span><span class="s1">&#39;v_comp_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">}</span>
+        <span class="n">mapper</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s2">&quot;u_comp&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]):</span> <span class="sa">f</span><span class="s2">&quot;u_comp_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s2">&quot;v_comp&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]):</span> <span class="sa">f</span><span class="s2">&quot;v_comp_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">mapper</span></div>
 
@@ -379,7 +415,7 @@
     <span class="k">def</span> <span class="nf">get_modelunit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapname</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the units of the representing bandname of the obstype from a given gee dataset.&quot;&quot;&quot;</span>
         <span class="c1"># u and v comp must have the same units, this is tested in the _is_valid()</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s1">&#39;u_comp&#39;</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s2">&quot;u_comp&quot;</span><span class="p">][</span><span class="s2">&quot;units&quot;</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="ModelObstype_Vectorfield.has_mapped_band">
@@ -400,15 +436,22 @@
 
 
     <span class="k">def</span> <span class="nf">get_u_column</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;u_comp_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
-    <span class="k">def</span> <span class="nf">get_v_column</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;v_comp_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;u_comp_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
 
+    <span class="k">def</span> <span class="nf">get_v_column</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;v_comp_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
 
 <div class="viewcode-block" id="ModelObstype_Vectorfield.add_new_band">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.html#metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.add_new_band">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_new_band</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapname</span><span class="p">,</span> <span class="n">bandname_u_comp</span><span class="p">,</span> <span class="n">bandname_v_comp</span><span class="p">,</span> <span class="n">bandunit</span><span class="p">,</span>
-                     <span class="n">band_desc_u_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">band_desc_v_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add_new_band</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mapname</span><span class="p">,</span>
+        <span class="n">bandname_u_comp</span><span class="p">,</span>
+        <span class="n">bandname_v_comp</span><span class="p">,</span>
+        <span class="n">bandunit</span><span class="p">,</span>
+        <span class="n">band_desc_u_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">band_desc_v_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new representing dataset/bandname to the obstype.</span>
 
 <span class="sd">        Parameters</span>
@@ -433,23 +476,25 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># test if banunit is valid</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_if_unit_is_known</span><span class="p">(</span><span class="n">bandunit</span><span class="p">):</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">bandunit</span><span class="si">}</span><span class="s1"> is an unknown unit for the </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> obstype.&#39;</span><span class="p">)</span>
-
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bandunit</span><span class="si">}</span><span class="s2"> is an unknown unit for the </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> obstype.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">mapname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="c1"># check if band is already knonw</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Update </span><span class="si">{</span><span class="n">bandname</span><span class="si">}</span><span class="s1"> of (known) map: </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Update </span><span class="si">{</span><span class="n">bandname</span><span class="si">}</span><span class="s2"> of (known) map: </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Add new map: </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s1"> with band: </span><span class="si">{</span><span class="n">bandname</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
-
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Add new map: </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2"> with band: </span><span class="si">{</span><span class="n">bandname</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s1">&#39;u_comp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandname_u_comp</span><span class="p">),</span>
-                                                  <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandunit</span><span class="p">),</span>
-                                                  <span class="s1">&#39;band_desc&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">band_desc_u_comp</span><span class="p">)}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s1">&#39;v_comp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandname_v_comp</span><span class="p">),</span>
-                                                  <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandunit</span><span class="p">),</span>
-                                                  <span class="s1">&#39;band_desc&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">band_desc_v_comp</span><span class="p">)}</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s2">&quot;u_comp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandname_u_comp</span><span class="p">),</span>
+            <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandunit</span><span class="p">),</span>
+            <span class="s2">&quot;band_desc&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">band_desc_u_comp</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s2">&quot;v_comp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandname_v_comp</span><span class="p">),</span>
+            <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandunit</span><span class="p">),</span>
+            <span class="s2">&quot;band_desc&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">band_desc_v_comp</span><span class="p">),</span>
+        <span class="p">}</span></div>
 
 
     <span class="k">def</span> <span class="nf">_is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -457,15 +502,31 @@
         <span class="k">for</span> <span class="n">datasetname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">comp_str</span><span class="p">,</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">datasetname</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="c1"># Check if unit is available</span>
-                <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No units information is provided for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> for </span><span class="si">{</span><span class="n">comp_str</span><span class="si">}</span><span class="s1"> modeldata_vectorfield: </span><span class="si">{</span><span class="n">datasetname</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;units&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;No units information is provided for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">comp_str</span><span class="si">}</span><span class="s2"> modeldata_vectorfield: </span><span class="si">{</span><span class="n">datasetname</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
                 <span class="c1"># check if the unit is known</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_if_unit_is_known</span><span class="p">(</span><span class="n">unit_name</span><span class="o">=</span><span class="n">comp</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]):</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Cannot create </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> ModelObstype_Vectorfield because </span><span class="si">{</span><span class="n">comp</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> is a unknown unit in the </span><span class="si">{</span><span class="n">comp_str</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_if_unit_is_known</span><span class="p">(</span><span class="n">unit_name</span><span class="o">=</span><span class="n">comp</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]):</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;Cannot create </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> ModelObstype_Vectorfield because </span><span class="si">{</span><span class="n">comp</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> is a unknown unit in the </span><span class="si">{</span><span class="n">comp_str</span><span class="si">}</span><span class="s1">.&#39;</span>
+                    <span class="p">)</span>
 
             <span class="c1"># check if the units of the u and v comp are equal</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">comp</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">datasetname</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The units of the u and v component for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> in the </span><span class="si">{</span><span class="n">datasetname</span><span class="si">}</span><span class="s1"> dataset are not equal.&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span>
+                    <span class="nb">set</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="n">comp</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span>
+                            <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="p">[</span><span class="n">datasetname</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="o">&gt;</span> <span class="mi">1</span>
+            <span class="p">):</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The units of the u and v component for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> in the </span><span class="si">{</span><span class="n">datasetname</span><span class="si">}</span><span class="s2"> dataset are not equal.&quot;</span>
+                <span class="p">)</span>
 
 <div class="viewcode-block" id="ModelObstype_Vectorfield.convert_to_standard_units">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.html#metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.convert_to_standard_units">[docs]</a>
@@ -495,7 +556,9 @@
 
         <span class="c1"># error when unit is not know</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">known</span><span class="p">:</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">input_unit</span><span class="si">}</span><span class="s1"> is an unknown unit for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">. No coversion possible!&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">input_unit</span><span class="si">}</span><span class="s2"> is an unknown unit for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">. No coversion possible!&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># Get conversion</span>
         <span class="n">std_unit_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_std_unit_name</span><span class="p">(</span><span class="n">input_unit</span><span class="p">)</span>
@@ -514,6 +577,7 @@
 
         <span class="k">return</span> <span class="n">data_u</span><span class="p">,</span> <span class="n">data_v</span></div>
 </div>
+
 
 
 <span class="c1">#%% New obs creator functions</span>
@@ -542,24 +606,32 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Compute the data</span>
-    <span class="n">data</span> <span class="o">=</span><span class="p">((</span><span class="n">df</span><span class="p">[</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">get_u_column</span><span class="p">()]</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">get_v_column</span><span class="p">()]</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">get_u_column</span><span class="p">()]</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        <span class="o">+</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">get_v_column</span><span class="p">()]</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
     <span class="c1"># Create a new obstype for the amplitude</span>
-    <span class="n">amplitude_obstype</span> <span class="o">=</span> <span class="n">Obstype</span><span class="p">(</span><span class="n">obsname</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_amplitude&#39;</span><span class="p">,</span>
-                                <span class="n">std_unit</span> <span class="o">=</span> <span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">std_unit</span><span class="p">,</span>
-                                <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;2D-vector amplitde of </span><span class="si">{</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> components.&#39;</span><span class="p">,</span>
-                                <span class="n">unit_aliases</span> <span class="o">=</span> <span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
-                                <span class="n">unit_conversions</span> <span class="o">=</span> <span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">conv_table</span><span class="p">)</span>
+    <span class="n">amplitude_obstype</span> <span class="o">=</span> <span class="n">Obstype</span><span class="p">(</span>
+        <span class="n">obsname</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_amplitude&quot;</span><span class="p">,</span>
+        <span class="n">std_unit</span><span class="o">=</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">std_unit</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;2D-vector amplitde of </span><span class="si">{</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> components.&quot;</span><span class="p">,</span>
+        <span class="n">unit_aliases</span><span class="o">=</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
+        <span class="n">unit_conversions</span><span class="o">=</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">conv_table</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="c1"># convert to model obstype</span>
     <span class="n">new_mod_equi</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="s1">&#39;u_comp&#39;</span><span class="p">]</span>
-        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;u_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;v_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;u_comp&quot;</span><span class="p">]</span>
+        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">][</span>
+            <span class="s2">&quot;name&quot;</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;u_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;v_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
 
-    <span class="n">amplitude_obstype</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span><span class="n">amplitude_obstype</span><span class="p">,</span>
-                                     <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="n">new_mod_equi</span>
-                                     <span class="p">)</span>
+    <span class="n">amplitude_obstype</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span>
+        <span class="n">amplitude_obstype</span><span class="p">,</span> <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="n">new_mod_equi</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">amplitude_obstype</span></div>
+
 
 
 <div class="viewcode-block" id="compute_angle">
@@ -588,19 +660,18 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">unit_vector</span><span class="p">(</span><span class="n">vector</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the unit vector of the vector.  &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the unit vector of the vector.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">vector</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">angle_between</span><span class="p">(</span><span class="n">u_comp</span><span class="p">,</span> <span class="n">v_comp</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the angle in ° from North (CW) from 2D Vector components.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the angle in ° from North (CW) from 2D Vector components.&quot;&quot;&quot;</span>
 
         <span class="n">v2</span> <span class="o">=</span> <span class="p">(</span><span class="n">u_comp</span><span class="p">,</span> <span class="n">v_comp</span><span class="p">)</span>
-        <span class="n">v1_u</span> <span class="o">=</span> <span class="n">unit_vector</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="c1">#North unit arrow</span>
+        <span class="n">v1_u</span> <span class="o">=</span> <span class="n">unit_vector</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>  <span class="c1"># North unit arrow</span>
         <span class="n">v2_u</span> <span class="o">=</span> <span class="n">unit_vector</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span>
 
         <span class="n">angle_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1_u</span><span class="p">,</span> <span class="n">v2_u</span><span class="p">),</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
-        <span class="n">angle_degrees</span> <span class="o">=</span> <span class="n">angle_rad</span> <span class="o">*</span> <span class="p">((</span><span class="mf">180.0</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+        <span class="n">angle_degrees</span> <span class="o">=</span> <span class="n">angle_rad</span> <span class="o">*</span> <span class="p">((</span><span class="mf">180.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
         <span class="c1"># return angle_degrees</span>
         <span class="c1"># fix the quadrants</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">):</span>
@@ -611,7 +682,7 @@
             <span class="k">return</span> <span class="n">angle_degrees</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
             <span class="c1"># S-W quadrant</span>
-            <span class="k">return</span> <span class="mf">180.0</span> <span class="o">+</span> <span class="p">(</span><span class="mf">180.</span> <span class="o">-</span> <span class="n">angle_degrees</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">180.0</span> <span class="o">+</span> <span class="p">(</span><span class="mf">180.0</span> <span class="o">-</span> <span class="n">angle_degrees</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">):</span>
             <span class="c1"># N-W quadrant</span>
             <span class="k">return</span> <span class="mf">360.0</span> <span class="o">-</span> <span class="n">angle_degrees</span>
@@ -621,44 +692,57 @@
 
     <span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">angle_between</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">u_column</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">v_column</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="c1"># Create a new obstype for the amplitude</span>
-    <span class="n">direction_obstype</span> <span class="o">=</span> <span class="n">Obstype</span><span class="p">(</span><span class="n">obsname</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_direction&#39;</span><span class="p">,</span>
-                                <span class="n">std_unit</span> <span class="o">=</span> <span class="s1">&#39;° from north (CW)&#39;</span><span class="p">,</span>
-                                <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Direction of 2D-vector of </span><span class="si">{</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> components.&#39;</span><span class="p">,</span>
-                                <span class="n">unit_aliases</span> <span class="o">=</span> <span class="n">direction_aliases</span><span class="p">,</span>
-                                <span class="n">unit_conversions</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="n">direction_obstype</span> <span class="o">=</span> <span class="n">Obstype</span><span class="p">(</span>
+        <span class="n">obsname</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_direction&quot;</span><span class="p">,</span>
+        <span class="n">std_unit</span><span class="o">=</span><span class="s2">&quot;° from north (CW)&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Direction of 2D-vector of </span><span class="si">{</span><span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> components.&quot;</span><span class="p">,</span>
+        <span class="n">unit_aliases</span><span class="o">=</span><span class="n">direction_aliases</span><span class="p">,</span>
+        <span class="n">unit_conversions</span><span class="o">=</span><span class="p">{},</span>
+    <span class="p">)</span>
     <span class="c1"># convert to model obstype</span>
     <span class="n">new_mod_equi</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">modelobs_vectorfield</span><span class="o">.</span><span class="n">modl_comp_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="s1">&#39;u_comp&#39;</span><span class="p">]</span>
-        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;u_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;v_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;° from north (CW)&#39;</span>
+        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;u_comp&quot;</span><span class="p">]</span>
+        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">][</span>
+            <span class="s2">&quot;name&quot;</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;u_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;v_comp&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">new_mod_equi</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;° from north (CW)&quot;</span>
 
-    <span class="n">direction_obstype</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span><span class="n">direction_obstype</span><span class="p">,</span>
-                                     <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="n">new_mod_equi</span><span class="p">)</span>
+    <span class="n">direction_obstype</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span>
+        <span class="n">direction_obstype</span><span class="p">,</span> <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="n">new_mod_equi</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">direction_obstype</span></div>
+
 
 
 <span class="c1"># =============================================================================</span>
 <span class="c1"># Define obstypes</span>
 <span class="c1"># =============================================================================</span>
 
-<span class="n">temp_model</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="n">tlk_std_modeldata_obstypes</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">])</span>
-<span class="n">pressure_model</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span><span class="n">pressure</span><span class="p">,</span> <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="n">tlk_std_modeldata_obstypes</span><span class="p">[</span><span class="s1">&#39;pressure&#39;</span><span class="p">])</span>
+<span class="n">temp_model</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span>
+    <span class="n">temperature</span><span class="p">,</span> <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="n">tlk_std_modeldata_obstypes</span><span class="p">[</span><span class="s2">&quot;temp&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">pressure_model</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span>
+    <span class="n">pressure</span><span class="p">,</span> <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="n">tlk_std_modeldata_obstypes</span><span class="p">[</span><span class="s2">&quot;pressure&quot;</span><span class="p">]</span>
+<span class="p">)</span>
 
 <span class="c1"># Special obstypes</span>
-<span class="n">wind</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;wind&#39;</span> <span class="c1">#otherwise it is windspeed, which is confusing for vectorfield</span>
-<span class="n">wind_model</span> <span class="o">=</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">(</span><span class="n">wind</span><span class="p">,</span>
-                                      <span class="n">u_comp_model_equivalent_dict</span><span class="o">=</span><span class="n">tlk_std_modeldata_obstypes</span><span class="p">[</span><span class="s1">&#39;u_wind&#39;</span><span class="p">],</span>
-                                      <span class="n">v_comp_model_equivalent_dict</span><span class="o">=</span><span class="n">tlk_std_modeldata_obstypes</span><span class="p">[</span><span class="s1">&#39;v_wind&#39;</span><span class="p">])</span>
+<span class="n">wind</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;wind&quot;</span>  <span class="c1"># otherwise it is windspeed, which is confusing for vectorfield</span>
+<span class="n">wind_model</span> <span class="o">=</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">(</span>
+    <span class="n">wind</span><span class="p">,</span>
+    <span class="n">u_comp_model_equivalent_dict</span><span class="o">=</span><span class="n">tlk_std_modeldata_obstypes</span><span class="p">[</span><span class="s2">&quot;u_wind&quot;</span><span class="p">],</span>
+    <span class="n">v_comp_model_equivalent_dict</span><span class="o">=</span><span class="n">tlk_std_modeldata_obstypes</span><span class="p">[</span><span class="s2">&quot;v_wind&quot;</span><span class="p">],</span>
+<span class="p">)</span>
 
 
 <span class="c1"># =============================================================================</span>
 <span class="c1"># Create obstype dict</span>
 <span class="c1"># =============================================================================</span>
-<span class="n">model_obstypes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;temp&#39;</span><span class="p">:</span> <span class="n">temp_model</span><span class="p">,</span>
-                  <span class="s1">&#39;pressure&#39;</span><span class="p">:</span> <span class="n">pressure_model</span><span class="p">,</span>
-                  <span class="s1">&#39;wind&#39;</span><span class="p">:</span> <span class="n">wind_model</span><span class="p">,</span>
-                  <span class="p">}</span>
+<span class="n">model_obstypes</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;temp&quot;</span><span class="p">:</span> <span class="n">temp_model</span><span class="p">,</span>
+    <span class="s2">&quot;pressure&quot;</span><span class="p">:</span> <span class="n">pressure_model</span><span class="p">,</span>
+    <span class="s2">&quot;wind&quot;</span><span class="p">:</span> <span class="n">wind_model</span><span class="p">,</span>
+<span class="p">}</span>
 </pre></div>
 
            </div>
@@ -674,7 +758,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -685,7 +769,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

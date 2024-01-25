@@ -9,13 +9,13 @@ metobs\_toolkit.obstype\_modeldata.ModelObstype
    :inherited-members:
    :special-members: __call__, __add__, __mul__
 
-   
-   
+
+
    .. rubric:: Methods
 
    .. autosummary::
       :nosignatures:
-   
+
       ~ModelObstype.add_new_band
       ~ModelObstype.add_unit
       ~ModelObstype.convert_to_standard_units
@@ -34,9 +34,3 @@ metobs\_toolkit.obstype\_modeldata.ModelObstype
       ~ModelObstype.set_original_name
       ~ModelObstype.set_original_unit
       ~ModelObstype.test_if_unit_is_known
-   
-   
-
-   
-   
-   

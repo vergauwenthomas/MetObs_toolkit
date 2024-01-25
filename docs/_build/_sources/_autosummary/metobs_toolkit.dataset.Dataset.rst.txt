@@ -9,13 +9,13 @@ metobs\_toolkit.dataset.Dataset
    :inherited-members:
    :special-members: __call__, __add__, __mul__
 
-   
-   
+
+
    .. rubric:: Methods
 
    .. autosummary::
       :nosignatures:
-   
+
       ~Dataset.add_new_observationtype
       ~Dataset.add_new_unit
       ~Dataset.apply_buddy_check
@@ -52,9 +52,3 @@ metobs\_toolkit.dataset.Dataset
       ~Dataset.update_gaps_and_missing_from_outliers
       ~Dataset.update_outliersdf
       ~Dataset.write_to_csv
-   
-   
-
-   
-   
-   
