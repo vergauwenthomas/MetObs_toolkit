@@ -9,13 +9,13 @@ metobs\_toolkit.obstypes.Obstype
    :inherited-members:
    :special-members: __call__, __add__, __mul__
 
-   
-   
+
+
    .. rubric:: Methods
 
    .. autosummary::
       :nosignatures:
-   
+
       ~Obstype.add_unit
       ~Obstype.convert_to_standard_units
       ~Obstype.get_all_units
@@ -28,9 +28,3 @@ metobs\_toolkit.obstypes.Obstype
       ~Obstype.set_original_name
       ~Obstype.set_original_unit
       ~Obstype.test_if_unit_is_known
-   
-   
-
-   
-   
-   

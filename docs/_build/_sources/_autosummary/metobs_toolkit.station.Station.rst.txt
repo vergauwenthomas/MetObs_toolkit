@@ -9,13 +9,13 @@ metobs\_toolkit.station.Station
    :inherited-members:
    :special-members: __call__, __add__, __mul__
 
-   
-   
+
+
    .. rubric:: Methods
 
    .. autosummary::
       :nosignatures:
-   
+
       ~Station.add_new_observationtype
       ~Station.add_new_unit
       ~Station.apply_buddy_check
@@ -53,9 +53,3 @@ metobs\_toolkit.station.Station
       ~Station.update_gaps_and_missing_from_outliers
       ~Station.update_outliersdf
       ~Station.write_to_csv
-   
-   
-
-   
-   
-   
