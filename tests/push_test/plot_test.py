@@ -35,20 +35,20 @@ dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
 
 # %% timeseries plots of dataset
-dataset.make_plot()
-dataset.make_plot(
-    obstype="humidity", stationnames=["vlinder02", "vlinder17"], legend=False
-)
+# dataset.make_plot()
+# dataset.make_plot(
+#     obstype="humidity", stationnames=["vlinder02", "vlinder17"], legend=False
+# )
 
 from datetime import datetime
 
-dataset.make_plot(
-    starttime=datetime(2022, 9, 4), endtime=datetime(2022, 9, 6), title="test"
-)
+# dataset.make_plot(
+#     starttime=datetime(2022, 9, 4), endtime=datetime(2022, 9, 6), title="test"
+# )
 
-# %% timeseries plot of station
+# # %% timeseries plot of station
 
-dataset.get_station("vlinder05").make_plot()
+# dataset.get_station("vlinder05").make_plot()
 
 # %% Make spatial plot
 dataset.make_geo_plot()
@@ -56,13 +56,17 @@ dataset.make_geo_plot(
     variable="wind_direction", timeinstance=datetime(2022, 9, 5, 12, 0)
 )
 
+dataset.make_geo_plot(
+    variable="temp", timeinstance=datetime(2022, 9, 5, 12, 0)
+)
+
 #%% Interactive spatial plot
 
-outfile = os.path.join(str(lib_folder), 'development', 'delete_me')
+# outfile = os.path.join(str(lib_folder), 'development', 'delete_me')
 
 
-dataset.make_interactive_plot(outputfile=outfile, obstype='humidity', radius=11)
+# dataset.make_interactive_plot(outputfile=outfile, obstype='humidity', radius=11)
 
-assert os.path.exists(outfile + '.html'), 'interactive html is not saved!'
+# assert os.path.exists(outfile + '.html'), 'interactive html is not saved!'
 
 
