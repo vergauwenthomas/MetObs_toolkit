@@ -43,6 +43,8 @@ pandoc = '^2.1' #Check on PyPi (not in local conda env) + with system wide insta
 [tool.poetry.group.dev.dependencies]
 #To run poetry tests
 poetry = "^1.7"
+pre-commit = "^3.6"
+
 
 [build-system]
 requires = ["poetry-core"]

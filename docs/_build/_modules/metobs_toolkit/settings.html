@@ -10,7 +10,7 @@
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
+
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
         <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
@@ -21,19 +21,19 @@
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../index.html">
-            
+
               <img src="../../_static/logo_small.svg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
@@ -84,7 +84,7 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for metobs_toolkit.settings</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
@@ -142,7 +142,6 @@
     <span class="c1">#     Update settings from files in initialisation</span>
     <span class="c1"># =============================================================================</span>
 
-
     <span class="k">def</span> <span class="nf">_update_time_res_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Update settings on time resolutions of self using the default settings templates.</span>
@@ -166,9 +165,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_settings</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">]</span>
 
         <span class="c1"># Freq estimation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s1">&#39;freq_estimation_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_settings</span><span class="p">[</span><span class="s2">&quot;freq_estimation_method&quot;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s1">&#39;freq_estimation_simplify&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">res_settings</span><span class="p">[</span><span class="s2">&quot;freq_estimation_simplify&quot;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s1">&#39;freq_estimation_simplify_error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_settings</span><span class="p">[</span><span class="s2">&quot;freq_estimation_simplify_error&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s2">&quot;freq_estimation_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_settings</span><span class="p">[</span>
+            <span class="s2">&quot;freq_estimation_method&quot;</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s2">&quot;freq_estimation_simplify&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span>
+            <span class="n">res_settings</span><span class="p">[</span><span class="s2">&quot;freq_estimation_simplify&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s2">&quot;freq_estimation_simplify_error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_settings</span><span class="p">[</span>
+            <span class="s2">&quot;freq_estimation_simplify_error&quot;</span>
+        <span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_update_app_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -196,11 +201,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;print_max_n&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">print_settings</span><span class="p">[</span><span class="s2">&quot;max_print_per_line&quot;</span><span class="p">])</span>
         <span class="c1"># 2. Plot settings</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;plot_settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plot_settings</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;world_boundary_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">Settings</span><span class="o">.</span><span class="n">_settings_files_path</span><span class="p">,</span>
-            <span class="s2">&quot;world_boundaries&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;WB_countries_Admin0_10m.shp&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
 
         <span class="c1"># 3. display name mappers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;display_name_mapper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vars_display</span>
@@ -223,14 +223,17 @@
 <span class="sd">        None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Updating QC settings.&quot;</span><span class="p">)</span>
-        <span class="kn">from</span> <span class="nn">.settings_files.qc_settings</span> <span class="kn">import</span> <span class="p">(</span><span class="n">check_settings</span><span class="p">,</span> <span class="n">checks_info</span><span class="p">,</span>
-                                                 <span class="n">titan_check_settings</span><span class="p">,</span>
-                                                 <span class="n">titan_specific_labeler</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">.settings_files.qc_settings</span> <span class="kn">import</span> <span class="p">(</span>
+            <span class="n">check_settings</span><span class="p">,</span>
+            <span class="n">checks_info</span><span class="p">,</span>
+            <span class="n">titan_check_settings</span><span class="p">,</span>
+            <span class="n">titan_specific_labeler</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">check_settings</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_checks_info&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">checks_info</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s1">&#39;titan_check_settings&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">titan_check_settings</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s1">&#39;titan_specific_labeler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">titan_specific_labeler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;titan_check_settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">titan_check_settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;titan_specific_labeler&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">titan_specific_labeler</span>
 
     <span class="k">def</span> <span class="nf">_update_gap_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -247,7 +250,7 @@
             <span class="n">gaps_fill_settings</span><span class="p">,</span>
             <span class="n">gaps_fill_info</span><span class="p">,</span>
             <span class="n">missing_obs_fill_settings</span><span class="p">,</span>
-            <span class="n">missing_obs_fill_info</span>
+            <span class="n">missing_obs_fill_info</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gaps_settings</span>
@@ -255,8 +258,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gaps_fill_settings</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_info&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gaps_fill_info</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">missing_obs</span><span class="p">[</span><span class="s1">&#39;missing_obs_fill_settings&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">missing_obs_fill_settings</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">missing_obs</span><span class="p">[</span><span class="s1">&#39;missing_obs_fill_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">missing_obs_fill_info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_obs</span><span class="p">[</span><span class="s2">&quot;missing_obs_fill_settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">missing_obs_fill_settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_obs</span><span class="p">[</span><span class="s2">&quot;missing_obs_fill_info&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">missing_obs_fill_info</span>
 
     <span class="k">def</span> <span class="nf">_update_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -316,8 +319,13 @@
 
 <div class="viewcode-block" id="Settings.update_IO">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.settings.Settings.html#metobs_toolkit.settings.Settings.update_IO">[docs]</a>
-    <span class="k">def</span> <span class="nf">update_IO</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">input_data_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                  <span class="n">input_metadata_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">template_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update_IO</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">output_folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">input_data_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">input_metadata_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">template_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Update some settings that are relevent before data is imported.</span>
 
@@ -466,7 +474,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -477,7 +485,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

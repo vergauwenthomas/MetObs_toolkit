@@ -10,7 +10,7 @@
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
+
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
         <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
@@ -21,19 +21,19 @@
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../index.html">
-            
+
               <img src="../../_static/logo_small.svg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
@@ -84,7 +84,7 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for metobs_toolkit.df_helpers</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
@@ -136,7 +136,7 @@
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="c1"># check if datime is timezone aware</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dt</span><span class="o">.</span><span class="n">tzinfo</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">dt</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dt</span><span class="o">.</span><span class="n">tzinfo</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># timezone aware</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="n">target_tz_str</span><span class="p">))</span>
 
@@ -144,6 +144,7 @@
         <span class="c1"># assume timezone is the timezone of the data!</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="n">target_tz_str</span><span class="p">)</span><span class="o">.</span><span class="n">localize</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="xs_save">
@@ -161,10 +162,11 @@
 
         <span class="n">levels</span> <span class="o">=</span> <span class="p">[[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
         <span class="n">codes</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
-        <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span>
-                            <span class="n">codes</span><span class="o">=</span><span class="n">codes</span><span class="p">,</span>
-                            <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
-                            <span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">(</span>
+            <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span>
+            <span class="n">codes</span><span class="o">=</span><span class="n">codes</span><span class="p">,</span>
+            <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span></div>
 
@@ -177,11 +179,11 @@
 
     <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_list</span><span class="p">]):</span>
         <span class="c1"># This line will filter columns with all NAN values (so empty dfs + all NA entries are filtered out)</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_list</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_list</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_list</span><span class="p">]):</span>
         <span class="c1"># This line will filter out empty series</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">ser</span> <span class="k">for</span> <span class="n">ser</span> <span class="ow">in</span> <span class="n">df_list</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ser</span><span class="o">.</span><span class="n">empty</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s1">&#39;Cannot concat Dataframes and Series together&#39;</span><span class="p">)</span></div>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Cannot concat Dataframes and Series together&quot;</span><span class="p">)</span></div>
 
 
 
@@ -250,12 +252,11 @@
 
 
 
-
 <div class="viewcode-block" id="value_labeled_doubleidxdf_to_triple_idxdf">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.df_helpers.value_labeled_doubleidxdf_to_triple_idxdf.html#metobs_toolkit.df_helpers.value_labeled_doubleidxdf_to_triple_idxdf">[docs]</a>
-<span class="k">def</span> <span class="nf">value_labeled_doubleidxdf_to_triple_idxdf</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">known_obstypes</span><span class="p">,</span>
-                                              <span class="n">value_col_name</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">,</span>
-                                              <span class="n">label_col_name</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">value_labeled_doubleidxdf_to_triple_idxdf</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">known_obstypes</span><span class="p">,</span> <span class="n">value_col_name</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">label_col_name</span><span class="o">=</span><span class="s2">&quot;label&quot;</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert double to triple index based on obstype column.</span>
 
 <span class="sd">    This function converts a double index dataframe with an &#39;obstype&#39; column,</span>
@@ -288,19 +289,22 @@
     <span class="n">present_obstypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">known_obstypes</span><span class="p">]</span>
 
     <span class="c1"># get all values in triple index form</span>
-    <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">present_obstypes</span><span class="p">]</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">dropna</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-              <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-              <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;level_2&#39;</span><span class="p">:</span> <span class="s1">&#39;obstype&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="n">value_col_name</span><span class="p">})</span>
-              <span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;obstype&#39;</span><span class="p">]))</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">present_obstypes</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">dropna</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;level_2&quot;</span><span class="p">:</span> <span class="s2">&quot;obstype&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="n">value_col_name</span><span class="p">})</span>
+        <span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="s2">&quot;obstype&quot;</span><span class="p">])</span>
+    <span class="p">)</span>
 
     <span class="c1"># make a triple label dataframe</span>
     <span class="n">labelsdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">present_obstypes</span><span class="p">:</span>
-        <span class="n">subdf</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s1">&#39;_final_label&#39;</span><span class="p">]]</span>
-        <span class="n">subdf</span><span class="p">[</span><span class="s1">&#39;obstype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+        <span class="n">subdf</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_final_label&quot;</span><span class="p">]]</span>
+        <span class="n">subdf</span><span class="p">[</span><span class="s2">&quot;obstype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
         <span class="n">subdf</span> <span class="o">=</span> <span class="n">subdf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-        <span class="n">subdf</span> <span class="o">=</span> <span class="n">subdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;obstype&#39;</span><span class="p">])</span>
-        <span class="n">subdf</span> <span class="o">=</span> <span class="n">subdf</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">obstype</span> <span class="o">+</span> <span class="s1">&#39;_final_label&#39;</span><span class="p">:</span> <span class="n">label_col_name</span><span class="p">})</span>
+        <span class="n">subdf</span> <span class="o">=</span> <span class="n">subdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="s2">&quot;obstype&quot;</span><span class="p">])</span>
+        <span class="n">subdf</span> <span class="o">=</span> <span class="n">subdf</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_final_label&quot;</span><span class="p">:</span> <span class="n">label_col_name</span><span class="p">})</span>
 
         <span class="n">labelsdf</span> <span class="o">=</span> <span class="n">concat_save</span><span class="p">([</span><span class="n">labelsdf</span><span class="p">,</span> <span class="n">subdf</span><span class="p">])</span>
 
@@ -383,7 +387,6 @@
         <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">geodf</span><span class="p">:</span>
             <span class="n">geodf</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
-
     <span class="n">geodf</span> <span class="o">=</span> <span class="n">geodf</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">geodf</span></div>
 
@@ -419,13 +422,14 @@
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.df_helpers.subset_stations.html#metobs_toolkit.df_helpers.subset_stations">[docs]</a>
 <span class="k">def</span> <span class="nf">subset_stations</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">stationslist</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Subset stations by name from a dataframe.&quot;&quot;&quot;</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">stationslist</span><span class="p">)]</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">stationslist</span><span class="p">)]</span>
 
-    <span class="n">present_stations</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">present_stations</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
     <span class="n">not_present_stations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">stationslist</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">present_stations</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">not_present_stations</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The stations: </span><span class="si">{</span><span class="n">not_present_stations</span><span class="si">}</span><span class="s1"> not found in the dataframe.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The stations: </span><span class="si">{</span><span class="n">not_present_stations</span><span class="si">}</span><span class="s2"> not found in the dataframe.&quot;</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">df</span></div>
 
@@ -456,7 +460,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">idx_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">starttime</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)):</span>
         <span class="n">starttime</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>  <span class="c1"># will select from the beginning of the df</span>
@@ -511,8 +515,9 @@
 <span class="c1"># =============================================================================</span>
 <div class="viewcode-block" id="get_likely_frequency">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.df_helpers.get_likely_frequency.html#metobs_toolkit.df_helpers.get_likely_frequency">[docs]</a>
-<span class="k">def</span> <span class="nf">get_likely_frequency</span><span class="p">(</span><span class="n">timestamps</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;highest&quot;</span><span class="p">,</span>
-                         <span class="n">simplify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_simplify_error</span><span class="o">=</span><span class="s2">&quot;2T&quot;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_likely_frequency</span><span class="p">(</span>
+    <span class="n">timestamps</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;highest&quot;</span><span class="p">,</span> <span class="n">simplify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_simplify_error</span><span class="o">=</span><span class="s2">&quot;2T&quot;</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the most likely observation frequency of a datetimeindex.</span>
 
 <span class="sd">    Parameters</span>
@@ -607,8 +612,7 @@
 
 <div class="viewcode-block" id="get_freqency_series">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.df_helpers.get_freqency_series.html#metobs_toolkit.df_helpers.get_freqency_series">[docs]</a>
-<span class="k">def</span> <span class="nf">get_freqency_series</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;highest&quot;</span><span class="p">,</span> <span class="n">simplify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">max_simplify_error</span><span class="o">=</span><span class="s2">&quot;2T&quot;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_freqency_series</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;highest&quot;</span><span class="p">,</span> <span class="n">simplify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_simplify_error</span><span class="o">=</span><span class="s2">&quot;2T&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the most likely frequencies of all stations.</span>
 
 <span class="sd">    Find the most likely observation frequency for all stations individually</span>
@@ -685,7 +689,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -696,7 +700,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

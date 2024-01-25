@@ -10,7 +10,7 @@
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
+
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
         <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
@@ -21,19 +21,19 @@
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../index.html">
-            
+
               <img src="../../_static/logo_small.svg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
@@ -84,7 +84,7 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for metobs_toolkit.station</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
@@ -103,9 +103,22 @@
 <span class="k">class</span> <span class="nc">Station</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A class holding all information of one station. Inherit all from Dataset.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">outliersdf</span><span class="p">,</span> <span class="n">gaps</span><span class="p">,</span> <span class="n">missing_obs</span><span class="p">,</span> <span class="n">gapfilldf</span><span class="p">,</span>
-                 <span class="n">missing_fill_df</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">obstypes</span><span class="p">,</span> <span class="n">data_template</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span>
-                 <span class="n">_qc_checked_obstypes</span><span class="p">,</span> <span class="n">_applied_qc</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">df</span><span class="p">,</span>
+        <span class="n">outliersdf</span><span class="p">,</span>
+        <span class="n">gaps</span><span class="p">,</span>
+        <span class="n">missing_obs</span><span class="p">,</span>
+        <span class="n">gapfilldf</span><span class="p">,</span>
+        <span class="n">missing_fill_df</span><span class="p">,</span>
+        <span class="n">metadf</span><span class="p">,</span>
+        <span class="n">obstypes</span><span class="p">,</span>
+        <span class="n">data_template</span><span class="p">,</span>
+        <span class="n">settings</span><span class="p">,</span>
+        <span class="n">_qc_checked_obstypes</span><span class="p">,</span>
+        <span class="n">_applied_qc</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiate the Station object.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
@@ -128,8 +141,8 @@
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.station.Station.html#metobs_toolkit.station.Station.setup_metadata_dtyes">[docs]</a>
     <span class="k">def</span> <span class="nf">setup_metadata_dtyes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make sure the dtypes are not lost when subsetting.&quot;&quot;&quot;</span>
-        <span class="n">numeric_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">]</span>
-        <span class="n">timedelta_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;assumed_import_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;dataset_resolution&#39;</span><span class="p">]</span>
+        <span class="n">numeric_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]</span>
+        <span class="n">timedelta_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;assumed_import_frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;dataset_resolution&quot;</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">numeric_columns</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
@@ -155,7 +168,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -166,7 +179,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

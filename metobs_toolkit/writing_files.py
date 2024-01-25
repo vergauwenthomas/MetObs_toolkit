@@ -12,8 +12,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def write_dataset_to_csv(df, metadf, filename, outputfolder,
-                         location_info, seperate_metadata_file):
+def write_dataset_to_csv(
+    df, metadf, filename, outputfolder, location_info, seperate_metadata_file
+):
     """Write a dataset to a csv files.
 
     Write the dataset to a file where the observations, metadata and (if available)

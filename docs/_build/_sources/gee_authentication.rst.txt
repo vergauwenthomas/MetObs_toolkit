@@ -125,11 +125,3 @@ Test your GEE access
    extract small data quantities from GEE. For larger data transfers, GEE will write
    the data to file on your Google Drive, which will raise an error when you select
    'read-only' scopes.
-
-
-
-
-
-
-
-

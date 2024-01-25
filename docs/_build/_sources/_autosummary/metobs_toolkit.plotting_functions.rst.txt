@@ -3,18 +3,18 @@ metobs\_toolkit.plotting\_functions
 
 .. automodule:: metobs_toolkit.plotting_functions
 
-   
-   
-   
 
-   
-   
+
+
+
+
+
    .. rubric:: Functions
 
    .. autosummary::
       :toctree:
       :nosignatures:
-   
+
       add_stations_to_folium_map
       correlation_scatter
       cycle_plot
@@ -27,17 +27,3 @@ metobs\_toolkit.plotting\_functions
       model_timeseries_plot
       qc_stats_pie
       timeseries_plot
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
-

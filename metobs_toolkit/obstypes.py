@@ -10,6 +10,7 @@ import logging
 from collections.abc import Iterable
 
 import numpy as np
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,52 +19,63 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 tlk_std_units = {
-    "temp": 'Celsius',
-    "radiation_temp": 'Celsius',
-    "humidity": '%',
-    "precip": 'mm/m²',
-    "precip_sum": 'mm/m² from midnight',
-    "wind_speed": 'm/s',
-    "wind_gust": 'm/s',
-    "wind_direction": '° from north (CW)',
-    "pressure": 'pa',
-    "pressure_at_sea_level": 'pa'}
+    "temp": "Celsius",
+    "radiation_temp": "Celsius",
+    "humidity": "%",
+    "precip": "mm/m²",
+    "precip_sum": "mm/m² from midnight",
+    "wind_speed": "m/s",
+    "wind_gust": "m/s",
+    "wind_direction": "° from north (CW)",
+    "pressure": "pa",
+    "pressure_at_sea_level": "pa",
+}
 
 
 # =============================================================================
 # Aliases for units
 # =============================================================================
 
-temp_aliases = {'Celsius': ['celsius', '°C', '°c', 'celcius', 'Celcius'],  # for the dyselectic developper..
-                'Kelvin': ['K', 'kelvin'],
-                'Farenheit': ['farenheit']}
-pressure_aliases = {'pa': ['Pascal', 'pascal', 'Pa'],
-                    'hpa': ['hecto pascal', 'hPa'],
-                    'psi': ['Psi'],
-                    'bar': ['Bar']}
+temp_aliases = {
+    "Celsius": [
+        "celsius",
+        "°C",
+        "°c",
+        "celcius",
+        "Celcius",
+    ],  # for the dyselectic developper..
+    "Kelvin": ["K", "kelvin"],
+    "Farenheit": ["farenheit"],
+}
+pressure_aliases = {
+    "pa": ["Pascal", "pascal", "Pa"],
+    "hpa": ["hecto pascal", "hPa"],
+    "psi": ["Psi"],
+    "bar": ["Bar"],
+}
 
-precip_aliases = {'mm/m²': ['mm', 'liter', 'liters', 'l/m²', "milimeter"]}
+precip_aliases = {"mm/m²": ["mm", "liter", "liters", "l/m²", "milimeter"]}
 
-wind_aliases = {'m/s': ['meters/second', 'm/sec'],
-                'km/h': ['kilometers/hour', 'kph'],
-                'mph': ['miles/hour']}
-direction_aliases = {'° from north (CW)': ['°', 'degrees']}
+wind_aliases = {
+    "m/s": ["meters/second", "m/sec"],
+    "km/h": ["kilometers/hour", "kph"],
+    "mph": ["miles/hour"],
+}
+direction_aliases = {"° from north (CW)": ["°", "degrees"]}
 
 
 # conversion between standard-NAMES and aliases
 all_units_aliases = {
     "temp": temp_aliases,
     "radiation_temp": temp_aliases,
-    "humidity": {
-        "%": ['percent', 'percentage']
-    },
-    'pressure': pressure_aliases,
-    'pressure_at_sea_level': pressure_aliases,
-    'precip': precip_aliases,
-    'precip_sum': precip_aliases,
-    'wind_speed': wind_aliases,
-    'wind_gust': wind_aliases,
-    'wind_direction': direction_aliases,
+    "humidity": {"%": ["percent", "percentage"]},
+    "pressure": pressure_aliases,
+    "pressure_at_sea_level": pressure_aliases,
+    "precip": precip_aliases,
+    "precip_sum": precip_aliases,
+    "wind_speed": wind_aliases,
+    "wind_gust": wind_aliases,
+    "wind_direction": direction_aliases,
 }
 
 # =============================================================================
@@ -71,31 +83,26 @@ all_units_aliases = {
 # =============================================================================
 
 all_conversion_table = {
-    'temp': {
-        'Kelvin': ["x - 273.15"],  # result is in tlk_std_units
-        'Farenheit': ["x-32.0", "x/1.8"]},  # -->execute from left to write  = (x-32)/1.8
-    'radiation_temp': {
-        'Kelvin': ["x - 273.15"],  # result is in tlk_std_units
-        'Farenheit': ["x-32.0", "x/1.8"]},
-    'humidity': {},
-    'pressure': {
-        'hpa': ["x * 100"],
-        'psi': ['x * 6894.7573'],
-        'bar': ['x * 100000.']},
-    'pressure_at_sea_level': {
-        'hpa': ["x * 100"],
-        'psi': ['x * 6894.7573'],
-        'bar': ['x * 100000.']},
-    'precip': {},
-    'precip_sum': {},
-    'wind_speed': {
-        "km/h": ["x / 3.6"],
-        "mph": ["x * 0.44704"]},
-    'wind_gust': {
-        "km/h": ["x / 3.6"],
-        "mph": ["x * 0.44704"]},
-    'wind_direction': {}
-
+    "temp": {
+        "Kelvin": ["x - 273.15"],  # result is in tlk_std_units
+        "Farenheit": ["x-32.0", "x/1.8"],
+    },  # -->execute from left to write  = (x-32)/1.8
+    "radiation_temp": {
+        "Kelvin": ["x - 273.15"],  # result is in tlk_std_units
+        "Farenheit": ["x-32.0", "x/1.8"],
+    },
+    "humidity": {},
+    "pressure": {"hpa": ["x * 100"], "psi": ["x * 6894.7573"], "bar": ["x * 100000."]},
+    "pressure_at_sea_level": {
+        "hpa": ["x * 100"],
+        "psi": ["x * 6894.7573"],
+        "bar": ["x * 100000."],
+    },
+    "precip": {},
+    "precip_sum": {},
+    "wind_speed": {"km/h": ["x / 3.6"], "mph": ["x * 0.44704"]},
+    "wind_gust": {"km/h": ["x / 3.6"], "mph": ["x * 0.44704"]},
+    "wind_direction": {},
 }
 
 # =============================================================================
@@ -106,8 +113,9 @@ all_conversion_table = {
 class Obstype:
     """Object with all info and methods for a specific observation type."""
 
-    def __init__(self, obsname, std_unit, description=None, unit_aliases={},
-                 unit_conversions={}):
+    def __init__(
+        self, obsname, std_unit, description=None, unit_aliases={}, unit_conversions={}
+    ):
         """Initiate an observation type.
 
         Parameters
@@ -198,8 +206,8 @@ class Obstype:
 
     def get_description(self):
         """Return the descrition of the observation type."""
-        if (self.description == str(None)):
-            return 'No description available'
+        if self.description == str(None):
+            return "No description available"
         else:
             return str(self.description)
 
@@ -215,7 +223,7 @@ class Obstype:
 
     def get_plot_y_label(self, mapname=None):
         """Return a string to represent the vertical axes of a plot."""
-        return f'{self.name} ({self.std_unit})'
+        return f"{self.name} ({self.std_unit})"
 
     def add_unit(self, unit_name, conversion=["x"]):
         """Add a new unit to an observation type.
@@ -248,7 +256,9 @@ class Obstype:
         # add to alias table (without aliasses)
         self.units_aliases[unit_name] = []
 
-        logger.info(f'{unit_name} is added as a {self.name} unit with coversion: {conversion} to {self.std_unit}')
+        logger.info(
+            f"{unit_name} is added as a {self.name} unit with coversion: {conversion} to {self.std_unit}"
+        )
 
     def convert_to_standard_units(self, input_data, input_unit):
         """Convert data from a knonw unit to the standard unit.
@@ -274,7 +284,9 @@ class Obstype:
 
         # error when unit is not know
         if not known:
-            sys.exit(f'{input_unit} is an unknown unit for {self.name}. No coversion possible!')
+            sys.exit(
+                f"{input_unit} is an unknown unit for {self.name}. No coversion possible!"
+            )
 
         # Get conversion
         std_unit_name = self._get_std_unit_name(input_unit)
@@ -371,75 +383,95 @@ def expression_calculator(equation, x):
 # Create observation types
 # =============================================================================
 
-temperature = Obstype(obsname='temp',
-                      std_unit=tlk_std_units['temp'],
-                      description="2m - temperature",
-                      unit_aliases=all_units_aliases['temp'],
-                      unit_conversions=all_conversion_table['temp'],
-                      )
+temperature = Obstype(
+    obsname="temp",
+    std_unit=tlk_std_units["temp"],
+    description="2m - temperature",
+    unit_aliases=all_units_aliases["temp"],
+    unit_conversions=all_conversion_table["temp"],
+)
 
-humidity = Obstype(obsname='humidity',
-                   std_unit=tlk_std_units['humidity'],
-                   description="2m - relative humidity",
-                   unit_aliases=all_units_aliases['humidity'],
-                   unit_conversions=all_conversion_table['humidity'])
+humidity = Obstype(
+    obsname="humidity",
+    std_unit=tlk_std_units["humidity"],
+    description="2m - relative humidity",
+    unit_aliases=all_units_aliases["humidity"],
+    unit_conversions=all_conversion_table["humidity"],
+)
 
-radiation_temp = Obstype(obsname='radiation_temp',
-                         std_unit=tlk_std_units['radiation_temp'],
-                         description="2m - Black globe",
-                         unit_aliases=all_units_aliases['radiation_temp'],
-                         unit_conversions=all_conversion_table['radiation_temp'])
+radiation_temp = Obstype(
+    obsname="radiation_temp",
+    std_unit=tlk_std_units["radiation_temp"],
+    description="2m - Black globe",
+    unit_aliases=all_units_aliases["radiation_temp"],
+    unit_conversions=all_conversion_table["radiation_temp"],
+)
 
-pressure = Obstype(obsname='pressure',
-                   std_unit=tlk_std_units['pressure'],
-                   description="atmospheric pressure (at station)",
-                   unit_aliases=all_units_aliases['pressure'],
-                   unit_conversions=all_conversion_table['pressure']
-                   )
+pressure = Obstype(
+    obsname="pressure",
+    std_unit=tlk_std_units["pressure"],
+    description="atmospheric pressure (at station)",
+    unit_aliases=all_units_aliases["pressure"],
+    unit_conversions=all_conversion_table["pressure"],
+)
 
-pressure_at_sea_level = Obstype(obsname='pressure_at_sea_level',
-                                std_unit=tlk_std_units['pressure_at_sea_level'],
-                                description="atmospheric pressure (at sea level)",
-                                unit_aliases=all_units_aliases['pressure_at_sea_level'],
-                                unit_conversions=all_conversion_table['pressure_at_sea_level'])
+pressure_at_sea_level = Obstype(
+    obsname="pressure_at_sea_level",
+    std_unit=tlk_std_units["pressure_at_sea_level"],
+    description="atmospheric pressure (at sea level)",
+    unit_aliases=all_units_aliases["pressure_at_sea_level"],
+    unit_conversions=all_conversion_table["pressure_at_sea_level"],
+)
 
-precip = Obstype(obsname='precip',
-                 std_unit=tlk_std_units['precip'],
-                 description="precipitation intensity",
-                 unit_aliases=all_units_aliases['precip'],
-                 unit_conversions=all_conversion_table['precip'])
+precip = Obstype(
+    obsname="precip",
+    std_unit=tlk_std_units["precip"],
+    description="precipitation intensity",
+    unit_aliases=all_units_aliases["precip"],
+    unit_conversions=all_conversion_table["precip"],
+)
 
-precip_sum = Obstype(obsname='precip_sum',
-                     std_unit=tlk_std_units['precip'],
-                     description="Cummulated precipitation",
-                     unit_aliases=all_units_aliases['precip_sum'],
-                     unit_conversions=all_conversion_table['precip_sum'])
-wind = Obstype(obsname='wind_speed',
-               std_unit=tlk_std_units['wind_speed'],
-               description="wind speed",
-               unit_aliases=all_units_aliases['wind_speed'],
-               unit_conversions=all_conversion_table['wind_speed'])
+precip_sum = Obstype(
+    obsname="precip_sum",
+    std_unit=tlk_std_units["precip"],
+    description="Cummulated precipitation",
+    unit_aliases=all_units_aliases["precip_sum"],
+    unit_conversions=all_conversion_table["precip_sum"],
+)
+wind = Obstype(
+    obsname="wind_speed",
+    std_unit=tlk_std_units["wind_speed"],
+    description="wind speed",
+    unit_aliases=all_units_aliases["wind_speed"],
+    unit_conversions=all_conversion_table["wind_speed"],
+)
 
-windgust = Obstype(obsname='wind_gust',
-                   std_unit=tlk_std_units['wind_gust'],
-                   description="wind gust",
-                   unit_aliases=all_units_aliases['wind_gust'],
-                   unit_conversions=all_conversion_table['wind_gust'])
+windgust = Obstype(
+    obsname="wind_gust",
+    std_unit=tlk_std_units["wind_gust"],
+    description="wind gust",
+    unit_aliases=all_units_aliases["wind_gust"],
+    unit_conversions=all_conversion_table["wind_gust"],
+)
 
-wind_direction = Obstype(obsname='wind_direction',
-                         std_unit=tlk_std_units['wind_direction'],
-                         description="wind direction",
-                         unit_aliases=all_units_aliases['wind_direction'],
-                         unit_conversions=all_conversion_table['wind_direction'])
+wind_direction = Obstype(
+    obsname="wind_direction",
+    std_unit=tlk_std_units["wind_direction"],
+    description="wind direction",
+    unit_aliases=all_units_aliases["wind_direction"],
+    unit_conversions=all_conversion_table["wind_direction"],
+)
 
 # The order of the dictionary is also the order on how columns in dataset are presetnted
-tlk_obstypes = {'temp': temperature,
-                'humidity': humidity,
-                'radiation_temp': radiation_temp,
-                'pressure': pressure,
-                'pressure_at_sea_level': pressure_at_sea_level,
-                'precip': precip,
-                'precip_sum': precip_sum,
-                'wind_speed': wind,
-                'wind_gust': windgust,
-                'wind_direction': wind_direction}
+tlk_obstypes = {
+    "temp": temperature,
+    "humidity": humidity,
+    "radiation_temp": radiation_temp,
+    "pressure": pressure,
+    "pressure_at_sea_level": pressure_at_sea_level,
+    "precip": precip,
+    "precip_sum": precip_sum,
+    "wind_speed": wind,
+    "wind_gust": windgust,
+    "wind_direction": wind_direction,
+}

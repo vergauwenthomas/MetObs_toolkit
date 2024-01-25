@@ -10,7 +10,7 @@
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
+
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
         <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
@@ -21,19 +21,19 @@
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../index.html">
-            
+
               <img src="../../_static/logo_small.svg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
@@ -84,7 +84,7 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for metobs_toolkit.gap</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
@@ -111,7 +111,7 @@
     <span class="n">format_outliersdf_to_doubleidx</span><span class="p">,</span>
     <span class="n">concat_save</span><span class="p">,</span>
     <span class="n">get_likely_frequency</span><span class="p">,</span>
-    <span class="n">_find_closes_occuring_date</span>
+    <span class="n">_find_closes_occuring_date</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -167,9 +167,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">exp_gap_idx</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># gap fill (only for conventional saving)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>  <span class="c1"># index: datetime, columns: obstypes, values: fill_values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_df</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="p">)</span>  <span class="c1"># index: datetime, columns: obstypes, values: fill_values</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># will become a string</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_info</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># detailed infomation on the gapfill technique (only for the user)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_info</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span>  <span class="c1"># detailed infomation on the gapfill technique (only for the user)</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_errormessage</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># keys are obstypes</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -184,52 +188,66 @@
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gap.Gap.html#metobs_toolkit.gap.Gap.get_info">[docs]</a>
     <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Print detailed information of a gap.&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Gap for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> with: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> ---- Gap info ----- </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;(Note: gaps are defined on the frequency estimation of the native dataset.)&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Start gap: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">startgap</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * End gap: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">endgap</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Duration gap: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> ---- Gap fill info ----- </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gap for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> with: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> ---- Gap info ----- </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;(Note: gaps are defined on the frequency estimation of the native dataset.)&quot;</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Start gap: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">startgap</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * End gap: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">endgap</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Duration gap: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> ---- Gap fill info ----- </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">obstypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;(No gapfill applied)&#39;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span> <span class="o">==</span> <span class="s1">&#39;gap_interpolation&#39;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;(No gapfill applied)&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span> <span class="o">==</span> <span class="s2">&quot;gap_interpolation&quot;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">obstypes</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * On observation type: </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Technique: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * On observation type: </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Technique: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leading_val</span><span class="p">):</span>
                     <span class="n">leading_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">leading_val</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">leading_val</span> <span class="o">=</span> <span class="s1">&#39;No leading observation value&#39;</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Leading timestamp: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">leading_timestamp</span><span class="si">}</span><span class="s1"> with  </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">leading_val</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">leading_val</span> <span class="o">=</span> <span class="s2">&quot;No leading observation value&quot;</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;  * Leading timestamp: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">leading_timestamp</span><span class="si">}</span><span class="s2"> with  </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">leading_val</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trailing_val</span><span class="p">):</span>
                     <span class="n">trailing_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trailing_val</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">trailing_val</span> <span class="o">=</span> <span class="s1">&#39;No trailing observation value&#39;</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Trailing timestamp: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">trailing_timestamp</span><span class="si">}</span><span class="s1"> with  </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">trailing_val</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Filled values: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_df</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">trailing_val</span> <span class="o">=</span> <span class="s2">&quot;No trailing observation value&quot;</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;  * Trailing timestamp: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">trailing_timestamp</span><span class="si">}</span><span class="s2"> with  </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">trailing_val</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Filled values: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_df</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Gapfill message: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;  * Gapfill message: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Gapfill info: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_info</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    (Extract the gapfill info dataframe by using the .gapfill_info attribute) </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Gapfill info: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_info</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;    (Extract the gapfill info dataframe by using the .gapfill_info attribute) </span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
 
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span> <span class="o">==</span> <span class="s2">&quot;gap_debiased_era5&quot;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">obstypes</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * On observation type: </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Technique: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * On observation type: </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Technique: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="c1"># print(f&#39;  * Leading timestamp: {self.leading_timestamp} with  {obstype} = {self.leading_val[obstype]}\n&#39;)</span>
                 <span class="c1"># print(f&#39;  * Trailing timestamp: {self.trailing_timestamp} with  {obstype} = {self.trailing_val[obstype]}\n&#39;)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Filled values: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_df</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Filled values: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_df</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Gapfill message: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;  * Gapfill message: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  * Gapfill info: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_info</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="si">}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    (Extract the gapfill info dataframe by using the .gapfill_info attribute) </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Gapfill info: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapfill_info</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;    (Extract the gapfill info dataframe by using the .gapfill_info attribute) </span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;technique not implemented in yet in show&#39;</span><span class="p">)</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;technique not implemented in yet in show&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Gap.to_df">
@@ -248,11 +266,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">returndf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
             <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;start_gap&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">startgap</span><span class="p">,</span>
-                  <span class="s2">&quot;end_gap&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">endgap</span><span class="p">,</span>
-                  <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">}</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;start_gap&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">startgap</span><span class="p">,</span>
+                <span class="s2">&quot;end_gap&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">endgap</span><span class="p">,</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+            <span class="p">},</span>
         <span class="p">)</span>
-        <span class="n">returndf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;name&#39;</span>
+        <span class="n">returndf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span>
         <span class="k">return</span> <span class="n">returndf</span></div>
 
 
@@ -324,12 +344,14 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">leading_val</span> <span class="o">=</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">leading_timestamp</span><span class="p">)]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Leading value not found in the observations&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Leading value not found in the observations&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">leading_val</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">trailing_val</span> <span class="o">=</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trailing_timestamp</span><span class="p">)]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trailing_val</span> <span class="o">=</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trailing_timestamp</span><span class="p">)</span>
+            <span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Trailing value not found in the observations&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Trailing value not found in the observations&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">trailing_val</span> <span class="o">=</span> <span class="p">{}</span></div>
 
 
@@ -420,19 +442,21 @@
 <span class="sd">            Multiindex Series with filled gap values in dataset space.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39; interpolate on </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; interpolate on </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">outliersdf</span> <span class="o">=</span> <span class="n">format_outliersdf_to_doubleidx</span><span class="p">(</span><span class="n">outliersdf</span><span class="p">)</span>
 
-        <span class="n">gapfill_series</span> <span class="o">=</span> <span class="n">interpolate_gap</span><span class="p">(</span><span class="n">gap</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-                                         <span class="n">obsdf</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
-                                         <span class="n">outliersdf</span><span class="o">=</span><span class="n">outliersdf</span><span class="p">,</span>
-                                         <span class="n">dataset_res</span><span class="o">=</span><span class="n">dataset_res</span><span class="p">,</span>
-                                         <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
-                                         <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
-                                         <span class="n">max_consec_fill</span><span class="o">=</span><span class="n">max_consec_fill</span><span class="p">)</span>
+        <span class="n">gapfill_series</span> <span class="o">=</span> <span class="n">interpolate_gap</span><span class="p">(</span>
+            <span class="n">gap</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">obsdf</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
+            <span class="n">outliersdf</span><span class="o">=</span><span class="n">outliersdf</span><span class="p">,</span>
+            <span class="n">dataset_res</span><span class="o">=</span><span class="n">dataset_res</span><span class="p">,</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">max_consec_fill</span><span class="o">=</span><span class="n">max_consec_fill</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="c1"># update self</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span> <span class="o">=</span> <span class="s1">&#39;interpolation&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_technique</span> <span class="o">=</span> <span class="s2">&quot;interpolation&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gapfill_df</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="n">gapfill_series</span></div>
 </div>
 
@@ -500,9 +524,7 @@
         <span class="n">gap</span><span class="o">.</span><span class="n">update_gaps_indx_in_obs_space</span><span class="p">(</span>
             <span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span><span class="p">,</span> <span class="n">resolutionseries</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
         <span class="p">)</span>
-        <span class="n">expanded_gabsidx_obsspace</span> <span class="o">=</span> <span class="n">expanded_gabsidx_obsspace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span>
-        <span class="p">)</span>
+        <span class="n">expanded_gabsidx_obsspace</span> <span class="o">=</span> <span class="n">expanded_gabsidx_obsspace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">expanded_gabsidx_obsspace</span></div>
 
@@ -531,14 +553,11 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">gapdflist</span><span class="p">):</span>
         <span class="c1"># when no gaps, make default return</span>
-        <span class="n">default_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;start_gap&#39;</span><span class="p">:</span> <span class="p">[],</span>
-                                        <span class="s1">&#39;end_gap&#39;</span><span class="p">:</span> <span class="p">[],</span>
-                                        <span class="s1">&#39;duration&#39;</span><span class="p">:</span> <span class="p">[]})</span>
-        <span class="n">default_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;name&#39;</span>
+        <span class="n">default_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;start_gap&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;end_gap&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="p">[]})</span>
+        <span class="n">default_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span>
         <span class="k">return</span> <span class="n">default_df</span>
 
     <span class="k">return</span> <span class="n">concat_save</span><span class="p">(</span><span class="n">gapdflist</span><span class="p">)</span></div>
-
 
 
 
@@ -569,9 +588,7 @@
 
         <span class="n">gaps_dt</span> <span class="o">=</span> <span class="n">sta_records</span><span class="p">[</span>
             <span class="p">(</span><span class="n">sta_records</span> <span class="o">&gt;=</span> <span class="n">gap</span><span class="o">.</span><span class="n">startgap</span><span class="p">)</span>
-            <span class="o">&amp;</span> <span class="p">(</span>  <span class="c1"># filter if the observations are within a gap</span>
-                <span class="n">sta_records</span> <span class="o">&lt;=</span> <span class="n">gap</span><span class="o">.</span><span class="n">endgap</span>
-            <span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="n">sta_records</span> <span class="o">&lt;=</span> <span class="n">gap</span><span class="o">.</span><span class="n">endgap</span><span class="p">)</span>  <span class="c1"># filter if the observations are within a gap</span>
         <span class="p">]</span>
 
         <span class="n">gaps_multiidx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">(</span>
@@ -606,14 +623,13 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># to multiindex</span>
-    <span class="n">outldf</span> <span class="o">=</span> <span class="n">outldf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+    <span class="n">outldf</span> <span class="o">=</span> <span class="n">outldf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
 
     <span class="c1"># remove records inside the gaps</span>
-    <span class="n">suboutldf</span> <span class="o">=</span> <span class="n">remove_gaps_from_obs</span><span class="p">(</span><span class="n">gaplist</span><span class="o">=</span><span class="n">gaplist</span><span class="p">,</span>
-                                     <span class="n">obsdf</span><span class="o">=</span><span class="n">outldf</span><span class="p">)</span>
+    <span class="n">suboutldf</span> <span class="o">=</span> <span class="n">remove_gaps_from_obs</span><span class="p">(</span><span class="n">gaplist</span><span class="o">=</span><span class="n">gaplist</span><span class="p">,</span> <span class="n">obsdf</span><span class="o">=</span><span class="n">outldf</span><span class="p">)</span>
 
     <span class="c1"># restet to triple index</span>
-    <span class="n">outldf</span> <span class="o">=</span> <span class="n">suboutldf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;obstype&#39;</span><span class="p">])</span>
+    <span class="n">outldf</span> <span class="o">=</span> <span class="n">suboutldf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="s2">&quot;obstype&quot;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">outldf</span></div>
 
@@ -625,8 +641,13 @@
 <div class="viewcode-block" id="apply_debias_era5_gapfill">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gap.apply_debias_era5_gapfill.html#metobs_toolkit.gap.apply_debias_era5_gapfill">[docs]</a>
 <span class="k">def</span> <span class="nf">apply_debias_era5_gapfill</span><span class="p">(</span>
-        <span class="n">gapslist</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">eraModelData</span><span class="p">,</span> <span class="n">debias_settings</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
-        <span class="n">overwrite_fill</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">gapslist</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="p">,</span>
+    <span class="n">eraModelData</span><span class="p">,</span>
+    <span class="n">debias_settings</span><span class="p">,</span>
+    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+    <span class="n">overwrite_fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fill all gaps using ERA5 debiaset modeldata.</span>
 
 <span class="sd">    Parameters</span>
@@ -649,19 +670,21 @@
 <span class="sd">    None.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">gapfill_settings</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s1">&#39;gaps_fill_info&#39;</span><span class="p">]</span>
+    <span class="n">gapfill_settings</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_info&quot;</span><span class="p">]</span>
 
     <span class="c1"># Convert modeldata to the same timzone as the data</span>
-    <span class="n">targettz</span> <span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
+    <span class="n">targettz</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
     <span class="n">eraModelData</span><span class="o">.</span><span class="n">_conv_to_timezone</span><span class="p">(</span><span class="n">targettz</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">gap</span> <span class="ow">in</span> <span class="n">gapslist</span><span class="p">:</span>
         <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">overwrite_fill</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="ow">not</span> <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_df</span><span class="o">.</span><span class="n">empty</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Gap </span><span class="si">{</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> is already filled with </span><span class="si">{</span><span class="n">gap</span><span class="o">.</span><span class="n">gapfill_technique</span><span class="si">}</span><span class="s1"> and will not be overwirtten. Set overwrite_fill to True to overwrite.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Gap </span><span class="si">{</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is already filled with </span><span class="si">{</span><span class="n">gap</span><span class="o">.</span><span class="n">gapfill_technique</span><span class="si">}</span><span class="s2"> and will not be overwirtten. Set overwrite_fill to True to overwrite.&quot;</span>
+            <span class="p">)</span>
             <span class="k">continue</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39; Era5 gapfill for </span><span class="si">{</span><span class="n">gap</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_technique</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">][</span><span class="s1">&#39;model_debias&#39;</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Era5 gapfill for </span><span class="si">{</span><span class="n">gap</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_technique</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">]</span>
 
         <span class="c1"># avoid passing full dataset around</span>
         <span class="n">station</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -686,16 +709,22 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s2">&quot;No suitable leading or trailing period found. Gapfill not possible&quot;</span>
             <span class="p">)</span>
-            <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gapfill not possible: no leading/trailing period&#39;</span>
+            <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span>
+                <span class="n">obstype</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;gapfill not possible: no leading/trailing period&quot;</span>
 
             <span class="n">default_return</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
                 <span class="n">index</span><span class="o">=</span><span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;object&quot;</span>
             <span class="p">)</span>
-            <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gapfill not possible: no leading/trailing period&#39;</span>
+            <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span>
+                <span class="n">obstype</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;gapfill not possible: no leading/trailing period&quot;</span>
 
             <span class="n">default_return</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obstype</span>
             <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">default_return</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
-            <span class="n">gapfill_df</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">]</span>
+            <span class="n">gapfill_df</span><span class="p">[</span>
+                <span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">]</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">]</span>
 
             <span class="c1"># update the gaps attributes</span>
             <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_df</span>
@@ -713,14 +742,18 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s2">&quot;No modeldata for the full leading/trailing period found. Gapfill not possible&quot;</span>
             <span class="p">)</span>
-            <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gapfill not possible: not enough modeldata&#39;</span>
+            <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span>
+                <span class="n">obstype</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;gapfill not possible: not enough modeldata&quot;</span>
 
             <span class="n">default_return</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
                 <span class="n">index</span><span class="o">=</span><span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;object&quot;</span>
             <span class="p">)</span>
             <span class="n">default_return</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obstype</span>
             <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">default_return</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
-            <span class="n">gapfill_df</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">]</span>
+            <span class="n">gapfill_df</span><span class="p">[</span>
+                <span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">]</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">]</span>
 
             <span class="c1"># update the gaps attributes</span>
             <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_df</span>
@@ -741,7 +774,9 @@
 
         <span class="n">filled_gap_series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obstype</span>
         <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">filled_gap_series</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
-        <span class="n">gapfill_df</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">]</span>
+        <span class="n">gapfill_df</span><span class="p">[</span>
+            <span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">]</span>
 
         <span class="c1"># update the gaps attributes</span>
         <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_df</span>
@@ -754,9 +789,17 @@
 
 <div class="viewcode-block" id="apply_interpolate_gaps">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gap.apply_interpolate_gaps.html#metobs_toolkit.gap.apply_interpolate_gaps">[docs]</a>
-<span class="k">def</span> <span class="nf">apply_interpolate_gaps</span><span class="p">(</span><span class="n">gapslist</span><span class="p">,</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">outliersdf</span><span class="p">,</span> <span class="n">dataset_res</span><span class="p">,</span> <span class="n">gapfill_settings</span><span class="p">,</span>
-                           <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="n">max_consec_fill</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-                           <span class="n">overwrite_fill</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">apply_interpolate_gaps</span><span class="p">(</span>
+    <span class="n">gapslist</span><span class="p">,</span>
+    <span class="n">obsdf</span><span class="p">,</span>
+    <span class="n">outliersdf</span><span class="p">,</span>
+    <span class="n">dataset_res</span><span class="p">,</span>
+    <span class="n">gapfill_settings</span><span class="p">,</span>
+    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span>
+    <span class="n">max_consec_fill</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">overwrite_fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fill all gaps with interpolation and update attributes.</span>
 
 <span class="sd">    Parameters</span>
@@ -787,19 +830,25 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">gap</span> <span class="ow">in</span> <span class="n">gapslist</span><span class="p">:</span>
         <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">overwrite_fill</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="ow">not</span> <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_df</span><span class="o">.</span><span class="n">empty</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Gap </span><span class="si">{</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> is already filled with </span><span class="si">{</span><span class="n">gap</span><span class="o">.</span><span class="n">gapfill_technique</span><span class="si">}</span><span class="s1"> and will not be overwirtten. Set overwrite_fill to True to overwrite.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Gap </span><span class="si">{</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is already filled with </span><span class="si">{</span><span class="n">gap</span><span class="o">.</span><span class="n">gapfill_technique</span><span class="si">}</span><span class="s2"> and will not be overwirtten. Set overwrite_fill to True to overwrite.&quot;</span>
+            <span class="p">)</span>
             <span class="k">continue</span>
-        <span class="n">gapfill_series</span> <span class="o">=</span> <span class="n">interpolate_gap</span><span class="p">(</span><span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
-                                         <span class="n">obsdf</span><span class="o">=</span><span class="n">xs_save</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-                                         <span class="n">outliersdf</span><span class="o">=</span><span class="n">xs_save</span><span class="p">(</span><span class="n">outliersdf</span><span class="p">,</span> <span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-                                         <span class="n">dataset_res</span><span class="o">=</span><span class="n">dataset_res</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
-                                         <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
-                                         <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
-                                         <span class="n">max_consec_fill</span><span class="o">=</span><span class="n">max_consec_fill</span><span class="p">)</span>
+        <span class="n">gapfill_series</span> <span class="o">=</span> <span class="n">interpolate_gap</span><span class="p">(</span>
+            <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
+            <span class="n">obsdf</span><span class="o">=</span><span class="n">xs_save</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">outliersdf</span><span class="o">=</span><span class="n">xs_save</span><span class="p">(</span><span class="n">outliersdf</span><span class="p">,</span> <span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">dataset_res</span><span class="o">=</span><span class="n">dataset_res</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">max_consec_fill</span><span class="o">=</span><span class="n">max_consec_fill</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="n">gapfill_series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obstype</span>
         <span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_series</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
-        <span class="n">gapfill_df</span><span class="p">[</span><span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;linear&quot;</span><span class="p">]</span>
+        <span class="n">gapfill_df</span><span class="p">[</span>
+            <span class="n">obstype</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;linear&quot;</span><span class="p">]</span>
 
         <span class="c1"># update the gaps attributes</span>
         <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">gapfill_df</span>
@@ -817,8 +866,8 @@
     <span class="n">concatlist</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">gap</span> <span class="ow">in</span> <span class="n">gapslist</span><span class="p">:</span>
         <span class="n">subgapfill</span> <span class="o">=</span> <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-        <span class="n">subgapfill</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gap</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">subgapfill</span> <span class="o">=</span> <span class="n">subgapfill</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+        <span class="n">subgapfill</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gap</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">subgapfill</span> <span class="o">=</span> <span class="n">subgapfill</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
 
         <span class="n">concatlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subgapfill</span><span class="p">)</span>
 
@@ -879,12 +928,14 @@
 
         <span class="n">station_freqs</span><span class="p">[</span><span class="n">station</span><span class="p">]</span> <span class="o">=</span> <span class="n">likely_freq</span>
 
-        <span class="n">missing_datetimeseries</span> <span class="o">=</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">timestamps</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
-                                                <span class="n">end</span><span class="o">=</span><span class="n">timestamps</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
-                                                <span class="n">freq</span><span class="o">=</span><span class="n">likely_freq</span><span class="p">)</span>
-                                  <span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-                                  <span class="o">.</span><span class="n">to_series</span><span class="p">()</span>
-                                  <span class="o">.</span><span class="n">diff</span><span class="p">())</span>
+        <span class="n">missing_datetimeseries</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span>
+                <span class="n">start</span><span class="o">=</span><span class="n">timestamps</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">end</span><span class="o">=</span><span class="n">timestamps</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">freq</span><span class="o">=</span><span class="n">likely_freq</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">to_series</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">missing_datetimeseries</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="k">continue</span>
@@ -899,9 +950,11 @@
         <span class="c1"># iterate over the gabs and fill the gapsdf</span>
         <span class="k">for</span> <span class="n">gap_idx</span> <span class="ow">in</span> <span class="n">gap_groups</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
             <span class="n">datetime_of_gap_records</span> <span class="o">=</span> <span class="n">consec_missing_groups</span><span class="o">.</span><span class="n">get_group</span><span class="p">(</span><span class="n">gap_idx</span><span class="p">)</span><span class="o">.</span><span class="n">index</span>
-            <span class="n">gap</span> <span class="o">=</span> <span class="n">Gap</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">station</span><span class="p">,</span>
-                      <span class="n">startdt</span><span class="o">=</span><span class="n">datetime_of_gap_records</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
-                      <span class="n">enddt</span><span class="o">=</span><span class="n">datetime_of_gap_records</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">gap</span> <span class="o">=</span> <span class="n">Gap</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">station</span><span class="p">,</span>
+                <span class="n">startdt</span><span class="o">=</span><span class="n">datetime_of_gap_records</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                <span class="n">enddt</span><span class="o">=</span><span class="n">datetime_of_gap_records</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+            <span class="p">)</span>
             <span class="n">gap_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gap</span><span class="p">)</span>
 
         <span class="c1"># combine the missing timestams values</span>
@@ -912,12 +965,14 @@
             <span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
 
             <span class="n">missing_timestamp_series</span> <span class="o">=</span> <span class="n">concat_save</span><span class="p">(</span>
-                                            <span class="p">[</span><span class="n">missing_timestamp_series</span><span class="p">,</span>
-                                            <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
-                                                <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">station</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_of_missing_records</span><span class="p">),</span>
-                                                <span class="n">data</span><span class="o">=</span><span class="n">datetime_of_missing_records</span><span class="p">),</span>
-                                            <span class="p">]</span>
-                                        <span class="p">)</span>
+                <span class="p">[</span>
+                    <span class="n">missing_timestamp_series</span><span class="p">,</span>
+                    <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+                        <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">station</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_of_missing_records</span><span class="p">),</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">datetime_of_missing_records</span><span class="p">,</span>
+                    <span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
 
     <span class="n">missing_obs_collection</span> <span class="o">=</span> <span class="n">Missingob_collection</span><span class="p">(</span><span class="n">missing_timestamp_series</span><span class="p">)</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
@@ -939,7 +994,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -950,7 +1005,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

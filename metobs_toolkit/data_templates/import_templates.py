@@ -48,4 +48,4 @@ default_template_file = os.path.join(
 #     for idx, row in templ.iterrows():
 #         template[idx] = row[~row.isnull()].to_dict()
 
-    # return template
+# return template

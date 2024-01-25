@@ -214,18 +214,3 @@ arguments of the :py:meth:`update_settings()<metobs_toolkit.dataset_settings_upd
 .. note::
    When the prompt ask's if you need further help, and you type yes, some more questions are prompted.
    Once all information is given to the prompt, it will print out a piece of code that you have to run to load your data into the toolkit.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

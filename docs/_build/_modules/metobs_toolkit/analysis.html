@@ -10,7 +10,7 @@
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
+
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
         <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
@@ -21,19 +21,19 @@
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../index.html">
-            
+
               <img src="../../_static/logo_small.svg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
@@ -84,7 +84,7 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for metobs_toolkit.analysis</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
@@ -100,20 +100,24 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">pearsonr</span>
 
-<span class="kn">from</span> <span class="nn">metobs_toolkit.plotting_functions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">cycle_plot</span><span class="p">,</span>
-                                               <span class="n">heatmap_plot</span><span class="p">,</span>
-                                               <span class="n">correlation_scatter</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.plotting_functions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">cycle_plot</span><span class="p">,</span>
+    <span class="n">heatmap_plot</span><span class="p">,</span>
+    <span class="n">correlation_scatter</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">metobs_toolkit.df_helpers</span> <span class="kn">import</span> <span class="p">(</span><span class="n">datetime_subsetting</span><span class="p">,</span>
-                                       <span class="n">subset_stations</span><span class="p">,</span>
-                                       <span class="n">fmt_datetime_argument</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.df_helpers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">datetime_subsetting</span><span class="p">,</span>
+    <span class="n">subset_stations</span><span class="p">,</span>
+    <span class="n">fmt_datetime_argument</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Analysis">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis">[docs]</a>
-<span class="k">class</span> <span class="nc">Analysis</span><span class="p">():</span>
+<span class="k">class</span> <span class="nc">Analysis</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The Analysis class contains methods for analysing observations.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obsdf</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">data_template</span><span class="p">):</span>
@@ -128,36 +132,40 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_lc_cor_obstype</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="c1">#add empty lcz column to metadf if it is not present</span>
-        <span class="k">if</span> <span class="s1">&#39;lcz&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s1">&#39;lcz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="c1"># add empty lcz column to metadf if it is not present</span>
+        <span class="k">if</span> <span class="s2">&quot;lcz&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;lcz&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Print a overview of the analysis.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;Empty Analysis instance.&quot;</span>
-        <span class="n">add_info</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">n_stations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">add_info</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">n_stations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">n_obs_tot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="n">startdt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-        <span class="n">enddt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">startdt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">enddt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="p">((</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">())</span> <span class="o">&amp;</span>
-            <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">())):</span>
-            <span class="n">add_info</span> <span class="o">+=</span> <span class="s1">&#39;     *Coordinates are available for all stations. </span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">())</span> <span class="o">&amp;</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="p">):</span>
+            <span class="n">add_info</span> <span class="o">+=</span> <span class="s2">&quot;     *Coordinates are available for all stations. </span><span class="se">\n</span><span class="s2">&quot;</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s1">&#39;lcz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;lcz&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
             <span class="n">add_info</span> <span class="o">+=</span> <span class="s2">&quot;     *LCZ&#39;s are available for all stations. </span><span class="se">\n</span><span class="s2">&quot;</span>
 
         <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="p">):</span>
             <span class="n">add_info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;     *landcover correlations are computed on group: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span><span class="si">}</span><span class="s2">  </span><span class="se">\n</span><span class="s2">&quot;</span>
 
-        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analysis instance containing: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Analysis instance containing: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    *</span><span class="si">{</span><span class="n">n_stations</span><span class="si">}</span><span class="s2"> stations </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    *</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span><span class="si">}</span><span class="s2"> observation types </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    *</span><span class="si">{</span><span class="n">n_obs_tot</span><span class="si">}</span><span class="s2"> observation records </span><span class="se">\n</span><span class="si">{</span><span class="n">add_info</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">    *records range: </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2"> (total duration:  </span><span class="si">{</span><span class="n">enddt</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">startdt</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="o">+</span> <span class="n">add_info</span><span class="p">)</span>
+<span class="s2">    *records range: </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2"> (total duration:  </span><span class="si">{</span><span class="n">enddt</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">startdt</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="o">+</span> <span class="n">add_info</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Print a overview of the analysis.&quot;&quot;&quot;</span>
@@ -191,14 +199,16 @@
 <span class="sd">        as if it has the same timezone as the observations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">startdt</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2020</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39; </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s1"> not a datetime type. Ignore subsetting!&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2"> not a datetime type. Ignore subsetting!&quot;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">enddt</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2020</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39; </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s1"> not a datetime type. Ignore subsetting!&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2"> not a datetime type. Ignore subsetting!&quot;</span><span class="p">)</span>
             <span class="k">return</span>
 
-        <span class="n">startdt</span> <span class="o">=</span> <span class="n">fmt_datetime_argument</span><span class="p">(</span><span class="n">startdt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s1">&#39;timezone&#39;</span><span class="p">])</span>
-        <span class="n">enddt</span> <span class="o">=</span> <span class="n">fmt_datetime_argument</span><span class="p">(</span><span class="n">enddt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s1">&#39;timezone&#39;</span><span class="p">])</span>
+        <span class="n">startdt</span> <span class="o">=</span> <span class="n">fmt_datetime_argument</span><span class="p">(</span>
+            <span class="n">startdt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">enddt</span> <span class="o">=</span> <span class="n">fmt_datetime_argument</span><span class="p">(</span><span class="n">enddt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">datetime_subsetting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">,</span> <span class="n">startdt</span><span class="p">,</span> <span class="n">enddt</span><span class="p">)</span></div>
 
@@ -246,19 +256,21 @@
 <span class="sd">        needed.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">child_df</span><span class="p">,</span> <span class="n">child_metadf</span> <span class="o">=</span> <span class="n">filter_data</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">,</span>
-                                             <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span>
-                                             <span class="n">quarry_str</span><span class="o">=</span><span class="n">expression</span><span class="p">)</span>
+        <span class="n">child_df</span><span class="p">,</span> <span class="n">child_metadf</span> <span class="o">=</span> <span class="n">filter_data</span><span class="p">(</span>
+            <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">,</span> <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span> <span class="n">quarry_str</span><span class="o">=</span><span class="n">expression</span>
+        <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">Analysis</span><span class="p">(</span><span class="n">obsdf</span><span class="o">=</span><span class="n">child_df</span><span class="p">,</span>
-                        <span class="n">metadf</span><span class="o">=</span><span class="n">child_metadf</span><span class="p">,</span>
-                        <span class="n">settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
-                        <span class="n">data_template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_template</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Analysis</span><span class="p">(</span>
+            <span class="n">obsdf</span><span class="o">=</span><span class="n">child_df</span><span class="p">,</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="n">child_metadf</span><span class="p">,</span>
+            <span class="n">settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
+            <span class="n">data_template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_template</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Analysis.aggregate_df">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis.aggregate_df">[docs]</a>
-    <span class="k">def</span> <span class="nf">aggregate_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lcz&#39;</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">aggregate_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lcz&quot;</span><span class="p">,</span> <span class="s2">&quot;hour&quot;</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Aggregate observations to a (list of) categories.</span>
 
 <span class="sd">        The output will be a dataframe that is aggregated to one, or more</span>
@@ -294,40 +306,53 @@
             <span class="n">df</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
 
-        <span class="n">time_agg_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;minute&#39;</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;day_of_year&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;week_of_year&#39;</span><span class="p">,</span> <span class="s1">&#39;season&#39;</span><span class="p">]</span>
+        <span class="n">time_agg_keys</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;minute&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;hour&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;month&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;year&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;day_of_year&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;week_of_year&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;season&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
 
         <span class="c1"># scan trough the metadf for aggregation keys</span>
         <span class="k">for</span> <span class="n">agg_key</span> <span class="ow">in</span> <span class="n">agg</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">agg_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
                 <span class="c1"># look in metadf</span>
                 <span class="k">if</span> <span class="n">agg_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[[</span><span class="n">agg_key</span><span class="p">]],</span>
-                                  <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
-                                  <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                        <span class="n">df</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[[</span><span class="n">agg_key</span><span class="p">]],</span>
+                        <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                        <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span>
+                        <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
 
         <span class="c1"># Check if all agg keys are present or defined:</span>
         <span class="n">possible_agg_keys</span> <span class="o">=</span> <span class="n">time_agg_keys</span>
         <span class="n">possible_agg_keys</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
         <span class="n">unmapped</span> <span class="o">=</span> <span class="p">[</span><span class="n">agg_key</span> <span class="k">for</span> <span class="n">agg_key</span> <span class="ow">in</span> <span class="n">agg</span> <span class="k">if</span> <span class="n">agg_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">possible_agg_keys</span><span class="p">]</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">unmapped</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;cannot aggregate to unknown labels: </span><span class="si">{</span><span class="n">unmapped</span><span class="si">}</span><span class="s1">.&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">unmapped</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;cannot aggregate to unknown labels: </span><span class="si">{</span><span class="n">unmapped</span><span class="si">}</span><span class="s2">.&quot;</span>
 
         <span class="c1"># make time-derivate columns if required</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">_make_time_derivatives</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">agg</span><span class="p">)</span>
 
         <span class="c1"># check if not all values are Nan</span>
         <span class="k">for</span> <span class="n">agg_name</span> <span class="ow">in</span> <span class="n">agg</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="ow">not</span> <span class="n">df</span><span class="p">[</span><span class="n">agg_name</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="sa">f</span><span class="s1">&#39;Aggregation to </span><span class="si">{</span><span class="n">agg_name</span><span class="si">}</span><span class="s1"> not possible because no valid values found for </span><span class="si">{</span><span class="n">agg_name</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">df</span><span class="p">[</span><span class="n">agg_name</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Aggregation to </span><span class="si">{</span><span class="n">agg_name</span><span class="si">}</span><span class="s2"> not possible because no valid values found for </span><span class="si">{</span><span class="n">agg_name</span><span class="si">}</span><span class="s2">.&quot;</span>
 
         <span class="c1"># remove datetime column if present, because no aggregation can be done on</span>
         <span class="c1"># datetime and it gives a descrepation warning</span>
-        <span class="k">if</span> <span class="s1">&#39;datetime&#39;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s2">&quot;datetime&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
 
         <span class="c1"># Remove name column if present and not in the aggregation scheme,</span>
         <span class="c1"># this happens because name was in the index</span>
-        <span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">agg</span><span class="p">:</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;name&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">agg</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
 
         <span class="c1"># Aggregate the df</span>
         <span class="n">agg_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">agg</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">numeric_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># descrepation warning</span>
@@ -342,11 +367,21 @@
     <span class="c1"># =============================================================================</span>
 <div class="viewcode-block" id="Analysis.get_anual_statistics">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis.get_anual_statistics">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_anual_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
-                             <span class="n">agg_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                             <span class="n">errorbands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">_return_all_stats</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_anual_statistics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">groupby</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+        <span class="n">agg_method</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+        <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">errorbands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">_return_all_stats</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an anual cycle for aggregated groups.</span>
 
@@ -395,10 +430,10 @@
         <span class="c1"># title</span>
         <span class="n">desc_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_template</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
-            <span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+        <span class="k">if</span> <span class="s2">&quot;description&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
+            <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
 
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Anual </span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> cycle plot per </span><span class="si">{</span><span class="n">groupby</span><span class="si">}</span><span class="s1">.&#39;</span>
@@ -407,38 +442,47 @@
 
         <span class="c1"># ylabel</span>
         <span class="k">if</span> <span class="n">y_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;units&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
                 <span class="n">y_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> (units unknown)&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">y_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">)&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">y_label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y_label</span><span class="p">)</span>
 
-        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_aggregated_cycle_statistics</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
-                                                     <span class="n">stations</span><span class="o">=</span><span class="n">stations</span><span class="p">,</span>
-                                                     <span class="n">aggregation</span><span class="o">=</span><span class="n">groupby</span><span class="p">,</span>
-                                                     <span class="n">aggregation_method</span><span class="o">=</span><span class="n">agg_method</span><span class="p">,</span>
-                                                     <span class="n">horizontal_axis</span><span class="o">=</span><span class="s1">&#39;month&#39;</span><span class="p">,</span>
-                                                     <span class="n">startdt</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span>
-                                                     <span class="n">enddt</span><span class="o">=</span><span class="n">enddt</span><span class="p">,</span>
-                                                     <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
-                                                     <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
-                                                     <span class="n">y_label</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
-                                                     <span class="n">legend</span><span class="o">=</span><span class="n">legend</span><span class="p">,</span>
-                                                     <span class="n">errorbands</span><span class="o">=</span><span class="n">errorbands</span><span class="p">,</span>
-                                                     <span class="n">verbose</span><span class="o">=</span><span class="n">_return_all_stats</span><span class="p">,</span>
-                                                     <span class="p">)</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_aggregated_cycle_statistics</span><span class="p">(</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">stations</span><span class="o">=</span><span class="n">stations</span><span class="p">,</span>
+            <span class="n">aggregation</span><span class="o">=</span><span class="n">groupby</span><span class="p">,</span>
+            <span class="n">aggregation_method</span><span class="o">=</span><span class="n">agg_method</span><span class="p">,</span>
+            <span class="n">horizontal_axis</span><span class="o">=</span><span class="s2">&quot;month&quot;</span><span class="p">,</span>
+            <span class="n">startdt</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span>
+            <span class="n">enddt</span><span class="o">=</span><span class="n">enddt</span><span class="p">,</span>
+            <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+            <span class="n">y_label</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
+            <span class="n">legend</span><span class="o">=</span><span class="n">legend</span><span class="p">,</span>
+            <span class="n">errorbands</span><span class="o">=</span><span class="n">errorbands</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">_return_all_stats</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">stats</span></div>
 
 
 <div class="viewcode-block" id="Analysis.get_diurnal_statistics">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis.get_diurnal_statistics">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_diurnal_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
-                               <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                               <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                               <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                               <span class="n">errorbands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                               <span class="n">_return_all_stats</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_diurnal_statistics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">colorby</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+        <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">errorbands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">_return_all_stats</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an average diurnal cycle for the observations.</span>
 
@@ -482,63 +526,72 @@
         <span class="c1"># title</span>
         <span class="n">desc_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_template</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
-            <span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+        <span class="k">if</span> <span class="s2">&quot;description&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
+            <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
 
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">startdt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">enddt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> diurnal cycle&#39;</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> diurnal cycle&quot;</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> diurnal cycle until </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> diurnal cycle until </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">enddt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> diurnal cycle from </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> diurnal cycle from </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> diurnal cycle for period </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> diurnal cycle for period </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
 
         <span class="c1"># ylabel</span>
         <span class="k">if</span> <span class="n">y_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;units&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
                 <span class="n">y_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> (units unknown)&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">y_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">)&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">y_label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y_label</span><span class="p">)</span>
 
-        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_aggregated_cycle_statistics</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
-                                                     <span class="n">stations</span><span class="o">=</span><span class="n">stations</span><span class="p">,</span>
-                                                     <span class="n">aggregation</span><span class="o">=</span><span class="p">[</span><span class="n">colorby</span><span class="p">],</span>
-                                                     <span class="n">aggregation_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span>
-                                                     <span class="n">horizontal_axis</span><span class="o">=</span><span class="s1">&#39;hour&#39;</span><span class="p">,</span>
-                                                     <span class="n">startdt</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span>
-                                                     <span class="n">enddt</span><span class="o">=</span><span class="n">enddt</span><span class="p">,</span>
-                                                     <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
-                                                     <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
-                                                     <span class="n">y_label</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
-                                                     <span class="n">legend</span><span class="o">=</span><span class="n">legend</span><span class="p">,</span>
-                                                     <span class="n">errorbands</span><span class="o">=</span><span class="n">errorbands</span><span class="p">,</span>
-                                                     <span class="n">verbose</span><span class="o">=</span><span class="n">_return_all_stats</span><span class="p">,</span>
-                                                     <span class="p">)</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_aggregated_cycle_statistics</span><span class="p">(</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">stations</span><span class="o">=</span><span class="n">stations</span><span class="p">,</span>
+            <span class="n">aggregation</span><span class="o">=</span><span class="p">[</span><span class="n">colorby</span><span class="p">],</span>
+            <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+            <span class="n">horizontal_axis</span><span class="o">=</span><span class="s2">&quot;hour&quot;</span><span class="p">,</span>
+            <span class="n">startdt</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span>
+            <span class="n">enddt</span><span class="o">=</span><span class="n">enddt</span><span class="p">,</span>
+            <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+            <span class="n">y_label</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
+            <span class="n">legend</span><span class="o">=</span><span class="n">legend</span><span class="p">,</span>
+            <span class="n">errorbands</span><span class="o">=</span><span class="n">errorbands</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">_return_all_stats</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">stats</span></div>
 
 
 <div class="viewcode-block" id="Analysis.get_diurnal_statistics_with_reference">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis.get_diurnal_statistics_with_reference">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_diurnal_statistics_with_reference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refstation</span><span class="p">,</span> <span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
-                                              <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
-                                              <span class="n">tollerance</span><span class="o">=</span><span class="s1">&#39;30T&#39;</span><span class="p">,</span> <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                              <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                              <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                              <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                              <span class="n">errorbands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                              <span class="n">show_zero_horizontal</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                              <span class="n">_return_all_stats</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_diurnal_statistics_with_reference</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">refstation</span><span class="p">,</span>
+        <span class="n">colorby</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+        <span class="n">tollerance</span><span class="o">=</span><span class="s2">&quot;30T&quot;</span><span class="p">,</span>
+        <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">errorbands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">show_zero_horizontal</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">_return_all_stats</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an average diurnal cycle for the observation differences of a reference station.</span>
 
@@ -593,91 +646,106 @@
         <span class="n">obsdf</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
 
         <span class="c1"># extract refernce from observations</span>
-        <span class="n">refdf</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obsdf</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">refstation</span><span class="p">]</span>
-        <span class="n">obsdf</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obsdf</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">refstation</span><span class="p">]</span>
+        <span class="n">refdf</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obsdf</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">refstation</span><span class="p">]</span>
+        <span class="n">obsdf</span> <span class="o">=</span> <span class="n">obsdf</span><span class="p">[</span><span class="n">obsdf</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">refstation</span><span class="p">]</span>
 
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">refdf</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Error: No reference observation found (after filtering) for </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s1">&#39;</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s1">&#39;Error: No observation found (after filtering)&#39;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">refdf</span><span class="o">.</span><span class="n">empty</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Error: No reference observation found (after filtering) for </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s2">&quot;Error: No observation found (after filtering)&quot;</span>
 
         <span class="c1"># Syncronize observations with the reference observations</span>
-        <span class="n">refdf</span> <span class="o">=</span> <span class="n">refdf</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">obstype</span><span class="p">:</span> <span class="s1">&#39;ref_&#39;</span> <span class="o">+</span> <span class="n">obstype</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">:</span> <span class="s1">&#39;ref_datetime&#39;</span><span class="p">})</span>
-        <span class="n">mergedf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge_asof</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="n">obsdf</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">),</span>
-                                <span class="n">right</span><span class="o">=</span><span class="n">refdf</span><span class="p">[[</span><span class="s1">&#39;ref_datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;ref_&#39;</span> <span class="o">+</span> <span class="n">obstype</span><span class="p">]]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;ref_datetime&#39;</span><span class="p">),</span>
-                                <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;ref_datetime&quot;</span><span class="p">,</span>
-                                <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
-                                <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
-                                <span class="n">tolerance</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">tollerance</span><span class="p">),</span>
-                                <span class="p">)</span>
+        <span class="n">refdf</span> <span class="o">=</span> <span class="n">refdf</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">obstype</span><span class="p">:</span> <span class="s2">&quot;ref_&quot;</span> <span class="o">+</span> <span class="n">obstype</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">:</span> <span class="s2">&quot;ref_datetime&quot;</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">mergedf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge_asof</span><span class="p">(</span>
+            <span class="n">left</span><span class="o">=</span><span class="n">obsdf</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">),</span>
+            <span class="n">right</span><span class="o">=</span><span class="n">refdf</span><span class="p">[[</span><span class="s2">&quot;ref_datetime&quot;</span><span class="p">,</span> <span class="s2">&quot;ref_&quot;</span> <span class="o">+</span> <span class="n">obstype</span><span class="p">]]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;ref_datetime&quot;</span><span class="p">),</span>
+            <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;ref_datetime&quot;</span><span class="p">,</span>
+            <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span>
+            <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+            <span class="n">tolerance</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">tollerance</span><span class="p">),</span>
+        <span class="p">)</span>
 
         <span class="c1"># Get differnces</span>
-        <span class="n">mergedf</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mergedf</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">mergedf</span><span class="p">[</span><span class="s1">&#39;ref_temp&#39;</span><span class="p">]</span>
+        <span class="n">mergedf</span><span class="p">[</span><span class="s2">&quot;temp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mergedf</span><span class="p">[</span><span class="s2">&quot;temp&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">mergedf</span><span class="p">[</span><span class="s2">&quot;ref_temp&quot;</span><span class="p">]</span>
 
         <span class="c1"># Subset to relavent columns</span>
         <span class="n">mergedf</span> <span class="o">=</span> <span class="n">mergedf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-        <span class="n">mergedf</span> <span class="o">=</span> <span class="n">mergedf</span><span class="p">[[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="n">obstype</span><span class="p">]]</span>
-        <span class="n">mergedf</span> <span class="o">=</span> <span class="n">mergedf</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+        <span class="n">mergedf</span> <span class="o">=</span> <span class="n">mergedf</span><span class="p">[[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="n">obstype</span><span class="p">]]</span>
+        <span class="n">mergedf</span> <span class="o">=</span> <span class="n">mergedf</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
 
         <span class="c1"># title</span>
         <span class="n">desc_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_template</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-        <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
-            <span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+        <span class="k">if</span> <span class="s2">&quot;description&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
+            <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
 
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">startdt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">enddt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> diurnal cycle, with </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s1"> as reference,&#39;</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> diurnal cycle, with </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s2"> as reference,&quot;</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> diurnal cycle, with </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s1"> as reference, until </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> diurnal cycle, with </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s2"> as reference, until </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">enddt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> diurnal cycle, with </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s1"> as reference, from </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> diurnal cycle, with </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s2"> as reference, from </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> diurnal cycle, with </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s1"> as reference, for period </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Hourly average </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> diurnal cycle, with </span><span class="si">{</span><span class="n">refstation</span><span class="si">}</span><span class="s2"> as reference, for period </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
 
         <span class="c1"># ylabel</span>
         <span class="k">if</span> <span class="n">y_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;units&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
                 <span class="n">y_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> (units unknown)&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">y_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">)&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">y_label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y_label</span><span class="p">)</span>
 
-        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_aggregated_cycle_statistics</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
-                                                     <span class="n">stations</span><span class="o">=</span><span class="n">stations</span><span class="p">,</span>
-                                                     <span class="n">aggregation</span><span class="o">=</span><span class="p">[</span><span class="n">colorby</span><span class="p">],</span>
-                                                     <span class="n">aggregation_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span>
-                                                     <span class="n">horizontal_axis</span><span class="o">=</span><span class="s1">&#39;hour&#39;</span><span class="p">,</span>
-                                                     <span class="n">startdt</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span>
-                                                     <span class="n">enddt</span><span class="o">=</span><span class="n">enddt</span><span class="p">,</span>
-                                                     <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
-                                                     <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
-                                                     <span class="n">y_label</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
-                                                     <span class="n">legend</span><span class="o">=</span><span class="n">legend</span><span class="p">,</span>
-                                                     <span class="n">errorbands</span><span class="o">=</span><span class="n">errorbands</span><span class="p">,</span>
-                                                     <span class="n">verbose</span><span class="o">=</span><span class="n">_return_all_stats</span><span class="p">,</span>
-                                                     <span class="n">_obsdf</span><span class="o">=</span><span class="n">mergedf</span><span class="p">,</span>
-                                                     <span class="n">_show_zero_line</span><span class="o">=</span><span class="n">show_zero_horizontal</span>
-                                                     <span class="p">)</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_aggregated_cycle_statistics</span><span class="p">(</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">stations</span><span class="o">=</span><span class="n">stations</span><span class="p">,</span>
+            <span class="n">aggregation</span><span class="o">=</span><span class="p">[</span><span class="n">colorby</span><span class="p">],</span>
+            <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+            <span class="n">horizontal_axis</span><span class="o">=</span><span class="s2">&quot;hour&quot;</span><span class="p">,</span>
+            <span class="n">startdt</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span>
+            <span class="n">enddt</span><span class="o">=</span><span class="n">enddt</span><span class="p">,</span>
+            <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+            <span class="n">y_label</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
+            <span class="n">legend</span><span class="o">=</span><span class="n">legend</span><span class="p">,</span>
+            <span class="n">errorbands</span><span class="o">=</span><span class="n">errorbands</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">_return_all_stats</span><span class="p">,</span>
+            <span class="n">_obsdf</span><span class="o">=</span><span class="n">mergedf</span><span class="p">,</span>
+            <span class="n">_show_zero_line</span><span class="o">=</span><span class="n">show_zero_horizontal</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">stats</span></div>
 
 
 <div class="viewcode-block" id="Analysis.get_aggregated_cycle_statistics">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis.get_aggregated_cycle_statistics">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_aggregated_cycle_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
-                                        <span class="n">aggregation</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lcz&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">],</span>
-                                        <span class="n">aggregation_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span>
-                                        <span class="n">horizontal_axis</span><span class="o">=</span><span class="s1">&#39;hour&#39;</span><span class="p">,</span>
-                                        <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                        <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                        <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                        <span class="n">errorbands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                        <span class="n">_obsdf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_show_zero_line</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_aggregated_cycle_statistics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+        <span class="n">aggregation</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lcz&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
+        <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+        <span class="n">horizontal_axis</span><span class="o">=</span><span class="s2">&quot;hour&quot;</span><span class="p">,</span>
+        <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">errorbands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">_obsdf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">_show_zero_line</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an average cycle for an aggregated categorie.</span>
 
 <span class="sd">        A commen example is to aggregate to the LCZ&#39;s, so to get the diurnal</span>
@@ -735,41 +803,41 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">obsdf</span> <span class="o">=</span> <span class="n">_obsdf</span>
 
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Error: No observations in the analysis.df: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Error: No observations in the analysis.df: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="c1"># Filter stations</span>
         <span class="k">if</span> <span class="n">stations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stations</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">stations</span> <span class="o">=</span> <span class="p">[</span><span class="n">stations</span><span class="p">]</span>
 
             <span class="n">obsdf</span> <span class="o">=</span> <span class="n">subset_stations</span><span class="p">(</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">stations</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Error: No more observations after subsetting to </span><span class="si">{</span><span class="n">stations</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">empty</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Error: No more observations after subsetting to </span><span class="si">{</span><span class="n">stations</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="c1"># Filter datetimes</span>
-        <span class="n">obsdf</span> <span class="o">=</span> <span class="n">datetime_subsetting</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
-                                    <span class="n">starttime</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span>
-                                    <span class="n">endtime</span><span class="o">=</span><span class="n">enddt</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Error: No more observations after subsetting to </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s1"> and </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">obsdf</span> <span class="o">=</span> <span class="n">datetime_subsetting</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">starttime</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span> <span class="n">endtime</span><span class="o">=</span><span class="n">enddt</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">empty</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Error: No more observations after subsetting to </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2">&quot;</span>
 
-        <span class="n">startdt</span> <span class="o">=</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-        <span class="n">enddt</span> <span class="o">=</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">startdt</span> <span class="o">=</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">enddt</span> <span class="o">=</span> <span class="n">obsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 
         <span class="c1"># add hour to aggregation (will be the x-axis)</span>
         <span class="k">if</span> <span class="n">horizontal_axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">aggregation</span><span class="p">:</span>
             <span class="n">aggregation</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">horizontal_axis</span><span class="p">)</span>
 
         <span class="c1"># add other methods for errorbands and stats</span>
-        <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">]</span>
+        <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">]</span>
         <span class="n">methods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aggregation_method</span><span class="p">)</span>
         <span class="n">methods</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">methods</span><span class="p">))</span>
 
         <span class="c1"># compute the aggregation statistics</span>
-        <span class="n">aggdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span>
-                                  <span class="n">agg</span><span class="o">=</span><span class="n">aggregation</span><span class="p">,</span>
-                                  <span class="n">method</span><span class="o">=</span><span class="n">methods</span><span class="p">)</span>
+        <span class="n">aggdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">obsdf</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="n">aggregation</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">methods</span><span class="p">)</span>
 
         <span class="c1"># since only one observation type is in the stats, drop the column</span>
         <span class="c1"># level with the obstye, this is not relevant</span>
-        <span class="n">aggdf</span> <span class="o">=</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;columns&#39;</span><span class="p">)</span>
+        <span class="n">aggdf</span> <span class="o">=</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;columns&quot;</span><span class="p">)</span>
 
         <span class="c1"># format dataframe for plotting</span>
         <span class="c1"># Categories to string format</span>
@@ -782,10 +850,21 @@
 
         <span class="c1"># sorting cateigories (months and seisons)</span>
 
-        <span class="n">seasons</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;winter&#39;</span><span class="p">,</span> <span class="s1">&#39;spring&#39;</span><span class="p">,</span> <span class="s1">&#39;summer&#39;</span><span class="p">,</span> <span class="s1">&#39;autumn&#39;</span><span class="p">]</span>
-        <span class="n">months</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;January&#39;</span><span class="p">,</span> <span class="s1">&#39;February&#39;</span><span class="p">,</span> <span class="s1">&#39;March&#39;</span><span class="p">,</span> <span class="s1">&#39;April&#39;</span><span class="p">,</span> <span class="s1">&#39;May&#39;</span><span class="p">,</span> <span class="s1">&#39;June&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;July&#39;</span><span class="p">,</span> <span class="s1">&#39;August&#39;</span><span class="p">,</span> <span class="s1">&#39;September&#39;</span><span class="p">,</span> <span class="s1">&#39;October&#39;</span><span class="p">,</span> <span class="s1">&#39;November&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;December&#39;</span><span class="p">]</span>
+        <span class="n">seasons</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;winter&quot;</span><span class="p">,</span> <span class="s2">&quot;spring&quot;</span><span class="p">,</span> <span class="s2">&quot;summer&quot;</span><span class="p">,</span> <span class="s2">&quot;autumn&quot;</span><span class="p">]</span>
+        <span class="n">months</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;January&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;February&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;March&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;April&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;May&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;June&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;July&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;August&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;September&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;October&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;November&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;December&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
 
         <span class="n">season_order_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">months_order_dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -797,16 +876,16 @@
         <span class="c1"># Sort columns</span>
         <span class="n">aggdf</span> <span class="o">=</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
         <span class="n">sort_list</span> <span class="o">=</span> <span class="n">aggregation</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="k">if</span> <span class="s1">&#39;season&#39;</span> <span class="ow">in</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="n">aggdf</span><span class="p">[</span><span class="s1">&#39;season_num&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggdf</span><span class="p">[</span><span class="s1">&#39;season&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">season_order_dict</span><span class="p">)</span>
-            <span class="n">sort_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;season_num&#39;</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s1">&#39;season&#39;</span> <span class="k">else</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sort_list</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">&#39;month&#39;</span> <span class="ow">in</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="n">aggdf</span><span class="p">[</span><span class="s1">&#39;month_num&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggdf</span><span class="p">[</span><span class="s1">&#39;month&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">months_order_dict</span><span class="p">)</span>
-            <span class="n">sort_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;month_num&#39;</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s1">&#39;month&#39;</span> <span class="k">else</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sort_list</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;season&quot;</span> <span class="ow">in</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">aggdf</span><span class="p">[</span><span class="s2">&quot;season_num&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggdf</span><span class="p">[</span><span class="s2">&quot;season&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">season_order_dict</span><span class="p">)</span>
+            <span class="n">sort_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;season_num&quot;</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;season&quot;</span> <span class="k">else</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sort_list</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;month&quot;</span> <span class="ow">in</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">aggdf</span><span class="p">[</span><span class="s2">&quot;month_num&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggdf</span><span class="p">[</span><span class="s2">&quot;month&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">months_order_dict</span><span class="p">)</span>
+            <span class="n">sort_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;month_num&quot;</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;month&quot;</span> <span class="k">else</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sort_list</span><span class="p">]</span>
         <span class="c1"># sort dataframe</span>
         <span class="n">aggdf</span> <span class="o">=</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">sort_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="c1"># drop dummy num coluns (if they are present)</span>
-        <span class="n">aggdf</span> <span class="o">=</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;season_num&#39;</span><span class="p">,</span> <span class="s1">&#39;month_num&#39;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+        <span class="n">aggdf</span> <span class="o">=</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;season_num&quot;</span><span class="p">,</span> <span class="s2">&quot;month_num&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
         <span class="c1"># reset the index</span>
         <span class="n">aggdf</span> <span class="o">=</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">aggregation</span><span class="p">)</span>
 
@@ -815,14 +894,14 @@
         <span class="n">all_stats</span> <span class="o">=</span> <span class="n">aggdf</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">aggregation</span><span class="p">)</span>  <span class="c1"># return on verbose</span>
 
         <span class="c1"># Sort index if categorical</span>
-        <span class="k">if</span> <span class="n">all_stats</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;season&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">all_stats</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;season&quot;</span><span class="p">:</span>
             <span class="n">all_stats</span> <span class="o">=</span> <span class="n">all_stats</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">seasons</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">all_stats</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;month&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">all_stats</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;month&quot;</span><span class="p">:</span>
             <span class="n">all_stats</span> <span class="o">=</span> <span class="n">all_stats</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">months</span><span class="p">)</span>
 
         <span class="c1"># split in values and std</span>
         <span class="n">values_df</span> <span class="o">=</span> <span class="n">all_stats</span><span class="p">[</span><span class="n">aggregation_method</span><span class="p">]</span>
-        <span class="n">std_df</span> <span class="o">=</span> <span class="n">all_stats</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
+        <span class="n">std_df</span> <span class="o">=</span> <span class="n">all_stats</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span>
 
         <span class="c1"># make shure all data is numeric</span>
         <span class="n">values_df</span> <span class="o">=</span> <span class="n">values_df</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
@@ -830,29 +909,35 @@
 
         <span class="c1"># squize all column levels to one category for plotting</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aggregation</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># more than one level for the columns</span>
-            <span class="n">values_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39; ,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">values_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
-            <span class="n">std_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39; ,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">std_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+            <span class="n">values_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot; ,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">values_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+            <span class="p">]</span>
+            <span class="n">std_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot; ,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">std_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
             <span class="c1"># description of the obstype</span>
             <span class="n">desc_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_template</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-            <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
-                <span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+            <span class="k">if</span> <span class="s2">&quot;description&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
+                <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span>
 
-            <span class="n">description</span> <span class="o">=</span> <span class="n">desc_dict</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+            <span class="n">description</span> <span class="o">=</span> <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
 
             <span class="c1"># generate title</span>
             <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">startdtstr</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">startdt</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;print_fmt_datetime&quot;</span><span class="p">])</span>
-                <span class="n">enddtstr</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">enddt</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;print_fmt_datetime&quot;</span><span class="p">])</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">aggregation_method</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">horizontal_axis</span><span class="w"> </span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> cycle for period </span><span class="si">{</span><span class="n">startdtstr</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">enddtstr</span><span class="si">}</span><span class="s1"> grouped by </span><span class="si">{</span><span class="n">aggregation</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="n">startdtstr</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+                    <span class="n">startdt</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;print_fmt_datetime&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">enddtstr</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+                    <span class="n">enddt</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;print_fmt_datetime&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">aggregation_method</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">horizontal_axis</span><span class="w"> </span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> cycle for period </span><span class="si">{</span><span class="n">startdtstr</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">enddtstr</span><span class="si">}</span><span class="s2"> grouped by </span><span class="si">{</span><span class="n">aggregation</span><span class="si">}</span><span class="s2">&quot;</span>
 
             <span class="c1"># ylabel</span>
             <span class="k">if</span> <span class="n">y_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;units&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="p">:</span>
                     <span class="n">y_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> (units unknown)&#39;</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">y_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">)&#39;</span>
@@ -866,24 +951,26 @@
                 <span class="n">stddf</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="c1"># Make plot</span>
-            <span class="n">ax</span> <span class="o">=</span> <span class="n">cycle_plot</span><span class="p">(</span><span class="n">cycledf</span><span class="o">=</span><span class="n">values_df</span><span class="p">,</span>
-                            <span class="n">errorbandsdf</span><span class="o">=</span><span class="n">stddf</span><span class="p">,</span>
-                            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
-                            <span class="n">plot_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s1">&#39;plot_settings&#39;</span><span class="p">][</span><span class="s1">&#39;diurnal&#39;</span><span class="p">],</span>
-                            <span class="n">aggregation</span><span class="o">=</span><span class="n">aggregation</span><span class="p">,</span>
-                            <span class="n">data_template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_template</span><span class="p">,</span>
-                            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
-                            <span class="n">y_label</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
-                            <span class="n">legend</span><span class="o">=</span><span class="n">legend</span><span class="p">,</span>
-                            <span class="n">show_zero_horizontal</span><span class="o">=</span><span class="n">_show_zero_line</span><span class="p">)</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">cycle_plot</span><span class="p">(</span>
+                <span class="n">cycledf</span><span class="o">=</span><span class="n">values_df</span><span class="p">,</span>
+                <span class="n">errorbandsdf</span><span class="o">=</span><span class="n">stddf</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                <span class="n">plot_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;plot_settings&quot;</span><span class="p">][</span><span class="s2">&quot;diurnal&quot;</span><span class="p">],</span>
+                <span class="n">aggregation</span><span class="o">=</span><span class="n">aggregation</span><span class="p">,</span>
+                <span class="n">data_template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_template</span><span class="p">,</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">y_label</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
+                <span class="n">legend</span><span class="o">=</span><span class="n">legend</span><span class="p">,</span>
+                <span class="n">show_zero_horizontal</span><span class="o">=</span><span class="n">_show_zero_line</span><span class="p">,</span>
+            <span class="p">)</span>
 
             <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">horizontal_axis</span> <span class="o">==</span> <span class="s1">&#39;hour&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">horizontal_axis</span> <span class="o">==</span> <span class="s2">&quot;hour&quot;</span><span class="p">:</span>
                 <span class="c1"># extract timezone</span>
-                <span class="n">tzstring</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
+                <span class="n">tzstring</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
 
-                <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{x:.0f}</span><span class="s1"> h&#39;</span><span class="p">)</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Hours (timezone: </span><span class="si">{</span><span class="n">tzstring</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{x:.0f}</span><span class="s2"> h&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hours (timezone: </span><span class="si">{</span><span class="n">tzstring</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
@@ -899,7 +986,7 @@
 
 <div class="viewcode-block" id="Analysis.get_lc_correlation_matrices">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis.get_lc_correlation_matrices">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_lc_correlation_matrices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">],</span> <span class="n">groupby_labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="nf">get_lc_correlation_matrices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;temp&quot;</span><span class="p">],</span> <span class="n">groupby_labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;hour&quot;</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute pearson correlation coeficients.</span>
 
 <span class="sd">        A method to compute the Pearson correlation between an obervation type</span>
@@ -944,36 +1031,44 @@
 
         <span class="k">for</span> <span class="n">group_lab</span> <span class="ow">in</span> <span class="n">groupby_labels</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">group_lab</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[[</span><span class="n">group_lab</span><span class="p">]],</span>
-                              <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
-                              <span class="n">left_on</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
-                              <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[[</span><span class="n">group_lab</span><span class="p">]],</span>
+                    <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                    <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span>
+                    <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">group_lab</span> <span class="ow">in</span> <span class="n">groupby_labels</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">group_lab</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">group_lab</span><span class="si">}</span><span class="s1">&quot; is found in the observations of possible groupby_labels.&#39;</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">group_lab</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">group_lab</span><span class="si">}</span><span class="s1">&quot; is found in the observations of possible groupby_labels.&#39;</span>
 
         <span class="c1"># subset columns</span>
         <span class="n">relev_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">groupby_labels</span><span class="p">]</span>  <span class="c1"># to avoid deep copy import</span>
-        <span class="n">relev_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="n">relev_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
         <span class="n">relev_columns</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">obstype</span><span class="p">)</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">relev_columns</span><span class="p">]</span>
 
         <span class="c1"># find landcover columnnames in the metadf</span>
-        <span class="n">lc_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="p">((</span><span class="s1">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">col</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">)))]</span>
+        <span class="n">lc_columns</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="p">((</span><span class="s2">&quot;_&quot;</span> <span class="ow">in</span> <span class="n">col</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">)))</span>
+        <span class="p">]</span>
 
         <span class="c1"># get landcover data</span>
         <span class="n">lc_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="n">lc_columns</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">lc_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;No landcover columns found in the metadf. Landcover correlations cannot be computed.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;No landcover columns found in the metadf. Landcover correlations cannot be computed.&quot;</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># merge together</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">lc_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">lc_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># remove name column if it is not explicit in the groupby labels</span>
-        <span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">groupby_labels</span><span class="p">:</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s2">&quot;name&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">groupby_labels</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
 
         <span class="c1"># create return</span>
         <span class="n">cor_dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -989,24 +1084,34 @@
         <span class="k">for</span> <span class="n">group_lab</span><span class="p">,</span> <span class="n">groupdf</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
             <span class="c1"># No correlations can be computed when no variance is found</span>
             <span class="k">if</span> <span class="n">groupdf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No variance found in correlationd group </span><span class="si">{</span><span class="n">group_lab</span><span class="si">}</span><span class="s1">. Correlation thus not be computed for this group: </span><span class="si">{</span><span class="n">groupdf</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No variance found in correlationd group </span><span class="si">{</span><span class="n">group_lab</span><span class="si">}</span><span class="s2">. Correlation thus not be computed for this group: </span><span class="si">{</span><span class="n">groupdf</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
                 <span class="k">continue</span>
             <span class="c1"># drop groupby labels</span>
-            <span class="n">groupdf</span> <span class="o">=</span> <span class="n">groupdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">groupby_labels</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+            <span class="n">groupdf</span> <span class="o">=</span> <span class="n">groupdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">groupby_labels</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
 
-            <span class="n">rho</span> <span class="o">=</span> <span class="n">groupdf</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;pearson&#39;</span><span class="p">)</span>
-            <span class="n">pval</span> <span class="o">=</span> <span class="n">groupdf</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">pearsonr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="o">*</span><span class="n">rho</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="n">groupdf</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">)</span>
+            <span class="n">pval</span> <span class="o">=</span> <span class="n">groupdf</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">pearsonr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">rho</span><span class="o">.</span><span class="n">shape</span>
+            <span class="p">)</span>
             <span class="c1"># represent p values by stars</span>
-            <span class="n">p_stars</span> <span class="o">=</span> <span class="n">pval</span><span class="o">.</span><span class="n">applymap</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;*&#39;</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">.05</span><span class="p">,</span> <span class="mf">.01</span><span class="p">,</span> <span class="mf">.001</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">t</span><span class="p">]))</span>
+            <span class="n">p_stars</span> <span class="o">=</span> <span class="n">pval</span><span class="o">.</span><span class="n">applymap</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;*&quot;</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">t</span><span class="p">])</span>
+            <span class="p">)</span>
 
             <span class="c1"># combined human readable df</span>
             <span class="n">comb_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">rho</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">rho</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">comb_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">rho</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.02f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">p_stars</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+                <span class="n">comb_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">rho</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.02f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">p_stars</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+                <span class="p">)</span>
 
-            <span class="n">cor_dict</span><span class="p">[</span><span class="n">group_lab</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;cor matrix&#39;</span><span class="p">:</span> <span class="n">rho</span><span class="p">,</span>
-                                   <span class="s1">&#39;significance matrix&#39;</span><span class="p">:</span> <span class="n">pval</span><span class="p">,</span>
-                                   <span class="s1">&#39;combined matrix&#39;</span><span class="p">:</span> <span class="n">comb_df</span><span class="p">}</span>
+            <span class="n">cor_dict</span><span class="p">[</span><span class="n">group_lab</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;cor matrix&quot;</span><span class="p">:</span> <span class="n">rho</span><span class="p">,</span>
+                <span class="s2">&quot;significance matrix&quot;</span><span class="p">:</span> <span class="n">pval</span><span class="p">,</span>
+                <span class="s2">&quot;combined matrix&quot;</span><span class="p">:</span> <span class="n">comb_df</span><span class="p">,</span>
+            <span class="p">}</span>
 
         <span class="c1"># Update attribute</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span> <span class="o">=</span> <span class="n">cor_dict</span>
@@ -1018,7 +1123,9 @@
 
 <div class="viewcode-block" id="Analysis.plot_correlation_heatmap">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.analysis.Analysis.html#metobs_toolkit.analysis.Analysis.plot_correlation_heatmap">[docs]</a>
-    <span class="k">def</span> <span class="nf">plot_correlation_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groupby_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_return_ax</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_correlation_heatmap</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">groupby_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_return_ax</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make a heatmap plot af a correaltion matrix.</span>
 
 <span class="sd">        To specify which correlation matrix to plot, specify the group value</span>
@@ -1047,26 +1154,35 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check if there are correlation matrices</span>
-        <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="p">),</span> <span class="s1">&#39;No correlation matrices found, use the metod get_lc_correlation_matrices first.&#39;</span>
+        <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span>
+        <span class="p">),</span> <span class="s2">&quot;No correlation matrices found, use the metod get_lc_correlation_matrices first.&quot;</span>
 
         <span class="k">if</span> <span class="n">groupby_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">groupby_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;No groupby_value is given, so the first groupby value (=</span><span class="si">{groupby_value}</span><span class="s1">) will be used!&#39;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The correlations are computed over </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span><span class="si">}</span><span class="s1"> with the following unique values: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;No groupby_value is given, so the first groupby value (=</span><span class="si">{groupby_value}</span><span class="s2">) will be used!&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The correlations are computed over </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span><span class="si">}</span><span class="s2"> with the following unique values: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># check if groupby value exists</span>
-        <span class="k">assert</span> <span class="n">groupby_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">groupby_value</span><span class="si">}</span><span class="s1"> not found as a groupby value. These are all the possible values: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">groupby_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">groupby_value</span><span class="si">}</span><span class="s2"> not found as a groupby value. These are all the possible values: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Correlation heatmap for group: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">groupby_value</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Correlation heatmap for group: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">groupby_value</span><span class="si">}</span><span class="s2">&quot;</span>
 
-        <span class="n">ax</span> <span class="o">=</span> <span class="n">heatmap_plot</span><span class="p">(</span><span class="n">cor_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="p">[</span><span class="n">groupby_value</span><span class="p">],</span>
-                          <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
-                          <span class="n">heatmap_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s1">&#39;plot_settings&#39;</span><span class="p">][</span><span class="s1">&#39;correlation_heatmap&#39;</span><span class="p">])</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">heatmap_plot</span><span class="p">(</span>
+            <span class="n">cor_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="p">[</span><span class="n">groupby_value</span><span class="p">],</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+            <span class="n">heatmap_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;plot_settings&quot;</span><span class="p">][</span><span class="s2">&quot;correlation_heatmap&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">_return_ax</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ax</span></div>
-
 
 
 <div class="viewcode-block" id="Analysis.plot_correlation_variation">
@@ -1101,22 +1217,30 @@
 <span class="sd">        method to reduce the group values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check if there are correlation matrices</span>
-        <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="p">),</span> <span class="s1">&#39;No correlation matrices found, use the metod get_lc_correlation_matrices first.&#39;</span>
+        <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span>
+        <span class="p">),</span> <span class="s2">&quot;No correlation matrices found, use the metod get_lc_correlation_matrices first.&quot;</span>
 
         <span class="c1"># check if correlation evolution information is available</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Only one correlation group is found: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;The variance plot can not be made.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Only one correlation group is found: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The variance plot can not be made.&quot;</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Correlation scatter for group: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Correlation scatter for group: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span><span class="si">}</span><span class="s2">&quot;</span>
 
-        <span class="n">ax</span> <span class="o">=</span> <span class="n">correlation_scatter</span><span class="p">(</span><span class="n">full_cor_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="p">,</span>
-                                 <span class="n">groupby_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span><span class="p">,</span>
-                                 <span class="n">obstypes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_cor_obstype</span><span class="p">,</span>
-                                 <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
-                                 <span class="n">cor_scatter_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s1">&#39;plot_settings&#39;</span><span class="p">][</span><span class="s1">&#39;correlation_scatter&#39;</span><span class="p">])</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">correlation_scatter</span><span class="p">(</span>
+            <span class="n">full_cor_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lc_cor_dict</span><span class="p">,</span>
+            <span class="n">groupby_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_groupby_labels</span><span class="p">,</span>
+            <span class="n">obstypes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lc_cor_obstype</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+            <span class="n">cor_scatter_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;plot_settings&quot;</span><span class="p">][</span>
+                <span class="s2">&quot;correlation_scatter&quot;</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">ax</span></div>
 </div>
 
@@ -1127,31 +1251,33 @@
 
 <span class="sd">    datetime must be a column.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;minute&#39;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
-        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;minute&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">minute</span>
-    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;hour&#39;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
-        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">hour</span>
-    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;month&#39;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
-        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;month&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">month_name</span><span class="p">()</span>
-    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;year&#39;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
-        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span>
-    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;day_of_year&#39;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
-        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;day_of_year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span>
-    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;week_of_year&#39;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
-        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;week_of_year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">isocalendar</span><span class="p">()[</span><span class="s1">&#39;week&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;season&#39;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
-        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;season&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_seasons</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;minute&quot;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;minute&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">minute</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;hour&quot;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;hour&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">hour</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;month&quot;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;month&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">month_name</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;year&quot;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;day_of_year&quot;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;day_of_year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;week_of_year&quot;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;week_of_year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">isocalendar</span><span class="p">()[</span><span class="s2">&quot;week&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;season&quot;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">get_all</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;season&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_seasons</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">df</span>
 
 
 <div class="viewcode-block" id="get_seasons">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.analysis.get_seasons.html#metobs_toolkit.analysis.get_seasons">[docs]</a>
-<span class="k">def</span> <span class="nf">get_seasons</span><span class="p">(</span><span class="n">datetimeseries</span><span class="p">,</span>
-                <span class="n">start_day_spring</span><span class="o">=</span><span class="s1">&#39;01/03&#39;</span><span class="p">,</span>
-                <span class="n">start_day_summer</span><span class="o">=</span><span class="s1">&#39;01/06&#39;</span><span class="p">,</span>
-                <span class="n">start_day_autumn</span><span class="o">=</span><span class="s1">&#39;01/09&#39;</span><span class="p">,</span>
-                <span class="n">start_day_winter</span><span class="o">=</span><span class="s1">&#39;01/12&#39;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_seasons</span><span class="p">(</span>
+    <span class="n">datetimeseries</span><span class="p">,</span>
+    <span class="n">start_day_spring</span><span class="o">=</span><span class="s2">&quot;01/03&quot;</span><span class="p">,</span>
+    <span class="n">start_day_summer</span><span class="o">=</span><span class="s2">&quot;01/06&quot;</span><span class="p">,</span>
+    <span class="n">start_day_autumn</span><span class="o">=</span><span class="s2">&quot;01/09&quot;</span><span class="p">,</span>
+    <span class="n">start_day_winter</span><span class="o">=</span><span class="s2">&quot;01/12&quot;</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a datetimeseries to a season label (i.g. categorical).</span>
 
 <span class="sd">    Parameters</span>
@@ -1176,27 +1302,30 @@
 <span class="sd">    output : dataframe</span>
 <span class="sd">        A obtained dataframe that has where a label for the seasons has been added.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">spring_startday</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_day_spring</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m&#39;</span><span class="p">)</span>
-    <span class="n">summer_startday</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_day_summer</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m&#39;</span><span class="p">)</span>
-    <span class="n">autumn_startday</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_day_autumn</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m&#39;</span><span class="p">)</span>
-    <span class="n">winter_startday</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_day_winter</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m&#39;</span><span class="p">)</span>
+    <span class="n">spring_startday</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_day_spring</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m&quot;</span><span class="p">)</span>
+    <span class="n">summer_startday</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_day_summer</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m&quot;</span><span class="p">)</span>
+    <span class="n">autumn_startday</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_day_autumn</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m&quot;</span><span class="p">)</span>
+    <span class="n">winter_startday</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_day_winter</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m&quot;</span><span class="p">)</span>
 
-    <span class="n">seasons</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;spring&#39;</span><span class="p">,</span> <span class="s1">&#39;summer&#39;</span><span class="p">,</span> <span class="s1">&#39;autumn&#39;</span><span class="p">,</span> <span class="s1">&#39;winter&#39;</span><span class="p">],</span>
-                        <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">spring_startday</span><span class="p">,</span> <span class="n">summer_startday</span><span class="p">,</span> <span class="n">autumn_startday</span><span class="p">,</span> <span class="n">winter_startday</span><span class="p">],</span>
-                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;startdt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
-    <span class="n">seasons</span><span class="p">[</span><span class="s1">&#39;day_of_year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seasons</span><span class="p">[</span><span class="s1">&#39;startdt&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">seasons</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spring&quot;</span><span class="p">,</span> <span class="s2">&quot;summer&quot;</span><span class="p">,</span> <span class="s2">&quot;autumn&quot;</span><span class="p">,</span> <span class="s2">&quot;winter&quot;</span><span class="p">],</span>
+        <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">spring_startday</span><span class="p">,</span> <span class="n">summer_startday</span><span class="p">,</span> <span class="n">autumn_startday</span><span class="p">,</span> <span class="n">winter_startday</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;startdt&quot;</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+    <span class="n">seasons</span><span class="p">[</span><span class="s2">&quot;day_of_year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seasons</span><span class="p">[</span><span class="s2">&quot;startdt&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span> <span class="o">-</span> <span class="mi">1</span>
 
     <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">bins</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">seasons</span><span class="p">[</span><span class="s1">&#39;day_of_year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+    <span class="n">bins</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">seasons</span><span class="p">[</span><span class="s2">&quot;day_of_year&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
     <span class="n">bins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">366</span><span class="p">)</span>
 
-    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;winter&#39;</span><span class="p">,</span> <span class="s1">&#39;spring&#39;</span><span class="p">,</span> <span class="s1">&#39;summer&#39;</span><span class="p">,</span> <span class="s1">&#39;autumn&#39;</span><span class="p">,</span> <span class="s1">&#39;winter&#39;</span><span class="p">]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;winter&quot;</span><span class="p">,</span> <span class="s2">&quot;spring&quot;</span><span class="p">,</span> <span class="s2">&quot;summer&quot;</span><span class="p">,</span> <span class="s2">&quot;autumn&quot;</span><span class="p">,</span> <span class="s2">&quot;winter&quot;</span><span class="p">]</span>
 
-    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">datetimeseries</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span><span class="p">,</span>
-                  <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span>
-                  <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
-                  <span class="n">ordered</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                  <span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">datetimeseries</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day_of_year</span><span class="p">,</span>
+        <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span>
+        <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
+        <span class="n">ordered</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 
@@ -1247,10 +1376,10 @@
     <span class="n">metadf_init_cols</span> <span class="o">=</span> <span class="n">metadf</span><span class="o">.</span><span class="n">columns</span>
 
     <span class="c1"># create time derivative columns</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">_make_time_derivatives</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">get_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">_make_time_derivatives</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">get_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># merge together on name</span>
-    <span class="n">mergedf</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">mergedf</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
 
     <span class="c1"># apply filter</span>
     <span class="n">filtered</span> <span class="o">=</span> <span class="n">mergedf</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="n">quarry_str</span><span class="p">)</span>
@@ -1280,7 +1409,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -1291,7 +1420,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

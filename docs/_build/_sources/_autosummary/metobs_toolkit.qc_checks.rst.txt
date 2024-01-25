@@ -3,18 +3,18 @@ metobs\_toolkit.qc\_checks
 
 .. automodule:: metobs_toolkit.qc_checks
 
-   
-   
-   
 
-   
-   
+
+
+
+
+
    .. rubric:: Functions
 
    .. autosummary::
       :toctree:
       :nosignatures:
-   
+
       create_titanlib_points_dict
       duplicate_timestamp_check
       get_outliers_in_daterange
@@ -28,17 +28,3 @@ metobs\_toolkit.qc\_checks
       titan_sct_resistant_check
       toolkit_buddy_check
       window_variation_check
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
-

@@ -13,9 +13,22 @@ from metobs_toolkit import dataset
 class Station(dataset.Dataset):
     """A class holding all information of one station. Inherit all from Dataset."""
 
-    def __init__(self, name, df, outliersdf, gaps, missing_obs, gapfilldf,
-                 missing_fill_df, metadf, obstypes, data_template, settings,
-                 _qc_checked_obstypes, _applied_qc):
+    def __init__(
+        self,
+        name,
+        df,
+        outliersdf,
+        gaps,
+        missing_obs,
+        gapfilldf,
+        missing_fill_df,
+        metadf,
+        obstypes,
+        data_template,
+        settings,
+        _qc_checked_obstypes,
+        _applied_qc,
+    ):
         """Initiate the Station object."""
         self.name = name
         self.df = df
@@ -36,8 +49,8 @@ class Station(dataset.Dataset):
 
     def setup_metadata_dtyes(self):
         """Make sure the dtypes are not lost when subsetting."""
-        numeric_columns = ['lat', 'lon']
-        timedelta_columns = ['assumed_import_frequency', 'dataset_resolution']
+        numeric_columns = ["lat", "lon"]
+        timedelta_columns = ["assumed_import_frequency", "dataset_resolution"]
 
         for col in numeric_columns:
             if col in self.metadf.columns:

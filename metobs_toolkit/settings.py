@@ -52,7 +52,6 @@ class Settings:
     #     Update settings from files in initialisation
     # =============================================================================
 
-
     def _update_time_res_settings(self):
         """
         Update settings on time resolutions of self using the default settings templates.
@@ -76,9 +75,15 @@ class Settings:
         self.time_settings["timezone"] = res_settings["timezone"]
 
         # Freq estimation
-        self.time_settings['freq_estimation_method'] = res_settings["freq_estimation_method"]
-        self.time_settings['freq_estimation_simplify'] = bool(res_settings["freq_estimation_simplify"])
-        self.time_settings['freq_estimation_simplify_error'] = res_settings["freq_estimation_simplify_error"]
+        self.time_settings["freq_estimation_method"] = res_settings[
+            "freq_estimation_method"
+        ]
+        self.time_settings["freq_estimation_simplify"] = bool(
+            res_settings["freq_estimation_simplify"]
+        )
+        self.time_settings["freq_estimation_simplify_error"] = res_settings[
+            "freq_estimation_simplify_error"
+        ]
 
     def _update_app_settings(self):
         """
@@ -128,14 +133,17 @@ class Settings:
         None.
         """
         logger.debug("Updating QC settings.")
-        from .settings_files.qc_settings import (check_settings, checks_info,
-                                                 titan_check_settings,
-                                                 titan_specific_labeler)
+        from .settings_files.qc_settings import (
+            check_settings,
+            checks_info,
+            titan_check_settings,
+            titan_specific_labeler,
+        )
 
         self.qc["qc_check_settings"] = check_settings
         self.qc["qc_checks_info"] = checks_info
-        self.qc['titan_check_settings'] = titan_check_settings
-        self.qc['titan_specific_labeler'] = titan_specific_labeler
+        self.qc["titan_check_settings"] = titan_check_settings
+        self.qc["titan_specific_labeler"] = titan_specific_labeler
 
     def _update_gap_settings(self):
         """
@@ -152,7 +160,7 @@ class Settings:
             gaps_fill_settings,
             gaps_fill_info,
             missing_obs_fill_settings,
-            missing_obs_fill_info
+            missing_obs_fill_info,
         )
 
         self.gap["gaps_settings"] = gaps_settings
@@ -160,8 +168,8 @@ class Settings:
         self.gap["gaps_fill_settings"] = gaps_fill_settings
         self.gap["gaps_fill_info"] = gaps_fill_info
 
-        self.missing_obs['missing_obs_fill_settings'] = missing_obs_fill_settings
-        self.missing_obs['missing_obs_fill_info'] = missing_obs_fill_info
+        self.missing_obs["missing_obs_fill_settings"] = missing_obs_fill_settings
+        self.missing_obs["missing_obs_fill_info"] = missing_obs_fill_info
 
     def _update_templates(self):
         """
@@ -216,8 +224,13 @@ class Settings:
             )
             self.time_settings["timezone"] = timezonestr
 
-    def update_IO(self, output_folder=None, input_data_file=None,
-                  input_metadata_file=None, template_file=None):
+    def update_IO(
+        self,
+        output_folder=None,
+        input_data_file=None,
+        input_metadata_file=None,
+        template_file=None,
+    ):
         """
         Update some settings that are relevent before data is imported.
 
