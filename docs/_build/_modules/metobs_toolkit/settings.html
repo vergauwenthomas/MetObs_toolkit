@@ -117,7 +117,6 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initialising settings&quot;</span><span class="p">)</span>
 
         <span class="c1"># define thematics in settings. Corresponds to settings files.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time_settings</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qc</span> <span class="o">=</span> <span class="p">{}</span>
@@ -132,7 +131,6 @@
         <span class="p">}</span>
 
         <span class="c1"># Update (instance and class variables) what can be updated by setingsfiles</span>
-        <span class="c1"># self._update_db_settings()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_time_res_settings</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_app_settings</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_qc_settings</span><span class="p">()</span>
@@ -424,7 +422,6 @@
 
         <span class="n">attr_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;IO&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;db&quot;</span><span class="p">,</span>
             <span class="s2">&quot;time_settings&quot;</span><span class="p">,</span>
             <span class="s2">&quot;app&quot;</span><span class="p">,</span>
             <span class="s2">&quot;qc&quot;</span><span class="p">,</span>

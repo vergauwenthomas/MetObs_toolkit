@@ -146,12 +146,14 @@ def make_folium_html_plot(gdf, variable_column, var_display_name, var_unit,
 
     # create a map
     m = folium.Map(location=_get_init_mapcenter(gdf),
-                   tiles="cartodbpositron", zoom_start=10)
+                   tiles="cartodbpositron", zoom_start=10,
+                   attr="<a href=https://github.com/vergauwenthomas/MetObs_toolkit </a>")
 
     # add extra tiles
     folium.TileLayer("OpenStreetMap", overlay=False, name='OSM').add_to(m)
-    folium.TileLayer("Stamen Terrain", overlay=False, name='Terrain', show=False).add_to(m)
-    folium.TileLayer("stamentoner", overlay=False, name='Toner', show=False).add_to(m)
+    #RIP free Stamen tiles
+    # folium.TileLayer("Stamen Terrain", overlay=False, name='Terrain', show=False).add_to(m)
+    # folium.TileLayer("stamentoner", overlay=False, name='Toner', show=False).add_to(m)
 
     # Coloring
     if vmin is None:
@@ -509,21 +511,11 @@ def timeseries_plot(mergedf, title, ylabel, colorby, show_legend,
     colorby_name_colorscheme : dict
         A colormapper for the station names. If None, a new colormapper will
         be created. The default is None.
-<<<<<<< HEAD
 
     Returns
     -------
     ax : matplotlib.pyplot.axes
         The plotted axes.
-
-=======
-
-    Returns
-    -------
-    ax : matplotlib.pyplot.axes
-        The plotted axes.
-
->>>>>>> master
     colormapper : dict
         The use colormap.
 
@@ -998,15 +990,9 @@ def heatmap_plot(cor_dict, title, heatmap_settings):
 def correlation_scatter(full_cor_dict, groupby_labels, obstypes, title,
                         cor_scatter_settings):
     """Plot the correlation variation as a scatterplot.
-<<<<<<< HEAD
 
     The statistical significance is indicate by the scattertype.
 
-=======
-
-    The statistical significance is indicate by the scattertype.
-
->>>>>>> master
     Parameters
     ----------
     full_cor_dict : dict

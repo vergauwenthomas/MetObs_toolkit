@@ -589,7 +589,7 @@
 
 <div class="viewcode-block" id="Modeldata.get_ERA5_data">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.get_ERA5_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_ERA5_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">startdt_utc</span><span class="p">,</span> <span class="n">enddt_utc</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_ERA5_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">startdt_utc</span><span class="p">,</span> <span class="n">enddt_utc</span><span class="p">,</span> <span class="n">obstypes</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract timeseries of the ERA5_hourly dataset.</span>
 
 <span class="sd">        The units are converted to the toolkit standard units.</span>
@@ -606,7 +606,7 @@
 <span class="sd">            Start datetime of the timeseries in UTC.</span>
 <span class="sd">        enddt_utc : datetime.datetime</span>
 <span class="sd">            Last datetime of the timeseries in UTC.</span>
-<span class="sd">        obstype : str or list of str, optional</span>
+<span class="sd">        obstypes : str or list of str, optional</span>
 <span class="sd">            Toolkit observation type to extract data from. There should be a</span>
 <span class="sd">            bandname mapped to this obstype for the gee map. Multiple</span>
 <span class="sd">            observation types can be extracted if given as a list. The default is</span>
@@ -626,10 +626,8 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Check obstypes</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obstype</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">obstype</span> <span class="o">=</span> <span class="p">[</span><span class="n">obstype</span><span class="p">]</span>  <span class="c1"># convert to list</span>
-
-        <span class="n">obstypes</span> <span class="o">=</span> <span class="n">obstype</span>  <span class="c1"># better naming</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obstypes</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">obstypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">obstypes</span><span class="p">]</span>  <span class="c1"># convert to list</span>
 
         <span class="c1"># test if obstype is known</span>
         <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">obstypes</span><span class="p">:</span>
@@ -644,7 +642,7 @@
                                   <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
                                   <span class="n">startdt_utc</span><span class="o">=</span><span class="n">startdt_utc</span><span class="p">,</span>
                                   <span class="n">enddt_utc</span><span class="o">=</span><span class="n">enddt_utc</span><span class="p">,</span>
-                                  <span class="n">obstype</span><span class="o">=</span><span class="n">obstypes</span><span class="p">)</span></div>
+                                  <span class="n">obstypes</span><span class="o">=</span><span class="n">obstypes</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Modeldata.save_modeldata">

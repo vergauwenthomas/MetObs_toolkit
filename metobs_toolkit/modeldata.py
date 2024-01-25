@@ -476,7 +476,7 @@ class Modeldata:
         else:
             self._data_stored_at_drive = True
 
-    def get_ERA5_data(self, metadf, startdt_utc, enddt_utc, obstype='temp'):
+    def get_ERA5_data(self, metadf, startdt_utc, enddt_utc, obstypes='temp'):
         """Extract timeseries of the ERA5_hourly dataset.
 
         The units are converted to the toolkit standard units.
@@ -493,7 +493,7 @@ class Modeldata:
             Start datetime of the timeseries in UTC.
         enddt_utc : datetime.datetime
             Last datetime of the timeseries in UTC.
-        obstype : str or list of str, optional
+        obstypes : str or list of str, optional
             Toolkit observation type to extract data from. There should be a
             bandname mapped to this obstype for the gee map. Multiple
             observation types can be extracted if given as a list. The default is
@@ -513,10 +513,8 @@ class Modeldata:
 
         """
         # Check obstypes
-        if isinstance(obstype, str):
-            obstype = [obstype]  # convert to list
-
-        obstypes = obstype  # better naming
+        if isinstance(obstypes, str):
+            obstypes = [obstypes]  # convert to list
 
         # test if obstype is known
         for obstype in obstypes:
@@ -531,7 +529,7 @@ class Modeldata:
                                   metadf=metadf,
                                   startdt_utc=startdt_utc,
                                   enddt_utc=enddt_utc,
-                                  obstype=obstypes)
+                                  obstypes=obstypes)
 
     def save_modeldata(self, outputfolder=None, filename='saved_modeldata.pkl', ):
         """Save a Modeldata instance to a (pickle) file.

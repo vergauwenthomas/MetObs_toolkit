@@ -260,7 +260,7 @@ equivalent observationtypes are added to the known ModelObstypes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.get_ERA5_data">
-<span class="sig-name descname"><span class="pre">get_ERA5_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.get_ERA5_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.get_ERA5_data" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ERA5_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.get_ERA5_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.get_ERA5_data" title="Link to this definition"></a></dt>
 <dd><p>Extract timeseries of the ERA5_hourly dataset.</p>
 <p>The units are converted to the toolkit standard units.</p>
 <dl class="simple">
@@ -274,7 +274,7 @@ equivalent observationtypes are added to the known ModelObstypes.</p>
 Timeseries are extracted for these locations.</p></li>
 <li><p><strong>startdt_utc</strong> (<em>datetime.datetime</em>) – Start datetime of the timeseries in UTC.</p></li>
 <li><p><strong>enddt_utc</strong> (<em>datetime.datetime</em>) – Last datetime of the timeseries in UTC.</p></li>
-<li><p><strong>obstype</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Toolkit observation type to extract data from. There should be a
+<li><p><strong>obstypes</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Toolkit observation type to extract data from. There should be a
 bandname mapped to this obstype for the gee map. Multiple
 observation types can be extracted if given as a list. The default is
 ‘temp’.</p></li>

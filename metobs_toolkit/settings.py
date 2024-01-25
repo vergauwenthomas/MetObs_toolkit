@@ -27,7 +27,6 @@ class Settings:
         logger.info("Initialising settings")
 
         # define thematics in settings. Corresponds to settings files.
-        self.db = {}
         self.time_settings = {}
         self.app = {}
         self.qc = {}
@@ -42,7 +41,6 @@ class Settings:
         }
 
         # Update (instance and class variables) what can be updated by setingsfiles
-        # self._update_db_settings()
         self._update_time_res_settings()
         self._update_app_settings()
         self._update_qc_settings()
@@ -323,7 +321,6 @@ class Settings:
 
         attr_list = [
             "IO",
-            "db",
             "time_settings",
             "app",
             "qc",

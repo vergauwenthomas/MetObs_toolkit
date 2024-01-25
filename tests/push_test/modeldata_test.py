@@ -77,7 +77,7 @@ assert model_data.df.columns.to_list() ==  ['wind_amplitude', 'wind_direction'],
 #%% Testing multiple field extraction
 model_data.get_gee_dataset_data(mapname = model_data.modelname,
                                 metadf = dataset.metadf,
-                                   obstype = ['temp', 'wind'],
+                                   obstypes = ['temp', 'wind'],
                                    startdt_utc = tstart,
                                    enddt_utc = tend)
 

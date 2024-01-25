@@ -1072,7 +1072,7 @@ class Dataset:
             Modl.get_ERA5_data(metadf=metadf,
                                startdt_utc=startdt_utc,
                                enddt_utc=enddt_utc,
-                               obstype=obstype,
+                               obstypes=obstype,
                                )
 
         else:
@@ -1080,7 +1080,7 @@ class Dataset:
                                       metadf=metadf,
                                       startdt_utc=startdt_utc,
                                       enddt_utc=enddt_utc,
-                                      obstype=obstype,
+                                      obstypes=obstype,
                                       )
 
         print(f'(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})')
