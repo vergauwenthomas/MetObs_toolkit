@@ -2,7 +2,7 @@ on:
   push:
     branches-ignore:
       #cannot be ran on protected branches
-      - 'main' 
+      - 'main'
       - 'dev'
       - 'gh-pages'
 
