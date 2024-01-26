@@ -26,10 +26,7 @@ from metobs_toolkit.data_import import (
 
 from metobs_toolkit.printing import print_dataset_info
 from metobs_toolkit.landcover_functions import (
-    connect_to_gee,
-    lcz_extractor,
-    height_extractor,
-    lc_fractions_extractor,
+    # connect_to_gee,
     _validate_metadf,
 )
 
@@ -95,6 +92,7 @@ from metobs_toolkit.obstypes import Obstype as Obstype_class
 
 from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
+from metobs_toolkit.gee_extractor import GeeExtractor
 
 
 logger = logging.getLogger(__name__)
@@ -3363,6 +3361,7 @@ station with the default name: {self.settings.app["default_name"]}.'
         wudapt global LCZ map on the Google engine for all stations.
 
         A 'LCZ' column will be added to the metadf, and series is returned.
+        If this column already exists, it will be overwritten.
 
         Returns
         -------
@@ -3370,23 +3369,16 @@ station with the default name: {self.settings.app["default_name"]}.'
             A series with the stationnames as index and the LCZ as values.
 
         """
-        # connect to gee
-        connect_to_gee()
-
-        # Extract LCZ for all stations
-        lcz_series = lcz_extractor(
-            metadf=self.metadf,
-            mapinfo=self.settings.gee["gee_dataset_info"]["global_lcz_map"],
-        )
-
         # drop column if it was already present
         if "lcz" in self.metadf:
             self.metadf = self.metadf.drop(columns=["lcz"])
 
-        # update metadata
-        self.metadf = self.metadf.merge(
-            lcz_series.to_frame(), how="left", left_index=True, right_index=True
+        lcz_extractor = GeeExtractor()
+        lcz_extractor.activate_LCZ()
+        lcz_series = lcz_extractor.extract_static_point_values(
+            metadf=self.metadf, aggregate=False
         )
+        self.metadf["lcz"] = lcz_series
         return lcz_series
 
     def get_altitude(self):
@@ -3396,6 +3388,7 @@ station with the default name: {self.settings.app["default_name"]}.'
         global map on the Google engine for all stations.
 
         A 'altitude' column will be added to the metadf, and series is returned.
+        If this column already exists, it will be overwritten.
 
         Returns
         -------
@@ -3403,27 +3396,19 @@ station with the default name: {self.settings.app["default_name"]}.'
             A series with the stationnames as index and the altitudes as values.
 
         """
-        # connect to gee
-        connect_to_gee()
-
-        # Extract LCZ for all stations
-        altitude_series = height_extractor(
-            metadf=self.metadf, mapinfo=self.settings.gee["gee_dataset_info"]["DEM"]
-        )
-
         # drop column if it was already present
         if "altitude" in self.metadf:
             self.metadf = self.metadf.drop(columns=["altitude"])
 
-        # update metadata
-        self.metadf = self.metadf.merge(
-            altitude_series.to_frame(), how="left", left_index=True, right_index=True
+        alt_extractor = GeeExtractor()
+        alt_extractor.activate_DEM()
+        altitude_series = alt_extractor.extract_static_point_values(
+            metadf=self.metadf, aggregate=False
         )
+        self.metadf["altitude"] = altitude_series
         return altitude_series
 
-    def get_landcover(
-        self, buffers=[100], aggregate=True, overwrite=True, gee_map="worldcover"
-    ):
+    def get_landcover(self, buffers=[100], aggregate=True, overwrite=True):
         """Extract landcover for all stations.
 
         Extract the landcover fractions in a buffer with a specific radius for
@@ -3445,10 +3430,6 @@ station with the default name: {self.settings.app["default_name"]}.'
         overwrite : bool, optional
             If True, the Datset.metadf will be updated with the generated
             landcoverfractions. The default is True.
-        gee_map : str, optional
-            The name of the dataset to use. This name should be present in the
-            settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
-            scheme should included as well. The default is 'worldcover'
 
         Returns
         -------
@@ -3457,27 +3438,27 @@ station with the default name: {self.settings.app["default_name"]}.'
             fractions.
 
         """
-        # connect to gee
-        connect_to_gee()
+
+        lc_extractor = GeeExtractor()
+        lc_extractor.activate_worldcover()
 
         df_list = []
         for buffer in buffers:
-
-            logger.info(
-                f"Extracting landcover from {gee_map} with buffer radius = {buffer}"
-            )
-            # Extract landcover fractions for all stations
-            lc_frac_df, buffer = lc_fractions_extractor(
-                metadf=self.metadf,
-                mapinfo=self.settings.gee["gee_dataset_info"][gee_map],
-                buffer=buffer,
-                agg=aggregate,
+            logger.info(f"Extracting landcover with buffer radius = {buffer}")
+            lc_frac_df = lc_extractor.extract_static_buffer_frequencies(
+                metadf=self.metadf, buffer=buffer, aggregate=aggregate
             )
 
-            # add buffer to the index
             lc_frac_df["buffer_radius"] = buffer
             lc_frac_df = lc_frac_df.reset_index().set_index(["name", "buffer_radius"])
             lc_frac_df = lc_frac_df.sort_index()
+
+            # when combining multiple buffers, some classes appear in larger
+            # buffers and not in smaller --> introduce nans when combining them.
+            # These Nans are converted to 0, but if the cover is nan for another reson
+            # then they are nan here, and are temporary converted to a dummy string
+            # and reverted to nan after the merging + fillna(0)
+            lc_frac_df = lc_frac_df.fillna("__dummy__")
 
             # add to the list
             df_list.append(lc_frac_df)
@@ -3485,6 +3466,8 @@ station with the default name: {self.settings.app["default_name"]}.'
         # concat all df for different buffers to one
         frac_df = concat_save(df_list)
         frac_df = frac_df.sort_index()
+        frac_df = frac_df.fillna(0)  # fill na introduced by combining
+        frac_df = frac_df.replace({"__dummy__": np.nan})
 
         if overwrite:
 

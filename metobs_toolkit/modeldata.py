@@ -19,7 +19,7 @@ from metobs_toolkit.df_helpers import (
     multiindexdf_datetime_subsetting,
 )
 
-from metobs_toolkit.landcover_functions import connect_to_gee, gee_extract_timeseries
+# from metobs_toolkit.landcover_functions import connect_to_gee, gee_extract_timeseries
 
 from metobs_toolkit.plotting_functions import model_timeseries_plot, timeseries_plot
 
@@ -41,18 +41,21 @@ logger = logging.getLogger(__name__)
 
 
 class Modeldata:
-    """Class holding data and methods for a modeldata-timeseries."""
+    """Class holding timeseries data and methods for modeldata."""
 
-    def __init__(self, modelname):
+    def __init__(self):
         """Initialize modeldata."""
-        self.df = init_multiindexdf()
-        self.modelname = modelname
+        self.df = init_multiindexdf()  # Holds the timeseries coming from a model
+        self.metadf = (
+            pd.DataFrame()
+        )  # Holds the metadata for where modeldate is extracted
+
+        # self.modelname = modelname
 
         self._settings = Settings()
-        self.mapinfo = self._settings.gee["gee_dataset_info"]
+        # self.mapinfo = self._settings.gee["gee_dataset_info"]
 
         self.df_tz = "UTC"  # the timezone of the datetimes stored in the df
-
         self.obstypes = model_obstypes  # Dict name: Obstype-instance
 
     def __str__(self):
@@ -80,8 +83,8 @@ class Modeldata:
         """Print out detailed information on the Modeldata."""
         print(str(self))
 
-        print("\n ------ Known gee datasets -----------")
-        self.list_gee_datasets()
+        # print("\n ------ Known gee datasets -----------")
+        # self.list_gee_datasets()
 
     def add_obstype(self, Obstype, bandname, band_units, band_description=None):
         """Add a new Observation type for the current Modeldata.
