@@ -23,13 +23,14 @@ from metobs_toolkit.df_helpers import (
 
 from metobs_toolkit.plotting_functions import model_timeseries_plot, timeseries_plot
 
-# from metobs_toolkit.obstypes import tlk_obstypes
+
 from metobs_toolkit.obstypes import Obstype as Obstype_class
+from metobs_toolkit.obstype_modeldata import era5_default_model_obstypes
 from metobs_toolkit.obstype_modeldata import (
-    model_obstypes,
     ModelObstype,
     ModelObstype_Vectorfield,
 )
+from metobs_toolkit.gee_extractor import GeeExtractor
 from metobs_toolkit.obstype_modeldata import compute_amplitude, compute_angle
 from metobs_toolkit.settings import Settings
 
@@ -43,33 +44,35 @@ logger = logging.getLogger(__name__)
 class Modeldata:
     """Class holding timeseries data and methods for modeldata."""
 
-    def __init__(self):
+    def __init__(self, metadf, extractor=None):
         """Initialize modeldata."""
         self.df = init_multiindexdf()  # Holds the timeseries coming from a model
-        self.metadf = (
-            pd.DataFrame()
-        )  # Holds the metadata for where modeldate is extracted
 
-        # self.modelname = modelname
+        _ = _is_metadf_valid(metadf)
+        self.metadf = metadf  # Holds the metadata for where modeldate is extracted
+        self.obstypes = []
+
+        self.extractor = extractor
+        if isinstance(extractor, GeeExtractor):
+            # Default obstypes Dict name: Obstype-instance
+            self.obstypes = era5_default_model_obstypes.copy()
+        else:
+            self.obstypes = []  # only default era5 modelobstypes are defined
 
         self._settings = Settings()
-        # self.mapinfo = self._settings.gee["gee_dataset_info"]
-
         self.df_tz = "UTC"  # the timezone of the datetimes stored in the df
-        self.obstypes = model_obstypes  # Dict name: Obstype-instance
 
     def __str__(self):
         """Print overview information of the modeldata."""
         if self.df.empty:
-            return "Empty Modeldata instance."
+            return f"Empty Modeldata instance linked to {self.extractor}."
         n_stations = self.df.index.get_level_values("name").unique().shape[0]
         obstypes = self.df.columns.to_list()
         startdt = self.df.index.get_level_values("datetime").min()
         enddt = self.df.index.get_level_values("datetime").max()
         data_units = [self.obstypes[col].get_standard_unit() for col in self.df.columns]
 
-        return f"Modeldata instance containing: \n \
-    * Modelname: {self.modelname} \n \
+        return f"Modeldata instance linked to {self.extractor}, containing: \n \
     * {n_stations} timeseries \n \
     * The following obstypes are available: {obstypes} \n \
     * Data has these units: {data_units} \n \
@@ -83,11 +86,10 @@ class Modeldata:
         """Print out detailed information on the Modeldata."""
         print(str(self))
 
-        # print("\n ------ Known gee datasets -----------")
-        # self.list_gee_datasets()
-
-    def add_obstype(self, Obstype, bandname, band_units, band_description=None):
-        """Add a new Observation type for the current Modeldata.
+    def add_obstype(self, Modelobstype):
+        """
+        TODO: update docstring
+        Add a new Observation type for the current Modeldata.
 
 
         Parameters
@@ -107,337 +109,59 @@ class Modeldata:
         None.
 
         """
-        if not isinstance(Obstype, Obstype_class):
-            sys.exit(
-                f"{Obstype} is not an instance of metobs_toolkit.obstypes.Obstype."
-            )
+        if isinstance(Modelobstype, ModelObstype_Vectorfield):
+            assert (
+                not Modelobstype.name in self.obstypes.keys()
+            ), f"{Modelobstype.name} already present in the known ModelObstypes: {self.obstypes}"
+            # add Modelobstype
+            self.obstypes[Modelobstype.name] = Modelobstype
+            logger.info(f"{Modelobstype.name} added to the known observation types.")
 
-        obs = Obstype
+        elif isinstance(Modelobstype, ModelObstype):
+            assert (
+                not Modelobstype.name in self.obstypes.keys()
+            ), f"{Modelobstype.name} already present in the known Modelobstypes: {self.obstypes}"
+            # add Modelobstype
+            self.obstypes[Modelobstype.name] = Modelobstype
+            logger.info(f"{Modelobstype.name} added to the known observation types.")
 
-        # Test if the band unit is a knonw unit
-        if not obs.test_if_unit_is_known(band_units):
-            sys.exit(
-                f"The {bandname} unit: {band_units} is not a knonw unit for {obs.name}"
-            )
-
-        # Make the modeldata extension
-        equiv_dict = {
-            self.modelname: {
-                "name": str(bandname),
-                "units": str(band_units),
-                "band_desc": str(band_description),
-            }
-        }
-
-        modeldata_obstype = ModelObstype(obstype=obs, model_equivalent_dict=equiv_dict)
-
-        # add Obstype
-        self.obstypes[obs.name] = modeldata_obstype
-        logger.info(f"{obs.name} added to the known observation types.")
-
-    def add_gee_dataset(
-        self,
-        mapname,
-        gee_location,
-        obstype,
-        bandname,
-        units,
-        scale,
-        band_desc=None,
-        time_res="1H",
-        is_image=False,
-        is_numeric=True,
-        credentials="",
-    ):
-        """Add a new gee dataset to the available gee datasets.
-
-        Parameters
-        ----------
-        mapname : str
-            Mapname of choice for the GEE dataset to add.
-        gee_location : str
-            Location of the gee dataset (like "ECMWF/ERA5_LAND/HOURLY" for ERA5).
-        obstype : str
-            The observation type name the band corresponds to.
-        bandname : str
-            Name of the dataset band as stored on the GEE.
-        units : str
-            The units of the band.
-        scale : int
-            The scale to represent the dataset in. (This is a GEE concept that
-            is similar to the resolution in meters).
-        band_desc : str or None, optional
-            Add a descrition to of the band. The default is None.
-        time_res : timedelta string, optional
-            Time reoslution of the dataset, if is_image == False. The default is '1H'.
-        is_image : bool, optional
-            If True, the dataset is a ee.Image, else it is assumed to be an
-            ee.ImageCollection. The default is False.
-        is_numeric : bool, optional
-            If True, the bandvalues are interpreted as numerical values rather
-            than categorical.. The default is True.
-        credentials : str, optional
-            Extra credentials of the dataset. The default is ''.
-
-        Returns
-        -------
-        None.
-
-        Note
-        -------
-        To list all available gee dataset, use the .list_gee_dataset() method.
-
-        Note
-        -------
-        Currently no unit conversion is perfomed automatically other than K -->
-        Celcius. This will be implemented in the futur.
-
-        """
-        # check if mapname exists
-        if mapname in self.mapinfo.keys():
-            logger.warning(
-                f"{mapname} is found in the list of known gee datasets: {list(self.mapinfo.keys())}, choose a different mapname."
-            )
-            return
-
-        if is_numeric:
-            val_typ = "numeric"
         else:
-            val_typ = "categorical"
+            if isinstance(Modelobstype, Obstype_class):
+                sys.exit(
+                    f"{Modelobstype} is not an instance of metobs_toolkit.Modelobstype_modeldata.ModelModelobstype. Convert the Modelobstype to a ModelModelobstype first."
+                )
 
-        # Dataset defenition
-        new_info = {
-            mapname: {
-                "location": f"{gee_location}",
-                "usage": "user defined addition",
-                "value_type": val_typ,
-                "dynamical": not bool(is_image),
-                "scale": int(scale),
-                "is_image": bool(is_image),
-                "is_imagecollection": not bool(is_image),
-                "credentials": f"{credentials}",
-            }
-        }
-
-        if not is_image:
-            new_info[mapname]["time_res"] = f"{time_res}"
-
-        # obstype defenition
-        # 1. if obstype exists, update the obstype
-        if obstype in self.obstypes:
-            self.obstypes[obstype].add_new_band(
-                mapname=mapname, bandname=bandname, bandunit=units, band_desc=band_desc
-            )
-
-        # 2. if obstype does not exist, create the obstype
-        else:
             sys.exit(
-                f"{obstype} is an unknown obstype. First add this obstype to the Modeldata, and than add a gee dataset."
+                f"{Modelobstype} is not an instance of metobs_toolkit.Modelobstype_modeldata.ModelModelobstype."
             )
 
-        self.mapinfo.update(new_info)
-        logger.info(
-            f"{mapname} is added to the list of available gee dataset with: {new_info}"
-        )
-        return
+    # =============================================================================
+    # Importers
+    # =============================================================================
 
-    def list_gee_datasets(self):
-        """Print out all the available gee datasets.
-
-        Returns
-        -------
-        None.
-
-        """
-        print("The following datasets are found: ")
-        for geename, info in self.mapinfo.items():
-            print("\n --------------------------------")
-            print(f"{geename} : \n")
-            # find which observations that are mappd
-            mapped_obs = [
-                obstype
-                for obstype in self.obstypes.values()
-                if obstype.has_mapped_band(geename)
-            ]
-            if len(mapped_obs) == 0:
-                print(f" No mapped observation types for {geename}.")
-            else:
-                for obs in mapped_obs:
-                    obs.get_info()
-            print("\n INFO: \n")
-            print(f"{info}")
-
-    def _conv_to_timezone(self, tzstr):
-        """Convert the timezone of the datetime index of the df attribute.
-
-        Parameters
-        ----------
-        tzstr : str
-            TImezonstring from the pytz module.
-
-        Returns
-        -------
-        None.
-
-        """
-        # get tzstr by datetimindex.tz.zone
-
-        df = self.df
-        df["datetime_utc"] = df.index.get_level_values("datetime").tz_convert(tzstr)
-        df = df.reset_index()
-        df = df.drop(columns=["datetime"])
-        df = df.rename(columns={"datetime_utc": "datetime"})
-        df = df.set_index(["name", "datetime"])
-        self.df = df
-        self.df_tz = tzstr
-
-    def convert_units_to_tlk(self, obstype):
-        """Convert the model data of one observation to the standard units.
-
-        The data attributes will be updated.
-
-        Parameters
-        ----------
-        obstype : str
-            Observation type to convert to standard units.
-
-        Returns
-        -------
-        None.
-
-        """
-        # chech if data is available
-        if self.df.empty:
-            logger.warning("No data to set units for.")
-            return
-
-        if obstype not in self.obstypes:
-            logger.warning(
-                f"{obstype} not found as a known observationtype in the Modeldata."
-            )
-            return
-
-        if isinstance(self.obstypes[obstype], ModelObstype):
-            # scalar obstype
-            if obstype not in self.df.columns:
-                logger.warning(
-                    f"{obstype} not found as observationtype in the Modeldata."
-                )
-                return
-        if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
-            # vector obstype
-            if self.obstypes[obstype].get_u_column() not in self.df.columns:
-                logger.warning(
-                    f"{self.obstypes[obstype].get_u_column()} not found as observationtype in the Modeldata."
-                )
-                return
-            if self.obstypes[obstype].get_v_column() not in self.df.columns:
-                logger.warning(
-                    f"{self.obstypes[obstype].get_v_column()} not found as observationtype in the Modeldata."
-                )
-                return
-
-        cur_unit = self.obstypes[obstype].get_modelunit(self.modelname)
-
-        if isinstance(self.obstypes[obstype], ModelObstype):
-            converted_data = self.obstypes[obstype].convert_to_standard_units(
-                input_data=self.df[obstype], input_unit=cur_unit
-            )
-            # Update the data and the current unit
-            self.df[obstype] = converted_data
-        if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
-            u_comp_name = self.obstypes[obstype].get_u_column()
-            v_comp_name = self.obstypes[obstype].get_v_column()
-            u_comp, v_comp = self.obstypes[obstype].convert_to_standard_units(
-                input_df=self.df, input_unit=cur_unit
-            )
-
-            self.df[u_comp_name] = u_comp
-            self.df[v_comp_name] = v_comp
-        logger.info(
-            f"{obstype} are converted from {cur_unit} --> {self.obstypes[obstype].get_standard_unit()}."
-        )
-
-    def exploid_2d_vector_field(self, obstype):
-        """Compute amplitude and direction of 2D vector field components.
-
-        The amplitude and directions are added to the data attribute, and their
-        equivalent observationtypes are added to the known ModelObstypes.
-
-        (The vector components are not saved.)
-        Parameters
-        ----------
-        obstype : str
-            The name of the observationtype that is a ModelObstype_Vectorfield.
-
-        Returns
-        -------
-        None.
-
-        """
-        # check if the obstype is a vector field
-        if not isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
-            logger.warning(
-                f"{obstype} is not a 2D vector field, so it can not be exploided."
-            )
-            return
-
-        # get amplitude of 2D vectors
-        logger.info(f"Computing the amplited of the 2D vector field of {obstype}")
-        amp_data, amp_obstype = compute_amplitude(
-            modelobs_vectorfield=copy.deepcopy(self.obstypes[obstype]), df=self.df
-        )
-
-        # # get direction of 2D vectors
-        logger.info(f"Computing the direction of the 2D vector field of {obstype}")
-        dir_data, dir_obstype = compute_angle(
-            modelobs_vectorfield=copy.deepcopy(self.obstypes[obstype]), df=self.df
-        )
-
-        #  ------ update the attributes ---------
-
-        # add new columns to the df
-        self.df[amp_obstype.name] = amp_data
-        self.df[dir_obstype.name] = dir_data
-
-        # remove components from the df (Needed because they are not linked to an obstype)
-        self.df = self.df.drop(
-            columns=[
-                self.obstypes[obstype].get_u_column(),
-                self.obstypes[obstype].get_v_column(),
-            ]
-        )
-
-        # add the aggregated obstypes to the known obsytpes
-        self.obstypes[amp_obstype.name] = amp_obstype
-        self.obstypes[dir_obstype.name] = dir_obstype
-
-    def get_gee_dataset_data(
-        self, mapname, metadf, startdt_utc, enddt_utc, obstypes=["temp"]
+    def import_from_gee(
+        self, target_obstypes, start_utc, end_utc, gdrive_filename="era5_data"
     ):
         """Extract timeseries of a gee dataset.
 
-        The extraction can only be done if the gee dataset bandname (and units)
-        corresponding to the obstype is known.
+        This method can only be used when a GeeExtractor is set as the extractor.
 
-        The units are converted to the toolkit standard units!!
+        This import takes care of unit conversions and exploiting of vector fields
+        to scalar fields (components, direction and amplitude).
+
 
         Parameters
         ----------
-        mapname : str
-            Mapname of choice of the GEE dataset to extract data from.
-        metadf : pandas.DataFrame
-            A dataframe with a 'name' index and  'lat', 'lon' columns.
-            Timeseries are extracted for these locations.
+        target_obstypes : ModelObstype, ModelObstype_Vectorfield, name of a
+            known obstype, or a list of these.
+            The observations to extract from the extractor.
         startdt_utc : datetime.datetime
             Start datetime of the timeseries in UTC.
         enddt_utc : datetime.datetime
             Last datetime of the timeseries in UTC.
-        obstypes : str or list of strings, optional
-            Toolkit observation type to extract data from. There should be a
-            bandname mapped to this obstype for the gee map. Multiple obstypes
-            can be given in a list. The default is 'temp'.
-
+        gdrive_filename : str, optional
+            Filename to use when the data is writen to a csv file on your
+            Google Drive. The default is 'era5_data'.
 
         Returns
         -------
@@ -447,152 +171,178 @@ class Modeldata:
         ------
         When extracting large amounts of data, the timeseries data will be
         writen to a file and saved on your google drive. In this case, you need
-        to provide the Modeldata with the data using the .set_model_from_csv()
+        to provide the Modeldata with the data using the .import_gee_data_from_csv()
         method.
 
         """
-        # ====================================================================
-        # Test input
-        # ====================================================================
-        if metadf.empty:
-            logger.warning("The metadf is empty!")
-            return
+        # tests if gee is set as extractor
+        assert isinstance(
+            self.extractor, GeeExtractor
+        ), f"Importing a gee dataset from csv is only valid if the extractor is a GeeExtractor. The current extractor is {self.extractor}"
 
-        # Subset metadf to stations with coordinates
-        no_coord_meta = metadf[metadf[["lat", "lon"]].isna().any(axis=1)]
-        if not no_coord_meta.empty:
-            logger.warning(
-                f"Following stations do not have coordinates, and thus no modeldata extraction is possible: {no_coord_meta.index.to_list()}"
-            )
-            metadf = metadf[~metadf[["lat", "lon"]].isna().any(axis=1)]
+        # Cast to a list of obstypes
+        if isinstance(target_obstypes, Obstype_class):
+            target_obstypes_list = [target_obstypes]
 
-        # is mapinfo available
-        if mapname not in self.mapinfo.keys():
-            logger.warning(f"{mapname} is not a known gee dataset.")
-            return
+        elif isinstance(target_obstypes, str):
+            assert (
+                target_obstypes in self.obstypes.keys()
+            ), f"{target_obstypes} not found in known ModelObtypes: {self.obstypes}"
+            target_obstypes_list = [self.obstypes[target_obstypes]]
 
-        geeinfo = self.mapinfo[mapname]
-
-        # does dataset contain time evolution
-        if not geeinfo["dynamical"]:
-            logger.warning(
-                f"{mapname} is a static dataset, this method does not work on static datasets"
-            )
-            return
-
-        # Check obstypes
-        if isinstance(obstypes, str):
-            obstypes = [obstypes]  # convert to list
-
-        for obstype in obstypes:
-            # is obstype mapped?
-            if obstype not in self.obstypes.keys():
-                logger.warning(
-                    f"{obstype} is an unknown observation type of the modeldata."
-                )
-                return
-            if not self.obstypes[obstype].has_mapped_band(mapname):
-                logger.warning(
-                    f"{obstype} is not yet mapped to a bandname in the {mapname} dataset."
-                )
-                return
-
-        # ====================================================================
-        # GEE api extraction
-        # ====================================================================
-
-        # Connect to Gee
-        connect_to_gee()
-
-        # Get bandname mapper ({bandname1: obstypename1, ...})
-        band_mapper = {}
-        for obstype in obstypes:
-            band_mapper.update(self.obstypes[obstype].get_bandname_mapper(mapname))
-
-        logger.info(f"{band_mapper} are extracted from {mapname}.")
-        # Get data using GEE
-        df = gee_extract_timeseries(
-            metadf=metadf,
-            band_mapper=band_mapper,
-            mapinfo=geeinfo,
-            startdt=startdt_utc,
-            enddt=enddt_utc,
-            latcolname="lat",
-            loncolname="lon",
-        )
-
-        self.df = df
-        self.modelname = mapname
-
-        if not self.df.empty:
-            self.df_tz = "UTC"
-            # convert to standard units
-            for obstype in obstypes:
-                self.convert_units_to_tlk(obstype)
-                if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
-                    self.exploid_2d_vector_field(obstype)
+        elif isinstance(target_obstypes, list):
+            target_obstypes_list = []
+            for obs in target_obstypes:
+                if isinstance(obs, str):
+                    assert (
+                        obs in self.obstypes.keys()
+                    ), f"{obs} not found in known ModelObtypes: {self.obstypes}"
+                    target_obstypes_list.append(self.obstypes[obs])
+                elif isinstance(obs, Obstype_class):
+                    target_obstypes_list.append(obs)
+                else:
+                    sys.exit(f"{obs} not a valid input type for target_obstypes.")
         else:
-            self._data_stored_at_drive = True
+            sys.exit(f"{target_obstypes} not a valid input type for target_obstypes.")
 
-    def get_ERA5_data(self, metadf, startdt_utc, enddt_utc, obstypes="temp"):
-        """Extract timeseries of the ERA5_hourly dataset.
+        assert bool(target_obstypes_list), "No target_obstypes are found."
 
-        The units are converted to the toolkit standard units.
+        # get bandnmaes for target obstypes
+        bandnames_map = {}  # keys are bandnames, values are the obstype names
+        for obs in target_obstypes_list:
+            bandnames_map.update(obs.get_bandname_mapper())
 
-        (This method is a specific ERA5_hourly wrapper on the
-         get_gee_dataset_data() method)
+        # Extract timeseries
+        df = self.extractor.extract_timeseries(
+            metadf=self.metadf,
+            bandnames=list(bandnames_map.keys()),
+            start_utc=start_utc,
+            end_utc=end_utc,
+            gdrive_filename=gdrive_filename,
+        )
+        self.df = df
+        if not self.df.empty:
+            self.df = self._update_df_attribute_from_gee_df(
+                rawdf=self.df, expected_obstypes=target_obstypes_list
+            )
+
+    def import_gee_data_from_csv(self, csvpath):
+        """Import timeseries data that is stored in a csv file.
+
+        The name of the gee dataset the timeseries are coming from must be the
+        same as the .modelname attribute of the Modeldata.
+
+
+        The timeseries will be formatted and converted to standard toolkit
+        units.
 
         Parameters
         ----------
-        metadf : pandas.DataFrame
-            A dataframe with a 'name' index and  'lat', 'lon' columns.
-            Timeseries are extracted for these locations.
-        startdt_utc : datetime.datetime
-            Start datetime of the timeseries in UTC.
-        enddt_utc : datetime.datetime
-            Last datetime of the timeseries in UTC.
-        obstypes : str or list of str, optional
-            Toolkit observation type to extract data from. There should be a
-            bandname mapped to this obstype for the gee map. Multiple
-            observation types can be extracted if given as a list. The default is
-            'temp'.
-
+        csvpath : str
+            Path of the csv file containing the modeldata timeseries.
 
         Returns
         -------
         None.
 
-        Note
-        ------
-        When extracting large amounts of data, the timeseries data will be
-        writen to a file and saved on your google drive. In this case, you need
-        to provide the Modeldata with the data using the .set_model_from_csv()
-        method.
-
         """
-        # Check obstypes
-        if isinstance(obstypes, str):
-            obstypes = [obstypes]  # convert to list
+        # tests if gee is set as extractor
+        assert isinstance(
+            self.extractor, GeeExtractor
+        ), f"Importing a gee dataset from csv is only valid if the extractor is a GeeExtractor. The current extractor is {self.extractor}"
 
-        # test if obstype is known
-        for obstype in obstypes:
-            if obstype not in self.obstypes:
-                sys.exit(f"{obstype} is not a known obstype of the Modeldata instance.")
+        # 1. Read csv and set timezone
+        df = pd.read_csv(csvpath, sep=",")
+        # renamte name column
+        df = df.rename(columns={"feature_idx": "name"})
+        # format datetime
+        df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d%H%M%S")
+        # (assume all gee dataset are in UTC)
+        df["datetime"] = df["datetime"].dt.tz_localize("UTC")
 
-            # test if the obstype is mapped in the era5 hourly dataset
-            if "ERA5_hourly" not in self.obstypes[obstype].get_mapped_datasets():
-                sys.exit(
-                    f"{obstype} has no equivalent mapped band for the ERA5_hourly dataset."
-                )
+        # 2. Format dataframe
+        # format index
+        df = df.set_index(["name", "datetime"])
+        df = df.sort_index()
 
-        self.get_gee_dataset_data(
-            mapname="ERA5_hourly",
-            metadf=metadf,
-            startdt_utc=startdt_utc,
-            enddt_utc=enddt_utc,
-            obstypes=obstypes,
+        # test if all names in the df corresponds with names of the metadf
+        assert set(df.index.get_level_values("name")) == set(
+            self.metadf.index
+        ), f"The station names of the csv file are not equal to those stored in the metadf attribute:  {set(df.index.get_level_values('name'))} != {set(self.metadf.index)}"
+
+        # Find wicht obstypes are found in the dataframe
+        found_obstypes = []
+        for obs in self.obstypes.values():
+            bandnames = list(obs.get_bandname_mapper().keys())
+            for bandname in bandnames:
+                if bandname in df.columns:
+                    print(bandname)
+                    found_obstypes.append(obs)
+        found_obstypes = list(set(found_obstypes))
+
+        self.df = self._update_df_attribute_from_gee_df(
+            rawdf=df, expected_obstypes=found_obstypes
         )
 
+    def _update_df_attribute_from_gee_df(self, rawdf, expected_obstypes):
+        """Rename columns, convert to std units and create aggregated fields
+        if vector field detected."""
+
+        for obs in expected_obstypes:
+            if isinstance(obs, ModelObstype):
+                # rename column
+                rawdf = rawdf.rename(columns=obs.get_bandname_mapper())
+                # convert to standard units
+                rawdf[obs.name] = obs.convert_to_standard_units(
+                    input_data=rawdf[obs.name], input_unit=obs.get_bandunit()
+                )
+            elif isinstance(obs, ModelObstype_Vectorfield):
+                # rename columns
+                rawdf = rawdf.rename(columns=obs.get_bandname_mapper())
+
+                # ------ Amplitude  --------
+                # calculate amplitude field
+                ampseries, amp_obstype = compute_amplitude(
+                    modelobs_vectorfield=obs, df=rawdf
+                )
+                self.obstypes[amp_obstype.name] = amp_obstype
+
+                # convert amplitudes to standard units
+                ampseries = amp_obstype.convert_to_standard_units(
+                    input_data=ampseries,  # test this
+                    input_unit=amp_obstype.get_bandunit(),
+                )
+
+                # add amplitude clumn
+                rawdf[amp_obstype.name] = ampseries
+
+                # ------ Direction  --------
+                # calculate angle field
+                angleseries, angle_obstype = compute_angle(
+                    modelobs_vectorfield=obs, df=rawdf
+                )
+                self.obstypes[angle_obstype.name] = angle_obstype
+
+                # convert angles to standard units
+                # - not needed because angles are always created in degrees -
+
+                # add amplitude clumn
+                rawdf[angle_obstype.name] = angleseries
+
+                # ----- Keep the components --------
+                # we can keep the components, but we need to create two new obstypes
+                # since we will interpret them as scalar 2d fields
+                u_comp_obstype, v_comp_obstype = obs.create_the_scalar_modelobstypes()
+                self.obstypes[u_comp_obstype.name] = u_comp_obstype
+                self.obstypes[v_comp_obstype.name] = v_comp_obstype
+
+            else:
+                sys.exit("Something went wrong. Report this error.")
+        return rawdf
+
+    # =============================================================================
+    # IO
+    # =============================================================================
     def save_modeldata(
         self,
         outputfolder=None,
@@ -673,76 +423,157 @@ class Modeldata:
 
         return modeldata
 
-    def set_model_from_csv(self, csvpath):
-        """Import timeseries data that is stored in a csv file.
+    # =============================================================================
+    # Plotters
+    # =============================================================================
 
-        The name of the gee dataset the timeseries are coming from must be the
-        same as the .modelname attribute of the Modeldata.
+    # =============================================================================
+    # Helpers
+    # =============================================================================
+    def sample_data_as(self, target_df, interp_method="time", **kwargs):
+        """Resample the modeldata to a target.
 
+        This methods will convert the modeldata to the same index as present
+        in the target_df. Thus this method will transform timezones (if needed)
+        and will interpolate to the missing timestamps (required for
+        timeresolution mismatch between target_df and the model observations).
 
-        The timeseries will be formatted and converted to standard toolkit
-        units.
+        This method is only applicable when target_df and self.df share the
+        same levels of the index.
 
         Parameters
         ----------
-        csvpath : str
-            Path of the csv file containing the modeldata timeseries.
-
+        target_df : pandas.DataFrame
+            The pandas dataframe with the target index to convert the modeldata
+            to.
+        interp_method : str, optional
+            The interpolation method used by pandas.DataFrame.interpolate(). The default is 'time'.
+        **kwargs:
+            Additional keyword arguments passed to pandas.DataFrame.interpolate().
         Returns
         -------
-        None.
+        target_modeldf : pandas.DataFrame
+            Modeldata resampled to target index.
 
         """
-        # tests ----
-        if self.modelname not in self.mapinfo.keys():
-            logger.warning(f"{self.modelname} is not found in the gee datasets.")
-            return
+        assert (
+            not self.df.empty
+        ), f"Sample_data_as not possible because no modeldata found."
+        assert set(target_df.index.names) == set(
+            self.df.index.names
+        ), f"sample data to target not possible since index levels are not the same for modeldata and target dataframe."
 
-        # 1. Read csv and set timezone
-        df = pd.read_csv(csvpath, sep=",")
-        # format datetime
-        df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d%H%M%S")
-        # (assume all gee dataset are in UTC)
-        df["datetime"] = df["datetime"].dt.tz_localize("UTC")
+        # Reindex to target index (this is timzone awere, so no worries)
+        target_modeldf = self.df.reindex(
+            target_df.index,
+            method=None,
+        )
 
-        # 2. Format dataframe
-        # format index
-        df = df.set_index(["name", "datetime"])
-        df = df.sort_index()
+        # iterpolate the nan values (groupby name first)
+        target_modeldf = target_modeldf.reset_index().set_index("datetime")
 
-        # make a bandname --> tlk name mapper
-        bandname_mapper = {}
-        for known_obstype in self.obstypes.values():
-            bandname_mapper.update(known_obstype.get_bandname_mapper(self.modelname))
+        target_modeldf = target_modeldf.groupby("name", group_keys=True).apply(
+            lambda group: group.interpolate(
+                method=interp_method, axes="columns", **kwargs
+            )
+        )
 
-        # rename to values to toolkit space
-        df = df.rename(columns=bandname_mapper)
+        target_modeldf = target_modeldf.drop(columns=["name"])
+        return target_modeldf
 
-        # 3. update attributes
-        self.df = df
-        self.df_tz = "UTC"
+    # def _conv_to_timezone(self, tzstr):
+    #     """Convert the timezone of the datetime index of the df attribute.
 
-        # 4. Find which obstypes are present
-        data_present_obstypes = []
-        for col in self.df.columns:
-            if col in self.obstypes.keys():
-                # column is a regular obstype
-                data_present_obstypes.append(col)
-            else:
-                # check if column represents a vector component
-                for known_obs in self.obstypes.values():
-                    if isinstance(known_obs, ModelObstype_Vectorfield):
-                        comps = [known_obs.get_u_column(), known_obs.get_v_column()]
-                        if col in comps:
-                            data_present_obstypes.append(known_obs.name)
-        data_present_obstypes = list(set(data_present_obstypes))
-        # A. scalar obstypes (same name as column)
+    #     Parameters
+    #     ----------
+    #     tzstr : str
+    #         TImezonstring from the pytz module.
 
-        # 5. Convert units
-        for obstype in data_present_obstypes:
-            self.convert_units_to_tlk(obstype)
-            if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
-                self.exploid_2d_vector_field(obstype)
+    #     Returns
+    #     -------
+    #     None.
+
+    #     """
+    #     # get tzstr by datetimindex.tz.zone
+
+    #     df = self.df
+    #     df["datetime_utc"] = df.index.get_level_values("datetime").tz_convert(tzstr)
+    #     df = df.reset_index()
+    #     df = df.drop(columns=["datetime"])
+    #     df = df.rename(columns={"datetime_utc": "datetime"})
+    #     df = df.set_index(["name", "datetime"])
+    #     self.df = df
+    #     self.df_tz = tzstr
+
+    # def set_model_from_csv(self, csvpath):
+    #     """Import timeseries data that is stored in a csv file.
+
+    #     The name of the gee dataset the timeseries are coming from must be the
+    #     same as the .modelname attribute of the Modeldata.
+
+    #     The timeseries will be formatted and converted to standard toolkit
+    #     units.
+
+    #     Parameters
+    #     ----------
+    #     csvpath : str
+    #         Path of the csv file containing the modeldata timeseries.
+
+    #     Returns
+    #     -------
+    #     None.
+
+    #     """
+    #     # tests ----
+    #     if self.modelname not in self.mapinfo.keys():
+    #         logger.warning(f"{self.modelname} is not found in the gee datasets.")
+    #         return
+
+    #     # 1. Read csv and set timezone
+    #     df = pd.read_csv(csvpath, sep=",")
+    #     # format datetime
+    #     df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d%H%M%S")
+    #     # (assume all gee dataset are in UTC)
+    #     df["datetime"] = df["datetime"].dt.tz_localize("UTC")
+
+    #     # 2. Format dataframe
+    #     # format index
+    #     df = df.set_index(["name", "datetime"])
+    #     df = df.sort_index()
+
+    #     # make a bandname --> tlk name mapper
+    #     bandname_mapper = {}
+    #     for known_obstype in self.obstypes.values():
+    #         bandname_mapper.update(known_obstype.get_bandname_mapper(self.modelname))
+
+    #     # rename to values to toolkit space
+    #     df = df.rename(columns=bandname_mapper)
+
+    #     # 3. update attributes
+    #     self.df = df
+    #     self.df_tz = "UTC"
+
+    #     # 4. Find which obstypes are present
+    #     data_present_obstypes = []
+    #     for col in self.df.columns:
+    #         if col in self.obstypes.keys():
+    #             # column is a regular obstype
+    #             data_present_obstypes.append(col)
+    #         else:
+    #             # check if column represents a vector component
+    #             for known_obs in self.obstypes.values():
+    #                 if isinstance(known_obs, ModelObstype_Vectorfield):
+    #                     comps = [known_obs.get_u_column(), known_obs.get_v_column()]
+    #                     if col in comps:
+    #                         data_present_obstypes.append(known_obs.name)
+    #     data_present_obstypes = list(set(data_present_obstypes))
+    #     # A. scalar obstypes (same name as column)
+
+    #     # 5. Convert units
+    #     for obstype in data_present_obstypes:
+    #         self.convert_units_to_tlk(obstype)
+    #         if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
+    #             self.exploid_2d_vector_field(obstype)
 
     def interpolate_modeldata(self, to_multiidx):
         """Interpolate modeldata in time.
@@ -979,3 +810,19 @@ class Modeldata:
             )
 
         return ax
+
+
+def _is_metadf_valid(metadf):
+    assert not metadf.empty, "Metadf is an empty dataframe."
+    assert (
+        "lat" in metadf.columns
+    ), f"lat column not found in columns of metadf {metadf.columns}"
+    assert (
+        "lon" in metadf.columns
+    ), f"lon column not found in columns of metadf {metadf.columns}"
+    assert (
+        metadf.index.is_unique
+    ), f"The index of the metadf is not unique: {metadf.index}"
+
+    # TODO check if lat and lon columns are numerical
+    return True

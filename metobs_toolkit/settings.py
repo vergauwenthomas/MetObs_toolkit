@@ -33,7 +33,6 @@ class Settings:
         self.gap = {}
         self.missing_obs = {}
         self.templates = {}
-        self.gee = {}
         self.IO = {
             "output_folder": None,
             "input_data_file": None,
@@ -46,7 +45,6 @@ class Settings:
         self._update_qc_settings()
         self._update_gap_settings()
         self._update_templates()
-        self._update_gee_settings()
 
     # =============================================================================
     #     Update settings from files in initialisation
@@ -185,19 +183,6 @@ class Settings:
 
         # Set default templates
         self.templates["template_file"] = default_template_file
-
-    def _update_gee_settings(self):
-        """
-        Update the google earth enginge settings using the default settings templates.
-
-        Returns
-        -------
-        None.
-        """
-        logger.debug("Updating gee settings.")
-        from .settings_files.gee_settings import gee_datasets
-
-        self.gee["gee_dataset_info"] = gee_datasets
 
     def update_timezone(self, timezonestr):
         """

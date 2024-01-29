@@ -2,7 +2,7 @@
 "name","Vlinder",,,,"data_structure","long"
 ,,,,,"stationname","unknown station"
 "datetime",,,,"%Y-%m-%d %H:%M:%S",,
-"_date","Datum",,,"%Y-%m-%d","timezone","UTC"
+"_date","Datum",,,"%Y-%m-%d","timezone","Europe/Brussels"
 "_time","Tijd (UTC)",,,"%H:%M:%S",,
 ,,,,,,
 "temp","Temperatuur","Celsius","2m-temperature",,,

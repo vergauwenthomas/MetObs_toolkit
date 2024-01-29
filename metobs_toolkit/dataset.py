@@ -88,7 +88,7 @@ from metobs_toolkit.df_helpers import (
 
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype as Obstype_class
-
+from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfield
 
 from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
@@ -408,7 +408,7 @@ class Dataset:
 
         return dataset
 
-    def add_new_observationtype(self, Obstype):
+    def add_new_observationtype(self, Obstype, overwrite=False):
         """Add a new observation type to the known observation types.
 
         The observation can only be added if it is not already present in the
@@ -417,13 +417,17 @@ class Dataset:
 
         Parameters
         ----------
-        Obstype : metobs_toolkit.obstype.Obstype
+        Obstype : Obstype, ModelObstype or ModelObstype_Vectorfield
             The new Obstype to add.
+        overwrite : bool, optional
+            If True, the new observation will overwrite the existing observation
+            with the same name, if it exits. The default is False.
         Returns
         -------
         None.
 
         """
+
         # Test if the obstype is of the correct class.
         if not isinstance(Obstype, Obstype_class):
             sys.exit(
@@ -1010,130 +1014,248 @@ class Dataset:
     # =============================================================================
     #   Gap Filling
     # =============================================================================
-    def get_modeldata(
-        self,
-        modelname="ERA5_hourly",
-        modeldata=None,
-        obstype="temp",
-        stations=None,
-        startdt=None,
-        enddt=None,
-    ):
-        """Make Modeldata for the Dataset.
 
-        Make a metobs_toolkit.Modeldata object with modeldata at the locations
-        of the stations present in the dataset.
+    def get_equivalent_era5_modeldata(
+        self, get_obstypes="all", gdrive_filename="era5_data"
+    ):
+        """Get the equivalent (space, time, observationtype) ERA5 timeseries from GEE.
+
+        This methods is a wrapper for extracting ERA5 modeldata. Be aware that
+        not all known (by the dataset) Obstypes have a corresponding ModelObstype!
+
+        If you want to extract non-default ModelObstypes you can:
+            1. Manually create a Modeldata object, and add your custom ModelObstypes to it.
+            2. use the .add_new_observationtype() method and add your custom ModelObstype to this Dataset.
+            All ModelObstypes stored in this Dataset will be overloaded to the
+            newly created Modeldata.
+
 
         Parameters
         ----------
-        modelname : str, optional
-            Which dataset to download timeseries from. This is only used when
-            no modeldata is provided. The default is 'ERA5_hourly'.
-        modeldata : metobs_toolkit.Modeldata, optional
-            Use the modelname attribute and the gee information stored in the
-            modeldata instance to extract timeseries.
-        obstype : String, optional
-            Name of the observationtype you want to apply gap filling on. The
-            modeldata must contain this observation type as well. The
-            default is 'temp'.
-        stations : string or list of strings, optional
-            Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.
-        startdt : datetime.datetime, optional
-            Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.
-        enddt : datetime.datetime, optional
-            End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.
+        get_obstypes : 'all', 'observations', ModelObstype, ModelObstype_Vectorfield, or a list of them, optional
+            This arguments sets which corresponding bands are extracted from
+            ERA5. If 'all', all known ModelObstypes are extracted. if
+            'observations', all knonw ModelObstypes that overlap with the
+            present Obstyps are extracted. If (a list of ) ModelObstype or
+            ModelObstype_Vectorfields are given, these are extracted. The
+            default is 'all'.
+        gdrive_filename : str optional
+            The name of the google drive file you want to write data to. See
+            Note for more detatils.  The default is 'era5_data'.
 
         Returns
         -------
-        Modl : metobs_toolkit.Modeldata
-            The extracted modeldata for period and a set of stations.
-
-        Note
-        --------
-        If a timezone unaware datetime is given as an argument, it is interpreted
-        as if it has the same timezone as the observations.
+        modl : metobs_toolkit.Modeldata or None
+            If the data is available, a Modeldata is returned. If the modeldata
+            is writen to file, no modeldata can be constructed and None is
+            returned.
 
         Note
         ------
         When extracting large amounts of data, the timeseries data will be
         writen to a file and saved on your google drive. In this case, you need
-        to provide the Modeldata with the data using the .set_model_from_csv()
+        to provide the Modeldata with the data using the .import_gee_data_from_csv()
         method.
 
-        Note
-        ------
-        Only 2mT extraction of ERA5 is implemented for all Modeldata instances.
-        To extract other variables, one must create a Modeldata instance in
-        advance, add or update a gee_dataset and give this Modeldata instance
-        to this method.
 
         """
-        if modeldata is None:
-            Modl = Modeldata(modelname)
+        assert (
+            not self.df.empty
+        ), "No equivalent era5 modeldata can be found for an empty Dataset."
+
+        # Setup of the GEE extractor
+        extractor = GeeExtractor()
+        extractor.activate_ERA5()
+
+        # Initiate a modeldata instance
+
+        modl = Modeldata(metadf=self.metadf, extractor=extractor)
+
+        # get start and enddtate
+        startdt = self.df.index.get_level_values("datetime").min()
+        startdt_utc = startdt.tz_convert("UTC")
+
+        enddt = self.df.index.get_level_values("datetime").max()
+        enddt_utc = enddt.tz_convert("UTC")
+
+        # Updat the obstypes of the modl by modelobstypes in dataset
+        overload_obs = {}
+        for obsnam, obs in self.obstypes.items():
+            if isinstance(obs, ModelObstype):
+                overload_obs[obsnam] = obs
+            elif isinstance(obs, ModelObstype_Vectorfield):
+                overload_obs[obsnam] = obs
+            else:
+                pass  # Do not overload regular Obstypes
+
+        modl.obstypes.update(overload_obs)  # will overwrite if already present!!
+
+        # select the relevant obstypes
+        if get_obstypes == "all":
+            target_obstypes = list(modl.obstypes.values())
+
+        elif get_obstypes == "observations":
+            present_observation_obstypes = [
+                key for key, val in self.obstypes.items() if key in self.df.columns
+            ]
+            target_obstypes = [
+                val
+                for key, val in modl.obstypes.items()
+                if val.name in present_observation_obstypes
+            ]
+
+        elif isinstance(get_obstypes, ModelObstype):
+            if get_obstypes.name not in modl.obstypes.keys():
+                modl.add_obstype(get_obstypes)
+            target_obstypes = [get_obstypes]
+
+        elif isinstance(get_obstypes, list):
+            target_obstypes = [get_obstypes]
+            for obs in get_obstypes:
+                assert isinstance(obs, ModelObstype), f"{obs} is not a ModelObstype."
+                if obs.name not in modl.obstypes.keys():
+                    modl.add_obstype(obs)
+                target_obstypes = [obs]
 
         else:
-            Modl = modeldata
-            modelname = Modl.modelname
+            sys.exit(f"Unsupported value for get_obstypes: {get_obstypes}")
 
-        # Filters
-
-        if startdt is None:
-            startdt = self.df.index.get_level_values("datetime").min()
-        else:
-            startdt = fmt_datetime_argument(
-                startdt, self.settings.time_settings["timezone"]
-            )
-
-        if enddt is None:
-            enddt = self.df.index.get_level_values("datetime").max()
-        else:
-            enddt = fmt_datetime_argument(
-                enddt, self.settings.time_settings["timezone"]
-            )
-
-        # make shure bounds include required range
-        Model_time_res = Modl.mapinfo[Modl.modelname]["time_res"]
-        startdt = startdt.floor(Model_time_res)
-        enddt = enddt.ceil(Model_time_res)
-
-        if stations is not None:
-            if isinstance(stations, str):
-                metadf = self.metadf.loc[[stations]]
-            if isinstance(stations, list):
-                metadf = self.metadf.iloc[self.metadf.index.isin(stations)]
-        else:
-            metadf = self.metadf
-
-        # Convert to UTC
-
-        startdt_utc = startdt.astimezone(pytz.utc)
-        enddt_utc = enddt.astimezone(pytz.utc)
-
-        # fill modell with data
-        if modelname == "ERA5_hourly":
-            Modl.get_ERA5_data(
-                metadf=metadf,
-                startdt_utc=startdt_utc,
-                enddt_utc=enddt_utc,
-                obstypes=obstype,
-            )
-
-        else:
-            Modl.get_gee_dataset_data(
-                mapname=modelname,
-                metadf=metadf,
-                startdt_utc=startdt_utc,
-                enddt_utc=enddt_utc,
-                obstypes=obstype,
-            )
-
-        print(
-            f"(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})"
+        modl.import_from_gee(
+            target_obstypes=target_obstypes,
+            start_utc=startdt_utc,
+            end_utc=enddt_utc,
+            gdrive_filename=gdrive_filename,
         )
-        logger.info(
-            f"(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})"
-        )
-        return Modl
+        # safetyp
+        if modl.df.empty:
+            return None
+        else:
+            return modl
+
+    # def get_modeldata(
+    #     self,
+    #     modelname="ERA5_hourly",
+    #     modeldata=None,
+    #     obstype="temp",
+    #     stations=None,
+    #     startdt=None,
+    #     enddt=None,
+    # ):
+    #     """Make Modeldata for the Dataset.
+
+    #     Make a metobs_toolkit.Modeldata object with modeldata at the locations
+    #     of the stations present in the dataset.
+
+    #     Parameters
+    #     ----------
+    #     modelname : str, optional
+    #         Which dataset to download timeseries from. This is only used when
+    #         no modeldata is provided. The default is 'ERA5_hourly'.
+    #     modeldata : metobs_toolkit.Modeldata, optional
+    #         Use the modelname attribute and the gee information stored in the
+    #         modeldata instance to extract timeseries.
+    #     obstype : String, optional
+    #         Name of the observationtype you want to apply gap filling on. The
+    #         modeldata must contain this observation type as well. The
+    #         default is 'temp'.
+    #     stations : string or list of strings, optional
+    #         Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.
+    #     startdt : datetime.datetime, optional
+    #         Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.
+    #     enddt : datetime.datetime, optional
+    #         End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.
+
+    #     Returns
+    #     -------
+    #     Modl : metobs_toolkit.Modeldata
+    #         The extracted modeldata for period and a set of stations.
+
+    #     Note
+    #     --------
+    #     If a timezone unaware datetime is given as an argument, it is interpreted
+    #     as if it has the same timezone as the observations.
+
+    #     Note
+    #     ------
+    #     When extracting large amounts of data, the timeseries data will be
+    #     writen to a file and saved on your google drive. In this case, you need
+    #     to provide the Modeldata with the data using the .set_model_from_csv()
+    #     method.
+
+    #     Note
+    #     ------
+    #     Only 2mT extraction of ERA5 is implemented for all Modeldata instances.
+    #     To extract other variables, one must create a Modeldata instance in
+    #     advance, add or update a gee_dataset and give this Modeldata instance
+    #     to this method.
+
+    #     """
+    #     if modeldata is None:
+    #         Modl = Modeldata(modelname)
+
+    #     else:
+    #         Modl = modeldata
+    #         modelname = Modl.modelname
+
+    #     # Filters
+
+    #     if startdt is None:
+    #         startdt = self.df.index.get_level_values("datetime").min()
+    #     else:
+    #         startdt = fmt_datetime_argument(
+    #             startdt, self.settings.time_settings["timezone"]
+    #         )
+
+    #     if enddt is None:
+    #         enddt = self.df.index.get_level_values("datetime").max()
+    #     else:
+    #         enddt = fmt_datetime_argument(
+    #             enddt, self.settings.time_settings["timezone"]
+    #         )
+
+    #     # make shure bounds include required range
+    #     Model_time_res = Modl.mapinfo[Modl.modelname]["time_res"]
+    #     startdt = startdt.floor(Model_time_res)
+    #     enddt = enddt.ceil(Model_time_res)
+
+    #     if stations is not None:
+    #         if isinstance(stations, str):
+    #             metadf = self.metadf.loc[[stations]]
+    #         if isinstance(stations, list):
+    #             metadf = self.metadf.iloc[self.metadf.index.isin(stations)]
+    #     else:
+    #         metadf = self.metadf
+
+    #     # Convert to UTC
+
+    #     startdt_utc = startdt.astimezone(pytz.utc)
+    #     enddt_utc = enddt.astimezone(pytz.utc)
+
+    #     # fill modell with data
+    #     if modelname == "ERA5_hourly":
+    #         Modl.get_ERA5_data(
+    #             metadf=metadf,
+    #             startdt_utc=startdt_utc,
+    #             enddt_utc=enddt_utc,
+    #             obstypes=obstype,
+    #         )
+
+    #     else:
+    #         Modl.get_gee_dataset_data(
+    #             mapname=modelname,
+    #             metadf=metadf,
+    #             startdt_utc=startdt_utc,
+    #             enddt_utc=enddt_utc,
+    #             obstypes=obstype,
+    #         )
+
+    #     print(
+    #         f"(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})"
+    #     )
+    #     logger.info(
+    #         f"(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})"
+    #     )
+    #     return Modl
 
     def update_gaps_and_missing_from_outliers(self, obstype="temp", n_gapsize=None):
         """Interpret the outliers as missing observations.
@@ -3020,7 +3142,7 @@ class Dataset:
                 f'Set single station name = {options_kwargs["single"]} from options in template.'
             )
         if "timezone" in options_kwargs:
-            self.update_timezone(options_kwargs["timezone"])
+            self.settings.update_timezone(options_kwargs["timezone"])
             logger.info(
                 f'Set timezone = {options_kwargs["timezone"]} from options in template.'
             )
@@ -3480,107 +3602,106 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         return frac_df
 
-    def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
-        """Make an interactive plot of a google earth dataset.
+    # def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
+    #     """Make an interactive plot of a google earth dataset.
 
-        The location of the stations can be plotted on top of it.
+    #     The location of the stations can be plotted on top of it.
 
-        Parameters
-        ----------
-        gee_map : str, optional
-            The name of the dataset to use. This name should be present in the
-            settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
-            scheme should included as well. The default is 'worldcover'
-        show_stations : bool, optional
-            If True, the stations will be plotted as markers. The default is True.
-        save : bool, optional
-            If True, the map will be saved as an html file in the output_folder
-            as defined in the settings if the outputfile is not set. The
-            default is False.
-        outputfile : str, optional
-            Specify the path of the html file if save is True. If None, and save
-            is true, the html file will be saved in the output_folder. The
-            default is None.
+    #     Parameters
+    #     ----------
+    #     gee_map : str, optional
+    #         The name of the dataset to use. This name should be present in the
+    #         settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
+    #         scheme should included as well. The default is 'worldcover'
+    #     show_stations : bool, optional
+    #         If True, the stations will be plotted as markers. The default is True.
+    #     save : bool, optional
+    #         If True, the map will be saved as an html file in the output_folder
+    #         as defined in the settings if the outputfile is not set. The
+    #         default is False.
+    #     outputfile : str, optional
+    #         Specify the path of the html file if save is True. If None, and save
+    #         is true, the html file will be saved in the output_folder. The
+    #         default is None.
 
-        Returns
-        -------
-        Map : geemap.foliumap.Map
-            The folium Map instance.
+    #     Returns
+    #     -------
+    #     Map : geemap.foliumap.Map
+    #         The folium Map instance.
 
+    #     Warning
+    #     ---------
+    #     To display the interactive map a graphical backend is required, which
+    #     is often missing on (free) cloud platforms. Therefore it is better to
+    #     set save=True, and open the .html in your browser
 
-        Warning
-        ---------
-        To display the interactive map a graphical backend is required, which
-        is often missing on (free) cloud platforms. Therefore it is better to
-        set save=True, and open the .html in your browser
+    #     """
+    #     # Connect to GEE
+    #     connect_to_gee()
 
-        """
-        # Connect to GEE
-        connect_to_gee()
+    #     # get the mapinfo
+    #     mapinfo = self.settings.gee["gee_dataset_info"][gee_map]
 
-        # get the mapinfo
-        mapinfo = self.settings.gee["gee_dataset_info"][gee_map]
+    #     # Read in covers, numbers and labels
+    #     covernum = list(mapinfo["colorscheme"].keys())
+    #     colors = list(mapinfo["colorscheme"].values())
+    #     covername = [mapinfo["categorical_mapper"][covnum] for covnum in covernum]
 
-        # Read in covers, numbers and labels
-        covernum = list(mapinfo["colorscheme"].keys())
-        colors = list(mapinfo["colorscheme"].values())
-        covername = [mapinfo["categorical_mapper"][covnum] for covnum in covernum]
+    #     # create visparams
+    #     vis_params = {
+    #         "min": min(covernum),
+    #         "max": max(covernum),
+    #         "palette": colors,  # hex colors!
+    #     }
 
-        # create visparams
-        vis_params = {
-            "min": min(covernum),
-            "max": max(covernum),
-            "palette": colors,  # hex colors!
-        }
+    #     if "band_of_use" in mapinfo:
+    #         band = mapinfo["band_of_use"]
+    #     else:
+    #         band = None
 
-        if "band_of_use" in mapinfo:
-            band = mapinfo["band_of_use"]
-        else:
-            band = None
+    #     Map = folium_plot(
+    #         mapinfo=mapinfo,
+    #         band=band,
+    #         vis_params=vis_params,
+    #         labelnames=covername,
+    #         layername=gee_map,
+    #         legendname=f"{gee_map} covers",
+    #         # showmap = show,
+    #     )
 
-        Map = folium_plot(
-            mapinfo=mapinfo,
-            band=band,
-            vis_params=vis_params,
-            labelnames=covername,
-            layername=gee_map,
-            legendname=f"{gee_map} covers",
-            # showmap = show,
-        )
+    #     if show_stations:
+    #         if not _validate_metadf(self.metadf):
+    #             logger.warning(
+    #                 "Not enough coordinates information is provided to plot the stations."
+    #             )
+    #         else:
+    #             Map = add_stations_to_folium_map(Map=Map, metadf=self.metadf)
 
-        if show_stations:
-            if not _validate_metadf(self.metadf):
-                logger.warning(
-                    "Not enough coordinates information is provided to plot the stations."
-                )
-            else:
-                Map = add_stations_to_folium_map(Map=Map, metadf=self.metadf)
+    #     # Save if needed
+    #     if save:
+    #         if outputfile is None:
+    #             # Try to save in the output folder
+    #             if self.settings.IO["output_folder"] is None:
+    #                 logger.warning(
+    #                     "The outputfolder is not set up, use the update_settings to specify the output_folder."
+    #                 )
 
-        # Save if needed
-        if save:
-            if outputfile is None:
-                # Try to save in the output folder
-                if self.settings.IO["output_folder"] is None:
-                    logger.warning(
-                        "The outputfolder is not set up, use the update_settings to specify the output_folder."
-                    )
+    #             else:
+    #                 filename = f"gee_{gee_map}_figure.html"
+    #                 filepath = os.path.join(self.settings.IO["output_folder"], filename)
+    #         else:
+    #             # outputfile is specified
+    #             # 1. check extension
+    #             if not outputfile.endswith(".html"):
+    #                 outputfile = outputfile + ".html"
 
-                else:
-                    filename = f"gee_{gee_map}_figure.html"
-                    filepath = os.path.join(self.settings.IO["output_folder"], filename)
-            else:
-                # outputfile is specified
-                # 1. check extension
-                if not outputfile.endswith(".html"):
-                    outputfile = outputfile + ".html"
+    #             filepath = outputfile
 
-                filepath = outputfile
+    #         print(f"Gee Map will be save at {filepath}")
+    #         logger.info(f"Gee Map will be save at {filepath}")
+    #         Map.save(filepath)
 
-            print(f"Gee Map will be save at {filepath}")
-            logger.info(f"Gee Map will be save at {filepath}")
-            Map.save(filepath)
-
-        return Map
+    #     return Map
 
 
 def _can_qc_be_applied(dataset, obstype, checkname):

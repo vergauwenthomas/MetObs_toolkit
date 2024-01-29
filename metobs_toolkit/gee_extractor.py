@@ -15,6 +15,7 @@ import ee
 from metobs_toolkit.landcover_functions import (
     extract_pointvalues,
     extract_buffer_frequencies,
+    gee_extract_timeseries,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ class GeeExtractor:
         if self.location is None:
             return f"GeeExtractor with unknown target gee location."
         else:
-            return f"GeeExtractor with for {self.usage} use: \n \
+            return f"GeeExtractor for {self.usage} use: \n \
   location : {self.location}"
 
     def __repr__(self):
@@ -86,6 +87,7 @@ class GeeExtractor:
         if not _is_metadf_valid(metadf):
             sys.exit()
 
+        # filter to non-nan stations
         filtered_metadf = metadf[metadf[["lat", "lon"]].notnull().all(1)]
 
         # authenticate to GEE
@@ -202,6 +204,84 @@ class GeeExtractor:
         valuesdf = valuesdf.fillna(self.missing_value_label)
         return valuesdf
 
+    def extract_timeseries(
+        self, metadf, bandnames, start_utc, end_utc, gdrive_filename="era5_data"
+    ):
+
+        # check if self is valid
+        if not self.dynamical:
+            sys.exit(
+                "Time series gee extraction is only valid for dynamical (time dep.) dataset"
+            )
+        if self.time_res is None:
+            sys.exit(f"No time_res specified for {self}")
+
+        # Check if metadf is valid as coordinates
+        _ = _is_metadf_valid(metadf)
+
+        # check if bandnames is valid
+        if isinstance(bandnames, str):
+            bandnames = [bandnames]
+
+        # check if datetimes are valid
+        assert (
+            end_utc > start_utc
+        ), f"end_utc ({end_utc}) not later than start_utc ({start_utc})."
+        assert end_utc > start_utc + pd.Timedelta(
+            self.time_res
+        ), f"end_utc ({end_utc}) not later than start_utc + time res ({start_utc} + {pd.Timedelta(self.time_res)})."
+
+        # filter to non-nan stations
+        filtered_metadf = metadf[metadf[["lat", "lon"]].notnull().all(1)]
+
+        # authenticate to GEE
+        self.connect_to_gee()
+
+        # Extract timeseries
+        df = gee_extract_timeseries(
+            metadf=filtered_metadf,
+            bandnames=bandnames,
+            startdt=start_utc,
+            enddt=end_utc,
+            scale=self.scale,
+            timeres=self.time_res,
+            trg_gee_loc=self.location,
+            is_imagecollection=self.is_imagecollection,
+            is_image=self.is_image,
+            gdrive_filename=gdrive_filename,
+        )
+        if not df.empty:
+            # Format dataframe
+            df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d%H%M%S")
+            # set timezone
+            df["datetime"] = df["datetime"].dt.tz_localize("UTC")
+
+            # format index
+            df = df.set_index(["feature_idx", "datetime"])
+            df = df.sort_index()
+
+            # Add missing stations
+            missing_stations = list(
+                set(metadf.index) - set(df.index.get_level_values("feature_idx"))
+            )
+            unique_datetimes = df.index.get_level_values("datetime").unique()
+            for missing_sta in missing_stations:
+                missing_df = pd.DataFrame(index=unique_datetimes, columns=df.columns)
+                missing_df["feature_idx"] = str(missing_sta)
+                missing_df = missing_df.reset_index().set_index(
+                    ["feature_idx", "datetime"]
+                )
+                df = pd.concat([df, missing_df])
+
+            # fix the index to the original naming + datetime as multiindex
+            df = (
+                df.reset_index()
+                .rename(columns={"feature_idx": metadf.index.name})
+                .set_index([metadf.index.name, "datetime"])
+            )
+
+        return df
+
     # =============================================================================
     # default targets
     # =============================================================================
@@ -213,7 +293,6 @@ class GeeExtractor:
         self.is_image = False
         self.is_imagecollection = True
         self.dynamical = False
-
         self.missing_value_label = "Unknown"
         # Optional
         self.band_of_use = "LCZ_Filter"
@@ -237,7 +316,6 @@ class GeeExtractor:
             16: "Bare soil or sand (LCZ F)",
             17: "Water (LCZ G)",
         }
-
         self.categorical_aggregation = {}
 
     def activate_worldcover(self):
@@ -248,7 +326,6 @@ class GeeExtractor:
         self.is_image = False
         self.is_imagecollection = True
         self.dynamical = False
-
         self.missing_value_label = np.nan
         # Optional
         self.band_of_use = "Map"
@@ -266,12 +343,27 @@ class GeeExtractor:
             95: "Mangroves",
             100: "Moss and lichen",
         }
-
         self.categorical_aggregation = {
             "water": [70, 80, 90, 95],
             "pervious": [10, 20, 30, 40, 60, 100],
             "impervious": [50],
         }
+
+    def activate_ERA5(self):
+        self.location = "ECMWF/ERA5_LAND/HOURLY"
+        self.usage = "ERA5"
+        self.scale = 2500
+        self.value_type = "numeric"
+        self.is_image = False
+        self.is_imagecollection = True
+        self.dynamical = True
+        self.missing_value_label = np.nan
+        # Optional
+        self.time_res = "1H"
+        self.credentials = ""
+
+        self.categorical_map = {}
+        self.categorical_aggregation = {}
 
     def activate_DEM(self):
 
@@ -282,7 +374,6 @@ class GeeExtractor:
         self.is_image = True
         self.is_imagecollection = False
         self.dynamical = False
-
         self.missing_value_label = np.nan
         # Optional
         self.band_of_use = "elevation"
@@ -315,3 +406,107 @@ def _is_metadf_valid(metadf):
 
     # TODO check if lat and lon columns are numerical
     return True
+
+
+# todo fix these methods
+# def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
+#     """Make an interactive plot of a google earth dataset.
+
+#     The location of the stations can be plotted on top of it.
+
+#     Parameters
+#     ----------
+#     gee_map : str, optional
+#         The name of the dataset to use. This name should be present in the
+#         settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
+#         scheme should included as well. The default is 'worldcover'
+#     show_stations : bool, optional
+#         If True, the stations will be plotted as markers. The default is True.
+#     save : bool, optional
+#         If True, the map will be saved as an html file in the output_folder
+#         as defined in the settings if the outputfile is not set. The
+#         default is False.
+#     outputfile : str, optional
+#         Specify the path of the html file if save is True. If None, and save
+#         is true, the html file will be saved in the output_folder. The
+#         default is None.
+
+#     Returns
+#     -------
+#     Map : geemap.foliumap.Map
+#         The folium Map instance.
+
+
+#     Warning
+#     ---------
+#     To display the interactive map a graphical backend is required, which
+#     is often missing on (free) cloud platforms. Therefore it is better to
+#     set save=True, and open the .html in your browser
+
+#     """
+#     # Connect to GEE
+#     connect_to_gee()
+
+#     # get the mapinfo
+#     mapinfo = self.settings.gee["gee_dataset_info"][gee_map]
+
+#     # Read in covers, numbers and labels
+#     covernum = list(mapinfo["colorscheme"].keys())
+#     colors = list(mapinfo["colorscheme"].values())
+#     covername = [mapinfo["categorical_mapper"][covnum] for covnum in covernum]
+
+#     # create visparams
+#     vis_params = {
+#         "min": min(covernum),
+#         "max": max(covernum),
+#         "palette": colors,  # hex colors!
+#     }
+
+#     if "band_of_use" in mapinfo:
+#         band = mapinfo["band_of_use"]
+#     else:
+#         band = None
+
+#     Map = folium_plot(
+#         mapinfo=mapinfo,
+#         band=band,
+#         vis_params=vis_params,
+#         labelnames=covername,
+#         layername=gee_map,
+#         legendname=f"{gee_map} covers",
+#         # showmap = show,
+#     )
+
+#     if show_stations:
+#         if not _validate_metadf(self.metadf):
+#             logger.warning(
+#                 "Not enough coordinates information is provided to plot the stations."
+#             )
+#         else:
+#             Map = add_stations_to_folium_map(Map=Map, metadf=self.metadf)
+
+#     # Save if needed
+#     if save:
+#         if outputfile is None:
+#             # Try to save in the output folder
+#             if self.settings.IO["output_folder"] is None:
+#                 logger.warning(
+#                     "The outputfolder is not set up, use the update_settings to specify the output_folder."
+#                 )
+
+#             else:
+#                 filename = f"gee_{gee_map}_figure.html"
+#                 filepath = os.path.join(self.settings.IO["output_folder"], filename)
+#         else:
+#             # outputfile is specified
+#             # 1. check extension
+#             if not outputfile.endswith(".html"):
+#                 outputfile = outputfile + ".html"
+
+#             filepath = outputfile
+
+#         print(f"Gee Map will be save at {filepath}")
+#         logger.info(f"Gee Map will be save at {filepath}")
+#         Map.save(filepath)
+
+#     return Map
