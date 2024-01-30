@@ -48,7 +48,7 @@ class Modeldata:
         """Initialize modeldata."""
         self.df = init_multiindexdf()  # Holds the timeseries coming from a model
 
-        _ = _is_metadf_valid(metadf)
+        metadf = _format_metadf(metadf)
         self.metadf = metadf  # Holds the metadata for where modeldate is extracted
         self.obstypes = []
 
@@ -86,6 +86,14 @@ class Modeldata:
         """Print out detailed information on the Modeldata."""
         print(str(self))
 
+    def _get_present_obstypes(self):
+        """Return a list of ModelObstypes that are present in the df."""
+        if self.df.empty:
+            return []
+        return [
+            self.obstypes[col] for col in self.df.columns if col in self.obstypes.keys()
+        ]
+
     def add_obstype(self, Modelobstype):
         """
         TODO: update docstring
@@ -115,7 +123,9 @@ class Modeldata:
             ), f"{Modelobstype.name} already present in the known ModelObstypes: {self.obstypes}"
             # add Modelobstype
             self.obstypes[Modelobstype.name] = Modelobstype
-            logger.info(f"{Modelobstype.name} added to the known observation types.")
+            logger.info(
+                f"{Modelobstype.name} added to the known observation types as ModelObstype_Vectorfield."
+            )
 
         elif isinstance(Modelobstype, ModelObstype):
             assert (
@@ -123,7 +133,9 @@ class Modeldata:
             ), f"{Modelobstype.name} already present in the known Modelobstypes: {self.obstypes}"
             # add Modelobstype
             self.obstypes[Modelobstype.name] = Modelobstype
-            logger.info(f"{Modelobstype.name} added to the known observation types.")
+            logger.info(
+                f"{Modelobstype.name} added to the known observation types as ModelObstype."
+            )
 
         else:
             if isinstance(Modelobstype, Obstype_class):
@@ -175,6 +187,7 @@ class Modeldata:
         method.
 
         """
+        logger.info(f"Importing {target_obstypes} from gee.")
         # tests if gee is set as extractor
         assert isinstance(
             self.extractor, GeeExtractor
@@ -204,7 +217,9 @@ class Modeldata:
                     sys.exit(f"{obs} not a valid input type for target_obstypes.")
         else:
             sys.exit(f"{target_obstypes} not a valid input type for target_obstypes.")
-
+        logger.debug(
+            f"Following obstypes will be extracted from gee: {target_obstypes_list}"
+        )
         assert bool(target_obstypes_list), "No target_obstypes are found."
 
         # get bandnmaes for target obstypes
@@ -430,7 +445,7 @@ class Modeldata:
     # =============================================================================
     # Helpers
     # =============================================================================
-    def sample_data_as(self, target_df, interp_method="time", **kwargs):
+    def sample_data_as(self, target, interp_method="time", **kwargs):
         """Resample the modeldata to a target.
 
         This methods will convert the modeldata to the same index as present
@@ -443,7 +458,7 @@ class Modeldata:
 
         Parameters
         ----------
-        target_df : pandas.DataFrame
+        target : pandas.DataFrame, or pandas.index
             The pandas dataframe with the target index to convert the modeldata
             to.
         interp_method : str, optional
@@ -459,15 +474,32 @@ class Modeldata:
         assert (
             not self.df.empty
         ), f"Sample_data_as not possible because no modeldata found."
-        assert set(target_df.index.names) == set(
+
+        if isinstance(target, pd.DataFrame):
+            target_idx = target.index
+        elif isinstance(target, pd.Index):
+            target_idx = target
+
+        assert set(target_idx.names) == set(
             self.df.index.names
         ), f"sample data to target not possible since index levels are not the same for modeldata and target dataframe."
 
-        # Reindex to target index (this is timzone awere, so no worries)
-        target_modeldf = self.df.reindex(
-            target_df.index,
-            method=None,
+        # Convert model to tz of the target
+        target_tz = target_idx.get_level_values("datetime").tz
+        target_modeldf = (
+            self.df.reset_index()
+            .set_index("datetime")
+            .tz_convert(target_tz)
+            .reset_index()
+            .set_index(["name", "datetime"])
         )
+
+        # get target idices not in modeldf and convert to dataframe
+        tg_idx_new = target_idx[~target_idx.isin(target_modeldf.index)]
+        tg_idx_new_df = pd.DataFrame(index=tg_idx_new)
+
+        # add the missing idices to the modeldata with Nans as values
+        target_modeldf = pd.concat([target_modeldf, tg_idx_new_df]).sort_index()
 
         # iterpolate the nan values (groupby name first)
         target_modeldf = target_modeldf.reset_index().set_index("datetime")
@@ -479,6 +511,9 @@ class Modeldata:
         )
 
         target_modeldf = target_modeldf.drop(columns=["name"])
+        # subset to target idices
+        target_modeldf = target_modeldf.loc[target_idx]
+
         return target_modeldf
 
     # def _conv_to_timezone(self, tzstr):
@@ -504,76 +539,6 @@ class Modeldata:
     #     df = df.set_index(["name", "datetime"])
     #     self.df = df
     #     self.df_tz = tzstr
-
-    # def set_model_from_csv(self, csvpath):
-    #     """Import timeseries data that is stored in a csv file.
-
-    #     The name of the gee dataset the timeseries are coming from must be the
-    #     same as the .modelname attribute of the Modeldata.
-
-    #     The timeseries will be formatted and converted to standard toolkit
-    #     units.
-
-    #     Parameters
-    #     ----------
-    #     csvpath : str
-    #         Path of the csv file containing the modeldata timeseries.
-
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-    #     # tests ----
-    #     if self.modelname not in self.mapinfo.keys():
-    #         logger.warning(f"{self.modelname} is not found in the gee datasets.")
-    #         return
-
-    #     # 1. Read csv and set timezone
-    #     df = pd.read_csv(csvpath, sep=",")
-    #     # format datetime
-    #     df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d%H%M%S")
-    #     # (assume all gee dataset are in UTC)
-    #     df["datetime"] = df["datetime"].dt.tz_localize("UTC")
-
-    #     # 2. Format dataframe
-    #     # format index
-    #     df = df.set_index(["name", "datetime"])
-    #     df = df.sort_index()
-
-    #     # make a bandname --> tlk name mapper
-    #     bandname_mapper = {}
-    #     for known_obstype in self.obstypes.values():
-    #         bandname_mapper.update(known_obstype.get_bandname_mapper(self.modelname))
-
-    #     # rename to values to toolkit space
-    #     df = df.rename(columns=bandname_mapper)
-
-    #     # 3. update attributes
-    #     self.df = df
-    #     self.df_tz = "UTC"
-
-    #     # 4. Find which obstypes are present
-    #     data_present_obstypes = []
-    #     for col in self.df.columns:
-    #         if col in self.obstypes.keys():
-    #             # column is a regular obstype
-    #             data_present_obstypes.append(col)
-    #         else:
-    #             # check if column represents a vector component
-    #             for known_obs in self.obstypes.values():
-    #                 if isinstance(known_obs, ModelObstype_Vectorfield):
-    #                     comps = [known_obs.get_u_column(), known_obs.get_v_column()]
-    #                     if col in comps:
-    #                         data_present_obstypes.append(known_obs.name)
-    #     data_present_obstypes = list(set(data_present_obstypes))
-    #     # A. scalar obstypes (same name as column)
-
-    #     # 5. Convert units
-    #     for obstype in data_present_obstypes:
-    #         self.convert_units_to_tlk(obstype)
-    #         if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
-    #             self.exploid_2d_vector_field(obstype)
 
     def interpolate_modeldata(self, to_multiidx):
         """Interpolate modeldata in time.
@@ -668,8 +633,8 @@ class Modeldata:
 
         Parameters
         ----------
-        obstype_model : string, optional
-             Fieldname of the Modeldata to visualise. The default is 'temp'.
+        obstype_model : string or ModelObstype, optional
+            The observation to plot. The default is 'temp'.
         dataset : metobs_toolkit.Dataset, optional
             A Dataset instance with observations plotted in the same figure.
             Observations are represented by solid line and modeldata by dashed
@@ -710,29 +675,46 @@ class Modeldata:
         """
         logger.info(f"Make {obstype_model}-timeseries plot of model data")
 
+        # type casters
+        if isinstance(obstype_model, str):
+            assert (
+                obstype_model in self.obstypes
+            ), f"{obstype_model} not in the known obstypes of the Modeldata: {self.obstypes}"
+            obstype_model = self.obstypes[obstype_model]
+        if isinstance(obstype_dataset, str):
+            assert not (
+                dataset is None
+            ), "You cannot provide a obstype_dataset without providing a dataset"
+            assert (
+                obstype_dataset in dataset.obstypes
+            ), f"{obstype_dataset} not in the known obstypes of the Dataset: {dataset.obstypes}"
+            obstype_dataset = dataset.obstypes[obstype_dataset]
+            assert (
+                obstype_dataset.name in dataset.df.columns
+            ), f"{obstype_dataset} not found in the Modeldata data: {dataset.df.columns}"
+
+        assert not self.df.empty, "Make plot not possible for empty Modeldata"
+
+        # Check of obstype is present in the df
+        assert (
+            obstype_model.name in self.df.columns
+        ), f"{obstype_model} not found in the Modeldata data: {self.df.columns}"
+
         # Basic test
-        if obstype_model not in self.df.columns:
-            logger.warning(
-                f"{obstype_model} is not foud in the modeldata df (columns = {self.df.columns})."
-            )
-            return
-        if self.df.empty:
-            logger.warning("The modeldata is empty.")
-            return
         if obstype_dataset is None:
             obstype_dataset = obstype_model
 
         if dataset is not None:
-            if obstype_dataset not in dataset.df.columns:
-                logger.warning(f"{obstype_dataset} is not foud in the Dataframe df.")
-                return
+            assert (
+                obstype_dataset.name in dataset.df.columns
+            ), f"{obstype_dataset} is not foud in the Dataframe df."
 
         model_df = self.df
 
         # ------ filter model ------------
 
         # Filter on obstype
-        model_df = model_df[[obstype_model]]
+        model_df = model_df[[obstype_model.name]]
 
         # Subset on stationnames
         if stationnames is not None:
@@ -749,7 +731,7 @@ class Modeldata:
             mergedf = dataset.combine_all_to_obsspace()
 
             # subset to obstype
-            mergedf = xs_save(mergedf, obstype_dataset, level="obstype")
+            mergedf = xs_save(mergedf, obstype_dataset.name, level="obstype")
 
             # Subset on stationnames
             if stationnames is not None:
@@ -761,12 +743,12 @@ class Modeldata:
             mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
         # Generate ylabel
-        y_label = self.obstypes[obstype_model].get_plot_y_label(mapname=self.modelname)
+        y_label = obstype_model.get_plot_y_label()
 
         # Generate title
-        title = f"{self.modelname}"
+        title = f"{self.extractor.usage} data for {obstype_dataset.name} from {self.extractor.location}"
         if dataset is not None:
-            title = f"{title} and {self.obstypes[obstype_dataset].name} observations."
+            title = f" {title} \n and {obstype_dataset.name} observations."
 
         # make plot of the observations
         if dataset is not None:
@@ -786,7 +768,7 @@ class Modeldata:
             # Make plot of the model on the previous axes
             ax, col_map = model_timeseries_plot(
                 df=model_df,
-                obstype=obstype_model,
+                obstypename=obstype_model.name,
                 title=title,
                 ylabel=y_label,
                 settings=self._settings,
@@ -800,7 +782,7 @@ class Modeldata:
             # Make plot of model on empty axes
             ax, _colmap = model_timeseries_plot(
                 df=model_df,
-                obstype=obstype_model,
+                obstypename=obstype_model.name,
                 title=title,
                 ylabel=y_label,
                 settings=self._settings,
@@ -810,6 +792,15 @@ class Modeldata:
             )
 
         return ax
+
+
+def _format_metadf(metadf):
+    _ = _is_metadf_valid(metadf)
+
+    if metadf.index.name is None:
+        if not isinstance(metadf.index, pd.MultiIndex):
+            metadf.index.name = "name"
+    return metadf
 
 
 def _is_metadf_valid(metadf):

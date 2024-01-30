@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jan 26 10:14:38 2024
@@ -7,6 +6,7 @@ Created on Fri Jan 26 10:14:38 2024
 """
 
 import sys
+import os
 import logging
 import numpy as np
 import pandas as pd
@@ -17,6 +17,8 @@ from metobs_toolkit.landcover_functions import (
     extract_buffer_frequencies,
     gee_extract_timeseries,
 )
+
+from metobs_toolkit.plotting_functions import folium_plot, add_stations_to_folium_map
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,7 @@ class GeeExtractor:
         self.categorical_map = (
             {}
         )  # dictionary to map categories {gee_Value: target_str}
+        self.colorscheme = {}
         self.categorical_aggregation = (
             {}
         )  # dictionary to aggregate categories to {target_str : [list of gee_values]}
@@ -64,6 +67,7 @@ class GeeExtractor:
 
     def connect_to_gee(self, **kwargs):
         """Authenticate to GEE if needed."""
+        logger.debug("Authenticate to gee")
         if not ee.data._credentials:  # check if ee connection is initialized
             ee.Authenticate(**kwargs)
             ee.Initialize()
@@ -184,6 +188,7 @@ class GeeExtractor:
                 sys.exit(
                     "Cannot aggregate categorical values, since no categorical_aggregation is defined."
                 )
+            logger.debug(f"Aggregate categories using {self.categorical_aggregation}.")
             aggdf = pd.DataFrame(index=valuesdf.index)
             for aggcat, coverlist in self.categorical_aggregation.items():
                 present_agg_classes = [
@@ -286,6 +291,7 @@ class GeeExtractor:
     # default targets
     # =============================================================================
     def activate_LCZ(self):
+        logger.info("Activate LCZ map on the GeeExtractor.")
         self.location = "RUB/RUBCLIM/LCZ/global_lcz_map/v1"
         self.usage = "LCZ"
         self.scale = 100
@@ -319,6 +325,7 @@ class GeeExtractor:
         self.categorical_aggregation = {}
 
     def activate_worldcover(self):
+        logger.info("Activate worldcover map on the GeeExtractor.")
         self.location = "ESA/WorldCover/v200"
         self.usage = "landcover"
         self.scale = 10
@@ -343,6 +350,20 @@ class GeeExtractor:
             95: "Mangroves",
             100: "Moss and lichen",
         }
+        self.colorscheme = {
+            10: "006400",
+            20: "ffbb22",
+            30: "ffff4c",
+            40: "f096ff",
+            50: "fa0000",
+            60: "b4b4b4",
+            70: "f0f0f0",
+            80: "0064c8",
+            90: "0096a0",
+            95: "00cf75",
+            100: "fae6a0",
+        }
+
         self.categorical_aggregation = {
             "water": [70, 80, 90, 95],
             "pervious": [10, 20, 30, 40, 60, 100],
@@ -350,6 +371,7 @@ class GeeExtractor:
         }
 
     def activate_ERA5(self):
+        logger.info("Activate ERA5 LAND on the GeeExtractor.")
         self.location = "ECMWF/ERA5_LAND/HOURLY"
         self.usage = "ERA5"
         self.scale = 2500
@@ -366,7 +388,7 @@ class GeeExtractor:
         self.categorical_aggregation = {}
 
     def activate_DEM(self):
-
+        logger.info("Activate DEM map on the GeeExtractor.")
         self.location = "CGIAR/SRTM90_V4"
         self.usage = "elevation"
         self.scale = 100
@@ -378,6 +400,112 @@ class GeeExtractor:
         # Optional
         self.band_of_use = "elevation"
         self.credentials = "SRTM Digital Elevation Data Version 4"
+
+    def make_gee_plot(self, metadf=None, targetfile=None, overwrite=False):
+        """Make an interactive plot of a google earth dataset.
+
+        The location of the stations can be plotted on top of it.
+
+        Parameters
+        ----------
+        gee_map : str, optional
+            The name of the dataset to use. This name should be present in the
+            settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
+            scheme should included as well. The default is 'worldcover'
+        show_stations : bool, optional
+            If True, the stations will be plotted as markers. The default is True.
+        save : bool, optional
+            If True, the map will be saved as an html file in the output_folder
+            as defined in the settings if the outputfile is not set. The
+            default is False.
+        outputfile : str, optional
+            Specify the path of the html file if save is True. If None, and save
+            is true, the html file will be saved in the output_folder. The
+            default is None.
+
+        Returns
+        -------
+        Map : geemap.foliumap.Map
+            The folium Map instance.
+
+
+        Warning
+        ---------
+        To display the interactive map a graphical backend is required, which
+        is often missing on (free) cloud platforms. Therefore it is better to
+        set save=True, and open the .html in your browser
+
+        """
+        # Connect to GEE
+        self.connect_to_gee()
+
+        assert bool(
+            self.colorscheme
+        ), f"make_gee_plot is only valid if a colorscheme is defined for the covers."
+        assert bool(
+            self.categorical_map
+        ), f"make_gee_plot is only valid for categorical maps."
+
+        # test metadf attribute
+        if not metadf is None:
+            assert isinstance(
+                metadf, pd.DataFrame
+            ), f"{metadf} is not a pandas.DataFrame."
+            assert (
+                "lat" in metadf.columns
+            ), f" lat not found in the metadf columns: {metadf.columns}"
+            assert (
+                "lon" in metadf.columns
+            ), f" lon not found in the metadf columns: {metadf.columns}"
+            assert not (metadf.empty), "metadf is emtpy."
+
+        # Test targetfile attribute
+        if not targetfile is None:
+            if not overwrite:
+                assert not (
+                    os.path.exists(str(targetfile))
+                ), f"{targetfile} already exists. Use overwrite=True to overwrite."
+            else:
+                if os.path.exists(str(targetfile)):
+                    os.remove(targetfile)
+            if not targetfile.endswith(".html"):
+                targetfile = f"{targetfile}.html"
+
+        # Read in covers, numbers and labels
+        covernum = list(self.colorscheme.keys())
+        colors = list(self.colorscheme.values())
+        covername = [self.categorical_map[covnum] for covnum in covernum]
+
+        # create visparams
+        vis_params = {
+            "min": min(covernum),
+            "max": max(covernum),
+            "palette": colors,  # hex colors!
+        }
+
+        Map = folium_plot(
+            trg_location=self.location,
+            is_image=self.is_image,
+            is_imagecollection=self.is_imagecollection,
+            band=self.band_of_use,
+            vis_params=vis_params,
+            labelnames=covername,
+            layername=self.usage,
+            basemap="SATELLITE",
+            legendname=f"{self.usage} covers",
+            legendpos="bottomleft",
+        )
+
+        if not metadf is None:
+            Map = add_stations_to_folium_map(Map=Map, metadf=metadf)
+
+        # Save if needed
+        if not (targetfile is None):
+            print(f"Gee Map will be save at {targetfile}")
+            logger.info(f"Gee Map will be save at {targetfile}")
+            Map.save(targetfile)
+
+        return Map
 
 
 # =============================================================================
@@ -409,104 +537,3 @@ def _is_metadf_valid(metadf):
 
 
 # todo fix these methods
-# def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
-#     """Make an interactive plot of a google earth dataset.
-
-#     The location of the stations can be plotted on top of it.
-
-#     Parameters
-#     ----------
-#     gee_map : str, optional
-#         The name of the dataset to use. This name should be present in the
-#         settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
-#         scheme should included as well. The default is 'worldcover'
-#     show_stations : bool, optional
-#         If True, the stations will be plotted as markers. The default is True.
-#     save : bool, optional
-#         If True, the map will be saved as an html file in the output_folder
-#         as defined in the settings if the outputfile is not set. The
-#         default is False.
-#     outputfile : str, optional
-#         Specify the path of the html file if save is True. If None, and save
-#         is true, the html file will be saved in the output_folder. The
-#         default is None.
-
-#     Returns
-#     -------
-#     Map : geemap.foliumap.Map
-#         The folium Map instance.
-
-
-#     Warning
-#     ---------
-#     To display the interactive map a graphical backend is required, which
-#     is often missing on (free) cloud platforms. Therefore it is better to
-#     set save=True, and open the .html in your browser
-
-#     """
-#     # Connect to GEE
-#     connect_to_gee()
-
-#     # get the mapinfo
-#     mapinfo = self.settings.gee["gee_dataset_info"][gee_map]
-
-#     # Read in covers, numbers and labels
-#     covernum = list(mapinfo["colorscheme"].keys())
-#     colors = list(mapinfo["colorscheme"].values())
-#     covername = [mapinfo["categorical_mapper"][covnum] for covnum in covernum]
-
-#     # create visparams
-#     vis_params = {
-#         "min": min(covernum),
-#         "max": max(covernum),
-#         "palette": colors,  # hex colors!
-#     }
-
-#     if "band_of_use" in mapinfo:
-#         band = mapinfo["band_of_use"]
-#     else:
-#         band = None
-
-#     Map = folium_plot(
-#         mapinfo=mapinfo,
-#         band=band,
-#         vis_params=vis_params,
-#         labelnames=covername,
-#         layername=gee_map,
-#         legendname=f"{gee_map} covers",
-#         # showmap = show,
-#     )
-
-#     if show_stations:
-#         if not _validate_metadf(self.metadf):
-#             logger.warning(
-#                 "Not enough coordinates information is provided to plot the stations."
-#             )
-#         else:
-#             Map = add_stations_to_folium_map(Map=Map, metadf=self.metadf)
-
-#     # Save if needed
-#     if save:
-#         if outputfile is None:
-#             # Try to save in the output folder
-#             if self.settings.IO["output_folder"] is None:
-#                 logger.warning(
-#                     "The outputfolder is not set up, use the update_settings to specify the output_folder."
-#                 )
-
-#             else:
-#                 filename = f"gee_{gee_map}_figure.html"
-#                 filepath = os.path.join(self.settings.IO["output_folder"], filename)
-#         else:
-#             # outputfile is specified
-#             # 1. check extension
-#             if not outputfile.endswith(".html"):
-#                 outputfile = outputfile + ".html"
-
-#             filepath = outputfile
-
-#         print(f"Gee Map will be save at {filepath}")
-#         logger.info(f"Gee Map will be save at {filepath}")
-#         Map.save(filepath)
-
-#     return Map

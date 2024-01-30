@@ -114,10 +114,7 @@
 
 <span class="kn">from</span> <span class="nn">metobs_toolkit.printing</span> <span class="kn">import</span> <span class="n">print_dataset_info</span>
 <span class="kn">from</span> <span class="nn">metobs_toolkit.landcover_functions</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">connect_to_gee</span><span class="p">,</span>
-    <span class="n">lcz_extractor</span><span class="p">,</span>
-    <span class="n">height_extractor</span><span class="p">,</span>
-    <span class="n">lc_fractions_extractor</span><span class="p">,</span>
+    <span class="c1"># connect_to_gee,</span>
     <span class="n">_validate_metadf</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -125,8 +122,6 @@
     <span class="n">geospatial_plot</span><span class="p">,</span>
     <span class="n">timeseries_plot</span><span class="p">,</span>
     <span class="n">qc_stats_pie</span><span class="p">,</span>
-    <span class="n">folium_plot</span><span class="p">,</span>
-    <span class="n">add_stations_to_folium_map</span><span class="p">,</span>
     <span class="n">make_folium_html_plot</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -179,10 +174,11 @@
 
 <span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">tlk_obstypes</span>
 <span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">Obstype</span> <span class="k">as</span> <span class="n">Obstype_class</span>
-
+<span class="kn">from</span> <span class="nn">metobs_toolkit.obstype_modeldata</span> <span class="kn">import</span> <span class="n">ModelObstype</span><span class="p">,</span> <span class="n">ModelObstype_Vectorfield</span>
 
 <span class="kn">from</span> <span class="nn">metobs_toolkit.analysis</span> <span class="kn">import</span> <span class="n">Analysis</span>
 <span class="kn">from</span> <span class="nn">metobs_toolkit.modeldata</span> <span class="kn">import</span> <span class="n">Modeldata</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.gee_extractor</span> <span class="kn">import</span> <span class="n">GeeExtractor</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -517,7 +513,7 @@
 
 <div class="viewcode-block" id="Dataset.add_new_observationtype">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset.Dataset.add_new_observationtype">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_new_observationtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Obstype</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add_new_observationtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Obstype</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new observation type to the known observation types.</span>
 
 <span class="sd">        The observation can only be added if it is not already present in the</span>
@@ -526,13 +522,17 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        Obstype : metobs_toolkit.obstype.Obstype</span>
+<span class="sd">        Obstype : Obstype, ModelObstype or ModelObstype_Vectorfield</span>
 <span class="sd">            The new Obstype to add.</span>
+<span class="sd">        overwrite : bool, optional</span>
+<span class="sd">            If True, the new observation will overwrite the existing observation</span>
+<span class="sd">            with the same name, if it exits. The default is False.</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        None.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># Test if the obstype is of the correct class.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Obstype</span><span class="p">,</span> <span class="n">Obstype_class</span><span class="p">):</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
@@ -1138,133 +1138,254 @@
     <span class="c1"># =============================================================================</span>
     <span class="c1">#   Gap Filling</span>
     <span class="c1"># =============================================================================</span>
-<div class="viewcode-block" id="Dataset.get_modeldata">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset.Dataset.get_modeldata">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_modeldata</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">modelname</span><span class="o">=</span><span class="s2">&quot;ERA5_hourly&quot;</span><span class="p">,</span>
-        <span class="n">modeldata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
-        <span class="n">stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make Modeldata for the Dataset.</span>
 
-<span class="sd">        Make a metobs_toolkit.Modeldata object with modeldata at the locations</span>
-<span class="sd">        of the stations present in the dataset.</span>
+<div class="viewcode-block" id="Dataset.get_equivalent_era5_modeldata">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset.Dataset.get_equivalent_era5_modeldata">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_equivalent_era5_modeldata</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">get_obstypes</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">gdrive_filename</span><span class="o">=</span><span class="s2">&quot;era5_data&quot;</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the equivalent (space, time, observationtype) ERA5 timeseries from GEE.</span>
+
+<span class="sd">        This methods is a wrapper for extracting ERA5 modeldata. Be aware that</span>
+<span class="sd">        not all known (by the dataset) Obstypes have a corresponding ModelObstype!</span>
+
+<span class="sd">        If you want to extract non-default ModelObstypes you can:</span>
+<span class="sd">            1. Manually create a Modeldata object, and add your custom ModelObstypes to it.</span>
+<span class="sd">            2. use the .add_new_observationtype() method and add your custom ModelObstype to this Dataset.</span>
+<span class="sd">            All ModelObstypes stored in this Dataset will be overloaded to the</span>
+<span class="sd">            newly created Modeldata.</span>
+
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        modelname : str, optional</span>
-<span class="sd">            Which dataset to download timeseries from. This is only used when</span>
-<span class="sd">            no modeldata is provided. The default is &#39;ERA5_hourly&#39;.</span>
-<span class="sd">        modeldata : metobs_toolkit.Modeldata, optional</span>
-<span class="sd">            Use the modelname attribute and the gee information stored in the</span>
-<span class="sd">            modeldata instance to extract timeseries.</span>
-<span class="sd">        obstype : String, optional</span>
-<span class="sd">            Name of the observationtype you want to apply gap filling on. The</span>
-<span class="sd">            modeldata must contain this observation type as well. The</span>
-<span class="sd">            default is &#39;temp&#39;.</span>
-<span class="sd">        stations : string or list of strings, optional</span>
-<span class="sd">            Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.</span>
-<span class="sd">        startdt : datetime.datetime, optional</span>
-<span class="sd">            Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.</span>
-<span class="sd">        enddt : datetime.datetime, optional</span>
-<span class="sd">            End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.</span>
+<span class="sd">        get_obstypes : &#39;all&#39;, &#39;observations&#39;, ModelObstype, ModelObstype_Vectorfield, or a list of them, optional</span>
+<span class="sd">            This arguments sets which corresponding bands are extracted from</span>
+<span class="sd">            ERA5. If &#39;all&#39;, all known ModelObstypes are extracted. if</span>
+<span class="sd">            &#39;observations&#39;, all knonw ModelObstypes that overlap with the</span>
+<span class="sd">            present Obstyps are extracted. If (a list of ) ModelObstype or</span>
+<span class="sd">            ModelObstype_Vectorfields are given, these are extracted. The</span>
+<span class="sd">            default is &#39;all&#39;.</span>
+<span class="sd">        gdrive_filename : str optional</span>
+<span class="sd">            The name of the google drive file you want to write data to. See</span>
+<span class="sd">            Note for more detatils.  The default is &#39;era5_data&#39;.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Modl : metobs_toolkit.Modeldata</span>
-<span class="sd">            The extracted modeldata for period and a set of stations.</span>
-
-<span class="sd">        Note</span>
-<span class="sd">        --------</span>
-<span class="sd">        If a timezone unaware datetime is given as an argument, it is interpreted</span>
-<span class="sd">        as if it has the same timezone as the observations.</span>
+<span class="sd">        modl : metobs_toolkit.Modeldata or None</span>
+<span class="sd">            If the data is available, a Modeldata is returned. If the modeldata</span>
+<span class="sd">            is writen to file, no modeldata can be constructed and None is</span>
+<span class="sd">            returned.</span>
 
 <span class="sd">        Note</span>
 <span class="sd">        ------</span>
 <span class="sd">        When extracting large amounts of data, the timeseries data will be</span>
 <span class="sd">        writen to a file and saved on your google drive. In this case, you need</span>
-<span class="sd">        to provide the Modeldata with the data using the .set_model_from_csv()</span>
+<span class="sd">        to provide the Modeldata with the data using the .import_gee_data_from_csv()</span>
 <span class="sd">        method.</span>
 
-<span class="sd">        Note</span>
-<span class="sd">        ------</span>
-<span class="sd">        Only 2mT extraction of ERA5 is implemented for all Modeldata instances.</span>
-<span class="sd">        To extract other variables, one must create a Modeldata instance in</span>
-<span class="sd">        advance, add or update a gee_dataset and give this Modeldata instance</span>
-<span class="sd">        to this method.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">modeldata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">Modl</span> <span class="o">=</span> <span class="n">Modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span>
+        <span class="p">),</span> <span class="s2">&quot;No equivalent era5 modeldata can be found for an empty Dataset.&quot;</span>
+
+        <span class="c1"># Setup of the GEE extractor</span>
+        <span class="n">extractor</span> <span class="o">=</span> <span class="n">GeeExtractor</span><span class="p">()</span>
+        <span class="n">extractor</span><span class="o">.</span><span class="n">activate_ERA5</span><span class="p">()</span>
+
+        <span class="c1"># Initiate a modeldata instance</span>
+
+        <span class="n">modl</span> <span class="o">=</span> <span class="n">Modeldata</span><span class="p">(</span><span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span> <span class="n">extractor</span><span class="o">=</span><span class="n">extractor</span><span class="p">)</span>
+
+        <span class="c1"># get start and enddtate</span>
+        <span class="n">startdt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">startdt_utc</span> <span class="o">=</span> <span class="n">startdt</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
+        <span class="n">startdt_utc</span> <span class="o">=</span> <span class="n">startdt_utc</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">modl</span><span class="o">.</span><span class="n">extractor</span><span class="o">.</span><span class="n">time_res</span><span class="p">)</span>
+
+
+        <span class="n">enddt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">enddt_utc</span> <span class="o">=</span> <span class="n">enddt</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
+        <span class="n">enddt_utc</span> <span class="o">=</span> <span class="n">enddt_utc</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">modl</span><span class="o">.</span><span class="n">extractor</span><span class="o">.</span><span class="n">time_res</span><span class="p">)</span>
+
+        <span class="c1"># Updat the obstypes of the modl by modelobstypes in dataset</span>
+        <span class="n">overload_obs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">obsnam</span><span class="p">,</span> <span class="n">obs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">ModelObstype</span><span class="p">):</span>
+                <span class="n">overload_obs</span><span class="p">[</span><span class="n">obsnam</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">):</span>
+                <span class="n">overload_obs</span><span class="p">[</span><span class="n">obsnam</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c1"># Do not overload regular Obstypes</span>
+
+        <span class="n">modl</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">overload_obs</span><span class="p">)</span>  <span class="c1"># will overwrite if already present!!</span>
+
+        <span class="c1"># select the relevant obstypes</span>
+        <span class="k">if</span> <span class="n">get_obstypes</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="n">target_obstypes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">modl</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="k">elif</span> <span class="n">get_obstypes</span> <span class="o">==</span> <span class="s2">&quot;observations&quot;</span><span class="p">:</span>
+            <span class="n">present_observation_obstypes</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+            <span class="p">]</span>
+            <span class="n">target_obstypes</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">val</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">modl</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">present_observation_obstypes</span>
+            <span class="p">]</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">get_obstypes</span><span class="p">,</span> <span class="n">ModelObstype</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">get_obstypes</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">modl</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">modl</span><span class="o">.</span><span class="n">add_obstype</span><span class="p">(</span><span class="n">get_obstypes</span><span class="p">)</span>
+            <span class="n">target_obstypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_obstypes</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">get_obstypes</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">target_obstypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_obstypes</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">get_obstypes</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">ModelObstype</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obs</span><span class="si">}</span><span class="s2"> is not a ModelObstype.&quot;</span>
+                <span class="k">if</span> <span class="n">obs</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">modl</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">modl</span><span class="o">.</span><span class="n">add_obstype</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+                <span class="n">target_obstypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">obs</span><span class="p">]</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">Modl</span> <span class="o">=</span> <span class="n">modeldata</span>
-            <span class="n">modelname</span> <span class="o">=</span> <span class="n">Modl</span><span class="o">.</span><span class="n">modelname</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported value for get_obstypes: </span><span class="si">{</span><span class="n">get_obstypes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Filters</span>
-
-        <span class="k">if</span> <span class="n">startdt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">startdt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">startdt</span> <span class="o">=</span> <span class="n">fmt_datetime_argument</span><span class="p">(</span>
-                <span class="n">startdt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">]</span>
-            <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">enddt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">enddt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">enddt</span> <span class="o">=</span> <span class="n">fmt_datetime_argument</span><span class="p">(</span>
-                <span class="n">enddt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">time_settings</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">]</span>
-            <span class="p">)</span>
-
-        <span class="c1"># make shure bounds include required range</span>
-        <span class="n">Model_time_res</span> <span class="o">=</span> <span class="n">Modl</span><span class="o">.</span><span class="n">mapinfo</span><span class="p">[</span><span class="n">Modl</span><span class="o">.</span><span class="n">modelname</span><span class="p">][</span><span class="s2">&quot;time_res&quot;</span><span class="p">]</span>
-        <span class="n">startdt</span> <span class="o">=</span> <span class="n">startdt</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">Model_time_res</span><span class="p">)</span>
-        <span class="n">enddt</span> <span class="o">=</span> <span class="n">enddt</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">Model_time_res</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">stations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stations</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="n">metadf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">loc</span><span class="p">[[</span><span class="n">stations</span><span class="p">]]</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stations</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">metadf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">stations</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">metadf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span>
-
-        <span class="c1"># Convert to UTC</span>
-
-        <span class="n">startdt_utc</span> <span class="o">=</span> <span class="n">startdt</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">pytz</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-        <span class="n">enddt_utc</span> <span class="o">=</span> <span class="n">enddt</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">pytz</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-
-        <span class="c1"># fill modell with data</span>
-        <span class="k">if</span> <span class="n">modelname</span> <span class="o">==</span> <span class="s2">&quot;ERA5_hourly&quot;</span><span class="p">:</span>
-            <span class="n">Modl</span><span class="o">.</span><span class="n">get_ERA5_data</span><span class="p">(</span>
-                <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
-                <span class="n">startdt_utc</span><span class="o">=</span><span class="n">startdt_utc</span><span class="p">,</span>
-                <span class="n">enddt_utc</span><span class="o">=</span><span class="n">enddt_utc</span><span class="p">,</span>
-                <span class="n">obstypes</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
-            <span class="p">)</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">Modl</span><span class="o">.</span><span class="n">get_gee_dataset_data</span><span class="p">(</span>
-                <span class="n">mapname</span><span class="o">=</span><span class="n">modelname</span><span class="p">,</span>
-                <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
-                <span class="n">startdt_utc</span><span class="o">=</span><span class="n">startdt_utc</span><span class="p">,</span>
-                <span class="n">enddt_utc</span><span class="o">=</span><span class="n">enddt_utc</span><span class="p">,</span>
-                <span class="n">obstypes</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
-            <span class="p">)</span>
-
-        <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is </span><span class="si">{</span><span class="n">modelname</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="n">modl</span><span class="o">.</span><span class="n">import_from_gee</span><span class="p">(</span>
+            <span class="n">target_obstypes</span><span class="o">=</span><span class="n">target_obstypes</span><span class="p">,</span>
+            <span class="n">start_utc</span><span class="o">=</span><span class="n">startdt_utc</span><span class="p">,</span>
+            <span class="n">end_utc</span><span class="o">=</span><span class="n">enddt_utc</span><span class="p">,</span>
+            <span class="n">gdrive_filename</span><span class="o">=</span><span class="n">gdrive_filename</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is </span><span class="si">{</span><span class="n">modelname</span><span class="si">}</span><span class="s2">)&quot;</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">Modl</span></div>
+        <span class="c1"># safetyp</span>
+        <span class="k">if</span> <span class="n">modl</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">modl</span></div>
 
+
+    <span class="c1"># def get_modeldata(</span>
+    <span class="c1">#     self,</span>
+    <span class="c1">#     modelname=&quot;ERA5_hourly&quot;,</span>
+    <span class="c1">#     modeldata=None,</span>
+    <span class="c1">#     obstype=&quot;temp&quot;,</span>
+    <span class="c1">#     stations=None,</span>
+    <span class="c1">#     startdt=None,</span>
+    <span class="c1">#     enddt=None,</span>
+    <span class="c1"># ):</span>
+    <span class="c1">#     &quot;&quot;&quot;Make Modeldata for the Dataset.</span>
+
+    <span class="c1">#     Make a metobs_toolkit.Modeldata object with modeldata at the locations</span>
+    <span class="c1">#     of the stations present in the dataset.</span>
+
+    <span class="c1">#     Parameters</span>
+    <span class="c1">#     ----------</span>
+    <span class="c1">#     modelname : str, optional</span>
+    <span class="c1">#         Which dataset to download timeseries from. This is only used when</span>
+    <span class="c1">#         no modeldata is provided. The default is &#39;ERA5_hourly&#39;.</span>
+    <span class="c1">#     modeldata : metobs_toolkit.Modeldata, optional</span>
+    <span class="c1">#         Use the modelname attribute and the gee information stored in the</span>
+    <span class="c1">#         modeldata instance to extract timeseries.</span>
+    <span class="c1">#     obstype : String, optional</span>
+    <span class="c1">#         Name of the observationtype you want to apply gap filling on. The</span>
+    <span class="c1">#         modeldata must contain this observation type as well. The</span>
+    <span class="c1">#         default is &#39;temp&#39;.</span>
+    <span class="c1">#     stations : string or list of strings, optional</span>
+    <span class="c1">#         Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.</span>
+    <span class="c1">#     startdt : datetime.datetime, optional</span>
+    <span class="c1">#         Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.</span>
+    <span class="c1">#     enddt : datetime.datetime, optional</span>
+    <span class="c1">#         End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.</span>
+
+    <span class="c1">#     Returns</span>
+    <span class="c1">#     -------</span>
+    <span class="c1">#     Modl : metobs_toolkit.Modeldata</span>
+    <span class="c1">#         The extracted modeldata for period and a set of stations.</span>
+
+    <span class="c1">#     Note</span>
+    <span class="c1">#     --------</span>
+    <span class="c1">#     If a timezone unaware datetime is given as an argument, it is interpreted</span>
+    <span class="c1">#     as if it has the same timezone as the observations.</span>
+
+    <span class="c1">#     Note</span>
+    <span class="c1">#     ------</span>
+    <span class="c1">#     When extracting large amounts of data, the timeseries data will be</span>
+    <span class="c1">#     writen to a file and saved on your google drive. In this case, you need</span>
+    <span class="c1">#     to provide the Modeldata with the data using the .set_model_from_csv()</span>
+    <span class="c1">#     method.</span>
+
+    <span class="c1">#     Note</span>
+    <span class="c1">#     ------</span>
+    <span class="c1">#     Only 2mT extraction of ERA5 is implemented for all Modeldata instances.</span>
+    <span class="c1">#     To extract other variables, one must create a Modeldata instance in</span>
+    <span class="c1">#     advance, add or update a gee_dataset and give this Modeldata instance</span>
+    <span class="c1">#     to this method.</span>
+
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     if modeldata is None:</span>
+    <span class="c1">#         Modl = Modeldata(modelname)</span>
+
+    <span class="c1">#     else:</span>
+    <span class="c1">#         Modl = modeldata</span>
+    <span class="c1">#         modelname = Modl.modelname</span>
+
+    <span class="c1">#     # Filters</span>
+
+    <span class="c1">#     if startdt is None:</span>
+    <span class="c1">#         startdt = self.df.index.get_level_values(&quot;datetime&quot;).min()</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         startdt = fmt_datetime_argument(</span>
+    <span class="c1">#             startdt, self.settings.time_settings[&quot;timezone&quot;]</span>
+    <span class="c1">#         )</span>
+
+    <span class="c1">#     if enddt is None:</span>
+    <span class="c1">#         enddt = self.df.index.get_level_values(&quot;datetime&quot;).max()</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         enddt = fmt_datetime_argument(</span>
+    <span class="c1">#             enddt, self.settings.time_settings[&quot;timezone&quot;]</span>
+    <span class="c1">#         )</span>
+
+    <span class="c1">#     # make shure bounds include required range</span>
+    <span class="c1">#     Model_time_res = Modl.mapinfo[Modl.modelname][&quot;time_res&quot;]</span>
+    <span class="c1">#     startdt = startdt.floor(Model_time_res)</span>
+    <span class="c1">#     enddt = enddt.ceil(Model_time_res)</span>
+
+    <span class="c1">#     if stations is not None:</span>
+    <span class="c1">#         if isinstance(stations, str):</span>
+    <span class="c1">#             metadf = self.metadf.loc[[stations]]</span>
+    <span class="c1">#         if isinstance(stations, list):</span>
+    <span class="c1">#             metadf = self.metadf.iloc[self.metadf.index.isin(stations)]</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         metadf = self.metadf</span>
+
+    <span class="c1">#     # Convert to UTC</span>
+
+    <span class="c1">#     startdt_utc = startdt.astimezone(pytz.utc)</span>
+    <span class="c1">#     enddt_utc = enddt.astimezone(pytz.utc)</span>
+
+    <span class="c1">#     # fill modell with data</span>
+    <span class="c1">#     if modelname == &quot;ERA5_hourly&quot;:</span>
+    <span class="c1">#         Modl.get_ERA5_data(</span>
+    <span class="c1">#             metadf=metadf,</span>
+    <span class="c1">#             startdt_utc=startdt_utc,</span>
+    <span class="c1">#             enddt_utc=enddt_utc,</span>
+    <span class="c1">#             obstypes=obstype,</span>
+    <span class="c1">#         )</span>
+
+    <span class="c1">#     else:</span>
+    <span class="c1">#         Modl.get_gee_dataset_data(</span>
+    <span class="c1">#             mapname=modelname,</span>
+    <span class="c1">#             metadf=metadf,</span>
+    <span class="c1">#             startdt_utc=startdt_utc,</span>
+    <span class="c1">#             enddt_utc=enddt_utc,</span>
+    <span class="c1">#             obstypes=obstype,</span>
+    <span class="c1">#         )</span>
+
+    <span class="c1">#     print(</span>
+    <span class="c1">#         f&quot;(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})&quot;</span>
+    <span class="c1">#     )</span>
+    <span class="c1">#     logger.info(</span>
+    <span class="c1">#         f&quot;(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})&quot;</span>
+    <span class="c1">#     )</span>
+    <span class="c1">#     return Modl</span>
 
 <div class="viewcode-block" id="Dataset.update_gaps_and_missing_from_outliers">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset.Dataset.update_gaps_and_missing_from_outliers">[docs]</a>
@@ -1697,10 +1818,10 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Dataset.fill_gaps_era5">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset.Dataset.fill_gaps_era5">[docs]</a>
-    <span class="k">def</span> <span class="nf">fill_gaps_era5</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">modeldata</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;debias&quot;</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span> <span class="n">overwrite_fill</span><span class="o">=</span><span class="kc">False</span>
+<div class="viewcode-block" id="Dataset.fill_gaps_using_debiased_modeldata">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset.Dataset.fill_gaps_using_debiased_modeldata">[docs]</a>
+    <span class="k">def</span> <span class="nf">fill_gaps_using_debiased_modeldata</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">modeldata</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span> <span class="n">overwrite_fill</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill the gaps using a Modeldata object.</span>
 
@@ -1709,9 +1830,7 @@
 <span class="sd">        modeldata : metobs_toolkit.Modeldata</span>
 <span class="sd">            The modeldata to use for the gapfill. This model data should the required</span>
 <span class="sd">            timeseries to fill all gaps present in the dataset.</span>
-<span class="sd">        method : &#39;debias&#39;, optional</span>
-<span class="sd">            Specify which method to use. The default is &#39;debias&#39;.</span>
-<span class="sd">        obstype : String, optional</span>
+<span class="sd">        obstype : str or metobs_toolkit.Obstype , optional</span>
 <span class="sd">           Name of the observationtype you want to apply gap filling on. The</span>
 <span class="sd">           modeldata must contain this observation type as well. The</span>
 <span class="sd">           default is &#39;temp&#39;.</span>
@@ -1723,45 +1842,49 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Gapfilldf : pandas.DataFrame</span>
-<span class="sd">            A dataframe containing all gap filled values and the use method.</span>
+<span class="sd">            A dataframe containing all gap filled values.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check if modeldata is available</span>
-        <span class="k">if</span> <span class="n">modeldata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;The dataset has no modeldate. Use the set_modeldata() function to add modeldata.&quot;</span>
-            <span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="c1"># check if obstype is present in eramodel</span>
-        <span class="k">assert</span> <span class="p">(</span>
-            <span class="n">obstype</span> <span class="ow">in</span> <span class="n">modeldata</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is not present in the modeldate: </span><span class="si">{</span><span class="n">modeldata</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="c1"># check if all station are present in eramodeldata</span>
-        <span class="c1"># stations = self.gaps.to_df().index.unique().to_list()</span>
-        <span class="n">stations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">gap</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">]))</span>
-        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">sta</span> <span class="ow">in</span> <span class="n">modeldata</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">sta</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">]</span>
-        <span class="p">),</span> <span class="s2">&quot;Not all stations with gaps are in the modeldata!&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">modeldata</span><span class="p">,</span> <span class="n">Modeldata</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">modeldata</span><span class="si">}</span><span class="s1"> is not an instance of Modeldata.&#39;</span>
 
-        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;debias&quot;</span><span class="p">:</span>
+        <span class="c1">#convert to Obstype</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obstype</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">obstype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="c1">#convert to obstype instance</span>
 
-            <span class="n">fill_settings_debias</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span>
-                <span class="s2">&quot;model_debias&quot;</span>
-            <span class="p">]</span>
+        <span class="c1">#check if obstype has observations</span>
+        <span class="k">assert</span> <span class="n">obstype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;No observations found for </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1">&#39;</span>
 
-            <span class="n">apply_debias_era5_gapfill</span><span class="p">(</span>
-                <span class="n">gapslist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">,</span>
-                <span class="n">dataset</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-                <span class="n">eraModelData</span><span class="o">=</span><span class="n">modeldata</span><span class="p">,</span>
-                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
-                <span class="n">debias_settings</span><span class="o">=</span><span class="n">fill_settings_debias</span><span class="p">,</span>
-                <span class="n">overwrite_fill</span><span class="o">=</span><span class="n">overwrite_fill</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="c1"># check if obstype is present in model (by name because model holds the Modelobstype equivalent)</span>
+        <span class="n">_pres_in_mod</span> <span class="o">=</span> <span class="p">[</span><span class="n">obs</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">modeldata</span><span class="o">.</span><span class="n">_get_present_obstypes</span><span class="p">()]</span>
+        <span class="n">_all_known_in_mod</span> <span class="o">=</span> <span class="p">[</span><span class="n">obs</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">modeldata</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
 
-            <span class="c1"># get fill df</span>
-            <span class="n">filldf</span> <span class="o">=</span> <span class="n">make_gapfill_df</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> not implemented yet&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">obstype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">_all_known_in_mod</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> is no equivalent in the modeldata: </span><span class="si">{</span><span class="n">_all_known_in_mod</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">assert</span> <span class="n">obstype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">_pres_in_mod</span> <span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> has equivalent in the modeldata, but no data is available for it.&#39;</span>
+
+
+
+        <span class="c1">#check if all stations (with gaps) are in the modeldata</span>
+        <span class="n">_gapstations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">gap</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">])</span>
+        <span class="n">_modelstations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">modeldata</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sta</span> <span class="ow">in</span> <span class="n">_modelstations</span> <span class="k">for</span> <span class="n">sta</span> <span class="ow">in</span> <span class="n">_gapstations</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="sa">f</span><span class="s1">&#39;Not all stations with gaps have corresponding model timeseries.&#39;</span>
+
+        <span class="n">fill_settings_debias</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span>
+            <span class="s2">&quot;model_debias&quot;</span>
+        <span class="p">]</span>
+
+        <span class="n">apply_debias_era5_gapfill</span><span class="p">(</span>
+            <span class="n">gapslist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">,</span>
+            <span class="n">dataset</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">eraModelData</span><span class="o">=</span><span class="n">modeldata</span><span class="p">,</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">debias_settings</span><span class="o">=</span><span class="n">fill_settings_debias</span><span class="p">,</span>
+            <span class="n">overwrite_fill</span><span class="o">=</span><span class="n">overwrite_fill</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># get fill df</span>
+        <span class="n">filldf</span> <span class="o">=</span> <span class="n">make_gapfill_df</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">)</span>
+
 
         <span class="c1"># update attribute</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gapfilldf</span> <span class="o">=</span> <span class="n">filldf</span>
@@ -3210,7 +3333,7 @@
                 <span class="sa">f</span><span class="s1">&#39;Set single station name = </span><span class="si">{</span><span class="n">options_kwargs</span><span class="p">[</span><span class="s2">&quot;single&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> from options in template.&#39;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="s2">&quot;timezone&quot;</span> <span class="ow">in</span> <span class="n">options_kwargs</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">update_timezone</span><span class="p">(</span><span class="n">options_kwargs</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">update_timezone</span><span class="p">(</span><span class="n">options_kwargs</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">])</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s1">&#39;Set timezone = </span><span class="si">{</span><span class="n">options_kwargs</span><span class="p">[</span><span class="s2">&quot;timezone&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> from options in template.&#39;</span>
             <span class="p">)</span>
@@ -3554,6 +3677,7 @@
 <span class="sd">        wudapt global LCZ map on the Google engine for all stations.</span>
 
 <span class="sd">        A &#39;LCZ&#39; column will be added to the metadf, and series is returned.</span>
+<span class="sd">        If this column already exists, it will be overwritten.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3561,23 +3685,16 @@
 <span class="sd">            A series with the stationnames as index and the LCZ as values.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># connect to gee</span>
-        <span class="n">connect_to_gee</span><span class="p">()</span>
-
-        <span class="c1"># Extract LCZ for all stations</span>
-        <span class="n">lcz_series</span> <span class="o">=</span> <span class="n">lcz_extractor</span><span class="p">(</span>
-            <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span>
-            <span class="n">mapinfo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gee</span><span class="p">[</span><span class="s2">&quot;gee_dataset_info&quot;</span><span class="p">][</span><span class="s2">&quot;global_lcz_map&quot;</span><span class="p">],</span>
-        <span class="p">)</span>
-
         <span class="c1"># drop column if it was already present</span>
         <span class="k">if</span> <span class="s2">&quot;lcz&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lcz&quot;</span><span class="p">])</span>
 
-        <span class="c1"># update metadata</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-            <span class="n">lcz_series</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(),</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">lcz_extractor</span> <span class="o">=</span> <span class="n">GeeExtractor</span><span class="p">()</span>
+        <span class="n">lcz_extractor</span><span class="o">.</span><span class="n">activate_LCZ</span><span class="p">()</span>
+        <span class="n">lcz_series</span> <span class="o">=</span> <span class="n">lcz_extractor</span><span class="o">.</span><span class="n">extract_static_point_values</span><span class="p">(</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span> <span class="n">aggregate</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;lcz&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lcz_series</span>
         <span class="k">return</span> <span class="n">lcz_series</span></div>
 
 
@@ -3590,6 +3707,7 @@
 <span class="sd">        global map on the Google engine for all stations.</span>
 
 <span class="sd">        A &#39;altitude&#39; column will be added to the metadf, and series is returned.</span>
+<span class="sd">        If this column already exists, it will be overwritten.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3597,30 +3715,22 @@
 <span class="sd">            A series with the stationnames as index and the altitudes as values.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># connect to gee</span>
-        <span class="n">connect_to_gee</span><span class="p">()</span>
-
-        <span class="c1"># Extract LCZ for all stations</span>
-        <span class="n">altitude_series</span> <span class="o">=</span> <span class="n">height_extractor</span><span class="p">(</span>
-            <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span> <span class="n">mapinfo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gee</span><span class="p">[</span><span class="s2">&quot;gee_dataset_info&quot;</span><span class="p">][</span><span class="s2">&quot;DEM&quot;</span><span class="p">]</span>
-        <span class="p">)</span>
-
         <span class="c1"># drop column if it was already present</span>
         <span class="k">if</span> <span class="s2">&quot;altitude&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;altitude&quot;</span><span class="p">])</span>
 
-        <span class="c1"># update metadata</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-            <span class="n">altitude_series</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(),</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">alt_extractor</span> <span class="o">=</span> <span class="n">GeeExtractor</span><span class="p">()</span>
+        <span class="n">alt_extractor</span><span class="o">.</span><span class="n">activate_DEM</span><span class="p">()</span>
+        <span class="n">altitude_series</span> <span class="o">=</span> <span class="n">alt_extractor</span><span class="o">.</span><span class="n">extract_static_point_values</span><span class="p">(</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span> <span class="n">aggregate</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;altitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">altitude_series</span>
         <span class="k">return</span> <span class="n">altitude_series</span></div>
 
 
 <div class="viewcode-block" id="Dataset.get_landcover">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset.Dataset.get_landcover">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_landcover</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">buffers</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">],</span> <span class="n">aggregate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gee_map</span><span class="o">=</span><span class="s2">&quot;worldcover&quot;</span>
-    <span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_landcover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buffers</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">],</span> <span class="n">aggregate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract landcover for all stations.</span>
 
 <span class="sd">        Extract the landcover fractions in a buffer with a specific radius for</span>
@@ -3642,10 +3752,6 @@
 <span class="sd">        overwrite : bool, optional</span>
 <span class="sd">            If True, the Datset.metadf will be updated with the generated</span>
 <span class="sd">            landcoverfractions. The default is True.</span>
-<span class="sd">        gee_map : str, optional</span>
-<span class="sd">            The name of the dataset to use. This name should be present in the</span>
-<span class="sd">            settings.gee[&#39;gee_dataset_info&#39;]. If aggregat is True, an aggregation</span>
-<span class="sd">            scheme should included as well. The default is &#39;worldcover&#39;</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3654,27 +3760,27 @@
 <span class="sd">            fractions.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># connect to gee</span>
-        <span class="n">connect_to_gee</span><span class="p">()</span>
+
+        <span class="n">lc_extractor</span> <span class="o">=</span> <span class="n">GeeExtractor</span><span class="p">()</span>
+        <span class="n">lc_extractor</span><span class="o">.</span><span class="n">activate_worldcover</span><span class="p">()</span>
 
         <span class="n">df_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">buffer</span> <span class="ow">in</span> <span class="n">buffers</span><span class="p">:</span>
-
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Extracting landcover from </span><span class="si">{</span><span class="n">gee_map</span><span class="si">}</span><span class="s2"> with buffer radius = </span><span class="si">{</span><span class="n">buffer</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-            <span class="c1"># Extract landcover fractions for all stations</span>
-            <span class="n">lc_frac_df</span><span class="p">,</span> <span class="n">buffer</span> <span class="o">=</span> <span class="n">lc_fractions_extractor</span><span class="p">(</span>
-                <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span>
-                <span class="n">mapinfo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gee</span><span class="p">[</span><span class="s2">&quot;gee_dataset_info&quot;</span><span class="p">][</span><span class="n">gee_map</span><span class="p">],</span>
-                <span class="n">buffer</span><span class="o">=</span><span class="n">buffer</span><span class="p">,</span>
-                <span class="n">agg</span><span class="o">=</span><span class="n">aggregate</span><span class="p">,</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracting landcover with buffer radius = </span><span class="si">{</span><span class="n">buffer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">lc_frac_df</span> <span class="o">=</span> <span class="n">lc_extractor</span><span class="o">.</span><span class="n">extract_static_buffer_frequencies</span><span class="p">(</span>
+                <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">buffer</span><span class="p">,</span> <span class="n">aggregate</span><span class="o">=</span><span class="n">aggregate</span>
             <span class="p">)</span>
 
-            <span class="c1"># add buffer to the index</span>
             <span class="n">lc_frac_df</span><span class="p">[</span><span class="s2">&quot;buffer_radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buffer</span>
             <span class="n">lc_frac_df</span> <span class="o">=</span> <span class="n">lc_frac_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;buffer_radius&quot;</span><span class="p">])</span>
             <span class="n">lc_frac_df</span> <span class="o">=</span> <span class="n">lc_frac_df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+            <span class="c1"># when combining multiple buffers, some classes appear in larger</span>
+            <span class="c1"># buffers and not in smaller --&gt; introduce nans when combining them.</span>
+            <span class="c1"># These Nans are converted to 0, but if the cover is nan for another reson</span>
+            <span class="c1"># then they are nan here, and are temporary converted to a dummy string</span>
+            <span class="c1"># and reverted to nan after the merging + fillna(0)</span>
+            <span class="n">lc_frac_df</span> <span class="o">=</span> <span class="n">lc_frac_df</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;__dummy__&quot;</span><span class="p">)</span>
 
             <span class="c1"># add to the list</span>
             <span class="n">df_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lc_frac_df</span><span class="p">)</span>
@@ -3682,6 +3788,8 @@
         <span class="c1"># concat all df for different buffers to one</span>
         <span class="n">frac_df</span> <span class="o">=</span> <span class="n">concat_save</span><span class="p">(</span><span class="n">df_list</span><span class="p">)</span>
         <span class="n">frac_df</span> <span class="o">=</span> <span class="n">frac_df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+        <span class="n">frac_df</span> <span class="o">=</span> <span class="n">frac_df</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># fill na introduced by combining</span>
+        <span class="n">frac_df</span> <span class="o">=</span> <span class="n">frac_df</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="s2">&quot;__dummy__&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">})</span>
 
         <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
 
@@ -3693,112 +3801,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="n">buf_df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span> <span class="o">=</span> <span class="n">buf_df</span>
 
         <span class="k">return</span> <span class="n">frac_df</span></div>
-
-
-<div class="viewcode-block" id="Dataset.make_gee_plot">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset.Dataset.make_gee_plot">[docs]</a>
-    <span class="k">def</span> <span class="nf">make_gee_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gee_map</span><span class="p">,</span> <span class="n">show_stations</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outputfile</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make an interactive plot of a google earth dataset.</span>
-
-<span class="sd">        The location of the stations can be plotted on top of it.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        gee_map : str, optional</span>
-<span class="sd">            The name of the dataset to use. This name should be present in the</span>
-<span class="sd">            settings.gee[&#39;gee_dataset_info&#39;]. If aggregat is True, an aggregation</span>
-<span class="sd">            scheme should included as well. The default is &#39;worldcover&#39;</span>
-<span class="sd">        show_stations : bool, optional</span>
-<span class="sd">            If True, the stations will be plotted as markers. The default is True.</span>
-<span class="sd">        save : bool, optional</span>
-<span class="sd">            If True, the map will be saved as an html file in the output_folder</span>
-<span class="sd">            as defined in the settings if the outputfile is not set. The</span>
-<span class="sd">            default is False.</span>
-<span class="sd">        outputfile : str, optional</span>
-<span class="sd">            Specify the path of the html file if save is True. If None, and save</span>
-<span class="sd">            is true, the html file will be saved in the output_folder. The</span>
-<span class="sd">            default is None.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        Map : geemap.foliumap.Map</span>
-<span class="sd">            The folium Map instance.</span>
-
-
-<span class="sd">        Warning</span>
-<span class="sd">        ---------</span>
-<span class="sd">        To display the interactive map a graphical backend is required, which</span>
-<span class="sd">        is often missing on (free) cloud platforms. Therefore it is better to</span>
-<span class="sd">        set save=True, and open the .html in your browser</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Connect to GEE</span>
-        <span class="n">connect_to_gee</span><span class="p">()</span>
-
-        <span class="c1"># get the mapinfo</span>
-        <span class="n">mapinfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gee</span><span class="p">[</span><span class="s2">&quot;gee_dataset_info&quot;</span><span class="p">][</span><span class="n">gee_map</span><span class="p">]</span>
-
-        <span class="c1"># Read in covers, numbers and labels</span>
-        <span class="n">covernum</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;colorscheme&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">colors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;colorscheme&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">covername</span> <span class="o">=</span> <span class="p">[</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;categorical_mapper&quot;</span><span class="p">][</span><span class="n">covnum</span><span class="p">]</span> <span class="k">for</span> <span class="n">covnum</span> <span class="ow">in</span> <span class="n">covernum</span><span class="p">]</span>
-
-        <span class="c1"># create visparams</span>
-        <span class="n">vis_params</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">covernum</span><span class="p">),</span>
-            <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">covernum</span><span class="p">),</span>
-            <span class="s2">&quot;palette&quot;</span><span class="p">:</span> <span class="n">colors</span><span class="p">,</span>  <span class="c1"># hex colors!</span>
-        <span class="p">}</span>
-
-        <span class="k">if</span> <span class="s2">&quot;band_of_use&quot;</span> <span class="ow">in</span> <span class="n">mapinfo</span><span class="p">:</span>
-            <span class="n">band</span> <span class="o">=</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;band_of_use&quot;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">band</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="n">Map</span> <span class="o">=</span> <span class="n">folium_plot</span><span class="p">(</span>
-            <span class="n">mapinfo</span><span class="o">=</span><span class="n">mapinfo</span><span class="p">,</span>
-            <span class="n">band</span><span class="o">=</span><span class="n">band</span><span class="p">,</span>
-            <span class="n">vis_params</span><span class="o">=</span><span class="n">vis_params</span><span class="p">,</span>
-            <span class="n">labelnames</span><span class="o">=</span><span class="n">covername</span><span class="p">,</span>
-            <span class="n">layername</span><span class="o">=</span><span class="n">gee_map</span><span class="p">,</span>
-            <span class="n">legendname</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gee_map</span><span class="si">}</span><span class="s2"> covers&quot;</span><span class="p">,</span>
-            <span class="c1"># showmap = show,</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">show_stations</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">_validate_metadf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">):</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;Not enough coordinates information is provided to plot the stations.&quot;</span>
-                <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">Map</span> <span class="o">=</span> <span class="n">add_stations_to_folium_map</span><span class="p">(</span><span class="n">Map</span><span class="o">=</span><span class="n">Map</span><span class="p">,</span> <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">)</span>
-
-        <span class="c1"># Save if needed</span>
-        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">outputfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Try to save in the output folder</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">IO</span><span class="p">[</span><span class="s2">&quot;output_folder&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;The outputfolder is not set up, use the update_settings to specify the output_folder.&quot;</span>
-                    <span class="p">)</span>
-
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;gee_</span><span class="si">{</span><span class="n">gee_map</span><span class="si">}</span><span class="s2">_figure.html&quot;</span>
-                    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">IO</span><span class="p">[</span><span class="s2">&quot;output_folder&quot;</span><span class="p">],</span> <span class="n">filename</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># outputfile is specified</span>
-                <span class="c1"># 1. check extension</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">outputfile</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.html&quot;</span><span class="p">):</span>
-                    <span class="n">outputfile</span> <span class="o">=</span> <span class="n">outputfile</span> <span class="o">+</span> <span class="s2">&quot;.html&quot;</span>
-
-                <span class="n">filepath</span> <span class="o">=</span> <span class="n">outputfile</span>
-
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gee Map will be save at </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gee Map will be save at </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">Map</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">Map</span></div>
 </div>
+
+
 
 
 

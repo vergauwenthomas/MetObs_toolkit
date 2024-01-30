@@ -107,17 +107,18 @@
     <span class="n">multiindexdf_datetime_subsetting</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">metobs_toolkit.landcover_functions</span> <span class="kn">import</span> <span class="n">connect_to_gee</span><span class="p">,</span> <span class="n">gee_extract_timeseries</span>
+<span class="c1"># from metobs_toolkit.landcover_functions import connect_to_gee, gee_extract_timeseries</span>
 
 <span class="kn">from</span> <span class="nn">metobs_toolkit.plotting_functions</span> <span class="kn">import</span> <span class="n">model_timeseries_plot</span><span class="p">,</span> <span class="n">timeseries_plot</span>
 
-<span class="c1"># from metobs_toolkit.obstypes import tlk_obstypes</span>
+
 <span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">Obstype</span> <span class="k">as</span> <span class="n">Obstype_class</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.obstype_modeldata</span> <span class="kn">import</span> <span class="n">era5_default_model_obstypes</span>
 <span class="kn">from</span> <span class="nn">metobs_toolkit.obstype_modeldata</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">model_obstypes</span><span class="p">,</span>
     <span class="n">ModelObstype</span><span class="p">,</span>
     <span class="n">ModelObstype_Vectorfield</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.gee_extractor</span> <span class="kn">import</span> <span class="n">GeeExtractor</span>
 <span class="kn">from</span> <span class="nn">metobs_toolkit.obstype_modeldata</span> <span class="kn">import</span> <span class="n">compute_amplitude</span><span class="p">,</span> <span class="n">compute_angle</span>
 <span class="kn">from</span> <span class="nn">metobs_toolkit.settings</span> <span class="kn">import</span> <span class="n">Settings</span>
 
@@ -131,32 +132,37 @@
 <div class="viewcode-block" id="Modeldata">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata">[docs]</a>
 <span class="k">class</span> <span class="nc">Modeldata</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class holding data and methods for a modeldata-timeseries.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class holding timeseries data and methods for modeldata.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modelname</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">extractor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize modeldata.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">modelname</span> <span class="o">=</span> <span class="n">modelname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>  <span class="c1"># Holds the timeseries coming from a model</span>
+
+        <span class="n">metadf</span> <span class="o">=</span> <span class="n">_format_metadf</span><span class="p">(</span><span class="n">metadf</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span> <span class="o">=</span> <span class="n">metadf</span>  <span class="c1"># Holds the metadata for where modeldate is extracted</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">extractor</span> <span class="o">=</span> <span class="n">extractor</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extractor</span><span class="p">,</span> <span class="n">GeeExtractor</span><span class="p">):</span>
+            <span class="c1"># Default obstypes Dict name: Obstype-instance</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span> <span class="o">=</span> <span class="n">era5_default_model_obstypes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># only default era5 modelobstypes are defined</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mapinfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="o">.</span><span class="n">gee</span><span class="p">[</span><span class="s2">&quot;gee_dataset_info&quot;</span><span class="p">]</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">df_tz</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>  <span class="c1"># the timezone of the datetimes stored in the df</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span> <span class="o">=</span> <span class="n">model_obstypes</span>  <span class="c1"># Dict name: Obstype-instance</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Print overview information of the modeldata.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;Empty Modeldata instance.&quot;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Empty Modeldata instance linked to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">extractor</span><span class="si">}</span><span class="s2">.&quot;</span>
         <span class="n">n_stations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">obstypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
         <span class="n">startdt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
         <span class="n">enddt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
         <span class="n">data_units</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">get_standard_unit</span><span class="p">()</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Modeldata instance containing: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">    * Modelname: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">modelname</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Modeldata instance linked to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">extractor</span><span class="si">}</span><span class="s2">, containing: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    * </span><span class="si">{</span><span class="n">n_stations</span><span class="si">}</span><span class="s2"> timeseries </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    * The following obstypes are available: </span><span class="si">{</span><span class="n">obstypes</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
 <span class="s2">    * Data has these units: </span><span class="si">{</span><span class="n">data_units</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
@@ -170,16 +176,21 @@
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.get_info">[docs]</a>
     <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Print out detailed information on the Modeldata.&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> ------ Known gee datasets -----------&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">list_gee_datasets</span><span class="p">()</span></div>
+    <span class="k">def</span> <span class="nf">_get_present_obstypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of ModelObstypes that are present in the df.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
 
 
 <div class="viewcode-block" id="Modeldata.add_obstype">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.add_obstype">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_obstype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Obstype</span><span class="p">,</span> <span class="n">bandname</span><span class="p">,</span> <span class="n">band_units</span><span class="p">,</span> <span class="n">band_description</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new Observation type for the current Modeldata.</span>
+    <span class="k">def</span> <span class="nf">add_obstype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Modelobstype</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TODO: update docstring</span>
+<span class="sd">        Add a new Observation type for the current Modeldata.</span>
 
 
 <span class="sd">        Parameters</span>
@@ -199,352 +210,62 @@
 <span class="sd">        None.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Obstype</span><span class="p">,</span> <span class="n">Obstype_class</span><span class="p">):</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Obstype</span><span class="si">}</span><span class="s2"> is not an instance of metobs_toolkit.obstypes.Obstype.&quot;</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Modelobstype</span><span class="p">,</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">Modelobstype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Modelobstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> already present in the known ModelObstypes: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="c1"># add Modelobstype</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">Modelobstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Modelobstype</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Modelobstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> added to the known observation types as ModelObstype_Vectorfield.&quot;</span><span class="p">)</span>
 
-        <span class="n">obs</span> <span class="o">=</span> <span class="n">Obstype</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Modelobstype</span><span class="p">,</span> <span class="n">ModelObstype</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">Modelobstype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Modelobstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> already present in the known Modelobstypes: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="c1"># add Modelobstype</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">Modelobstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Modelobstype</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Modelobstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> added to the known observation types as ModelObstype.&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Test if the band unit is a knonw unit</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">obs</span><span class="o">.</span><span class="n">test_if_unit_is_known</span><span class="p">(</span><span class="n">band_units</span><span class="p">):</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">bandname</span><span class="si">}</span><span class="s2"> unit: </span><span class="si">{</span><span class="n">band_units</span><span class="si">}</span><span class="s2"> is not a knonw unit for </span><span class="si">{</span><span class="n">obs</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-
-        <span class="c1"># Make the modeldata extension</span>
-        <span class="n">equiv_dict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">modelname</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">bandname</span><span class="p">),</span>
-                <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">band_units</span><span class="p">),</span>
-                <span class="s2">&quot;band_desc&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">band_description</span><span class="p">),</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-
-        <span class="n">modeldata_obstype</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="n">obs</span><span class="p">,</span> <span class="n">model_equivalent_dict</span><span class="o">=</span><span class="n">equiv_dict</span><span class="p">)</span>
-
-        <span class="c1"># add Obstype</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obs</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">modeldata_obstype</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obs</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> added to the known observation types.&quot;</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="Modeldata.add_gee_dataset">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.add_gee_dataset">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_gee_dataset</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">mapname</span><span class="p">,</span>
-        <span class="n">gee_location</span><span class="p">,</span>
-        <span class="n">obstype</span><span class="p">,</span>
-        <span class="n">bandname</span><span class="p">,</span>
-        <span class="n">units</span><span class="p">,</span>
-        <span class="n">scale</span><span class="p">,</span>
-        <span class="n">band_desc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">time_res</span><span class="o">=</span><span class="s2">&quot;1H&quot;</span><span class="p">,</span>
-        <span class="n">is_image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">is_numeric</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">credentials</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-    <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new gee dataset to the available gee datasets.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        mapname : str</span>
-<span class="sd">            Mapname of choice for the GEE dataset to add.</span>
-<span class="sd">        gee_location : str</span>
-<span class="sd">            Location of the gee dataset (like &quot;ECMWF/ERA5_LAND/HOURLY&quot; for ERA5).</span>
-<span class="sd">        obstype : str</span>
-<span class="sd">            The observation type name the band corresponds to.</span>
-<span class="sd">        bandname : str</span>
-<span class="sd">            Name of the dataset band as stored on the GEE.</span>
-<span class="sd">        units : str</span>
-<span class="sd">            The units of the band.</span>
-<span class="sd">        scale : int</span>
-<span class="sd">            The scale to represent the dataset in. (This is a GEE concept that</span>
-<span class="sd">            is similar to the resolution in meters).</span>
-<span class="sd">        band_desc : str or None, optional</span>
-<span class="sd">            Add a descrition to of the band. The default is None.</span>
-<span class="sd">        time_res : timedelta string, optional</span>
-<span class="sd">            Time reoslution of the dataset, if is_image == False. The default is &#39;1H&#39;.</span>
-<span class="sd">        is_image : bool, optional</span>
-<span class="sd">            If True, the dataset is a ee.Image, else it is assumed to be an</span>
-<span class="sd">            ee.ImageCollection. The default is False.</span>
-<span class="sd">        is_numeric : bool, optional</span>
-<span class="sd">            If True, the bandvalues are interpreted as numerical values rather</span>
-<span class="sd">            than categorical.. The default is True.</span>
-<span class="sd">        credentials : str, optional</span>
-<span class="sd">            Extra credentials of the dataset. The default is &#39;&#39;.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        None.</span>
-
-<span class="sd">        Note</span>
-<span class="sd">        -------</span>
-<span class="sd">        To list all available gee dataset, use the .list_gee_dataset() method.</span>
-
-<span class="sd">        Note</span>
-<span class="sd">        -------</span>
-<span class="sd">        Currently no unit conversion is perfomed automatically other than K --&gt;</span>
-<span class="sd">        Celcius. This will be implemented in the futur.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># check if mapname exists</span>
-        <span class="k">if</span> <span class="n">mapname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapinfo</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2"> is found in the list of known gee datasets: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapinfo</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">, choose a different mapname.&quot;</span>
-            <span class="p">)</span>
-            <span class="k">return</span>
-
-        <span class="k">if</span> <span class="n">is_numeric</span><span class="p">:</span>
-            <span class="n">val_typ</span> <span class="o">=</span> <span class="s2">&quot;numeric&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">val_typ</span> <span class="o">=</span> <span class="s2">&quot;categorical&quot;</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Modelobstype</span><span class="p">,</span> <span class="n">Obstype_class</span><span class="p">):</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Modelobstype</span><span class="si">}</span><span class="s2"> is not an instance of metobs_toolkit.Modelobstype_modeldata.ModelModelobstype. Convert the Modelobstype to a ModelModelobstype first.&quot;</span>
+                <span class="p">)</span>
 
-        <span class="c1"># Dataset defenition</span>
-        <span class="n">new_info</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">mapname</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gee_location</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="s2">&quot;user defined addition&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;value_type&quot;</span><span class="p">:</span> <span class="n">val_typ</span><span class="p">,</span>
-                <span class="s2">&quot;dynamical&quot;</span><span class="p">:</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">is_image</span><span class="p">),</span>
-                <span class="s2">&quot;scale&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">scale</span><span class="p">),</span>
-                <span class="s2">&quot;is_image&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">is_image</span><span class="p">),</span>
-                <span class="s2">&quot;is_imagecollection&quot;</span><span class="p">:</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">is_image</span><span class="p">),</span>
-                <span class="s2">&quot;credentials&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">credentials</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_image</span><span class="p">:</span>
-            <span class="n">new_info</span><span class="p">[</span><span class="n">mapname</span><span class="p">][</span><span class="s2">&quot;time_res&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time_res</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="c1"># obstype defenition</span>
-        <span class="c1"># 1. if obstype exists, update the obstype</span>
-        <span class="k">if</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">add_new_band</span><span class="p">(</span>
-                <span class="n">mapname</span><span class="o">=</span><span class="n">mapname</span><span class="p">,</span> <span class="n">bandname</span><span class="o">=</span><span class="n">bandname</span><span class="p">,</span> <span class="n">bandunit</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">band_desc</span><span class="o">=</span><span class="n">band_desc</span>
-            <span class="p">)</span>
-
-        <span class="c1"># 2. if obstype does not exist, create the obstype</span>
-        <span class="k">else</span><span class="p">:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is an unknown obstype. First add this obstype to the Modeldata, and than add a gee dataset.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">mapinfo</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_info</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2"> is added to the list of available gee dataset with: </span><span class="si">{</span><span class="n">new_info</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>
-        <span class="k">return</span></div>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Modelobstype</span><span class="si">}</span><span class="s2"> is not an instance of metobs_toolkit.Modelobstype_modeldata.ModelModelobstype.&quot;</span>
+            <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Modeldata.list_gee_datasets">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.list_gee_datasets">[docs]</a>
-    <span class="k">def</span> <span class="nf">list_gee_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print out all the available gee datasets.</span>
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Importers</span>
+    <span class="c1"># =============================================================================</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        None.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The following datasets are found: &quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">geename</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapinfo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> --------------------------------&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">geename</span><span class="si">}</span><span class="s2"> : </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="c1"># find which observations that are mappd</span>
-            <span class="n">mapped_obs</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">obstype</span>
-                <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">obstype</span><span class="o">.</span><span class="n">has_mapped_band</span><span class="p">(</span><span class="n">geename</span><span class="p">)</span>
-            <span class="p">]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapped_obs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; No mapped observation types for </span><span class="si">{</span><span class="n">geename</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">mapped_obs</span><span class="p">:</span>
-                    <span class="n">obs</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> INFO: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">info</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
-
-
-    <span class="k">def</span> <span class="nf">_conv_to_timezone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tzstr</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert the timezone of the datetime index of the df attribute.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        tzstr : str</span>
-<span class="sd">            TImezonstring from the pytz module.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        None.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># get tzstr by datetimindex.tz.zone</span>
-
-        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
-        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime_utc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="n">tzstr</span><span class="p">)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;datetime_utc&quot;</span><span class="p">:</span> <span class="s2">&quot;datetime&quot;</span><span class="p">})</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">df_tz</span> <span class="o">=</span> <span class="n">tzstr</span>
-
-<div class="viewcode-block" id="Modeldata.convert_units_to_tlk">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.convert_units_to_tlk">[docs]</a>
-    <span class="k">def</span> <span class="nf">convert_units_to_tlk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert the model data of one observation to the standard units.</span>
-
-<span class="sd">        The data attributes will be updated.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        obstype : str</span>
-<span class="sd">            Observation type to convert to standard units.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        None.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># chech if data is available</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No data to set units for.&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
-
-        <span class="k">if</span> <span class="n">obstype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> not found as a known observationtype in the Modeldata.&quot;</span>
-            <span class="p">)</span>
-            <span class="k">return</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">],</span> <span class="n">ModelObstype</span><span class="p">):</span>
-            <span class="c1"># scalar obstype</span>
-            <span class="k">if</span> <span class="n">obstype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> not found as observationtype in the Modeldata.&quot;</span>
-                <span class="p">)</span>
-                <span class="k">return</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">],</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">):</span>
-            <span class="c1"># vector obstype</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_u_column</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_u_column</span><span class="p">()</span><span class="si">}</span><span class="s2"> not found as observationtype in the Modeldata.&quot;</span>
-                <span class="p">)</span>
-                <span class="k">return</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_v_column</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_v_column</span><span class="p">()</span><span class="si">}</span><span class="s2"> not found as observationtype in the Modeldata.&quot;</span>
-                <span class="p">)</span>
-                <span class="k">return</span>
-
-        <span class="n">cur_unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_modelunit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modelname</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">],</span> <span class="n">ModelObstype</span><span class="p">):</span>
-            <span class="n">converted_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">convert_to_standard_units</span><span class="p">(</span>
-                <span class="n">input_data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">obstype</span><span class="p">],</span> <span class="n">input_unit</span><span class="o">=</span><span class="n">cur_unit</span>
-            <span class="p">)</span>
-            <span class="c1"># Update the data and the current unit</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="n">converted_data</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">],</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">):</span>
-            <span class="n">u_comp_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_u_column</span><span class="p">()</span>
-            <span class="n">v_comp_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_v_column</span><span class="p">()</span>
-            <span class="n">u_comp</span><span class="p">,</span> <span class="n">v_comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">convert_to_standard_units</span><span class="p">(</span>
-                <span class="n">input_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">,</span> <span class="n">input_unit</span><span class="o">=</span><span class="n">cur_unit</span>
-            <span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">u_comp_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_comp</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">v_comp_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_comp</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> are converted from </span><span class="si">{</span><span class="n">cur_unit</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_standard_unit</span><span class="p">()</span><span class="si">}</span><span class="s2">.&quot;</span>
-        <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="Modeldata.exploid_2d_vector_field">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.exploid_2d_vector_field">[docs]</a>
-    <span class="k">def</span> <span class="nf">exploid_2d_vector_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute amplitude and direction of 2D vector field components.</span>
-
-<span class="sd">        The amplitude and directions are added to the data attribute, and their</span>
-<span class="sd">        equivalent observationtypes are added to the known ModelObstypes.</span>
-
-<span class="sd">        (The vector components are not saved.)</span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        obstype : str</span>
-<span class="sd">            The name of the observationtype that is a ModelObstype_Vectorfield.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        None.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># check if the obstype is a vector field</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">],</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is not a 2D vector field, so it can not be exploided.&quot;</span>
-            <span class="p">)</span>
-            <span class="k">return</span>
-
-        <span class="c1"># get amplitude of 2D vectors</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing the amplited of the 2D vector field of </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">amp_data</span><span class="p">,</span> <span class="n">amp_obstype</span> <span class="o">=</span> <span class="n">compute_amplitude</span><span class="p">(</span>
-            <span class="n">modelobs_vectorfield</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]),</span> <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span>
-        <span class="p">)</span>
-
-        <span class="c1"># # get direction of 2D vectors</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing the direction of the 2D vector field of </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">dir_data</span><span class="p">,</span> <span class="n">dir_obstype</span> <span class="o">=</span> <span class="n">compute_angle</span><span class="p">(</span>
-            <span class="n">modelobs_vectorfield</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]),</span> <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span>
-        <span class="p">)</span>
-
-        <span class="c1">#  ------ update the attributes ---------</span>
-
-        <span class="c1"># add new columns to the df</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">amp_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">amp_data</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">dir_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dir_data</span>
-
-        <span class="c1"># remove components from the df (Needed because they are not linked to an obstype)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
-            <span class="n">columns</span><span class="o">=</span><span class="p">[</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_u_column</span><span class="p">(),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_v_column</span><span class="p">(),</span>
-            <span class="p">]</span>
-        <span class="p">)</span>
-
-        <span class="c1"># add the aggregated obstypes to the known obsytpes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">amp_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">amp_obstype</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">dir_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dir_obstype</span></div>
-
-
-<div class="viewcode-block" id="Modeldata.get_gee_dataset_data">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.get_gee_dataset_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_gee_dataset_data</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">mapname</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">startdt_utc</span><span class="p">,</span> <span class="n">enddt_utc</span><span class="p">,</span> <span class="n">obstypes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;temp&quot;</span><span class="p">]</span>
+<div class="viewcode-block" id="Modeldata.import_from_gee">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.import_from_gee">[docs]</a>
+    <span class="k">def</span> <span class="nf">import_from_gee</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">target_obstypes</span><span class="p">,</span> <span class="n">start_utc</span><span class="p">,</span> <span class="n">end_utc</span><span class="p">,</span> <span class="n">gdrive_filename</span><span class="o">=</span><span class="s2">&quot;era5_data&quot;</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract timeseries of a gee dataset.</span>
 
-<span class="sd">        The extraction can only be done if the gee dataset bandname (and units)</span>
-<span class="sd">        corresponding to the obstype is known.</span>
+<span class="sd">        This method can only be used when a GeeExtractor is set as the extractor.</span>
 
-<span class="sd">        The units are converted to the toolkit standard units!!</span>
+<span class="sd">        This import takes care of unit conversions and exploiting of vector fields</span>
+<span class="sd">        to scalar fields (components, direction and amplitude).</span>
+
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        mapname : str</span>
-<span class="sd">            Mapname of choice of the GEE dataset to extract data from.</span>
-<span class="sd">        metadf : pandas.DataFrame</span>
-<span class="sd">            A dataframe with a &#39;name&#39; index and  &#39;lat&#39;, &#39;lon&#39; columns.</span>
-<span class="sd">            Timeseries are extracted for these locations.</span>
+<span class="sd">        target_obstypes : ModelObstype, ModelObstype_Vectorfield, name of a</span>
+<span class="sd">            known obstype, or a list of these.</span>
+<span class="sd">            The observations to extract from the extractor.</span>
 <span class="sd">        startdt_utc : datetime.datetime</span>
 <span class="sd">            Start datetime of the timeseries in UTC.</span>
 <span class="sd">        enddt_utc : datetime.datetime</span>
 <span class="sd">            Last datetime of the timeseries in UTC.</span>
-<span class="sd">        obstypes : str or list of strings, optional</span>
-<span class="sd">            Toolkit observation type to extract data from. There should be a</span>
-<span class="sd">            bandname mapped to this obstype for the gee map. Multiple obstypes</span>
-<span class="sd">            can be given in a list. The default is &#39;temp&#39;.</span>
-
+<span class="sd">        gdrive_filename : str, optional</span>
+<span class="sd">            Filename to use when the data is writen to a csv file on your</span>
+<span class="sd">            Google Drive. The default is &#39;era5_data&#39;.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -554,156 +275,183 @@
 <span class="sd">        ------</span>
 <span class="sd">        When extracting large amounts of data, the timeseries data will be</span>
 <span class="sd">        writen to a file and saved on your google drive. In this case, you need</span>
-<span class="sd">        to provide the Modeldata with the data using the .set_model_from_csv()</span>
+<span class="sd">        to provide the Modeldata with the data using the .import_gee_data_from_csv()</span>
 <span class="sd">        method.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># ====================================================================</span>
-        <span class="c1"># Test input</span>
-        <span class="c1"># ====================================================================</span>
-        <span class="k">if</span> <span class="n">metadf</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The metadf is empty!&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Importing </span><span class="si">{</span><span class="n">target_obstypes</span><span class="si">}</span><span class="s1"> from gee.&#39;</span><span class="p">)</span>
+        <span class="c1"># tests if gee is set as extractor</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extractor</span><span class="p">,</span> <span class="n">GeeExtractor</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Importing a gee dataset from csv is only valid if the extractor is a GeeExtractor. The current extractor is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">extractor</span><span class="si">}</span><span class="s2">&quot;</span>
 
-        <span class="c1"># Subset metadf to stations with coordinates</span>
-        <span class="n">no_coord_meta</span> <span class="o">=</span> <span class="n">metadf</span><span class="p">[</span><span class="n">metadf</span><span class="p">[[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">no_coord_meta</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Following stations do not have coordinates, and thus no modeldata extraction is possible: </span><span class="si">{</span><span class="n">no_coord_meta</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-            <span class="n">metadf</span> <span class="o">=</span> <span class="n">metadf</span><span class="p">[</span><span class="o">~</span><span class="n">metadf</span><span class="p">[[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+        <span class="c1"># Cast to a list of obstypes</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_obstypes</span><span class="p">,</span> <span class="n">Obstype_class</span><span class="p">):</span>
+            <span class="n">target_obstypes_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">target_obstypes</span><span class="p">]</span>
 
-        <span class="c1"># is mapinfo available</span>
-        <span class="k">if</span> <span class="n">mapname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapinfo</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2"> is not a known gee dataset.&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_obstypes</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">target_obstypes</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">target_obstypes</span><span class="si">}</span><span class="s2"> not found in known ModelObtypes: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">target_obstypes_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">target_obstypes</span><span class="p">]]</span>
 
-        <span class="n">geeinfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapinfo</span><span class="p">[</span><span class="n">mapname</span><span class="p">]</span>
-
-        <span class="c1"># does dataset contain time evolution</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">geeinfo</span><span class="p">[</span><span class="s2">&quot;dynamical&quot;</span><span class="p">]:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2"> is a static dataset, this method does not work on static datasets&quot;</span>
-            <span class="p">)</span>
-            <span class="k">return</span>
-
-        <span class="c1"># Check obstypes</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obstypes</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">obstypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">obstypes</span><span class="p">]</span>  <span class="c1"># convert to list</span>
-
-        <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">obstypes</span><span class="p">:</span>
-            <span class="c1"># is obstype mapped?</span>
-            <span class="k">if</span> <span class="n">obstype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is an unknown observation type of the modeldata.&quot;</span>
-                <span class="p">)</span>
-                <span class="k">return</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">has_mapped_band</span><span class="p">(</span><span class="n">mapname</span><span class="p">):</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is not yet mapped to a bandname in the </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2"> dataset.&quot;</span>
-                <span class="p">)</span>
-                <span class="k">return</span>
-
-        <span class="c1"># ====================================================================</span>
-        <span class="c1"># GEE api extraction</span>
-        <span class="c1"># ====================================================================</span>
-
-        <span class="c1"># Connect to Gee</span>
-        <span class="n">connect_to_gee</span><span class="p">()</span>
-
-        <span class="c1"># Get bandname mapper ({bandname1: obstypename1, ...})</span>
-        <span class="n">band_mapper</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">obstypes</span><span class="p">:</span>
-            <span class="n">band_mapper</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_bandname_mapper</span><span class="p">(</span><span class="n">mapname</span><span class="p">))</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">band_mapper</span><span class="si">}</span><span class="s2"> are extracted from </span><span class="si">{</span><span class="n">mapname</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
-        <span class="c1"># Get data using GEE</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">gee_extract_timeseries</span><span class="p">(</span>
-            <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
-            <span class="n">band_mapper</span><span class="o">=</span><span class="n">band_mapper</span><span class="p">,</span>
-            <span class="n">mapinfo</span><span class="o">=</span><span class="n">geeinfo</span><span class="p">,</span>
-            <span class="n">startdt</span><span class="o">=</span><span class="n">startdt_utc</span><span class="p">,</span>
-            <span class="n">enddt</span><span class="o">=</span><span class="n">enddt_utc</span><span class="p">,</span>
-            <span class="n">latcolname</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span>
-            <span class="n">loncolname</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">modelname</span> <span class="o">=</span> <span class="n">mapname</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">df_tz</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
-            <span class="c1"># convert to standard units</span>
-            <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">obstypes</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">convert_units_to_tlk</span><span class="p">(</span><span class="n">obstype</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">],</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">exploid_2d_vector_field</span><span class="p">(</span><span class="n">obstype</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_obstypes</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">target_obstypes_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">target_obstypes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">assert</span> <span class="p">(</span>
+                        <span class="n">obs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obs</span><span class="si">}</span><span class="s2"> not found in known ModelObtypes: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="n">target_obstypes_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obs</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">Obstype_class</span><span class="p">):</span>
+                    <span class="n">target_obstypes_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obs</span><span class="si">}</span><span class="s2"> not a valid input type for target_obstypes.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_data_stored_at_drive</span> <span class="o">=</span> <span class="kc">True</span></div>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">target_obstypes</span><span class="si">}</span><span class="s2"> not a valid input type for target_obstypes.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Following obstypes will be extracted from gee: </span><span class="si">{</span><span class="n">target_obstypes_list</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">target_obstypes_list</span><span class="p">),</span> <span class="s2">&quot;No target_obstypes are found.&quot;</span>
+
+        <span class="c1"># get bandnmaes for target obstypes</span>
+        <span class="n">bandnames_map</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># keys are bandnames, values are the obstype names</span>
+        <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">target_obstypes_list</span><span class="p">:</span>
+            <span class="n">bandnames_map</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">get_bandname_mapper</span><span class="p">())</span>
+
+        <span class="c1"># Extract timeseries</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extractor</span><span class="o">.</span><span class="n">extract_timeseries</span><span class="p">(</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span>
+            <span class="n">bandnames</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">bandnames_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="n">start_utc</span><span class="o">=</span><span class="n">start_utc</span><span class="p">,</span>
+            <span class="n">end_utc</span><span class="o">=</span><span class="n">end_utc</span><span class="p">,</span>
+            <span class="n">gdrive_filename</span><span class="o">=</span><span class="n">gdrive_filename</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_df_attribute_from_gee_df</span><span class="p">(</span>
+                <span class="n">rawdf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">,</span> <span class="n">expected_obstypes</span><span class="o">=</span><span class="n">target_obstypes_list</span>
+            <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Modeldata.get_ERA5_data">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.get_ERA5_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_ERA5_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">startdt_utc</span><span class="p">,</span> <span class="n">enddt_utc</span><span class="p">,</span> <span class="n">obstypes</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract timeseries of the ERA5_hourly dataset.</span>
+<div class="viewcode-block" id="Modeldata.import_gee_data_from_csv">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.import_gee_data_from_csv">[docs]</a>
+    <span class="k">def</span> <span class="nf">import_gee_data_from_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csvpath</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Import timeseries data that is stored in a csv file.</span>
 
-<span class="sd">        The units are converted to the toolkit standard units.</span>
+<span class="sd">        The name of the gee dataset the timeseries are coming from must be the</span>
+<span class="sd">        same as the .modelname attribute of the Modeldata.</span>
 
-<span class="sd">        (This method is a specific ERA5_hourly wrapper on the</span>
-<span class="sd">         get_gee_dataset_data() method)</span>
+
+<span class="sd">        The timeseries will be formatted and converted to standard toolkit</span>
+<span class="sd">        units.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        metadf : pandas.DataFrame</span>
-<span class="sd">            A dataframe with a &#39;name&#39; index and  &#39;lat&#39;, &#39;lon&#39; columns.</span>
-<span class="sd">            Timeseries are extracted for these locations.</span>
-<span class="sd">        startdt_utc : datetime.datetime</span>
-<span class="sd">            Start datetime of the timeseries in UTC.</span>
-<span class="sd">        enddt_utc : datetime.datetime</span>
-<span class="sd">            Last datetime of the timeseries in UTC.</span>
-<span class="sd">        obstypes : str or list of str, optional</span>
-<span class="sd">            Toolkit observation type to extract data from. There should be a</span>
-<span class="sd">            bandname mapped to this obstype for the gee map. Multiple</span>
-<span class="sd">            observation types can be extracted if given as a list. The default is</span>
-<span class="sd">            &#39;temp&#39;.</span>
-
+<span class="sd">        csvpath : str</span>
+<span class="sd">            Path of the csv file containing the modeldata timeseries.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        None.</span>
 
-<span class="sd">        Note</span>
-<span class="sd">        ------</span>
-<span class="sd">        When extracting large amounts of data, the timeseries data will be</span>
-<span class="sd">        writen to a file and saved on your google drive. In this case, you need</span>
-<span class="sd">        to provide the Modeldata with the data using the .set_model_from_csv()</span>
-<span class="sd">        method.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Check obstypes</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obstypes</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">obstypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">obstypes</span><span class="p">]</span>  <span class="c1"># convert to list</span>
+        <span class="c1"># tests if gee is set as extractor</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extractor</span><span class="p">,</span> <span class="n">GeeExtractor</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Importing a gee dataset from csv is only valid if the extractor is a GeeExtractor. The current extractor is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">extractor</span><span class="si">}</span><span class="s2">&quot;</span>
 
-        <span class="c1"># test if obstype is known</span>
-        <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">obstypes</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">obstype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">:</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is not a known obstype of the Modeldata instance.&quot;</span><span class="p">)</span>
+        <span class="c1"># 1. Read csv and set timezone</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csvpath</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="c1"># renamte name column</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">})</span>
+        <span class="c1"># format datetime</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S&quot;</span><span class="p">)</span>
+        <span class="c1"># (assume all gee dataset are in UTC)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
 
-            <span class="c1"># test if the obstype is mapped in the era5 hourly dataset</span>
-            <span class="k">if</span> <span class="s2">&quot;ERA5_hourly&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">get_mapped_datasets</span><span class="p">():</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> has no equivalent mapped band for the ERA5_hourly dataset.&quot;</span>
-                <span class="p">)</span>
+        <span class="c1"># 2. Format dataframe</span>
+        <span class="c1"># format index</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_gee_dataset_data</span><span class="p">(</span>
-            <span class="n">mapname</span><span class="o">=</span><span class="s2">&quot;ERA5_hourly&quot;</span><span class="p">,</span>
-            <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
-            <span class="n">startdt_utc</span><span class="o">=</span><span class="n">startdt_utc</span><span class="p">,</span>
-            <span class="n">enddt_utc</span><span class="o">=</span><span class="n">enddt_utc</span><span class="p">,</span>
-            <span class="n">obstypes</span><span class="o">=</span><span class="n">obstypes</span><span class="p">,</span>
+        <span class="c1"># test if all names in the df corresponds with names of the metadf</span>
+        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;The station names of the csv file are not equal to those stored in the metadf attribute:  </span><span class="si">{</span><span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">))</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># Find wicht obstypes are found in the dataframe</span>
+        <span class="n">found_obstypes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">bandnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">get_bandname_mapper</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">bandname</span> <span class="ow">in</span> <span class="n">bandnames</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">bandname</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">bandname</span><span class="p">)</span>
+                    <span class="n">found_obstypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+        <span class="n">found_obstypes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">found_obstypes</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_df_attribute_from_gee_df</span><span class="p">(</span>
+            <span class="n">rawdf</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">expected_obstypes</span><span class="o">=</span><span class="n">found_obstypes</span>
         <span class="p">)</span></div>
 
 
+    <span class="k">def</span> <span class="nf">_update_df_attribute_from_gee_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rawdf</span><span class="p">,</span> <span class="n">expected_obstypes</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rename columns, convert to std units and create aggregated fields</span>
+<span class="sd">        if vector field detected.&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">expected_obstypes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">ModelObstype</span><span class="p">):</span>
+                <span class="c1"># rename column</span>
+                <span class="n">rawdf</span> <span class="o">=</span> <span class="n">rawdf</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">obs</span><span class="o">.</span><span class="n">get_bandname_mapper</span><span class="p">())</span>
+                <span class="c1"># convert to standard units</span>
+                <span class="n">rawdf</span><span class="p">[</span><span class="n">obs</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">convert_to_standard_units</span><span class="p">(</span>
+                    <span class="n">input_data</span><span class="o">=</span><span class="n">rawdf</span><span class="p">[</span><span class="n">obs</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> <span class="n">input_unit</span><span class="o">=</span><span class="n">obs</span><span class="o">.</span><span class="n">get_bandunit</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">):</span>
+                <span class="c1"># rename columns</span>
+                <span class="n">rawdf</span> <span class="o">=</span> <span class="n">rawdf</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">obs</span><span class="o">.</span><span class="n">get_bandname_mapper</span><span class="p">())</span>
+
+                <span class="c1"># ------ Amplitude  --------</span>
+                <span class="c1"># calculate amplitude field</span>
+                <span class="n">ampseries</span><span class="p">,</span> <span class="n">amp_obstype</span> <span class="o">=</span> <span class="n">compute_amplitude</span><span class="p">(</span>
+                    <span class="n">modelobs_vectorfield</span><span class="o">=</span><span class="n">obs</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">rawdf</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">amp_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">amp_obstype</span>
+
+                <span class="c1"># convert amplitudes to standard units</span>
+                <span class="n">ampseries</span> <span class="o">=</span> <span class="n">amp_obstype</span><span class="o">.</span><span class="n">convert_to_standard_units</span><span class="p">(</span>
+                    <span class="n">input_data</span><span class="o">=</span><span class="n">ampseries</span><span class="p">,</span>  <span class="c1"># test this</span>
+                    <span class="n">input_unit</span><span class="o">=</span><span class="n">amp_obstype</span><span class="o">.</span><span class="n">get_bandunit</span><span class="p">(),</span>
+                <span class="p">)</span>
+
+                <span class="c1"># add amplitude clumn</span>
+                <span class="n">rawdf</span><span class="p">[</span><span class="n">amp_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ampseries</span>
+
+                <span class="c1"># ------ Direction  --------</span>
+                <span class="c1"># calculate angle field</span>
+                <span class="n">angleseries</span><span class="p">,</span> <span class="n">angle_obstype</span> <span class="o">=</span> <span class="n">compute_angle</span><span class="p">(</span>
+                    <span class="n">modelobs_vectorfield</span><span class="o">=</span><span class="n">obs</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">rawdf</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">angle_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">angle_obstype</span>
+
+                <span class="c1"># convert angles to standard units</span>
+                <span class="c1"># - not needed because angles are always created in degrees -</span>
+
+                <span class="c1"># add amplitude clumn</span>
+                <span class="n">rawdf</span><span class="p">[</span><span class="n">angle_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">angleseries</span>
+
+                <span class="c1"># ----- Keep the components --------</span>
+                <span class="c1"># we can keep the components, but we need to create two new obstypes</span>
+                <span class="c1"># since we will interpret them as scalar 2d fields</span>
+                <span class="n">u_comp_obstype</span><span class="p">,</span> <span class="n">v_comp_obstype</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">create_the_scalar_modelobstypes</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">u_comp_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_comp_obstype</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">v_comp_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_comp_obstype</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Something went wrong. Report this error.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rawdf</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># IO</span>
+    <span class="c1"># =============================================================================</span>
 <div class="viewcode-block" id="Modeldata.save_modeldata">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.save_modeldata">[docs]</a>
     <span class="k">def</span> <span class="nf">save_modeldata</span><span class="p">(</span>
@@ -790,78 +538,113 @@
         <span class="k">return</span> <span class="n">modeldata</span></div>
 
 
-<div class="viewcode-block" id="Modeldata.set_model_from_csv">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.set_model_from_csv">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_model_from_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csvpath</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Import timeseries data that is stored in a csv file.</span>
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Plotters</span>
+    <span class="c1"># =============================================================================</span>
 
-<span class="sd">        The name of the gee dataset the timeseries are coming from must be the</span>
-<span class="sd">        same as the .modelname attribute of the Modeldata.</span>
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Helpers</span>
+    <span class="c1"># =============================================================================</span>
+<div class="viewcode-block" id="Modeldata.sample_data_as">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.sample_data_as">[docs]</a>
+    <span class="k">def</span> <span class="nf">sample_data_as</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">interp_method</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resample the modeldata to a target.</span>
 
+<span class="sd">        This methods will convert the modeldata to the same index as present</span>
+<span class="sd">        in the target_df. Thus this method will transform timezones (if needed)</span>
+<span class="sd">        and will interpolate to the missing timestamps (required for</span>
+<span class="sd">        timeresolution mismatch between target_df and the model observations).</span>
 
-<span class="sd">        The timeseries will be formatted and converted to standard toolkit</span>
-<span class="sd">        units.</span>
+<span class="sd">        This method is only applicable when target_df and self.df share the</span>
+<span class="sd">        same levels of the index.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        csvpath : str</span>
-<span class="sd">            Path of the csv file containing the modeldata timeseries.</span>
-
+<span class="sd">        target : pandas.DataFrame, or pandas.index</span>
+<span class="sd">            The pandas dataframe with the target index to convert the modeldata</span>
+<span class="sd">            to.</span>
+<span class="sd">        interp_method : str, optional</span>
+<span class="sd">            The interpolation method used by pandas.DataFrame.interpolate(). The default is &#39;time&#39;.</span>
+<span class="sd">        **kwargs:</span>
+<span class="sd">            Additional keyword arguments passed to pandas.DataFrame.interpolate().</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        None.</span>
+<span class="sd">        target_modeldf : pandas.DataFrame</span>
+<span class="sd">            Modeldata resampled to target index.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># tests ----</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapinfo</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">modelname</span><span class="si">}</span><span class="s2"> is not found in the gee datasets.&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Sample_data_as not possible because no modeldata found.&quot;</span>
 
-        <span class="c1"># 1. Read csv and set timezone</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csvpath</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-        <span class="c1"># format datetime</span>
-        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S&quot;</span><span class="p">)</span>
-        <span class="c1"># (assume all gee dataset are in UTC)</span>
-        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="n">target_idx</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">index</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">):</span>
+            <span class="n">target_idx</span> <span class="o">=</span> <span class="n">target</span>
 
-        <span class="c1"># 2. Format dataframe</span>
-        <span class="c1"># format index</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">target_idx</span><span class="o">.</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;sample data to target not possible since index levels are not the same for modeldata and target dataframe.&quot;</span>
 
-        <span class="c1"># make a bandname --&gt; tlk name mapper</span>
-        <span class="n">bandname_mapper</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">known_obstype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="n">bandname_mapper</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">known_obstype</span><span class="o">.</span><span class="n">get_bandname_mapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modelname</span><span class="p">))</span>
 
-        <span class="c1"># rename to values to toolkit space</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">bandname_mapper</span><span class="p">)</span>
+        <span class="c1">#Convert model to tz of the target</span>
+        <span class="n">target_tz</span> <span class="o">=</span> <span class="n">target_idx</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tz</span>
+        <span class="n">target_modeldf</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+                                 <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+                                 <span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="n">target_tz</span><span class="p">)</span>
+                                 <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+                                 <span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="s1">&#39;datetime&#39;</span><span class="p">]))</span>
 
-        <span class="c1"># 3. update attributes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">df_tz</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
 
-        <span class="c1"># 4. Find which obstypes are present</span>
-        <span class="n">data_present_obstypes</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="c1"># column is a regular obstype</span>
-                <span class="n">data_present_obstypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># check if column represents a vector component</span>
-                <span class="k">for</span> <span class="n">known_obs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">known_obs</span><span class="p">,</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">):</span>
-                        <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="n">known_obs</span><span class="o">.</span><span class="n">get_u_column</span><span class="p">(),</span> <span class="n">known_obs</span><span class="o">.</span><span class="n">get_v_column</span><span class="p">()]</span>
-                        <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">:</span>
-                            <span class="n">data_present_obstypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">known_obs</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">data_present_obstypes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">data_present_obstypes</span><span class="p">))</span>
-        <span class="c1"># A. scalar obstypes (same name as column)</span>
 
-        <span class="c1"># 5. Convert units</span>
-        <span class="k">for</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="n">data_present_obstypes</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">convert_units_to_tlk</span><span class="p">(</span><span class="n">obstype</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">],</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">exploid_2d_vector_field</span><span class="p">(</span><span class="n">obstype</span><span class="p">)</span></div>
+        <span class="c1"># get target idices not in modeldf and convert to dataframe</span>
+        <span class="n">tg_idx_new</span> <span class="o">=</span> <span class="n">target_idx</span><span class="p">[</span><span class="o">~</span><span class="n">target_idx</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">target_modeldf</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span>
+        <span class="n">tg_idx_new_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">tg_idx_new</span><span class="p">)</span>
+
+        <span class="c1"># add the missing idices to the modeldata with Nans as values</span>
+        <span class="n">target_modeldf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">target_modeldf</span><span class="p">,</span> <span class="n">tg_idx_new_df</span><span class="p">])</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+
+        <span class="c1"># iterpolate the nan values (groupby name first)</span>
+        <span class="n">target_modeldf</span> <span class="o">=</span> <span class="n">target_modeldf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
+
+        <span class="n">target_modeldf</span> <span class="o">=</span> <span class="n">target_modeldf</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">group_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">group</span><span class="p">:</span> <span class="n">group</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span>
+                <span class="n">method</span><span class="o">=</span><span class="n">interp_method</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="s2">&quot;columns&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">target_modeldf</span> <span class="o">=</span> <span class="n">target_modeldf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+        <span class="c1">#subset to target idices</span>
+        <span class="n">target_modeldf</span> <span class="o">=</span> <span class="n">target_modeldf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">target_idx</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">target_modeldf</span></div>
+
+
+    <span class="c1"># def _conv_to_timezone(self, tzstr):</span>
+    <span class="c1">#     &quot;&quot;&quot;Convert the timezone of the datetime index of the df attribute.</span>
+
+    <span class="c1">#     Parameters</span>
+    <span class="c1">#     ----------</span>
+    <span class="c1">#     tzstr : str</span>
+    <span class="c1">#         TImezonstring from the pytz module.</span>
+
+    <span class="c1">#     Returns</span>
+    <span class="c1">#     -------</span>
+    <span class="c1">#     None.</span>
+
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     # get tzstr by datetimindex.tz.zone</span>
+
+    <span class="c1">#     df = self.df</span>
+    <span class="c1">#     df[&quot;datetime_utc&quot;] = df.index.get_level_values(&quot;datetime&quot;).tz_convert(tzstr)</span>
+    <span class="c1">#     df = df.reset_index()</span>
+    <span class="c1">#     df = df.drop(columns=[&quot;datetime&quot;])</span>
+    <span class="c1">#     df = df.rename(columns={&quot;datetime_utc&quot;: &quot;datetime&quot;})</span>
+    <span class="c1">#     df = df.set_index([&quot;name&quot;, &quot;datetime&quot;])</span>
+    <span class="c1">#     self.df = df</span>
+    <span class="c1">#     self.df_tz = tzstr</span>
+
 
 
 <div class="viewcode-block" id="Modeldata.interpolate_modeldata">
@@ -962,8 +745,8 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        obstype_model : string, optional</span>
-<span class="sd">             Fieldname of the Modeldata to visualise. The default is &#39;temp&#39;.</span>
+<span class="sd">        obstype_model : string or ModelObstype, optional</span>
+<span class="sd">            The observation to plot. The default is &#39;temp&#39;.</span>
 <span class="sd">        dataset : metobs_toolkit.Dataset, optional</span>
 <span class="sd">            A Dataset instance with observations plotted in the same figure.</span>
 <span class="sd">            Observations are represented by solid line and modeldata by dashed</span>
@@ -1004,29 +787,35 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Make </span><span class="si">{</span><span class="n">obstype_model</span><span class="si">}</span><span class="s2">-timeseries plot of model data&quot;</span><span class="p">)</span>
 
+        <span class="c1">#type casters</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obstype_model</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">obstype_model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obstype_model</span><span class="si">}</span><span class="s1"> not in the known obstypes of the Modeldata: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">obstype_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype_model</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obstype_dataset</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">dataset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;You cannot provide a obstype_dataset without providing a dataset&#39;</span>
+            <span class="k">assert</span> <span class="n">obstype_dataset</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">obstypes</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obstype_dataset</span><span class="si">}</span><span class="s1"> not in the known obstypes of the Dataset: </span><span class="si">{</span><span class="n">dataset</span><span class="o">.</span><span class="n">obstypes</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">obstype_dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype_dataset</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">obstype_dataset</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obstype_dataset</span><span class="si">}</span><span class="s1"> not found in the Modeldata data: </span><span class="si">{</span><span class="n">dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s1">&#39;</span>
+
+        <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s1">&#39;Make plot not possible for empty Modeldata&#39;</span>
+
+        <span class="c1"># Check of obstype is present in the df</span>
+        <span class="k">assert</span> <span class="n">obstype_model</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obstype_model</span><span class="si">}</span><span class="s1"> not found in the Modeldata data: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s1">&#39;</span>
+
+
         <span class="c1"># Basic test</span>
-        <span class="k">if</span> <span class="n">obstype_model</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype_model</span><span class="si">}</span><span class="s2"> is not foud in the modeldata df (columns = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s2">).&quot;</span>
-            <span class="p">)</span>
-            <span class="k">return</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The modeldata is empty.&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
         <span class="k">if</span> <span class="n">obstype_dataset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">obstype_dataset</span> <span class="o">=</span> <span class="n">obstype_model</span>
 
         <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">obstype_dataset</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype_dataset</span><span class="si">}</span><span class="s2"> is not foud in the Dataframe df.&quot;</span><span class="p">)</span>
-                <span class="k">return</span>
+            <span class="k">assert</span> <span class="n">obstype_dataset</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype_dataset</span><span class="si">}</span><span class="s2"> is not foud in the Dataframe df.&quot;</span>
 
         <span class="n">model_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
 
         <span class="c1"># ------ filter model ------------</span>
 
         <span class="c1"># Filter on obstype</span>
-        <span class="n">model_df</span> <span class="o">=</span> <span class="n">model_df</span><span class="p">[[</span><span class="n">obstype_model</span><span class="p">]]</span>
+        <span class="n">model_df</span> <span class="o">=</span> <span class="n">model_df</span><span class="p">[[</span><span class="n">obstype_model</span><span class="o">.</span><span class="n">name</span><span class="p">]]</span>
 
         <span class="c1"># Subset on stationnames</span>
         <span class="k">if</span> <span class="n">stationnames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1043,7 +832,7 @@
             <span class="n">mergedf</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">combine_all_to_obsspace</span><span class="p">()</span>
 
             <span class="c1"># subset to obstype</span>
-            <span class="n">mergedf</span> <span class="o">=</span> <span class="n">xs_save</span><span class="p">(</span><span class="n">mergedf</span><span class="p">,</span> <span class="n">obstype_dataset</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;obstype&quot;</span><span class="p">)</span>
+            <span class="n">mergedf</span> <span class="o">=</span> <span class="n">xs_save</span><span class="p">(</span><span class="n">mergedf</span><span class="p">,</span> <span class="n">obstype_dataset</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;obstype&quot;</span><span class="p">)</span>
 
             <span class="c1"># Subset on stationnames</span>
             <span class="k">if</span> <span class="n">stationnames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1055,12 +844,12 @@
             <span class="n">mergedf</span> <span class="o">=</span> <span class="n">multiindexdf_datetime_subsetting</span><span class="p">(</span><span class="n">mergedf</span><span class="p">,</span> <span class="n">starttime</span><span class="p">,</span> <span class="n">endtime</span><span class="p">)</span>
 
         <span class="c1"># Generate ylabel</span>
-        <span class="n">y_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype_model</span><span class="p">]</span><span class="o">.</span><span class="n">get_plot_y_label</span><span class="p">(</span><span class="n">mapname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modelname</span><span class="p">)</span>
+        <span class="n">y_label</span> <span class="o">=</span> <span class="n">obstype_model</span><span class="o">.</span><span class="n">get_plot_y_label</span><span class="p">()</span>
 
         <span class="c1"># Generate title</span>
-        <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">modelname</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">extractor</span><span class="o">.</span><span class="n">usage</span><span class="si">}</span><span class="s2"> data for </span><span class="si">{</span><span class="n">obstype_dataset</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">extractor</span><span class="o">.</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype_dataset</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> observations.&quot;</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> and </span><span class="si">{</span><span class="n">obstype_dataset</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> observations.&quot;</span>
 
         <span class="c1"># make plot of the observations</span>
         <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1080,7 +869,7 @@
             <span class="c1"># Make plot of the model on the previous axes</span>
             <span class="n">ax</span><span class="p">,</span> <span class="n">col_map</span> <span class="o">=</span> <span class="n">model_timeseries_plot</span><span class="p">(</span>
                 <span class="n">df</span><span class="o">=</span><span class="n">model_df</span><span class="p">,</span>
-                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype_model</span><span class="p">,</span>
+                <span class="n">obstypename</span><span class="o">=</span><span class="n">obstype_model</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                 <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
                 <span class="n">ylabel</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
                 <span class="n">settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">,</span>
@@ -1094,7 +883,7 @@
             <span class="c1"># Make plot of model on empty axes</span>
             <span class="n">ax</span><span class="p">,</span> <span class="n">_colmap</span> <span class="o">=</span> <span class="n">model_timeseries_plot</span><span class="p">(</span>
                 <span class="n">df</span><span class="o">=</span><span class="n">model_df</span><span class="p">,</span>
-                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype_model</span><span class="p">,</span>
+                <span class="n">obstypename</span><span class="o">=</span><span class="n">obstype_model</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                 <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
                 <span class="n">ylabel</span><span class="o">=</span><span class="n">y_label</span><span class="p">,</span>
                 <span class="n">settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">,</span>
@@ -1106,6 +895,33 @@
         <span class="k">return</span> <span class="n">ax</span></div>
 </div>
 
+
+
+<span class="k">def</span> <span class="nf">_format_metadf</span><span class="p">(</span><span class="n">metadf</span><span class="p">):</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">_is_metadf_valid</span><span class="p">(</span><span class="n">metadf</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">):</span>
+            <span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;name&#39;</span>
+    <span class="k">return</span> <span class="n">metadf</span>
+
+
+
+<span class="k">def</span> <span class="nf">_is_metadf_valid</span><span class="p">(</span><span class="n">metadf</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">metadf</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s2">&quot;Metadf is an empty dataframe.&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="n">metadf</span><span class="o">.</span><span class="n">columns</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;lat column not found in columns of metadf </span><span class="si">{</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="n">metadf</span><span class="o">.</span><span class="n">columns</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;lon column not found in columns of metadf </span><span class="si">{</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_unique</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;The index of the metadf is not unique: </span><span class="si">{</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span>
+
+
+    <span class="c1"># TODO check if lat and lon columns are numerical</span>
+    <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
 
            </div>

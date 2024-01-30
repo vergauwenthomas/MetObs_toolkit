@@ -34,8 +34,6 @@ from metobs_toolkit.plotting_functions import (
     geospatial_plot,
     timeseries_plot,
     qc_stats_pie,
-    folium_plot,
-    add_stations_to_folium_map,
     make_folium_html_plot,
 )
 
@@ -1074,9 +1072,11 @@ class Dataset:
         # get start and enddtate
         startdt = self.df.index.get_level_values("datetime").min()
         startdt_utc = startdt.tz_convert("UTC")
+        startdt_utc = startdt_utc.floor(modl.extractor.time_res)
 
         enddt = self.df.index.get_level_values("datetime").max()
         enddt_utc = enddt.tz_convert("UTC")
+        enddt_utc = enddt_utc.ceil(modl.extractor.time_res)
 
         # Updat the obstypes of the modl by modelobstypes in dataset
         overload_obs = {}
@@ -1664,8 +1664,8 @@ class Dataset:
             data_template=self.data_template,
         )
 
-    def fill_gaps_era5(
-        self, modeldata, method="debias", obstype="temp", overwrite_fill=False
+    def fill_gaps_using_debiased_modeldata(
+        self, modeldata, obstype="temp", overwrite_fill=False
     ):
         """Fill the gaps using a Modeldata object.
 
@@ -1674,9 +1674,7 @@ class Dataset:
         modeldata : metobs_toolkit.Modeldata
             The modeldata to use for the gapfill. This model data should the required
             timeseries to fill all gaps present in the dataset.
-        method : 'debias', optional
-            Specify which method to use. The default is 'debias'.
-        obstype : String, optional
+        obstype : str or metobs_toolkit.Obstype , optional
            Name of the observationtype you want to apply gap filling on. The
            modeldata must contain this observation type as well. The
            default is 'temp'.
@@ -1688,45 +1686,52 @@ class Dataset:
         Returns
         -------
         Gapfilldf : pandas.DataFrame
-            A dataframe containing all gap filled values and the use method.
+            A dataframe containing all gap filled values.
 
         """
         # check if modeldata is available
-        if modeldata is None:
-            logger.warning(
-                "The dataset has no modeldate. Use the set_modeldata() function to add modeldata."
-            )
-            return None
-        # check if obstype is present in eramodel
+        assert isinstance(
+            modeldata, Modeldata
+        ), f"{modeldata} is not an instance of Modeldata."
+
+        # convert to Obstype
+        if isinstance(obstype, str):
+            obstype = self.obstypes[obstype]  # convert to obstype instance
+
+        # check if obstype has observations
+        assert obstype.name in self.df.columns, f"No observations found for {obstype}"
+
+        # check if obstype is present in model (by name because model holds the Modelobstype equivalent)
+        _pres_in_mod = [obs.name for obs in modeldata._get_present_obstypes()]
+        _all_known_in_mod = [obs.name for obs in modeldata.obstypes.values()]
+
         assert (
-            obstype in modeldata.df.columns
-        ), f"{obstype} is not present in the modeldate: {modeldata}"
-        # check if all station are present in eramodeldata
-        # stations = self.gaps.to_df().index.unique().to_list()
-        stations = list(set([gap.name for gap in self.gaps]))
-        assert all(
-            [sta in modeldata.df.index.get_level_values("name") for sta in stations]
-        ), "Not all stations with gaps are in the modeldata!"
+            obstype.name in _all_known_in_mod
+        ), f"{obstype} is no equivalent in the modeldata: {_all_known_in_mod}"
+        assert (
+            obstype.name in _pres_in_mod
+        ), f"{obstype} has equivalent in the modeldata, but no data is available for it."
 
-        if method == "debias":
+        # check if all stations (with gaps) are in the modeldata
+        _gapstations = set([gap.name for gap in self.gaps])
+        _modelstations = set(modeldata.df.index.get_level_values("name"))
+        assert np.array(
+            [sta in _modelstations for sta in _gapstations]
+        ).all(), f"Not all stations with gaps have corresponding model timeseries."
 
-            fill_settings_debias = self.settings.gap["gaps_fill_settings"][
-                "model_debias"
-            ]
+        fill_settings_debias = self.settings.gap["gaps_fill_settings"]["model_debias"]
 
-            apply_debias_era5_gapfill(
-                gapslist=self.gaps,
-                dataset=self,
-                eraModelData=modeldata,
-                obstype=obstype,
-                debias_settings=fill_settings_debias,
-                overwrite_fill=overwrite_fill,
-            )
+        apply_debias_era5_gapfill(
+            gapslist=self.gaps,
+            dataset=self,
+            eraModelData=modeldata,
+            obstype=obstype,
+            debias_settings=fill_settings_debias,
+            overwrite_fill=overwrite_fill,
+        )
 
-            # get fill df
-            filldf = make_gapfill_df(self.gaps)
-        else:
-            sys.exit(f"{method} not implemented yet")
+        # get fill df
+        filldf = make_gapfill_df(self.gaps)
 
         # update attribute
         self.gapfilldf = filldf
@@ -3601,107 +3606,6 @@ station with the default name: {self.settings.app["default_name"]}.'
                 self.metadf[buf_df.columns] = buf_df
 
         return frac_df
-
-    # def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
-    #     """Make an interactive plot of a google earth dataset.
-
-    #     The location of the stations can be plotted on top of it.
-
-    #     Parameters
-    #     ----------
-    #     gee_map : str, optional
-    #         The name of the dataset to use. This name should be present in the
-    #         settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
-    #         scheme should included as well. The default is 'worldcover'
-    #     show_stations : bool, optional
-    #         If True, the stations will be plotted as markers. The default is True.
-    #     save : bool, optional
-    #         If True, the map will be saved as an html file in the output_folder
-    #         as defined in the settings if the outputfile is not set. The
-    #         default is False.
-    #     outputfile : str, optional
-    #         Specify the path of the html file if save is True. If None, and save
-    #         is true, the html file will be saved in the output_folder. The
-    #         default is None.
-
-    #     Returns
-    #     -------
-    #     Map : geemap.foliumap.Map
-    #         The folium Map instance.
-
-    #     Warning
-    #     ---------
-    #     To display the interactive map a graphical backend is required, which
-    #     is often missing on (free) cloud platforms. Therefore it is better to
-    #     set save=True, and open the .html in your browser
-
-    #     """
-    #     # Connect to GEE
-    #     connect_to_gee()
-
-    #     # get the mapinfo
-    #     mapinfo = self.settings.gee["gee_dataset_info"][gee_map]
-
-    #     # Read in covers, numbers and labels
-    #     covernum = list(mapinfo["colorscheme"].keys())
-    #     colors = list(mapinfo["colorscheme"].values())
-    #     covername = [mapinfo["categorical_mapper"][covnum] for covnum in covernum]
-
-    #     # create visparams
-    #     vis_params = {
-    #         "min": min(covernum),
-    #         "max": max(covernum),
-    #         "palette": colors,  # hex colors!
-    #     }
-
-    #     if "band_of_use" in mapinfo:
-    #         band = mapinfo["band_of_use"]
-    #     else:
-    #         band = None
-
-    #     Map = folium_plot(
-    #         mapinfo=mapinfo,
-    #         band=band,
-    #         vis_params=vis_params,
-    #         labelnames=covername,
-    #         layername=gee_map,
-    #         legendname=f"{gee_map} covers",
-    #         # showmap = show,
-    #     )
-
-    #     if show_stations:
-    #         if not _validate_metadf(self.metadf):
-    #             logger.warning(
-    #                 "Not enough coordinates information is provided to plot the stations."
-    #             )
-    #         else:
-    #             Map = add_stations_to_folium_map(Map=Map, metadf=self.metadf)
-
-    #     # Save if needed
-    #     if save:
-    #         if outputfile is None:
-    #             # Try to save in the output folder
-    #             if self.settings.IO["output_folder"] is None:
-    #                 logger.warning(
-    #                     "The outputfolder is not set up, use the update_settings to specify the output_folder."
-    #                 )
-
-    #             else:
-    #                 filename = f"gee_{gee_map}_figure.html"
-    #                 filepath = os.path.join(self.settings.IO["output_folder"], filename)
-    #         else:
-    #             # outputfile is specified
-    #             # 1. check extension
-    #             if not outputfile.endswith(".html"):
-    #                 outputfile = outputfile + ".html"
-
-    #             filepath = outputfile
-
-    #         print(f"Gee Map will be save at {filepath}")
-    #         logger.info(f"Gee Map will be save at {filepath}")
-    #         Map.save(filepath)
-
-    #     return Map
 
 
 def _can_qc_be_applied(dataset, obstype, checkname):

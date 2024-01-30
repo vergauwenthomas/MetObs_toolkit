@@ -70,6 +70,7 @@
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap.html">metobs_toolkit.gap</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gee_extractor.html">metobs_toolkit.gee_extractor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
@@ -122,95 +123,46 @@
 <h1>metobs_toolkit.modeldata.Modeldata<a class="headerlink" href="#metobs-toolkit-modeldata-modeldata" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">metobs_toolkit.modeldata.</span></span><span class="sig-name descname"><span class="pre">Modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modelname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">metobs_toolkit.modeldata.</span></span><span class="sig-name descname"><span class="pre">Modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extractor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Class holding data and methods for a modeldata-timeseries.</p>
+<p>Class holding timeseries data and methods for modeldata.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.add_gee_dataset" title="metobs_toolkit.modeldata.Modeldata.add_gee_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_gee_dataset</span></code></a></p></td>
-<td><p>Add a new gee dataset to the available gee datasets.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.add_obstype" title="metobs_toolkit.modeldata.Modeldata.add_obstype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_obstype</span></code></a></p></td>
+<td><p>TODO: update docstring Add a new Observation type for the current Modeldata.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.add_obstype" title="metobs_toolkit.modeldata.Modeldata.add_obstype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_obstype</span></code></a></p></td>
-<td><p>Add a new Observation type for the current Modeldata.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.convert_units_to_tlk" title="metobs_toolkit.modeldata.Modeldata.convert_units_to_tlk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_units_to_tlk</span></code></a></p></td>
-<td><p>Convert the model data of one observation to the standard units.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.exploid_2d_vector_field" title="metobs_toolkit.modeldata.Modeldata.exploid_2d_vector_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exploid_2d_vector_field</span></code></a></p></td>
-<td><p>Compute amplitude and direction of 2D vector field components.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.get_ERA5_data" title="metobs_toolkit.modeldata.Modeldata.get_ERA5_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ERA5_data</span></code></a></p></td>
-<td><p>Extract timeseries of the ERA5_hourly dataset.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.get_gee_dataset_data" title="metobs_toolkit.modeldata.Modeldata.get_gee_dataset_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gee_dataset_data</span></code></a></p></td>
-<td><p>Extract timeseries of a gee dataset.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.get_info" title="metobs_toolkit.modeldata.Modeldata.get_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_info</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.get_info" title="metobs_toolkit.modeldata.Modeldata.get_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_info</span></code></a></p></td>
 <td><p>Print out detailed information on the Modeldata.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.import_modeldata" title="metobs_toolkit.modeldata.Modeldata.import_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_modeldata</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.import_from_gee" title="metobs_toolkit.modeldata.Modeldata.import_from_gee"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_from_gee</span></code></a></p></td>
+<td><p>Extract timeseries of a gee dataset.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.import_gee_data_from_csv" title="metobs_toolkit.modeldata.Modeldata.import_gee_data_from_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_gee_data_from_csv</span></code></a></p></td>
+<td><p>Import timeseries data that is stored in a csv file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.import_modeldata" title="metobs_toolkit.modeldata.Modeldata.import_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_modeldata</span></code></a></p></td>
 <td><p>Import a modeldata instance from a (pickle) file.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.interpolate_modeldata" title="metobs_toolkit.modeldata.Modeldata.interpolate_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_modeldata</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.interpolate_modeldata" title="metobs_toolkit.modeldata.Modeldata.interpolate_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_modeldata</span></code></a></p></td>
 <td><p>Interpolate modeldata in time.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.list_gee_datasets" title="metobs_toolkit.modeldata.Modeldata.list_gee_datasets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list_gee_datasets</span></code></a></p></td>
-<td><p>Print out all the available gee datasets.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.make_plot" title="metobs_toolkit.modeldata.Modeldata.make_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_plot</span></code></a></p></td>
 <td><p>Plot timeseries of the modeldata.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.save_modeldata" title="metobs_toolkit.modeldata.Modeldata.save_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_modeldata</span></code></a></p></td>
-<td><p>Save a Modeldata instance to a (pickle) file.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.sample_data_as" title="metobs_toolkit.modeldata.Modeldata.sample_data_as"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_data_as</span></code></a></p></td>
+<td><p>Resample the modeldata to a target.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.set_model_from_csv" title="metobs_toolkit.modeldata.Modeldata.set_model_from_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_model_from_csv</span></code></a></p></td>
-<td><p>Import timeseries data that is stored in a csv file.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.save_modeldata" title="metobs_toolkit.modeldata.Modeldata.save_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_modeldata</span></code></a></p></td>
+<td><p>Save a Modeldata instance to a (pickle) file.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.add_gee_dataset">
-<span class="sig-name descname"><span class="pre">add_gee_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gee_location</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_desc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1H'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_numeric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">credentials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.add_gee_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.add_gee_dataset" title="Link to this definition"></a></dt>
-<dd><p>Add a new gee dataset to the available gee datasets.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mapname</strong> (<em>str</em>) – Mapname of choice for the GEE dataset to add.</p></li>
-<li><p><strong>gee_location</strong> (<em>str</em>) – Location of the gee dataset (like “ECMWF/ERA5_LAND/HOURLY” for ERA5).</p></li>
-<li><p><strong>obstype</strong> (<em>str</em>) – The observation type name the band corresponds to.</p></li>
-<li><p><strong>bandname</strong> (<em>str</em>) – Name of the dataset band as stored on the GEE.</p></li>
-<li><p><strong>units</strong> (<em>str</em>) – The units of the band.</p></li>
-<li><p><strong>scale</strong> (<em>int</em>) – The scale to represent the dataset in. (This is a GEE concept that
-is similar to the resolution in meters).</p></li>
-<li><p><strong>band_desc</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Add a descrition to of the band. The default is None.</p></li>
-<li><p><strong>time_res</strong> (<em>timedelta string</em><em>, </em><em>optional</em>) – Time reoslution of the dataset, if is_image == False. The default is ‘1H’.</p></li>
-<li><p><strong>is_image</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the dataset is a ee.Image, else it is assumed to be an
-ee.ImageCollection. The default is False.</p></li>
-<li><p><strong>is_numeric</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the bandvalues are interpreted as numerical values rather
-than categorical.. The default is True.</p></li>
-<li><p><strong>credentials</strong> (<em>str</em><em>, </em><em>optional</em>) – Extra credentials of the dataset. The default is ‘’.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None.</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>To list all available gee dataset, use the .list_gee_dataset() method.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Currently no unit conversion is perfomed automatically other than K –&gt;
-Celcius. This will be implemented in the futur.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.add_obstype">
-<span class="sig-name descname"><span class="pre">add_obstype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.add_obstype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.add_obstype" title="Link to this definition"></a></dt>
-<dd><p>Add a new Observation type for the current Modeldata.</p>
+<span class="sig-name descname"><span class="pre">add_obstype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Modelobstype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.add_obstype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.add_obstype" title="Link to this definition"></a></dt>
+<dd><p>TODO: update docstring
+Add a new Observation type for the current Modeldata.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -228,108 +180,58 @@ Obstype.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.convert_units_to_tlk">
-<span class="sig-name descname"><span class="pre">convert_units_to_tlk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.convert_units_to_tlk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.convert_units_to_tlk" title="Link to this definition"></a></dt>
-<dd><p>Convert the model data of one observation to the standard units.</p>
-<p>The data attributes will be updated.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>obstype</strong> (<em>str</em>) – Observation type to convert to standard units.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.exploid_2d_vector_field">
-<span class="sig-name descname"><span class="pre">exploid_2d_vector_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.exploid_2d_vector_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.exploid_2d_vector_field" title="Link to this definition"></a></dt>
-<dd><p>Compute amplitude and direction of 2D vector field components.</p>
-<p>The amplitude and directions are added to the data attribute, and their
-equivalent observationtypes are added to the known ModelObstypes.</p>
-<p>(The vector components are not saved.)
-:param obstype: The name of the observationtype that is a ModelObstype_Vectorfield.
-:type obstype: str</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.get_ERA5_data">
-<span class="sig-name descname"><span class="pre">get_ERA5_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.get_ERA5_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.get_ERA5_data" title="Link to this definition"></a></dt>
-<dd><p>Extract timeseries of the ERA5_hourly dataset.</p>
-<p>The units are converted to the toolkit standard units.</p>
-<dl class="simple">
-<dt>(This method is a specific ERA5_hourly wrapper on the</dt><dd><p>get_gee_dataset_data() method)</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>metadf</strong> (<em>pandas.DataFrame</em>) – A dataframe with a ‘name’ index and  ‘lat’, ‘lon’ columns.
-Timeseries are extracted for these locations.</p></li>
-<li><p><strong>startdt_utc</strong> (<em>datetime.datetime</em>) – Start datetime of the timeseries in UTC.</p></li>
-<li><p><strong>enddt_utc</strong> (<em>datetime.datetime</em>) – Last datetime of the timeseries in UTC.</p></li>
-<li><p><strong>obstypes</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Toolkit observation type to extract data from. There should be a
-bandname mapped to this obstype for the gee map. Multiple
-observation types can be extracted if given as a list. The default is
-‘temp’.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None.</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When extracting large amounts of data, the timeseries data will be
-writen to a file and saved on your google drive. In this case, you need
-to provide the Modeldata with the data using the .set_model_from_csv()
-method.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.get_gee_dataset_data">
-<span class="sig-name descname"><span class="pre">get_gee_dataset_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['temp']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.get_gee_dataset_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.get_gee_dataset_data" title="Link to this definition"></a></dt>
-<dd><p>Extract timeseries of a gee dataset.</p>
-<p>The extraction can only be done if the gee dataset bandname (and units)
-corresponding to the obstype is known.</p>
-<p>The units are converted to the toolkit standard units!!</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mapname</strong> (<em>str</em>) – Mapname of choice of the GEE dataset to extract data from.</p></li>
-<li><p><strong>metadf</strong> (<em>pandas.DataFrame</em>) – A dataframe with a ‘name’ index and  ‘lat’, ‘lon’ columns.
-Timeseries are extracted for these locations.</p></li>
-<li><p><strong>startdt_utc</strong> (<em>datetime.datetime</em>) – Start datetime of the timeseries in UTC.</p></li>
-<li><p><strong>enddt_utc</strong> (<em>datetime.datetime</em>) – Last datetime of the timeseries in UTC.</p></li>
-<li><p><strong>obstypes</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>optional</em>) – Toolkit observation type to extract data from. There should be a
-bandname mapped to this obstype for the gee map. Multiple obstypes
-can be given in a list. The default is ‘temp’.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None.</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When extracting large amounts of data, the timeseries data will be
-writen to a file and saved on your google drive. In this case, you need
-to provide the Modeldata with the data using the .set_model_from_csv()
-method.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.get_info">
 <span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.get_info" title="Link to this definition"></a></dt>
 <dd><p>Print out detailed information on the Modeldata.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.import_from_gee">
+<span class="sig-name descname"><span class="pre">import_from_gee</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_obstypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gdrive_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'era5_data'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.import_from_gee"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.import_from_gee" title="Link to this definition"></a></dt>
+<dd><p>Extract timeseries of a gee dataset.</p>
+<p>This method can only be used when a GeeExtractor is set as the extractor.</p>
+<p>This import takes care of unit conversions and exploiting of vector fields
+to scalar fields (components, direction and amplitude).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_obstypes</strong> (<a class="reference internal" href="metobs_toolkit.obstype_modeldata.ModelObstype.html#metobs_toolkit.obstype_modeldata.ModelObstype" title="metobs_toolkit.obstype_modeldata.ModelObstype"><em>ModelObstype</em></a><em>, </em><a class="reference internal" href="metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.html#metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield" title="metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield"><em>ModelObstype_Vectorfield</em></a><em>, </em><em>name</em><em> of </em><em>a</em>) – known obstype, or a list of these.
+The observations to extract from the extractor.</p></li>
+<li><p><strong>startdt_utc</strong> (<em>datetime.datetime</em>) – Start datetime of the timeseries in UTC.</p></li>
+<li><p><strong>enddt_utc</strong> (<em>datetime.datetime</em>) – Last datetime of the timeseries in UTC.</p></li>
+<li><p><strong>gdrive_filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Filename to use when the data is writen to a csv file on your
+Google Drive. The default is ‘era5_data’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When extracting large amounts of data, the timeseries data will be
+writen to a file and saved on your google drive. In this case, you need
+to provide the Modeldata with the data using the .import_gee_data_from_csv()
+method.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.import_gee_data_from_csv">
+<span class="sig-name descname"><span class="pre">import_gee_data_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csvpath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.import_gee_data_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.import_gee_data_from_csv" title="Link to this definition"></a></dt>
+<dd><p>Import timeseries data that is stored in a csv file.</p>
+<p>The name of the gee dataset the timeseries are coming from must be the
+same as the .modelname attribute of the Modeldata.</p>
+<p>The timeseries will be formatted and converted to standard toolkit
+units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>csvpath</strong> (<em>str</em>) – Path of the csv file containing the modeldata timeseries.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -377,17 +279,6 @@ The values are the interpolated values.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.list_gee_datasets">
-<span class="sig-name descname"><span class="pre">list_gee_datasets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.list_gee_datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.list_gee_datasets" title="Link to this definition"></a></dt>
-<dd><p>Print out all the available gee datasets.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.make_plot">
 <span class="sig-name descname"><span class="pre">make_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starttime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_filled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.make_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.make_plot" title="Link to this definition"></a></dt>
 <dd><p>Plot timeseries of the modeldata.</p>
@@ -397,7 +288,7 @@ metobs_toolkit.Dataset is provided, it is plotted in the same figure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>obstype_model</strong> (<em>string</em><em>, </em><em>optional</em>) – Fieldname of the Modeldata to visualise. The default is ‘temp’.</p></li>
+<li><p><strong>obstype_model</strong> (<em>string</em><em> or </em><a class="reference internal" href="metobs_toolkit.obstype_modeldata.ModelObstype.html#metobs_toolkit.obstype_modeldata.ModelObstype" title="metobs_toolkit.obstype_modeldata.ModelObstype"><em>ModelObstype</em></a><em>, </em><em>optional</em>) – The observation to plot. The default is ‘temp’.</p></li>
 <li><p><strong>dataset</strong> (<em>metobs_toolkit.Dataset</em><em>, </em><em>optional</em>) – A Dataset instance with observations plotted in the same figure.
 Observations are represented by solid line and modeldata by dashed
 lines. The default is None.</p></li>
@@ -431,6 +322,34 @@ The default is True.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.sample_data_as">
+<span class="sig-name descname"><span class="pre">sample_data_as</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'time'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.sample_data_as"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.sample_data_as" title="Link to this definition"></a></dt>
+<dd><p>Resample the modeldata to a target.</p>
+<p>This methods will convert the modeldata to the same index as present
+in the target_df. Thus this method will transform timezones (if needed)
+and will interpolate to the missing timestamps (required for
+timeresolution mismatch between target_df and the model observations).</p>
+<p>This method is only applicable when target_df and self.df share the
+same levels of the index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target</strong> (<em>pandas.DataFrame</em><em>, or </em><em>pandas.index</em>) – The pandas dataframe with the target index to convert the modeldata
+to.</p></li>
+<li><p><strong>interp_method</strong> (<em>str</em><em>, </em><em>optional</em>) – The interpolation method used by pandas.DataFrame.interpolate(). The default is ‘time’.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments passed to pandas.DataFrame.interpolate().</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>target_modeldf</strong> – Modeldata resampled to target index.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.save_modeldata">
 <span class="sig-name descname"><span class="pre">save_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputfolder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'saved_modeldata.pkl'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.save_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.save_modeldata" title="Link to this definition"></a></dt>
 <dd><p>Save a Modeldata instance to a (pickle) file.</p>
@@ -441,24 +360,6 @@ The default is True.</p></li>
 from the Settings is used. The default is None.</p></li>
 <li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the output file. The default is ‘saved_modeldata.pkl’.</p></li>
 </ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.set_model_from_csv">
-<span class="sig-name descname"><span class="pre">set_model_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csvpath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.set_model_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.set_model_from_csv" title="Link to this definition"></a></dt>
-<dd><p>Import timeseries data that is stored in a csv file.</p>
-<p>The name of the gee dataset the timeseries are coming from must be the
-same as the .modelname attribute of the Modeldata.</p>
-<p>The timeseries will be formatted and converted to standard toolkit
-units.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>csvpath</strong> (<em>str</em>) – Path of the csv file containing the modeldata timeseries.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None.</p>

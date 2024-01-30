@@ -1,0 +1,23 @@
+metobs\_toolkit.gee\_extractor
+==============================
+
+.. automodule:: metobs_toolkit.gee_extractor
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+
+      GeeExtractor

@@ -1,0 +1,27 @@
+metobs\_toolkit.gee\_extractor.GeeExtractor
+===========================================
+
+.. currentmodule:: metobs_toolkit.gee_extractor
+
+.. autoclass:: GeeExtractor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+
+      ~GeeExtractor.activate_DEM
+      ~GeeExtractor.activate_ERA5
+      ~GeeExtractor.activate_LCZ
+      ~GeeExtractor.activate_worldcover
+      ~GeeExtractor.connect_to_gee
+      ~GeeExtractor.extract_static_buffer_frequencies
+      ~GeeExtractor.extract_static_point_values
+      ~GeeExtractor.extract_timeseries
+      ~GeeExtractor.make_gee_plot

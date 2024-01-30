@@ -7,6 +7,7 @@ A Gap contains all information and methods of a data-gap.
 """
 
 import pandas as pd
+import numpy as np
 
 import logging
 from datetime import timedelta
@@ -514,6 +515,21 @@ def remove_gaps_from_outliers(gaplist, outldf):
     return outldf
 
 
+def _set_gapfill_attr(
+    gap, fillvalue, obstypename, label, label_column_postfix, err_msg=""
+):
+    """Set a error message and a gapfill_df attribute on a gap."""
+    # error message
+    gap.gapfill_errormessage[obstypename] = str(err_msg)
+
+    # Construct gapfilldf
+    filldf = pd.DataFrame(
+        index=gap.exp_gap_idx,
+        data={obstypename: fillvalue, f"{obstypename}_{label_column_postfix}": label},
+    )
+    gap.gapfill_df = filldf
+
+
 # =============================================================================
 # Helpers
 # =============================================================================
@@ -522,7 +538,7 @@ def apply_debias_era5_gapfill(
     dataset,
     eraModelData,
     debias_settings,
-    obstype="temp",
+    obstype,
     overwrite_fill=False,
 ):
     """Fill all gaps using ERA5 debiaset modeldata.
@@ -537,8 +553,8 @@ def apply_debias_era5_gapfill(
         Modeldata to use for gapfilling.
     debias_settings : dict
         Debias settings.
-    obstype : str, optional
-        MetObs observationtype to fill gaps for. The default is "temp".
+    obstype : metobs_toolkit.Obstype
+        MetObs observationtype to fill gaps for.
     overwrite_fill : bool, optional
         If True, the filled values are overwritten. The default is False.
 
@@ -550,8 +566,8 @@ def apply_debias_era5_gapfill(
     gapfill_settings = dataset.settings.gap["gaps_fill_info"]
 
     # Convert modeldata to the same timzone as the data
-    targettz = str(dataset.df.index.get_level_values("datetime").tz)
-    eraModelData._conv_to_timezone(targettz)
+    # targettz = str(dataset.df.index.get_level_values("datetime").tz)
+    # eraModelData._conv_to_timezone(targettz)
 
     for gap in gapslist:
         if (not overwrite_fill) & (not gap.gapfill_df.empty):
@@ -586,58 +602,57 @@ def apply_debias_era5_gapfill(
             logger.info(
                 "No suitable leading or trailing period found. Gapfill not possible"
             )
-            gap.gapfill_errormessage[
-                obstype
-            ] = "gapfill not possible: no leading/trailing period"
-
-            default_return = pd.Series(
-                index=gap.exp_gap_idx, name=obstype, dtype="object"
+            _set_gapfill_attr(
+                gap=gap,
+                fillvalue=np.nan,
+                obstypename=obstype.name,
+                label=gapfill_settings["label"]["model_debias"],
+                label_column_postfix=gapfill_settings["label_columnname"],
+                err_msg="gapfill not possible: no leading/trailing period",
             )
-            gap.gapfill_errormessage[
-                obstype
-            ] = "gapfill not possible: no leading/trailing period"
-
-            default_return.name = obstype
-            gapfill_df = default_return.to_frame()
-            gapfill_df[
-                obstype + "_" + gapfill_settings["label_columnname"]
-            ] = gapfill_settings["label"]["model_debias"]
-
-            # update the gaps attributes
-            gap.gapfill_df = gapfill_df
-
             continue
 
-        # extract model values at leading and trailing period
-        leading_model = eraModelData.interpolate_modeldata(leading_obs.index)
-        trailing_model = eraModelData.interpolate_modeldata(trailing_obs.index)
+        # extract model values at leading, trailing and gap period (interpolate and
+        # convert to obs timezone)
 
-        # TODO check if there is modeldata for the leading and trailing + obs period
-        if (leading_model[obstype].isnull().any()) | (
-            trailing_model[obstype].isnull().any()
-        ):
+        leading_model = eraModelData.sample_data_as(target=leading_obs)
+        trailing_model = eraModelData.sample_data_as(target=trailing_obs)
+        gap_model = eraModelData.sample_data_as(target=gap.exp_gap_idx)
+
+        err_msg = ""
+        if leading_model[obstype.name].isnull().any():
             logger.info(
-                "No modeldata for the full leading/trailing period found. Gapfill not possible"
+                "No modeldata for the full leading period found. Gapfill not possible"
             )
-            gap.gapfill_errormessage[
-                obstype
-            ] = "gapfill not possible: not enough modeldata"
-
-            default_return = pd.Series(
-                index=gap.exp_gap_idx, name=obstype, dtype="object"
+            _set_gapfill_attr(
+                gap=gap,
+                fillvalue=np.nan,
+                obstypename=obstype.name,
+                label=gapfill_settings["label"]["model_debias"],
+                label_column_postfix=gapfill_settings["label_columnname"],
+                err_msg="gapfill not possible: not enough modeldata for leadingperiod",
             )
-            default_return.name = obstype
-            gapfill_df = default_return.to_frame()
-            gapfill_df[
-                obstype + "_" + gapfill_settings["label_columnname"]
-            ] = gapfill_settings["label"]["model_debias"]
-
-            # update the gaps attributes
-            gap.gapfill_df = gapfill_df
             continue
-
-        # Get model data for gap timestamps
-        gap_model = eraModelData.interpolate_modeldata(gap.exp_gap_idx)
+        if trailing_model[obstype.name].isnull().any():
+            _set_gapfill_attr(
+                gap=gap,
+                fillvalue=np.nan,
+                obstypename=obstype.name,
+                label=gapfill_settings["label"]["model_debias"],
+                label_column_postfix=gapfill_settings["label_columnname"],
+                err_msg="gapfill not possible: not enough modeldata for trailingperiod",
+            )
+            continue
+        if gap_model[obstype.name].isnull().any():
+            _set_gapfill_attr(
+                gap=gap,
+                fillvalue=np.nan,
+                obstypename=obstype.name,
+                label=gapfill_settings["label"]["model_debias"],
+                label_column_postfix=gapfill_settings["label_columnname"],
+                err_msg="gapfill not possible: not enough modeldata for the gap period",
+            )
+            continue
 
         # apply bias correction
         filled_gap_series, fill_info, err_message = make_era_bias_correction(
@@ -649,18 +664,27 @@ def apply_debias_era5_gapfill(
             obstype=obstype,
         )
 
-        filled_gap_series.name = obstype
-        gapfill_df = filled_gap_series.to_frame()
-        gapfill_df[
-            obstype + "_" + gapfill_settings["label_columnname"]
-        ] = gapfill_settings["label"]["model_debias"]
+        _set_gapfill_attr(
+            gap=gap,
+            fillvalue=filled_gap_series,
+            obstypename=obstype.name,
+            label=gapfill_settings["label"]["model_debias"],
+            label_column_postfix=gapfill_settings["label_columnname"],
+            err_msg=err_message,
+        )
+
+        # filled_gap_series.name = obstype.name
+        # gapfill_df = filled_gap_series.to_frame()
+        # gapfill_df[
+        #     obstype.name + "_" + gapfill_settings["label_columnname"]
+        # ] = gapfill_settings["label"]["model_debias"]
 
         # update the gaps attributes
-        gap.gapfill_df = gapfill_df
+        # gap.gapfill_df = gapfill_df
         gap.gapfill_technique = gapfill_settings["label"]["model_debias"]
         gap.gapfill_info = fill_info
-        if bool(err_message):
-            gap.gapfill_errormessage = err_message
+        # if bool(err_message):
+        #     gap.gapfill_errormessage = err_message
 
 
 def apply_interpolate_gaps(

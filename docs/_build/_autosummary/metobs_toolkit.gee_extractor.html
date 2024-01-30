@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>metobs_toolkit.landcover_functions.lc_fractions_extractor &mdash; metobs_toolkit 0.0.1 documentation</title>
+  <title>metobs_toolkit.gee_extractor &mdash; metobs_toolkit 0.0.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
@@ -23,8 +23,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="metobs_toolkit.landcover_functions.lcz_extractor" href="metobs_toolkit.landcover_functions.lcz_extractor.html" />
-    <link rel="prev" title="metobs_toolkit.landcover_functions.height_extractor" href="metobs_toolkit.landcover_functions.height_extractor.html" />
+    <link rel="next" title="metobs_toolkit.gee_extractor.GeeExtractor" href="metobs_toolkit.gee_extractor.GeeExtractor.html" />
+    <link rel="prev" title="metobs_toolkit.gap_filling.make_era_bias_correction" href="metobs_toolkit.gap_filling.make_era_bias_correction.html" />
 </head>
 
 <body class="wy-body-for-nav">
@@ -70,20 +70,12 @@
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap.html">metobs_toolkit.gap</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.connect_to_gee.html">metobs_toolkit.landcover_functions.connect_to_gee</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.coordinates_available.html">metobs_toolkit.landcover_functions.coordinates_available</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.coords_to_geometry.html">metobs_toolkit.landcover_functions.coords_to_geometry</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.extract_buffer_frequencies.html">metobs_toolkit.landcover_functions.extract_buffer_frequencies</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.extract_pointvalues.html">metobs_toolkit.landcover_functions.extract_pointvalues</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.gee_extract_timeseries.html">metobs_toolkit.landcover_functions.gee_extract_timeseries</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.get_ee_obj.html">metobs_toolkit.landcover_functions.get_ee_obj</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.height_extractor.html">metobs_toolkit.landcover_functions.height_extractor</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">metobs_toolkit.landcover_functions.lc_fractions_extractor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.lcz_extractor.html">metobs_toolkit.landcover_functions.lcz_extractor</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">metobs_toolkit.gee_extractor</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.gee_extractor.GeeExtractor.html">metobs_toolkit.gee_extractor.GeeExtractor</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.modeldata.html">metobs_toolkit.modeldata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.obstype_modeldata.html">metobs_toolkit.obstype_modeldata</a></li>
@@ -117,10 +109,9 @@
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
           <li class="breadcrumb-item"><a href="metobs_toolkit.html">metobs_toolkit</a></li>
-          <li class="breadcrumb-item"><a href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
-      <li class="breadcrumb-item active">metobs_toolkit.landcover_functions.lc_fractions_extractor</li>
+      <li class="breadcrumb-item active">metobs_toolkit.gee_extractor</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/_autosummary/metobs_toolkit.landcover_functions.lc_fractions_extractor.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/_autosummary/metobs_toolkit.gee_extractor.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -128,22 +119,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
 
-  <section id="metobs-toolkit-landcover-functions-lc-fractions-extractor">
-<h1>metobs_toolkit.landcover_functions.lc_fractions_extractor<a class="headerlink" href="#metobs-toolkit-landcover-functions-lc-fractions-extractor" title="Link to this heading"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="metobs_toolkit.landcover_functions.lc_fractions_extractor">
-<span class="sig-prename descclassname"><span class="pre">metobs_toolkit.landcover_functions.</span></span><span class="sig-name descname"><span class="pre">lc_fractions_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/landcover_functions.html#lc_fractions_extractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.landcover_functions.lc_fractions_extractor" title="Link to this definition"></a></dt>
-<dd><p>Get landcover fractions for all buffers from GEE.</p>
-</dd></dl>
-
+  <section id="module-metobs_toolkit.gee_extractor">
+<span id="metobs-toolkit-gee-extractor"></span><h1>metobs_toolkit.gee_extractor<a class="headerlink" href="#module-metobs_toolkit.gee_extractor" title="Link to this heading"></a></h1>
+<p>Created on Fri Jan 26 10:14:38 2024</p>
+<p>&#64;author: thoverga</p>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.gee_extractor.GeeExtractor.html#metobs_toolkit.gee_extractor.GeeExtractor" title="metobs_toolkit.gee_extractor.GeeExtractor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GeeExtractor</span></code></a></p></td>
+<td><p>Class holding methods for extracting data from Google Earth Engine.</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="metobs_toolkit.landcover_functions.height_extractor.html" class="btn btn-neutral float-left" title="metobs_toolkit.landcover_functions.height_extractor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="metobs_toolkit.landcover_functions.lcz_extractor.html" class="btn btn-neutral float-right" title="metobs_toolkit.landcover_functions.lcz_extractor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="metobs_toolkit.gap_filling.make_era_bias_correction.html" class="btn btn-neutral float-left" title="metobs_toolkit.gap_filling.make_era_bias_correction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="metobs_toolkit.gee_extractor.GeeExtractor.html" class="btn btn-neutral float-right" title="metobs_toolkit.gee_extractor.GeeExtractor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

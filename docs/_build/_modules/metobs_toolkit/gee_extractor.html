@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>metobs_toolkit.gee_extractor &mdash; metobs_toolkit 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../_static/copybutton.js?v=f281be69"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="../../index.html">
+
+              <img src="../../_static/logo_small.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../template_mapping.html">Mapping to the toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gee_authentication.html">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../special_topics.html">Special topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui.html">Using the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing_link.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../paper/index.html">JOSS publication</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../MetObs_documentation.html">MetObs toolkit Documentation for Users</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../MetObs_documentation_full.html">MetObs toolkit Documentation for developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">metobs_toolkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">metobs_toolkit.gee_extractor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for metobs_toolkit.gee_extractor</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Jan 26 10:14:38 2024</span>
+
+<span class="sd">@author: thoverga</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">ee</span>
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.landcover_functions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">extract_pointvalues</span><span class="p">,</span>
+    <span class="n">extract_buffer_frequencies</span><span class="p">,</span>
+    <span class="n">gee_extract_timeseries</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.plotting_functions</span> <span class="kn">import</span> <span class="n">folium_plot</span><span class="p">,</span> <span class="n">add_stations_to_folium_map</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="GeeExtractor">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gee_extractor.GeeExtractor.html#metobs_toolkit.gee_extractor.GeeExtractor">[docs]</a>
+<span class="k">class</span> <span class="nc">GeeExtractor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class holding methods for extracting data from Google Earth Engine.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initiate GeeExtractor instance&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># GEE location</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">usage</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Human readable application domain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># scale of the gee dataset ( = highest resolution)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span> <span class="o">=</span> <span class="s2">&quot;numeric&quot;</span>  <span class="c1"># numeric or categorical</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_imagecollection</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dynamical</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># time evolution? To be used for timeseries</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_value_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="c1"># Optional</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">band_of_use</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span>  <span class="c1"># band to use for imagecollections (or None if no band available)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">{}</span>
+        <span class="p">)</span>  <span class="c1"># dictionary to map categories {gee_Value: target_str}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorscheme</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_aggregation</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">{}</span>
+        <span class="p">)</span>  <span class="c1"># dictionary to aggregate categories to {target_str : [list of gee_values]}</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;GeeExtractor with unknown target gee location.&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;GeeExtractor for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">usage</span><span class="si">}</span><span class="s2"> use: </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">  location : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Extraction methods</span>
+    <span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="GeeExtractor.connect_to_gee">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gee_extractor.GeeExtractor.html#metobs_toolkit.gee_extractor.GeeExtractor.connect_to_gee">[docs]</a>
+    <span class="k">def</span> <span class="nf">connect_to_gee</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Authenticate to GEE if needed.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Authenticate to gee&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ee</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">_credentials</span><span class="p">:</span>  <span class="c1"># check if ee connection is initialized</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Authenticate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+        <span class="k">return</span></div>
+
+
+    <span class="k">def</span> <span class="nf">extract_static_point_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">aggregate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracting static point values from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># check if all attributes are set and correct</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No values could be extracted from </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Scale is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="si">}</span><span class="s2">, no values could be extracted from </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamical</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not extract static values of a dynamic geedataset: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># check if metadf is valid</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_metadf_valid</span><span class="p">(</span><span class="n">metadf</span><span class="p">):</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="c1"># filter to non-nan stations</span>
+        <span class="n">filtered_metadf</span> <span class="o">=</span> <span class="n">metadf</span><span class="p">[</span><span class="n">metadf</span><span class="p">[[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">notnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+
+        <span class="c1"># authenticate to GEE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_gee</span><span class="p">()</span>
+
+        <span class="n">valuesdf</span> <span class="o">=</span> <span class="n">extract_pointvalues</span><span class="p">(</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="n">filtered_metadf</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+            <span class="n">trg_gee_loc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
+            <span class="n">band_of_use</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">band_of_use</span><span class="p">,</span>
+            <span class="n">is_imagecollection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_imagecollection</span><span class="p">,</span>
+            <span class="n">is_image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_image</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Format to a series</span>
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">metadf</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">valuesdf</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;feature_idx&quot;</span>
+        <span class="p">)</span>
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">combdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">values_series</span> <span class="o">=</span> <span class="n">combdf</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">band_of_use</span><span class="p">]</span>
+
+        <span class="c1"># Map to human labels if needed</span>
+        <span class="k">if</span> <span class="n">aggregate</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span> <span class="o">!=</span> <span class="s2">&quot;categorical&quot;</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Aggregating covers is only valid for gee datasets with value_type = categorical.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_aggregation</span><span class="p">):</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot aggregate categorical values, since no categorical_aggregation is defined.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">aggmap_to_human</span> <span class="o">=</span> <span class="n">_create_agg_map_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_aggregation</span><span class="p">)</span>
+            <span class="n">values_series</span> <span class="o">=</span> <span class="n">values_series</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">aggmap_to_human</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span><span class="p">):</span>
+            <span class="n">values_series</span> <span class="o">=</span> <span class="n">values_series</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span><span class="p">)</span>
+
+        <span class="c1"># Replace missing values</span>
+        <span class="n">values_series</span> <span class="o">=</span> <span class="n">values_series</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">missing_value_label</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">values_series</span>
+
+    <span class="k">def</span> <span class="nf">extract_static_buffer_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">aggregate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracting static buffer frequencies from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># check if all attributes are set and correct</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No values could be extracted from </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Scale is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="si">}</span><span class="s2">, no values could be extracted from </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamical</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not extract static values of a dynamic geedataset: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span> <span class="o">!=</span> <span class="s2">&quot;categorical&quot;</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Extarcting buffer frequencies is only valid for Categorical dataset, not </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value_type</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># check if metadf is valid</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_metadf_valid</span><span class="p">(</span><span class="n">metadf</span><span class="p">):</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="n">filtered_metadf</span> <span class="o">=</span> <span class="n">metadf</span><span class="p">[</span><span class="n">metadf</span><span class="p">[[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">notnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+
+        <span class="c1"># authenticate to GEE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_gee</span><span class="p">()</span>
+
+        <span class="n">valuesdf</span> <span class="o">=</span> <span class="n">extract_buffer_frequencies</span><span class="p">(</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="n">filtered_metadf</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+            <span class="n">trg_gee_loc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
+            <span class="n">band_of_use</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">band_of_use</span><span class="p">,</span>
+            <span class="n">is_imagecollection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_imagecollection</span><span class="p">,</span>
+            <span class="n">is_image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_image</span><span class="p">,</span>
+            <span class="n">bufferradius</span><span class="o">=</span><span class="n">buffer</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Format to a Dataframe</span>
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">valuesdf</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;feature_idx&quot;</span>
+        <span class="p">)</span>
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">combdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">valuesdf</span> <span class="o">=</span> <span class="n">combdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">,</span> <span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Aggregate if needed</span>
+        <span class="k">if</span> <span class="n">aggregate</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span> <span class="o">!=</span> <span class="s2">&quot;categorical&quot;</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Aggregating covers is only valid for gee datasets with value_type = categorical.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_aggregation</span><span class="p">):</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot aggregate categorical values, since no categorical_aggregation is defined.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Aggregate categories using </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_aggregation</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+            <span class="n">aggdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">valuesdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">aggcat</span><span class="p">,</span> <span class="n">coverlist</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical_aggregation</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">present_agg_classes</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">coverlist</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="ow">in</span> <span class="n">valuesdf</span><span class="o">.</span><span class="n">columns</span>
+                <span class="p">]</span>
+                <span class="n">aggdf</span><span class="p">[</span><span class="n">aggcat</span><span class="p">]</span> <span class="o">=</span> <span class="n">valuesdf</span><span class="p">[</span><span class="n">present_agg_classes</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">skipna</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">valuesdf</span> <span class="o">=</span> <span class="n">aggdf</span>
+        <span class="c1"># Map to human labels if needed</span>
+        <span class="k">elif</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span><span class="p">):</span>
+            <span class="c1"># typecast values to str</span>
+            <span class="n">renamer</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="n">valuesdf</span> <span class="o">=</span> <span class="n">valuesdf</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">renamer</span><span class="p">)</span>
+
+        <span class="c1"># TODO: aggregate if needed</span>
+
+        <span class="c1"># Replace missing values</span>
+        <span class="n">valuesdf</span> <span class="o">=</span> <span class="n">valuesdf</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">missing_value_label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">valuesdf</span>
+
+    <span class="k">def</span> <span class="nf">extract_timeseries</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">bandnames</span><span class="p">,</span> <span class="n">start_utc</span><span class="p">,</span> <span class="n">end_utc</span><span class="p">,</span> <span class="n">gdrive_filename</span><span class="o">=</span><span class="s2">&quot;era5_data&quot;</span>
+    <span class="p">):</span>
+
+        <span class="c1"># check if self is valid</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamical</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="s2">&quot;Time series gee extraction is only valid for dynamical (time dep.) dataset&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_res</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No time_res specified for </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check if metadf is valid as coordinates</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">_is_metadf_valid</span><span class="p">(</span><span class="n">metadf</span><span class="p">)</span>
+
+        <span class="c1"># check if bandnames is valid</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bandnames</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">bandnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">bandnames</span><span class="p">]</span>
+
+        <span class="c1"># check if datetimes are valid</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">end_utc</span> <span class="o">&gt;</span> <span class="n">start_utc</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;end_utc (</span><span class="si">{</span><span class="n">end_utc</span><span class="si">}</span><span class="s2">) not later than start_utc (</span><span class="si">{</span><span class="n">start_utc</span><span class="si">}</span><span class="s2">).&quot;</span>
+        <span class="k">assert</span> <span class="n">end_utc</span> <span class="o">&gt;</span> <span class="n">start_utc</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time_res</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;end_utc (</span><span class="si">{</span><span class="n">end_utc</span><span class="si">}</span><span class="s2">) not later than start_utc + time res (</span><span class="si">{</span><span class="n">start_utc</span><span class="si">}</span><span class="s2"> + </span><span class="si">{</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_res</span><span class="p">)</span><span class="si">}</span><span class="s2">).&quot;</span>
+
+        <span class="c1"># filter to non-nan stations</span>
+        <span class="n">filtered_metadf</span> <span class="o">=</span> <span class="n">metadf</span><span class="p">[</span><span class="n">metadf</span><span class="p">[[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">notnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+
+        <span class="c1"># authenticate to GEE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_gee</span><span class="p">()</span>
+
+        <span class="c1"># Extract timeseries</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">gee_extract_timeseries</span><span class="p">(</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="n">filtered_metadf</span><span class="p">,</span>
+            <span class="n">bandnames</span><span class="o">=</span><span class="n">bandnames</span><span class="p">,</span>
+            <span class="n">startdt</span><span class="o">=</span><span class="n">start_utc</span><span class="p">,</span>
+            <span class="n">enddt</span><span class="o">=</span><span class="n">end_utc</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+            <span class="n">timeres</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_res</span><span class="p">,</span>
+            <span class="n">trg_gee_loc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
+            <span class="n">is_imagecollection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_imagecollection</span><span class="p">,</span>
+            <span class="n">is_image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_image</span><span class="p">,</span>
+            <span class="n">gdrive_filename</span><span class="o">=</span><span class="n">gdrive_filename</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="c1"># Format dataframe</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S&quot;</span><span class="p">)</span>
+            <span class="c1"># set timezone</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
+
+            <span class="c1"># format index</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+            <span class="c1"># Add missing stations</span>
+            <span class="n">missing_stations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="nb">set</span><span class="p">(</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">))</span>
+            <span class="p">)</span>
+            <span class="n">unique_datetimes</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">missing_sta</span> <span class="ow">in</span> <span class="n">missing_stations</span><span class="p">:</span>
+                <span class="n">missing_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">unique_datetimes</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+                <span class="n">missing_df</span><span class="p">[</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">missing_sta</span><span class="p">)</span>
+                <span class="n">missing_df</span> <span class="o">=</span> <span class="n">missing_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span>
+                    <span class="p">[</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">missing_df</span><span class="p">])</span>
+
+            <span class="c1"># fix the index to the original naming + datetime as multiindex</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">:</span> <span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">})</span>
+                <span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># default targets</span>
+    <span class="c1"># =============================================================================</span>
+    <span class="k">def</span> <span class="nf">activate_LCZ</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Activate LCZ map on the GeeExtractor.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s2">&quot;RUB/RUBCLIM/LCZ/global_lcz_map/v1&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">usage</span> <span class="o">=</span> <span class="s2">&quot;LCZ&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span> <span class="o">=</span> <span class="s2">&quot;categorical&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_imagecollection</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dynamical</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_value_label</span> <span class="o">=</span> <span class="s2">&quot;Unknown&quot;</span>
+        <span class="c1"># Optional</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">band_of_use</span> <span class="o">=</span> <span class="s2">&quot;LCZ_Filter&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="s2">&quot;Demuzere M.; Kittner J.; Martilli A.; Mills, G.; Moede, C.; Stewart, I.D.; van Vliet, J.; Bechtel, B. A global map of local climate zones to support earth system modelling and urban-scale environmental science. Earth System Science Data 2022, 14 Volume 8: 3835-3873. doi:10.5194/essd-14-3835-2022&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Compact highrise&quot;</span><span class="p">,</span>  <span class="c1"># mapvalue: (color, human class)</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Compact midrise&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Compact lowrise&quot;</span><span class="p">,</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Open highrise&quot;</span><span class="p">,</span>
+            <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;Open midrise&quot;</span><span class="p">,</span>
+            <span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;Open lowrise&quot;</span><span class="p">,</span>
+            <span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;Lightweight lowrise&quot;</span><span class="p">,</span>
+            <span class="mi">8</span><span class="p">:</span> <span class="s2">&quot;Large lowrise&quot;</span><span class="p">,</span>
+            <span class="mi">9</span><span class="p">:</span> <span class="s2">&quot;Sparsely built&quot;</span><span class="p">,</span>
+            <span class="mi">10</span><span class="p">:</span> <span class="s2">&quot;Heavy industry&quot;</span><span class="p">,</span>
+            <span class="mi">11</span><span class="p">:</span> <span class="s2">&quot;Dense Trees (LCZ A)&quot;</span><span class="p">,</span>
+            <span class="mi">12</span><span class="p">:</span> <span class="s2">&quot;Scattered Trees (LCZ B)&quot;</span><span class="p">,</span>
+            <span class="mi">13</span><span class="p">:</span> <span class="s2">&quot;Bush, scrub (LCZ C)&quot;</span><span class="p">,</span>
+            <span class="mi">14</span><span class="p">:</span> <span class="s2">&quot;Low plants (LCZ D)&quot;</span><span class="p">,</span>
+            <span class="mi">15</span><span class="p">:</span> <span class="s2">&quot;Bare rock or paved (LCZ E)&quot;</span><span class="p">,</span>
+            <span class="mi">16</span><span class="p">:</span> <span class="s2">&quot;Bare soil or sand (LCZ F)&quot;</span><span class="p">,</span>
+            <span class="mi">17</span><span class="p">:</span> <span class="s2">&quot;Water (LCZ G)&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_aggregation</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">activate_worldcover</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Activate worldcover map on the GeeExtractor.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s2">&quot;ESA/WorldCover/v200&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">usage</span> <span class="o">=</span> <span class="s2">&quot;landcover&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span> <span class="o">=</span> <span class="s2">&quot;categorical&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_imagecollection</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dynamical</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_value_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="c1"># Optional</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">band_of_use</span> <span class="o">=</span> <span class="s2">&quot;Map&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="s2">&quot;https://spdx.org/licenses/CC-BY-4.0.html&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">10</span><span class="p">:</span> <span class="s2">&quot;Tree cover&quot;</span><span class="p">,</span>  <span class="c1"># mapvalue: (color, human class)</span>
+            <span class="mi">20</span><span class="p">:</span> <span class="s2">&quot;Shrubland&quot;</span><span class="p">,</span>
+            <span class="mi">30</span><span class="p">:</span> <span class="s2">&quot;Grassland&quot;</span><span class="p">,</span>
+            <span class="mi">40</span><span class="p">:</span> <span class="s2">&quot;Cropland&quot;</span><span class="p">,</span>
+            <span class="mi">50</span><span class="p">:</span> <span class="s2">&quot;Built-up&quot;</span><span class="p">,</span>
+            <span class="mi">60</span><span class="p">:</span> <span class="s2">&quot;Bare / sparse vegetation&quot;</span><span class="p">,</span>
+            <span class="mi">70</span><span class="p">:</span> <span class="s2">&quot;Snow and ice&quot;</span><span class="p">,</span>
+            <span class="mi">80</span><span class="p">:</span> <span class="s2">&quot;Permanent water bodies&quot;</span><span class="p">,</span>
+            <span class="mi">90</span><span class="p">:</span> <span class="s2">&quot;Herbaceous wetland&quot;</span><span class="p">,</span>
+            <span class="mi">95</span><span class="p">:</span> <span class="s2">&quot;Mangroves&quot;</span><span class="p">,</span>
+            <span class="mi">100</span><span class="p">:</span> <span class="s2">&quot;Moss and lichen&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorscheme</span><span class="o">=</span> <span class="p">{</span>
+                            <span class="mi">10</span><span class="p">:</span> <span class="s2">&quot;006400&quot;</span><span class="p">,</span>
+                            <span class="mi">20</span><span class="p">:</span> <span class="s2">&quot;ffbb22&quot;</span><span class="p">,</span>
+                            <span class="mi">30</span><span class="p">:</span> <span class="s2">&quot;ffff4c&quot;</span><span class="p">,</span>
+                            <span class="mi">40</span><span class="p">:</span> <span class="s2">&quot;f096ff&quot;</span><span class="p">,</span>
+                            <span class="mi">50</span><span class="p">:</span> <span class="s2">&quot;fa0000&quot;</span><span class="p">,</span>
+                            <span class="mi">60</span><span class="p">:</span> <span class="s2">&quot;b4b4b4&quot;</span><span class="p">,</span>
+                            <span class="mi">70</span><span class="p">:</span> <span class="s2">&quot;f0f0f0&quot;</span><span class="p">,</span>
+                            <span class="mi">80</span><span class="p">:</span> <span class="s2">&quot;0064c8&quot;</span><span class="p">,</span>
+                            <span class="mi">90</span><span class="p">:</span> <span class="s2">&quot;0096a0&quot;</span><span class="p">,</span>
+                            <span class="mi">95</span><span class="p">:</span> <span class="s2">&quot;00cf75&quot;</span><span class="p">,</span>
+                            <span class="mi">100</span><span class="p">:</span> <span class="s2">&quot;fae6a0&quot;</span><span class="p">,</span>
+                            <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_aggregation</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;water&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">70</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">95</span><span class="p">],</span>
+            <span class="s2">&quot;pervious&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span>
+            <span class="s2">&quot;impervious&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">activate_ERA5</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Activate ERA5 LAND on the GeeExtractor.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s2">&quot;ECMWF/ERA5_LAND/HOURLY&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">usage</span> <span class="o">=</span> <span class="s2">&quot;ERA5&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="mi">2500</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span> <span class="o">=</span> <span class="s2">&quot;numeric&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_imagecollection</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dynamical</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_value_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="c1"># Optional</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_res</span> <span class="o">=</span> <span class="s2">&quot;1H&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_aggregation</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">activate_DEM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Activate DEM map on the GeeExtractor.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s2">&quot;CGIAR/SRTM90_V4&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">usage</span> <span class="o">=</span> <span class="s2">&quot;elevation&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span> <span class="o">=</span> <span class="s2">&quot;numeric&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_imagecollection</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dynamical</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_value_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="c1"># Optional</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">band_of_use</span> <span class="o">=</span> <span class="s2">&quot;elevation&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="s2">&quot;SRTM Digital Elevation Data Version 4&quot;</span>
+
+
+<div class="viewcode-block" id="GeeExtractor.make_gee_plot">
+<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.gee_extractor.GeeExtractor.html#metobs_toolkit.gee_extractor.GeeExtractor.make_gee_plot">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_gee_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">targetfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make an interactive plot of a google earth dataset.</span>
+
+<span class="sd">        The location of the stations can be plotted on top of it.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        gee_map : str, optional</span>
+<span class="sd">            The name of the dataset to use. This name should be present in the</span>
+<span class="sd">            settings.gee[&#39;gee_dataset_info&#39;]. If aggregat is True, an aggregation</span>
+<span class="sd">            scheme should included as well. The default is &#39;worldcover&#39;</span>
+<span class="sd">        show_stations : bool, optional</span>
+<span class="sd">            If True, the stations will be plotted as markers. The default is True.</span>
+<span class="sd">        save : bool, optional</span>
+<span class="sd">            If True, the map will be saved as an html file in the output_folder</span>
+<span class="sd">            as defined in the settings if the outputfile is not set. The</span>
+<span class="sd">            default is False.</span>
+<span class="sd">        outputfile : str, optional</span>
+<span class="sd">            Specify the path of the html file if save is True. If None, and save</span>
+<span class="sd">            is true, the html file will be saved in the output_folder. The</span>
+<span class="sd">            default is None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Map : geemap.foliumap.Map</span>
+<span class="sd">            The folium Map instance.</span>
+
+
+<span class="sd">        Warning</span>
+<span class="sd">        ---------</span>
+<span class="sd">        To display the interactive map a graphical backend is required, which</span>
+<span class="sd">        is often missing on (free) cloud platforms. Therefore it is better to</span>
+<span class="sd">        set save=True, and open the .html in your browser</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Connect to GEE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_gee</span><span class="p">()</span>
+
+
+        <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colorscheme</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;make_gee_plot is only valid if a colorscheme is defined for the covers.&#39;</span>
+        <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;make_gee_plot is only valid for categorical maps.&#39;</span>
+
+        <span class="c1">#test metadf attribute</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">metadf</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s1"> is not a pandas.DataFrame.&#39;</span>
+            <span class="k">assert</span> <span class="s1">&#39;lat&#39;</span> <span class="ow">in</span> <span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39; lat not found in the metadf columns: </span><span class="si">{</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">assert</span> <span class="s1">&#39;lon&#39;</span> <span class="ow">in</span> <span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39; lon not found in the metadf columns: </span><span class="si">{</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">metadf</span><span class="o">.</span><span class="n">empty</span><span class="p">),</span> <span class="s1">&#39;metadf is emtpy.&#39;</span>
+
+        <span class="c1"># Test targetfile attribute</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">targetfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="ow">not</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">targetfile</span><span class="p">))),</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">targetfile</span><span class="si">}</span><span class="s1"> already exists. Use overwrite=True to overwrite.&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">targetfile</span><span class="p">)):</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">targetfile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">targetfile</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.html&#39;</span><span class="p">):</span>
+                <span class="n">targetfile</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">targetfile</span><span class="si">}</span><span class="s1">.html&#39;</span>
+
+
+
+        <span class="c1"># Read in covers, numbers and labels</span>
+        <span class="n">covernum</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colorscheme</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colorscheme</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">covername</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_map</span><span class="p">[</span><span class="n">covnum</span><span class="p">]</span> <span class="k">for</span> <span class="n">covnum</span> <span class="ow">in</span> <span class="n">covernum</span><span class="p">]</span>
+
+        <span class="c1"># create visparams</span>
+        <span class="n">vis_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">covernum</span><span class="p">),</span>
+            <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">covernum</span><span class="p">),</span>
+            <span class="s2">&quot;palette&quot;</span><span class="p">:</span> <span class="n">colors</span><span class="p">,</span>  <span class="c1"># hex colors!</span>
+        <span class="p">}</span>
+
+
+        <span class="n">Map</span> <span class="o">=</span> <span class="n">folium_plot</span><span class="p">(</span>
+            <span class="n">trg_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
+            <span class="n">is_image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span><span class="p">,</span>
+            <span class="n">is_imagecollection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_imagecollection</span><span class="p">,</span>
+            <span class="n">band</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">band_of_use</span><span class="p">,</span>
+            <span class="n">vis_params</span><span class="o">=</span><span class="n">vis_params</span><span class="p">,</span>
+            <span class="n">labelnames</span><span class="o">=</span><span class="n">covername</span><span class="p">,</span>
+            <span class="n">layername</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">usage</span><span class="p">,</span>
+            <span class="n">basemap</span><span class="o">=</span><span class="s2">&quot;SATELLITE&quot;</span><span class="p">,</span>
+            <span class="n">legendname</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">usage</span><span class="si">}</span><span class="s2"> covers&quot;</span><span class="p">,</span>
+            <span class="n">legendpos</span><span class="o">=</span><span class="s2">&quot;bottomleft&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">metadf</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Map</span> <span class="o">=</span> <span class="n">add_stations_to_folium_map</span><span class="p">(</span><span class="n">Map</span><span class="o">=</span><span class="n">Map</span><span class="p">,</span>
+                                             <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">)</span>
+
+        <span class="c1"># Save if needed</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">targetfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gee Map will be save at </span><span class="si">{</span><span class="n">targetfile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gee Map will be save at </span><span class="si">{</span><span class="n">targetfile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">Map</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">targetfile</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Map</span></div>
+</div>
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Helpers</span>
+<span class="c1"># =============================================================================</span>
+<span class="k">def</span> <span class="nf">_create_agg_map_dict</span><span class="p">(</span><span class="n">aggdict</span><span class="p">):</span>
+    <span class="n">invdict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">aggdict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">cov</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+            <span class="n">invdict</span><span class="p">[</span><span class="n">cov</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+
+    <span class="k">return</span> <span class="n">invdict</span>
+
+
+<span class="k">def</span> <span class="nf">_is_metadf_valid</span><span class="p">(</span><span class="n">metadf</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">metadf</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s2">&quot;Metadf is an empty dataframe.&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="n">metadf</span><span class="o">.</span><span class="n">columns</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;lat column not found in columns of metadf </span><span class="si">{</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="n">metadf</span><span class="o">.</span><span class="n">columns</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;lon column not found in columns of metadf </span><span class="si">{</span><span class="n">metadf</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_unique</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;The index of the metadf is not unique: </span><span class="si">{</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># TODO check if lat and lon columns are numerical</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="c1"># todo fix these methods</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thomas Vergauwen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

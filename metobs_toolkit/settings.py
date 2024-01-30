@@ -320,7 +320,6 @@ class Settings:
             "gap",
             "missing_obs",
             "templates",
-            "gee",
         ]
 
         # Drop variables starting with _

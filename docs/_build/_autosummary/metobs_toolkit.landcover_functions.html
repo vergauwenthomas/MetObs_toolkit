@@ -23,7 +23,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="metobs_toolkit.landcover_functions.connect_to_gee" href="metobs_toolkit.landcover_functions.connect_to_gee.html" />
+    <link rel="next" title="metobs_toolkit.landcover_functions.coords_to_geometry" href="metobs_toolkit.landcover_functions.coords_to_geometry.html" />
     <link rel="prev" title="metobs_toolkit.geometry_functions.gpd_to_extent_box" href="metobs_toolkit.geometry_functions.gpd_to_extent_box.html" />
 </head>
 
@@ -70,18 +70,14 @@
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap.html">metobs_toolkit.gap</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gee_extractor.html">metobs_toolkit.gee_extractor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">metobs_toolkit.landcover_functions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.connect_to_gee.html">metobs_toolkit.landcover_functions.connect_to_gee</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.coordinates_available.html">metobs_toolkit.landcover_functions.coordinates_available</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.coords_to_geometry.html">metobs_toolkit.landcover_functions.coords_to_geometry</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.extract_buffer_frequencies.html">metobs_toolkit.landcover_functions.extract_buffer_frequencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.extract_pointvalues.html">metobs_toolkit.landcover_functions.extract_pointvalues</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.gee_extract_timeseries.html">metobs_toolkit.landcover_functions.gee_extract_timeseries</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.get_ee_obj.html">metobs_toolkit.landcover_functions.get_ee_obj</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.height_extractor.html">metobs_toolkit.landcover_functions.height_extractor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.lc_fractions_extractor.html">metobs_toolkit.landcover_functions.lc_fractions_extractor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.lcz_extractor.html">metobs_toolkit.landcover_functions.lcz_extractor</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
@@ -134,35 +130,20 @@
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.connect_to_gee.html#metobs_toolkit.landcover_functions.connect_to_gee" title="metobs_toolkit.landcover_functions.connect_to_gee"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect_to_gee</span></code></a></p></td>
-<td><p>Authenticate to GEE if needed.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.coordinates_available.html#metobs_toolkit.landcover_functions.coordinates_available" title="metobs_toolkit.landcover_functions.coordinates_available"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coordinates_available</span></code></a></p></td>
-<td><p>Test if all coordinates are available.</p></td>
-</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.coords_to_geometry.html#metobs_toolkit.landcover_functions.coords_to_geometry" title="metobs_toolkit.landcover_functions.coords_to_geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coords_to_geometry</span></code></a></p></td>
 <td><p>Convert coordinates to GEE geometries.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.extract_buffer_frequencies.html#metobs_toolkit.landcover_functions.extract_buffer_frequencies" title="metobs_toolkit.landcover_functions.extract_buffer_frequencies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_buffer_frequencies</span></code></a></p></td>
-<td><p>Extract buffer fractions from a GEE categorical dataset.</p></td>
+<td><p>Extract cover frequencies of buffers at point locations from a static GEE dataset.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.extract_pointvalues.html#metobs_toolkit.landcover_functions.extract_pointvalues" title="metobs_toolkit.landcover_functions.extract_pointvalues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_pointvalues</span></code></a></p></td>
-<td><p>Extract values for point locations from a GEE dataset.</p></td>
+<td><p>Extract values for point locations from a static GEE dataset.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.gee_extract_timeseries.html#metobs_toolkit.landcover_functions.gee_extract_timeseries" title="metobs_toolkit.landcover_functions.gee_extract_timeseries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gee_extract_timeseries</span></code></a></p></td>
-<td><p>Extract timeseries data at the stations location from a GEE dataset.</p></td>
+<td><p>TODO: update this docstring Extract timeseries data at the stations location from a GEE dataset.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.get_ee_obj.html#metobs_toolkit.landcover_functions.get_ee_obj" title="metobs_toolkit.landcover_functions.get_ee_obj"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ee_obj</span></code></a></p></td>
 <td><p>Get an image from a GEE object.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.height_extractor.html#metobs_toolkit.landcover_functions.height_extractor" title="metobs_toolkit.landcover_functions.height_extractor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">height_extractor</span></code></a></p></td>
-<td><p>Get altitude for all stations from GEE.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.lc_fractions_extractor.html#metobs_toolkit.landcover_functions.lc_fractions_extractor" title="metobs_toolkit.landcover_functions.lc_fractions_extractor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lc_fractions_extractor</span></code></a></p></td>
-<td><p>Get landcover fractions for all buffers from GEE.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="metobs_toolkit.landcover_functions.lcz_extractor.html#metobs_toolkit.landcover_functions.lcz_extractor" title="metobs_toolkit.landcover_functions.lcz_extractor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lcz_extractor</span></code></a></p></td>
-<td><p>Extract LCZ for all stations in the metadf.</p></td>
 </tr>
 </tbody>
 </table>
@@ -173,7 +154,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="metobs_toolkit.geometry_functions.gpd_to_extent_box.html" class="btn btn-neutral float-left" title="metobs_toolkit.geometry_functions.gpd_to_extent_box" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="metobs_toolkit.landcover_functions.connect_to_gee.html" class="btn btn-neutral float-right" title="metobs_toolkit.landcover_functions.connect_to_gee" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="metobs_toolkit.landcover_functions.coords_to_geometry.html" class="btn btn-neutral float-right" title="metobs_toolkit.landcover_functions.coords_to_geometry" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

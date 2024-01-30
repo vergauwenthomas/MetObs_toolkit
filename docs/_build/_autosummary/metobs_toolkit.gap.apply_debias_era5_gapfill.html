@@ -82,6 +82,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gee_extractor.html">metobs_toolkit.gee_extractor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
@@ -132,7 +133,7 @@
 <h1>metobs_toolkit.gap.apply_debias_era5_gapfill<a class="headerlink" href="#metobs-toolkit-gap-apply-debias-era5-gapfill" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="metobs_toolkit.gap.apply_debias_era5_gapfill">
-<span class="sig-prename descclassname"><span class="pre">metobs_toolkit.gap.</span></span><span class="sig-name descname"><span class="pre">apply_debias_era5_gapfill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gapslist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eraModelData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debias_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/gap.html#apply_debias_era5_gapfill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.gap.apply_debias_era5_gapfill" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">metobs_toolkit.gap.</span></span><span class="sig-name descname"><span class="pre">apply_debias_era5_gapfill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gapslist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eraModelData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debias_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/gap.html#apply_debias_era5_gapfill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.gap.apply_debias_era5_gapfill" title="Link to this definition"></a></dt>
 <dd><p>Fill all gaps using ERA5 debiaset modeldata.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -141,7 +142,7 @@
 <li><p><strong>dataset</strong> (<em>metobs_toolkit.Dataset</em>) – Dataset to fill the gaps of.</p></li>
 <li><p><strong>eraModelData</strong> (<em>metobs_toolkit.Modeldata</em>) – Modeldata to use for gapfilling.</p></li>
 <li><p><strong>debias_settings</strong> (<em>dict</em>) – Debias settings.</p></li>
-<li><p><strong>obstype</strong> (<em>str</em><em>, </em><em>optional</em>) – MetObs observationtype to fill gaps for. The default is “temp”.</p></li>
+<li><p><strong>obstype</strong> (<em>metobs_toolkit.Obstype</em>) – MetObs observationtype to fill gaps for.</p></li>
 <li><p><strong>overwrite_fill</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the filled values are overwritten. The default is False.</p></li>
 </ul>
 </dd>

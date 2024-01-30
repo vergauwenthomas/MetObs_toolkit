@@ -105,114 +105,6 @@
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="c1"># =============================================================================</span>
-<span class="c1">#  Connection functions</span>
-<span class="c1"># =============================================================================</span>
-
-
-<div class="viewcode-block" id="connect_to_gee">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.landcover_functions.connect_to_gee.html#metobs_toolkit.landcover_functions.connect_to_gee">[docs]</a>
-<span class="k">def</span> <span class="nf">connect_to_gee</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Authenticate to GEE if needed.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ee</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">_credentials</span><span class="p">:</span>  <span class="c1"># check if ee connection is initialized</span>
-        <span class="n">ee</span><span class="o">.</span><span class="n">Authenticate</span><span class="p">()</span>
-        <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
-    <span class="k">return</span></div>
-
-
-
-<span class="c1"># =============================================================================</span>
-<span class="c1"># Top level functions (can be called by dataset)</span>
-<span class="c1"># =============================================================================</span>
-
-
-<div class="viewcode-block" id="lcz_extractor">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.landcover_functions.lcz_extractor.html#metobs_toolkit.landcover_functions.lcz_extractor">[docs]</a>
-<span class="k">def</span> <span class="nf">lcz_extractor</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">mapinfo</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract LCZ for all stations in the metadf.&quot;&quot;&quot;</span>
-    <span class="c1"># make return in case something went wrong</span>
-    <span class="n">default_return</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
-        <span class="n">index</span><span class="o">=</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s2">&quot;Location_unknown&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lcz&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span>
-    <span class="p">)</span>
-    <span class="c1"># test if metadata is suitable</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_validate_metadf</span><span class="p">(</span><span class="n">metadf</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metadf is not suitable for GEE extractiond: </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">default_return</span>
-
-    <span class="n">relevant_metadf</span> <span class="o">=</span> <span class="n">metadf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()[[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]]</span>
-
-    <span class="n">lcz_df</span> <span class="o">=</span> <span class="n">extract_pointvalues</span><span class="p">(</span>
-        <span class="n">metadf</span><span class="o">=</span><span class="n">relevant_metadf</span><span class="p">,</span> <span class="n">mapinfo</span><span class="o">=</span><span class="n">mapinfo</span><span class="p">,</span> <span class="n">output_column_name</span><span class="o">=</span><span class="s2">&quot;lcz&quot;</span>
-    <span class="p">)</span>
-    <span class="k">if</span> <span class="n">lcz_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">lcz_df</span><span class="p">[</span><span class="s2">&quot;lcz&quot;</span><span class="p">]</span>  <span class="c1"># return series</span></div>
-
-
-
-<div class="viewcode-block" id="lc_fractions_extractor">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.landcover_functions.lc_fractions_extractor.html#metobs_toolkit.landcover_functions.lc_fractions_extractor">[docs]</a>
-<span class="k">def</span> <span class="nf">lc_fractions_extractor</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">mapinfo</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">agg</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get landcover fractions for all buffers from GEE.&quot;&quot;&quot;</span>
-    <span class="c1"># make return in case something went wrong</span>
-    <span class="n">default_return</span> <span class="o">=</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">buffer</span><span class="p">)</span>
-
-    <span class="c1"># test if metadata is suitable</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_validate_metadf</span><span class="p">(</span><span class="n">metadf</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metadf is not suitable for GEE extractiond: </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">default_return</span>
-
-    <span class="n">relevant_metadf</span> <span class="o">=</span> <span class="n">metadf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()[[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]]</span>
-
-    <span class="n">freqs_df</span> <span class="o">=</span> <span class="n">extract_buffer_frequencies</span><span class="p">(</span>
-        <span class="n">metadf</span><span class="o">=</span><span class="n">relevant_metadf</span><span class="p">,</span> <span class="n">mapinfo</span><span class="o">=</span><span class="n">mapinfo</span><span class="p">,</span> <span class="n">bufferradius</span><span class="o">=</span><span class="n">buffer</span>
-    <span class="p">)</span>
-
-    <span class="c1"># apply aggregation if required</span>
-    <span class="k">if</span> <span class="n">agg</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using aggregation scheme: </span><span class="si">{</span><span class="n">mapinfo</span><span class="p">[</span><span class="s1">&#39;aggregation&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">agg_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">agg_name</span><span class="p">,</span> <span class="n">agg_classes</span> <span class="ow">in</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;aggregation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">present_agg_classes</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">agg_classes</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="ow">in</span> <span class="n">freqs_df</span><span class="o">.</span><span class="n">columns</span>
-            <span class="p">]</span>
-            <span class="n">agg_df</span><span class="p">[</span><span class="n">agg_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">freqs_df</span><span class="p">[</span><span class="n">present_agg_classes</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">agg_df</span><span class="p">,</span> <span class="n">buffer</span>
-
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># map numeric classes to human</span>
-        <span class="n">mapper</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">):</span> <span class="n">human</span> <span class="k">for</span> <span class="n">num</span><span class="p">,</span> <span class="n">human</span> <span class="ow">in</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;categorical_mapper&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">}</span>
-        <span class="n">freqs_df</span> <span class="o">=</span> <span class="n">freqs_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">mapper</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">freqs_df</span><span class="p">,</span> <span class="n">buffer</span></div>
-
-
-
-<div class="viewcode-block" id="height_extractor">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.landcover_functions.height_extractor.html#metobs_toolkit.landcover_functions.height_extractor">[docs]</a>
-<span class="k">def</span> <span class="nf">height_extractor</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">mapinfo</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get altitude for all stations from GEE.&quot;&quot;&quot;</span>
-    <span class="c1"># make return in case something went wrong</span>
-    <span class="n">default_return</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
-        <span class="n">index</span><span class="o">=</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s2">&quot;Location_unknown&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;altitude&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span>
-    <span class="p">)</span>
-
-    <span class="c1"># test if metadata is suitable</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_validate_metadf</span><span class="p">(</span><span class="n">metadf</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metadf is not suitable for GEE extractiond: </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">default_return</span>
-
-    <span class="n">relevant_metadf</span> <span class="o">=</span> <span class="n">metadf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()[[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]]</span>
-
-    <span class="n">altitude_df</span> <span class="o">=</span> <span class="n">extract_pointvalues</span><span class="p">(</span>
-        <span class="n">metadf</span><span class="o">=</span><span class="n">relevant_metadf</span><span class="p">,</span> <span class="n">mapinfo</span><span class="o">=</span><span class="n">mapinfo</span><span class="p">,</span> <span class="n">output_column_name</span><span class="o">=</span><span class="s2">&quot;altitude&quot;</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">altitude_df</span><span class="p">[</span><span class="s2">&quot;altitude&quot;</span><span class="p">]</span>  <span class="c1"># return series</span></div>
-
-
 
 <span class="c1"># =============================================================================</span>
 <span class="c1"># Object convertors</span>
@@ -220,23 +112,24 @@
 
 
 <span class="k">def</span> <span class="nf">_datetime_to_gee_datetime</span><span class="p">(</span><span class="n">datetime</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Convert a datetime (in UTC) to a gee.Date&quot;&quot;&quot;</span>
     <span class="c1"># covert to UTC!</span>
-    <span class="n">utcdt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">pytz</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">utcdt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">utcdt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+    <span class="c1"># utcdt = datetime.astimezone(pytz.utc) #this will assume datetime in lt !!!</span>
+    <span class="c1"># logger.debug(utcdt.replace(tzinfo=None))</span>
+    <span class="k">return</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="get_ee_obj">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.landcover_functions.get_ee_obj.html#metobs_toolkit.landcover_functions.get_ee_obj">[docs]</a>
-<span class="k">def</span> <span class="nf">get_ee_obj</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_ee_obj</span><span class="p">(</span><span class="n">trg_location</span><span class="p">,</span> <span class="n">is_image</span><span class="p">,</span> <span class="n">is_imagecollection</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get an image from a GEE object.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;is_image&quot;</span><span class="p">]:</span>
-        <span class="n">obj</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">])</span>
-    <span class="k">elif</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;is_imagecollection&quot;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">is_image</span><span class="p">:</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">trg_location</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">is_imagecollection</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">band</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)):</span>
-            <span class="n">obj</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">])</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">(</span><span class="n">trg_location</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">obj</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">(</span><span class="n">trg_location</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Map type is not an Image or Imagecollection.&quot;</span><span class="p">)</span>
@@ -296,11 +189,11 @@
 <span class="k">def</span> <span class="nf">_df_to_features_point_collection</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a dataframe to a featurecollections row-wise.&quot;&quot;&quot;</span>
     <span class="n">features</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
         <span class="c1">#     construct the geometry from dataframe</span>
         <span class="n">poi_geometry</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]])</span>
         <span class="c1">#     construct the attributes (properties) for each point</span>
-        <span class="n">poi_properties</span> <span class="o">=</span> <span class="n">poi_properties</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]}</span>
+        <span class="n">poi_properties</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))}</span>
         <span class="c1">#     construct feature combining geometry and properties</span>
         <span class="n">poi_feature</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">poi_geometry</span><span class="p">,</span> <span class="n">poi_properties</span><span class="p">)</span>
         <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_feature</span><span class="p">)</span>
@@ -311,13 +204,13 @@
 <span class="k">def</span> <span class="nf">_df_to_features_buffer_collection</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">bufferradius</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a dataframe to a featurecollections row-wise.&quot;&quot;&quot;</span>
     <span class="n">features</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
         <span class="c1">#     construct the geometry from dataframe</span>
         <span class="n">poi_geometry</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]])</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span>
             <span class="n">distance</span><span class="o">=</span><span class="n">bufferradius</span>
         <span class="p">)</span>
         <span class="c1">#     construct the attributes (properties) for each point</span>
-        <span class="n">poi_properties</span> <span class="o">=</span> <span class="n">poi_properties</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]}</span>
+        <span class="n">poi_properties</span> <span class="o">=</span> <span class="n">poi_properties</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">:</span> <span class="n">index</span><span class="p">}</span>
         <span class="c1">#     construct feature combining geometry and properties</span>
         <span class="n">poi_feature</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">poi_geometry</span><span class="p">,</span> <span class="n">poi_properties</span><span class="p">)</span>
         <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_feature</span><span class="p">)</span>
@@ -325,21 +218,8 @@
     <span class="k">return</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="coordinates_available">
-<a class="viewcode-back" href="../../_autosummary/metobs_toolkit.landcover_functions.coordinates_available.html#metobs_toolkit.landcover_functions.coordinates_available">[docs]</a>
-<span class="k">def</span> <span class="nf">coordinates_available</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">latcol</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="n">loncol</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if all coordinates are available.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">metadf</span><span class="p">[</span><span class="n">latcol</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No coordinates are found!&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">if</span> <span class="n">metadf</span><span class="p">[</span><span class="n">loncol</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No coordinates are found!&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="kc">True</span></div>
-
-
-
 <span class="k">def</span> <span class="nf">_estimate_data_size</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">startdt</span><span class="p">,</span> <span class="n">enddt</span><span class="p">,</span> <span class="n">time_res</span><span class="p">,</span> <span class="n">n_bands</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make a rough estimate of data size to transfer.&quot;&quot;&quot;</span>
     <span class="n">datatimerange</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">enddt</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">time_res</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">metadf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">datatimerange</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_bands</span>
@@ -352,39 +232,39 @@
 
 <div class="viewcode-block" id="extract_pointvalues">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.landcover_functions.extract_pointvalues.html#metobs_toolkit.landcover_functions.extract_pointvalues">[docs]</a>
-<span class="k">def</span> <span class="nf">extract_pointvalues</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">mapinfo</span><span class="p">,</span> <span class="n">output_column_name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract values for point locations from a GEE dataset.</span>
+<span class="k">def</span> <span class="nf">extract_pointvalues</span><span class="p">(</span>
+    <span class="n">metadf</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">trg_gee_loc</span><span class="p">,</span> <span class="n">band_of_use</span><span class="p">,</span> <span class="n">is_imagecollection</span><span class="p">,</span> <span class="n">is_image</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract values for point locations from a static GEE dataset.</span>
 
-<span class="sd">    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.</span>
+<span class="sd">    The locations are defined by the &#39;lat&#39; and &#39;lon&#39; columns in the metadf. The</span>
+<span class="sd">    GEE dataset is defined by its location (trg_gee_loc), the band (band_of_use)</span>
+<span class="sd">    to extrac from and some metadata of the dataset.</span>
 
-<span class="sd">    A dataframe with the extracted values is returned.</span>
-<span class="sd">    The values are mapped to human classes if the dataset value type is labeld as categorical.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    metadf : pd.DataFrame</span>
-<span class="sd">        dataframe containing coordinates and a column &quot;name&quot;, representing the name for each location.</span>
-<span class="sd">    mapinfo : Dict</span>
-<span class="sd">        The information about the GEE dataset.</span>
-<span class="sd">    output_column_name : String</span>
-<span class="sd">        Column name for the extracted values.</span>
-<span class="sd">    latcolname : String, optional</span>
-<span class="sd">        Columnname of latitude values. The default is &#39;lat&#39;.</span>
-<span class="sd">    loncolname : String, optional</span>
-<span class="sd">        Columnname of longitude values. The default is &#39;lon&#39;.</span>
+<span class="sd">    metadf : pandas.DataFrame</span>
+<span class="sd">        A dataframe containing the location to extract as a lat and lon column.</span>
+<span class="sd">    scale : num</span>
+<span class="sd">        The scale (the target resolution) of the dataset.</span>
+<span class="sd">    trg_gee_loc : str</span>
+<span class="sd">        The gee location of the dataset.</span>
+<span class="sd">    band_of_use : str</span>
+<span class="sd">        The name of the band to extract data from.</span>
+<span class="sd">    is_imagecollection : bool</span>
+<span class="sd">        True if the dataset is a gee.ImageCollection.</span>
+<span class="sd">    is_image : bool</span>
+<span class="sd">        True if the dataset is a gee.Image.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    pd.DataFrame</span>
-<span class="sd">        A dataframe with name as index, all columns from the metadf + extracted extracted values column.</span>
+<span class="sd">    pandas.DataFrame</span>
+<span class="sd">        The dataframe with the extracted values in.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">scale</span> <span class="o">=</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
-
-    <span class="c1"># test if coordiantes are available</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">coordinates_available</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Extract point values for </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s1"> at </span><span class="si">{</span><span class="n">trg_gee_loc</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;This band is used: </span><span class="si">{</span><span class="n">band_of_use</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="c1"># =============================================================================</span>
     <span class="c1"># df to featurecollection</span>
     <span class="c1"># =============================================================================</span>
@@ -394,9 +274,14 @@
     <span class="c1"># =============================================================================</span>
     <span class="c1"># extract raster values</span>
     <span class="c1"># =============================================================================</span>
+    <span class="n">raster</span> <span class="o">=</span> <span class="n">get_ee_obj</span><span class="p">(</span>
+        <span class="n">trg_location</span><span class="o">=</span><span class="n">trg_gee_loc</span><span class="p">,</span>
+        <span class="n">is_image</span><span class="o">=</span><span class="n">is_image</span><span class="p">,</span>
+        <span class="n">is_imagecollection</span><span class="o">=</span><span class="n">is_imagecollection</span><span class="p">,</span>
+        <span class="n">band</span><span class="o">=</span><span class="n">band_of_use</span><span class="p">,</span>
+    <span class="p">)</span>
 
-    <span class="n">raster</span> <span class="o">=</span> <span class="n">get_ee_obj</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">,</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;band_of_use&quot;</span><span class="p">])</span>  <span class="c1"># dataset</span>
-    <span class="k">if</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;is_imagecollection&quot;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">is_imagecollection</span><span class="p">:</span>
 
         <span class="k">def</span> <span class="nf">rasterExtraction</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
             <span class="n">feature</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">sampleRegions</span><span class="p">(</span>
@@ -406,15 +291,13 @@
             <span class="k">return</span> <span class="n">feature</span>
 
         <span class="n">results</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rasterExtraction</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;is_image&quot;</span><span class="p">]:</span>
-        <span class="n">raster</span> <span class="o">=</span> <span class="n">get_ee_obj</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">,</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;band_of_use&quot;</span><span class="p">])</span>  <span class="c1"># dataset</span>
+    <span class="k">elif</span> <span class="n">is_image</span><span class="p">:</span>
+        <span class="c1"># raster = get_ee_obj(mapinfo, mapinfo[&quot;band_of_use&quot;])  # dataset</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">sampleRegions</span><span class="p">(</span>
             <span class="n">collection</span><span class="o">=</span><span class="n">ee_fc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span>  <span class="c1"># feature collection here</span>
         <span class="p">)</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;gee dataset </span><span class="si">{</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> is neighter image nor imagecollection.&#39;</span>
-        <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;gee dataset is neighter image nor imagecollection.&quot;</span><span class="p">)</span>
 
     <span class="c1"># extract properties</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]):</span>
@@ -432,62 +315,48 @@
     <span class="n">properties</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]]</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
 
-    <span class="c1"># map to human space if categorical</span>
-    <span class="k">if</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;value_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;categorical&quot;</span><span class="p">:</span>
-        <span class="n">df</span><span class="p">[</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;band_of_use&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;band_of_use&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-            <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;categorical_mapper&quot;</span><span class="p">]</span>
-        <span class="p">)</span>
-
-    <span class="c1"># rename to values to toolkit space</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;band_of_use&quot;</span><span class="p">]:</span> <span class="n">output_column_name</span><span class="p">})</span>
-
-    <span class="c1"># #format index</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
-
     <span class="k">return</span> <span class="n">df</span></div>
 
 
 
 <div class="viewcode-block" id="extract_buffer_frequencies">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.landcover_functions.extract_buffer_frequencies.html#metobs_toolkit.landcover_functions.extract_buffer_frequencies">[docs]</a>
-<span class="k">def</span> <span class="nf">extract_buffer_frequencies</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">mapinfo</span><span class="p">,</span> <span class="n">bufferradius</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract buffer fractions from a GEE categorical dataset.</span>
+<span class="k">def</span> <span class="nf">extract_buffer_frequencies</span><span class="p">(</span>
+    <span class="n">metadf</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">trg_gee_loc</span><span class="p">,</span> <span class="n">band_of_use</span><span class="p">,</span> <span class="n">is_imagecollection</span><span class="p">,</span> <span class="n">is_image</span><span class="p">,</span> <span class="n">bufferradius</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract cover frequencies of buffers at point locations from a static GEE dataset.</span>
 
-<span class="sd">    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.</span>
+<span class="sd">    The locations are defined by the &#39;lat&#39; and &#39;lon&#39; columns in the metadf. The</span>
+<span class="sd">    GEE dataset is defined by its location (trg_gee_loc), the band (band_of_use)</span>
+<span class="sd">    to extrac from and some metadata of the dataset.</span>
 
-<span class="sd">    A dataframe with the extracted values is returned.</span>
-<span class="sd">    The values are mapped to human classes if the dataset value type is labeld as categorical.</span>
+<span class="sd">    The radius is in the same units as the spatial units of the dataset!</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    metadf : pd.DataFrame</span>
-<span class="sd">        dataframe containing coordinates and a column &quot;name&quot;, representing the name for each location.</span>
-<span class="sd">    mapinfo : Dict</span>
-<span class="sd">        The information about the GEE dataset.</span>
-<span class="sd">    latcolname : String, optional</span>
-<span class="sd">        Columnname of latitude values. The default is &#39;lat&#39;.</span>
-<span class="sd">    loncolname : String, optional</span>
-<span class="sd">        Columnname of longitude values. The default is &#39;lon&#39;.</span>
+<span class="sd">    metadf : pandas.DataFrame</span>
+<span class="sd">        A dataframe containing the location to extract as a lat and lon column.</span>
+<span class="sd">    scale : num</span>
+<span class="sd">        The scale (the target resolution) of the dataset.</span>
+<span class="sd">    trg_gee_loc : str</span>
+<span class="sd">        The gee location of the dataset.</span>
+<span class="sd">    band_of_use : str</span>
+<span class="sd">        The name of the band to extract data from.</span>
+<span class="sd">    is_imagecollection : bool</span>
+<span class="sd">        True if the dataset is a gee.ImageCollection.</span>
+<span class="sd">    is_image : bool</span>
+<span class="sd">        True if the dataset is a gee.Image.</span>
+<span class="sd">    bufferradius : num</span>
+<span class="sd">        The radius of the buffer in the same units and crs as the trg_gee_dataset.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    pd.DataFrame</span>
-<span class="sd">        A dataframe with name as index, all columns from the metadf + extracted extracted values column.</span>
+<span class="sd">    pandas.DataFrame</span>
+<span class="sd">        Dataframe with the normalize frequencies of cover occurences per buffer.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">scale</span> <span class="o">=</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
-
-    <span class="c1"># test if coordiantes are available</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">coordinates_available</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-
-    <span class="c1"># test if map is categorical</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;value_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;categorical&quot;</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-            <span class="s2">&quot;Extract buffer frequencies is only implemented for categorical datasets!&quot;</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Extract buffers for </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s1"> at </span><span class="si">{</span><span class="n">trg_gee_loc</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;This band is used: </span><span class="si">{</span><span class="n">band_of_use</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="c1"># =============================================================================</span>
     <span class="c1"># df to featurecollection</span>
     <span class="c1"># =============================================================================</span>
@@ -497,6 +366,12 @@
     <span class="c1"># =============================================================================</span>
     <span class="c1"># extract raster values</span>
     <span class="c1"># =============================================================================</span>
+    <span class="n">raster</span> <span class="o">=</span> <span class="n">get_ee_obj</span><span class="p">(</span>
+        <span class="n">trg_location</span><span class="o">=</span><span class="n">trg_gee_loc</span><span class="p">,</span>
+        <span class="n">is_image</span><span class="o">=</span><span class="n">is_image</span><span class="p">,</span>
+        <span class="n">is_imagecollection</span><span class="o">=</span><span class="n">is_imagecollection</span><span class="p">,</span>
+        <span class="n">band</span><span class="o">=</span><span class="n">band_of_use</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">rasterExtraction</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
         <span class="n">feature</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">reduceRegions</span><span class="p">(</span>
@@ -506,7 +381,6 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">feature</span>
 
-    <span class="n">raster</span> <span class="o">=</span> <span class="n">get_ee_obj</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">,</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;band_of_use&quot;</span><span class="p">])</span>  <span class="c1"># dataset</span>
     <span class="n">results</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rasterExtraction</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
 
     <span class="c1"># =============================================================================</span>
@@ -514,14 +388,14 @@
     <span class="c1"># =============================================================================</span>
 
     <span class="n">freqs</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">staprop</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span> <span class="n">staprop</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;histogram&quot;</span><span class="p">]</span>
+        <span class="n">staprop</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;feature_idx&quot;</span><span class="p">]:</span> <span class="n">staprop</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;histogram&quot;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">staprop</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]</span>
     <span class="p">}</span>
     <span class="n">freqsdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
 
     <span class="c1"># format frequency df</span>
     <span class="n">freqsdf</span> <span class="o">=</span> <span class="n">freqsdf</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">freqsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span>
+    <span class="n">freqsdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;feature_idx&quot;</span>
 
     <span class="c1"># normalize freqs</span>
     <span class="n">freqsdf</span> <span class="o">=</span> <span class="n">freqsdf</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">freqsdf</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -533,9 +407,19 @@
 <div class="viewcode-block" id="gee_extract_timeseries">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.landcover_functions.gee_extract_timeseries.html#metobs_toolkit.landcover_functions.gee_extract_timeseries">[docs]</a>
 <span class="k">def</span> <span class="nf">gee_extract_timeseries</span><span class="p">(</span>
-    <span class="n">metadf</span><span class="p">,</span> <span class="n">band_mapper</span><span class="p">,</span> <span class="n">mapinfo</span><span class="p">,</span> <span class="n">startdt</span><span class="p">,</span> <span class="n">enddt</span><span class="p">,</span> <span class="n">latcolname</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="n">loncolname</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span>
+    <span class="n">metadf</span><span class="p">,</span>
+    <span class="n">bandnames</span><span class="p">,</span>
+    <span class="n">startdt</span><span class="p">,</span>
+    <span class="n">enddt</span><span class="p">,</span>
+    <span class="n">scale</span><span class="p">,</span>
+    <span class="n">timeres</span><span class="p">,</span>
+    <span class="n">trg_gee_loc</span><span class="p">,</span>
+    <span class="n">is_imagecollection</span><span class="p">,</span>
+    <span class="n">is_image</span><span class="p">,</span>
+    <span class="n">gdrive_filename</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract timeseries data at the stations location from a GEE dataset.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;TODO: update this docstring</span>
+<span class="sd">    Extract timeseries data at the stations location from a GEE dataset.</span>
 
 <span class="sd">    Extract a timeseries, for a given obstype, for point locations from a GEE</span>
 <span class="sd">    dataset. The pointlocations are defined in a dataframe by EPSG:4326 lat lon</span>
@@ -570,21 +454,17 @@
 <span class="sd">        column with the same name as the obstypes.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">scale</span> <span class="o">=</span> <span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
-    <span class="n">bandnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">band_mapper</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-
-    <span class="c1"># test if coordiantes are available</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">coordinates_available</span><span class="p">(</span><span class="n">metadf</span><span class="p">,</span> <span class="n">latcolname</span><span class="p">,</span> <span class="n">loncolname</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Extract time series for </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s1"> at </span><span class="si">{</span><span class="n">trg_gee_loc</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;These bandnames are used: </span><span class="si">{</span><span class="n">bandnames</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">use_drive</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">_est_data_size</span> <span class="o">=</span> <span class="n">_estimate_data_size</span><span class="p">(</span>
         <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
         <span class="n">startdt</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span>
         <span class="n">enddt</span><span class="o">=</span><span class="n">enddt</span><span class="p">,</span>
-        <span class="n">time_res</span><span class="o">=</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;time_res&quot;</span><span class="p">],</span>
+        <span class="n">time_res</span><span class="o">=</span><span class="n">timeres</span><span class="p">,</span>
         <span class="n">n_bands</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">bandnames</span><span class="p">),</span>
     <span class="p">)</span>
+
     <span class="k">if</span> <span class="n">_est_data_size</span> <span class="o">&gt;</span> <span class="mi">4000</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span>
             <span class="s2">&quot;THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!&quot;</span>
@@ -612,9 +492,17 @@
         <span class="k">return</span> <span class="n">feature</span>
 
     <span class="c1"># Because the daterange is maxdate exclusive, add the time resolution to the enddt</span>
-    <span class="n">enddt</span> <span class="o">=</span> <span class="n">enddt</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">[</span><span class="s2">&quot;time_res&quot;</span><span class="p">])</span>
+    <span class="n">enddt</span> <span class="o">=</span> <span class="n">enddt</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">timeres</span><span class="p">)</span>
 
-    <span class="n">raster</span> <span class="o">=</span> <span class="n">get_ee_obj</span><span class="p">(</span><span class="n">mapinfo</span><span class="p">,</span> <span class="n">bandnames</span><span class="p">)</span>  <span class="c1"># dataset</span>
+    <span class="c1"># construct raster obj</span>
+    <span class="n">raster</span> <span class="o">=</span> <span class="n">get_ee_obj</span><span class="p">(</span>
+        <span class="n">trg_location</span><span class="o">=</span><span class="n">trg_gee_loc</span><span class="p">,</span>
+        <span class="n">is_image</span><span class="o">=</span><span class="n">is_image</span><span class="p">,</span>
+        <span class="n">is_imagecollection</span><span class="o">=</span><span class="n">is_imagecollection</span><span class="p">,</span>
+        <span class="n">band</span><span class="o">=</span><span class="n">bandnames</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># filter out timeseries</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">raster</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
             <span class="n">ee</span><span class="o">.</span><span class="n">Filter</span><span class="o">.</span><span class="n">date</span><span class="p">(</span>
@@ -625,20 +513,6 @@
         <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rasterExtraction</span><span class="p">)</span>
         <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">format_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">band_mapper</span><span class="p">):</span>
-        <span class="c1"># format datetime</span>
-        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S&quot;</span><span class="p">)</span>
-        <span class="c1"># set timezone</span>
-        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
-
-        <span class="c1"># format index</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
-
-        <span class="c1"># rename to values to toolkit space</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">band_mapper</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">df</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">use_drive</span><span class="p">:</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
@@ -654,11 +528,11 @@
         <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;ERROR: the returned timeseries from GEE are empty.&quot;</span><span class="p">)</span>
 
-        <span class="n">df</span> <span class="o">=</span> <span class="n">format_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">band_mapper</span><span class="p">)</span>
+        <span class="c1"># df = format_df(df, band_mapper)</span>
         <span class="k">return</span> <span class="n">df</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">_filename</span> <span class="o">=</span> <span class="s2">&quot;era5_data&quot;</span>
+        <span class="n">_filename</span> <span class="o">=</span> <span class="n">gdrive_filename</span>
         <span class="n">_drivefolder</span> <span class="o">=</span> <span class="s2">&quot;era5_timeseries&quot;</span>
 
         <span class="nb">print</span><span class="p">(</span>
@@ -668,14 +542,14 @@
             <span class="sa">f</span><span class="s2">&quot;The timeseries will be writen to your Drive in </span><span class="si">{</span><span class="n">_drivefolder</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">_filename</span><span class="si">}</span><span class="s2"> &quot;</span>
         <span class="p">)</span>
 
-        <span class="n">data_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="n">data_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="s2">&quot;feature_idx&quot;</span><span class="p">]</span>
         <span class="n">data_columns</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bandnames</span><span class="p">)</span>
 
         <span class="n">task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">toDrive</span><span class="p">(</span>
             <span class="n">collection</span><span class="o">=</span><span class="n">results</span><span class="p">,</span>
             <span class="n">description</span><span class="o">=</span><span class="s2">&quot;extracting_era5&quot;</span><span class="p">,</span>
             <span class="n">folder</span><span class="o">=</span><span class="n">_drivefolder</span><span class="p">,</span>
-            <span class="n">fileNamePrefix</span><span class="o">=</span><span class="n">_filename</span><span class="p">,</span>
+            <span class="n">fileNamePrefix</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">gdrive_filename</span><span class="p">),</span>
             <span class="n">fileFormat</span><span class="o">=</span><span class="s2">&quot;CSV&quot;</span><span class="p">,</span>
             <span class="n">selectors</span><span class="o">=</span><span class="n">data_columns</span><span class="p">,</span>
         <span class="p">)</span>

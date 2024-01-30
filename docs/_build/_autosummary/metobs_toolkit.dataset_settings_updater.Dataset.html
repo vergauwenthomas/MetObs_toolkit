@@ -74,6 +74,7 @@
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap.html">metobs_toolkit.gap</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gee_extractor.html">metobs_toolkit.gee_extractor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
@@ -156,11 +157,11 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_automatic" title="metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_automatic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_gaps_automatic</span></code></a></p></td>
 <td><p>Fill the gaps by using linear interpolation or debiased modeldata.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_era5" title="metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_era5"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_gaps_era5</span></code></a></p></td>
-<td><p>Fill the gaps using a Modeldata object.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_linear" title="metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_gaps_linear</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_linear" title="metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_gaps_linear</span></code></a></p></td>
 <td><p>Fill the gaps using linear interpolation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_using_debiased_modeldata" title="metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_using_debiased_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_gaps_using_debiased_modeldata</span></code></a></p></td>
+<td><p>Fill the gaps using a Modeldata object.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.fill_missing_obs_linear" title="metobs_toolkit.dataset_settings_updater.Dataset.fill_missing_obs_linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_missing_obs_linear</span></code></a></p></td>
 <td><p>Interpolate missing observations.</p></td>
@@ -171,26 +172,26 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_analysis" title="metobs_toolkit.dataset_settings_updater.Dataset.get_analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_analysis</span></code></a></p></td>
 <td><p>Create an Analysis instance from the Dataframe.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_gaps_df" title="metobs_toolkit.dataset_settings_updater.Dataset.get_gaps_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaps_df</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_equivalent_era5_modeldata" title="metobs_toolkit.dataset_settings_updater.Dataset.get_equivalent_era5_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_equivalent_era5_modeldata</span></code></a></p></td>
+<td><p>Get the equivalent (space, time, observationtype) ERA5 timeseries from GEE.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_gaps_df" title="metobs_toolkit.dataset_settings_updater.Dataset.get_gaps_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaps_df</span></code></a></p></td>
 <td><p>List all gaps into an overview dataframe.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_gaps_info" title="metobs_toolkit.dataset_settings_updater.Dataset.get_gaps_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaps_info</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_gaps_info" title="metobs_toolkit.dataset_settings_updater.Dataset.get_gaps_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaps_info</span></code></a></p></td>
 <td><p>Print out detailed information of the gaps.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_info" title="metobs_toolkit.dataset_settings_updater.Dataset.get_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_info</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_info" title="metobs_toolkit.dataset_settings_updater.Dataset.get_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_info</span></code></a></p></td>
 <td><p>Alias of show().</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_landcover" title="metobs_toolkit.dataset_settings_updater.Dataset.get_landcover"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_landcover</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_landcover" title="metobs_toolkit.dataset_settings_updater.Dataset.get_landcover"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_landcover</span></code></a></p></td>
 <td><p>Extract landcover for all stations.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_lcz" title="metobs_toolkit.dataset_settings_updater.Dataset.get_lcz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lcz</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_lcz" title="metobs_toolkit.dataset_settings_updater.Dataset.get_lcz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lcz</span></code></a></p></td>
 <td><p>Extract local climate zones for all stations.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_missing_obs_info" title="metobs_toolkit.dataset_settings_updater.Dataset.get_missing_obs_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_missing_obs_info</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_missing_obs_info" title="metobs_toolkit.dataset_settings_updater.Dataset.get_missing_obs_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_missing_obs_info</span></code></a></p></td>
 <td><p>Print out detailed information of the missing observations.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_modeldata" title="metobs_toolkit.dataset_settings_updater.Dataset.get_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_modeldata</span></code></a></p></td>
-<td><p>Make Modeldata for the Dataset.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_qc_stats" title="metobs_toolkit.dataset_settings_updater.Dataset.get_qc_stats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_qc_stats</span></code></a></p></td>
 <td><p>Get quality control statistics.</p></td>
@@ -204,55 +205,52 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.import_dataset" title="metobs_toolkit.dataset_settings_updater.Dataset.import_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_dataset</span></code></a></p></td>
 <td><p>Import a Dataset instance from a (pickle) file.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.make_gee_plot" title="metobs_toolkit.dataset_settings_updater.Dataset.make_gee_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_gee_plot</span></code></a></p></td>
-<td><p>Make an interactive plot of a google earth dataset.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.make_geo_plot" title="metobs_toolkit.dataset_settings_updater.Dataset.make_geo_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_geo_plot</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.make_geo_plot" title="metobs_toolkit.dataset_settings_updater.Dataset.make_geo_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_geo_plot</span></code></a></p></td>
 <td><p>Make geospatial plot.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.make_interactive_plot" title="metobs_toolkit.dataset_settings_updater.Dataset.make_interactive_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_interactive_plot</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.make_interactive_plot" title="metobs_toolkit.dataset_settings_updater.Dataset.make_interactive_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_interactive_plot</span></code></a></p></td>
 <td><p>Make interactive geospatial plot with time evolution.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.make_plot" title="metobs_toolkit.dataset_settings_updater.Dataset.make_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_plot</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.make_plot" title="metobs_toolkit.dataset_settings_updater.Dataset.make_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_plot</span></code></a></p></td>
 <td><p>This function creates a timeseries plot for the dataset.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.save_dataset" title="metobs_toolkit.dataset_settings_updater.Dataset.save_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_dataset</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.save_dataset" title="metobs_toolkit.dataset_settings_updater.Dataset.save_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_dataset</span></code></a></p></td>
 <td><p>Save a Dataset instance to a (pickle) file.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.show" title="metobs_toolkit.dataset_settings_updater.Dataset.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.show" title="metobs_toolkit.dataset_settings_updater.Dataset.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a></p></td>
 <td><p>Show detailed information of the Dataset.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.show_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.show_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_settings</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.show_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.show_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_settings</span></code></a></p></td>
 <td><p>Show detailed information of the stored Settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.sync_observations" title="metobs_toolkit.dataset_settings_updater.Dataset.sync_observations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync_observations</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.sync_observations" title="metobs_toolkit.dataset_settings_updater.Dataset.sync_observations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync_observations</span></code></a></p></td>
 <td><p>Simplify and syncronize the observation timestamps.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_default_name" title="metobs_toolkit.dataset_settings_updater.Dataset.update_default_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_default_name</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_default_name" title="metobs_toolkit.dataset_settings_updater.Dataset.update_default_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_default_name</span></code></a></p></td>
 <td><p>Update the default name (the name of the station).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_gap_and_missing_fill_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.update_gap_and_missing_fill_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_gap_and_missing_fill_settings</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_gap_and_missing_fill_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.update_gap_and_missing_fill_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_gap_and_missing_fill_settings</span></code></a></p></td>
 <td><p>Update fill settings for gaps and missing observations.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_gaps_and_missing_from_outliers" title="metobs_toolkit.dataset_settings_updater.Dataset.update_gaps_and_missing_from_outliers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_gaps_and_missing_from_outliers</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_gaps_and_missing_from_outliers" title="metobs_toolkit.dataset_settings_updater.Dataset.update_gaps_and_missing_from_outliers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_gaps_and_missing_from_outliers</span></code></a></p></td>
 <td><p>Interpret the outliers as missing observations.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_outliersdf" title="metobs_toolkit.dataset_settings_updater.Dataset.update_outliersdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_outliersdf</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_outliersdf" title="metobs_toolkit.dataset_settings_updater.Dataset.update_outliersdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_outliersdf</span></code></a></p></td>
 <td><p>Update the outliersdf attribute.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_qc_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.update_qc_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_qc_settings</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_qc_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.update_qc_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_qc_settings</span></code></a></p></td>
 <td><p>Update the QC settings for the specified observation type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.update_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_settings</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.update_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_settings</span></code></a></p></td>
 <td><p>Update the most common input-output (IO) settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_timezone" title="metobs_toolkit.dataset_settings_updater.Dataset.update_timezone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_timezone</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_timezone" title="metobs_toolkit.dataset_settings_updater.Dataset.update_timezone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_timezone</span></code></a></p></td>
 <td><p>Change the timezone of the input data.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_titan_qc_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.update_titan_qc_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_titan_qc_settings</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.update_titan_qc_settings" title="metobs_toolkit.dataset_settings_updater.Dataset.update_titan_qc_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_titan_qc_settings</span></code></a></p></td>
 <td><p>Update the TITAN QC settings for the specified observation type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.write_to_csv" title="metobs_toolkit.dataset_settings_updater.Dataset.write_to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_to_csv</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.dataset_settings_updater.Dataset.write_to_csv" title="metobs_toolkit.dataset_settings_updater.Dataset.write_to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_to_csv</span></code></a></p></td>
 <td><p>Write Dataset to a csv file.</p></td>
 </tr>
 </tbody>
@@ -265,14 +263,18 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.dataset_settings_updater.Dataset.add_new_observationtype">
-<span class="sig-name descname"><span class="pre">add_new_observationtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Obstype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.add_new_observationtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.add_new_observationtype" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_new_observationtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Obstype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.add_new_observationtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.add_new_observationtype" title="Link to this definition"></a></dt>
 <dd><p>Add a new observation type to the known observation types.</p>
 <p>The observation can only be added if it is not already present in the
 knonw observation types. If that is the case that you probably need to
 use use the Dataset.add_new_unit() method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Obstype</strong> (<em>metobs_toolkit.obstype.Obstype</em>) – The new Obstype to add.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Obstype</strong> (<a class="reference internal" href="metobs_toolkit.obstypes.Obstype.html#metobs_toolkit.obstypes.Obstype" title="metobs_toolkit.obstypes.Obstype"><em>Obstype</em></a><em>, </em><a class="reference internal" href="metobs_toolkit.obstype_modeldata.ModelObstype.html#metobs_toolkit.obstype_modeldata.ModelObstype" title="metobs_toolkit.obstype_modeldata.ModelObstype"><em>ModelObstype</em></a><em> or </em><a class="reference internal" href="metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.html#metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield" title="metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield"><em>ModelObstype_Vectorfield</em></a>) – The new Obstype to add.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the new observation will overwrite the existing observation
+with the same name, if it exits. The default is False.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None.</p>
@@ -557,33 +559,6 @@ values and info will be overwitten. The default is False.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_era5">
-<span class="sig-name descname"><span class="pre">fill_gaps_era5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'debias'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.fill_gaps_era5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_era5" title="Link to this definition"></a></dt>
-<dd><p>Fill the gaps using a Modeldata object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>modeldata</strong> (<em>metobs_toolkit.Modeldata</em>) – The modeldata to use for the gapfill. This model data should the required
-timeseries to fill all gaps present in the dataset.</p></li>
-<li><p><strong>method</strong> (<em>'debias'</em><em>, </em><em>optional</em>) – Specify which method to use. The default is ‘debias’.</p></li>
-<li><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – Name of the observationtype you want to apply gap filling on. The
-modeldata must contain this observation type as well. The
-default is ‘temp’.</p></li>
-<li><p><strong>overwrite_fill</strong> (<em>bool</em><em>, </em><em>optional</em>) – If a gap has already filled values, the interpolation of this gap
-is skipped if overwrite_fill is False. If set to True, the gapfill
-values and info will be overwitten. The default is False.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>Gapfilldf</strong> – A dataframe containing all gap filled values and the use method.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>pandas.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_linear">
 <span class="sig-name descname"><span class="pre">fill_gaps_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.fill_gaps_linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_linear" title="Link to this definition"></a></dt>
 <dd><p>Fill the gaps using linear interpolation.</p>
@@ -601,6 +576,32 @@ values and info will be overwitten. The default is False.</p></li>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>gapfilldf</strong> – A dataframe containing all the filled records.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_using_debiased_modeldata">
+<span class="sig-name descname"><span class="pre">fill_gaps_using_debiased_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.fill_gaps_using_debiased_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.fill_gaps_using_debiased_modeldata" title="Link to this definition"></a></dt>
+<dd><p>Fill the gaps using a Modeldata object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modeldata</strong> (<em>metobs_toolkit.Modeldata</em>) – The modeldata to use for the gapfill. This model data should the required
+timeseries to fill all gaps present in the dataset.</p></li>
+<li><p><strong>obstype</strong> (<em>str</em><em> or </em><em>metobs_toolkit.Obstype</em><em> , </em><em>optional</em>) – Name of the observationtype you want to apply gap filling on. The
+modeldata must contain this observation type as well. The
+default is ‘temp’.</p></li>
+<li><p><strong>overwrite_fill</strong> (<em>bool</em><em>, </em><em>optional</em>) – If a gap has already filled values, the interpolation of this gap
+is skipped if overwrite_fill is False. If set to True, the gapfill
+values and info will be overwitten. The default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Gapfilldf</strong> – A dataframe containing all gap filled values.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>
@@ -631,7 +632,8 @@ attribute. The default is ‘temp’.</p>
 <dd><p>Extract Altitudes for all stations.</p>
 <p>Function to extract the Altitude from the SRTM Digital Elevation Data
 global map on the Google engine for all stations.</p>
-<p>A ‘altitude’ column will be added to the metadf, and series is returned.</p>
+<p>A ‘altitude’ column will be added to the metadf, and series is returned.
+If this column already exists, it will be overwritten.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>altitude_series</strong> – A series with the stationnames as index and the altitudes as values.</p>
@@ -658,6 +660,52 @@ are added to the analysis records aswell. The default is False.</p>
 <dd class="field-odd"><p>metobs_toolkit.Analysis</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.dataset_settings_updater.Dataset.get_equivalent_era5_modeldata">
+<span class="sig-name descname"><span class="pre">get_equivalent_era5_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">get_obstypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gdrive_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'era5_data'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.get_equivalent_era5_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_equivalent_era5_modeldata" title="Link to this definition"></a></dt>
+<dd><p>Get the equivalent (space, time, observationtype) ERA5 timeseries from GEE.</p>
+<p>This methods is a wrapper for extracting ERA5 modeldata. Be aware that
+not all known (by the dataset) Obstypes have a corresponding ModelObstype!</p>
+<dl>
+<dt>If you want to extract non-default ModelObstypes you can:</dt><dd><ol class="arabic simple">
+<li><p>Manually create a Modeldata object, and add your custom ModelObstypes to it.</p></li>
+</ol>
+<p>2. use the .add_new_observationtype() method and add your custom ModelObstype to this Dataset.
+All ModelObstypes stored in this Dataset will be overloaded to the
+newly created Modeldata.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>get_obstypes</strong> (<em>'all'</em><em>, </em><em>'observations'</em><em>, </em><a class="reference internal" href="metobs_toolkit.obstype_modeldata.ModelObstype.html#metobs_toolkit.obstype_modeldata.ModelObstype" title="metobs_toolkit.obstype_modeldata.ModelObstype"><em>ModelObstype</em></a><em>, </em><a class="reference internal" href="metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield.html#metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield" title="metobs_toolkit.obstype_modeldata.ModelObstype_Vectorfield"><em>ModelObstype_Vectorfield</em></a><em>, or </em><em>a list</em><em> of </em><em>them</em><em>, </em><em>optional</em>) – This arguments sets which corresponding bands are extracted from
+ERA5. If ‘all’, all known ModelObstypes are extracted. if
+‘observations’, all knonw ModelObstypes that overlap with the
+present Obstyps are extracted. If (a list of ) ModelObstype or
+ModelObstype_Vectorfields are given, these are extracted. The
+default is ‘all’.</p></li>
+<li><p><strong>gdrive_filename</strong> (<em>str optional</em>) – The name of the google drive file you want to write data to. See
+Note for more detatils.  The default is ‘era5_data’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>modl</strong> – If the data is available, a Modeldata is returned. If the modeldata
+is writen to file, no modeldata can be constructed and None is
+returned.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>metobs_toolkit.Modeldata or None</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When extracting large amounts of data, the timeseries data will be
+writen to a file and saved on your google drive. In this case, you need
+to provide the Modeldata with the data using the .import_gee_data_from_csv()
+method.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -706,7 +754,7 @@ of the gaps as columns.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.dataset_settings_updater.Dataset.get_landcover">
-<span class="sig-name descname"><span class="pre">get_landcover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[100]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gee_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'worldcover'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.get_landcover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_landcover" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_landcover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[100]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.get_landcover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_landcover" title="Link to this definition"></a></dt>
 <dd><p>Extract landcover for all stations.</p>
 <p>Extract the landcover fractions in a buffer with a specific radius for
 all stations. If an aggregation scheme is define, one can choose to
@@ -722,9 +770,6 @@ landcovertype and corresponding buffer.</p>
 aggregation scheme. The default is True.</p></li>
 <li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the Datset.metadf will be updated with the generated
 landcoverfractions. The default is True.</p></li>
-<li><p><strong>gee_map</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the dataset to use. This name should be present in the
-settings.gee[‘gee_dataset_info’]. If aggregat is True, an aggregation
-scheme should included as well. The default is ‘worldcover’</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -743,7 +788,8 @@ fractions.</p>
 <dd><p>Extract local climate zones for all stations.</p>
 <p>Function to extract the Local CLimate zones (LCZ) from the
 wudapt global LCZ map on the Google engine for all stations.</p>
-<p>A ‘LCZ’ column will be added to the metadf, and series is returned.</p>
+<p>A ‘LCZ’ column will be added to the metadf, and series is returned.
+If this column already exists, it will be overwritten.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>lcz_series</strong> – A series with the stationnames as index and the LCZ as values.</p>
@@ -763,55 +809,6 @@ wudapt global LCZ map on the Google engine for all stations.</p>
 <dd class="field-odd"><p>None.</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.dataset_settings_updater.Dataset.get_modeldata">
-<span class="sig-name descname"><span class="pre">get_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modelname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ERA5_hourly'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modeldata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.get_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.get_modeldata" title="Link to this definition"></a></dt>
-<dd><p>Make Modeldata for the Dataset.</p>
-<p>Make a metobs_toolkit.Modeldata object with modeldata at the locations
-of the stations present in the dataset.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>modelname</strong> (<em>str</em><em>, </em><em>optional</em>) – Which dataset to download timeseries from. This is only used when
-no modeldata is provided. The default is ‘ERA5_hourly’.</p></li>
-<li><p><strong>modeldata</strong> (<em>metobs_toolkit.Modeldata</em><em>, </em><em>optional</em>) – Use the modelname attribute and the gee information stored in the
-modeldata instance to extract timeseries.</p></li>
-<li><p><strong>obstype</strong> (<em>String</em><em>, </em><em>optional</em>) – Name of the observationtype you want to apply gap filling on. The
-modeldata must contain this observation type as well. The
-default is ‘temp’.</p></li>
-<li><p><strong>stations</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>optional</em>) – Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.</p></li>
-<li><p><strong>startdt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.</p></li>
-<li><p><strong>enddt</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>Modl</strong> – The extracted modeldata for period and a set of stations.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>metobs_toolkit.Modeldata</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If a timezone unaware datetime is given as an argument, it is interpreted
-as if it has the same timezone as the observations.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When extracting large amounts of data, the timeseries data will be
-writen to a file and saved on your google drive. In this case, you need
-to provide the Modeldata with the data using the .set_model_from_csv()
-method.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Only 2mT extraction of ERA5 is implemented for all Modeldata instances.
-To extract other variables, one must create a Modeldata instance in
-advance, add or update a gee_dataset and give this Modeldata instance
-to this method.</p>
-</div>
 </dd></dl>
 
 <dl class="py method">
@@ -954,41 +951,6 @@ from the Settings is used. The default is None.</p></li>
 <dd class="field-odd"><p>metobs_toolkit.Dataset</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.dataset_settings_updater.Dataset.make_gee_plot">
-<span class="sig-name descname"><span class="pre">make_gee_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gee_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/dataset.html#Dataset.make_gee_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.dataset_settings_updater.Dataset.make_gee_plot" title="Link to this definition"></a></dt>
-<dd><p>Make an interactive plot of a google earth dataset.</p>
-<p>The location of the stations can be plotted on top of it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>gee_map</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the dataset to use. This name should be present in the
-settings.gee[‘gee_dataset_info’]. If aggregat is True, an aggregation
-scheme should included as well. The default is ‘worldcover’</p></li>
-<li><p><strong>show_stations</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the stations will be plotted as markers. The default is True.</p></li>
-<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the map will be saved as an html file in the output_folder
-as defined in the settings if the outputfile is not set. The
-default is False.</p></li>
-<li><p><strong>outputfile</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify the path of the html file if save is True. If None, and save
-is true, the html file will be saved in the output_folder. The
-default is None.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>Map</strong> – The folium Map instance.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>geemap.foliumap.Map</p>
-</dd>
-</dl>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>To display the interactive map a graphical backend is required, which
-is often missing on (free) cloud platforms. Therefore it is better to
-set save=True, and open the .html in your browser</p>
-</div>
 </dd></dl>
 
 <dl class="py method">

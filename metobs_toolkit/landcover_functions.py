@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def _datetime_to_gee_datetime(datetime):
+    """Convert a datetime (in UTC) to a gee.Date"""
     # covert to UTC!
     # utcdt = datetime.astimezone(pytz.utc) #this will assume datetime in lt !!!
     # logger.debug(utcdt.replace(tzinfo=None))
@@ -98,7 +99,7 @@ def _df_to_features_point_collection(df):
         #     construct the geometry from dataframe
         poi_geometry = ee.Geometry.Point([row["lon"], row["lat"]])
         #     construct the attributes (properties) for each point
-        poi_properties = {"feature_idx": ee.String(index)}
+        poi_properties = {"feature_idx": ee.String(str(index))}
         #     construct feature combining geometry and properties
         poi_feature = ee.Feature(poi_geometry, poi_properties)
         features.append(poi_feature)
@@ -124,6 +125,7 @@ def _df_to_features_buffer_collection(df, bufferradius):
 
 
 def _estimate_data_size(metadf, startdt, enddt, time_res, n_bands=1):
+    """Make a rough estimate of data size to transfer."""
     datatimerange = pd.date_range(start=startdt, end=enddt, freq=time_res)
 
     return metadf.shape[0] * len(datatimerange) * n_bands
@@ -137,35 +139,36 @@ def _estimate_data_size(metadf, startdt, enddt, time_res, n_bands=1):
 def extract_pointvalues(
     metadf, scale, trg_gee_loc, band_of_use, is_imagecollection, is_image
 ):
-    """
-    TODO: update this docstring
-    Extract values for point locations from a GEE dataset.
+    """Extract values for point locations from a static GEE dataset.
 
-    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
+    The locations are defined by the 'lat' and 'lon' columns in the metadf. The
+    GEE dataset is defined by its location (trg_gee_loc), the band (band_of_use)
+    to extrac from and some metadata of the dataset.
 
-    A dataframe with the extracted values is returned.
-    The values are mapped to human classes if the dataset value type is labeld as categorical.
 
     Parameters
     ----------
-    metadf : pd.DataFrame
-        dataframe containing coordinates and a column "name", representing the name for each location.
-    mapinfo : Dict
-        The information about the GEE dataset.
-    output_column_name : String
-        Column name for the extracted values.
-    latcolname : String, optional
-        Columnname of latitude values. The default is 'lat'.
-    loncolname : String, optional
-        Columnname of longitude values. The default is 'lon'.
+    metadf : pandas.DataFrame
+        A dataframe containing the location to extract as a lat and lon column.
+    scale : num
+        The scale (the target resolution) of the dataset.
+    trg_gee_loc : str
+        The gee location of the dataset.
+    band_of_use : str
+        The name of the band to extract data from.
+    is_imagecollection : bool
+        True if the dataset is a gee.ImageCollection.
+    is_image : bool
+        True if the dataset is a gee.Image.
 
     Returns
     -------
-    pd.DataFrame
-        A dataframe with name as index, all columns from the metadf + extracted extracted values column.
+    pandas.DataFrame
+        The dataframe with the extracted values in.
 
     """
-
+    logger.debug(f"Extract point values for {metadf} at {trg_gee_loc}.")
+    logger.debug(f"This band is used: {band_of_use}")
     # =============================================================================
     # df to featurecollection
     # =============================================================================
@@ -222,33 +225,39 @@ def extract_pointvalues(
 def extract_buffer_frequencies(
     metadf, scale, trg_gee_loc, band_of_use, is_imagecollection, is_image, bufferradius
 ):
-    """
-    update docstring
-    Extract buffer fractions from a GEE categorical dataset.
+    """Extract cover frequencies of buffers at point locations from a static GEE dataset.
 
-    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
+    The locations are defined by the 'lat' and 'lon' columns in the metadf. The
+    GEE dataset is defined by its location (trg_gee_loc), the band (band_of_use)
+    to extrac from and some metadata of the dataset.
 
-    A dataframe with the extracted values is returned.
-    The values are mapped to human classes if the dataset value type is labeld as categorical.
+    The radius is in the same units as the spatial units of the dataset!
 
     Parameters
     ----------
-    metadf : pd.DataFrame
-        dataframe containing coordinates and a column "name", representing the name for each location.
-    mapinfo : Dict
-        The information about the GEE dataset.
-    latcolname : String, optional
-        Columnname of latitude values. The default is 'lat'.
-    loncolname : String, optional
-        Columnname of longitude values. The default is 'lon'.
+    metadf : pandas.DataFrame
+        A dataframe containing the location to extract as a lat and lon column.
+    scale : num
+        The scale (the target resolution) of the dataset.
+    trg_gee_loc : str
+        The gee location of the dataset.
+    band_of_use : str
+        The name of the band to extract data from.
+    is_imagecollection : bool
+        True if the dataset is a gee.ImageCollection.
+    is_image : bool
+        True if the dataset is a gee.Image.
+    bufferradius : num
+        The radius of the buffer in the same units and crs as the trg_gee_dataset.
 
     Returns
     -------
-    pd.DataFrame
-        A dataframe with name as index, all columns from the metadf + extracted extracted values column.
+    pandas.DataFrame
+        Dataframe with the normalize frequencies of cover occurences per buffer.
 
     """
-
+    logger.debug(f"Extract buffers for {metadf} at {trg_gee_loc}.")
+    logger.debug(f"This band is used: {band_of_use}")
     # =============================================================================
     # df to featurecollection
     # =============================================================================
@@ -343,7 +352,8 @@ def gee_extract_timeseries(
         column with the same name as the obstypes.
 
     """
-
+    logger.debug(f"Extract time series for {metadf} at {trg_gee_loc}.")
+    logger.debug(f"These bandnames are used: {bandnames}")
     use_drive = False
     _est_data_size = _estimate_data_size(
         metadf=metadf,

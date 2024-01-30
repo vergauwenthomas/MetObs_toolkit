@@ -59,6 +59,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#Extracting-LCZ-from-GEE">Extracting LCZ from GEE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Extracting-other-Geospatial-information">Extracting other Geospatial information</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Extracting-ERA5-timeseries">Extracting ERA5 timeseries</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Constructing-ERA5-Modeldata-manually">Constructing ERA5 Modeldata manually</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Constructing-ERA5-Modeldata-from-a-Dataset">Constructing ERA5 Modeldata from a Dataset</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#GEE-data-transfer">GEE data transfer</a></li>
 </ul>
 </li>
@@ -269,40 +271,6 @@
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<p>To authorize access needed by Earth Engine, open the following
-        URL in a web browser and follow the instructions:</p>
-        <p><a href=https://code.earthengine.google.com/client-auth?scopes=https%3A//www.googleapis.com/auth/earthengine%20https%3A//www.googleapis.com/auth/devstorage.full_control&request_id=EilDDu9N_IN7ZxxlE8vHRyOhvajPnAULh-m6NKErDfA&tc=6gnXS_wEbNaFrF2IbPoa4ClUF8zPJXCu5eV4Z-p7mIE&cc=g2TqjaVuDM_wFOuJbQqeoAvDR8bLFGxRCM7W-4wlKJo>https://code.earthengine.google.com/client-auth?scopes=https%3A//www.googleapis.com/auth/earthengine%20https%3A//www.googleapis.com/auth/devstorage.full_control&request_id=EilDDu9N_IN7ZxxlE8vHRyOhvajPnAULh-m6NKErDfA&tc=6gnXS_wEbNaFrF2IbPoa4ClUF8zPJXCu5eV4Z-p7mIE&cc=g2TqjaVuDM_wFOuJbQqeoAvDR8bLFGxRCM7W-4wlKJo</a></p>
-        <p>The authorization workflow will generate a code, which you should paste in the box below.</p></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Enter verification code:  4/1AfJohXk4_ehQtiIn6aGEgF_Pv9ImRjoTVbH17orBc6cNf-eI4_kuuJ_0kLY
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-
-Successfully saved authorization token.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-*** Earth Engine *** Share your feedback by taking our Annual Developer Satisfaction Survey: https://google.qualtrics.com/jfe/form/SV_doiqkQG3NJ1t8IS?source=API
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
@@ -337,7 +305,7 @@ vlinder25              Water (LCZ G)
 vlinder26               Open midrise
 vlinder27            Compact midrise
 vlinder28               Open lowrise
-Name: lcz, dtype: object
+Name: LCZ_Filter, dtype: object
 </pre></div></div>
 </div>
 <p>The first time, in each session, you are asked to authenticated by Google. Select your Google account and billing project that you have set up and accept the terms of the condition.</p>
@@ -375,30 +343,19 @@ Name: lcz, dtype: object
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/thoverga/anaconda3/envs/metobs_dev/lib/python3.9/site-packages/geopandas/plotting.py:48: ShapelyDeprecationWarning: The &#39;type&#39; attribute is deprecated, and will be removed in the future. You can use the &#39;geom_type&#39; attribute instead.
-  if geom is not None and geom.type.startswith(prefix) and not geom.is_empty:
-/home/thoverga/anaconda3/envs/metobs_dev/lib/python3.9/site-packages/geopandas/plotting.py:715: FutureWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, CategoricalDtype) instead
-  if pd.api.types.is_categorical_dtype(values.dtype):
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Axes: title={&#39;center&#39;: &#39;LCZ&#39;}&gt;
+&lt;GeoAxes: title={&#39;center&#39;: &#39;Local climate zones at 2022-09-01 00:00:00+00:00.&#39;}&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_gee_example_11_2.png" src="../_images/examples_gee_example_11_2.png" />
+<img alt="../_images/examples_gee_example_11_1.png" src="../_images/examples_gee_example_11_1.png" />
 </div>
 </div>
 </section>
@@ -448,7 +405,7 @@ vlinder25    12
 vlinder26    24
 vlinder27    12
 vlinder28     7
-Name: altitude, dtype: int64
+Name: elevation, dtype: int64
 </pre></div></div>
 </div>
 <p>A more detailed description of the landcover/land use in the microenvironment can be extracted in the form of landcover fractions in a circular buffer for each station.</p>
@@ -534,19 +491,97 @@ vlinder28 100            0.000000  0.489951    0.510049
 </section>
 <section id="Extracting-ERA5-timeseries">
 <h2>Extracting ERA5 timeseries<a class="headerlink" href="#Extracting-ERA5-timeseries" title="Link to this heading"></a></h2>
-<p>The toolkit has built-in functionality to extract ERA5 time series at the station locations. The ERA5 data will be stored in a <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/intro.html#modeldata">Modeldata</a> instance. Here an example on how to get the ERA5 time series by using the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset_settings_updater.Dataset.get_modeldata">get_modeldata()</a> method.</p>
+<p>The toolkit has built-in functionality to extract ERA5 time series at the station locations. The ERA5 data will be stored in a <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/intro.html#modeldata">Modeldata</a> instance.</p>
+<p>A Modeldata stores modeldata in the form of <strong>timeseries at specific locations</strong> (thus not gridded data!). This means that each modeldata must have a <code class="docutils literal notranslate"><span class="pre">metadf</span></code> attribute, where the location of the timeseries is stored.</p>
+<p>In addition, each Modeldata must be linked to an <em>Extractor</em>, which handles data extraction from a gridded dataset. The <code class="docutils literal notranslate"><span class="pre">GeeExtractor</span></code> is a class that extracts data from Google Earth Engine dataset.</p>
+<p>There are two ways to create ERA5 Modeldata: 1) Constructing it manually (most flexibility) or 2) Let your Dataset construct equivalent Modeldata.</p>
+<section id="Constructing-ERA5-Modeldata-manually">
+<h3>Constructing ERA5 Modeldata manually<a class="headerlink" href="#Constructing-ERA5-Modeldata-manually" title="Link to this heading"></a></h3>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#1. Setup of the GEE extractor</span>
+
+<span class="c1">#Create a Gee extractor (this class holds methods for interacting with GEE)</span>
+<span class="n">era5_extractor</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">GeeExtractor</span><span class="p">()</span>
+
+<span class="c1">#Specify that you want to use the ERA5 dataset</span>
+<span class="n">era5_extractor</span><span class="o">.</span><span class="n">activate_ERA5</span><span class="p">()</span>
+
+<span class="c1">#2. Setup of the Modeldata object</span>
+<span class="c1">#Create a Modeldata object (this data object stores timeseries and methods of modeldata).</span>
+<span class="n">era5_modeldata</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Modeldata</span><span class="p">(</span><span class="n">metadf</span><span class="o">=</span><span class="n">your_dataset</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span>
+                                          <span class="n">extractor</span><span class="o">=</span><span class="n">era5_extractor</span><span class="p">)</span>
+<span class="c1">#add an observation as demo</span>
+<span class="n">dewpoint_temperature</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Obstype</span><span class="p">(</span><span class="n">obsname</span><span class="o">=</span><span class="s1">&#39;dewpoint_temp&#39;</span><span class="p">,</span>
+                                              <span class="n">std_unit</span><span class="o">=</span><span class="s1">&#39;Celsius&#39;</span><span class="p">,</span>
+                                              <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Dewpoint temperature at 2m height&#39;</span><span class="p">,</span>
+                                              <span class="n">unit_conversions</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kelvin&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;x-273.15&#39;</span><span class="p">]})</span>
+
+<span class="c1">#Convert the Obstype into a ModelObstype</span>
+<span class="n">dewpoint_temp_modeldata_obstype</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">ModelObstype</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="n">dewpoint_temperature</span><span class="p">,</span>
+                                                              <span class="n">band_name</span><span class="o">=</span><span class="s1">&#39;dewpoint_temperature_2m&#39;</span><span class="p">,</span> <span class="c1">#See ERA5 band names</span>
+                                                              <span class="n">band_unit</span><span class="o">=</span><span class="s1">&#39;Kelvin&#39;</span><span class="p">,</span>
+                                                              <span class="n">band_description</span><span class="o">=</span><span class="s1">&#39;Temperature to which the air, at 2 meters above the surface of the Earth, would ... &#39;</span>
+                                                             <span class="p">)</span>
+<span class="c1">#add it to the modeldata</span>
+<span class="n">era5_modeldata</span><span class="o">.</span><span class="n">add_obstype</span><span class="p">(</span><span class="n">dewpoint_temp_modeldata_obstype</span><span class="p">)</span>
+
+<span class="c1">#Extract modeldata</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="n">startdt</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+<span class="n">enddt</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+<span class="n">era5_modeldata</span><span class="o">.</span><span class="n">import_from_gee</span><span class="p">(</span><span class="n">target_obstypes</span><span class="o">=</span><span class="p">[</span><span class="n">era5_modeldata</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">],</span>
+                                                <span class="n">dewpoint_temp_modeldata_obstype</span><span class="p">],</span>
+                               <span class="n">start_utc</span><span class="o">=</span><span class="n">startdt</span><span class="p">,</span>
+                               <span class="n">end_utc</span><span class="o">=</span><span class="n">enddt</span><span class="p">,</span>
+                               <span class="n">gdrive_filename</span><span class="o">=</span><span class="s2">&quot;era5_demo_data&quot;</span><span class="p">)</span>
+
+<span class="c1"># What is inside the Modeldata</span>
+<span class="n">era5_modeldata</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span> <span class="c1">#prints out info on the content</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">era5_modeldata</span><span class="o">.</span><span class="n">obstypes</span><span class="p">)</span> <span class="c1">#see all present Modelobstypes</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">era5_modeldata</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span> <span class="c1">#See how the data looks like</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Modeldata instance linked to GeeExtractor for ERA5 use:
+   location : ECMWF/ERA5_LAND/HOURLY, containing:
+     * 28 timeseries
+     * The following obstypes are available: [&#39;dewpoint_temp&#39;, &#39;temp&#39;]
+     * Data has these units: [&#39;Celsius&#39;, &#39;Celsius&#39;]
+     * From 2022-08-15 00:00:00+00:00 --&gt; 2022-08-16 00:00:00+00:00 (with tz=UTC)
+
+ (Data is stored in the .df attribute)
+{&#39;temp&#39;: ModelObstype instance of temp, &#39;pressure&#39;: ModelObstype instance of pressure, &#39;wind&#39;: ModelObstype_Vectorfield instance of wind, &#39;dewpoint_temp&#39;: ModelObstype instance of dewpoint_temp}
+                                     dewpoint_temp       temp
+name      datetime
+vlinder01 2022-08-15 00:00:00+00:00      13.414743  22.267374
+          2022-08-15 01:00:00+00:00      14.002893  21.614236
+          2022-08-15 02:00:00+00:00      15.169229  20.718790
+          2022-08-15 03:00:00+00:00      16.197534  20.080621
+          2022-08-15 04:00:00+00:00      16.713266  19.656549
+</pre></div></div>
+</div>
+</section>
+<section id="Constructing-ERA5-Modeldata-from-a-Dataset">
+<h3>Constructing ERA5 Modeldata from a Dataset<a class="headerlink" href="#Constructing-ERA5-Modeldata-from-a-Dataset" title="Link to this heading"></a></h3>
+<p>Here an example on how to get the ERA5 time series by using the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset_settings_updater.Dataset.get_equivalent_era5_modeldata">get_equivalent_era5_modeldata()</a> method of a Dataset.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Get the ERA5 data for a single station (to reduce data transfer)</span>
 <span class="n">your_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder02&#39;</span><span class="p">)</span>
 
 <span class="c1">#Extract time series at the location of the station</span>
-<span class="n">ERA5_data</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
-                                      <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
-                                      <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the start of the observations is used</span>
-                                      <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the end of the observations is used</span>
+<span class="n">ERA5_data</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">get_equivalent_era5_modeldata</span><span class="p">(</span>
+                                        <span class="n">get_obstypes</span><span class="o">=</span><span class="s1">&#39;all&#39;</span>
                                       <span class="p">)</span>
 
 <span class="c1">#Get info</span>
@@ -562,74 +597,133 @@ vlinder28 100            0.000000  0.489951    0.510049
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is ERA5_hourly)
-Modeldata instance containing:
-     * Modelname: ERA5_hourly
+Modeldata instance linked to GeeExtractor for ERA5 use:
+   location : ECMWF/ERA5_LAND/HOURLY, containing:
      * 1 timeseries
-     * The following obstypes are available: [&#39;temp&#39;]
-     * Data has these units: {&#39;temp&#39;: &#39;Celsius&#39;}
-     * From 2022-09-01 00:00:00+00:00 --&gt; 2022-09-15 23:00:00+00:00 (with tz=UTC)
+     * The following obstypes are available: [&#39;pressure&#39;, &#39;temp&#39;, &#39;u_comp_wind&#39;, &#39;v_comp_wind&#39;, &#39;wind_amplitude&#39;, &#39;wind_direction&#39;]
+     * Data has these units: [&#39;pa&#39;, &#39;Celsius&#39;, &#39;m/s&#39;, &#39;m/s&#39;, &#39;m/s&#39;, &#39;° from north (CW)&#39;]
+     * From 2022-09-01 00:00:00+00:00 --&gt; 2022-09-16 00:00:00+00:00 (with tz=UTC)
 
  (Data is stored in the .df attribute)
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Axes: title={&#39;center&#39;: &#39;ERA5_hourly : temperature_2m and Temperatuur observations.&#39;}, ylabel=&#39;temperature_2m \n Temperatuur (Celcius)&#39;&gt;
+&lt;Axes: title={&#39;center&#39;: &#39; ERA5 data for temp from ECMWF/ERA5_LAND/HOURLY \n and temp observations.&#39;}, ylabel=&#39;temp (Celsius) \n temperature_2m&#39;&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_gee_example_17_2.png" src="../_images/examples_gee_example_17_2.png" />
+<img alt="../_images/examples_gee_example_19_2.png" src="../_images/examples_gee_example_19_2.png" />
 </div>
 </div>
+</section>
 <section id="GEE-data-transfer">
 <h3>GEE data transfer<a class="headerlink" href="#GEE-data-transfer" title="Link to this heading"></a></h3>
 <p>There is a limit to the amount of data that can be transfered directly from GEE. When the data cannot be transferred directly, <strong>it will be written to a file on your Google Drive</strong>. The location of the file will be printed out. When the writing to the file is done, you must download the file and import it to an empty <em>Modeldata</em> instance using the
 <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.modeldata.Modeldata.html#metobs_toolkit.modeldata.Modeldata.set_model_from_csv">set_model_from_csv()</a> method.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Illustration</span>
 <span class="c1">#Extract time series at the locations all the station</span>
-<span class="n">ERA5_data</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
-                                      <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
-                                      <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the start of the observations is used</span>
-                                      <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the end of the observations is used</span>
-                                      <span class="p">)</span>
+<span class="n">ERA5_data</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_equivalent_era5_modeldata</span><span class="p">(</span>
+                                            <span class="n">get_obstypes</span><span class="o">=</span><span class="s1">&#39;all&#39;</span>
+                                          <span class="p">)</span>
 
 <span class="c1">#Because the data amount is too large, it will be written to a file on your Google Drive! The returned Modeldata is empty.</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">ERA5_data</span><span class="p">)</span>
 <br/></pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!
 The timeseries will be writen to your Drive in era5_timeseries/era5_data
-The data is transfered! Open the following link in your browser:
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">KeyboardInterrupt</span>                         Traceback (most recent call last)
+Cell <span class="ansi-green-fg">In[10], line 3</span>
+<span class="ansi-green-intense-fg ansi-bold">      1</span> <span style="color: rgb(95,135,135)">#Illustration</span>
+<span class="ansi-green-intense-fg ansi-bold">      2</span> <span style="color: rgb(95,135,135)">#Extract time series at the locations all the station</span>
+<span class="ansi-green-fg">----&gt; 3</span> ERA5_data <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">your_dataset</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">get_equivalent_era5_modeldata</span><span class="ansi-yellow-bg">(</span>
+<span class="ansi-green-intense-fg ansi-bold">      4</span> <span class="ansi-yellow-bg">                                            </span><span class="ansi-yellow-bg">get_obstypes</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">&#39;</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">all</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">&#39;</span>
+<span class="ansi-green-intense-fg ansi-bold">      5</span> <span class="ansi-yellow-bg">                                          </span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">      7</span> <span style="color: rgb(95,135,135)">#Because the data amount is too large, it will be written to a file on your Google Drive! The returned Modeldata is empty.</span>
+<span class="ansi-green-intense-fg ansi-bold">      8</span> <span style="color: rgb(0,135,0)">print</span>(ERA5_data)
 
+File <span class="ansi-green-fg">~/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/dataset.py:1124</span>, in <span class="ansi-cyan-fg">Dataset.get_equivalent_era5_modeldata</span><span class="ansi-blue-fg">(self, get_obstypes, gdrive_filename)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1121</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+<span class="ansi-green-intense-fg ansi-bold">   1122</span>     sys<span style="color: rgb(98,98,98)">.</span>exit(<span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">Unsupported value for get_obstypes: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>get_obstypes<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)">&#34;</span>)
+<span class="ansi-green-fg">-&gt; 1124</span> <span class="ansi-yellow-bg">modl</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">import_from_gee</span><span class="ansi-yellow-bg">(</span>
+<span class="ansi-green-intense-fg ansi-bold">   1125</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">target_obstypes</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">target_obstypes</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">   1126</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">start_utc</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">startdt_utc</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">   1127</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">end_utc</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">enddt_utc</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">   1128</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">gdrive_filename</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">gdrive_filename</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">   1129</span> <span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1130</span> <span style="color: rgb(95,135,135)"># safetyp</span>
+<span class="ansi-green-intense-fg ansi-bold">   1131</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> modl<span style="color: rgb(98,98,98)">.</span>df<span style="color: rgb(98,98,98)">.</span>empty:
 
-https://drive.google.com/#folders/1iSjU6u-kFeRS_YikiyaPoc09SNbmvvO1
+File <span class="ansi-green-fg">~/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/modeldata.py:223</span>, in <span class="ansi-cyan-fg">Modeldata.import_from_gee</span><span class="ansi-blue-fg">(self, target_obstypes, start_utc, end_utc, gdrive_filename)</span>
+<span class="ansi-green-intense-fg ansi-bold">    220</span>     bandnames_map<span style="color: rgb(98,98,98)">.</span>update(obs<span style="color: rgb(98,98,98)">.</span>get_bandname_mapper())
+<span class="ansi-green-intense-fg ansi-bold">    222</span> <span style="color: rgb(95,135,135)"># Extract timeseries</span>
+<span class="ansi-green-fg">--&gt; 223</span> df <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">extractor</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">extract_timeseries</span><span class="ansi-yellow-bg">(</span>
+<span class="ansi-green-intense-fg ansi-bold">    224</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">metadf</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">metadf</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    225</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">bandnames</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">list</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">bandnames_map</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">keys</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">)</span><span class="ansi-yellow-bg">)</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    226</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">start_utc</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">start_utc</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    227</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">end_utc</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">end_utc</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    228</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">gdrive_filename</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">gdrive_filename</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    229</span> <span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    230</span> <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>df <span style="color: rgb(98,98,98)">=</span> df
+<span class="ansi-green-intense-fg ansi-bold">    231</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>df<span style="color: rgb(98,98,98)">.</span>empty:
 
+File <span class="ansi-green-fg">~/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/gee_extractor.py:246</span>, in <span class="ansi-cyan-fg">GeeExtractor.extract_timeseries</span><span class="ansi-blue-fg">(self, metadf, bandnames, start_utc, end_utc, gdrive_filename)</span>
+<span class="ansi-green-intense-fg ansi-bold">    243</span> <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>connect_to_gee()
+<span class="ansi-green-intense-fg ansi-bold">    245</span> <span style="color: rgb(95,135,135)"># Extract timeseries</span>
+<span class="ansi-green-fg">--&gt; 246</span> df <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">gee_extract_timeseries</span><span class="ansi-yellow-bg">(</span>
+<span class="ansi-green-intense-fg ansi-bold">    247</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">metadf</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">filtered_metadf</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    248</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">bandnames</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">bandnames</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    249</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">startdt</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">start_utc</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    250</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">enddt</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">end_utc</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    251</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">scale</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">scale</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    252</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">timeres</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">time_res</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    253</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">trg_gee_loc</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">location</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    254</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">is_imagecollection</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">is_imagecollection</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    255</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">is_image</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">is_image</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    256</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">gdrive_filename</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">gdrive_filename</span><span class="ansi-yellow-bg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    257</span> <span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    258</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> df<span style="color: rgb(98,98,98)">.</span>empty:
+<span class="ansi-green-intense-fg ansi-bold">    259</span>     <span style="color: rgb(95,135,135)"># Format dataframe</span>
+<span class="ansi-green-intense-fg ansi-bold">    260</span>     df[<span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">datetime</span><span style="color: rgb(175,0,0)">&#34;</span>] <span style="color: rgb(98,98,98)">=</span> pd<span style="color: rgb(98,98,98)">.</span>to_datetime(df[<span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">datetime</span><span style="color: rgb(175,0,0)">&#34;</span>], <span style="color: rgb(0,135,0)">format</span><span style="color: rgb(98,98,98)">=</span><span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">%</span><span style="color: rgb(175,0,0)">Y</span><span style="color: rgb(175,0,0)">%</span><span style="color: rgb(175,0,0)">m</span><span class="ansi-bold" style="color: rgb(175,95,135)">%d</span><span style="color: rgb(175,0,0)">%</span><span style="color: rgb(175,0,0)">H</span><span style="color: rgb(175,0,0)">%</span><span style="color: rgb(175,0,0)">M</span><span style="color: rgb(175,0,0)">%</span><span style="color: rgb(175,0,0)">S</span><span style="color: rgb(175,0,0)">&#34;</span>)
 
-To upload the data to the model, use the Modeldata.set_model_from_csv() method
-(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is ERA5_hourly)
-Empty Modeldata instance.
+File <span class="ansi-green-fg">~/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/landcover_functions.py:465</span>, in <span class="ansi-cyan-fg">gee_extract_timeseries</span><span class="ansi-blue-fg">(metadf, bandnames, startdt, enddt, scale, timeres, trg_gee_loc, is_imagecollection, is_image, gdrive_filename)</span>
+<span class="ansi-green-intense-fg ansi-bold">    463</span> <span class="ansi-bold" style="color: rgb(0,135,0)">elif</span> task<span style="color: rgb(98,98,98)">.</span>status()[<span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">state</span><span style="color: rgb(175,0,0)">&#34;</span>] <span style="color: rgb(98,98,98)">==</span> <span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">RUNNING</span><span style="color: rgb(175,0,0)">&#34;</span>:
+<span class="ansi-green-intense-fg ansi-bold">    464</span>     logger<span style="color: rgb(98,98,98)">.</span>info(<span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">Running ...</span><span style="color: rgb(175,0,0)">&#34;</span>)
+<span class="ansi-green-fg">--&gt; 465</span>     <span class="ansi-yellow-bg">sleep</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">4</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    466</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span>:
+<span class="ansi-green-intense-fg ansi-bold">    467</span>     logger<span style="color: rgb(98,98,98)">.</span>info(<span style="color: rgb(175,0,0)">&#34;</span><span style="color: rgb(175,0,0)">finished</span><span style="color: rgb(175,0,0)">&#34;</span>)
+
+<span class="ansi-red-fg">KeyboardInterrupt</span>:
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#See the output to find the modeldata in your Google Drive, and download the file.</span>
@@ -646,16 +740,19 @@ Empty Modeldata instance.
 <h2>Interactive plotting of a GEE dataset<a class="headerlink" href="#Interactive-plotting-of-a-GEE-dataset" title="Link to this heading"></a></h2>
 <p>You can make an interactive spatial plot to visualize the stations spatially by using the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.make_gee_plot">make_gee_plot()</a>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spatial_map</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">make_gee_plot</span><span class="p">(</span><span class="n">gee_map</span><span class="o">=</span><span class="s1">&#39;worldcover&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">landcovers</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">GeeExtractor</span><span class="p">()</span>
+<span class="n">landcovers</span><span class="o">.</span><span class="n">activate_worldcover</span><span class="p">()</span>
+
+<span class="n">spatial_map</span> <span class="o">=</span> <span class="n">landcovers</span><span class="o">.</span><span class="n">make_gee_plot</span><span class="p">(</span><span class="n">metadf</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">metadf</span><span class="p">)</span>
 <span class="n">spatial_map</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -686,7 +783,7 @@ Empty Modeldata instance.
             &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
             &lt;style&gt;
-                #map_741bdfa149c730299fc96673b3281b9c {
+                #map_63fab82aeec31bf852ceed347f19815c {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -706,7 +803,7 @@ Empty Modeldata instance.
 &lt;body&gt;
 
 
-            &lt;div class=&quot;folium-map&quot; id=&quot;map_741bdfa149c730299fc96673b3281b9c&quot; &gt;&lt;/div&gt;
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_63fab82aeec31bf852ceed347f19815c&quot; &gt;&lt;/div&gt;
 
 
 &lt;!doctype html&gt;
@@ -742,7 +839,7 @@ Empty Modeldata instance.
     style=&#x27;position: absolute; z-index:9999; border:2px solid grey; background-color:rgba(255, 255, 255, 0.8);
      border-radius:6px; padding: 10px; font-size:14px; right: 20px; bottom: 20px;&#x27;&gt;
 
-&lt;div class=&#x27;legend-title&#x27;&gt;worldcover covers&lt;/div&gt;
+&lt;div class=&#x27;legend-title&#x27;&gt;landcover covers&lt;/div&gt;
 &lt;div class=&#x27;legend-scale&#x27;&gt;
   &lt;ul class=&#x27;legend-labels&#x27;&gt;
     &lt;li&gt;&lt;span style=&#x27;background:#006400;opacity:1.0;&#x27;&gt;&lt;/span&gt;Tree cover&lt;/li&gt;
@@ -807,8 +904,8 @@ Empty Modeldata instance.
 &lt;script&gt;
 
 
-            var map_741bdfa149c730299fc96673b3281b9c = L.map(
-                &quot;map_741bdfa149c730299fc96673b3281b9c&quot;,
+            var map_63fab82aeec31bf852ceed347f19815c = L.map(
+                &quot;map_63fab82aeec31bf852ceed347f19815c&quot;,
                 {
                     center: [20.0, 0.0],
                     crs: L.CRS.EPSG3857,
@@ -832,25 +929,27 @@ Empty Modeldata instance.
 
 
 
-            var tile_layer_c5bdc0cbc9b6039f8ead283e51b0750a = L.tileLayer(
-                &quot;https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
-                {&quot;attribution&quot;: &quot;Data by \u0026copy; \u003ca target=\&quot;_blank\&quot; href=\&quot;http://openstreetmap.org\&quot;\u003eOpenStreetMap\u003c/a\u003e, under \u003ca target=\&quot;_blank\&quot; href=\&quot;http://www.openstreetmap.org/copyright\&quot;\u003eODbL\u003c/a\u003e.&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 30, &quot;maxZoom&quot;: 30, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            var tile_layer_5e7a83e358eb7fa9bbbb623ac90fc5da = L.tileLayer(
+                &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
+                {&quot;attribution&quot;: &quot;\u0026copy; \u003ca href=\&quot;https://www.openstreetmap.org/copyright\&quot;\u003eOpenStreetMap\u003c/a\u003e contributors&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 19, &quot;maxZoom&quot;: 19, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
             );
 
 
-                tile_layer_c5bdc0cbc9b6039f8ead283e51b0750a.addTo(map_741bdfa149c730299fc96673b3281b9c);
+            tile_layer_5e7a83e358eb7fa9bbbb623ac90fc5da.addTo(map_63fab82aeec31bf852ceed347f19815c);
 
-            var tile_layer_93f2ceab3f73b3c821081d745e498da9 = L.tileLayer(
+
+            var tile_layer_9705b879a30687c78ec0ab61a3e409bc = L.tileLayer(
                 &quot;https://mt1.google.com/vt/lyrs=m\u0026x={x}\u0026y={y}\u0026z={z}&quot;,
                 {&quot;attribution&quot;: &quot;Google&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 22, &quot;maxZoom&quot;: 22, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
             );
 
 
-                tile_layer_93f2ceab3f73b3c821081d745e498da9.addTo(map_741bdfa149c730299fc96673b3281b9c);
+            tile_layer_9705b879a30687c78ec0ab61a3e409bc.addTo(map_63fab82aeec31bf852ceed347f19815c);
+
 
             L.control.fullscreen(
                 {&quot;forceSeparateButton&quot;: false, &quot;position&quot;: &quot;topleft&quot;, &quot;title&quot;: &quot;Full Screen&quot;, &quot;titleCancel&quot;: &quot;Exit Full Screen&quot;}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
             var options = {
@@ -859,14 +958,14 @@ Empty Modeldata instance.
               edit: {},
             }
             // FeatureGroup is to store editable layers.
-            var drawnItems_draw_control_e5ad9d2224840024c9b7890b2b80614d = new L.featureGroup().addTo(
-                map_741bdfa149c730299fc96673b3281b9c
+            var drawnItems_draw_control_837aece1cc1fce826bdb88d6bd855677 = new L.featureGroup().addTo(
+                map_63fab82aeec31bf852ceed347f19815c
             );
-            options.edit.featureGroup = drawnItems_draw_control_e5ad9d2224840024c9b7890b2b80614d;
-            var draw_control_e5ad9d2224840024c9b7890b2b80614d = new L.Control.Draw(
+            options.edit.featureGroup = drawnItems_draw_control_837aece1cc1fce826bdb88d6bd855677;
+            var draw_control_837aece1cc1fce826bdb88d6bd855677 = new L.Control.Draw(
                 options
-            ).addTo( map_741bdfa149c730299fc96673b3281b9c );
-            map_741bdfa149c730299fc96673b3281b9c.on(L.Draw.Event.CREATED, function(e) {
+            ).addTo( map_63fab82aeec31bf852ceed347f19815c );
+            map_63fab82aeec31bf852ceed347f19815c.on(L.Draw.Event.CREATED, function(e) {
                 var layer = e.layer,
                     type = e.layerType;
                 var coords = JSON.stringify(layer.toGeoJSON());
@@ -874,10 +973,10 @@ Empty Modeldata instance.
                     alert(coords);
                     console.log(coords);
                 });
-                drawnItems_draw_control_e5ad9d2224840024c9b7890b2b80614d.addLayer(layer);
+                drawnItems_draw_control_837aece1cc1fce826bdb88d6bd855677.addLayer(layer);
              });
-            map_741bdfa149c730299fc96673b3281b9c.on(&#x27;draw:created&#x27;, function(e) {
-                drawnItems_draw_control_e5ad9d2224840024c9b7890b2b80614d.addLayer(e.layer);
+            map_63fab82aeec31bf852ceed347f19815c.on(&#x27;draw:created&#x27;, function(e) {
+                drawnItems_draw_control_837aece1cc1fce826bdb88d6bd855677.addLayer(e.layer);
             });
 
 
@@ -885,636 +984,638 @@ Empty Modeldata instance.
             L.Control.geocoder(
                 {&quot;collapsed&quot;: true, &quot;defaultMarkGeocode&quot;: true, &quot;position&quot;: &quot;topleft&quot;}
             ).on(&#x27;markgeocode&#x27;, function(e) {
-                map_741bdfa149c730299fc96673b3281b9c.setView(e.geocode.center, 11);
-            }).addTo(map_741bdfa149c730299fc96673b3281b9c);
+                map_63fab82aeec31bf852ceed347f19815c.setView(e.geocode.center, 11);
+            }).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
 
-            map_741bdfa149c730299fc96673b3281b9c.fitBounds(
+            map_63fab82aeec31bf852ceed347f19815c.fitBounds(
                 [[20, 0], [20, 0]],
                 {&quot;maxZoom&quot;: 2}
             );
 
 
-            var tile_layer_043afb124e304375e89ec4772938145b = L.tileLayer(
+            var tile_layer_a4d79728b2e1f71ca5712375a1792151 = L.tileLayer(
                 &quot;https://mt1.google.com/vt/lyrs=s\u0026x={x}\u0026y={y}\u0026z={z}&quot;,
                 {&quot;attribution&quot;: &quot;Google&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 22, &quot;maxZoom&quot;: 22, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
             );
 
 
-                tile_layer_043afb124e304375e89ec4772938145b.addTo(map_741bdfa149c730299fc96673b3281b9c);
+            tile_layer_a4d79728b2e1f71ca5712375a1792151.addTo(map_63fab82aeec31bf852ceed347f19815c);
 
-            var tile_layer_dcacfcea686d6e5780efd92b392c110c = L.tileLayer(
-                &quot;https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/1a988a156330d5efeb98d3590e90a22e-81b3cff02fcff57789b03391cd3e1fc9/tiles/{z}/{x}/{y}&quot;,
+
+            var tile_layer_875e44a41a5f4998154021bf5c31e87a = L.tileLayer(
+                &quot;https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/09c6cbfba515fe96a3231dccfee7e816-61cd5e5648e28e5223bf220ba7e0a7c8/tiles/{z}/{x}/{y}&quot;,
                 {&quot;attribution&quot;: &quot;Google Earth Engine&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 24, &quot;maxZoom&quot;: 24, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1.0, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
             );
 
 
-                tile_layer_dcacfcea686d6e5780efd92b392c110c.addTo(map_741bdfa149c730299fc96673b3281b9c);
+            tile_layer_875e44a41a5f4998154021bf5c31e87a.addTo(map_63fab82aeec31bf852ceed347f19815c);
 
-            var marker_27a4211826e5a5640322a46356bc60a2 = L.marker(
+
+            var marker_176557ec926d0be9422915484d2d843f = L.marker(
                 [50.980438, 3.815763],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_ed22422d357615112d7c2b916e850f33 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_60127dd8653b7072fb12e35a0a0237ce = $(`&lt;div id=&quot;html_60127dd8653b7072fb12e35a0a0237ce&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder01&lt;/div&gt;`)[0];
-                popup_ed22422d357615112d7c2b916e850f33.setContent(html_60127dd8653b7072fb12e35a0a0237ce);
+        var popup_3d89d5f92db781966c3268afb489b7c8 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_27a4211826e5a5640322a46356bc60a2.bindPopup(popup_ed22422d357615112d7c2b916e850f33)
+                var html_46046a90cf7eb3f4232b6ceb31bf4f0e = $(`&lt;div id=&quot;html_46046a90cf7eb3f4232b6ceb31bf4f0e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder01&lt;/div&gt;`)[0];
+                popup_3d89d5f92db781966c3268afb489b7c8.setContent(html_46046a90cf7eb3f4232b6ceb31bf4f0e);
+
+
+
+        marker_176557ec926d0be9422915484d2d843f.bindPopup(popup_3d89d5f92db781966c3268afb489b7c8)
         ;
 
 
 
 
-            var marker_cd747023dfe7bce18c1ba9f3ef8f3d29 = L.marker(
+            var marker_1bcb80a39d2822886584b40685a44e23 = L.marker(
                 [51.022379, 3.709695],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_f3f356afb9b351bc336227094e1a8194 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_32dce60e322d5e4b6b1505aabe529a97 = $(`&lt;div id=&quot;html_32dce60e322d5e4b6b1505aabe529a97&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder02&lt;/div&gt;`)[0];
-                popup_f3f356afb9b351bc336227094e1a8194.setContent(html_32dce60e322d5e4b6b1505aabe529a97);
+        var popup_ae1e1edd0984bdd31a38c0ba305174cb = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_cd747023dfe7bce18c1ba9f3ef8f3d29.bindPopup(popup_f3f356afb9b351bc336227094e1a8194)
+                var html_8ae65cedb0128ab39b6a12df400d570c = $(`&lt;div id=&quot;html_8ae65cedb0128ab39b6a12df400d570c&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder02&lt;/div&gt;`)[0];
+                popup_ae1e1edd0984bdd31a38c0ba305174cb.setContent(html_8ae65cedb0128ab39b6a12df400d570c);
+
+
+
+        marker_1bcb80a39d2822886584b40685a44e23.bindPopup(popup_ae1e1edd0984bdd31a38c0ba305174cb)
         ;
 
 
 
 
-            var marker_43aefc2cd168a517f32b19726166fac5 = L.marker(
+            var marker_2f518ad9e49a14a028bfa4799f76c4b8 = L.marker(
                 [51.324583, 4.952109],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_0fc9e557f9a068a737d5b1f37e95a131 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_23c428c1f4cd113dee1862c2fbabaeae = $(`&lt;div id=&quot;html_23c428c1f4cd113dee1862c2fbabaeae&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder03&lt;/div&gt;`)[0];
-                popup_0fc9e557f9a068a737d5b1f37e95a131.setContent(html_23c428c1f4cd113dee1862c2fbabaeae);
+        var popup_5a18ee80560917ab48a2ba74048e1f41 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_43aefc2cd168a517f32b19726166fac5.bindPopup(popup_0fc9e557f9a068a737d5b1f37e95a131)
+                var html_1c8c391b47df2ef732599a07903b78ac = $(`&lt;div id=&quot;html_1c8c391b47df2ef732599a07903b78ac&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder03&lt;/div&gt;`)[0];
+                popup_5a18ee80560917ab48a2ba74048e1f41.setContent(html_1c8c391b47df2ef732599a07903b78ac);
+
+
+
+        marker_2f518ad9e49a14a028bfa4799f76c4b8.bindPopup(popup_5a18ee80560917ab48a2ba74048e1f41)
         ;
 
 
 
 
-            var marker_f349504e033458641eb793d9e63b567b = L.marker(
+            var marker_1f828022af83737362d9f4f593638b2b = L.marker(
                 [51.335522, 4.934732],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_096481ff85a547885bd4de1611ec98cb = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_021d3ade4145569dfab318971b94fca9 = $(`&lt;div id=&quot;html_021d3ade4145569dfab318971b94fca9&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder04&lt;/div&gt;`)[0];
-                popup_096481ff85a547885bd4de1611ec98cb.setContent(html_021d3ade4145569dfab318971b94fca9);
+        var popup_64bafe84ef12d0e6c476ef5cd30432bf = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_f349504e033458641eb793d9e63b567b.bindPopup(popup_096481ff85a547885bd4de1611ec98cb)
+                var html_88e7e8ef073b42b3fa260d0dadf7362b = $(`&lt;div id=&quot;html_88e7e8ef073b42b3fa260d0dadf7362b&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder04&lt;/div&gt;`)[0];
+                popup_64bafe84ef12d0e6c476ef5cd30432bf.setContent(html_88e7e8ef073b42b3fa260d0dadf7362b);
+
+
+
+        marker_1f828022af83737362d9f4f593638b2b.bindPopup(popup_64bafe84ef12d0e6c476ef5cd30432bf)
         ;
 
 
 
 
-            var marker_1ce0a99763c96613ae7736c12da22ae0 = L.marker(
+            var marker_5a98b414efa98449be62920c40b7ce58 = L.marker(
                 [51.052655, 3.675183],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_2b510dd32a80f40aad39d241a9e07083 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_9c820bbf04ee13af5b102642fc72048a = $(`&lt;div id=&quot;html_9c820bbf04ee13af5b102642fc72048a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder05&lt;/div&gt;`)[0];
-                popup_2b510dd32a80f40aad39d241a9e07083.setContent(html_9c820bbf04ee13af5b102642fc72048a);
+        var popup_60711256b078595ec0411441cc308f06 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_1ce0a99763c96613ae7736c12da22ae0.bindPopup(popup_2b510dd32a80f40aad39d241a9e07083)
+                var html_6ce4e9909e791e3960770f6fd882535c = $(`&lt;div id=&quot;html_6ce4e9909e791e3960770f6fd882535c&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder05&lt;/div&gt;`)[0];
+                popup_60711256b078595ec0411441cc308f06.setContent(html_6ce4e9909e791e3960770f6fd882535c);
+
+
+
+        marker_5a98b414efa98449be62920c40b7ce58.bindPopup(popup_60711256b078595ec0411441cc308f06)
         ;
 
 
 
 
-            var marker_a2da8a73942a9b85299a72261053dc1e = L.marker(
+            var marker_f6180e86dcb3272dcd510338653342e3 = L.marker(
                 [51.0271, 4.5163],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_80069ff62bf692038e0062445f6f4b27 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_085776a6d631ccccfd219cde0cd5f393 = $(`&lt;div id=&quot;html_085776a6d631ccccfd219cde0cd5f393&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder06&lt;/div&gt;`)[0];
-                popup_80069ff62bf692038e0062445f6f4b27.setContent(html_085776a6d631ccccfd219cde0cd5f393);
+        var popup_2a1f3b8c8e013106f5562fa0dbac18a0 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_a2da8a73942a9b85299a72261053dc1e.bindPopup(popup_80069ff62bf692038e0062445f6f4b27)
+                var html_4f935db476ab2a70cbaa58e13dad9d81 = $(`&lt;div id=&quot;html_4f935db476ab2a70cbaa58e13dad9d81&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder06&lt;/div&gt;`)[0];
+                popup_2a1f3b8c8e013106f5562fa0dbac18a0.setContent(html_4f935db476ab2a70cbaa58e13dad9d81);
+
+
+
+        marker_f6180e86dcb3272dcd510338653342e3.bindPopup(popup_2a1f3b8c8e013106f5562fa0dbac18a0)
         ;
 
 
 
 
-            var marker_795bbf5147e030a0cab7d8ed500c07fe = L.marker(
+            var marker_d2f1720cadffb797a24a42d39f067b0d = L.marker(
                 [51.030889, 4.478445],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_a43c39d0003c122a93913eb4179c09ae = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_5c0060d1b3cefc756b8bf13aa66de456 = $(`&lt;div id=&quot;html_5c0060d1b3cefc756b8bf13aa66de456&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder07&lt;/div&gt;`)[0];
-                popup_a43c39d0003c122a93913eb4179c09ae.setContent(html_5c0060d1b3cefc756b8bf13aa66de456);
+        var popup_2d39e455c1b9c3bc2a10d8a9e1f89995 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_795bbf5147e030a0cab7d8ed500c07fe.bindPopup(popup_a43c39d0003c122a93913eb4179c09ae)
+                var html_9a3a24c6f424f70f988f1dbe83c15e61 = $(`&lt;div id=&quot;html_9a3a24c6f424f70f988f1dbe83c15e61&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder07&lt;/div&gt;`)[0];
+                popup_2d39e455c1b9c3bc2a10d8a9e1f89995.setContent(html_9a3a24c6f424f70f988f1dbe83c15e61);
+
+
+
+        marker_d2f1720cadffb797a24a42d39f067b0d.bindPopup(popup_2d39e455c1b9c3bc2a10d8a9e1f89995)
         ;
 
 
 
 
-            var marker_c5465b5664f48fd8f90641afce48e180 = L.marker(
+            var marker_0ef253ada9391c2081697febc8b22d0f = L.marker(
                 [51.02813, 4.477398],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_2e0b3cc806b5a9366e8a77ca90ca029e = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_a7d5400c1f4d8715625460bb7aa4261c = $(`&lt;div id=&quot;html_a7d5400c1f4d8715625460bb7aa4261c&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder08&lt;/div&gt;`)[0];
-                popup_2e0b3cc806b5a9366e8a77ca90ca029e.setContent(html_a7d5400c1f4d8715625460bb7aa4261c);
+        var popup_7a51ebc1e91018ad3c072015f1c70a66 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_c5465b5664f48fd8f90641afce48e180.bindPopup(popup_2e0b3cc806b5a9366e8a77ca90ca029e)
+                var html_a39ec98f4deda0bf1e49e62befaac649 = $(`&lt;div id=&quot;html_a39ec98f4deda0bf1e49e62befaac649&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder08&lt;/div&gt;`)[0];
+                popup_7a51ebc1e91018ad3c072015f1c70a66.setContent(html_a39ec98f4deda0bf1e49e62befaac649);
+
+
+
+        marker_0ef253ada9391c2081697febc8b22d0f.bindPopup(popup_7a51ebc1e91018ad3c072015f1c70a66)
         ;
 
 
 
 
-            var marker_db7c6e379a1a53bb59d6bf30b6cddb28 = L.marker(
+            var marker_6225ae69c3277639b78cdb00098d4de2 = L.marker(
                 [50.927167, 4.075722],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_d4e33c3462ec2c44ac9fbf1c215b19ff = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_002febab5f7316edc23b154abc38bee0 = $(`&lt;div id=&quot;html_002febab5f7316edc23b154abc38bee0&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder09&lt;/div&gt;`)[0];
-                popup_d4e33c3462ec2c44ac9fbf1c215b19ff.setContent(html_002febab5f7316edc23b154abc38bee0);
+        var popup_085c28242af341cb48a718c513985beb = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_db7c6e379a1a53bb59d6bf30b6cddb28.bindPopup(popup_d4e33c3462ec2c44ac9fbf1c215b19ff)
+                var html_5e908285d159d5bffe231499e8f88412 = $(`&lt;div id=&quot;html_5e908285d159d5bffe231499e8f88412&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder09&lt;/div&gt;`)[0];
+                popup_085c28242af341cb48a718c513985beb.setContent(html_5e908285d159d5bffe231499e8f88412);
+
+
+
+        marker_6225ae69c3277639b78cdb00098d4de2.bindPopup(popup_085c28242af341cb48a718c513985beb)
         ;
 
 
 
 
-            var marker_60a5e68f423842bb2a4e808bcda4ad07 = L.marker(
+            var marker_ca3ea2dbbdbcc5918e1ca4162bee5661 = L.marker(
                 [50.935556, 4.041389],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_d8d168cde73ae44f8f08a7d6be39ddea = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_2620aaa679506b091efaad908ed8cf3d = $(`&lt;div id=&quot;html_2620aaa679506b091efaad908ed8cf3d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder10&lt;/div&gt;`)[0];
-                popup_d8d168cde73ae44f8f08a7d6be39ddea.setContent(html_2620aaa679506b091efaad908ed8cf3d);
+        var popup_84fcb0bf4a8258e86730b98ff89f0661 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_60a5e68f423842bb2a4e808bcda4ad07.bindPopup(popup_d8d168cde73ae44f8f08a7d6be39ddea)
+                var html_3166276685a4618436b4f64d407382fe = $(`&lt;div id=&quot;html_3166276685a4618436b4f64d407382fe&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder10&lt;/div&gt;`)[0];
+                popup_84fcb0bf4a8258e86730b98ff89f0661.setContent(html_3166276685a4618436b4f64d407382fe);
+
+
+
+        marker_ca3ea2dbbdbcc5918e1ca4162bee5661.bindPopup(popup_84fcb0bf4a8258e86730b98ff89f0661)
         ;
 
 
 
 
-            var marker_2f40d28ae79706e503200dd530bd79aa = L.marker(
+            var marker_ded64aa4af608b6fbe6237b99bcfa170 = L.marker(
                 [51.222422, 4.381726],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_fb3b2f1ed2ac7724c50a710592024750 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_2206e5f342d5c12b38e73277fc59206c = $(`&lt;div id=&quot;html_2206e5f342d5c12b38e73277fc59206c&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder11&lt;/div&gt;`)[0];
-                popup_fb3b2f1ed2ac7724c50a710592024750.setContent(html_2206e5f342d5c12b38e73277fc59206c);
+        var popup_02ace1f3b1c6c107c7ea976d1d5563cc = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_2f40d28ae79706e503200dd530bd79aa.bindPopup(popup_fb3b2f1ed2ac7724c50a710592024750)
+                var html_2ab714e4175ac2326a4fc710f01f31db = $(`&lt;div id=&quot;html_2ab714e4175ac2326a4fc710f01f31db&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder11&lt;/div&gt;`)[0];
+                popup_02ace1f3b1c6c107c7ea976d1d5563cc.setContent(html_2ab714e4175ac2326a4fc710f01f31db);
+
+
+
+        marker_ded64aa4af608b6fbe6237b99bcfa170.bindPopup(popup_02ace1f3b1c6c107c7ea976d1d5563cc)
         ;
 
 
 
 
-            var marker_d3c3a9d37002cc08605bc5566748ccfe = L.marker(
+            var marker_4cf550cfefe9d0e761102d7f85daa92f = L.marker(
                 [51.216477, 4.42344],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_bc57c93d91999a96c29e1438b620dd5f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_f1bbe545e52fb9aec54e4de7b5bb4656 = $(`&lt;div id=&quot;html_f1bbe545e52fb9aec54e4de7b5bb4656&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder12&lt;/div&gt;`)[0];
-                popup_bc57c93d91999a96c29e1438b620dd5f.setContent(html_f1bbe545e52fb9aec54e4de7b5bb4656);
+        var popup_9acf750dd16c6f2da7a063f97dad69fc = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_d3c3a9d37002cc08605bc5566748ccfe.bindPopup(popup_bc57c93d91999a96c29e1438b620dd5f)
+                var html_a103a22bce64a74025f5fcd3e713360d = $(`&lt;div id=&quot;html_a103a22bce64a74025f5fcd3e713360d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder12&lt;/div&gt;`)[0];
+                popup_9acf750dd16c6f2da7a063f97dad69fc.setContent(html_a103a22bce64a74025f5fcd3e713360d);
+
+
+
+        marker_4cf550cfefe9d0e761102d7f85daa92f.bindPopup(popup_9acf750dd16c6f2da7a063f97dad69fc)
         ;
 
 
 
 
-            var marker_0a46ca58f2e643a99119dd79e5102aa8 = L.marker(
+            var marker_5acfc85b410eead7c0db820937aa5025 = L.marker(
                 [51.212211, 4.398065],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_e3a8ecc5d98c273b7115c3b30a4d3d5c = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_cecf862cb61c7f77b01f159cd16553d8 = $(`&lt;div id=&quot;html_cecf862cb61c7f77b01f159cd16553d8&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder13&lt;/div&gt;`)[0];
-                popup_e3a8ecc5d98c273b7115c3b30a4d3d5c.setContent(html_cecf862cb61c7f77b01f159cd16553d8);
+        var popup_45c836c6be65a921248f8f9859146212 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_0a46ca58f2e643a99119dd79e5102aa8.bindPopup(popup_e3a8ecc5d98c273b7115c3b30a4d3d5c)
+                var html_995e6fe62220f47f2186a3c8447c34c8 = $(`&lt;div id=&quot;html_995e6fe62220f47f2186a3c8447c34c8&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder13&lt;/div&gt;`)[0];
+                popup_45c836c6be65a921248f8f9859146212.setContent(html_995e6fe62220f47f2186a3c8447c34c8);
+
+
+
+        marker_5acfc85b410eead7c0db820937aa5025.bindPopup(popup_45c836c6be65a921248f8f9859146212)
         ;
 
 
 
 
-            var marker_d927533b660a84e9b54bccd730386cd4 = L.marker(
+            var marker_c0bf179cb0d8673543777d2cd5b00798 = L.marker(
                 [51.350618, 4.315013],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_c9e9000bffbcbcd72933315fbb325402 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_2a840b65e432ebae1f319bb4667aa0e1 = $(`&lt;div id=&quot;html_2a840b65e432ebae1f319bb4667aa0e1&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder14&lt;/div&gt;`)[0];
-                popup_c9e9000bffbcbcd72933315fbb325402.setContent(html_2a840b65e432ebae1f319bb4667aa0e1);
+        var popup_a2f36ad1e00937fa03cbc89ff5fd9a11 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_d927533b660a84e9b54bccd730386cd4.bindPopup(popup_c9e9000bffbcbcd72933315fbb325402)
+                var html_2c385cedb6fa1ad8f1ecf4ecd471165f = $(`&lt;div id=&quot;html_2c385cedb6fa1ad8f1ecf4ecd471165f&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder14&lt;/div&gt;`)[0];
+                popup_a2f36ad1e00937fa03cbc89ff5fd9a11.setContent(html_2c385cedb6fa1ad8f1ecf4ecd471165f);
+
+
+
+        marker_c0bf179cb0d8673543777d2cd5b00798.bindPopup(popup_a2f36ad1e00937fa03cbc89ff5fd9a11)
         ;
 
 
 
 
-            var marker_9938c4da3fa171b53f6ab2c059c276b0 = L.marker(
+            var marker_369d726da42d7100d1612a2d46f7880e = L.marker(
                 [50.9353, 4.1926],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_7cbd5425e6fe6218aee25041d2d31b07 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_8b6b37a2c8414fe51d97ab89e63c3aca = $(`&lt;div id=&quot;html_8b6b37a2c8414fe51d97ab89e63c3aca&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder15&lt;/div&gt;`)[0];
-                popup_7cbd5425e6fe6218aee25041d2d31b07.setContent(html_8b6b37a2c8414fe51d97ab89e63c3aca);
+        var popup_680fbaaa4c8a819fc5ebe7330884dcac = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_9938c4da3fa171b53f6ab2c059c276b0.bindPopup(popup_7cbd5425e6fe6218aee25041d2d31b07)
+                var html_4728fea30b5b4ac51c9691adc89093ed = $(`&lt;div id=&quot;html_4728fea30b5b4ac51c9691adc89093ed&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder15&lt;/div&gt;`)[0];
+                popup_680fbaaa4c8a819fc5ebe7330884dcac.setContent(html_4728fea30b5b4ac51c9691adc89093ed);
+
+
+
+        marker_369d726da42d7100d1612a2d46f7880e.bindPopup(popup_680fbaaa4c8a819fc5ebe7330884dcac)
         ;
 
 
 
 
-            var marker_59b0846dcd8d5ee9a04783d86685fe50 = L.marker(
+            var marker_b0abcfe23edf6737e2f1efd0579a0095 = L.marker(
                 [51.26685, 4.293436],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_025f2a9603e445fc326b266a6b67bd8c = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_2e0d8c33cac1972c9b6718f9370bfba6 = $(`&lt;div id=&quot;html_2e0d8c33cac1972c9b6718f9370bfba6&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder16&lt;/div&gt;`)[0];
-                popup_025f2a9603e445fc326b266a6b67bd8c.setContent(html_2e0d8c33cac1972c9b6718f9370bfba6);
+        var popup_692e50a2a3b9e70a0efc1bbde2e919a3 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_59b0846dcd8d5ee9a04783d86685fe50.bindPopup(popup_025f2a9603e445fc326b266a6b67bd8c)
+                var html_90629f51f706771e1c7476d93573f6a6 = $(`&lt;div id=&quot;html_90629f51f706771e1c7476d93573f6a6&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder16&lt;/div&gt;`)[0];
+                popup_692e50a2a3b9e70a0efc1bbde2e919a3.setContent(html_90629f51f706771e1c7476d93573f6a6);
+
+
+
+        marker_b0abcfe23edf6737e2f1efd0579a0095.bindPopup(popup_692e50a2a3b9e70a0efc1bbde2e919a3)
         ;
 
 
 
 
-            var marker_e93709501afbaa512281da3492297457 = L.marker(
+            var marker_3683fcb537f016b86c97d19b7b45b8d8 = L.marker(
                 [51.065269, 5.613458],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_d237c084c145e895ceaab3f6b1279264 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_0cecff0b6f998f5657fdebee5c9366ad = $(`&lt;div id=&quot;html_0cecff0b6f998f5657fdebee5c9366ad&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder17&lt;/div&gt;`)[0];
-                popup_d237c084c145e895ceaab3f6b1279264.setContent(html_0cecff0b6f998f5657fdebee5c9366ad);
+        var popup_4248f2c470b99dc7124ea3958a486ea4 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_e93709501afbaa512281da3492297457.bindPopup(popup_d237c084c145e895ceaab3f6b1279264)
+                var html_66add62a02a00f2ce3c4468b7c3ac0b8 = $(`&lt;div id=&quot;html_66add62a02a00f2ce3c4468b7c3ac0b8&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder17&lt;/div&gt;`)[0];
+                popup_4248f2c470b99dc7124ea3958a486ea4.setContent(html_66add62a02a00f2ce3c4468b7c3ac0b8);
+
+
+
+        marker_3683fcb537f016b86c97d19b7b45b8d8.bindPopup(popup_4248f2c470b99dc7124ea3958a486ea4)
         ;
 
 
 
 
-            var marker_dbfc063052634b1e2515546cfedb8ae3 = L.marker(
+            var marker_6ccf46e6a6dcf9d76a74eae8ca540a28 = L.marker(
                 [51.136244, 5.656769],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_8d55fe57f03be2c46c73797de5a8799a = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_f71121a9c7cee759a302f168ab50e2e0 = $(`&lt;div id=&quot;html_f71121a9c7cee759a302f168ab50e2e0&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder18&lt;/div&gt;`)[0];
-                popup_8d55fe57f03be2c46c73797de5a8799a.setContent(html_f71121a9c7cee759a302f168ab50e2e0);
+        var popup_f9eacfdce7ab8536c8770bf3ede01f5c = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_dbfc063052634b1e2515546cfedb8ae3.bindPopup(popup_8d55fe57f03be2c46c73797de5a8799a)
+                var html_4750b6a95035405ccb320221438eb6e0 = $(`&lt;div id=&quot;html_4750b6a95035405ccb320221438eb6e0&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder18&lt;/div&gt;`)[0];
+                popup_f9eacfdce7ab8536c8770bf3ede01f5c.setContent(html_4750b6a95035405ccb320221438eb6e0);
+
+
+
+        marker_6ccf46e6a6dcf9d76a74eae8ca540a28.bindPopup(popup_f9eacfdce7ab8536c8770bf3ede01f5c)
         ;
 
 
 
 
-            var marker_932dde0f9f3208153d22b85d7883cc6b = L.marker(
+            var marker_504ee28099fb22f0d7294ea6ffa23fb1 = L.marker(
                 [50.841455, 4.363672],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_67e8c103f517be3eee66348aec3d9766 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_66ab68e4b74b45030b782b7eeb75050d = $(`&lt;div id=&quot;html_66ab68e4b74b45030b782b7eeb75050d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder19&lt;/div&gt;`)[0];
-                popup_67e8c103f517be3eee66348aec3d9766.setContent(html_66ab68e4b74b45030b782b7eeb75050d);
+        var popup_8cff926034e1e9564a85360a0175eeff = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_932dde0f9f3208153d22b85d7883cc6b.bindPopup(popup_67e8c103f517be3eee66348aec3d9766)
+                var html_bfb2b9c812d6cccf6763c66d4a3c7863 = $(`&lt;div id=&quot;html_bfb2b9c812d6cccf6763c66d4a3c7863&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder19&lt;/div&gt;`)[0];
+                popup_8cff926034e1e9564a85360a0175eeff.setContent(html_bfb2b9c812d6cccf6763c66d4a3c7863);
+
+
+
+        marker_504ee28099fb22f0d7294ea6ffa23fb1.bindPopup(popup_8cff926034e1e9564a85360a0175eeff)
         ;
 
 
 
 
-            var marker_7e61d6d4336180d2d965370148e49d55 = L.marker(
+            var marker_ebb00f7d14b3f363795e87a251f6570e = L.marker(
                 [50.847025, 4.357971],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_59b529558a3313c27cf38a35a9fb719b = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_bfd9172709b8a8f721069191e039e768 = $(`&lt;div id=&quot;html_bfd9172709b8a8f721069191e039e768&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder20&lt;/div&gt;`)[0];
-                popup_59b529558a3313c27cf38a35a9fb719b.setContent(html_bfd9172709b8a8f721069191e039e768);
+        var popup_d4671308314d2f317202c6e648c07f73 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_7e61d6d4336180d2d965370148e49d55.bindPopup(popup_59b529558a3313c27cf38a35a9fb719b)
+                var html_47aaa2bfd84c4d23545db4ad7e255a9b = $(`&lt;div id=&quot;html_47aaa2bfd84c4d23545db4ad7e255a9b&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder20&lt;/div&gt;`)[0];
+                popup_d4671308314d2f317202c6e648c07f73.setContent(html_47aaa2bfd84c4d23545db4ad7e255a9b);
+
+
+
+        marker_ebb00f7d14b3f363795e87a251f6570e.bindPopup(popup_d4671308314d2f317202c6e648c07f73)
         ;
 
 
 
 
-            var marker_d7e74b84999e12daa1bea196d09fae74 = L.marker(
+            var marker_a8f39387aaafdd899746842741fd6c65 = L.marker(
                 [51.260389, 2.991917],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_b842d7859033d097b57b268b5cc2b5ee = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_262e66589ee3215a4e44965b865e103e = $(`&lt;div id=&quot;html_262e66589ee3215a4e44965b865e103e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder21&lt;/div&gt;`)[0];
-                popup_b842d7859033d097b57b268b5cc2b5ee.setContent(html_262e66589ee3215a4e44965b865e103e);
+        var popup_1557e75eccfd6e397438cfe915ae5000 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_d7e74b84999e12daa1bea196d09fae74.bindPopup(popup_b842d7859033d097b57b268b5cc2b5ee)
+                var html_34fd9f6cfaccb2cb134413b30f838a95 = $(`&lt;div id=&quot;html_34fd9f6cfaccb2cb134413b30f838a95&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder21&lt;/div&gt;`)[0];
+                popup_1557e75eccfd6e397438cfe915ae5000.setContent(html_34fd9f6cfaccb2cb134413b30f838a95);
+
+
+
+        marker_a8f39387aaafdd899746842741fd6c65.bindPopup(popup_1557e75eccfd6e397438cfe915ae5000)
         ;
 
 
 
 
-            var marker_41a5bbdc3311dce640df0be0d961b5a7 = L.marker(
+            var marker_f300a149205d8e1dfe5631bdfd89251f = L.marker(
                 [50.989501, 2.85622],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_4bf08b699b5265f85f2d4ace3c4695d4 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_15cdf85a64c2ef6cb5d1b4bf9a83e589 = $(`&lt;div id=&quot;html_15cdf85a64c2ef6cb5d1b4bf9a83e589&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder22&lt;/div&gt;`)[0];
-                popup_4bf08b699b5265f85f2d4ace3c4695d4.setContent(html_15cdf85a64c2ef6cb5d1b4bf9a83e589);
+        var popup_efbdac462fb536d4171ee04fd4552fbd = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_41a5bbdc3311dce640df0be0d961b5a7.bindPopup(popup_4bf08b699b5265f85f2d4ace3c4695d4)
+                var html_da2204790d04d5b349a8815db72cc8e5 = $(`&lt;div id=&quot;html_da2204790d04d5b349a8815db72cc8e5&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder22&lt;/div&gt;`)[0];
+                popup_efbdac462fb536d4171ee04fd4552fbd.setContent(html_da2204790d04d5b349a8815db72cc8e5);
+
+
+
+        marker_f300a149205d8e1dfe5631bdfd89251f.bindPopup(popup_efbdac462fb536d4171ee04fd4552fbd)
         ;
 
 
 
 
-            var marker_8a316c3f8c2a94f6440c25ed0fe93e50 = L.marker(
+            var marker_dce13f8a8a568f9b63f0440c71f4a3e9 = L.marker(
                 [51.260578, 3.580151],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_256a85401bed9cc1b0c31aa4bd6aa12a = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_a5ae9aa1c6d7d3cef249083793c07529 = $(`&lt;div id=&quot;html_a5ae9aa1c6d7d3cef249083793c07529&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder23&lt;/div&gt;`)[0];
-                popup_256a85401bed9cc1b0c31aa4bd6aa12a.setContent(html_a5ae9aa1c6d7d3cef249083793c07529);
+        var popup_5a28b38f4785fed68da88c09dcc221cf = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_8a316c3f8c2a94f6440c25ed0fe93e50.bindPopup(popup_256a85401bed9cc1b0c31aa4bd6aa12a)
+                var html_6ebd52331046d0dff2405d907f297834 = $(`&lt;div id=&quot;html_6ebd52331046d0dff2405d907f297834&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder23&lt;/div&gt;`)[0];
+                popup_5a28b38f4785fed68da88c09dcc221cf.setContent(html_6ebd52331046d0dff2405d907f297834);
+
+
+
+        marker_dce13f8a8a568f9b63f0440c71f4a3e9.bindPopup(popup_5a28b38f4785fed68da88c09dcc221cf)
         ;
 
 
 
 
-            var marker_b8716714ce5e008f949d8f004018bf36 = L.marker(
+            var marker_44cb4d8db2d3f3435d10cb62ed5882a3 = L.marker(
                 [51.167015, 3.572062],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_c76c218c5098d6c33e867d658e67a36f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_e1e8d0fdcc1dfca4091814ba7aadfaf1 = $(`&lt;div id=&quot;html_e1e8d0fdcc1dfca4091814ba7aadfaf1&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder24&lt;/div&gt;`)[0];
-                popup_c76c218c5098d6c33e867d658e67a36f.setContent(html_e1e8d0fdcc1dfca4091814ba7aadfaf1);
+        var popup_60a21090654854b707239696f8046a53 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_b8716714ce5e008f949d8f004018bf36.bindPopup(popup_c76c218c5098d6c33e867d658e67a36f)
+                var html_bba007264034c2a7b1012550ab2279ab = $(`&lt;div id=&quot;html_bba007264034c2a7b1012550ab2279ab&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder24&lt;/div&gt;`)[0];
+                popup_60a21090654854b707239696f8046a53.setContent(html_bba007264034c2a7b1012550ab2279ab);
+
+
+
+        marker_44cb4d8db2d3f3435d10cb62ed5882a3.bindPopup(popup_60a21090654854b707239696f8046a53)
         ;
 
 
 
 
-            var marker_66d4357fe68cf3ee2539687fcca88bc1 = L.marker(
+            var marker_bf54cfd5d62a5e02132b2e8b1f00427f = L.marker(
                 [51.15472, 3.708611],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_1997f2f077a4748f51e3ce02b0f9e153 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_fd6cfa225c6417e202f2522909f3e051 = $(`&lt;div id=&quot;html_fd6cfa225c6417e202f2522909f3e051&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder25&lt;/div&gt;`)[0];
-                popup_1997f2f077a4748f51e3ce02b0f9e153.setContent(html_fd6cfa225c6417e202f2522909f3e051);
+        var popup_92e73c805e218c36fde612915959568f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_66d4357fe68cf3ee2539687fcca88bc1.bindPopup(popup_1997f2f077a4748f51e3ce02b0f9e153)
+                var html_86131efe086ccc07005cab14e8aea24c = $(`&lt;div id=&quot;html_86131efe086ccc07005cab14e8aea24c&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder25&lt;/div&gt;`)[0];
+                popup_92e73c805e218c36fde612915959568f.setContent(html_86131efe086ccc07005cab14e8aea24c);
+
+
+
+        marker_bf54cfd5d62a5e02132b2e8b1f00427f.bindPopup(popup_92e73c805e218c36fde612915959568f)
         ;
 
 
 
 
-            var marker_ebe8a528b98e7e0dc6ee6ad19bfc172d = L.marker(
+            var marker_bc4fa510683c8e7485bc9ad2686f143a = L.marker(
                 [51.16176, 4.997653],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_82fc6cedbe52dad8bada9c4a54e8df42 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_abd07eb1d0103618177147684c56e658 = $(`&lt;div id=&quot;html_abd07eb1d0103618177147684c56e658&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder26&lt;/div&gt;`)[0];
-                popup_82fc6cedbe52dad8bada9c4a54e8df42.setContent(html_abd07eb1d0103618177147684c56e658);
+        var popup_ddc60881311c7e427a102853b59957e3 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_ebe8a528b98e7e0dc6ee6ad19bfc172d.bindPopup(popup_82fc6cedbe52dad8bada9c4a54e8df42)
+                var html_31f241d3298ff9ee6d44913aa242bc86 = $(`&lt;div id=&quot;html_31f241d3298ff9ee6d44913aa242bc86&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder26&lt;/div&gt;`)[0];
+                popup_ddc60881311c7e427a102853b59957e3.setContent(html_31f241d3298ff9ee6d44913aa242bc86);
+
+
+
+        marker_bc4fa510683c8e7485bc9ad2686f143a.bindPopup(popup_ddc60881311c7e427a102853b59957e3)
         ;
 
 
 
 
-            var marker_45a0c700a063dd146b3534922bfdb69d = L.marker(
+            var marker_a14677f385853206e475b418ad00ac04 = L.marker(
                 [51.058099, 3.728067],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_a9eba0170755dc51496c1d9bc1a7ed7d = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_eff9b703e534e547628cba4bea2df11d = $(`&lt;div id=&quot;html_eff9b703e534e547628cba4bea2df11d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder27&lt;/div&gt;`)[0];
-                popup_a9eba0170755dc51496c1d9bc1a7ed7d.setContent(html_eff9b703e534e547628cba4bea2df11d);
+        var popup_61e33b25136f8fcbe7df02a7575f530a = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_45a0c700a063dd146b3534922bfdb69d.bindPopup(popup_a9eba0170755dc51496c1d9bc1a7ed7d)
+                var html_a367d7aaa0964519ac3e251a077ddfef = $(`&lt;div id=&quot;html_a367d7aaa0964519ac3e251a077ddfef&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder27&lt;/div&gt;`)[0];
+                popup_61e33b25136f8fcbe7df02a7575f530a.setContent(html_a367d7aaa0964519ac3e251a077ddfef);
+
+
+
+        marker_a14677f385853206e475b418ad00ac04.bindPopup(popup_61e33b25136f8fcbe7df02a7575f530a)
         ;
 
 
 
 
-            var marker_11c5ca454bdd93075f00c25db2f3dc85 = L.marker(
+            var marker_83249f9df1629fcd11b6ddf8a4f96b0c = L.marker(
                 [51.035293, 3.769741],
                 {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
-        var popup_0a6fef017e8c9d73610fb4245c3b6b9e = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
-
-
-
-                var html_270fe0144c2995a260c6eef0873b8f00 = $(`&lt;div id=&quot;html_270fe0144c2995a260c6eef0873b8f00&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder28&lt;/div&gt;`)[0];
-                popup_0a6fef017e8c9d73610fb4245c3b6b9e.setContent(html_270fe0144c2995a260c6eef0873b8f00);
+        var popup_c349b4c40e37fc6947c180034f5603e9 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
 
 
 
-        marker_11c5ca454bdd93075f00c25db2f3dc85.bindPopup(popup_0a6fef017e8c9d73610fb4245c3b6b9e)
+                var html_d2ca4b8b7a76baaf5a1b3b4b18ab8edc = $(`&lt;div id=&quot;html_d2ca4b8b7a76baaf5a1b3b4b18ab8edc&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder28&lt;/div&gt;`)[0];
+                popup_c349b4c40e37fc6947c180034f5603e9.setContent(html_d2ca4b8b7a76baaf5a1b3b4b18ab8edc);
+
+
+
+        marker_83249f9df1629fcd11b6ddf8a4f96b0c.bindPopup(popup_c349b4c40e37fc6947c180034f5603e9)
         ;
 
 
 
 
-            var layer_control_bf4e2dfa0e4a817b79f413f8ee5bfb90_layers = {
+            var layer_control_b57dc294f88adaa4c8dfd899ecdc12c9_layers = {
                 base_layers : {
-                    &quot;openstreetmap&quot; : tile_layer_c5bdc0cbc9b6039f8ead283e51b0750a,
+                    &quot;openstreetmap&quot; : tile_layer_5e7a83e358eb7fa9bbbb623ac90fc5da,
                 },
                 overlays :  {
-                    &quot;Google Maps&quot; : tile_layer_93f2ceab3f73b3c821081d745e498da9,
-                    &quot;Google Satellite&quot; : tile_layer_043afb124e304375e89ec4772938145b,
-                    &quot;worldcover&quot; : tile_layer_dcacfcea686d6e5780efd92b392c110c,
+                    &quot;Google Maps&quot; : tile_layer_9705b879a30687c78ec0ab61a3e409bc,
+                    &quot;Google Satellite&quot; : tile_layer_a4d79728b2e1f71ca5712375a1792151,
+                    &quot;landcover&quot; : tile_layer_875e44a41a5f4998154021bf5c31e87a,
                 },
             };
-            let layer_control_bf4e2dfa0e4a817b79f413f8ee5bfb90 = L.control.layers(
-                layer_control_bf4e2dfa0e4a817b79f413f8ee5bfb90_layers.base_layers,
-                layer_control_bf4e2dfa0e4a817b79f413f8ee5bfb90_layers.overlays,
+            let layer_control_b57dc294f88adaa4c8dfd899ecdc12c9 = L.control.layers(
+                layer_control_b57dc294f88adaa4c8dfd899ecdc12c9_layers.base_layers,
+                layer_control_b57dc294f88adaa4c8dfd899ecdc12c9_layers.overlays,
                 {&quot;autoZIndex&quot;: true, &quot;collapsed&quot;: true, &quot;position&quot;: &quot;topright&quot;}
-            ).addTo(map_741bdfa149c730299fc96673b3281b9c);
+            ).addTo(map_63fab82aeec31bf852ceed347f19815c);
 
 
 &lt;/script&gt;

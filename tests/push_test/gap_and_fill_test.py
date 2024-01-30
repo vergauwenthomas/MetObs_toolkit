@@ -368,8 +368,8 @@ assert checkeddf.equals(output), "something wrong with the automatic gapfill"
 
 #%%
 # # Fill gaps using era5 data:
-dataset.fill_gaps_era5(
-    modeldata=era, method="debias", obstype="temp", overwrite_fill=True
+dataset.fill_gaps_using_debiased_modeldata(
+    modeldata=era, obstype="temp", overwrite_fill=True
 )
 
 

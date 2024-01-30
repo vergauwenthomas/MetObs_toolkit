@@ -316,7 +316,8 @@ buddy min std for the TITAN buddy check updated:  1.0--&gt; 1.0
 <span class="n">dataset</span><span class="o">.</span><span class="n">fill_missing_obs_linear</span><span class="p">()</span>
 
 <span class="c1"># 6. fill gaps</span>
-<span class="n">dataset</span><span class="o">.</span><span class="n">fill_gaps_era5</span><span class="p">(</span><span class="n">era5</span><span class="p">)</span>
+<span class="c1">#  dataset.fill_gaps_era5(era5) #version &lt;= v0.1.3</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">fill_gaps_using_debiased_modeldata</span><span class="p">(</span><span class="n">era5</span><span class="p">)</span> <span class="c1">#version &gt; v0.1.3</span>
 
 <span class="c1"># 7. Make plot (of single station for clearity)</span>
 <span class="n">ax3</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder28&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
