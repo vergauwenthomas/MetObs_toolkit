@@ -123,7 +123,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">gap</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">missing_obs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">templates</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gee</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">IO</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;output_folder&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s2">&quot;input_data_file&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -136,7 +135,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_qc_settings</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_gap_settings</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_templates</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_gee_settings</span><span class="p">()</span>
 
     <span class="c1"># =============================================================================</span>
     <span class="c1">#     Update settings from files in initialisation</span>
@@ -275,19 +273,6 @@
 
         <span class="c1"># Set default templates</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;template_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_template_file</span>
-
-    <span class="k">def</span> <span class="nf">_update_gee_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the google earth enginge settings using the default settings templates.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Updating gee settings.&quot;</span><span class="p">)</span>
-        <span class="kn">from</span> <span class="nn">.settings_files.gee_settings</span> <span class="kn">import</span> <span class="n">gee_datasets</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">gee</span><span class="p">[</span><span class="s2">&quot;gee_dataset_info&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gee_datasets</span>
 
 <div class="viewcode-block" id="Settings.update_timezone">
 <a class="viewcode-back" href="../../_autosummary/metobs_toolkit.settings.Settings.html#metobs_toolkit.settings.Settings.update_timezone">[docs]</a>
@@ -436,7 +421,6 @@
             <span class="s2">&quot;gap&quot;</span><span class="p">,</span>
             <span class="s2">&quot;missing_obs&quot;</span><span class="p">,</span>
             <span class="s2">&quot;templates&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;gee&quot;</span><span class="p">,</span>
         <span class="p">]</span>
 
         <span class="c1"># Drop variables starting with _</span>

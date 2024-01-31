@@ -319,7 +319,7 @@ def create_leading_trailing_debias_periods(
     return leading_df, trailing_df
 
 
-def get_time_specific_biases(model, obs, obstype, period):
+def get_time_specific_biases(model, obs, obstypename, period):
     """Get hourly biases."""
     diff = model - obs
     diff = diff.reset_index().set_index("datetime")
@@ -327,8 +327,8 @@ def get_time_specific_biases(model, obs, obstype, period):
     diff["minutes"] = diff.index.minute
     diff["seconds"] = diff.index.second
 
-    biases = diff.groupby(["name", "hours", "minutes", "seconds"])[obstype].mean()
-    biases.name = obstype + "_bias_" + period
+    biases = diff.groupby(["name", "hours", "minutes", "seconds"])[obstypename].mean()
+    biases.name = obstypename + "_bias_" + period
 
     biases = biases.reset_index()
     return biases
@@ -341,12 +341,12 @@ def make_era_bias_correction(
     error_message = ""
     # 1. get lead timestamp biases
     lead_biases = get_time_specific_biases(
-        model=leading_model, obs=leading_obs, obstype=obstype, period="lead"
+        model=leading_model, obs=leading_obs, obstypename=obstype, period="lead"
     )
 
     # 2. get trailing timestamp biases
     trail_biases = get_time_specific_biases(
-        model=trailing_model, obs=trailing_obs, obstype=obstype, period="trail"
+        model=trailing_model, obs=trailing_obs, obstypename=obstype, period="trail"
     )
 
     # 3. apply bias correction on modeldata in gap

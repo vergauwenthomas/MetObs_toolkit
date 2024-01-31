@@ -52,10 +52,10 @@ demo_template = os.path.join(
 
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
-from metobs_toolkit.modeldata import Modeldata
+from metobs_toolkit.modeldata import Modeldata, import_modeldata
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfield
-
+from metobs_toolkit.gee_extractor import GeeExtractor
 
 # import GUI
 from metobs_toolkit.data_templates.template_build_prompt import build_template_prompt

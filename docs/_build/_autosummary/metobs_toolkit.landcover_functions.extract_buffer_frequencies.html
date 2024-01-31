@@ -70,18 +70,14 @@
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.df_helpers.html">metobs_toolkit.df_helpers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap.html">metobs_toolkit.gap</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gap_filling.html">metobs_toolkit.gap_filling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.gee_extractor.html">metobs_toolkit.gee_extractor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.geometry_functions.html">metobs_toolkit.geometry_functions</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.connect_to_gee.html">metobs_toolkit.landcover_functions.connect_to_gee</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.coordinates_available.html">metobs_toolkit.landcover_functions.coordinates_available</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.coords_to_geometry.html">metobs_toolkit.landcover_functions.coords_to_geometry</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">metobs_toolkit.landcover_functions.extract_buffer_frequencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.extract_pointvalues.html">metobs_toolkit.landcover_functions.extract_pointvalues</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.gee_extract_timeseries.html">metobs_toolkit.landcover_functions.gee_extract_timeseries</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.get_ee_obj.html">metobs_toolkit.landcover_functions.get_ee_obj</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.height_extractor.html">metobs_toolkit.landcover_functions.height_extractor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.lc_fractions_extractor.html">metobs_toolkit.landcover_functions.lc_fractions_extractor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.landcover_functions.lcz_extractor.html">metobs_toolkit.landcover_functions.lcz_extractor</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
@@ -132,25 +128,29 @@
 <h1>metobs_toolkit.landcover_functions.extract_buffer_frequencies<a class="headerlink" href="#metobs-toolkit-landcover-functions-extract-buffer-frequencies" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="metobs_toolkit.landcover_functions.extract_buffer_frequencies">
-<span class="sig-prename descclassname"><span class="pre">metobs_toolkit.landcover_functions.</span></span><span class="sig-name descname"><span class="pre">extract_buffer_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapinfo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bufferradius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/landcover_functions.html#extract_buffer_frequencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.landcover_functions.extract_buffer_frequencies" title="Link to this definition"></a></dt>
-<dd><p>Extract buffer fractions from a GEE categorical dataset.</p>
-<p>The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.</p>
-<p>A dataframe with the extracted values is returned.
-The values are mapped to human classes if the dataset value type is labeld as categorical.</p>
+<span class="sig-prename descclassname"><span class="pre">metobs_toolkit.landcover_functions.</span></span><span class="sig-name descname"><span class="pre">extract_buffer_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trg_gee_loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_of_use</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_imagecollection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bufferradius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/landcover_functions.html#extract_buffer_frequencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.landcover_functions.extract_buffer_frequencies" title="Link to this definition"></a></dt>
+<dd><p>Extract cover frequencies of buffers at point locations from a static GEE dataset.</p>
+<p>The locations are defined by the ‘lat’ and ‘lon’ columns in the metadf. The
+GEE dataset is defined by its location (trg_gee_loc), the band (band_of_use)
+to extrac from and some metadata of the dataset.</p>
+<p>The radius is in the same units as the spatial units of the dataset!</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>metadf</strong> (<em>pd.DataFrame</em>) – dataframe containing coordinates and a column “name”, representing the name for each location.</p></li>
-<li><p><strong>mapinfo</strong> (<em>Dict</em>) – The information about the GEE dataset.</p></li>
-<li><p><strong>latcolname</strong> (<em>String</em><em>, </em><em>optional</em>) – Columnname of latitude values. The default is ‘lat’.</p></li>
-<li><p><strong>loncolname</strong> (<em>String</em><em>, </em><em>optional</em>) – Columnname of longitude values. The default is ‘lon’.</p></li>
+<li><p><strong>metadf</strong> (<em>pandas.DataFrame</em>) – A dataframe containing the location to extract as a lat and lon column.</p></li>
+<li><p><strong>scale</strong> (<em>num</em>) – The scale (the target resolution) of the dataset.</p></li>
+<li><p><strong>trg_gee_loc</strong> (<em>str</em>) – The gee location of the dataset.</p></li>
+<li><p><strong>band_of_use</strong> (<em>str</em>) – The name of the band to extract data from.</p></li>
+<li><p><strong>is_imagecollection</strong> (<em>bool</em>) – True if the dataset is a gee.ImageCollection.</p></li>
+<li><p><strong>is_image</strong> (<em>bool</em>) – True if the dataset is a gee.Image.</p></li>
+<li><p><strong>bufferradius</strong> (<em>num</em>) – The radius of the buffer in the same units and crs as the trg_gee_dataset.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dataframe with name as index, all columns from the metadf + extracted extracted values column.</p>
+<dd class="field-even"><p>Dataframe with the normalize frequencies of cover occurences per buffer.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>pd.DataFrame</p>
+<dd class="field-odd"><p>pandas.DataFrame</p>
 </dd>
 </dl>
 </dd></dl>

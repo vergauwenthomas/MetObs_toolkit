@@ -40,7 +40,9 @@ logger = logging.getLogger(__name__)
 
 
 def folium_plot(
-    mapinfo,
+    trg_location,
+    is_image,
+    is_imagecollection,
     band,
     vis_params,
     labelnames,
@@ -51,7 +53,12 @@ def folium_plot(
 ):
     """Make an interactive folium plot of an Image."""
     # get the ee.Image
-    im = get_ee_obj(mapinfo, band)
+    im = get_ee_obj(
+        trg_location=trg_location,
+        is_image=is_image,
+        is_imagecollection=is_imagecollection,
+        band=band,
+    )
 
     # make plot
     MAP = foliumap.Map()
@@ -871,7 +878,7 @@ def timeseries_plot(
 
 def model_timeseries_plot(
     df,
-    obstype,
+    obstypename,
     title,
     ylabel,
     settings,
@@ -888,7 +895,7 @@ def model_timeseries_plot(
     ----------
     df : pandas.DataFrame
         The dataframe containing the timeseries.
-    obstype : str
+    obstypename : str
         The observation type to plot. Must be a column in the df.
     title : str
         Title of the figure.
@@ -928,7 +935,7 @@ def model_timeseries_plot(
     df = df[~df.index.duplicated()]
 
     # rename and create dummy columns so that linecollection can be used
-    df = df.rename(columns={obstype: "value"})
+    df = df.rename(columns={obstypename: "value"})
     df["label"] = "modeldata"
 
     # all lines are dashed lines

@@ -17,102 +17,6 @@ from metobs_toolkit.df_helpers import init_multiindexdf
 
 logger = logging.getLogger(__name__)
 
-# =============================================================================
-#  Connection functions
-# =============================================================================
-
-
-def connect_to_gee():
-    """Authenticate to GEE if needed."""
-    if not ee.data._credentials:  # check if ee connection is initialized
-        ee.Authenticate()
-        ee.Initialize()
-    return
-
-
-# =============================================================================
-# Top level functions (can be called by dataset)
-# =============================================================================
-
-
-def lcz_extractor(metadf, mapinfo):
-    """Extract LCZ for all stations in the metadf."""
-    # make return in case something went wrong
-    default_return = pd.Series(
-        index=metadf.index, data="Location_unknown", name="lcz", dtype=object
-    )
-    # test if metadata is suitable
-    if not _validate_metadf(metadf):
-        logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
-        return default_return
-
-    relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
-
-    lcz_df = extract_pointvalues(
-        metadf=relevant_metadf, mapinfo=mapinfo, output_column_name="lcz"
-    )
-    if lcz_df.empty:
-        return pd.Series(dtype=object)
-    return lcz_df["lcz"]  # return series
-
-
-def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
-    """Get landcover fractions for all buffers from GEE."""
-    # make return in case something went wrong
-    default_return = (pd.DataFrame(index=metadf.index), buffer)
-
-    # test if metadata is suitable
-    if not _validate_metadf(metadf):
-        logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
-        return default_return
-
-    relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
-
-    freqs_df = extract_buffer_frequencies(
-        metadf=relevant_metadf, mapinfo=mapinfo, bufferradius=buffer
-    )
-
-    # apply aggregation if required
-    if agg:
-        logger.info(f"Using aggregation scheme: {mapinfo['aggregation']}")
-        agg_df = pd.DataFrame()
-        for agg_name, agg_classes in mapinfo["aggregation"].items():
-            present_agg_classes = [
-                str(num) for num in agg_classes if str(num) in freqs_df.columns
-            ]
-            agg_df[agg_name] = freqs_df[present_agg_classes].sum(axis=1)
-
-        return agg_df, buffer
-
-    else:
-        # map numeric classes to human
-        mapper = {
-            str(num): human for num, human in mapinfo["categorical_mapper"].items()
-        }
-        freqs_df = freqs_df.rename(columns=mapper)
-
-        return freqs_df, buffer
-
-
-def height_extractor(metadf, mapinfo):
-    """Get altitude for all stations from GEE."""
-    # make return in case something went wrong
-    default_return = pd.Series(
-        index=metadf.index, data="Location_unknown", name="altitude", dtype=object
-    )
-
-    # test if metadata is suitable
-    if not _validate_metadf(metadf):
-        logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
-        return default_return
-
-    relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
-
-    altitude_df = extract_pointvalues(
-        metadf=relevant_metadf, mapinfo=mapinfo, output_column_name="altitude"
-    )
-    return altitude_df["altitude"]  # return series
-
 
 # =============================================================================
 # Object convertors
@@ -120,21 +24,22 @@ def height_extractor(metadf, mapinfo):
 
 
 def _datetime_to_gee_datetime(datetime):
+    """Convert a datetime (in UTC) to a gee.Date"""
     # covert to UTC!
-    utcdt = datetime.astimezone(pytz.utc)
-    logger.debug(utcdt.replace(tzinfo=None))
-    return ee.Date(utcdt.replace(tzinfo=None))
+    # utcdt = datetime.astimezone(pytz.utc) #this will assume datetime in lt !!!
+    # logger.debug(utcdt.replace(tzinfo=None))
+    return ee.Date(datetime.replace(tzinfo=None))
 
 
-def get_ee_obj(mapinfo, band=None):
+def get_ee_obj(trg_location, is_image, is_imagecollection, band=None):
     """Get an image from a GEE object."""
-    if mapinfo["is_image"]:
-        obj = ee.Image(mapinfo["location"])
-    elif mapinfo["is_imagecollection"]:
+    if is_image:
+        obj = ee.Image(trg_location)
+    elif is_imagecollection:
         if isinstance(band, type(None)):
-            obj = ee.ImageCollection(mapinfo["location"])
+            obj = ee.ImageCollection(trg_location)
         else:
-            obj = ee.ImageCollection(mapinfo["location"]).select(band)
+            obj = ee.ImageCollection(trg_location).select(band)
 
     else:
         sys.exit("Map type is not an Image or Imagecollection.")
@@ -190,11 +95,11 @@ def _addDate(image):
 def _df_to_features_point_collection(df):
     """Convert a dataframe to a featurecollections row-wise."""
     features = []
-    for index, row in df.reset_index().iterrows():
+    for index, row in df.iterrows():
         #     construct the geometry from dataframe
         poi_geometry = ee.Geometry.Point([row["lon"], row["lat"]])
         #     construct the attributes (properties) for each point
-        poi_properties = poi_properties = {"name": row["name"]}
+        poi_properties = {"feature_idx": ee.String(str(index))}
         #     construct feature combining geometry and properties
         poi_feature = ee.Feature(poi_geometry, poi_properties)
         features.append(poi_feature)
@@ -205,13 +110,13 @@ def _df_to_features_point_collection(df):
 def _df_to_features_buffer_collection(df, bufferradius):
     """Convert a dataframe to a featurecollections row-wise."""
     features = []
-    for index, row in df.reset_index().iterrows():
+    for index, row in df.iterrows():
         #     construct the geometry from dataframe
         poi_geometry = ee.Geometry.Point([row["lon"], row["lat"]]).buffer(
             distance=bufferradius
         )
         #     construct the attributes (properties) for each point
-        poi_properties = poi_properties = {"name": row["name"]}
+        poi_properties = poi_properties = {"feature_idx": index}
         #     construct feature combining geometry and properties
         poi_feature = ee.Feature(poi_geometry, poi_properties)
         features.append(poi_feature)
@@ -219,18 +124,8 @@ def _df_to_features_buffer_collection(df, bufferradius):
     return ee.FeatureCollection(features)
 
 
-def coordinates_available(metadf, latcol="lat", loncol="lon"):
-    """Test if all coordinates are available."""
-    if metadf[latcol].isnull().all():
-        logger.warning("No coordinates are found!")
-        return False
-    if metadf[loncol].isnull().all():
-        logger.warning("No coordinates are found!")
-        return False
-    return True
-
-
 def _estimate_data_size(metadf, startdt, enddt, time_res, n_bands=1):
+    """Make a rough estimate of data size to transfer."""
     datatimerange = pd.date_range(start=startdt, end=enddt, freq=time_res)
 
     return metadf.shape[0] * len(datatimerange) * n_bands
@@ -241,39 +136,39 @@ def _estimate_data_size(metadf, startdt, enddt, time_res, n_bands=1):
 # =============================================================================
 
 
-def extract_pointvalues(metadf, mapinfo, output_column_name):
-    """Extract values for point locations from a GEE dataset.
+def extract_pointvalues(
+    metadf, scale, trg_gee_loc, band_of_use, is_imagecollection, is_image
+):
+    """Extract values for point locations from a static GEE dataset.
 
-    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
+    The locations are defined by the 'lat' and 'lon' columns in the metadf. The
+    GEE dataset is defined by its location (trg_gee_loc), the band (band_of_use)
+    to extrac from and some metadata of the dataset.
 
-    A dataframe with the extracted values is returned.
-    The values are mapped to human classes if the dataset value type is labeld as categorical.
 
     Parameters
     ----------
-    metadf : pd.DataFrame
-        dataframe containing coordinates and a column "name", representing the name for each location.
-    mapinfo : Dict
-        The information about the GEE dataset.
-    output_column_name : String
-        Column name for the extracted values.
-    latcolname : String, optional
-        Columnname of latitude values. The default is 'lat'.
-    loncolname : String, optional
-        Columnname of longitude values. The default is 'lon'.
+    metadf : pandas.DataFrame
+        A dataframe containing the location to extract as a lat and lon column.
+    scale : num
+        The scale (the target resolution) of the dataset.
+    trg_gee_loc : str
+        The gee location of the dataset.
+    band_of_use : str
+        The name of the band to extract data from.
+    is_imagecollection : bool
+        True if the dataset is a gee.ImageCollection.
+    is_image : bool
+        True if the dataset is a gee.Image.
 
     Returns
     -------
-    pd.DataFrame
-        A dataframe with name as index, all columns from the metadf + extracted extracted values column.
+    pandas.DataFrame
+        The dataframe with the extracted values in.
 
     """
-    scale = mapinfo["scale"]
-
-    # test if coordiantes are available
-    if not coordinates_available(metadf, "lat", "lon"):
-        return pd.DataFrame()
-
+    logger.debug(f"Extract point values for {metadf} at {trg_gee_loc}.")
+    logger.debug(f"This band is used: {band_of_use}")
     # =============================================================================
     # df to featurecollection
     # =============================================================================
@@ -283,9 +178,14 @@ def extract_pointvalues(metadf, mapinfo, output_column_name):
     # =============================================================================
     # extract raster values
     # =============================================================================
+    raster = get_ee_obj(
+        trg_location=trg_gee_loc,
+        is_image=is_image,
+        is_imagecollection=is_imagecollection,
+        band=band_of_use,
+    )
 
-    raster = get_ee_obj(mapinfo, mapinfo["band_of_use"])  # dataset
-    if mapinfo["is_imagecollection"]:
+    if is_imagecollection:
 
         def rasterExtraction(image):
             feature = image.sampleRegions(
@@ -295,15 +195,13 @@ def extract_pointvalues(metadf, mapinfo, output_column_name):
             return feature
 
         results = raster.map(rasterExtraction).flatten().getInfo()
-    elif mapinfo["is_image"]:
-        raster = get_ee_obj(mapinfo, mapinfo["band_of_use"])  # dataset
+    elif is_image:
+        # raster = get_ee_obj(mapinfo, mapinfo["band_of_use"])  # dataset
         results = raster.sampleRegions(
             collection=ee_fc, scale=scale  # feature collection here
         ).getInfo()
     else:
-        sys.exit(
-            f'gee dataset {mapinfo["location"]} is neighter image nor imagecollection.'
-        )
+        sys.exit("gee dataset is neighter image nor imagecollection.")
 
     # extract properties
     if not bool(results["features"]):
@@ -321,59 +219,45 @@ def extract_pointvalues(metadf, mapinfo, output_column_name):
     properties = [x["properties"] for x in results["features"]]
     df = pd.DataFrame(properties)
 
-    # map to human space if categorical
-    if mapinfo["value_type"] == "categorical":
-        df[mapinfo["band_of_use"]] = df[mapinfo["band_of_use"]].map(
-            mapinfo["categorical_mapper"]
-        )
-
-    # rename to values to toolkit space
-    df = df.rename(columns={mapinfo["band_of_use"]: output_column_name})
-
-    # #format index
-    df = df.set_index(["name"])
-
     return df
 
 
-def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
-    """Extract buffer fractions from a GEE categorical dataset.
+def extract_buffer_frequencies(
+    metadf, scale, trg_gee_loc, band_of_use, is_imagecollection, is_image, bufferradius
+):
+    """Extract cover frequencies of buffers at point locations from a static GEE dataset.
 
-    The pointlocations are defined in a dataframe by EPSG:4326 lat lon coordinates.
+    The locations are defined by the 'lat' and 'lon' columns in the metadf. The
+    GEE dataset is defined by its location (trg_gee_loc), the band (band_of_use)
+    to extrac from and some metadata of the dataset.
 
-    A dataframe with the extracted values is returned.
-    The values are mapped to human classes if the dataset value type is labeld as categorical.
+    The radius is in the same units as the spatial units of the dataset!
 
     Parameters
     ----------
-    metadf : pd.DataFrame
-        dataframe containing coordinates and a column "name", representing the name for each location.
-    mapinfo : Dict
-        The information about the GEE dataset.
-    latcolname : String, optional
-        Columnname of latitude values. The default is 'lat'.
-    loncolname : String, optional
-        Columnname of longitude values. The default is 'lon'.
+    metadf : pandas.DataFrame
+        A dataframe containing the location to extract as a lat and lon column.
+    scale : num
+        The scale (the target resolution) of the dataset.
+    trg_gee_loc : str
+        The gee location of the dataset.
+    band_of_use : str
+        The name of the band to extract data from.
+    is_imagecollection : bool
+        True if the dataset is a gee.ImageCollection.
+    is_image : bool
+        True if the dataset is a gee.Image.
+    bufferradius : num
+        The radius of the buffer in the same units and crs as the trg_gee_dataset.
 
     Returns
     -------
-    pd.DataFrame
-        A dataframe with name as index, all columns from the metadf + extracted extracted values column.
+    pandas.DataFrame
+        Dataframe with the normalize frequencies of cover occurences per buffer.
 
     """
-    scale = mapinfo["scale"]
-
-    # test if coordiantes are available
-    if not coordinates_available(metadf, "lat", "lon"):
-        return pd.DataFrame()
-
-    # test if map is categorical
-    if not mapinfo["value_type"] == "categorical":
-        logger.warning(
-            "Extract buffer frequencies is only implemented for categorical datasets!"
-        )
-        return pd.DataFrame()
-
+    logger.debug(f"Extract buffers for {metadf} at {trg_gee_loc}.")
+    logger.debug(f"This band is used: {band_of_use}")
     # =============================================================================
     # df to featurecollection
     # =============================================================================
@@ -383,6 +267,12 @@ def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
     # =============================================================================
     # extract raster values
     # =============================================================================
+    raster = get_ee_obj(
+        trg_location=trg_gee_loc,
+        is_image=is_image,
+        is_imagecollection=is_imagecollection,
+        band=band_of_use,
+    )
 
     def rasterExtraction(image):
         feature = image.reduceRegions(
@@ -392,7 +282,6 @@ def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
         )
         return feature
 
-    raster = get_ee_obj(mapinfo, mapinfo["band_of_use"])  # dataset
     results = raster.map(rasterExtraction).flatten().getInfo()
 
     # =============================================================================
@@ -400,14 +289,14 @@ def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
     # =============================================================================
 
     freqs = {
-        staprop["properties"]["name"]: staprop["properties"]["histogram"]
+        staprop["properties"]["feature_idx"]: staprop["properties"]["histogram"]
         for staprop in results["features"]
     }
     freqsdf = pd.DataFrame(freqs)
 
     # format frequency df
     freqsdf = freqsdf.transpose().fillna(0)
-    freqsdf.index.name = "name"
+    freqsdf.index.name = "feature_idx"
 
     # normalize freqs
     freqsdf = freqsdf.div(freqsdf.sum(axis=1), axis=0)
@@ -416,9 +305,19 @@ def extract_buffer_frequencies(metadf, mapinfo, bufferradius):
 
 
 def gee_extract_timeseries(
-    metadf, band_mapper, mapinfo, startdt, enddt, latcolname="lat", loncolname="lon"
+    metadf,
+    bandnames,
+    startdt,
+    enddt,
+    scale,
+    timeres,
+    trg_gee_loc,
+    is_imagecollection,
+    is_image,
+    gdrive_filename,
 ):
-    """Extract timeseries data at the stations location from a GEE dataset.
+    """TODO: update this docstring
+    Extract timeseries data at the stations location from a GEE dataset.
 
     Extract a timeseries, for a given obstype, for point locations from a GEE
     dataset. The pointlocations are defined in a dataframe by EPSG:4326 lat lon
@@ -453,21 +352,17 @@ def gee_extract_timeseries(
         column with the same name as the obstypes.
 
     """
-    scale = mapinfo["scale"]
-    bandnames = list(band_mapper.keys())
-
-    # test if coordiantes are available
-    if not coordinates_available(metadf, latcolname, loncolname):
-        return pd.DataFrame()
-
+    logger.debug(f"Extract time series for {metadf} at {trg_gee_loc}.")
+    logger.debug(f"These bandnames are used: {bandnames}")
     use_drive = False
     _est_data_size = _estimate_data_size(
         metadf=metadf,
         startdt=startdt,
         enddt=enddt,
-        time_res=mapinfo["time_res"],
+        time_res=timeres,
         n_bands=len(bandnames),
     )
+
     if _est_data_size > 4000:
         print(
             "THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!"
@@ -495,9 +390,17 @@ def gee_extract_timeseries(
         return feature
 
     # Because the daterange is maxdate exclusive, add the time resolution to the enddt
-    enddt = enddt + pd.Timedelta(mapinfo["time_res"])
+    enddt = enddt + pd.Timedelta(timeres)
 
-    raster = get_ee_obj(mapinfo, bandnames)  # dataset
+    # construct raster obj
+    raster = get_ee_obj(
+        trg_location=trg_gee_loc,
+        is_image=is_image,
+        is_imagecollection=is_imagecollection,
+        band=bandnames,
+    )
+
+    # filter out timeseries
     results = (
         raster.filter(
             ee.Filter.date(
@@ -508,20 +411,6 @@ def gee_extract_timeseries(
         .map(rasterExtraction)
         .flatten()
     )
-
-    def format_df(df, band_mapper):
-        # format datetime
-        df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d%H%M%S")
-        # set timezone
-        df["datetime"] = df["datetime"].dt.tz_localize("UTC")
-
-        # format index
-        df = df.set_index(["name", "datetime"])
-        df = df.sort_index()
-
-        # rename to values to toolkit space
-        df = df.rename(columns=band_mapper)
-        return df
 
     if not use_drive:
         results = results.getInfo()
@@ -537,11 +426,11 @@ def gee_extract_timeseries(
         if df.empty:
             sys.exit("ERROR: the returned timeseries from GEE are empty.")
 
-        df = format_df(df, band_mapper)
+        # df = format_df(df, band_mapper)
         return df
 
     else:
-        _filename = "era5_data"
+        _filename = gdrive_filename
         _drivefolder = "era5_timeseries"
 
         print(
@@ -551,14 +440,14 @@ def gee_extract_timeseries(
             f"The timeseries will be writen to your Drive in {_drivefolder}/{_filename} "
         )
 
-        data_columns = ["datetime", "name"]
+        data_columns = ["datetime", "feature_idx"]
         data_columns.extend(bandnames)
 
         task = ee.batch.Export.table.toDrive(
             collection=results,
             description="extracting_era5",
             folder=_drivefolder,
-            fileNamePrefix=_filename,
+            fileNamePrefix=str(gdrive_filename),
             fileFormat="CSV",
             selectors=data_columns,
         )

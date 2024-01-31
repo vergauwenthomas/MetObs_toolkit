@@ -9,6 +9,14 @@ metobs\_toolkit.modeldata
 
 
 
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+
+      import_modeldata
+
 
 
 

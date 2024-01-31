@@ -62,7 +62,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#Inspect-gaps">Inspect gaps</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Outliers-to-gaps-and-missing-observations">Outliers to gaps and missing observations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Fill-missing-observations">Fill missing observations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Fill-gaps">Fill gaps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Fill-gaps">Fill gaps</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Extracting-ERA5-from-gee">Extracting ERA5 from gee</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#Filling-gaps-exercise">Filling gaps exercise</a></li>
 </ul>
 </li>
@@ -192,7 +195,7 @@ Name: datetime, dtype: datetime64[ns, UTC]
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder02&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder02&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -248,7 +251,7 @@ There are no gaps.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur for all stations. &#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur for all stations. &#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -273,7 +276,7 @@ There are no gaps.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder05&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder05&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -353,7 +356,7 @@ vlinder28 2022-09-12 07:15:00+00:00  13.600000
 <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.fill_gaps_era5">fill_gaps_era5()</a> method. * Automatic gapfill: A combination of the interpolation and ERA5-debias. For the shortest gaps interpolation is used and debias-ERA5 for the longer gaps. Use the
 <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.fill_gaps_automatic">fill_gaps_automatic()</a> method for this.</p>
 <p>Here is an example of using debias ERA5 gapfilling of temperature observations.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
@@ -367,89 +370,74 @@ vlinder28 2022-09-12 07:15:00+00:00  13.600000
 <span class="c1">#(As a demonstration, we will fill the gaps of a single station. The following functions can also be</span>
 <span class="c1"># directly applied to the dataset.)</span>
 <span class="n">your_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">)</span>
-
-
-<span class="c1">#Get ERA5 modeldata at the location of your stations and period.</span>
-<span class="n">ERA5_modeldata</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
-                                                                    <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
-
-<span class="c1">#Use the debias method to fill the gaps</span>
-<span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">fill_gaps_era5</span><span class="p">(</span><span class="n">modeldata</span><span class="o">=</span><span class="n">ERA5_modeldata</span><span class="p">,</span>
-                                         <span class="n">method</span><span class="o">=</span><span class="s1">&#39;debias&#39;</span><span class="p">,</span>
-                                         <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
-<br/></pre></div>
+</pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<p>To authorize access needed by Earth Engine, open the following
-        URL in a web browser and follow the instructions:</p>
-        <p><a href=https://code.earthengine.google.com/client-auth?scopes=https%3A//www.googleapis.com/auth/earthengine%20https%3A//www.googleapis.com/auth/devstorage.full_control&request_id=gOIKcfY39t-LaSM_esufmUl1XAlzLqE3KVIYY7vUJ04&tc=5laNPc-Y_M4z8qVxTUtp71dwfdgRuNHjkYgSdWvirrQ&cc=3Auxy8YEGzBho3lWk01G2QP8A9QF5VEoEoHxuxl65-0>https://code.earthengine.google.com/client-auth?scopes=https%3A//www.googleapis.com/auth/earthengine%20https%3A//www.googleapis.com/auth/devstorage.full_control&request_id=gOIKcfY39t-LaSM_esufmUl1XAlzLqE3KVIYY7vUJ04&tc=5laNPc-Y_M4z8qVxTUtp71dwfdgRuNHjkYgSdWvirrQ&cc=3Auxy8YEGzBho3lWk01G2QP8A9QF5VEoEoHxuxl65-0</a></p>
-        <p>The authorization workflow will generate a code, which you should paste in the box below.</p></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Enter verification code:  4/1AfJohXnKdN9MAKx-q9l7U6FHNF4FR7u6VH8zU5WXCgT1sZMJKO7TfV3G3ig
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-
-Successfully saved authorization token.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-*** Earth Engine *** Share your feedback by taking our Annual Developer Satisfaction Survey: https://google.qualtrics.com/jfe/form/SV_doiqkQG3NJ1t8IS?source=API
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is ERA5_hourly)
-</pre></div></div>
-</div>
-<p>The gaps in the station are now filled. To inspect these filled values, you can plot them</p>
+<section id="Extracting-ERA5-from-gee">
+<h3>Extracting ERA5 from gee<a class="headerlink" href="#Extracting-ERA5-from-gee" title="Link to this heading"></a></h3>
+<p>The modeldata in this example is ERA5 data that is extracted from the google earth engine. See the gee_example for more detailes.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">era5_modeldata</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">get_equivalent_era5_modeldata</span><span class="p">(</span><span class="n">get_obstypes</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">era5_modeldata</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Modeldata instance linked to GeeExtractor for ERA5 use:
+   location : ECMWF/ERA5_LAND/HOURLY, containing:
+     * 1 timeseries
+     * The following obstypes are available: [&#39;pressure&#39;, &#39;temp&#39;, &#39;u_comp_wind&#39;, &#39;v_comp_wind&#39;, &#39;wind_amplitude&#39;, &#39;wind_direction&#39;]
+     * Data has these units: [&#39;pa&#39;, &#39;Celsius&#39;, &#39;m/s&#39;, &#39;m/s&#39;, &#39;m/s&#39;, &#39;° from north (CW)&#39;]
+     * From 2022-09-01 00:00:00+00:00 --&gt; 2022-09-16 00:00:00+00:00 (with tz=UTC)
+
+ (Data is stored in the .df attribute)
+</pre></div></div>
+</div>
+<p>Now we can use this Modeldata to fill the gaps using the debias method.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Use the debias method to fill the gaps</span>
+<span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">fill_gaps_using_debiased_modeldata</span><span class="p">(</span><span class="n">modeldata</span><span class="o">=</span><span class="n">era5_modeldata</span><span class="p">,</span> <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The gaps in the station are now filled. To inspect these filled values, you can plot them</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_station</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
-<br/></pre></div>
+</pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder05&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder05&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_filling_example_19_1.png" src="../_images/examples_filling_example_19_1.png" />
+<img alt="../_images/examples_filling_example_23_1.png" src="../_images/examples_filling_example_23_1.png" />
 </div>
 </div>
 <p>If you want more details you can inspect the DataFrame with the gapfill values, or print out the information.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#inspect the gapfilldf attribute direct</span>
@@ -461,7 +449,7 @@ Successfully saved authorization token.
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -525,6 +513,7 @@ Successfully saved authorization token.
 </table>
 </div></div>
 </div>
+</section>
 </section>
 <section id="Filling-gaps-exercise">
 <h2>Filling gaps exercise<a class="headerlink" href="#Filling-gaps-exercise" title="Link to this heading"></a></h2>

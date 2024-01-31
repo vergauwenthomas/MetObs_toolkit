@@ -25,23 +25,22 @@ metobs\_toolkit.dataset\_settings\_updater.Dataset
       ~Dataset.coarsen_time_resolution
       ~Dataset.combine_all_to_obsspace
       ~Dataset.fill_gaps_automatic
-      ~Dataset.fill_gaps_era5
       ~Dataset.fill_gaps_linear
+      ~Dataset.fill_gaps_using_debiased_modeldata
       ~Dataset.fill_missing_obs_linear
       ~Dataset.get_altitude
       ~Dataset.get_analysis
+      ~Dataset.get_equivalent_era5_modeldata
       ~Dataset.get_gaps_df
       ~Dataset.get_gaps_info
       ~Dataset.get_info
       ~Dataset.get_landcover
       ~Dataset.get_lcz
       ~Dataset.get_missing_obs_info
-      ~Dataset.get_modeldata
       ~Dataset.get_qc_stats
       ~Dataset.get_station
       ~Dataset.import_data_from_file
       ~Dataset.import_dataset
-      ~Dataset.make_gee_plot
       ~Dataset.make_geo_plot
       ~Dataset.make_interactive_plot
       ~Dataset.make_plot

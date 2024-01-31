@@ -33,6 +33,7 @@
    metobs_toolkit.df_helpers
    metobs_toolkit.gap
    metobs_toolkit.gap_filling
+   metobs_toolkit.gee_extractor
    metobs_toolkit.geometry_functions
    metobs_toolkit.landcover_functions
    metobs_toolkit.missingobs

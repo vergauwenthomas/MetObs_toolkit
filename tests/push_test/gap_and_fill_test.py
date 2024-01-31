@@ -219,12 +219,14 @@ dataset.coarsen_time_resolution(freq="30T")
 
 
 # offline mode
-era = metobs_toolkit.Modeldata("ERA5_hourly")
+era = metobs_toolkit.Modeldata(
+    metadf=dataset.metadf, extractor=metobs_toolkit.GeeExtractor()
+)
 
 era_datafile = os.path.join(str(lib_folder), "tests", "test_data", "era5_data.csv")
 
 
-era.set_model_from_csv(era_datafile)
+era.import_gee_data_from_csv(era_datafile)
 
 assert era.df.shape[0] == 5348, "Something wrong with importing era data from csv."
 
@@ -368,8 +370,8 @@ assert checkeddf.equals(output), "something wrong with the automatic gapfill"
 
 #%%
 # # Fill gaps using era5 data:
-dataset.fill_gaps_era5(
-    modeldata=era, method="debias", obstype="temp", overwrite_fill=True
+dataset.fill_gaps_using_debiased_modeldata(
+    modeldata=era, obstype="temp", overwrite_fill=True
 )
 
 

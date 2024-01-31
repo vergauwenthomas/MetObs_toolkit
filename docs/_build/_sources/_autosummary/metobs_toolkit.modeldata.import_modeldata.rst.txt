@@ -1,0 +1,6 @@
+metobs\_toolkit.modeldata.import\_modeldata
+===========================================
+
+.. currentmodule:: metobs_toolkit.modeldata
+
+.. autofunction:: import_modeldata

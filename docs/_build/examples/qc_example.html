@@ -143,7 +143,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder02&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder02&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -192,8 +192,6 @@ All settings:
 * input_metadata_file:
 
   -/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/datafiles/demo_metadatafile.csv
-
- ---------------- db (settings) ----------------------
 
  ---------------- time_settings (settings) ----------------------
 
@@ -268,10 +266,6 @@ All settings:
   - correlation_scatter:
 
     -{&#39;figsize&#39;: (10, 10), &#39;p_bins&#39;: [0, 0.001, 0.01, 0.05, 999], &#39;bins_markers&#39;: [&#39;*&#39;, &#39;s&#39;, &#39;^&#39;, &#39;X&#39;], &#39;scatter_size&#39;: 40, &#39;scatter_edge_col&#39;: &#39;black&#39;, &#39;scatter_edge_line_width&#39;: 0.1, &#39;ymin&#39;: -1.1, &#39;ymax&#39;: 1.1, &#39;cmap&#39;: &#39;tab20&#39;, &#39;legend_ncols&#39;: 3, &#39;legend_text_size&#39;: 7}
-
-* world_boundary_map:
-
-  -/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/settings_files/world_boundaries/WB_countries_Admin0_10m.shp
 
 * display_name_mapper:
 
@@ -527,26 +521,6 @@ All settings:
 
   -/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/datafiles/demo_templatefile.csv
 
- ---------------- gee (settings) ----------------------
-
-* gee_dataset_info:
-
-  - global_lcz_map:
-
-    -{&#39;location&#39;: &#39;RUB/RUBCLIM/LCZ/global_lcz_map/v1&#39;, &#39;usage&#39;: &#39;LCZ&#39;, &#39;band_of_use&#39;: &#39;LCZ_Filter&#39;, &#39;value_type&#39;: &#39;categorical&#39;, &#39;dynamical&#39;: False, &#39;scale&#39;: 100, &#39;is_image&#39;: False, &#39;is_imagecollection&#39;: True, &#39;categorical_mapper&#39;: {1: &#39;Compact highrise&#39;, 2: &#39;Compact midrise&#39;, 3: &#39;Compact lowrise&#39;, 4: &#39;Open highrise&#39;, 5: &#39;Open midrise&#39;, 6: &#39;Open lowrise&#39;, 7: &#39;Lightweight lowrise&#39;, 8: &#39;Large lowrise&#39;, 9: &#39;Sparsely built&#39;, 10: &#39;Heavy industry&#39;, 11: &#39;Dense Trees (LCZ A)&#39;, 12: &#39;Scattered Trees (LCZ B)&#39;, 13: &#39;Bush, scrub (LCZ C)&#39;, 14: &#39;Low plants (LCZ D)&#39;, 15: &#39;Bare rock or paved (LCZ E)&#39;, 16: &#39;Bare soil or sand (LCZ F)&#39;, 17: &#39;Water (LCZ G)&#39;}, &#39;credentials&#39;: &#39;Demuzere M.; Kittner J.; Martilli A.; Mills, G.; Moede, C.; Stewart, I.D.; van Vliet, J.; Bechtel, B. A global map of local climate zones to support earth system modelling and urban-scale environmental science. Earth System Science Data 2022, 14 Volume 8: 3835-3873. doi:10.5194/essd-14-3835-2022&#39;}
-
-  - DEM:
-
-    -{&#39;location&#39;: &#39;CGIAR/SRTM90_V4&#39;, &#39;usage&#39;: &#39;elevation&#39;, &#39;band_of_use&#39;: &#39;elevation&#39;, &#39;value_type&#39;: &#39;numeric&#39;, &#39;dynamical&#39;: False, &#39;scale&#39;: 100, &#39;is_image&#39;: True, &#39;is_imagecollection&#39;: False, &#39;credentials&#39;: &#39;SRTM Digital Elevation Data Version 4&#39;}
-
-  - ERA5_hourly:
-
-    -{&#39;location&#39;: &#39;ECMWF/ERA5_LAND/HOURLY&#39;, &#39;usage&#39;: &#39;ERA5&#39;, &#39;band_of_use&#39;: {&#39;temp&#39;: {&#39;name&#39;: &#39;temperature_2m&#39;, &#39;units&#39;: &#39;K&#39;}}, &#39;value_type&#39;: &#39;numeric&#39;, &#39;dynamical&#39;: True, &#39;scale&#39;: 2500, &#39;is_image&#39;: False, &#39;is_imagecollection&#39;: True, &#39;time_res&#39;: &#39;1H&#39;, &#39;credentials&#39;: &#39;&#39;}
-
-  - worldcover:
-
-    -{&#39;location&#39;: &#39;ESA/WorldCover/v200&#39;, &#39;usage&#39;: &#39;landcover&#39;, &#39;band_of_use&#39;: &#39;Map&#39;, &#39;value_type&#39;: &#39;categorical&#39;, &#39;dynamical&#39;: False, &#39;scale&#39;: 10, &#39;is_image&#39;: False, &#39;is_imagecollection&#39;: True, &#39;categorical_mapper&#39;: {10: &#39;Tree cover&#39;, 20: &#39;Shrubland&#39;, 30: &#39;Grassland&#39;, 40: &#39;Cropland&#39;, 50: &#39;Built-up&#39;, 60: &#39;Bare / sparse vegetation&#39;, 70: &#39;Snow and ice&#39;, 80: &#39;Permanent water bodies&#39;, 90: &#39;Herbaceous wetland&#39;, 95: &#39;Mangroves&#39;, 100: &#39;Moss and lichen&#39;}, &#39;aggregation&#39;: {&#39;water&#39;: [70, 80, 90, 95], &#39;pervious&#39;: [10, 20, 30, 40, 60, 100], &#39;impervious&#39;: [50]}, &#39;colorscheme&#39;: {10: &#39;006400&#39;, 20: &#39;ffbb22&#39;, 30: &#39;ffff4c&#39;, 40: &#39;f096ff&#39;, 50: &#39;fa0000&#39;, 60: &#39;b4b4b4&#39;, 70: &#39;f0f0f0&#39;, 80: &#39;0064c8&#39;, 90: &#39;0096a0&#39;, 95: &#39;00cf75&#39;, 100: &#39;fae6a0&#39;}, &#39;credentials&#39;: &#39;https://spdx.org/licenses/CC-BY-4.0.html&#39;}
-
 </pre></div></div>
 </div>
 <p>Use the <a class="reference external" href="https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset_settings_updater.Dataset.html#metobs_toolkit.dataset_settings_updater.Dataset.update_qc_settings">update_qc_settings()</a> method to update the default settings.</p>
@@ -592,7 +566,7 @@ All settings:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur for all stations. &#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur for all stations. &#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">

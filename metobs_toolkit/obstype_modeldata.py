@@ -10,51 +10,19 @@ import math
 import numpy as np
 import logging
 from metobs_toolkit.obstypes import Obstype
+from metobs_toolkit.obstypes import expression_calculator
 
 from metobs_toolkit.obstypes import temperature, pressure, wind, direction_aliases
 
 logger = logging.getLogger(__name__)
 
-# =============================================================================
-# Standard modeldata equivalents
-# =============================================================================
-tlk_std_modeldata_obstypes = {
-    "temp": {
-        "ERA5_hourly": {
-            "name": "temperature_2m",
-            "units": "Kelvin",
-            "band_desc": "Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth's surface, taking account of the atmospheric conditions.",
-        }
-    },
-    "pressure": {
-        "ERA5_hourly": {
-            "name": "surface_pressure",
-            "units": "pa",
-            "band_desc": "Pressure (force per unit area) of the atmosphere on the surface of land, sea and in-land water. It is a measure of the weight of all the air in a column vertically above the area of the Earth's surface represented at a fixed point. Surface pressure is often used in combination with temperature to calculate air density. The strong variation of pressure with altitude makes it difficult to see the low and high pressure systems over mountainous areas, so mean sea level pressure, rather than surface pressure, is normally used for this purpose. The units of this variable are Pascals (Pa). Surface pressure is often measured in hPa and sometimes is presented in the old units of millibars, mb (1 hPa = 1 mb = 100 Pa).",
-        }
-    },
-    "u_wind": {
-        "ERA5_hourly": {
-            "name": "u_component_of_wind_10m",
-            "units": "m/s",
-            "band_desc": "Eastward component of the 10m wind. It is the horizontal speed of air moving towards the east, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the V component of 10m wind to give the speed and direction of the horizontal 10m wind.",
-        }
-    },
-    "v_wind": {
-        "ERA5_hourly": {
-            "name": "v_component_of_wind_10m",
-            "units": "m/s",
-            "band_desc": "Northward component of the 10m wind. It is the horizontal speed of air moving towards the north, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the U component of 10m wind to give the speed and direction of the horizontal 10m wind.",
-        }
-    },
-}
-
 
 class ModelObstype(Obstype):
     """Extension of the Obstype class specific for the obstypes of Modeldata."""
 
-    def __init__(self, obstype, model_equivalent_dict={}):
-        """Initiate an Modelobservation type.
+    def __init__(self, obstype, band_name, band_unit, band_description):
+        """TODO fix update docstring
+        Initiate an Modelobservation type.
 
         A ModelObstype has the same properties as an Obstype but with some
         extra attributes and methods.
@@ -101,7 +69,10 @@ class ModelObstype(Obstype):
             unit_conversions=obstype.conv_table,
         )
 
-        self.modl_equi_dict = model_equivalent_dict
+        # self.modl_equi_dict = model_equivalent_dict
+        self.band_name = str(band_name)
+        self.band_unit = str(band_unit)
+        self.band_desc = str(band_description)
         self._is_valid()
 
     def __repr__(self):
@@ -128,88 +99,47 @@ class ModelObstype(Obstype):
     * conversions to known units: {self.conv_table} \n"
         print(info_str)
 
-    def get_mapped_datasets(self):
-        """Return all gee datasets with a representing band for this obstype."""
-        return list(self.modl_equi_dict.keys())
+    # def get_mapped_datasets(self):
+    #     """Return all gee datasets with a representing band for this obstype."""
+    #     return list(self.modl_equi_dict.keys())
+    def get_band_description(self):
+        """Return the band description."""
+        return str(self.band_desc)
 
-    def get_bandname(self, mapname):
-        """Return the representing bandname of the obstype from a given gee dataset."""
-        return str(self.modl_equi_dict[mapname]["name"])
+    def get_bandname(self):
+        """Return the representing bandname of the obstype"""
+        return str(self.band_name)
 
-    def get_bandname_mapper(self, mapname):
+    def get_bandname_mapper(self):
         """Return the representing bandname with tlk standard name as a dict."""
-        return {str(self.modl_equi_dict[mapname]["name"]): self.name}
+        return {self.get_bandname(): self.name}
 
-    def get_plot_y_label(self, mapname):
+    def get_plot_y_label(self):
         """Return a string to represent the vertical axes of a plot."""
-        return f'{self.name} ({self.std_unit}) \n {mapname}: {self.modl_equi_dict[mapname]["name"]}'
+        return f"{self.name} ({self.std_unit}) \n {self.get_bandname()}"
 
-    def get_modelunit(self, mapname):
-        """Return the units of the representing bandname of the obstype from a given gee dataset."""
-        return str(self.modl_equi_dict[mapname]["units"])
-
-    def has_mapped_band(self, mapname):
-        """Test is a gee dataset has a representing band."""
-        try:
-            self.get_bandname(mapname)
-            return True
-        except KeyError:
-            return False
-
-    def add_new_band(self, mapname, bandname, bandunit, band_desc=None):
-        """Add a new representing dataset/bandname to the obstype.
-
-        Parameters
-        ----------
-        mapname : str
-            name of the known gee dataset.
-        bandname : str
-            the name of the representing band.
-        bandunit : str
-            the unit of the representing band.
-        band_desc : str, optional
-            A detailed description of the band.
-
-        Returns
-        -------
-        None.
-
-        """
-        # test if banunit is valid
-        if not self.test_if_unit_is_known(bandunit):
-            sys.exit(f"{bandunit} is an unknown unit for the {self.name} obstype.")
-
-        if mapname in self.modl_equi_dict.keys():
-            # check if band is already knonw
-            logger.debug(f"Update {bandname} of (known) map: {mapname}")
-        else:
-            logger.debug(f"Add new map: {mapname} with band: {bandname}.")
-        self.modl_equi_dict[mapname] = {
-            "name": str(bandname),
-            "units": str(bandunit),
-            "band_desc": str(band_desc),
-        }
+    def get_bandunit(self):
+        """Return the units of the representing bandname of the obstype."""
+        return str(self.band_unit)
 
     def _is_valid(self):
         """Test if all attributes are valid among each other."""
-        for datasetname in self.modl_equi_dict.keys():
-            # Check if unit is available
-            if "units" not in self.modl_equi_dict[datasetname].keys():
-                sys.exit(
-                    f"No units information is provided for {self.name} for modeldata: {datasetname}"
-                )
-            # check if the unit is known
-            if not self.test_if_unit_is_known(
-                unit_name=self.modl_equi_dict[datasetname]["units"]
-            ):
-                sys.exit(
-                    f'Cannot create {self.name} ModelObstype because {self.modl_equi_dict[datasetname]["units"]} is a unknown unit.'
-                )
+        # check if the band unit is a knonw unit
+        assert (
+            self.band_unit in self.get_all_units()
+        ), f"{self.band_unit} is not a known unit of {self}"
 
 
 class ModelObstype_Vectorfield(Obstype):
     def __init__(
-        self, obstype, u_comp_model_equivalent_dict={}, v_comp_model_equivalent_dict={}
+        self,
+        obstype,
+        band_name_u,
+        band_unit_u,
+        band_description_u,
+        band_name_v,
+        band_unit_v,
+        band_description_v,
     ):
 
         super().__init__(
@@ -220,21 +150,23 @@ class ModelObstype_Vectorfield(Obstype):
             unit_conversions=obstype.conv_table,
         )
 
-        if set(u_comp_model_equivalent_dict.keys()) != set(
-            v_comp_model_equivalent_dict.keys()
-        ):
-            sys.exit(
-                f"The mapped gee dataset are not equal for the vector components of {obstype.name}."
-            )
+        # mod_comp_dict = {}
+        # for geedataset in u_comp_model_equivalent_dict.keys():
+        #     mod_comp_dict[geedataset] = {
+        #         "u_comp": u_comp_model_equivalent_dict[geedataset],
+        #         "v_comp": v_comp_model_equivalent_dict[geedataset],
+        #     }
 
-        mod_comp_dict = {}
-        for geedataset in u_comp_model_equivalent_dict.keys():
-            mod_comp_dict[geedataset] = {
-                "u_comp": u_comp_model_equivalent_dict[geedataset],
-                "v_comp": v_comp_model_equivalent_dict[geedataset],
-            }
+        self.band_unit_u = str(band_unit_u)
+        self.band_unit_v = str(band_unit_v)
 
-        self.modl_comp_dict = mod_comp_dict
+        self.band_name_u = str(band_name_u)
+        self.band_name_v = str(band_name_v)
+
+        self.band_desc_u = str(band_description_u)
+        self.band_desc_v = str(band_description_v)
+
+        # self.modl_comp_dict = mod_comp_dict
         self._is_valid()
 
     def __repr__(self):
@@ -253,52 +185,31 @@ class ModelObstype_Vectorfield(Obstype):
         None.
 
         """
-        u_databands = {
-            key: item["u_comp"]["name"] for key, item in self.modl_comp_dict.items()
-        }
-        v_databands = {
-            key: item["v_comp"]["name"] for key, item in self.modl_comp_dict.items()
-        }
         info_str = f"{self.name} observation with: \n \
-    * Known Vector-East-component datasetsbands: {u_databands} \n \
-    * Known Vector-North-component datasetsbands: {v_databands} \n \
+    * Known Vector-East-component databand: {self.band_name_u} \n \
+    * Known Vector-North-component datasetsbands: {self.band_name_v} \n \
     * standard unit: {self.std_unit} \n \
     * description: {self.description} \n \
     * conversions to known units: {self.conv_table} \n"
         print(info_str)
 
-    def get_mapped_datasets(self):
-        """Return all gee datasets with a representing band for this obstype."""
-        return list(self.modl_comp_dict.keys())
-
-    # def get_bandname(self, mapname):
-    #     """Return the representing bandname of the obstype from a given gee dataset."""
-    #     return str(self.modl_equi_dict[mapname]['name'])
-
-    def get_bandname_mapper(self, mapname):
+    def get_bandname_mapper(self):
         """Return the representing bandname with tlk standard name as a dict."""
         mapper = {
-            str(self.modl_comp_dict[mapname]["u_comp"]["name"]): f"u_comp_{self.name}",
-            str(self.modl_comp_dict[mapname]["v_comp"]["name"]): f"v_comp_{self.name}",
+            self.band_name_u: f"u_comp_{self.name}",
+            self.band_name_v: f"v_comp_{self.name}",
         }
 
         return mapper
 
-    def get_modelunit(self, mapname):
+    def get_bandunit(self):
         """Return the units of the representing bandname of the obstype from a given gee dataset."""
         # u and v comp must have the same units, this is tested in the _is_valid()
-        return str(self.modl_comp_dict[mapname]["u_comp"]["units"])
+        return self.band_unit_u
 
-    def has_mapped_band(self, mapname):
-        """Test is a gee dataset has a representing band."""
-        if mapname in self.modl_comp_dict.keys():
-            return True
-        else:
-            return False
-
-    def get_plot_y_label(self, mapname):
+    def get_plot_y_label(self):
         """Return a string to represent the vertical axes of a plot."""
-        return f'{self.name} ({self.std_unit}) \n {mapname}: {self.modl_equi_dict[mapname]["u_comp"]["name"]} and {self.modl_equi_dict[mapname]["v_comp"]["name"]}'
+        return f"{self.name} ({self.std_unit}) \n {self.band_name_u} and {self.band_name_v}"
 
     def get_u_column(self):
         return f"u_comp_{self.name}"
@@ -306,119 +217,131 @@ class ModelObstype_Vectorfield(Obstype):
     def get_v_column(self):
         return f"v_comp_{self.name}"
 
-    def add_new_band(
-        self,
-        mapname,
-        bandname_u_comp,
-        bandname_v_comp,
-        bandunit,
-        band_desc_u_comp=None,
-        band_desc_v_comp=None,
-    ):
-        """Add a new representing dataset/bandname to the obstype.
+    def create_the_scalar_modelobstypes(self):
+        """Create regular ModelObstypes for the u and v components"""
 
-        Parameters
-        ----------
-        mapname : str
-            name of the known gee dataset.
-        bandname_u_comp : str
-            the name of the representing the Eastwards component band.
-        bandname_v_comp : str
-            the name of the representing the Northwards component band.
-        bandunit : str
-            the unit of the representing bands.
-        band_desc_u_comp : str, optional
-            A detailed description of the Eastwards component of the band.
-        band_desc_v_comp : str, optional
-            A detailed description of the Northwards component of the band.
+        u_obstype = ModelObstype(
+            obstype=Obstype(
+                obsname=self.get_bandname_mapper()[self.band_name_u],
+                std_unit=self.std_unit,
+                description=self.description,
+                unit_aliases=self.units_aliases,
+                unit_conversions=self.conv_table,
+            ),
+            band_name=self.band_name_u,
+            band_unit=self.band_unit_u,
+            band_description=self.band_desc_u,
+        )
 
-        Returns
-        -------
-        None.
+        v_obstype = ModelObstype(
+            obstype=Obstype(
+                obsname=self.get_bandname_mapper()[self.band_name_v],
+                std_unit=self.std_unit,
+                description=self.description,
+                unit_aliases=self.units_aliases,
+                unit_conversions=self.conv_table,
+            ),
+            band_name=self.band_name_v,
+            band_unit=self.band_unit_v,
+            band_description=self.band_desc_v,
+        )
 
-        """
-        # test if banunit is valid
-        if not self.test_if_unit_is_known(bandunit):
-            sys.exit(f"{bandunit} is an unknown unit for the {self.name} obstype.")
+        return u_obstype, v_obstype
 
-        if mapname in self.modl_comp_dict.keys():
-            # check if band is already knonw
-            logger.debug(f"Update {bandname} of (known) map: {mapname}")
-        else:
-            logger.debug(f"Add new map: {mapname} with band: {bandname}.")
+    # def add_new_band(
+    #     self,
+    #     mapname,
+    #     bandname_u_comp,
+    #     bandname_v_comp,
+    #     bandunit,
+    #     band_desc_u_comp=None,
+    #     band_desc_v_comp=None,
+    # ):
+    #     """Add a new representing dataset/bandname to the obstype.
 
-        self.modl_comp_dict[mapname] = {}
-        self.modl_comp_dict[mapname]["u_comp"] = {
-            "name": str(bandname_u_comp),
-            "units": str(bandunit),
-            "band_desc": str(band_desc_u_comp),
-        }
-        self.modl_comp_dict[mapname]["v_comp"] = {
-            "name": str(bandname_v_comp),
-            "units": str(bandunit),
-            "band_desc": str(band_desc_v_comp),
-        }
+    #     Parameters
+    #     ----------
+    #     mapname : str
+    #         name of the known gee dataset.
+    #     bandname_u_comp : str
+    #         the name of the representing the Eastwards component band.
+    #     bandname_v_comp : str
+    #         the name of the representing the Northwards component band.
+    #     bandunit : str
+    #         the unit of the representing bands.
+    #     band_desc_u_comp : str, optional
+    #         A detailed description of the Eastwards component of the band.
+    #     band_desc_v_comp : str, optional
+    #         A detailed description of the Northwards component of the band.
+
+    #     Returns
+    #     -------
+    #     None.
+
+    #     """
+    #     # test if banunit is valid
+    #     if not self.test_if_unit_is_known(bandunit):
+    #         sys.exit(f"{bandunit} is an unknown unit for the {self.name} obstype.")
+
+    #     if mapname in self.modl_comp_dict.keys():
+    #         # check if band is already knonw
+    #         logger.debug(f"Update {bandname} of (known) map: {mapname}")
+    #     else:
+    #         logger.debug(f"Add new map: {mapname} with band: {bandname}.")
+
+    #     self.modl_comp_dict[mapname] = {}
+    #     self.modl_comp_dict[mapname]["u_comp"] = {
+    #         "name": str(bandname_u_comp),
+    #         "units": str(bandunit),
+    #         "band_desc": str(band_desc_u_comp),
+    #     }
+    #     self.modl_comp_dict[mapname]["v_comp"] = {
+    #         "name": str(bandname_v_comp),
+    #         "units": str(bandunit),
+    #         "band_desc": str(band_desc_v_comp),
+    #     }
 
     def _is_valid(self):
         """Test if all attributes are valid among each other."""
-        for datasetname in self.modl_comp_dict.keys():
-            for comp_str, comp in self.modl_comp_dict[datasetname].items():
-                # Check if unit is available
-                if "units" not in comp.keys():
-                    sys.exit(
-                        f"No units information is provided for {self.name} for {comp_str} modeldata_vectorfield: {datasetname}"
-                    )
-                # check if the unit is known
-                if not self.test_if_unit_is_known(unit_name=comp["units"]):
-                    sys.exit(
-                        f'Cannot create {self.name} ModelObstype_Vectorfield because {comp["units"]} is a unknown unit in the {comp_str}.'
-                    )
+        # check if the band unit is a knonw unit
+        assert (
+            self.band_unit_u in self.get_all_units()
+        ), f"{self.band_unit_u} (U- band unit) is not a known unit of {self}"
+        assert (
+            self.band_unit_v in self.get_all_units()
+        ), f"{self.band_unit_v} (V- band unit) is not a known unit of {self}"
 
-            # check if the units of the u and v comp are equal
-            if (
-                len(
-                    set(
-                        [
-                            comp["units"]
-                            for comp in self.modl_comp_dict[datasetname].values()
-                        ]
-                    )
-                )
-                > 1
-            ):
-                sys.exit(
-                    f"The units of the u and v component for {self.name} in the {datasetname} dataset are not equal."
-                )
+        # Check if band units are equal
+        assert (
+            self.band_unit_u == self.band_unit_v
+        ), f"The band units of the U and V components are not equal: {self.band_unit_u} != {self.band_unit_v}"
 
     def convert_to_standard_units(self, input_df, input_unit):
         """Convert data from a known unit to the standard unit.
 
-        The data c must be a pandas dataframe with both the u and v component
+        The data must be a pandas dataframe with both the u and v component
         prensent as columns.
 
         Parameters
         ----------
-        input_data : (collection of) numeric
-            The data to convert to the standard unit.
+        input_data : pandas.DataFrame
+            The dataframe containig the u and v data as columns with the name
+            as definde by the get_u_column and get_v_column methods.
         input_unit : str
             The known unit the inputdata is in.
 
         Returns
         -------
-        data_u_component :  numeric/numpy.array
+        data_u_component :  pandas.Series
             The u component of the data in standard units.
-        data_v_component :
+        data_v_component : pandas.Series
             The v component of the data in standard units.
 
         """
         # check if input unit is known
-        known = self.test_if_unit_is_known(input_unit)
-
-        # error when unit is not know
-        if not known:
-            sys.exit(
-                f"{input_unit} is an unknown unit for {self.name}. No coversion possible!"
-            )
+        assert self.test_if_unit_is_known(
+            input_unit
+        ), f"{input_unit} is an unknown unit for {self.name}. No coversion possible!"
 
         # Get conversion
         std_unit_name = self._get_std_unit_name(input_unit)
@@ -466,6 +389,7 @@ def compute_amplitude(modelobs_vectorfield, df):
         (df[modelobs_vectorfield.get_u_column()].pow(2))
         + (df[modelobs_vectorfield.get_v_column()].pow(2))
     ).pow(1.0 / 2)
+
     # Create a new obstype for the amplitude
     amplitude_obstype = Obstype(
         obsname=f"{modelobs_vectorfield.name}_amplitude",
@@ -474,19 +398,16 @@ def compute_amplitude(modelobs_vectorfield, df):
         unit_aliases=modelobs_vectorfield.units_aliases,
         unit_conversions=modelobs_vectorfield.conv_table,
     )
-    # convert to model obstype
-    new_mod_equi = {}
-    for key, val in modelobs_vectorfield.modl_comp_dict.items():
-        new_mod_equi[key] = val["u_comp"]
-        new_mod_equi[key][
-            "name"
-        ] = f"{val['u_comp']['name']} and {val['v_comp']['name']}"
 
-    amplitude_obstype = ModelObstype(
-        amplitude_obstype, model_equivalent_dict=new_mod_equi
+    # Create a Modelobstype
+    amp_obstype = ModelObstype(
+        obstype=amplitude_obstype,
+        band_name=f"dummy for {modelobs_vectorfield.band_name_u} and {modelobs_vectorfield.band_name_v}",
+        band_unit=modelobs_vectorfield.get_bandunit(),
+        band_description=f"Pytagorean amplitude of {modelobs_vectorfield.band_name_u} and {modelobs_vectorfield.band_name_v}",
     )
 
-    return data, amplitude_obstype
+    return data, amp_obstype
 
 
 def compute_angle(modelobs_vectorfield, df):
@@ -544,6 +465,7 @@ def compute_angle(modelobs_vectorfield, df):
     v_column = modelobs_vectorfield.get_v_column()
 
     data = df.apply(lambda x: angle_between(x[u_column], x[v_column]), axis=1)
+
     # Create a new obstype for the amplitude
     direction_obstype = Obstype(
         obsname=f"{modelobs_vectorfield.name}_direction",
@@ -552,46 +474,56 @@ def compute_angle(modelobs_vectorfield, df):
         unit_aliases=direction_aliases,
         unit_conversions={},
     )
-    # convert to model obstype
-    new_mod_equi = {}
-    for key, val in modelobs_vectorfield.modl_comp_dict.items():
-        new_mod_equi[key] = val["u_comp"]
-        new_mod_equi[key][
-            "name"
-        ] = f"{val['u_comp']['name']} and {val['v_comp']['name']}"
-        new_mod_equi[key]["units"] = "° from north (CW)"
 
-    direction_obstype = ModelObstype(
-        direction_obstype, model_equivalent_dict=new_mod_equi
+    # Create a Modelobstype
+    dir_obstype = ModelObstype(
+        obstype=direction_obstype,
+        band_name=f"dummy for {modelobs_vectorfield.band_name_u} and {modelobs_vectorfield.band_name_v}",
+        band_unit="° from north (CW)",
+        band_description=f"direction in ° from north counter-clockwise of {modelobs_vectorfield.band_name_u} and {modelobs_vectorfield.band_name_v}",
     )
-    return data, direction_obstype
+
+    return data, dir_obstype
 
 
 # =============================================================================
-# Define obstypes
+# Define default ERA5 obstypes
 # =============================================================================
 
-temp_model = ModelObstype(
-    temperature, model_equivalent_dict=tlk_std_modeldata_obstypes["temp"]
+temp_era5 = ModelObstype(
+    obstype=temperature,
+    band_name="temperature_2m",
+    band_unit="Kelvin",
+    band_description="Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth's surface, taking account of the atmospheric conditions.",
 )
-pressure_model = ModelObstype(
-    pressure, model_equivalent_dict=tlk_std_modeldata_obstypes["pressure"]
+
+
+pressure_era5 = ModelObstype(
+    obstype=pressure,
+    band_name="surface_pressure",
+    band_unit="pa",
+    band_description="Pressure (force per unit area) of the atmosphere on the surface of land, sea and in-land water. It is a measure of the weight of all the air in a column vertically above the area of the Earth's surface represented at a fixed point. Surface pressure is often used in combination with temperature to calculate air density. The strong variation of pressure with altitude makes it difficult to see the low and high pressure systems over mountainous areas, so mean sea level pressure, rather than surface pressure, is normally used for this purpose. The units of this variable are Pascals (Pa). Surface pressure is often measured in hPa and sometimes is presented in the old units of millibars, mb (1 hPa = 1 mb = 100 Pa).",
 )
+
 
 # Special obstypes
 wind.name = "wind"  # otherwise it is windspeed, which is confusing for vectorfield
-wind_model = ModelObstype_Vectorfield(
-    wind,
-    u_comp_model_equivalent_dict=tlk_std_modeldata_obstypes["u_wind"],
-    v_comp_model_equivalent_dict=tlk_std_modeldata_obstypes["v_wind"],
+wind_era5 = ModelObstype_Vectorfield(
+    obstype=wind,
+    band_name_u="u_component_of_wind_10m",
+    band_unit_u="m/s",
+    band_description_u="Eastward component of the 10m wind. It is the horizontal speed of air moving towards the east, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the V component of 10m wind to give the speed and direction of the horizontal 10m wind.",
+    band_name_v="v_component_of_wind_10m",
+    band_unit_v="m/s",
+    band_description_v="Northward component of the 10m wind. It is the horizontal speed of air moving towards the north, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the U component of 10m wind to give the speed and direction of the horizontal 10m wind.",
 )
 
 
 # =============================================================================
 # Create obstype dict
 # =============================================================================
-model_obstypes = {
-    "temp": temp_model,
-    "pressure": pressure_model,
-    "wind": wind_model,
+era5_default_model_obstypes = {
+    "temp": temp_era5,
+    "pressure": pressure_era5,
+    "wind": wind_era5,
 }
