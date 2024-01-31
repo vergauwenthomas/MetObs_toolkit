@@ -291,7 +291,6 @@ class Modeldata:
             bandnames = list(obs.get_bandname_mapper().keys())
             for bandname in bandnames:
                 if bandname in df.columns:
-                    print(bandname)
                     found_obstypes.append(obs)
         found_obstypes = list(set(found_obstypes))
 
@@ -359,9 +358,7 @@ class Modeldata:
     # IO
     # =============================================================================
     def save_modeldata(
-        self,
-        outputfolder=None,
-        filename="saved_modeldata.pkl",
+        self, outputfolder=None, filename="saved_modeldata.pkl", overwrite=False
     ):
         """Save a Modeldata instance to a (pickle) file.
 
@@ -372,6 +369,9 @@ class Modeldata:
             from the Settings is used. The default is None.
         filename : str, optional
             The name of the output file. The default is 'saved_modeldata.pkl'.
+        overwrite : bool, optional
+            If the target file already exists, it will be overwritten if True,
+            else an error is thrown. The default is False
 
         Returns
         -------
@@ -394,49 +394,18 @@ class Modeldata:
         full_path = os.path.join(outputfolder, filename)
 
         # check if file exists
-        assert not os.path.isfile(full_path), f"{full_path} is already a file!"
+        if os.path.isfile(full_path):
+            if overwrite:
+                # remove preexisting file in advance
+                os.remove(full_path)
+            else:
+                sys.exit(f"{full_path} is already a file!")
 
         with open(full_path, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
         print(f"Modeldata saved in {full_path}")
         logger.info(f"Modeldata saved in {full_path}")
-
-    def import_modeldata(self, folder_path=None, filename="saved_modeldata.pkl"):
-        """Import a modeldata instance from a (pickle) file.
-
-        Parameters
-        ----------
-        folder_path : str or None, optional
-            The path to the folder to save the file. If None, the outputfolder
-            from the Settings is used. The default is None.
-        filename : str, optional
-            The name of the output file. The default is 'saved_modeldata.pkl'.
-
-        Returns
-        -------
-        metobs_toolkit.Modeldata
-            The modeldata instance.
-
-        """
-        # check if folder_path is known and exists
-        if folder_path is None:
-            folder_path = self.settings.IO["output_folder"]
-            assert (
-                folder_path is not None
-            ), "No folder_path is given, and no outputfolder is found in the settings."
-
-        assert os.path.isdir(folder_path), f"{folder_path} is not a directory!"
-
-        full_path = os.path.join(folder_path, filename)
-
-        # check if file exists
-        assert os.path.isfile(full_path), f"{full_path} does not exist."
-
-        with open(full_path, "rb") as inp:
-            modeldata = pickle.load(inp)
-
-        return modeldata
 
     # =============================================================================
     # Plotters
@@ -506,7 +475,7 @@ class Modeldata:
 
         target_modeldf = target_modeldf.groupby("name", group_keys=True).apply(
             lambda group: group.interpolate(
-                method=interp_method, axes="columns", **kwargs
+                method=interp_method, limit_area="inside", axes="columns", **kwargs
             )
         )
 
@@ -539,74 +508,6 @@ class Modeldata:
     #     df = df.set_index(["name", "datetime"])
     #     self.df = df
     #     self.df_tz = tzstr
-
-    def interpolate_modeldata(self, to_multiidx):
-        """Interpolate modeldata in time.
-
-        Interpolate the modeldata timeseries, to a given name-datetime
-        multiindex.
-
-        The modeldata will be converted to the timezone of the multiindex.
-
-        If no interpolation can be done, Nan values are used.
-
-        Parameters
-        ----------
-        to_multiidx : pandas.MultiIndex
-            A name - datetime (tz-aware) multiindex to interpolate the
-            modeldata timeseries to.
-
-        Returns
-        -------
-        returndf : pandas.DataFrame
-            A dataframe with to_multiidx as an index.
-            The values are the interpolated values.
-
-        """
-        returndf = init_multiindexdf()
-
-        recordsdf = init_multiindexdf()
-        recordsdf.index = to_multiidx
-        # iterate over stations check to avoid extrapolation is done per stations
-        for sta in recordsdf.index.get_level_values("name").unique():
-            sta_recordsdf = xs_save(recordsdf, sta, level="name", drop_level=False)
-            sta_moddf = xs_save(self.df, sta, level="name", drop_level=False)
-
-            # convert modeldata to timezone of observations
-            sta_moddf = conv_tz_multiidxdf(
-                df=sta_moddf,
-                timezone=sta_recordsdf.index.get_level_values("datetime").tz,
-            )
-
-            # check if modeldata is will not be extrapolated !
-            if min(sta_recordsdf.index.get_level_values("datetime")) < min(
-                sta_moddf.index.get_level_values("datetime")
-            ):
-                logger.warning("Modeldata will be extrapolated")
-            if max(sta_recordsdf.index.get_level_values("datetime")) > max(
-                sta_moddf.index.get_level_values("datetime")
-            ):
-                logger.warning("Modeldata will be extrapolated")
-
-            # combine model and records
-            mergedf = sta_recordsdf.merge(
-                sta_moddf, how="outer", left_index=True, right_index=True
-            )
-
-            # reset index for time interpolation
-            mergedf = mergedf.reset_index().set_index("datetime").sort_index()
-
-            # interpolate missing modeldata
-            mergedf = mergedf.drop(columns=["name"])
-            mergedf.interpolate(method="time", limit_area="inside", inplace=True)
-            mergedf["name"] = sta
-            # convert back to multiindex
-            mergedf = mergedf.reset_index().set_index(["name", "datetime"]).sort_index()
-            # filter only records
-            mergedf = mergedf.loc[sta_recordsdf.index]
-
-            returndf = pd.concat([returndf, mergedf])
-        return returndf
 
     def make_plot(
         self,
@@ -792,6 +693,39 @@ class Modeldata:
             )
 
         return ax
+
+
+def import_modeldata(target_pkl_file):
+    """Import a modeldata instance from a (pickle) file.
+
+    Parameters
+    ----------
+    target_pkl_file : str,
+        The path to the target pkl file to import.
+    Returns
+    -------
+    metobs_toolkit.Modeldata
+        The modeldata instance.
+
+    """
+    # # check if folder_path is known and exists
+    # if folder_path is None:
+    #     folder_path = self.settings.IO["output_folder"]
+    #     assert (
+    #         folder_path is not None
+    #     ), "No folder_path is given, and no outputfolder is found in the settings."
+
+    # assert os.path.isdir(folder_path), f"{folder_path} is not a directory!"
+
+    # full_path = os.path.join(folder_path, filename)
+
+    # check if file exists
+    assert os.path.isfile(target_pkl_file), f"{target_pkl_file} does not exist."
+
+    with open(target_pkl_file, "rb") as inp:
+        modeldata = pickle.load(inp)
+
+    return modeldata
 
 
 def _format_metadf(metadf):

@@ -538,7 +538,7 @@ def apply_debias_era5_gapfill(
     dataset,
     eraModelData,
     debias_settings,
-    obstype,
+    obstypename,
     overwrite_fill=False,
 ):
     """Fill all gaps using ERA5 debiaset modeldata.
@@ -594,7 +594,7 @@ def apply_debias_era5_gapfill(
             station=station,
             gap=gap,
             debias_period_settings=debias_settings["debias_period"],
-            obstype=obstype,
+            obstype=obstypename,
         )
 
         # check if leading/trailing is valid
@@ -605,7 +605,7 @@ def apply_debias_era5_gapfill(
             _set_gapfill_attr(
                 gap=gap,
                 fillvalue=np.nan,
-                obstypename=obstype.name,
+                obstypename=obstypename,
                 label=gapfill_settings["label"]["model_debias"],
                 label_column_postfix=gapfill_settings["label_columnname"],
                 err_msg="gapfill not possible: no leading/trailing period",
@@ -620,34 +620,34 @@ def apply_debias_era5_gapfill(
         gap_model = eraModelData.sample_data_as(target=gap.exp_gap_idx)
 
         err_msg = ""
-        if leading_model[obstype.name].isnull().any():
+        if leading_model[obstypename].isnull().any():
             logger.info(
                 "No modeldata for the full leading period found. Gapfill not possible"
             )
             _set_gapfill_attr(
                 gap=gap,
                 fillvalue=np.nan,
-                obstypename=obstype.name,
+                obstypename=obstypename,
                 label=gapfill_settings["label"]["model_debias"],
                 label_column_postfix=gapfill_settings["label_columnname"],
                 err_msg="gapfill not possible: not enough modeldata for leadingperiod",
             )
             continue
-        if trailing_model[obstype.name].isnull().any():
+        if trailing_model[obstypename].isnull().any():
             _set_gapfill_attr(
                 gap=gap,
                 fillvalue=np.nan,
-                obstypename=obstype.name,
+                obstypename=obstypename,
                 label=gapfill_settings["label"]["model_debias"],
                 label_column_postfix=gapfill_settings["label_columnname"],
                 err_msg="gapfill not possible: not enough modeldata for trailingperiod",
             )
             continue
-        if gap_model[obstype.name].isnull().any():
+        if gap_model[obstypename].isnull().any():
             _set_gapfill_attr(
                 gap=gap,
                 fillvalue=np.nan,
-                obstypename=obstype.name,
+                obstypename=obstypename,
                 label=gapfill_settings["label"]["model_debias"],
                 label_column_postfix=gapfill_settings["label_columnname"],
                 err_msg="gapfill not possible: not enough modeldata for the gap period",
@@ -661,22 +661,22 @@ def apply_debias_era5_gapfill(
             gap_model=gap_model,
             leading_obs=leading_obs,
             trailing_obs=trailing_obs,
-            obstype=obstype,
+            obstype=obstypename,
         )
 
         _set_gapfill_attr(
             gap=gap,
             fillvalue=filled_gap_series,
-            obstypename=obstype.name,
+            obstypename=obstypename,
             label=gapfill_settings["label"]["model_debias"],
             label_column_postfix=gapfill_settings["label_columnname"],
             err_msg=err_message,
         )
 
-        # filled_gap_series.name = obstype.name
+        # filled_gap_series.name = obstypename
         # gapfill_df = filled_gap_series.to_frame()
         # gapfill_df[
-        #     obstype.name + "_" + gapfill_settings["label_columnname"]
+        #     obstypename + "_" + gapfill_settings["label_columnname"]
         # ] = gapfill_settings["label"]["model_debias"]
 
         # update the gaps attributes

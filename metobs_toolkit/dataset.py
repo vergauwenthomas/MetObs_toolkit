@@ -1476,7 +1476,7 @@ class Dataset:
             gapslist=debias_gaps,
             dataset=self,
             eraModelData=modeldata,
-            obstype=obstype,
+            obstypename=obstype,
             debias_settings=fill_settings_debias,
             overwrite_fill=overwrite_fill,
         )
@@ -1674,7 +1674,7 @@ class Dataset:
         modeldata : metobs_toolkit.Modeldata
             The modeldata to use for the gapfill. This model data should the required
             timeseries to fill all gaps present in the dataset.
-        obstype : str or metobs_toolkit.Obstype , optional
+        obstype : str, optional
            Name of the observationtype you want to apply gap filling on. The
            modeldata must contain this observation type as well. The
            default is 'temp'.
@@ -1694,22 +1694,18 @@ class Dataset:
             modeldata, Modeldata
         ), f"{modeldata} is not an instance of Modeldata."
 
-        # convert to Obstype
-        if isinstance(obstype, str):
-            obstype = self.obstypes[obstype]  # convert to obstype instance
-
         # check if obstype has observations
-        assert obstype.name in self.df.columns, f"No observations found for {obstype}"
+        assert obstype in self.df.columns, f"No observations found for {obstype}"
 
         # check if obstype is present in model (by name because model holds the Modelobstype equivalent)
         _pres_in_mod = [obs.name for obs in modeldata._get_present_obstypes()]
         _all_known_in_mod = [obs.name for obs in modeldata.obstypes.values()]
 
         assert (
-            obstype.name in _all_known_in_mod
+            obstype in _all_known_in_mod
         ), f"{obstype} is no equivalent in the modeldata: {_all_known_in_mod}"
         assert (
-            obstype.name in _pres_in_mod
+            obstype in _pres_in_mod
         ), f"{obstype} has equivalent in the modeldata, but no data is available for it."
 
         # check if all stations (with gaps) are in the modeldata
@@ -1725,7 +1721,7 @@ class Dataset:
             gapslist=self.gaps,
             dataset=self,
             eraModelData=modeldata,
-            obstype=obstype,
+            obstypename=obstype,
             debias_settings=fill_settings_debias,
             overwrite_fill=overwrite_fill,
         )

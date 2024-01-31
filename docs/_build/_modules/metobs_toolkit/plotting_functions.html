@@ -143,10 +143,12 @@
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Make an interactive folium plot of an Image.&quot;&quot;&quot;</span>
     <span class="c1"># get the ee.Image</span>
-    <span class="n">im</span> <span class="o">=</span> <span class="n">get_ee_obj</span><span class="p">(</span><span class="n">trg_location</span> <span class="o">=</span> <span class="n">trg_location</span><span class="p">,</span>
-                    <span class="n">is_image</span><span class="o">=</span><span class="n">is_image</span><span class="p">,</span>
-                    <span class="n">is_imagecollection</span><span class="o">=</span><span class="n">is_imagecollection</span><span class="p">,</span>
-                    <span class="n">band</span><span class="o">=</span><span class="n">band</span><span class="p">)</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">get_ee_obj</span><span class="p">(</span>
+        <span class="n">trg_location</span><span class="o">=</span><span class="n">trg_location</span><span class="p">,</span>
+        <span class="n">is_image</span><span class="o">=</span><span class="n">is_image</span><span class="p">,</span>
+        <span class="n">is_imagecollection</span><span class="o">=</span><span class="n">is_imagecollection</span><span class="p">,</span>
+        <span class="n">band</span><span class="o">=</span><span class="n">band</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="c1"># make plot</span>
     <span class="n">MAP</span> <span class="o">=</span> <span class="n">foliumap</span><span class="o">.</span><span class="n">Map</span><span class="p">()</span>

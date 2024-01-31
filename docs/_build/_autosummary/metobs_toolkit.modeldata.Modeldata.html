@@ -24,7 +24,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="MetObs toolkit Documentation for developers" href="../MetObs_documentation_full.html" />
-    <link rel="prev" title="metobs_toolkit.modeldata" href="metobs_toolkit.modeldata.html" />
+    <link rel="prev" title="metobs_toolkit.modeldata.import_modeldata" href="metobs_toolkit.modeldata.import_modeldata.html" />
 </head>
 
 <body class="wy-body-for-nav">
@@ -75,6 +75,7 @@
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.landcover_functions.html">metobs_toolkit.landcover_functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metobs_toolkit.missingobs.html">metobs_toolkit.missingobs</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="metobs_toolkit.modeldata.html">metobs_toolkit.modeldata</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="metobs_toolkit.modeldata.import_modeldata.html">metobs_toolkit.modeldata.import_modeldata</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">metobs_toolkit.modeldata.Modeldata</a></li>
 </ul>
 </li>
@@ -140,12 +141,6 @@
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.import_gee_data_from_csv" title="metobs_toolkit.modeldata.Modeldata.import_gee_data_from_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_gee_data_from_csv</span></code></a></p></td>
 <td><p>Import timeseries data that is stored in a csv file.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.import_modeldata" title="metobs_toolkit.modeldata.Modeldata.import_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">import_modeldata</span></code></a></p></td>
-<td><p>Import a modeldata instance from a (pickle) file.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.interpolate_modeldata" title="metobs_toolkit.modeldata.Modeldata.interpolate_modeldata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_modeldata</span></code></a></p></td>
-<td><p>Interpolate modeldata in time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#metobs_toolkit.modeldata.Modeldata.make_plot" title="metobs_toolkit.modeldata.Modeldata.make_plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_plot</span></code></a></p></td>
 <td><p>Plot timeseries of the modeldata.</p></td>
@@ -235,50 +230,6 @@ units.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.import_modeldata">
-<span class="sig-name descname"><span class="pre">import_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'saved_modeldata.pkl'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.import_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.import_modeldata" title="Link to this definition"></a></dt>
-<dd><p>Import a modeldata instance from a (pickle) file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>folder_path</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The path to the folder to save the file. If None, the outputfolder
-from the Settings is used. The default is None.</p></li>
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the output file. The default is ‘saved_modeldata.pkl’.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The modeldata instance.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>metobs_toolkit.Modeldata</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.interpolate_modeldata">
-<span class="sig-name descname"><span class="pre">interpolate_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_multiidx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.interpolate_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.interpolate_modeldata" title="Link to this definition"></a></dt>
-<dd><p>Interpolate modeldata in time.</p>
-<p>Interpolate the modeldata timeseries, to a given name-datetime
-multiindex.</p>
-<p>The modeldata will be converted to the timezone of the multiindex.</p>
-<p>If no interpolation can be done, Nan values are used.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>to_multiidx</strong> (<em>pandas.MultiIndex</em>) – A name - datetime (tz-aware) multiindex to interpolate the
-modeldata timeseries to.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>returndf</strong> – A dataframe with to_multiidx as an index.
-The values are the interpolated values.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>pandas.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.make_plot">
 <span class="sig-name descname"><span class="pre">make_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obstype_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationnames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starttime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_outliers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_filled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.make_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.make_plot" title="Link to this definition"></a></dt>
 <dd><p>Plot timeseries of the modeldata.</p>
@@ -351,7 +302,7 @@ to.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="metobs_toolkit.modeldata.Modeldata.save_modeldata">
-<span class="sig-name descname"><span class="pre">save_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputfolder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'saved_modeldata.pkl'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.save_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.save_modeldata" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save_modeldata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputfolder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'saved_modeldata.pkl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/metobs_toolkit/modeldata.html#Modeldata.save_modeldata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.modeldata.Modeldata.save_modeldata" title="Link to this definition"></a></dt>
 <dd><p>Save a Modeldata instance to a (pickle) file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -359,6 +310,8 @@ to.</p></li>
 <li><p><strong>outputfolder</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The path to the folder to save the file. If None, the outputfolder
 from the Settings is used. The default is None.</p></li>
 <li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the output file. The default is ‘saved_modeldata.pkl’.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – If the target file already exists, it will be overwritten if True,
+else an error is thrown. The default is False</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -375,7 +328,7 @@ from the Settings is used. The default is None.</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="metobs_toolkit.modeldata.html" class="btn btn-neutral float-left" title="metobs_toolkit.modeldata" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="metobs_toolkit.modeldata.import_modeldata.html" class="btn btn-neutral float-left" title="metobs_toolkit.modeldata.import_modeldata" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../MetObs_documentation_full.html" class="btn btn-neutral float-right" title="MetObs toolkit Documentation for developers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

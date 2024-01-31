@@ -636,17 +636,18 @@
 
 
 
-<span class="k">def</span> <span class="nf">_set_gapfill_attr</span><span class="p">(</span><span class="n">gap</span><span class="p">,</span> <span class="n">fillvalue</span><span class="p">,</span> <span class="n">obstypename</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">label_column_postfix</span><span class="p">,</span>
-                      <span class="n">err_msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Set a error message and a gapfill_df attribute on a gap.&quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">_set_gapfill_attr</span><span class="p">(</span>
+    <span class="n">gap</span><span class="p">,</span> <span class="n">fillvalue</span><span class="p">,</span> <span class="n">obstypename</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">label_column_postfix</span><span class="p">,</span> <span class="n">err_msg</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set a error message and a gapfill_df attribute on a gap.&quot;&quot;&quot;</span>
     <span class="c1"># error message</span>
     <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_errormessage</span><span class="p">[</span><span class="n">obstypename</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
 
     <span class="c1"># Construct gapfilldf</span>
-    <span class="n">filldf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span><span class="p">,</span>
-                          <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="n">obstypename</span><span class="p">:</span> <span class="n">fillvalue</span><span class="p">,</span>
-                                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obstypename</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">label_column_postfix</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">:</span><span class="n">label</span>
-                                <span class="p">})</span>
+    <span class="n">filldf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span><span class="p">,</span>
+        <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="n">obstypename</span><span class="p">:</span> <span class="n">fillvalue</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstypename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">label_column_postfix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">label</span><span class="p">},</span>
+    <span class="p">)</span>
     <span class="n">gap</span><span class="o">.</span><span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">filldf</span>
 
 
@@ -660,7 +661,7 @@
     <span class="n">dataset</span><span class="p">,</span>
     <span class="n">eraModelData</span><span class="p">,</span>
     <span class="n">debias_settings</span><span class="p">,</span>
-    <span class="n">obstype</span><span class="p">,</span>
+    <span class="n">obstypename</span><span class="p">,</span>
     <span class="n">overwrite_fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fill all gaps using ERA5 debiaset modeldata.</span>
@@ -716,7 +717,7 @@
             <span class="n">station</span><span class="o">=</span><span class="n">station</span><span class="p">,</span>
             <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
             <span class="n">debias_period_settings</span><span class="o">=</span><span class="n">debias_settings</span><span class="p">[</span><span class="s2">&quot;debias_period&quot;</span><span class="p">],</span>
-            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstypename</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># check if leading/trailing is valid</span>
@@ -724,12 +725,14 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s2">&quot;No suitable leading or trailing period found. Gapfill not possible&quot;</span>
             <span class="p">)</span>
-            <span class="n">_set_gapfill_attr</span><span class="p">(</span><span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
-                              <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
-                              <span class="n">obstypename</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                              <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
-                              <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
-                              <span class="n">err_msg</span><span class="o">=</span><span class="s2">&quot;gapfill not possible: no leading/trailing period&quot;</span><span class="p">)</span>
+            <span class="n">_set_gapfill_attr</span><span class="p">(</span>
+                <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
+                <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                <span class="n">obstypename</span><span class="o">=</span><span class="n">obstypename</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
+                <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
+                <span class="n">err_msg</span><span class="o">=</span><span class="s2">&quot;gapfill not possible: no leading/trailing period&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">continue</span>
 
         <span class="c1"># extract model values at leading, trailing and gap period (interpolate and</span>
@@ -739,33 +742,39 @@
         <span class="n">trailing_model</span> <span class="o">=</span> <span class="n">eraModelData</span><span class="o">.</span><span class="n">sample_data_as</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">trailing_obs</span><span class="p">)</span>
         <span class="n">gap_model</span> <span class="o">=</span> <span class="n">eraModelData</span><span class="o">.</span><span class="n">sample_data_as</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">gap</span><span class="o">.</span><span class="n">exp_gap_idx</span><span class="p">)</span>
 
-        <span class="n">err_msg</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">if</span> <span class="n">leading_model</span><span class="p">[</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="n">err_msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">leading_model</span><span class="p">[</span><span class="n">obstypename</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s2">&quot;No modeldata for the full leading period found. Gapfill not possible&quot;</span>
             <span class="p">)</span>
-            <span class="n">_set_gapfill_attr</span><span class="p">(</span><span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
-                              <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
-                              <span class="n">obstypename</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                              <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
-                              <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
-                              <span class="n">err_msg</span><span class="o">=</span><span class="s2">&quot;gapfill not possible: not enough modeldata for leadingperiod&quot;</span><span class="p">)</span>
+            <span class="n">_set_gapfill_attr</span><span class="p">(</span>
+                <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
+                <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                <span class="n">obstypename</span><span class="o">=</span><span class="n">obstypename</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
+                <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
+                <span class="n">err_msg</span><span class="o">=</span><span class="s2">&quot;gapfill not possible: not enough modeldata for leadingperiod&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">trailing_model</span><span class="p">[</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
-            <span class="n">_set_gapfill_attr</span><span class="p">(</span><span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
-                              <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
-                              <span class="n">obstypename</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                              <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
-                              <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
-                              <span class="n">err_msg</span><span class="o">=</span><span class="s2">&quot;gapfill not possible: not enough modeldata for trailingperiod&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">trailing_model</span><span class="p">[</span><span class="n">obstypename</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">_set_gapfill_attr</span><span class="p">(</span>
+                <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
+                <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                <span class="n">obstypename</span><span class="o">=</span><span class="n">obstypename</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
+                <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
+                <span class="n">err_msg</span><span class="o">=</span><span class="s2">&quot;gapfill not possible: not enough modeldata for trailingperiod&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">gap_model</span><span class="p">[</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
-            <span class="n">_set_gapfill_attr</span><span class="p">(</span><span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
-                              <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
-                              <span class="n">obstypename</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                              <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
-                              <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
-                              <span class="n">err_msg</span><span class="o">=</span><span class="s2">&quot;gapfill not possible: not enough modeldata for the gap period&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gap_model</span><span class="p">[</span><span class="n">obstypename</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">_set_gapfill_attr</span><span class="p">(</span>
+                <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
+                <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                <span class="n">obstypename</span><span class="o">=</span><span class="n">obstypename</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
+                <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
+                <span class="n">err_msg</span><span class="o">=</span><span class="s2">&quot;gapfill not possible: not enough modeldata for the gap period&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">continue</span>
 
         <span class="c1"># apply bias correction</span>
@@ -775,21 +784,22 @@
             <span class="n">gap_model</span><span class="o">=</span><span class="n">gap_model</span><span class="p">,</span>
             <span class="n">leading_obs</span><span class="o">=</span><span class="n">leading_obs</span><span class="p">,</span>
             <span class="n">trailing_obs</span><span class="o">=</span><span class="n">trailing_obs</span><span class="p">,</span>
-            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">obstypename</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="n">_set_gapfill_attr</span><span class="p">(</span><span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
-                              <span class="n">fillvalue</span><span class="o">=</span><span class="n">filled_gap_series</span><span class="p">,</span>
-                              <span class="n">obstypename</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                              <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
-                              <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
-                              <span class="n">err_msg</span><span class="o">=</span><span class="n">err_message</span><span class="p">)</span>
+        <span class="n">_set_gapfill_attr</span><span class="p">(</span>
+            <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span>
+            <span class="n">fillvalue</span><span class="o">=</span><span class="n">filled_gap_series</span><span class="p">,</span>
+            <span class="n">obstypename</span><span class="o">=</span><span class="n">obstypename</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">],</span>
+            <span class="n">label_column_postfix</span><span class="o">=</span><span class="n">gapfill_settings</span><span class="p">[</span><span class="s2">&quot;label_columnname&quot;</span><span class="p">],</span>
+            <span class="n">err_msg</span><span class="o">=</span><span class="n">err_message</span><span class="p">,</span>
+        <span class="p">)</span>
 
-
-        <span class="c1"># filled_gap_series.name = obstype.name</span>
+        <span class="c1"># filled_gap_series.name = obstypename</span>
         <span class="c1"># gapfill_df = filled_gap_series.to_frame()</span>
         <span class="c1"># gapfill_df[</span>
-        <span class="c1">#     obstype.name + &quot;_&quot; + gapfill_settings[&quot;label_columnname&quot;]</span>
+        <span class="c1">#     obstypename + &quot;_&quot; + gapfill_settings[&quot;label_columnname&quot;]</span>
         <span class="c1"># ] = gapfill_settings[&quot;label&quot;][&quot;model_debias&quot;]</span>
 
         <span class="c1"># update the gaps attributes</span>

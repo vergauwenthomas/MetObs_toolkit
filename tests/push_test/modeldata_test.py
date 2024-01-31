@@ -36,7 +36,10 @@ dataset.coarsen_time_resolution()
 # dataset.get_modeldata()
 
 #%% test adding gee information
-model_data = metobs_toolkit.Modeldata("ERA5_hourly")
+model_data = metobs_toolkit.Modeldata(
+    metadf=dataset.metadf, extractor=metobs_toolkit.GeeExtractor()
+)
+
 
 # Define a regular obstype
 new_obstype = metobs_toolkit.Obstype(
@@ -49,22 +52,39 @@ new_obstype = metobs_toolkit.Obstype(
     unit_conversions={"hpa": ["x * 100"]},
 )
 
-# add new obstype to model_data
-model_data.add_obstype(
-    Obstype=new_obstype,
-    bandname="surface_pressure",
-    band_units="hpa",
+# Convert to modelobstype
+new_obstype_modelform = metobs_toolkit.ModelObstype(
+    obstype=new_obstype,
+    band_name="surface_pressure",
+    band_unit="hpa",
+    band_description="oijmjimo",
 )
+
+
+# add new obstype to model_data
+model_data.add_obstype(new_obstype_modelform)
+
+assert set(model_data.obstypes.keys()) == set(
+    ["temp", "pressure", "wind", "special_pressure"]
+), "New obstype not added to the modeldata"
 
 
 model_data.get_info()
 from datetime import datetime
 
-tstart = datetime(2022, 10, 3, 23)
-tend = datetime(2022, 10, 4, 4)
-model_data = dataset.get_modeldata(
-    modeldata=model_data, obstype="special_pressure", startdt=tstart, enddt=tend
+tstart = datetime(2022, 9, 3, 23)
+tend = datetime(2022, 9, 4, 4)
+
+model_data.extractor.activate_ERA5()
+
+
+model_data.import_from_gee(
+    target_obstypes=model_data.obstypes["special_pressure"],
+    start_utc=tstart,
+    end_utc=tend,
+    gdrive_filename="era5_data",
 )
+
 
 assert (
     model_data.df.shape[0] == 168
@@ -76,47 +96,49 @@ assert model_data.df.columns.to_list() == [
 model_data.make_plot(obstype_model="special_pressure")
 #%% Test 2D vector fields
 
-model_data = dataset.get_modeldata(
-    modeldata=model_data, obstype="wind", startdt=tstart, enddt=tend
+model_data.import_from_gee(
+    target_obstypes=model_data.obstypes["wind"],
+    start_utc=tstart,
+    end_utc=tend,
 )
 
 print(model_data)
 
-assert model_data.df.columns.to_list() == [
-    "wind_amplitude",
-    "wind_direction",
-], "Something is wrong with column names"
-
+assert set(model_data.df.columns) == set(
+    ["u_comp_wind", "v_comp_wind", "wind_amplitude", "wind_direction"]
+), "something wrong with exploiting vector fields"
+assert model_data.df.sum().to_dict() == {
+    "u_comp_wind": 75.64337158203125,
+    "v_comp_wind": 359.2424736022949,
+    "wind_amplitude": 378.537614761677,
+    "wind_direction": 9559.611737920999,
+}, "something wrong with exploiting vector fields."
 
 #%% Testing multiple field extraction
-model_data.get_gee_dataset_data(
-    mapname=model_data.modelname,
-    metadf=dataset.metadf,
-    obstypes=["temp", "wind"],
-    startdt_utc=tstart,
-    enddt_utc=tend,
+model_data.import_from_gee(
+    target_obstypes=[model_data.obstypes["wind"], model_data.obstypes["temp"]],
+    start_utc=tstart,
+    end_utc=tend,
 )
 
-assert model_data.df.columns.to_list() == [
-    "temp",
-    "wind_amplitude",
-    "wind_direction",
-], "Something is wrong with column names"
+assert set(model_data.df.columns) == set(
+    ["u_comp_wind", "v_comp_wind", "wind_amplitude", "wind_direction", "temp"]
+), "Something is wrong with column names"
 
 
 #%% Import modeldata
-model_data = metobs_toolkit.Modeldata("ERA5_hourly")
+dummy_model_data = metobs_toolkit.Modeldata(
+    metadf=dataset.metadf, extractor=metobs_toolkit.GeeExtractor()
+)
 # mutliple observations and vector components
 csv_file = os.path.join(lib_folder, "tests", "test_data", "era5_modeldata_test.csv")
 
-model_data.set_model_from_csv(csv_file)
+dummy_model_data.import_gee_data_from_csv(csv_file)
 
-assert model_data.df.columns.to_list() == [
-    "temp",
-    "wind_amplitude",
-    "wind_direction",
-], "something wrong with reading modeldata from csv (drive)."
-model_data.make_plot(obstype_model="wind_amplitude")
+assert set(dummy_model_data.df.columns) == set(
+    ["temp", "u_comp_wind", "v_comp_wind", "wind_amplitude", "wind_direction"]
+), "something wrong with reading modeldata from csv (drive)."
+dummy_model_data.make_plot(obstype_model="wind_amplitude")
 #%% Test repr
 
 print(model_data)
@@ -125,11 +147,13 @@ print(model_data)
 outfolder = os.path.join(lib_folder, "tests", "test_data")
 pkl_file = "delete_me_if_you_see_me"
 # save
-model_data.save_modeldata(outputfolder=outfolder, filename=pkl_file)
+model_data.save_modeldata(outputfolder=outfolder, filename=pkl_file, overwrite=True)
 
 # read it again
-newmod = metobs_toolkit.Modeldata("ERA5_hourly")
-newmod2 = newmod.import_modeldata(folder_path=outfolder, filename=pkl_file + ".pkl")
+# newmod = metobs_toolkit.Modeldata(metadf=dataset.)
+newmod2 = metobs_toolkit.import_modeldata(
+    target_pkl_file=os.path.join(outfolder, pkl_file + ".pkl")
+)
 
 # delete file
 fullpath = os.path.join(outfolder, pkl_file + ".pkl")
@@ -148,34 +172,28 @@ dataset.update_settings(
 
 dataset.import_data_from_file()
 
-interpdf = model_data.interpolate_modeldata(dataset.df.index)
+interpdf = model_data.sample_data_as(dataset.df)
 
 
-# test that there are no nan values
-if not interpdf[interpdf["temp"].isnull()].empty:
-    sys.exit("Error in modeldata interpolation")
-
-
-assert interpdf.shape == (120957, 3), "Error in modeldata interpolation"
-
-# check if other obstypes are interpolated as well
-assert interpdf["wind_amplitude"].shape[0] == 120957, "Error in modeldata interpolation"
 assert (
-    interpdf["wind_amplitude"][interpdf["wind_amplitude"].isnull()].shape[0] == 0
+    interpdf.columns == model_data.df.columns
+).all(), "Error in modeldata interpolation"
+assert interpdf.shape[0] == dataset.df.shape[0], "Error in modeldata interpolation"
+assert (
+    interpdf[~interpdf["temp"].isnull()].shape[0] == 1708
 ), "Error in modeldata interpolation"
 
 
 #%% Test plotting
 
-a = model_data.df.shape
 
 model_data.make_plot(stationnames=["vlinder01", "vlinder02"])
 
 
 assert model_data.df.shape == (
-    10108,
-    3,
+    168,
+    5,
 ), "Shape of modeldata df changed after plotting."
 
-
+dataset.coarsen_time_resolution(freq="1H")
 model_data.make_plot(dataset=dataset, show_outliers=False)

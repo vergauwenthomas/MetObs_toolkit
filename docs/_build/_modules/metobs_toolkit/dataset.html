@@ -1202,7 +1202,6 @@
         <span class="n">startdt_utc</span> <span class="o">=</span> <span class="n">startdt</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
         <span class="n">startdt_utc</span> <span class="o">=</span> <span class="n">startdt_utc</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">modl</span><span class="o">.</span><span class="n">extractor</span><span class="o">.</span><span class="n">time_res</span><span class="p">)</span>
 
-
         <span class="n">enddt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
         <span class="n">enddt_utc</span> <span class="o">=</span> <span class="n">enddt</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
         <span class="n">enddt_utc</span> <span class="o">=</span> <span class="n">enddt_utc</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">modl</span><span class="o">.</span><span class="n">extractor</span><span class="o">.</span><span class="n">time_res</span><span class="p">)</span>
@@ -1611,7 +1610,7 @@
             <span class="n">gapslist</span><span class="o">=</span><span class="n">debias_gaps</span><span class="p">,</span>
             <span class="n">dataset</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
             <span class="n">eraModelData</span><span class="o">=</span><span class="n">modeldata</span><span class="p">,</span>
-            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">obstypename</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
             <span class="n">debias_settings</span><span class="o">=</span><span class="n">fill_settings_debias</span><span class="p">,</span>
             <span class="n">overwrite_fill</span><span class="o">=</span><span class="n">overwrite_fill</span><span class="p">,</span>
         <span class="p">)</span>
@@ -1830,7 +1829,7 @@
 <span class="sd">        modeldata : metobs_toolkit.Modeldata</span>
 <span class="sd">            The modeldata to use for the gapfill. This model data should the required</span>
 <span class="sd">            timeseries to fill all gaps present in the dataset.</span>
-<span class="sd">        obstype : str or metobs_toolkit.Obstype , optional</span>
+<span class="sd">        obstype : str, optional</span>
 <span class="sd">           Name of the observationtype you want to apply gap filling on. The</span>
 <span class="sd">           modeldata must contain this observation type as well. The</span>
 <span class="sd">           default is &#39;temp&#39;.</span>
@@ -1846,45 +1845,45 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check if modeldata is available</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">modeldata</span><span class="p">,</span> <span class="n">Modeldata</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">modeldata</span><span class="si">}</span><span class="s1"> is not an instance of Modeldata.&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">modeldata</span><span class="p">,</span> <span class="n">Modeldata</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">modeldata</span><span class="si">}</span><span class="s2"> is not an instance of Modeldata.&quot;</span>
 
-        <span class="c1">#convert to Obstype</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obstype</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">obstype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="c1">#convert to obstype instance</span>
 
-        <span class="c1">#check if obstype has observations</span>
-        <span class="k">assert</span> <span class="n">obstype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;No observations found for </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="c1"># check if obstype has observations</span>
+        <span class="k">assert</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;No observations found for </span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="c1"># check if obstype is present in model (by name because model holds the Modelobstype equivalent)</span>
         <span class="n">_pres_in_mod</span> <span class="o">=</span> <span class="p">[</span><span class="n">obs</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">modeldata</span><span class="o">.</span><span class="n">_get_present_obstypes</span><span class="p">()]</span>
         <span class="n">_all_known_in_mod</span> <span class="o">=</span> <span class="p">[</span><span class="n">obs</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">modeldata</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
 
-        <span class="k">assert</span> <span class="n">obstype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">_all_known_in_mod</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> is no equivalent in the modeldata: </span><span class="si">{</span><span class="n">_all_known_in_mod</span><span class="si">}</span><span class="s1">&#39;</span>
-        <span class="k">assert</span> <span class="n">obstype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">_pres_in_mod</span> <span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1"> has equivalent in the modeldata, but no data is available for it.&#39;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">obstype</span> <span class="ow">in</span> <span class="n">_all_known_in_mod</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is no equivalent in the modeldata: </span><span class="si">{</span><span class="n">_all_known_in_mod</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">obstype</span> <span class="ow">in</span> <span class="n">_pres_in_mod</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> has equivalent in the modeldata, but no data is available for it.&quot;</span>
 
-
-
-        <span class="c1">#check if all stations (with gaps) are in the modeldata</span>
+        <span class="c1"># check if all stations (with gaps) are in the modeldata</span>
         <span class="n">_gapstations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">gap</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">gap</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">])</span>
-        <span class="n">_modelstations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">modeldata</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">))</span>
-        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sta</span> <span class="ow">in</span> <span class="n">_modelstations</span> <span class="k">for</span> <span class="n">sta</span> <span class="ow">in</span> <span class="n">_gapstations</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="sa">f</span><span class="s1">&#39;Not all stations with gaps have corresponding model timeseries.&#39;</span>
+        <span class="n">_modelstations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">modeldata</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">sta</span> <span class="ow">in</span> <span class="n">_modelstations</span> <span class="k">for</span> <span class="n">sta</span> <span class="ow">in</span> <span class="n">_gapstations</span><span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">&quot;Not all stations with gaps have corresponding model timeseries.&quot;</span>
 
-        <span class="n">fill_settings_debias</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span>
-            <span class="s2">&quot;model_debias&quot;</span>
-        <span class="p">]</span>
+        <span class="n">fill_settings_debias</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">]</span>
 
         <span class="n">apply_debias_era5_gapfill</span><span class="p">(</span>
             <span class="n">gapslist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">,</span>
             <span class="n">dataset</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
             <span class="n">eraModelData</span><span class="o">=</span><span class="n">modeldata</span><span class="p">,</span>
-            <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+            <span class="n">obstypename</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
             <span class="n">debias_settings</span><span class="o">=</span><span class="n">fill_settings_debias</span><span class="p">,</span>
             <span class="n">overwrite_fill</span><span class="o">=</span><span class="n">overwrite_fill</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># get fill df</span>
         <span class="n">filldf</span> <span class="o">=</span> <span class="n">make_gapfill_df</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">)</span>
-
 
         <span class="c1"># update attribute</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gapfilldf</span> <span class="o">=</span> <span class="n">filldf</span>
@@ -3802,8 +3801,6 @@
 
         <span class="k">return</span> <span class="n">frac_df</span></div>
 </div>
-
-
 
 
 

@@ -20,8 +20,6 @@ metobs\_toolkit.modeldata.Modeldata
       ~Modeldata.get_info
       ~Modeldata.import_from_gee
       ~Modeldata.import_gee_data_from_csv
-      ~Modeldata.import_modeldata
-      ~Modeldata.interpolate_modeldata
       ~Modeldata.make_plot
       ~Modeldata.sample_data_as
       ~Modeldata.save_modeldata

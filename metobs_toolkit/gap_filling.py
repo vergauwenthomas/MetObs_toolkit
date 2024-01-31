@@ -158,7 +158,7 @@ def create_leading_trailing_debias_periods(
 
     # only datetimes are relevant
     obs = obs.reset_index()
-    obs = obs[["name", "datetime", obstype.name]]
+    obs = obs[["name", "datetime", obstype]]
 
     # Select all leading and all trailing obs
     leading_period = obs[obs["datetime"] < gap.startgap]
@@ -341,12 +341,12 @@ def make_era_bias_correction(
     error_message = ""
     # 1. get lead timestamp biases
     lead_biases = get_time_specific_biases(
-        model=leading_model, obs=leading_obs, obstypename=obstype.name, period="lead"
+        model=leading_model, obs=leading_obs, obstypename=obstype, period="lead"
     )
 
     # 2. get trailing timestamp biases
     trail_biases = get_time_specific_biases(
-        model=trailing_model, obs=trailing_obs, obstypename=obstype.name, period="trail"
+        model=trailing_model, obs=trailing_obs, obstypename=obstype, period="trail"
     )
 
     # 3. apply bias correction on modeldata in gap
@@ -363,15 +363,13 @@ def make_era_bias_correction(
     gap_model = gap_model.reset_index()
 
     gap_model = gap_model.merge(
-        right=lead_biases[["hours", "minutes", "seconds", obstype.name + "_bias_lead"]],
+        right=lead_biases[["hours", "minutes", "seconds", obstype + "_bias_lead"]],
         how="left",
         on=["hours", "minutes", "seconds"],
     )
 
     gap_model = gap_model.merge(
-        right=trail_biases[
-            ["hours", "minutes", "seconds", obstype.name + "_bias_trail"]
-        ],
+        right=trail_biases[["hours", "minutes", "seconds", obstype + "_bias_trail"]],
         how="left",
         on=["hours", "minutes", "seconds"],
     )
@@ -382,22 +380,22 @@ def make_era_bias_correction(
     # use the debias corection (even if it is for a part of the gap!).
     # If either one or both are missing, than no bias correction is applied
     no_debias = gap_model[
-        (gap_model[obstype.name + "_bias_lead"].isnull())
-        | (gap_model[obstype.name + "_bias_trail"].isnull())
+        (gap_model[obstype + "_bias_lead"].isnull())
+        | (gap_model[obstype + "_bias_trail"].isnull())
     ].index
     if not no_debias.empty:
         error_message = f"No debias possible for these gap records: {no_debias},the gap will be filled by model data without bias correction. "
         logger.warning(error_message)
 
     # set weights to zero if not debias correction can be applied on that record
-    gap_model.loc[no_debias, obstype.name + "_bias_trail"] = 0.0
-    gap_model.loc[no_debias, obstype.name + "_bias_lead"] = 0.0
+    gap_model.loc[no_debias, obstype + "_bias_trail"] = 0.0
+    gap_model.loc[no_debias, obstype + "_bias_lead"] = 0.0
 
     # 5. compute the debiased fill value
     # leave this dataframe for debugging
-    gap_model[obstype.name + "_debiased_value"] = gap_model[obstype.name] - (
-        (gap_model["lead_weight"] * gap_model[obstype.name + "_bias_lead"])
-        + (gap_model["trail_weight"] * gap_model[obstype.name + "_bias_trail"])
+    gap_model[obstype + "_debiased_value"] = gap_model[obstype] - (
+        (gap_model["lead_weight"] * gap_model[obstype + "_bias_lead"])
+        + (gap_model["trail_weight"] * gap_model[obstype + "_bias_trail"])
     )
 
     # 7. format gapmodel
@@ -408,9 +406,9 @@ def make_era_bias_correction(
         + ":"
         + gap_model["seconds"].astype(str).str.zfill(2)
     )
-    gap_model = gap_model.rename(columns={obstype.name: f"{obstype.name}_model_value"})
+    gap_model = gap_model.rename(columns={obstype: f"{obstype}_model_value"})
 
     # 6. make returen
-    returnseries = gap_model[obstype.name + "_debiased_value"]
-    returnseries.name = obstype.name
+    returnseries = gap_model[obstype + "_debiased_value"]
+    returnseries.name = obstype
     return returnseries, gap_model, error_message

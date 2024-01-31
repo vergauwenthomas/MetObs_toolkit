@@ -112,7 +112,7 @@
 
 
 <span class="k">def</span> <span class="nf">_datetime_to_gee_datetime</span><span class="p">(</span><span class="n">datetime</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Convert a datetime (in UTC) to a gee.Date&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a datetime (in UTC) to a gee.Date&quot;&quot;&quot;</span>
     <span class="c1"># covert to UTC!</span>
     <span class="c1"># utcdt = datetime.astimezone(pytz.utc) #this will assume datetime in lt !!!</span>
     <span class="c1"># logger.debug(utcdt.replace(tzinfo=None))</span>
@@ -263,8 +263,8 @@
 <span class="sd">        The dataframe with the extracted values in.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Extract point values for </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s1"> at </span><span class="si">{</span><span class="n">trg_gee_loc</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;This band is used: </span><span class="si">{</span><span class="n">band_of_use</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extract point values for </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">trg_gee_loc</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;This band is used: </span><span class="si">{</span><span class="n">band_of_use</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="c1"># =============================================================================</span>
     <span class="c1"># df to featurecollection</span>
     <span class="c1"># =============================================================================</span>
@@ -355,8 +355,8 @@
 <span class="sd">        Dataframe with the normalize frequencies of cover occurences per buffer.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Extract buffers for </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s1"> at </span><span class="si">{</span><span class="n">trg_gee_loc</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;This band is used: </span><span class="si">{</span><span class="n">band_of_use</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extract buffers for </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">trg_gee_loc</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;This band is used: </span><span class="si">{</span><span class="n">band_of_use</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="c1"># =============================================================================</span>
     <span class="c1"># df to featurecollection</span>
     <span class="c1"># =============================================================================</span>
@@ -454,8 +454,8 @@
 <span class="sd">        column with the same name as the obstypes.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Extract time series for </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s1"> at </span><span class="si">{</span><span class="n">trg_gee_loc</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;These bandnames are used: </span><span class="si">{</span><span class="n">bandnames</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extract time series for </span><span class="si">{</span><span class="n">metadf</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">trg_gee_loc</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;These bandnames are used: </span><span class="si">{</span><span class="n">bandnames</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">use_drive</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">_est_data_size</span> <span class="o">=</span> <span class="n">_estimate_data_size</span><span class="p">(</span>
         <span class="n">metadf</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
