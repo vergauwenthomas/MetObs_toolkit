@@ -1,20 +1,23 @@
+default_language_version:
+  python: python3
+
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
     hooks:
-    -   id: check-yaml
-    -   id: check-toml
-    -   id: end-of-file-fixer
-    -   id: trailing-whitespace
--   repo: https://github.com/psf/black
-    rev: 22.10.0
+      - id: check-yaml
+      - id: check-toml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
     hooks:
-    -   id: black
-- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: v2.12.0
-  hooks:
-  - id: pretty-format-toml
-    args: [--autofix]
+      - id: black
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.12.0
+    hooks:
+    - id: pretty-format-toml
+      args: [ '--autofix' ]
 
 #- repo: https://github.com/pycqa/flake8
 #  rev: 6.1.0
@@ -29,3 +32,8 @@ ci:
 
     for more information, see https://pre-commit.ci
   autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: monthly
+  skip: [ ]
+  submodules: false
