@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.Obstype.get\_plot\_y\_label
+===========================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Obstype.get_plot_y_label

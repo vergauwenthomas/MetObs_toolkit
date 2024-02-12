@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.ModelObstype\_Vectorfield.get\_modelunit
+========================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: ModelObstype_Vectorfield.get_modelunit

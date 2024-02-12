@@ -1,6 +1,0 @@
-metobs\_toolkit.obstype\_modeldata.compute\_amplitude
-=====================================================
-
-.. currentmodule:: metobs_toolkit.obstype_modeldata
-
-.. autofunction:: compute_amplitude

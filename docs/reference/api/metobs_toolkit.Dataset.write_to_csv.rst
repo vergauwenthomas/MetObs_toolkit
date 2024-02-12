@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.Dataset.write\_to\_csv
+======================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.write_to_csv

@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.Dataset.update\_gap\_and\_missing\_fill\_settings
+=================================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.update_gap_and_missing_fill_settings

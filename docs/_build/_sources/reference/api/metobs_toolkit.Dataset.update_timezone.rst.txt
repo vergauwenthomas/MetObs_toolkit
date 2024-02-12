@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.Dataset.update\_timezone
+========================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.update_timezone

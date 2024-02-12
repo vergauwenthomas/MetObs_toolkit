@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.Obstype.add\_unit
+=================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Obstype.add_unit

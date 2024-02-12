@@ -1,33 +1,40 @@
+:html_theme.sidebar_secondary.remove:
 
-Welcome to MetObs-Toolkit's documentation!
--------------------------------------------
+MetObs Toolkit |version|
+============================
+
+MetObs Toolkit is an open source project to make working with meteorological observations in python easier.
+
+
+Description
+-----------
+
+The goal of GeoPandas is to make working with geospatial data in
+python easier.  It combines the capabilities of pandas and shapely,
+providing geospatial operations in pandas and a high-level interface
+to multiple geometries to shapely.  GeoPandas enables you to easily do
+operations in python that would otherwise require a spatial database
+such as PostGIS.
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
 
-   intro
-   examples/index
-   template_mapping
-   gee_authentication
-   special_topics
-   gui
-   contributing_link.md
-   paper/index
+   Home <self>
+   Getting started <intro>
+   Specific topics <specific_topics>
+   Examples <examples/index>
+   Documentation <MetObs_documentation_flat>
+   Contributing <topics/contributing_link.md>
 
-MetObs toolkit Documentation
------------------------------
-.. toctree::
-   :maxdepth: 2
+.. container:: button
 
-   MetObs_documentation
+    :doc:`Getting started <intro>` :doc:`Specific topics <specific_topics>`
+    :doc:`Examples <examples/index>` :doc:`Documentation <MetObs_documentation_flat>`
 
+Team
+--------
+blabla
 
-Metobs for developpers
------------------------------
-.. toctree::
-   :maxdepth: 2
-
-   MetObs_documentation_full
 
 Indices and tables
 ----------------------

@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.Dataset.get\_qc\_stats
+======================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.get_qc_stats

@@ -1,0 +1,690 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>metobs_toolkit.Dataset.make_geo_plot &#8212; metobs_toolkit 0.1.3a documentation</title>
+
+
+
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+
+
+  <link href="../../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a7314d79" />
+
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=57d30286"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/api/metobs_toolkit.Dataset.make_geo_plot';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="metobs_toolkit.Dataset.make_gee_plot" href="metobs_toolkit.Dataset.make_gee_plot.html" />
+    <link rel="prev" title="metobs_toolkit.Dataset.make_interactive_plot" href="metobs_toolkit.Dataset.make_interactive_plot.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+
+
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+
+
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+
+  <div id="pst-scroll-pixel-helper"></div>
+
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+
+
+  <div class="col-lg-3 navbar-header-items__start">
+
+      <div class="navbar-item">
+
+
+
+<a class="navbar-brand logo" href="../../index.html">
+
+
+
+
+
+
+
+
+
+
+    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt="metobs_toolkit 0.1.3a documentation - Home"/>
+    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt="metobs_toolkit 0.1.3a documentation - Home"/>`);</script>
+
+
+</a></div>
+
+  </div>
+
+  <div class="col-lg-9 navbar-header-items">
+
+    <div class="me-auto navbar-header-items__center">
+
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../index.html">
+                        Home
+                      </a>
+                    </li>
+
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../intro.html">
+                        Getting started
+                      </a>
+                    </li>
+
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../specific_topics.html">
+                        Specific topics
+                      </a>
+                    </li>
+
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../examples/index.html">
+                        Examples
+                      </a>
+                    </li>
+
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+                        Documentation
+                      </a>
+                    </li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+
+                    <li class="nav-item">
+                      <a class="nav-link dropdown-item nav-internal" href="../../topics/contributing_link.html">
+                        Contributing
+                      </a>
+                    </li>
+
+                </ul>
+            </li>
+
+  </ul>
+</nav></div>
+
+    </div>
+
+
+    <div class="navbar-header-items__end">
+
+        <div class="navbar-item navbar-persistent--container">
+
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+
+
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+
+
+
+
+
+
+
+
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+
+    </div>
+
+  </div>
+
+
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+
+
+
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+
+</div>
+
+    </header>
+
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+
+
+
+      <div class="bd-sidebar-primary bd-sidebar">
+
+
+
+  <div class="sidebar-header-items sidebar-primary__section">
+
+
+      <div class="sidebar-header-items__center">
+
+          <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../index.html">
+                        Home
+                      </a>
+                    </li>
+
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../intro.html">
+                        Getting started
+                      </a>
+                    </li>
+
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../specific_topics.html">
+                        Specific topics
+                      </a>
+                    </li>
+
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../examples/index.html">
+                        Examples
+                      </a>
+                    </li>
+
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+                        Documentation
+                      </a>
+                    </li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links-2">
+                    More
+                </button>
+                <ul id="pst-nav-more-links-2" class="dropdown-menu">
+
+                    <li class="nav-item">
+                      <a class="nav-link dropdown-item nav-internal" href="../../topics/contributing_link.html">
+                        Contributing
+                      </a>
+                    </li>
+
+                </ul>
+            </li>
+
+  </ul>
+</nav></div>
+
+      </div>
+
+
+
+      <div class="sidebar-header-items__end">
+
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+
+
+
+
+
+
+
+
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+
+      </div>
+
+  </div>
+
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../dataset.html">Dataset</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.html">metobs_toolkit.Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.show.html">metobs_toolkit.Dataset.show</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_info.html">metobs_toolkit.Dataset.get_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.show_settings.html">metobs_toolkit.Dataset.show_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_gaps_df.html">metobs_toolkit.Dataset.get_gaps_df</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_gaps_info.html">metobs_toolkit.Dataset.get_gaps_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_missing_obs_info.html">metobs_toolkit.Dataset.get_missing_obs_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.combine_all_to_obsspace.html">metobs_toolkit.Dataset.combine_all_to_obsspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_station.html">metobs_toolkit.Dataset.get_station</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_gaps_and_missing_from_outliers.html">metobs_toolkit.Dataset.update_gaps_and_missing_from_outliers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.fill_gaps_linear.html">metobs_toolkit.Dataset.fill_gaps_linear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.fill_gaps_era5.html">metobs_toolkit.Dataset.fill_gaps_era5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.fill_gaps_automatic.html">metobs_toolkit.Dataset.fill_gaps_automatic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.fill_missing_obs_linear.html">metobs_toolkit.Dataset.fill_missing_obs_linear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_analysis.html">metobs_toolkit.Dataset.get_analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.apply_quality_control.html">metobs_toolkit.Dataset.apply_quality_control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.apply_buddy_check.html">metobs_toolkit.Dataset.apply_buddy_check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.apply_titan_buddy_check.html">metobs_toolkit.Dataset.apply_titan_buddy_check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.apply_titan_sct_resistant_check.html">metobs_toolkit.Dataset.apply_titan_sct_resistant_check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_modeldata.html">metobs_toolkit.Dataset.get_modeldata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_lcz.html">metobs_toolkit.Dataset.get_lcz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_altitude.html">metobs_toolkit.Dataset.get_altitude</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_landcover.html">metobs_toolkit.Dataset.get_landcover</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_settings.html">metobs_toolkit.Dataset.update_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.add_new_observationtype.html">metobs_toolkit.Dataset.add_new_observationtype</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.add_new_unit.html">metobs_toolkit.Dataset.add_new_unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_timezone.html">metobs_toolkit.Dataset.update_timezone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_default_name.html">metobs_toolkit.Dataset.update_default_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_gap_and_missing_fill_settings.html">metobs_toolkit.Dataset.update_gap_and_missing_fill_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_qc_settings.html">metobs_toolkit.Dataset.update_qc_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_titan_qc_settings.html">metobs_toolkit.Dataset.update_titan_qc_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.import_data_from_file.html">metobs_toolkit.Dataset.import_data_from_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.save_dataset.html">metobs_toolkit.Dataset.save_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.import_dataset.html">metobs_toolkit.Dataset.import_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.write_to_csv.html">metobs_toolkit.Dataset.write_to_csv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.sync_observations.html">metobs_toolkit.Dataset.sync_observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.coarsen_time_resolution.html">metobs_toolkit.Dataset.coarsen_time_resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.make_plot.html">metobs_toolkit.Dataset.make_plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.make_interactive_plot.html">metobs_toolkit.Dataset.make_interactive_plot</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">metobs_toolkit.Dataset.make_geo_plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.make_gee_plot.html">metobs_toolkit.Dataset.make_gee_plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_qc_stats.html">metobs_toolkit.Dataset.get_qc_stats</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../station.html">Station</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../obstype.html">Obstype</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.html">metobs_toolkit.Obstype</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.set_description.html">metobs_toolkit.Obstype.set_description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.set_original_name.html">metobs_toolkit.Obstype.set_original_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.set_original_unit.html">metobs_toolkit.Obstype.set_original_unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.add_unit.html">metobs_toolkit.Obstype.add_unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_orig_name.html">metobs_toolkit.Obstype.get_orig_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_description.html">metobs_toolkit.Obstype.get_description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_all_units.html">metobs_toolkit.Obstype.get_all_units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_standard_unit.html">metobs_toolkit.Obstype.get_standard_unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_info.html">metobs_toolkit.Obstype.get_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_plot_y_label.html">metobs_toolkit.Obstype.get_plot_y_label</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.convert_to_standard_units.html">metobs_toolkit.Obstype.convert_to_standard_units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.test_if_unit_is_known.html">metobs_toolkit.Obstype.test_if_unit_is_known</a></li>
+</ul>
+</li>
+
+
+<li class="toctree-l1 has-children"><a class="reference internal" href="../analysis.html">Analysis</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.html">metobs_toolkit.analysis.Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.subset_period.html">metobs_toolkit.analysis.Analysis.subset_period</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.apply_filter.html">metobs_toolkit.analysis.Analysis.apply_filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.aggregate_df.html">metobs_toolkit.analysis.Analysis.aggregate_df</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.get_anual_statistics.html">metobs_toolkit.analysis.Analysis.get_anual_statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.get_diurnal_statistics.html">metobs_toolkit.analysis.Analysis.get_diurnal_statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.get_diurnal_statistics_with_reference.html">metobs_toolkit.analysis.Analysis.get_diurnal_statistics_with_reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.get_aggregated_cycle_statistics.html">metobs_toolkit.analysis.Analysis.get_aggregated_cycle_statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.get_lc_correlation_matrices.html">metobs_toolkit.analysis.Analysis.get_lc_correlation_matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_modeldata.html">metobs_toolkit.Dataset.get_modeldata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_lcz.html">metobs_toolkit.Dataset.get_lcz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_altitude.html">metobs_toolkit.Dataset.get_altitude</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_landcover.html">metobs_toolkit.Dataset.get_landcover</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.plot_correlation_heatmap.html">metobs_toolkit.analysis.Analysis.plot_correlation_heatmap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.analysis.Analysis.plot_correlation_variation.html">metobs_toolkit.analysis.Analysis.plot_correlation_variation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav></div>
+    </div>
+
+
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+
+      <main id="main-content" class="bd-main">
+
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+
+    <div class="header-article-items__start">
+
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+
+    <li class="breadcrumb-item"><a href="../../MetObs_documentation_flat.html" class="nav-link">MetObs toolkit API Documentation</a></li>
+
+
+    <li class="breadcrumb-item"><a href="../dataset.html" class="nav-link">Dataset</a></li>
+
+    <li class="breadcrumb-item active" aria-current="page">metobs_toolk...</li>
+  </ul>
+</nav>
+</div>
+
+    </div>
+
+
+</div>
+</div>
+
+
+
+
+<div id="searchbox"></div>
+                <article class="bd-article">
+
+  <section id="metobs-toolkit-dataset-make-geo-plot">
+<h1>metobs_toolkit.Dataset.make_geo_plot<a class="headerlink" href="#metobs-toolkit-dataset-make-geo-plot" title="Link to this heading">#</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.Dataset.make_geo_plot">
+<span class="sig-prename descclassname"><span class="pre">Dataset.</span></span><span class="sig-name descname"><span class="pre">make_geo_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeinstance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/metobs_toolkit/dataset.html#Dataset.make_geo_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.Dataset.make_geo_plot" title="Link to this definition">#</a></dt>
+<dd><p>Make geospatial plot.</p>
+<p>This functions creates a geospatial plot for a field
+(observations or attributes) of all stations.</p>
+<p>If the field is timedepending, than the timeinstance is used to plot
+the field status at that datetime.</p>
+<p>If the field is categorical than the leged will have categorical
+values, else a colorbar is used.</p>
+<p>All styling attributes are extracted from the Settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variable</strong> (<em>string</em><em>, </em><em>optional</em>) – Fieldname to visualise. This can be an observation type or station
+or ‘lcz’. The default is ‘temp’.</p></li>
+<li><p><strong>title</strong> (<em>string</em><em>, </em><em>optional</em>) – Title of the figure, if None a default title is generated. The default is None.</p></li>
+<li><p><strong>timeinstance</strong> (<em>datetime.datetime</em><em>, </em><em>optional</em>) – Datetime moment of the geospatial plot. If None, the first occuring (not Nan) record is used. The default is None.</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>optional</em>) – I True, a legend is added to the plot. The default is True.</p></li>
+<li><p><strong>vmin</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The value corresponding with the minimum color. If None, the minimum of the presented observations is used. The default is None.</p></li>
+<li><p><strong>vmax</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The value corresponding with the maximum color. If None, the maximum of the presented observations is used. The default is None.</p></li>
+<li><p><strong>legend_title</strong> (<em>string</em><em>, </em><em>optional</em>) – Title of the legend, if None a default title is generated. The default is None.</p></li>
+<li><p><strong>boundbox</strong> (<em>[</em><em>lon-west</em><em>, </em><em>lat-south</em><em>, </em><em>lon-east</em><em>, </em><em>lat-north</em><em>]</em><em>, </em><em>optional</em>) – The boundbox to indicate the domain to plot. The elemenst are numeric.
+If the list is empty, a boundbox is created automatically. The default
+is [].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>axis</strong> – The geoaxes of the plot is returned.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.pyplot.geoaxes</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+</div>
+</dd></dl>
+
+</section>
+
+
+                </article>
+
+
+
+
+
+                <footer class="prev-next-footer">
+
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="metobs_toolkit.Dataset.make_interactive_plot.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">metobs_toolkit.Dataset.make_interactive_plot</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="metobs_toolkit.Dataset.make_gee_plot.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">metobs_toolkit.Dataset.make_gee_plot</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+
+            </div>
+
+
+
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metobs_toolkit.Dataset.make_geo_plot"><code class="docutils literal notranslate"><span class="pre">Dataset.make_geo_plot()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/reference/api/metobs_toolkit.Dataset.make_geo_plot.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+
+
+          </div>
+          <footer class="bd-footer-content">
+
+          </footer>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+
+    <div class="footer-items__start">
+
+        <div class="footer-item">
+
+  <p class="copyright">
+
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+
+  </p>
+</div>
+
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    <br/>
+  </p>
+</div>
+
+    </div>
+
+
+
+    <div class="footer-items__end">
+
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
+</p></div>
+
+    </div>
+
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.analysis.Analysis.plot\_correlation\_heatmap
+============================================================
+
+.. currentmodule:: metobs_toolkit.analysis
+
+.. automethod:: Analysis.plot_correlation_heatmap

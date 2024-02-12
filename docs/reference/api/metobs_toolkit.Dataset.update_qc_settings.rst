@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.Dataset.update\_qc\_settings
+============================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.update_qc_settings

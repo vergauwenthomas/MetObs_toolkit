@@ -51,7 +51,7 @@ copyright = "2023, Thomas Vergauwen"
 author = "Thomas Vergauwen"
 
 # The full version, including alpha/beta/rc tags
-release = "0.0.1"
+release = metobs_toolkit.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -116,34 +116,98 @@ autosectionlabel_prefix_document = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+# html_theme = "sphinx_rtd_theme"
 
-html_theme_options = {
-    "analytics_id": "G-XXXXXXXXXX",  #  Provided by Google in your dashboard
-    "analytics_anonymize_ip": False,
-    "logo_only": False,
-    "display_version": True,
-    "prev_next_buttons_location": "bottom",
-    "style_external_links": False,
-    "vcs_pageview_mode": "",
-    "style_nav_header_background": "white",
-    # Toc options
-    "collapse_navigation": True,
-    "sticky_navigation": True,
-    "navigation_depth": 4,
-    "includehidden": True,
-    "titles_only": False,
-}
+# html_theme_options = {
+#     "analytics_id": "G-XXXXXXXXXX",  #  Provided by Google in your dashboard
+#     "analytics_anonymize_ip": False,
+#     "logo_only": False,
+#     "display_version": True,
+#     "prev_next_buttons_location": "bottom",
+#     "style_external_links": False,
+#     "vcs_pageview_mode": "",
+#     "style_nav_header_background": "white",
+#     # Toc options
+#     "collapse_navigation": True,
+#     "sticky_navigation": True,
+#     "navigation_depth": 4,
+#     "includehidden": True,
+#     "titles_only": False,
+# }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 
+# html_static_path = ["_static"]
+
+# html_logo = "logo_small.svg"
+# html_theme_options = {
+#     "logo_only": True,
+#     "display_version": True,
+# }
+
+html_theme = "pydata_sphinx_theme"
+
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+html_theme_options = {
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/vergauwenthomas/MetObs_toolkit",
+            "icon": "fab fa-github-square fa-xl",
+        },
+    ]
+}
+
+# Add any paths that contain custom themes here, relative to this directory.
+# html_theme_path = []
+
+# The name for this set of Sphinx documents.  If None, it defaults to
+# "<project> v<release> documentation".
+# html_title = None
+
+# A shorter title for the navigation bar.  Default is the same as html_title.
+# html_short_title = None
+
+# The name of an image file (relative to this directory) to place at the top
+# of the sidebar.
+html_logo = "logo_small.svg"
+
+# The name of an image file (within the static path) to use as favicon of the
+# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# pixels large.
+# html_favicon = "_static/logo/favicon.png"
+
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
+# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
+# using the given strftime format.
+# html_last_updated_fmt = '%b %d, %Y'
 
-html_logo = "logo_small.svg"
-html_theme_options = {
-    "logo_only": True,
-    "display_version": True,
-}
+# If true, SmartyPants will be used to convert quotes and dashes to
+# typographically correct entities.
+# html_use_smartypants = True
+
+# Custom sidebar templates, maps document names to template names.
+# html_sidebars = {}
+
+# Additional templates that should be rendered to pages, maps page names to
+# template names.
+# html_additional_pages = {}
+
+
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    "custom.css",
+]

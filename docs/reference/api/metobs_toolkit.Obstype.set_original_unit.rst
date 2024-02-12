@@ -1,0 +1,6 @@
+﻿metobs\_toolkit.Obstype.set\_original\_unit
+===========================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Obstype.set_original_unit
