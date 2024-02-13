@@ -307,6 +307,24 @@ class Dataset:
         -------
         None.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+
+            dataset.import_data_from_file()
+
+            # Print out details
+            dataset.show()
         """
         logger.info("Show basic info of dataset.")
 

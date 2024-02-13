@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.update\_gaps\_and\_missing\_from\_outliers
+metobs\_toolkit.Dataset.update\_gaps\_and\_missing\_from\_outliers
 ==================================================================
 
 .. currentmodule:: metobs_toolkit

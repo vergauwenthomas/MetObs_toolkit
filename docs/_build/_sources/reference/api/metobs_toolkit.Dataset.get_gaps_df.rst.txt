@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.get\_gaps\_df
+metobs\_toolkit.Dataset.get\_gaps\_df
 =====================================
 
 .. currentmodule:: metobs_toolkit

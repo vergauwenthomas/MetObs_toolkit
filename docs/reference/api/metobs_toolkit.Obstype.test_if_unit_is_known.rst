@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Obstype.test\_if\_unit\_is\_known
+metobs\_toolkit.Obstype.test\_if\_unit\_is\_known
 =================================================
 
 .. currentmodule:: metobs_toolkit

@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.apply\_titan\_buddy\_check
+metobs\_toolkit.Dataset.apply\_titan\_buddy\_check
 ==================================================
 
 .. currentmodule:: metobs_toolkit

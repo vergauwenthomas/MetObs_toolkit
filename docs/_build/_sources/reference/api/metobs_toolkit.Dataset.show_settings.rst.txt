@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.show\_settings
+metobs\_toolkit.Dataset.show\_settings
 ======================================
 
 .. currentmodule:: metobs_toolkit

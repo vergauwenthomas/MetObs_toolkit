@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.fill\_gaps\_linear
+metobs\_toolkit.Dataset.fill\_gaps\_linear
 ==========================================
 
 .. currentmodule:: metobs_toolkit

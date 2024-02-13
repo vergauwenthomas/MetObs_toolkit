@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.update\_timezone
+metobs\_toolkit.Dataset.update\_timezone
 ========================================
 
 .. currentmodule:: metobs_toolkit

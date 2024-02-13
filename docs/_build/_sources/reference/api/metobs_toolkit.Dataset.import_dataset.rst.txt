@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.import\_dataset
+metobs\_toolkit.Dataset.import\_dataset
 =======================================
 
 .. currentmodule:: metobs_toolkit

@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Obstype.set\_description
+metobs\_toolkit.Obstype.set\_description
 ========================================
 
 .. currentmodule:: metobs_toolkit

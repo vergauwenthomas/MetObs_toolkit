@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Obstype.get\_orig\_name
+metobs\_toolkit.Obstype.get\_orig\_name
 =======================================
 
 .. currentmodule:: metobs_toolkit

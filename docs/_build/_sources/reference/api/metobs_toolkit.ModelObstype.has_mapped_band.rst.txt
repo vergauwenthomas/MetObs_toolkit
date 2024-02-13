@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.ModelObstype.has\_mapped\_band
+metobs\_toolkit.ModelObstype.has\_mapped\_band
 ==============================================
 
 .. currentmodule:: metobs_toolkit

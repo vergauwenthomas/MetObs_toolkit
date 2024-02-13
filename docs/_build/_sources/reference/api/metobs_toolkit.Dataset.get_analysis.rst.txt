@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.get\_analysis
+metobs\_toolkit.Dataset.get\_analysis
 =====================================
 
 .. currentmodule:: metobs_toolkit

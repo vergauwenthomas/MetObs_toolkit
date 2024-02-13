@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.apply\_quality\_control
+metobs\_toolkit.Dataset.apply\_quality\_control
 ===============================================
 
 .. currentmodule:: metobs_toolkit

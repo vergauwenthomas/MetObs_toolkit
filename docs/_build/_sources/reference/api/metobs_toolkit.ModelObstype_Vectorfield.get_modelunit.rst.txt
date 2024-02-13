@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.ModelObstype\_Vectorfield.get\_modelunit
+metobs\_toolkit.ModelObstype\_Vectorfield.get\_modelunit
 ========================================================
 
 .. currentmodule:: metobs_toolkit

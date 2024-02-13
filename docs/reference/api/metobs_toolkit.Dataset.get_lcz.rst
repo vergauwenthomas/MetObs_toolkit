@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.get\_lcz
+metobs\_toolkit.Dataset.get\_lcz
 ================================
 
 .. currentmodule:: metobs_toolkit

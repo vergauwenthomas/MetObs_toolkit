@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.get\_landcover
+metobs\_toolkit.Dataset.get\_landcover
 ======================================
 
 .. currentmodule:: metobs_toolkit

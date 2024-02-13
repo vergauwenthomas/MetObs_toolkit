@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.analysis.Analysis.get\_lc\_correlation\_matrices
+metobs\_toolkit.analysis.Analysis.get\_lc\_correlation\_matrices
 ================================================================
 
 .. currentmodule:: metobs_toolkit.analysis

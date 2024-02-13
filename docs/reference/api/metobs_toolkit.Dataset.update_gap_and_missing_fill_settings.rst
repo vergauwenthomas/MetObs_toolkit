@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.update\_gap\_and\_missing\_fill\_settings
+metobs\_toolkit.Dataset.update\_gap\_and\_missing\_fill\_settings
 =================================================================
 
 .. currentmodule:: metobs_toolkit

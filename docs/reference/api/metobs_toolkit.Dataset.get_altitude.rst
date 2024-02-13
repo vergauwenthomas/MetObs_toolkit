@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.get\_altitude
+metobs\_toolkit.Dataset.get\_altitude
 =====================================
 
 .. currentmodule:: metobs_toolkit

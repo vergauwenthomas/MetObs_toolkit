@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.ModelObstype\_Vectorfield.add\_new\_band
+metobs\_toolkit.ModelObstype\_Vectorfield.add\_new\_band
 ========================================================
 
 .. currentmodule:: metobs_toolkit

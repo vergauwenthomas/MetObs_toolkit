@@ -13,3 +13,4 @@ the MetObs toolkit to be used by a user and developer.
   Station <reference/station>
   Obstype <reference/obstype>
   Analysis <reference/analysis>
+  Modeldata <reference/modeldata>

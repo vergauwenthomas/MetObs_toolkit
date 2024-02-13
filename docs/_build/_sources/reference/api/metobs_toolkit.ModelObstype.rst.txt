@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.ModelObstype
+metobs\_toolkit.ModelObstype
 ============================
 
 .. currentmodule:: metobs_toolkit

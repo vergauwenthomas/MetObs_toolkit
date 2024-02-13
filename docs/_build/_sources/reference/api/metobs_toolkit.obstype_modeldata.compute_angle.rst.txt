@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.obstype\_modeldata.compute\_angle
+metobs\_toolkit.obstype\_modeldata.compute\_angle
 =================================================
 
 .. currentmodule:: metobs_toolkit.obstype_modeldata

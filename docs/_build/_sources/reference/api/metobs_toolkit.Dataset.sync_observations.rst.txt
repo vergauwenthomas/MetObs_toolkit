@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.sync\_observations
+metobs\_toolkit.Dataset.sync\_observations
 ==========================================
 
 .. currentmodule:: metobs_toolkit

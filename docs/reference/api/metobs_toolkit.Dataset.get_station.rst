@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.get\_station
+metobs\_toolkit.Dataset.get\_station
 ====================================
 
 .. currentmodule:: metobs_toolkit

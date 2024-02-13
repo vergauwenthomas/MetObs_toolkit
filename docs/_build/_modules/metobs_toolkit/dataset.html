@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>metobs_toolkit.dataset &#8212; metobs_toolkit 0.1.3a documentation</title>
+    <title>metobs_toolkit.dataset &#8212; MetObs Toolkit 0.1.3a documentation</title>
 
 
 
@@ -29,7 +29,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a7314d79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=5a2d9535" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
@@ -123,8 +123,8 @@
 
 
 
-    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt="metobs_toolkit 0.1.3a documentation - Home"/>
-    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt="metobs_toolkit 0.1.3a documentation - Home"/>`);</script>
+    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit 0.1.3a documentation - Home"/>
+    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit 0.1.3a documentation - Home"/>`);</script>
 
 
 </a></div>
@@ -741,6 +741,24 @@ document.write(`
 <span class="sd">        -------</span>
 <span class="sd">        None.</span>
 
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            import metobs_toolkit</span>
+
+<span class="sd">            # Import data into a Dataset</span>
+<span class="sd">            dataset = metobs_toolkit.Dataset()</span>
+<span class="sd">            dataset.update_settings(</span>
+<span class="sd">                        input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">                        input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">                        template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">                        )</span>
+
+<span class="sd">            dataset.import_data_from_file()</span>
+
+<span class="sd">            # Print out details</span>
+<span class="sd">            dataset.show()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Show basic info of dataset.&quot;</span><span class="p">)</span>
 

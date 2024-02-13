@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.write\_to\_csv
+metobs\_toolkit.Dataset.write\_to\_csv
 ======================================
 
 .. currentmodule:: metobs_toolkit

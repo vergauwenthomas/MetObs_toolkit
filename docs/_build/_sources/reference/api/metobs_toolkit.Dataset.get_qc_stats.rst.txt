@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.get\_qc\_stats
+metobs\_toolkit.Dataset.get\_qc\_stats
 ======================================
 
 .. currentmodule:: metobs_toolkit

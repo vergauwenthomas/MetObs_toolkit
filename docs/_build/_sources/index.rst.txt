@@ -2,6 +2,9 @@
 
 MetObs Toolkit |version|
 ============================
+.. image:: logo_small.svg
+    :alt: logo
+    :width: 400
 
 MetObs Toolkit is an open source project to make working with meteorological observations in python easier.
 
@@ -31,9 +34,13 @@ such as PostGIS.
     :doc:`Getting started <intro>` :doc:`Specific topics <specific_topics>`
     :doc:`Examples <examples/index>` :doc:`Documentation <MetObs_documentation_flat>`
 
+
 Team
 --------
-blabla
+This package is created and maintained by the `Atmospheric Physics group <https://www.ugent.be/we/physics-astronomy/en/research/atmophys>`_ . of the
+Ghent university in Belgium.
+
+
 
 
 Indices and tables

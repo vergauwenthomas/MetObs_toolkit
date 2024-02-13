@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.add\_new\_unit
+metobs\_toolkit.Dataset.add\_new\_unit
 ======================================
 
 .. currentmodule:: metobs_toolkit

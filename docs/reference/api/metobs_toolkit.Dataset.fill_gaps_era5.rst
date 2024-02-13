@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.fill\_gaps\_era5
+metobs\_toolkit.Dataset.fill\_gaps\_era5
 ========================================
 
 .. currentmodule:: metobs_toolkit

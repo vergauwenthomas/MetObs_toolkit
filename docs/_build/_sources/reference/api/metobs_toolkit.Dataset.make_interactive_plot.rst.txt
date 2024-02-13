@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.make\_interactive\_plot
+metobs\_toolkit.Dataset.make\_interactive\_plot
 ===============================================
 
 .. currentmodule:: metobs_toolkit

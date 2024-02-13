@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.analysis.Analysis
+metobs\_toolkit.analysis.Analysis
 =================================
 
 .. currentmodule:: metobs_toolkit.analysis

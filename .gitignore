@@ -22,7 +22,7 @@ docs/examples/*.py
 
 #Exclude local documentation builds
 docs/_*
-!docs/_build
+#!docs/_build
 
 #logs
 *log

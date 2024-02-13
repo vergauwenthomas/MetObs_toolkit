@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.update\_default\_name
+metobs\_toolkit.Dataset.update\_default\_name
 =============================================
 
 .. currentmodule:: metobs_toolkit

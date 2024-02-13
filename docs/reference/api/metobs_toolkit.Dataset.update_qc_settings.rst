@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.update\_qc\_settings
+metobs\_toolkit.Dataset.update\_qc\_settings
 ============================================
 
 .. currentmodule:: metobs_toolkit

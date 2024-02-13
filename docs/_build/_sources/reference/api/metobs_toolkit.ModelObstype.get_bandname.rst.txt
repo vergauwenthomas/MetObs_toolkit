@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.ModelObstype.get\_bandname
+metobs\_toolkit.ModelObstype.get\_bandname
 ==========================================
 
 .. currentmodule:: metobs_toolkit

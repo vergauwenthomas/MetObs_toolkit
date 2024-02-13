@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.save\_dataset
+metobs\_toolkit.Dataset.save\_dataset
 =====================================
 
 .. currentmodule:: metobs_toolkit

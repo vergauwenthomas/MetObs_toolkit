@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Obstype.add\_unit
+metobs\_toolkit.Obstype.add\_unit
 =================================
 
 .. currentmodule:: metobs_toolkit

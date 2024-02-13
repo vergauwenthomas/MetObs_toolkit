@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.fill\_missing\_obs\_linear
+metobs\_toolkit.Dataset.fill\_missing\_obs\_linear
 ==================================================
 
 .. currentmodule:: metobs_toolkit

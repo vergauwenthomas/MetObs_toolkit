@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.analysis.Analysis.plot\_correlation\_heatmap
+metobs\_toolkit.analysis.Analysis.plot\_correlation\_heatmap
 ============================================================
 
 .. currentmodule:: metobs_toolkit.analysis

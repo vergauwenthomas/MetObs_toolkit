@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Obstype.convert\_to\_standard\_units
+metobs\_toolkit.Obstype.convert\_to\_standard\_units
 ====================================================
 
 .. currentmodule:: metobs_toolkit

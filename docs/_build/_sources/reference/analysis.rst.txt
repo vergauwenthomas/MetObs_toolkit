@@ -36,30 +36,6 @@ General methods and attributes
 
 
 
-Extracting data
-------------------
-.. autosummary::
-   :toctree: api/
-
-   Dataset.get_modeldata
-   Dataset.get_lcz
-   Dataset.get_altitude
-   Dataset.get_landcover
-
-
-
-Updating Settings
-------------------------
-
-
-
-
-Reading and writing related
-------------------------------
-
-
-
-
 Plotting methods
 ------------------------------
 

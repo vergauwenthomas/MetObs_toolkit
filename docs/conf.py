@@ -51,6 +51,7 @@ copyright = "2023, Thomas Vergauwen"
 author = "Thomas Vergauwen"
 
 # The full version, including alpha/beta/rc tags
+version = metobs_toolkit.__version__
 release = metobs_toolkit.__version__
 
 
@@ -72,6 +73,7 @@ extensions = [
     "nbsphinx",  # to render the notebook examples in the doc
 ]
 
+# -- General configuration ------------------------------------------------------------
 
 # Add any paths that contain templates here, relative to this directory.
 
@@ -85,6 +87,10 @@ source_suffix = {
     ".txt": "markdown",
     ".md": "markdown",
 }
+source_encoding = "utf-8"
+
+
+master_doc = "index"  # The master toctree document.
 
 
 # When building the doc, sphinx will try to import all the depending packages,
@@ -103,51 +109,39 @@ autodoc_mock_imports = [
     "cartopy",
 ]
 
-
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "**.ipynb_checkpoints",
+    "paper",
+]
+
+add_function_parentheses = False
+add_module_names = False
+show_authors = False  # section and module author directives will not be shown
+todo_include_todos = False  # Do not show TODOs in docs
+
 
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-# html_theme = "sphinx_rtd_theme"
-
-# html_theme_options = {
-#     "analytics_id": "G-XXXXXXXXXX",  #  Provided by Google in your dashboard
-#     "analytics_anonymize_ip": False,
-#     "logo_only": False,
-#     "display_version": True,
-#     "prev_next_buttons_location": "bottom",
-#     "style_external_links": False,
-#     "vcs_pageview_mode": "",
-#     "style_nav_header_background": "white",
-#     # Toc options
-#     "collapse_navigation": True,
-#     "sticky_navigation": True,
-#     "navigation_depth": 4,
-#     "includehidden": True,
-#     "titles_only": False,
-# }
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-
-# html_static_path = ["_static"]
-
-# html_logo = "logo_small.svg"
-# html_theme_options = {
-#     "logo_only": True,
-#     "display_version": True,
-# }
 
 html_theme = "pydata_sphinx_theme"
+html_title = f"MetObs Toolkit {metobs_toolkit.__version__} documentation"
+html_short_title = "MetObs Toolkit documentation"
+html_logo = "logo_small.svg"
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
+html_show_sphinx = True
+html_show_copyright = True
+htmlhelp_basename = "MetObs toolkit"  # Output file base name for HTML help builder.
+html_use_smartypants = True
+html_show_sourcelink = True
+
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -162,19 +156,28 @@ html_theme_options = {
     ]
 }
 
+
+# Try to remove the white/dark theme switch (because it is bugging)
+# html_context = {
+#    "default_mode": "light" #light or dark theme
+# }
+
+
+# html_theme_options["navbar_end"] = ["navbar-icon-links"]
+
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-# html_title = None
+# html_title = f"MetObs Toolkit {metobs_toolkit.__version__} documentation"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-# html_short_title = None
+# html_short_title = "MetObs Toolkit documentation"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "logo_small.svg"
+# html_logo = "logo_small.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -184,7 +187,7 @@ html_logo = "logo_small.svg"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -208,6 +211,6 @@ html_static_path = ["_static"]
 
 # These paths are either relative to html_static_path
 # or fully qualified paths (eg. https://...)
-html_css_files = [
-    "custom.css",
-]
+# html_css_files = [
+#     "custom.css",
+# ]

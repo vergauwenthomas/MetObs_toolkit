@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.apply\_titan\_sct\_resistant\_check
+metobs\_toolkit.Dataset.apply\_titan\_sct\_resistant\_check
 ===========================================================
 
 .. currentmodule:: metobs_toolkit

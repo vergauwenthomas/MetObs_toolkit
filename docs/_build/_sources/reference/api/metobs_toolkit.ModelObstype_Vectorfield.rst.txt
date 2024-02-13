@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.ModelObstype\_Vectorfield
+metobs\_toolkit.ModelObstype\_Vectorfield
 =========================================
 
 .. currentmodule:: metobs_toolkit

@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.make\_geo\_plot
+metobs\_toolkit.Dataset.make\_geo\_plot
 =======================================
 
 .. currentmodule:: metobs_toolkit

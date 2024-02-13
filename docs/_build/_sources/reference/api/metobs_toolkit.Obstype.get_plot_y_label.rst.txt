@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Obstype.get\_plot\_y\_label
+metobs\_toolkit.Obstype.get\_plot\_y\_label
 ===========================================
 
 .. currentmodule:: metobs_toolkit

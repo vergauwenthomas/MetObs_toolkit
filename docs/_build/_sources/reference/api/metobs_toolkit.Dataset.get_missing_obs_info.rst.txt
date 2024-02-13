@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.get\_missing\_obs\_info
+metobs\_toolkit.Dataset.get\_missing\_obs\_info
 ===============================================
 
 .. currentmodule:: metobs_toolkit

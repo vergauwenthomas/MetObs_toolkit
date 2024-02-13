@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.analysis.Analysis.get\_diurnal\_statistics
+metobs\_toolkit.analysis.Analysis.get\_diurnal\_statistics
 ==========================================================
 
 .. currentmodule:: metobs_toolkit.analysis

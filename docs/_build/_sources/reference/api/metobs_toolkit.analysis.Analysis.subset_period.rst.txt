@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.analysis.Analysis.subset\_period
+metobs\_toolkit.analysis.Analysis.subset\_period
 ================================================
 
 .. currentmodule:: metobs_toolkit.analysis

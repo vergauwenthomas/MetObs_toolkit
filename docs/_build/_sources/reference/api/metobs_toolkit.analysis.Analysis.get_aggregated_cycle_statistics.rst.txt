@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.analysis.Analysis.get\_aggregated\_cycle\_statistics
+metobs\_toolkit.analysis.Analysis.get\_aggregated\_cycle\_statistics
 ====================================================================
 
 .. currentmodule:: metobs_toolkit.analysis

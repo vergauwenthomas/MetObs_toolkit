@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.combine\_all\_to\_obsspace
+metobs\_toolkit.Dataset.combine\_all\_to\_obsspace
 ==================================================
 
 .. currentmodule:: metobs_toolkit

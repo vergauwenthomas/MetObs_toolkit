@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.ModelObstype\_Vectorfield.get\_mapped\_datasets
+metobs\_toolkit.ModelObstype\_Vectorfield.get\_mapped\_datasets
 ===============================================================
 
 .. currentmodule:: metobs_toolkit

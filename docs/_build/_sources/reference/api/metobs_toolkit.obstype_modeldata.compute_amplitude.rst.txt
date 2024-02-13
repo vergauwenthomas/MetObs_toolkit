@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.obstype\_modeldata.compute\_amplitude
+metobs\_toolkit.obstype\_modeldata.compute\_amplitude
 =====================================================
 
 .. currentmodule:: metobs_toolkit.obstype_modeldata

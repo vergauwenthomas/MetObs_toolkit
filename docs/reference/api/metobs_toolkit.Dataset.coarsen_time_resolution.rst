@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.Dataset.coarsen\_time\_resolution
+metobs\_toolkit.Dataset.coarsen\_time\_resolution
 =================================================
 
 .. currentmodule:: metobs_toolkit

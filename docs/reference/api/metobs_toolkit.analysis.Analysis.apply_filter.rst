@@ -1,4 +1,4 @@
-﻿metobs\_toolkit.analysis.Analysis.apply\_filter
+metobs\_toolkit.analysis.Analysis.apply\_filter
 ===============================================
 
 .. currentmodule:: metobs_toolkit.analysis
