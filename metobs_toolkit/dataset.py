@@ -158,7 +158,7 @@ class Dataset:
         if (not self.metadf["lat"].isnull().all()) & (
             not self.metadf["lon"].isnull().all()
         ):
-            add_info += "    *Coordinates are available for all stations. \n"
+            add_info += "    *Coordinates are available for all stations."
 
         return (
             f"Dataset instance containing: \n \
@@ -325,6 +325,7 @@ class Dataset:
 
             # Print out details
             dataset.show()
+
         """
         logger.info("Show basic info of dataset.")
 
@@ -346,6 +347,25 @@ class Dataset:
         -------
         None.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+
+            dataset.import_data_from_file()
+
+            # Print out details
+            dataset.get_info()
+
         """
         self.show(show_all_settings, max_disp_n_gaps)
 
@@ -363,6 +383,27 @@ class Dataset:
         Returns
         -------
         None.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+            import os
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+
+            dataset.import_data_from_file()
+
+            # Save dataset to a .pkl file
+            dataset.save_dataset(outputfolder=os.getcwd(),
+                                 filename='your_saved_dataset.pkl')
 
         """
         # check if outputfolder is known and exists
@@ -405,6 +446,20 @@ class Dataset:
         metobs_toolkit.Dataset
             The Dataset instance.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+            import os
+
+            # Initialize an empty Dataset
+            empty_dataset = metobs_toolkit.Dataset()
+
+            # Import the dataset
+            dataset=empty_dataset.import_dataset(folder_path=os.getcwd(),
+                                                 filename='your_saved_dataset.pkl')
+
         """
         # check if folder_path is known and exists
         if folder_path is None:
@@ -437,11 +492,30 @@ class Dataset:
 
         Parameters
         ----------
-        Obstype : metobs_toolkit.obstype.Obstype
+
             The new Obstype to add.
         Returns
         -------
         None.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>> co2_concentration = metobs_toolkit.Obstype(obsname='co2',
+            ...                                            std_unit='ppm')
+            >>> #add other units to it (if needed)
+            >>> co2_concentration.add_unit(unit_name='ppb',
+            ...                            conversion=['x / 1000'], #1 ppb = 0.001 ppm
+            ...                           )
+            >>> #Set a description
+            >>> co2_concentration.set_description(desc='The CO2 concentration measured at 2m above surface')
+            >>> #Add it to a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.add_new_observationtype(co2_concentration)
+            >>> dataset.obstypes
+            {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction, 'co2': Obstype instance of co2}
 
         """
         # Test if the obstype is of the correct class.
@@ -486,6 +560,28 @@ class Dataset:
         -------
         None.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>>
+            >>> #Add new unit to a known obstype
+            >>> dataset.add_new_unit(obstype = 'temp',
+            ...                           new_unit= 'your_new_unit',
+            ...                           conversion_expression = ['x+3', 'x * 2'])
+            >>> # The conversion means: 1 [your_new_unit] = (1 + 3) * 2 [°C]
+            >>> dataset.obstypes['temp'].get_info()
+            temp observation with:
+                 * standard unit: Celsius
+                 * data column as None in None
+                 * known units and aliases: {'Celsius': ['celsius', '°C', '°c', 'celcius', 'Celcius'], 'Kelvin': ['K', 'kelvin'], 'Farenheit': ['farenheit'], 'your_new_unit': []}
+                 * description: 2m - temperature
+                 * conversions to known units: {'Kelvin': ['x - 273.15'], 'Farenheit': ['x-32.0', 'x/1.8'], 'your_new_unit': ['x+3', 'x * 2']}
+                 * originates from data column: None with None as native unit.
         """
         # test if observation is present
         if not obstype in self.obstypes.keys():
@@ -513,6 +609,19 @@ class Dataset:
         -------
         None.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>>
+            >>> #Show default settings
+            >>> dataset.show_settings()
+            All settings:...
+
         """
         self.settings.show()
 
@@ -530,6 +639,36 @@ class Dataset:
         -------
         metobs_toolkit.Station
             The station object.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+
+            >>>
+            >>> #Add observations to the Dataset
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>>
+            >>> dataset.get_station('vlinder12')
+            Dataset instance containing:
+                 *1 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *4320 observation records
+                 *0 records labeled as outliers
+                 *0 gaps
+                 *0 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
 
         """
         from metobs_toolkit.station import Station
@@ -1607,7 +1746,6 @@ class Dataset:
         ), "Not all stations with gaps are in the modeldata!"
 
         if method == "debias":
-
             fill_settings_debias = self.settings.gap["gaps_fill_settings"][
                 "model_debias"
             ]
@@ -1931,7 +2069,8 @@ class Dataset:
                     [
                         self._applied_qc,
                         conv_applied_qc_to_df(
-                            obstypes=obstype, ordered_checknames="window_variation"
+                            obstypes=obstype,
+                            ordered_checknames="window_variation",
                         ),
                     ],
                     ignore_index=True,
@@ -2339,7 +2478,9 @@ class Dataset:
             )
 
     def combine_all_to_obsspace(
-        self, repr_outl_as_nan=False, overwrite_outliers_by_gaps_and_missing=True
+        self,
+        repr_outl_as_nan=False,
+        overwrite_outliers_by_gaps_and_missing=True,
     ):
         """Make one dataframe with all observations and their labels.
 
@@ -2760,7 +2901,10 @@ class Dataset:
         # find simplified resolution
         if _force_resolution_minutes is None:
             simplified_resolution = get_freqency_series(
-                df=df, method="median", simplify=True, max_simplify_error=tollerance
+                df=df,
+                method="median",
+                simplify=True,
+                max_simplify_error=tollerance,
             )
         else:
             if isinstance(_force_resolution_minutes, list):
@@ -2871,7 +3015,10 @@ class Dataset:
         # overwrite the df with the synced observations
         merged_df = (
             merged_df.rename(
-                columns={"datetime": "original_datetime", "target_datetime": "datetime"}
+                columns={
+                    "datetime": "original_datetime",
+                    "target_datetime": "datetime",
+                }
             )
             .set_index(["name", "datetime"])
             .drop(["original_datetime"], errors="ignore", axis=1)
@@ -2895,7 +3042,10 @@ class Dataset:
 
         if verbose:
             _total_verbose_df = _total_verbose_df.rename(
-                columns={"datetime": "original_datetime", "target_datetime": "datetime"}
+                columns={
+                    "datetime": "original_datetime",
+                    "target_datetime": "datetime",
+                }
             ).set_index(["name", "datetime"])
             return _total_verbose_df
 
@@ -2992,7 +3142,6 @@ class Dataset:
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         if freq_estimation_method is None:
-
             freq_estimation_method = self.settings.time_settings[
                 "freq_estimation_method"
             ]
@@ -3403,7 +3552,10 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         # update metadata
         self.metadf = self.metadf.merge(
-            lcz_series.to_frame(), how="left", left_index=True, right_index=True
+            lcz_series.to_frame(),
+            how="left",
+            left_index=True,
+            right_index=True,
         )
         return lcz_series
 
@@ -3426,7 +3578,8 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         # Extract LCZ for all stations
         altitude_series = height_extractor(
-            metadf=self.metadf, mapinfo=self.settings.gee["gee_dataset_info"]["DEM"]
+            metadf=self.metadf,
+            mapinfo=self.settings.gee["gee_dataset_info"]["DEM"],
         )
 
         # drop column if it was already present
@@ -3435,12 +3588,19 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         # update metadata
         self.metadf = self.metadf.merge(
-            altitude_series.to_frame(), how="left", left_index=True, right_index=True
+            altitude_series.to_frame(),
+            how="left",
+            left_index=True,
+            right_index=True,
         )
         return altitude_series
 
     def get_landcover(
-        self, buffers=[100], aggregate=True, overwrite=True, gee_map="worldcover"
+        self,
+        buffers=[100],
+        aggregate=True,
+        overwrite=True,
+        gee_map="worldcover",
     ):
         """Extract landcover for all stations.
 
@@ -3480,7 +3640,6 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         df_list = []
         for buffer in buffers:
-
             logger.info(
                 f"Extracting landcover from {gee_map} with buffer radius = {buffer}"
             )
@@ -3505,7 +3664,6 @@ station with the default name: {self.settings.app["default_name"]}.'
         frac_df = frac_df.sort_index()
 
         if overwrite:
-
             for buf in frac_df.index.get_level_values("buffer_radius").unique():
                 buf_df = xs_save(frac_df, buf, level="buffer_radius")
                 buf_df.columns = [col + f"_{int(buf)}m" for col in buf_df.columns]

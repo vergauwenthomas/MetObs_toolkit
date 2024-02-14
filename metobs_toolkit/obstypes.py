@@ -196,7 +196,7 @@ class Obstype:
     * data column as {self.original_name} in {self.original_unit} \n \
     * known units and aliases: {self.units_aliases} \n \
     * description: {self.description} \n \
-    * conversions to known units: {self.conv_table} \n\n \
+    * conversions to known units: {self.conv_table} \n \
     * originates from data column: {self.original_name} with {self.original_unit} as native unit."
         print(info_str)
 

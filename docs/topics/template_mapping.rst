@@ -194,7 +194,7 @@ Once you have converted your tabular data files to either long-, wide-, or singl
 .. Note::
    If you want to use a metadata file, make sure it is converted to a wide-format and saved as a .csv file.
 
-The fastest and simplest way to make a template is by using the *metobs_toolkit.build_template_prompt()* function.
+The fastest and simplest way to make a template is by using the :py:meth:`metobs_toolkit.build_template_prompt<metobs_toolkit.data_templates.template_build_prompt.build_template_prompt>` function.
 
 .. code-block:: python
 

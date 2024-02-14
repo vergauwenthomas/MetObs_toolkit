@@ -109,6 +109,16 @@ for t in $filenames; do
 done
 
 
+#Run Doctests on all modules
+cd ${WORKDIR}/metobs_toolkit
+modules=`ls ./*.py`
+for t in $modules; do
+	module_file=${WORKDIR}/metobs_toolkit/${t}
+	python3 -m doctest -o ELLIPSIS -o NORMALIZE_WHITESPACE ${module_file}
+
+
+
+
 
 cd ${DEPLOY_DIR}
 echo "Testing Done"
