@@ -1,6 +1,0 @@
-metobs\_toolkit.Obstype.convert\_to\_standard\_units
-====================================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: Obstype.convert_to_standard_units

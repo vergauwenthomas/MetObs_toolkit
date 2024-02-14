@@ -1,6 +1,0 @@
-metobs\_toolkit.ModelObstype\_Vectorfield.get\_bandname\_mapper
-===============================================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: ModelObstype_Vectorfield.get_bandname_mapper

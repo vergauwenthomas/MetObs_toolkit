@@ -1,6 +1,0 @@
-metobs\_toolkit.Dataset.get\_info
-=================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: Dataset.get_info

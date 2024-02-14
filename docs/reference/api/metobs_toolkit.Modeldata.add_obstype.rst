@@ -1,6 +1,0 @@
-metobs\_toolkit.Modeldata.add\_obstype
-======================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: Modeldata.add_obstype

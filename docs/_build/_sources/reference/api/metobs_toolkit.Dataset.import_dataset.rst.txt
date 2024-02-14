@@ -1,6 +1,0 @@
-metobs\_toolkit.Dataset.import\_dataset
-=======================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: Dataset.import_dataset

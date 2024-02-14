@@ -1,6 +1,0 @@
-metobs\_toolkit.Obstype.set\_description
-========================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: Obstype.set_description

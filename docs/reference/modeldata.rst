@@ -12,7 +12,7 @@ to interact with the Google Earth Engine to extract timeseries.
    point extractions at the locations of the stations. Therefore a Modeldata
    instance is linked to a collection of stations defined by the `metadf` attribute.
 
-Demo examples on the Modeldata class can be found here: :ref:`Extracting ERA5 timeseries` .
+Demo examples on the Modeldata class can be found here: :ref:`Extracting ERA5 timeseries`_ .
 
 
 .. currentmodule:: metobs_toolkit

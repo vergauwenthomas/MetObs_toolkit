@@ -1,6 +1,0 @@
-metobs\_toolkit.ModelObstype.get\_bandname
-==========================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: ModelObstype.get_bandname

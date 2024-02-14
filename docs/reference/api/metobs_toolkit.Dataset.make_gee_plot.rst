@@ -1,6 +1,0 @@
-metobs\_toolkit.Dataset.make\_gee\_plot
-=======================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: Dataset.make_gee_plot

@@ -1,6 +1,0 @@
-metobs\_toolkit.Obstype.test\_if\_unit\_is\_known
-=================================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: Obstype.test_if_unit_is_known

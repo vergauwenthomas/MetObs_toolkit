@@ -1,6 +1,0 @@
-metobs\_toolkit.Dataset.update\_default\_name
-=============================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: Dataset.update_default_name

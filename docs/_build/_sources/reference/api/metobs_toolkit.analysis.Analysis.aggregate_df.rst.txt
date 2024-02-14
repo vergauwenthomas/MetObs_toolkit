@@ -1,6 +1,0 @@
-metobs\_toolkit.analysis.Analysis.aggregate\_df
-===============================================
-
-.. currentmodule:: metobs_toolkit.analysis
-
-.. automethod:: Analysis.aggregate_df

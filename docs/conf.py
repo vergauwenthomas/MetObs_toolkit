@@ -116,7 +116,7 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "**.ipynb_checkpoints",
-    "paper",
+    "paper/paper.md",
 ]
 
 add_function_parentheses = False

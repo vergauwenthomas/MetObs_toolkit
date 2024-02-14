@@ -1,6 +1,0 @@
-metobs\_toolkit.Dataset.add\_new\_observationtype
-=================================================
-
-.. currentmodule:: metobs_toolkit
-
-.. automethod:: Dataset.add_new_observationtype

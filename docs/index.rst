@@ -21,12 +21,14 @@ such as PostGIS.
 
 .. toctree::
    :hidden:
+   :maxdepth: 5
 
    Home <self>
    Getting started <intro>
    Specific topics <specific_topics>
    Examples <examples/index>
    Documentation <MetObs_documentation_flat>
+   For Developers <MetObs_for_developers>
    Contributing <topics/contributing_link.md>
 
 .. container:: button

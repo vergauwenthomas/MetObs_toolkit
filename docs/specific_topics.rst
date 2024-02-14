@@ -1,12 +1,14 @@
+============================
 Specific topics
 ============================
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    topics/template_mapping
    topics/gee_authentication
-   topics/special_topics
+   topics/create_obstypes
+   topics/irregular_timestamps
    topics/gui
    paper/index

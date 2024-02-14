@@ -8,16 +8,16 @@ Parent class defenition for observation types.
 
 .. currentmodule:: metobs_toolkit
 
-Constructor
------------
+Constructor for Obstype
+------------------------
 
 .. autosummary::
    :toctree: api/
 
    Obstype
 
-General methods and attributes
-------------------------------
+General methods and attributes for Obstype
+-------------------------------------------
 
 .. autosummary::
    :toctree: api/
@@ -34,8 +34,8 @@ General methods and attributes
 
 
 
-Developers methods and attributes
-------------------------------------
+Developers methods and attributes for Obstype
+----------------------------------------------
 
 .. autosummary::
    :toctree: api/
@@ -53,16 +53,16 @@ ModelObstype
 A child of :ref:`Obstype api` that adds info on how this observationtype is represented in modeloutput.
 All methods of Obstype() are inhereted.
 
-Constructor
------------
+Constructor for ModelObstype
+-----------------------------
 
 .. autosummary::
    :toctree: api/
 
    ModelObstype
 
-General methods and attributes
-------------------------------
+General methods and attributes for ModelObstype
+------------------------------------------------
 
 .. autosummary::
    :toctree: api/
@@ -72,8 +72,8 @@ General methods and attributes
    ModelObstype.get_modelunit
    ModelObstype.add_new_band
 
-Developers methods and attributes
-------------------------------------
+Developers methods and attributes for ModelObstype
+---------------------------------------------------
 
 .. autosummary::
    :toctree: api/
@@ -93,16 +93,16 @@ A vectorfield in the modeloutput is defined by its components.
 
 All methods of Obstype() are inhereted.
 
-Constructor
------------
+Constructor for ModelObstype_Vectorfield
+-----------------------------------------
 
 .. autosummary::
    :toctree: api/
 
    ModelObstype_Vectorfield
 
-General methods and attributes
-------------------------------
+General methods and attributes for ModelObstype_Vectorfield
+-------------------------------------------------------------
 
 .. autosummary::
    :toctree: api/
@@ -122,7 +122,7 @@ Developers methods and attributes
 
 
 Developers vectorfield conversion functions
-------------------------------------------------
+---------------------------------------------
 These functions are used by the :ref:`ModelObstype_Vectorfield api` to convert components to amplitudes and angles.
 
 .. autosummary::
