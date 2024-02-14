@@ -61,7 +61,7 @@ This toolkit is a Python package based on object-oriented programming (OOP). Her
 Dataset()
 -----------
 
-The :py:meth:`Dataset<metobs_toolkit.dataset.Dataset>` class is at the heart of the toolkit and it holds all observations and metadata.
+The :ref:`Dataset <Dataset api>` class is at the heart of the toolkit and it holds all observations and metadata.
 
 .. code-block:: python
 
@@ -100,7 +100,8 @@ Dataset.metadf
 
 Station()
 -----------
-A :py:meth:`Station<metobs_toolkit.station.Station>` is a class that has the same attributes and methods as a Dataset, but all the observations are limited to a specific station.
+
+A :ref:`Station <Station api>` is a class that has the same attributes and methods as a Dataset, but all the observations are limited to a specific station.
 
 .. code-block:: python
 
@@ -109,7 +110,7 @@ A :py:meth:`Station<metobs_toolkit.station.Station>` is a class that has the sam
 
 Analysis()
 -----------
-The :py:meth:`Analysis<metobs_toolkit.analysis.Analysis>` class is created from a Dataset and holds the observations that are assumed to be correct (the df-container of the Dataset). In contrast to the Dataset, the Analysis methods do not change the observations.
+The :ref:`Analysis <Analysis api>` class is created from a Dataset and holds the observations that are assumed to be correct (the df-container of the Dataset). In contrast to the Dataset, the Analysis methods do not change the observations.
 The Analysis methods are based on aggregating the observations to get insight into diurnal/seasonal patterns and landcover effects.
 
 .. code-block:: python
@@ -124,7 +125,7 @@ The Analysis methods are based on aggregating the observations to get insight in
 
 Modeldata()
 -------------
-The :py:meth:`Modeldata<metobs_toolkit.modeldata.Modeldata>` holds time-series of data from a source other than observations (i.g. a model). The time-series are taken at the same coordinates as the stations and the
+The :ref:`Modeldata <Modeldata api>` holds time-series of data from a source other than observations (i.g. a model). The time-series are taken at the same coordinates as the stations and the
 names of the stations are used as well.
 
 This class is used for comparing other sources to observations and for filling in missing observations and gaps in the observations.
@@ -137,8 +138,6 @@ This class is used for comparing other sources to observations and for filling i
 
 
 The toolkit makes use of the Google Earth Engine (GEE), to extract these time-series. To use the GEE API, follow these steps on :ref:`Using Google Earth Engine<Using Google Earth Engine>`.
-
-
 
 
 Settings()

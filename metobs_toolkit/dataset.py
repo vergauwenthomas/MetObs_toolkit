@@ -784,6 +784,27 @@ class Dataset:
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+
+            dataset.import_data_from_file()
+
+            # Make plot
+            dataset.make_plot(stationnames=['vlinder02', 'vlinder16'],
+                              obstype='temp',
+                              colorby='label')
+
         """
 
         if stationnames is None:
@@ -923,6 +944,25 @@ class Dataset:
         The figure will only appear when this is runned in notebooks. If you do
         not run this in a notebook, make shure to save the html file, and open it
         with a browser.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+
+            dataset.import_data_from_file()
+
+            # Make default interactive plot
+            dataset.make_interactive_plot()
 
         """
         # Check if obstype is known
@@ -1088,6 +1128,25 @@ class Dataset:
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+
+            dataset.import_data_from_file()
+
+            # Make default interactive plot
+            dataset.make_geo_plot()
 
         """
         # Load default plot settings

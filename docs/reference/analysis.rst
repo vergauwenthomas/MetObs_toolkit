@@ -1,3 +1,5 @@
+.. _Analysis api:
+
 =========
 Analysis
 =========
