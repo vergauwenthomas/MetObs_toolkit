@@ -98,7 +98,7 @@ filenames=`ls ./*.py`
 for t in $filenames; do
 	push_file=${TESTDIR}/push_test/${t}
   	logfile="$(make_test_log ${t})"
-	echo Running push tests: ${t}g
+	echo Running push tests: ${t}
 	poetry run python ${push_file} >> ${logfile} 2>&1
 	if [ $? -eq 0 ]; then
                 echo "succeeded !!"
