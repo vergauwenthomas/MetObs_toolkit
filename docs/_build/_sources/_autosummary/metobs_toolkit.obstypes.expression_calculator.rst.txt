@@ -1,6 +1,0 @@
-metobs\_toolkit.obstypes.expression\_calculator
-===============================================
-
-.. currentmodule:: metobs_toolkit.obstypes
-
-.. autofunction:: expression_calculator

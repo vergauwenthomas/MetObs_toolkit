@@ -632,7 +632,7 @@ def build_template_prompt(debug=False):
                     f" Warning! {col} in the metadatafile is not present in the template, and thus it will not be used."
                 )
 
-    # make shure the stationname is unique in single station datafile
+    # make sure the stationname is unique in single station datafile
     if format_option == 3:
         print(" *  ... checking if stationname is unique ... ")
         if bool(metatemplate_dict):
@@ -721,7 +721,7 @@ def build_template_prompt(debug=False):
     # write to csv
     templatefilepath = os.path.join(save_dir, "template.csv")
     df.to_csv(templatefilepath, na_rep="", index=False)
-    print(f" DONE! The template is writen here: {templatefilepath}")
+    print(f" DONE! The template is written here: {templatefilepath}")
 
     # =============================================================================
     # Tips for the user

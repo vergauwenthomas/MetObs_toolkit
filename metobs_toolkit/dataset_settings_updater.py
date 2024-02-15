@@ -256,7 +256,7 @@ class Dataset(dataset.Dataset):
             greater or equal to this number, on the input frequencies. The default is None.
         dupl_timestamp_keep : bool, optional
             Setting that determines to keep, or remove duplicated timestamps. The default is None.
-        persis_time_win_to_check :automatic_max_interpolation_duration_str
+        persis_time_win_to_check : Timedelta or str, optional
             Time window for persistance check. The default is None.
         persis_min_num_obs : int (> 0), optional
             Minimal window members for persistance check. The default is None.
@@ -358,9 +358,9 @@ class Dataset(dataset.Dataset):
                 f'Setting to keep (True) are remove (False) duplicate timestamps updated: \
         {self.settings.qc["qc_check_settings"]["duplicated_timestamp"]["keep"]} -->  {bool(dupl_timestamp_keep)}'
             )
-            self.settings.qc["qc_check_settings"]["duplicated_timestamp"][
-                "keep"
-            ] = bool(dupl_timestamp_keep)
+            self.settings.qc["qc_check_settings"]["duplicated_timestamp"]["keep"] = (
+                bool(dupl_timestamp_keep)
+            )
 
         # Persistance check
         if persis_time_win_to_check is not None:

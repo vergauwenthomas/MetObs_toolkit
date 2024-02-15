@@ -545,10 +545,10 @@ def gee_extract_timeseries(
         _drivefolder = "era5_timeseries"
 
         print(
-            f"The timeseries will be writen to your Drive in {_drivefolder}/{_filename} "
+            f"The timeseries will be written to your Drive in {_drivefolder}/{_filename} "
         )
         logger.info(
-            f"The timeseries will be writen to your Drive in {_drivefolder}/{_filename} "
+            f"The timeseries will be written to your Drive in {_drivefolder}/{_filename} "
         )
 
         data_columns = ["datetime", "name"]

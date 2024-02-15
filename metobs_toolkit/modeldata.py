@@ -187,7 +187,7 @@ class Modeldata:
         Note
         -------
         Currently no unit conversion is perfomed automatically other than K -->
-        Celcius. This will be implemented in the futur.
+        Celsius. This will be implemented in the futur.
 
         """
         # check if mapname exists
@@ -443,7 +443,7 @@ class Modeldata:
         Note
         ------
         When extracting large amounts of data, the timeseries data will be
-        writen to a file and saved on your google drive. In this case, you need
+        written to a file and saved on your google drive. In this case, you need
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
 
@@ -562,7 +562,7 @@ class Modeldata:
         Note
         ------
         When extracting large amounts of data, the timeseries data will be
-        writen to a file and saved on your google drive. In this case, you need
+        written to a file and saved on your google drive. In this case, you need
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
 
