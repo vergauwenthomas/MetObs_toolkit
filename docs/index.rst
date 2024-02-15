@@ -4,7 +4,7 @@ MetObs Toolkit |version|
 ============================
 .. image:: logo_small.svg
     :alt: logo
-    :width: 400
+    :width: 500
 
 MetObs Toolkit is an open source project to make working with meteorological observations in python easier.
 

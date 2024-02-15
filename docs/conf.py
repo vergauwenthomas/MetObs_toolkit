@@ -153,11 +153,6 @@ html_theme_options = {
             "url": "https://github.com/vergauwenthomas/MetObs_toolkit",
             "icon": "fab fa-github-square fa-xl",
         },
-        {
-            "name": "PyPI",
-            "url": "https://pypi.org/project/MetObs-toolkit/",
-            "icon": "fa-custom fa-pypi",
-        },
     ]
 }
 

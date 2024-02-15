@@ -3,7 +3,7 @@ Using the GUI
 =====================================
 
 A GUI (Graphical User Interface) is under construction that helps to build
-a data template and explore your dataset. This GUI is made in a seperate package: `MetObs-GUI <https://github.com/vergauwenthomas/MetObs_GUI>`_
+a data template and explore your dataset. This GUI is made in a separate package: `MetObs-GUI <https://github.com/vergauwenthomas/MetObs_GUI>`_
 
 
 

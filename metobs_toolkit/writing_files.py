@@ -23,7 +23,7 @@ def write_dataset_to_csv(
     A final qualty controll label for each quality-controlled-observation type
     can be added in the outputfile.
 
-    The file will be writen to the Settings.outputfolder.
+    The file will be written to the Settings.outputfolder.
 
     Parameters
     ----------

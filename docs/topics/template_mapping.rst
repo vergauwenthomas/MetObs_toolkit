@@ -173,8 +173,8 @@ The metadata **must be in a Wide-format**. Here an example
    :header-rows: 1
 
    * - ID
-     - Northening
-     - Eastening
+     - Northing
+     - Easting
      - Networkname
    * - station_A
      - 51.3664
@@ -212,5 +212,5 @@ arguments of the :py:meth:`update_settings()<metobs_toolkit.dataset_settings_upd
 
 
 .. note::
-   When the prompt ask's if you need further help, and you type yes, some more questions are prompted.
+   When the prompt asks if you need further help, and you type yes, some more questions are prompted.
    Once all information is given to the prompt, it will print out a piece of code that you have to run to load your data into the toolkit.

@@ -93,7 +93,7 @@ We can synchronize the dataset using this code example:
    dataset.import_data_from_file(**testdata[use_dataset]['kwargs'])
 
    # Syncronize the data with a tolerance of 3 minutes
-   dataset.sync_observations(tollerance='3T')
+   dataset.sync_observations(tolerance='3T')
 
    print(dataset)
 

@@ -73,7 +73,7 @@ class ModelObstype(Obstype):
             values are lists with aliases for the units at the keys. The default is {}.
         unit_conversions : dict, optional
             A dictionary containing the conversion information to map to the
-            standard units. Here an example of for temperatures (with Celcius
+            standard units. Here an example of for temperatures (with Celsius
             as standard unit):
 
                 {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
@@ -438,7 +438,7 @@ class ModelObstype_Vectorfield(Obstype):
         return data_u, data_v
 
 
-#%% New obs creator functions
+# %% New obs creator functions
 def compute_amplitude(modelobs_vectorfield, df):
     """Compute amplitude of 2D vectorfield components.
 

@@ -31,8 +31,8 @@ To install the PyPi version of the toolkit. To install the github versions one c
 
 
 For some advanced quality control methods, the `Titanlib <https://github.com/metno/titanlib>`_ package is used.
-Since the instalation of titanlib requires a c++ compiler, it is categorized as a *extra-dependency*. This means that
-the user must install titanlib manually if this functionallity is required or use the following command:
+Since the installation of titanlib requires a c++ compiler, it is categorized as a *extra-dependency*. This means that
+the user must install titanlib manually if this functionality is required or use the following command:
 
 .. code-block:: console
 

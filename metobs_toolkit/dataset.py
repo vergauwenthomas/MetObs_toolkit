@@ -557,7 +557,7 @@ class Dataset:
             type. The expression is a (list of) strings with simple algebraic
             operations, where x represent the value in the new unit, and the
             result is the value in the standard unit. Two examples for
-            temperature (with a standard unit in Celcius):
+            temperature (with a standard unit in Celsius):
 
                 ["x - 273.15"] #if the new_unit is Kelvin
                 ["x-32.0", "x/1.8"] #if the new unit is Farenheit
@@ -683,7 +683,7 @@ class Dataset:
 
         logger.info(f"Extract {stationname} from dataset.")
 
-        # important: make shure all station attributes are of the same time as dataset.
+        # important: make sure all station attributes are of the same time as dataset.
         # so that all methods can be inherited.
 
         try:
@@ -950,7 +950,7 @@ class Dataset:
         Note
         -------
         The figure will only appear when this is runned in notebooks. If you do
-        not run this in a notebook, make shure to save the html file, and open it
+        not run this in a notebook, make sure to save the html file, and open it
         with a browser.
 
         Examples
@@ -1281,7 +1281,7 @@ class Dataset:
         Note
         ------
         When extracting large amounts of data, the timeseries data will be
-        writen to a file and saved on your google drive. In this case, you need
+        written to a file and saved on your google drive. In this case, you need
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
 
@@ -1384,10 +1384,10 @@ class Dataset:
             )
 
         print(
-            f"(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})"
+            f"(When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is {modelname})"
         )
         logger.info(
-            f"(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is {modelname})"
+            f"(When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is {modelname})"
         )
         return Modl
 
@@ -2292,13 +2292,13 @@ class Dataset:
         A final qualty control label for each
         quality-controlled-observation type can be added in the outputfile.
 
-        The file will be writen to the outputfolder specified in the settings.
+        The file will be written to the outputfolder specified in the settings.
 
         Parameters
         ----------
         obstype : string, optional
             Specify an observation type to subset all observations to. If None,
-            all available observation types are writen to file. The default is
+            all available observation types are written to file. The default is
             None.
         filename : string, optional
             The name of the output csv file. If none, a standard-filename
@@ -2318,7 +2318,7 @@ class Dataset:
             interpret these records as gaps/missing outliers if True. Else these
             will be interpreted as outliers. The default is True.
         seperate_metadata_file : bool, optional
-            If true, the metadat is writen to a seperate file, else the metadata
+            If true, the metadat is written to a seperate file, else the metadata
             is merged to the observation in one file. The default is True.
         Returns
         -------
@@ -3609,18 +3609,18 @@ class Dataset:
 
     def sync_observations(
         self,
-        tollerance,
+        tolerance,
         verbose=True,
         _force_resolution_minutes=None,
         _drop_target_nan_dt=False,
     ):
         """Simplify and syncronize the observation timestamps.
 
-        To simplify the resolution (per station), a tollerance is use to shift timestamps. The tollerance indicates the
+        To simplify the resolution (per station), a tolerance is use to shift timestamps. The tolerance indicates the
         maximum translation in time that can be applied to an observation.
 
         The sycronisation tries to group stations that have an equal simplified resolution, and syncronize them. The origin
-        of the sycronized timestamps will be set to round hours, round 10-minutes or round-5 minutes if possible given the tollerance.
+        of the sycronized timestamps will be set to round hours, round 10-minutes or round-5 minutes if possible given the tolerance.
 
         The observations present in the input file are used.
 
@@ -3628,8 +3628,8 @@ class Dataset:
 
         Parameters
         ----------
-        tollerance :  Timedelta or str
-            The tollerance string or object representing the maximum translation in time.
+        tolerance :  Timedelta or str
+            The tolerance string or object representing the maximum translation in time.
             Ex: '5T' is 5 minuts, '1H', is one hour.
         verbose : bool, optional
             If True, a dataframe illustrating the mapping from original datetimes to simplified and syncronized is returned. The default is True.
@@ -3675,7 +3675,7 @@ class Dataset:
                 df=df,
                 method="median",
                 simplify=True,
-                max_simplify_error=tollerance,
+                max_simplify_error=tolerance,
             )
         else:
             if isinstance(_force_resolution_minutes, list):
@@ -3698,24 +3698,24 @@ class Dataset:
 
         df = df.reset_index()
 
-        def find_simple_origin(tstart, tollerance):
+        def find_simple_origin(tstart, tolerance):
             if tstart.minute == 0 and tstart.second == 0 and tstart.microsecond == 0:
                 return tstart  # already a round hour
 
             # try converting to a round hour
             tstart_round_hour = tstart.round("60min")
-            if abs(tstart - tstart_round_hour) <= pd.to_timedelta(tollerance):
+            if abs(tstart - tstart_round_hour) <= pd.to_timedelta(tolerance):
                 return tstart_round_hour
 
             # try converting to a tenfold in minutes
             tstart_round_tenfold = tstart.round("10min")
-            if abs(tstart - tstart_round_tenfold) <= pd.to_timedelta(tollerance):
+            if abs(tstart - tstart_round_tenfold) <= pd.to_timedelta(tolerance):
                 return tstart_round_tenfold
 
             # try converting to a fivefold in minutes
             tstart_round_fivefold = tstart.round("5min")
 
-            if abs(tstart - tstart_round_fivefold) <= pd.to_timedelta(tollerance):
+            if abs(tstart - tstart_round_fivefold) <= pd.to_timedelta(tolerance):
                 return tstart_round_fivefold
 
             # no suitable conversion found
@@ -3736,7 +3736,7 @@ class Dataset:
             tend = groupdf["datetime"].max()
 
             # find a good origin point
-            origin = find_simple_origin(tstart=tstart, tollerance=tollerance)
+            origin = find_simple_origin(tstart=tstart, tolerance=tolerance)
 
             # Create records index
             target_records = pd.date_range(
@@ -3764,7 +3764,7 @@ class Dataset:
                     right_on="target_datetime",
                     left_on="datetime",
                     direction="nearest",
-                    tolerance=pd.Timedelta(tollerance),
+                    tolerance=pd.Timedelta(tolerance),
                 )
                 if _drop_target_nan_dt:
                     mergedstadf = mergedstadf.dropna(subset="target_datetime")
@@ -3889,7 +3889,7 @@ class Dataset:
             Dataset.settings.time_settings['freq_estimation_simplify'] is used.
             The default is None.
         freq_estimation_simplify_error : Timedelta or str, optional
-            The tollerance string or object representing the maximum translation in time to form a simplified frequency estimation.
+            The tolerance string or object representing the maximum translation in time to form a simplified frequency estimation.
             Ex: '5T' is 5 minuts, '1H', is one hour. If None, the method
             stored in the
             Dataset.settings.time_settings['freq_estimation_simplify_error'] is
@@ -4060,7 +4060,7 @@ station with the default name: {self.settings.app["default_name"]}.'
                         default name: {self.settings.app["default_name"]}.'
                     )
 
-            # make shure name column in metadata and data have the same type for merging
+            # make sure name column in metadata and data have the same type for merging
             df["name"] = df["name"].astype(str)
             meta_df["name"] = meta_df["name"].astype(str)
 
@@ -4144,7 +4144,7 @@ station with the default name: {self.settings.app["default_name"]}.'
             The "freq_estimation_simplify_error' is used as a constrain. If the constrain is not met,
             the simplification is not performed.
         freq_estimation_simplify_error : Timedelta or str, optional
-            The tollerance string or object representing the maximum translation in time to form a simplified frequency estimation.
+            The tolerance string or object representing the maximum translation in time to form a simplified frequency estimation.
             Ex: '5T' is 5 minuts, '1H', is one hour.
         fixed_freq_series : pandas.series or None, optional
             If you do not want the frequencies to be recalculated, one can pass the

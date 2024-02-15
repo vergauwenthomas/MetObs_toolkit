@@ -26,7 +26,7 @@ def print_dataset_info(dataset, show_all_settings=False, max_disp_n_gaps=5):
     None.
 
     """
-    print("\n", "--------  General ---------", "\n")
+    print("--------  General ---------", "\n")
     print(dataset)
 
     print("\n", "--------  Observation types ---------", "\n")

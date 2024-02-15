@@ -12,7 +12,7 @@ An overview can be found on `this <./template_mapping.html#toolkit-standards>`_ 
 
 Each observation type is represented by an instance of the :py:meth:`Obstype<metobs_toolkit.obstypes.Obstype>` class.
 
-As an example, here is the defenition of the temperature observation type:
+As an example, here is the definition of the temperature observation type:
 
 .. code-block:: python
 
@@ -26,7 +26,7 @@ As an example, here is the defenition of the temperature observation type:
                              'Farenheit': ['farenheit']},
                             # Conversion schemes for common units to the standard unit.
                          unit_conversions={
-                             'Kelvin': ["x - 273.15"], #result is in tlk_std_units (aka Celcius)
+                             'Kelvin': ["x - 273.15"], #result is in tlk_std_units (aka Celsius)
                              'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8},
                          )
 
