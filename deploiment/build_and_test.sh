@@ -98,7 +98,7 @@ filenames=`ls ./*.py`
 for t in $filenames; do
 	push_file=${TESTDIR}/push_test/${t}
   	logfile="$(make_test_log ${t})"
-	echo Running push tests: ${t}
+	echo Running push tests: ${t}g
 	poetry run python ${push_file} >> ${logfile} 2>&1
 	if [ $? -eq 0 ]; then
                 echo "succeeded !!"
@@ -110,11 +110,13 @@ done
 
 
 #Run Doctests on all modules
+echo "RUNNING DOCTESTS NOW"
 cd ${WORKDIR}/metobs_toolkit
 modules=`ls ./*.py`
 for t in $modules; do
 	module_file=${WORKDIR}/metobs_toolkit/${t}
 	python3 -m doctest -o ELLIPSIS -o NORMALIZE_WHITESPACE ${module_file}
+done
 
 rm ${WORKDIR}/metobs_toolkit/*.pkl #created by doctest
 rm ${WORKDIR}/metobs_toolkit/*.csv #created by docstest
