@@ -116,7 +116,8 @@ for t in $modules; do
 	module_file=${WORKDIR}/metobs_toolkit/${t}
 	python3 -m doctest -o ELLIPSIS -o NORMALIZE_WHITESPACE ${module_file}
 
-
+rm ${WORKDIR}/metobs_toolkit/*.pkl #created by doctest
+rm ${WORKDIR}/metobs_toolkit/*.csv #created by docstest
 
 
 

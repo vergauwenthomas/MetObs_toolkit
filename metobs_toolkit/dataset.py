@@ -311,20 +311,24 @@ class Dataset:
         --------
         .. code-block:: python
 
-            import metobs_toolkit
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
 
-            # Import data into a Dataset
-            dataset = metobs_toolkit.Dataset()
-            dataset.update_settings(
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        template_file=metobs_toolkit.demo_template,
-                        )
-
-            dataset.import_data_from_file()
-
-            # Print out details
-            dataset.show()
+            >>>
+            >>> #Add observations to the Dataset
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>>
+            >>> # Print out details
+            >>> dataset.show()
+            --------  General ---------
+            ...
 
         """
         logger.info("Show basic info of dataset.")
@@ -351,20 +355,24 @@ class Dataset:
         --------
         .. code-block:: python
 
-            import metobs_toolkit
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
 
-            # Import data into a Dataset
-            dataset = metobs_toolkit.Dataset()
-            dataset.update_settings(
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        template_file=metobs_toolkit.demo_template,
-                        )
-
-            dataset.import_data_from_file()
-
-            # Print out details
-            dataset.get_info()
+            >>>
+            >>> #Add observations to the Dataset
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>>
+            >>> # Print out details
+            >>> dataset.get_info()
+            --------  General ---------
+            ...
 
         """
         self.show(show_all_settings, max_disp_n_gaps)
@@ -388,22 +396,22 @@ class Dataset:
         --------
         .. code-block:: python
 
-            import metobs_toolkit
-            import os
-
-            # Import data into a Dataset
-            dataset = metobs_toolkit.Dataset()
-            dataset.update_settings(
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        template_file=metobs_toolkit.demo_template,
-                        )
-
-            dataset.import_data_from_file()
-
-            # Save dataset to a .pkl file
-            dataset.save_dataset(outputfolder=os.getcwd(),
-                                 filename='your_saved_dataset.pkl')
+            >>> import metobs_toolkit
+            >>> import os
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...            input_data_file=metobs_toolkit.demo_datafile,
+            ...            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...            template_file=metobs_toolkit.demo_template)
+            >>>
+            >>> dataset.import_data_from_file()
+            >>>
+            >>> # Save dataset to a .pkl file
+            >>> dataset.save_dataset(outputfolder=os.getcwd(),
+            ...                     filename='your_saved_dataset.pkl')
+            Dataset saved in ...
 
         """
         # check if outputfolder is known and exists
@@ -1586,6 +1594,7 @@ class Dataset:
         Examples
         --------
         .. code-block:: python
+
             import metobs_toolkit
 
             your_dataset = metobs_toolkit.Dataset()
@@ -2186,6 +2195,7 @@ class Dataset:
         Examples
         --------
         .. code-block:: python
+
             import metobs_toolkit
 
             your_dataset = metobs_toolkit.Dataset()
@@ -2314,6 +2324,28 @@ class Dataset:
         -------
         None.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>> import os
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...            input_data_file=metobs_toolkit.demo_datafile,
+            ...            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...            template_file=metobs_toolkit.demo_template)
+            >>>
+            >>> dataset.import_data_from_file()
+            >>>
+            >>> # Save dataset to a .csv file
+            >>> dataset.update_settings(output_folder = os.getcwd())
+            >>> dataset.write_to_csv(filename='your_saved_table.csv')
+            write metadata to file: ...
+            write dataset to file: ...
+
         """
         logger.info("Writing the dataset to a csv file")
 
@@ -2424,6 +2456,42 @@ class Dataset:
         Returns
         ---------
         None.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> #Update some temperature QC settings
+            >>> dataset.update_qc_settings(obstype='temp',
+            ...                            gross_value_max_value=42.,
+            ...                            persis_time_win_to_check='4H',
+            ...                            buddy_min_std = 1.5)
+
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp')
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *1932 records labeled as outliers
+                 *0 gaps
+                 *3 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
 
         """
         if repetitions:
@@ -2616,6 +2684,42 @@ class Dataset:
         -------
         None.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> #Update some temperature QC settings
+            >>> dataset.update_qc_settings(obstype='temp',
+            ...                            buddy_min_std=1.5,
+            ...                            buddy_threshold=3.2)
+
+            >>> # Apply buddy check on the temperature observations
+            >>> dataset.apply_buddy_check(obstype='temp',
+            ...                           use_constant_altitude=True)
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *325 records labeled as outliers
+                 *0 gaps
+                 *3 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+
         """
 
         logger.info("Applying the toolkit buddy check")
@@ -2746,6 +2850,45 @@ class Dataset:
         --------
         To use this method, you must install titanlib. Windows users must have
         a c++ compiler installed. See the titanlib documentation: https://github.com/metno/titanlib/wiki/Installation.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> #Update some temperature QC settings
+            >>> dataset.update_titan_qc_settings(obstype='temp',
+            ...                                  buddy_min_std=1.5,
+            ...                                  buddy_threshold=3.2,
+            ...                                  buddy_num_min=5)
+            buddy num min for the TITAN buddy check updated:  2--> 5
+            buddy threshold for the TITAN buddy check updated:  1.5--> 3.2
+            buddy min std for the TITAN buddy check updated:  1.0--> 1.5
+            >>> # Apply buddy check on the temperature observations
+            >>> dataset.apply_titan_buddy_check(obstype='temp',
+            ...                                 use_constant_altitude=True)
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *291 records labeled as outliers
+                 *0 gaps
+                 *3 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
 
         """
         logger.info("Applying the titan buddy check")
@@ -2888,6 +3031,33 @@ class Dataset:
         to segmentation faults. The perfomance of this check is thus not
         guaranteed!
 
+        Examples
+        --------
+        .. code-block:: python
+
+             import metobs_toolkit
+
+             # Import data into a Dataset
+             dataset = metobs_toolkit.Dataset()
+             dataset.update_settings(
+                                     input_data_file=metobs_toolkit.demo_datafile,
+                                     input_metadata_file=metobs_toolkit.demo_metadatafile,
+                                     template_file=metobs_toolkit.demo_template,
+                                     )
+             dataset.import_data_from_file()
+             dataset.coarsen_time_resolution(freq='1H')
+
+             #Get altitude of all stations
+             dataset.get_altitude()
+
+             #Update some temperature QC settings
+             dataset.update_titan_qc_settings(obstype='temp',
+                                              sct_outer_radius=25000)
+
+
+             # Apply buddy check on the temperature observations
+             dataset.apply_titan_sct_resistant_check(obstype='temp')
+
         """
         logger.info("Applying the titan SCT check")
 
@@ -3004,6 +3174,54 @@ class Dataset:
          combdf : pandas.DataFrame()
             A dataframe containing a continious time resolution of records, where each
             record is labeld.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *1932 records labeled as outliers
+                 *0 gaps
+                 *3 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+            >>>
+            >>> # Combine all records to one dataframe in Observation-resolution
+            >>> overview_df = dataset.combine_all_to_obsspace()
+            >>> overview_df.head(12)
+                                                                          value label toolkit_representation
+            name      datetime                  obstype
+            vlinder01 2022-09-01 00:00:00+00:00 humidity                   65.0    ok            observation
+                                                precip                      0.0    ok            observation
+                                                precip_sum                  0.0    ok            observation
+                                                pressure               101739.0    ok            observation
+                                                pressure_at_sea_level  102005.0    ok            observation
+                                                radiation_temp              NaN    ok            observation
+                                                temp                       18.8    ok            observation
+                                                wind_direction             65.0    ok            observation
+                                                wind_gust                  11.3    ok            observation
+                                                wind_speed                  5.6    ok            observation
+                      2022-09-01 01:00:00+00:00 humidity                   65.0    ok            observation
+                                                precip                      0.0    ok            observation
 
         """
         # TODO: label values from settings not hardcoding
@@ -3156,6 +3374,42 @@ class Dataset:
         dataset_qc_stats : pandas.DataFrame
             A table containing the label frequencies per check presented
             as percentages.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *1932 records labeled as outliers
+                 *0 gaps
+                 *3 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+            >>>
+            >>> #Get quality control statistics
+            >>> stats = dataset.get_qc_stats(make_plot=False)
+            >>> stats
+            ({'ok': 83.37301587301587, 'QC outliers': 16.6269841269...
+
         """
         # cobmine all and get final label
         comb_df = self.combine_all_to_obsspace()
@@ -3242,6 +3496,30 @@ class Dataset:
         Returns
         -------
         None.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='15T') #to 15 minutes resolution
+            >>> dataset.df[['temp', 'humidity']].head()
+                                                 temp  humidity
+            name      datetime
+            vlinder01 2022-09-01 00:00:00+00:00  18.8      65.0
+                      2022-09-01 00:15:00+00:00  18.7      65.0
+                      2022-09-01 00:30:00+00:00  18.7      65.0
+                      2022-09-01 00:45:00+00:00  18.6      65.0
+                      2022-09-01 01:00:00+00:00  18.4      65.0
 
         """
         if freq is None:
@@ -3625,11 +3903,32 @@ class Dataset:
 
         Note
         --------
+        In pracktice, the default arguments will be sufficient for most applications.
+
+        Note
+        --------
         If options are present in the template, these will have priority over the arguments of this function.
+
+
 
         Returns
         -------
         None.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
 
         """
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
@@ -4029,6 +4328,28 @@ station with the default name: {self.settings.app["default_name"]}.'
         lcz_series : pandas.Series()
             A series with the stationnames as index and the LCZ as values.
 
+        Examples
+        --------
+        .. code-block:: python
+
+             import metobs_toolkit
+
+             # Import data into a Dataset
+             dataset = metobs_toolkit.Dataset()
+             dataset.update_settings(
+                                     input_data_file=metobs_toolkit.demo_datafile,
+                                     input_metadata_file=metobs_toolkit.demo_metadatafile,
+                                     template_file=metobs_toolkit.demo_template,
+                                     )
+             dataset.import_data_from_file()
+
+             # Get the local climate zones for all stations
+             lcz_series = dataset.get_lcz()
+
+             # in addition to the returned series, the metadf attribute is updated aswell
+             print(dataset.metadf)
+
+
         """
         # connect to gee
         connect_to_gee()
@@ -4064,6 +4385,27 @@ station with the default name: {self.settings.app["default_name"]}.'
         -------
         altitude_series : pandas.Series()
             A series with the stationnames as index and the altitudes as values.
+
+         Examples
+         --------
+         .. code-block:: python
+
+              import metobs_toolkit
+
+              # Import data into a Dataset
+              dataset = metobs_toolkit.Dataset()
+              dataset.update_settings(
+                                      input_data_file=metobs_toolkit.demo_datafile,
+                                      input_metadata_file=metobs_toolkit.demo_metadatafile,
+                                      template_file=metobs_toolkit.demo_template,
+                                      )
+              dataset.import_data_from_file()
+
+              # Get the altitude for all stations
+              alt_series = dataset.get_altitude()
+
+              # in addition to the returned series, the metadf attribute is updated aswell
+              print(dataset.metadf)
 
         """
         # connect to gee
@@ -4126,6 +4468,28 @@ station with the default name: {self.settings.app["default_name"]}.'
         frac_df : pandas.DataFrame
             A Dataframe with index: name, buffer_radius and the columns are the
             fractions.
+
+        Examples
+        --------
+        .. code-block:: python
+
+             import metobs_toolkit
+
+             # Import data into a Dataset
+             dataset = metobs_toolkit.Dataset()
+             dataset.update_settings(
+                                     input_data_file=metobs_toolkit.demo_datafile,
+                                     input_metadata_file=metobs_toolkit.demo_metadatafile,
+                                     template_file=metobs_toolkit.demo_template,
+                                     )
+             dataset.import_data_from_file()
+
+             # Get the landcover fractions for multiple buffers, for all stations
+             lc_frac_series = dataset.get_landcover(buffers=[50, 100, 250, 500],
+                                                    aggregate=False)
+
+             # in addition to the returned dataframe, the metadf attribute is updated aswell
+             print(dataset.metadf)
 
         """
         # connect to gee

@@ -37,7 +37,7 @@ except:
     pass
 
 print(sys.path)
-#%%
+# %%
 logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
 
@@ -152,6 +152,11 @@ html_theme_options = {
             "name": "GitHub",
             "url": "https://github.com/vergauwenthomas/MetObs_toolkit",
             "icon": "fab fa-github-square fa-xl",
+        },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/MetObs-toolkit/",
+            "icon": "fa-custom fa-pypi",
         },
     ]
 }
