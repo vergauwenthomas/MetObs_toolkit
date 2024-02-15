@@ -788,22 +788,22 @@ class Dataset:
         --------
         .. code-block:: python
 
-            import metobs_toolkit
-
-            # Import data into a Dataset
-            dataset = metobs_toolkit.Dataset()
-            dataset.update_settings(
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        template_file=metobs_toolkit.demo_template,
-                        )
-
-            dataset.import_data_from_file()
-
-            # Make plot
-            dataset.make_plot(stationnames=['vlinder02', 'vlinder16'],
-                              obstype='temp',
-                              colorby='label')
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>>
+            >>> # Make plot
+            >>> dataset.make_plot(stationnames=['vlinder02', 'vlinder16'],
+            ...                   obstype='temp',
+            ...                   colorby='label')
+            <Axes: ...
 
         """
 
@@ -949,20 +949,19 @@ class Dataset:
         --------
         .. code-block:: python
 
-            import metobs_toolkit
-
-            # Import data into a Dataset
-            dataset = metobs_toolkit.Dataset()
-            dataset.update_settings(
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        template_file=metobs_toolkit.demo_template,
-                        )
-
-            dataset.import_data_from_file()
-
-            # Make default interactive plot
-            dataset.make_interactive_plot()
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>>
+            >>> # Make default interactive geospatial plot
+            >>> dataset.make_interactive_plot()
 
         """
         # Check if obstype is known
@@ -1133,20 +1132,20 @@ class Dataset:
         --------
         .. code-block:: python
 
-            import metobs_toolkit
-
-            # Import data into a Dataset
-            dataset = metobs_toolkit.Dataset()
-            dataset.update_settings(
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        template_file=metobs_toolkit.demo_template,
-                        )
-
-            dataset.import_data_from_file()
-
-            # Make default interactive plot
-            dataset.make_geo_plot()
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>>
+            >>> # Make default geospatial plot
+            >>> dataset.make_geo_plot()
+            <GeoAxes:...
 
         """
         # Load default plot settings
@@ -1280,10 +1279,41 @@ class Dataset:
 
         Note
         ------
-        Only 2mT extraction of ERA5 is implemented for all Modeldata instances.
+        Only 2mT extraction of ERA5 is implemented by default.
         To extract other variables, one must create a Modeldata instance in
         advance, add or update a gee_dataset and give this Modeldata instance
         to this method.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+            dataset.import_data_from_file()
+
+            # To limit data transfer, we define a short period
+            import datetime
+
+            tstart = datetime.datetime(2022, 9, 5)
+            tend = datetime.datetime(2022, 9, 6)
+
+
+            # Collect ERA5 2mT timeseries at your stations
+            ERA5_data = dataset.get_modeldata(
+                                    modelname="ERA5_hourly",
+                                    modeldata=None,
+                                    obstype="temp",
+                                    stations=None,
+                                    startdt=tstart,
+                                    enddt=tend)
 
         """
         if modeldata is None:
@@ -1386,6 +1416,50 @@ class Dataset:
         Be aware that n_gapsize is used for the current resolution of the Dataset,
         this is different from the gap check applied on the inported data, if
         the dataset is coarsend.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *1932 records labeled as outliers
+                 *0 gaps
+                 *3 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+            >>>
+            >>> # Interpret the outliers as missing/gaps
+            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *235 records labeled as outliers
+                 *2 gaps
+                 *1473 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
 
         """
         if n_gapsize is None:
@@ -1509,6 +1583,44 @@ class Dataset:
             gapfilldf : pandas.DataFrame
                 A dataframe containing all the filled records.
 
+        Examples
+        --------
+        .. code-block:: python
+            import metobs_toolkit
+
+            your_dataset = metobs_toolkit.Dataset()
+            your_dataset.update_settings(
+                input_data_file=metobs_toolkit.demo_datafile, # path to the data file
+                input_metadata_file=metobs_toolkit.demo_metadatafile,
+                template_file=metobs_toolkit.demo_template,
+            )
+            # Specify the gap defenition
+            your_dataset.update_qc_settings(gapsize_in_records = 20)
+
+            #Update the gapsize BEFORE importing the data
+            your_dataset.import_data_from_file()
+
+            #Update the settings (definition of the period to calculate biases for)
+            your_dataset.update_gap_and_missing_fill_settings(
+                                                              gap_debias_prefered_leading_period_hours=24,
+                                                              gap_debias_prefered_trailing_period_hours=24,
+                                                              gap_debias_minimum_leading_period_hours=6,
+                                                              gap_debias_minimum_trailing_period_hours=6,
+                                                              )
+            #(As a demonstration, we will fill the gaps of a single station. The following functions can also be
+            # directly applied to the dataset.)
+            your_station = your_dataset.get_station('vlinder05')
+
+
+            #Get ERA5 modeldata at the location of your stations and period.
+            ERA5_modeldata = your_station.get_modeldata(modelname='ERA5_hourly',
+                                                        obstype='temp')
+
+            #Use the debias method to fill the gaps
+            gapfill_df = your_station.fill_gaps_automatic(modeldata=ERA5_modeldata,
+                                                          max_interpolate_duration_str='6H', # <6 hours will be interpolated
+                                                          obstype='temp')
+
         """
         #  ----------- Validate ----------------------------------------
 
@@ -1609,6 +1721,83 @@ class Dataset:
         gapfilldf : pandas.DataFrame
             A dataframe containing all the filled records.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+            >>>
+            >>> # Interpret the outliers as missing/gaps
+            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *235 records labeled as outliers
+                 *2 gaps
+                 *1473 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+            >>>
+            >>> #Update the gapfill settings (else the defaults are used)
+            >>> dataset.update_gap_and_missing_fill_settings(gap_interpolation_max_consec_fill=35)
+            >>>
+            >>> # Fill the gaps
+            >>> dataset.fill_gaps_linear(obstype='temp')
+                                                      temp   temp_final_label
+            name      datetime
+            vlinder05 2022-09-06 21:00:00+00:00  21.378710  gap_interpolation
+                      2022-09-06 22:00:00+00:00  21.357419  gap_interpolation
+                      2022-09-06 23:00:00+00:00  21.336129  gap_interpolation
+                      2022-09-07 00:00:00+00:00  21.314839  gap_interpolation
+                      2022-09-07 01:00:00+00:00  21.293548  gap_interpolation
+                      2022-09-07 02:00:00+00:00  21.272258  gap_interpolation
+                      2022-09-07 03:00:00+00:00  21.250968  gap_interpolation
+                      2022-09-07 04:00:00+00:00  21.229677  gap_interpolation
+                      2022-09-07 05:00:00+00:00  21.208387  gap_interpolation
+                      2022-09-07 06:00:00+00:00  21.187097  gap_interpolation
+                      2022-09-07 07:00:00+00:00  21.165806  gap_interpolation
+                      2022-09-07 08:00:00+00:00  21.144516  gap_interpolation
+                      2022-09-07 09:00:00+00:00  21.123226  gap_interpolation
+                      2022-09-07 10:00:00+00:00  21.101935  gap_interpolation
+                      2022-09-07 11:00:00+00:00  21.080645  gap_interpolation
+                      2022-09-07 12:00:00+00:00  21.059355  gap_interpolation
+                      2022-09-07 13:00:00+00:00  21.038065  gap_interpolation
+                      2022-09-07 14:00:00+00:00  21.016774  gap_interpolation
+                      2022-09-07 15:00:00+00:00  20.995484  gap_interpolation
+                      2022-09-07 16:00:00+00:00  20.974194  gap_interpolation
+                      2022-09-07 17:00:00+00:00  20.952903  gap_interpolation
+                      2022-09-07 18:00:00+00:00  20.931613  gap_interpolation
+                      2022-09-07 19:00:00+00:00  20.910323  gap_interpolation
+                      2022-09-07 20:00:00+00:00  20.889032  gap_interpolation
+                      2022-09-07 21:00:00+00:00  20.867742  gap_interpolation
+                      2022-09-07 22:00:00+00:00  20.846452  gap_interpolation
+                      2022-09-07 23:00:00+00:00  20.825161  gap_interpolation
+                      2022-09-08 00:00:00+00:00  20.803871  gap_interpolation
+                      2022-09-08 01:00:00+00:00  20.782581  gap_interpolation
+                      2022-09-08 02:00:00+00:00  20.761290  gap_interpolation
+                      2022-09-08 03:00:00+00:00  20.740000  gap_interpolation
+                      2022-09-08 04:00:00+00:00  20.718710  gap_interpolation
+                      2022-09-08 05:00:00+00:00  20.697419  gap_interpolation
+                      2022-09-08 06:00:00+00:00  20.676129  gap_interpolation
+                      2022-09-08 07:00:00+00:00  20.654839  gap_interpolation
+            >>> dataset.get_gaps_info()
+            Gap for vlinder05 with:...
 
         """
         # TODO logging
@@ -1651,6 +1840,57 @@ class Dataset:
         -------
         None.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+            >>>
+            >>> # Interpret the outliers as missing/gaps
+            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *235 records labeled as outliers
+                 *2 gaps
+                 *1473 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+            >>>
+            >>> # Fill the missing observations
+            >>> dataset.fill_missing_obs_linear(obstype='temp')
+            >>> dataset.missing_obs.get_info()
+            -------- Missing observations info --------
+            (Note: missing observations are defined on the frequency estimation of the native dataset.)
+              * 1473 missing observations
+              * For 28 stations
+              * Missing observations are filled with interpolate for:
+                temp:
+                                                       temp
+            name      datetime
+            vlinder01 2022-09-08 08:00:00+00:00  18.630303
+                      2022-09-07 23:00:00+00:00  17.512121
+                      2022-09-08 00:00:00+00:00  17.636364
+                      2022-09-08 02:00:00+00:00  17.884848
+                      2022-09-08 03:00:00+00:00  18.009091
+            ...
+
         """
         # TODO logging
         fill_settings = self.settings.missing_obs["missing_obs_fill_settings"]["linear"]
@@ -1684,6 +1924,45 @@ class Dataset:
             A DataFrame with stationnames as index, and the start, end and duretion
             of the gaps as columns.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+            >>>
+            >>> # Interpret the outliers as missing/gaps
+            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *235 records labeled as outliers
+                 *2 gaps
+                 *1473 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+            >>> dataset.get_gaps_df()
+                                      start_gap                   end_gap        duration
+            name
+            vlinder05 2022-09-06 21:00:00+00:00 2022-09-13 06:00:00+00:00 6 days 09:00:00
+            vlinder05 2022-09-13 20:00:00+00:00 2022-09-15 23:00:00+00:00 2 days 03:00:00
+
+
         """
         return gaps_to_df(self.gaps)
 
@@ -1693,6 +1972,57 @@ class Dataset:
         Returns
         -------
         None.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+            >>>
+            >>> # Interpret the outliers as missing/gaps
+            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *235 records labeled as outliers
+                 *2 gaps
+                 *1473 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+            >>> dataset.get_gaps_info()
+            Gap for vlinder05 with:
+            ---- Gap info -----
+            (Note: gaps are defined on the frequency estimation of the native dataset.)
+              * Start gap: 2022-09-06 21:00:00+00:00
+              * End gap: 2022-09-13 06:00:00+00:00
+              * Duration gap: 6 days 09:00:00
+            ---- Gap fill info -----
+            (No gapfill applied)
+            Gap for vlinder05 with:
+            ---- Gap info -----
+            (Note: gaps are defined on the frequency estimation of the native dataset.)
+              * Start gap: 2022-09-13 20:00:00+00:00
+              * End gap: 2022-09-15 23:00:00+00:00
+              * Duration gap: 2 days 03:00:00
+            ---- Gap fill info -----
+            (No gapfill applied)
 
         """
         if bool(self.gaps):
@@ -1709,6 +2039,47 @@ class Dataset:
         Returns
         -------
         None.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+            >>>
+            >>> # Interpret the outliers as missing/gaps
+            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 *235 records labeled as outliers
+                 *2 gaps
+                 *1473 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+            >>> dataset.get_missing_obs_info()
+            -------- Missing observations info --------
+            (Note: missing observations are defined on the frequency estimation of the native dataset.)
+              * 1473 missing observations
+              * For 28 stations
+              * The missing observations are not filled.
+            (More details on the missing observation can be found in the .series and .fill_df attributes.)
 
         """
         # empty obs protector in the .get_info method.
@@ -1727,6 +2098,32 @@ class Dataset:
         -------
         metobs_toolkit.Analysis
             The Analysis instance of the Dataset.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>>
+            >>> # Create an Analysis from the dataset
+            >>> analysis = dataset.get_analysis()
+            >>> analysis
+            Analysis instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *10080 observation records
+                 ...
 
         """
         # combine all to obsspace and include gapfill
@@ -1785,6 +2182,43 @@ class Dataset:
         -------
         Gapfilldf : pandas.DataFrame
             A dataframe containing all gap filled values and the use method.
+
+        Examples
+        --------
+        .. code-block:: python
+            import metobs_toolkit
+
+            your_dataset = metobs_toolkit.Dataset()
+            your_dataset.update_settings(
+                input_data_file=metobs_toolkit.demo_datafile, # path to the data file
+                input_metadata_file=metobs_toolkit.demo_metadatafile,
+                template_file=metobs_toolkit.demo_template,
+            )
+            # Specify the gap defenition
+            your_dataset.update_qc_settings(gapsize_in_records = 20)
+
+            #Update the gapsize BEFORE importing the data
+            your_dataset.import_data_from_file()
+
+            #Update the settings (definition of the period to calculate biases for)
+            your_dataset.update_gap_and_missing_fill_settings(
+                                                              gap_debias_prefered_leading_period_hours=24,
+                                                              gap_debias_prefered_trailing_period_hours=24,
+                                                              gap_debias_minimum_leading_period_hours=6,
+                                                              gap_debias_minimum_trailing_period_hours=6,
+                                                              )
+            #(As a demonstration, we will fill the gaps of a single station. The following functions can also be
+            # directly applied to the dataset.)
+            your_station = your_dataset.get_station('vlinder05')
+
+
+            #Get ERA5 modeldata at the location of your stations and period.
+            ERA5_modeldata = your_station.get_modeldata(modelname='ERA5_hourly',
+                                                        obstype='temp')
+
+            #Use the debias method to fill the gaps
+            gapfill_df = your_station.fill_gaps_era5(modeldata=ERA5_modeldata,
+                                                     obstype='temp')
 
         """
         # check if modeldata is available
