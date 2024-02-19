@@ -5,6 +5,8 @@ on:
       - 'main'
       - 'dev'
       - 'gh-pages'
+    paths:
+      - docs/paper/**
 
 jobs:
   paper:
