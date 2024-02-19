@@ -157,7 +157,7 @@ class Analysis:
 
         Note
         ------
-        Make shure to use \" of \' to indicate string values in the expression if
+        Make sure to use \" of \' to indicate string values in the expression if
         needed.
 
         """
@@ -473,7 +473,7 @@ class Analysis:
         refstation,
         colorby="name",
         obstype="temp",
-        tollerance="30T",
+        tolerance="30T",
         stations=None,
         startdt=None,
         enddt=None,
@@ -490,7 +490,7 @@ class Analysis:
 
         All observational values are converted to differences with the closest
         (in time) reference observation. No reference observation is found when
-        the time difference is larger than the tollerance.
+        the time difference is larger than the tolerance.
 
         (In the plot, each station is represed by a line.)
 
@@ -502,8 +502,8 @@ class Analysis:
             If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
         obstype : str, optional
             Element of the metobs_toolkit.observation_types The default is 'temp'.
-        tollerance : Timedelta or str, optional
-            The tollerance string or object representing the maximum translation in time to find a reference
+        tolerance : Timedelta or str, optional
+            The tolerance string or object representing the maximum translation in time to find a reference
             observation for each observation. Ex: '5T' is 5 minutes, '1H', is one hour. The default is '30T'.
         stations : list, optional
             List of station names to use. If None, all present stations will be used. The default is None.
@@ -557,7 +557,7 @@ class Analysis:
             right_on="ref_datetime",
             left_on="datetime",
             direction="nearest",
-            tolerance=pd.Timedelta(tollerance),
+            tolerance=pd.Timedelta(tolerance),
         )
 
         # Get differnces
@@ -793,7 +793,7 @@ class Analysis:
         values_df = all_stats[aggregation_method]
         std_df = all_stats["std"]
 
-        # make shure all data is numeric
+        # make sure all data is numeric
         values_df = values_df.astype(float)
         std_df = std_df.astype(float)
 

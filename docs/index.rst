@@ -1,33 +1,48 @@
+:html_theme.sidebar_secondary.remove:
 
-Welcome to MetObs-Toolkit's documentation!
--------------------------------------------
+MetObs Toolkit |version|
+============================
+.. image:: logo_small.svg
+    :alt: logo
+    :width: 500
+
+MetObs Toolkit is an open source project to make working with meteorological observations in python easier.
+
+
+Description
+-----------
+
+The MetObs-toolkit is a Python package developed to facilitate the use of non-traditional meteorological observations.
+The package provides automated quality control (QC) techniques to identify and
+flag erroneous observations, and includes methods to fill data gaps.
+Additionally, the package offers tools for analyzing the data, e.g. linkage
+with popular land-use datasets is included, trough the use of the Google Earth Engine, such
+that microclimate effects can be investigated with the MetObs-toolkit.
+
+
+The MetObs-toolkit provides a comprehensive framework for scientists to process
+raw meteorological data for analysis by making intensive use of the `Pandas <https://pandas.pydata.org/>`_
+and `GeoPandas <https://geopandas.org/en/stable/>`_ functionalities.
+
+
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
+   :maxdepth: 5
 
-   intro
-   examples/index
-   template_mapping
-   gee_authentication
-   special_topics
-   gui
-   contributing_link.md
-   paper/index
+   Home <self>
+   Getting started <intro>
+   Specific topics <specific_topics>
+   Examples <examples/index>
+   Documentation <MetObs_documentation_flat>
+   Contributing <topics/contributing_link.md>
 
-MetObs toolkit Documentation
------------------------------
-.. toctree::
-   :maxdepth: 2
+.. container:: button
 
-   MetObs_documentation
+    :doc:`Getting started <intro>` :doc:`Specific topics <specific_topics>`
+    :doc:`Examples <examples/index>` :doc:`Documentation <MetObs_documentation_flat>`
 
 
-Metobs for developpers
------------------------------
-.. toctree::
-   :maxdepth: 2
-
-   MetObs_documentation_full
 
 Indices and tables
 ----------------------

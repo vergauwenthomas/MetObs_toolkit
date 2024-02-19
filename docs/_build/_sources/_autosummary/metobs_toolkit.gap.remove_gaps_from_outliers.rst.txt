@@ -1,6 +1,0 @@
-metobs\_toolkit.gap.remove\_gaps\_from\_outliers
-================================================
-
-.. currentmodule:: metobs_toolkit.gap
-
-.. autofunction:: remove_gaps_from_outliers

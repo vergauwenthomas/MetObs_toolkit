@@ -17,7 +17,7 @@ import metobs_toolkit
 
 # print(metobs_toolkit.__version__)
 
-#%%
+# %%
 # %% import data from file (long standard format)
 
 testdatafile = os.path.join(
@@ -57,7 +57,7 @@ dataset.import_data_from_file()
 assert dataset.df.shape == (120957, 10), "Shape of demo data is not correct."
 
 
-#%% Import wide dataset (Multiple stations) + syncronize
+# %% Import wide dataset (Multiple stations) + syncronize
 
 widedatafile = os.path.join(str(lib_folder), "tests", "test_data", "wide_test_data.csv")
 widetemplate = os.path.join(
@@ -82,7 +82,7 @@ dataset.import_data_from_file(
 assert dataset.df.shape == (597, 1), "Shape of unsynced widedata is not correct."
 
 
-#%% Import wide dataset with all options in the template
+# %% Import wide dataset with all options in the template
 
 widetemplate_with_options = os.path.join(
     str(lib_folder), "tests", "test_data", "wide_test_template_with_options.csv"
@@ -104,10 +104,10 @@ assert (
     dataset2.df.columns.to_list() == dataset.df.columns.to_list()
 ), "Opening with options in template does not give same results"
 
-#%% Test syncronizing wide
+# %% Test syncronizing wide
 
 # Sycnronize data
-test = dataset.sync_observations(tollerance="5T", verbose=True)
+test = dataset.sync_observations(tolerance="5T", verbose=True)
 
 
 assert dataset.df.shape == (182, 1), "Shape after syncronizing widedata is not correct."
@@ -117,7 +117,7 @@ assert dataset.missing_obs.series.shape == (
 ), "Number of missing obs after sync wide data not correct"
 
 
-#%% import wide dataset (One station)
+# %% import wide dataset (One station)
 
 singlestationdatafile = os.path.join(
     str(lib_folder), "tests", "test_data", "single_station.csv"
@@ -189,7 +189,7 @@ assert (
     dataset_single2.df.index.get_level_values("name").unique()[0] == "whats_the_name_2"
 ), "Opening with options in template does not give same results"
 
-#%%
+# %%
 
 # helper
 
@@ -202,7 +202,7 @@ def del_file(file_path):
         print(f"{file_path} not found.")
 
 
-#%% Pickle save and read dataset
+# %% Pickle save and read dataset
 outfolder = os.path.join(str(lib_folder), "tests", "test_data")
 file = "dataset_IO_test"
 

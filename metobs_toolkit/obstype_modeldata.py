@@ -9,7 +9,7 @@ import copy
 import math
 import numpy as np
 import logging
-from metobs_toolkit.obstypes import Obstype
+from metobs_toolkit.obstypes import Obstype, expression_calculator
 
 from metobs_toolkit.obstypes import temperature, pressure, wind, direction_aliases
 
@@ -73,7 +73,7 @@ class ModelObstype(Obstype):
             values are lists with aliases for the units at the keys. The default is {}.
         unit_conversions : dict, optional
             A dictionary containing the conversion information to map to the
-            standard units. Here an example of for temperatures (with Celcius
+            standard units. Here an example of for temperatures (with Celsius
             as standard unit):
 
                 {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
@@ -393,7 +393,7 @@ class ModelObstype_Vectorfield(Obstype):
     def convert_to_standard_units(self, input_df, input_unit):
         """Convert data from a known unit to the standard unit.
 
-        The data c must be a pandas dataframe with both the u and v component
+        The data must be a pandas dataframe with both the u and v component
         prensent as columns.
 
         Parameters
@@ -438,7 +438,7 @@ class ModelObstype_Vectorfield(Obstype):
         return data_u, data_v
 
 
-#%% New obs creator functions
+# %% New obs creator functions
 def compute_amplitude(modelobs_vectorfield, df):
     """Compute amplitude of 2D vectorfield components.
 
