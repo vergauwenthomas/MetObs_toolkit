@@ -11,6 +11,7 @@ import os
 import sys
 import copy
 from datetime import timedelta
+import itertools
 import pytz
 import logging
 import pandas as pd
@@ -59,19 +60,20 @@ from metobs_toolkit.qc_checks import (
 from metobs_toolkit.qc_statistics import get_freq_statistics
 from metobs_toolkit.writing_files import write_dataset_to_csv
 
-from metobs_toolkit.missingobs import Missingob_collection
+# from metobs_toolkit.missingobs import Missingob_collection
 
 from metobs_toolkit.gap import (
     Gap,
-    remove_gaps_from_obs,
-    remove_gaps_from_outliers,
-    missing_timestamp_and_gap_check,
-    get_gaps_indx_in_obs_space,
-    get_station_gaps,
-    apply_interpolate_gaps,
-    make_gapfill_df,
-    apply_debias_era5_gapfill,
-    gaps_to_df,
+    find_gaps,
+    # remove_gaps_from_obs,
+    # remove_gaps_from_outliers,
+    # missing_timestamp_and_gap_check,
+    # get_gaps_indx_in_obs_space,
+    # get_station_gaps,
+    # apply_interpolate_gaps,
+    # make_gapfill_df,
+    # apply_debias_era5_gapfill,
+    # gaps_to_df,
 )
 
 
@@ -167,7 +169,6 @@ class Dataset:
     *{n_obs_tot} observation records \n \
     *{n_outl} records labeled as outliers \n \
     *{len(self.gaps)} gaps \n \
-    *{self.missing_obs.series.shape[0]} missing observations \n \
     *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt}) \n \
     *time zone of the records: {self.settings.time_settings['timezone']} \n "
             + add_info
@@ -3601,11 +3602,17 @@ class Dataset:
         # update df
         self.df = df
 
+        # Since the gap period is defined by a start and end, the gap-records are
+        # depending (which form the index of gapdf) depends on the observation frequency.
+        # Thus the gapdf attributs must be updated of all gaps
+        for gap in self.gaps:
+            gap._initiate_gapdf(Dataset=self)
+
         # Remove gaps and missing from the observatios
         # most gaps and missing are already removed but when increasing timeres,
         # some records should be removed as well.
-        self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
-        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+        # self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
+        # self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
     def sync_observations(
         self,
@@ -4191,9 +4198,52 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         self.metadf["dataset_resolution"] = freq_series
 
+        # initialize the gapdf attributes
+        for gap in self.gaps:
+            gap._initiate_gapdf(Dataset=self)
+
         # Remove gaps and missing from the observations AFTER timecoarsening
-        self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
-        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+
+    #     self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
+    #     self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+
+    # def _remove_gaps_from_obs(gaplist, obsdf):
+    #     """
+    #     Remove station - datetime records that are in the gaps from the obsdf.
+
+    #     (Usefull when filling timestamps to a df, and if you whant to remove the
+    #       gaps.)
+
+    #     Parameters
+    #     ----------
+    #     obsdf : pandas.DataFrame()
+    #         A MultiIndex dataframe with name -- datetime as index.
+
+    #     Returns
+    #     -------
+    #     obsdf : pandas.DataFrame()
+    #         The same dataframe with records inside gaps removed.
+
+    #     """
+    #     # Create index for gaps records in the obsdf
+    #     expanded_gabsidx = init_multiindex()
+    #     for gap in gaplist:
+    #         sta_records = xs_save(obsdf, gap.name, level="name").index  # filter by name
+
+    #         gaps_dt = sta_records[
+    #             (sta_records >= gap.startgap)
+    #             & (sta_records <= gap.endgap)  # filter if the observations are within a gap
+    #         ]
+
+    #         gaps_multiidx = pd.MultiIndex.from_arrays(
+    #             arrays=[[gap.name] * len(gaps_dt), gaps_dt], names=["name", "datetime"]
+    #         )
+
+    #         expanded_gabsidx = expanded_gabsidx.append(gaps_multiidx)
+
+    #     # remove gaps idx from the obsdf
+    #     obsdf = obsdf.drop(index=expanded_gabsidx)
+    #     return obsdf
 
     def _initiate_df_attribute(self, dataframe, update_metadf=True):
         """Initialize dataframe attributes."""
@@ -4229,11 +4279,27 @@ station with the default name: {self.settings.app["default_name"]}.'
             )
             self.metadf = self.metadf[~self.metadf.index.isna()]
 
-        # find missing obs and gaps, and remove them from the df
-        self.missing_obs, self.gaps = missing_timestamp_and_gap_check(
-            df=self.df,
-            gapsize_n=self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"],
-        )
+        # find gaps (obstype independant)
+        # self.missing_obs, self.gaps
+        gapdef_list = find_gaps(df=self.df)
+
+        # Use itertools.product to create all combinations
+        gaplist_obs_dep = [
+            (tup + (string,))
+            for tup, string in itertools.product(gapdef_list, self.obstypes.values())
+        ]
+        gaplist = []
+        for gapdef in gaplist_obs_dep:
+            gaplist.append(
+                Gap(
+                    name=gapdef[0],
+                    startdt=gapdef[1],
+                    enddt=gapdef[2],
+                    obstype=gapdef[3],
+                )
+            )
+
+        self.gaps = gaplist
 
         # Create gaps and missing obs objects
         # self.gaps = gaps_list
