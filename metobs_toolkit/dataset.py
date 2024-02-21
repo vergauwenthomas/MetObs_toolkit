@@ -65,6 +65,7 @@ from metobs_toolkit.writing_files import write_dataset_to_csv
 from metobs_toolkit.gap import (
     Gap,
     find_gaps,
+    create_gaps_overview_df,
     # remove_gaps_from_obs,
     # remove_gaps_from_outliers,
     # missing_timestamp_and_gap_check,
@@ -123,8 +124,8 @@ class Dataset:
         self.missing_obs = None  # becomes a Missingob_collection after import
         self.gaps = None  # becomes a list of gaps
 
-        self.gapfilldf = init_multiindexdf()
-        self.missing_fill_df = init_multiindexdf()
+        # self.gapfilldf = init_multiindexdf()
+        # self.missing_fill_df = init_multiindexdf()
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
@@ -702,29 +703,16 @@ class Dataset:
         except KeyError:
             sta_outliers = init_triple_multiindexdf()
 
-        sta_gaps = get_station_gaps(self.gaps, stationname)
-        sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
-
-        try:
-            sta_gapfill = self.gapfilldf.xs(stationname, level="name", drop_level=False)
-        except KeyError:
-            sta_gapfill = init_multiindexdf()
-
-        try:
-            sta_missingfill = self.missing_fill_df.xs(
-                stationname, level="name", drop_level=False
-            )
-        except KeyError:
-            sta_missingfill = init_multiindexdf()
+        sta_gaps = [gap for gap in self.gaps if gap.name == stationname]
 
         return Station(
             name=stationname,
             df=sta_df,
             outliersdf=sta_outliers,
             gaps=sta_gaps,
-            missing_obs=sta_missingobs,
-            gapfilldf=sta_gapfill,
-            missing_fill_df=sta_missingfill,
+            # missing_obs=sta_missingobs,
+            # gapfilldf=sta_gapfill,
+            # missing_fill_df=sta_missingfill,
             metadf=sta_metadf,
             obstypes=self.obstypes,
             data_template=self.data_template,
@@ -1706,7 +1694,7 @@ class Dataset:
         comb_df = concat_save([filldf_interp, filldf_debias])
 
         # update attr
-        self.gapfilldf = comb_df
+        # self.gapfilldf = comb_df
 
         return comb_df
 
@@ -1827,12 +1815,12 @@ class Dataset:
         )
 
         # get gapfilldf
-        gapfilldf = make_gapfill_df(self.gaps)
+        # gapfilldf = make_gapfill_df(self.gaps)
 
         # update attr
-        self.gapfilldf = gapfilldf
+        # self.gapfilldf = gapfilldf
 
-        return gapfilldf
+        # return gapfilldf
 
     def fill_missing_obs_linear(self, obstype="temp"):
         """Interpolate missing observations.
@@ -2269,7 +2257,7 @@ class Dataset:
             sys.exit(f"{method} not implemented yet")
 
         # update attribute
-        self.gapfilldf = filldf
+        # self.gapfilldf = filldf
 
         return filldf
 
@@ -3262,32 +3250,54 @@ class Dataset:
         # =============================================================================
         # Stack gaps
         # =============================================================================
-        # add gapfill and remove the filled records from gaps
-        gapsfilldf = self.gapfilldf.copy()
 
-        # to triple index
-        gapsfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
-            gapsfilldf, known_obstypes=list(self.obstypes.keys())
-        )
-        gapsfilldf["toolkit_representation"] = "gap fill"
+        gapsdf = create_gaps_overview_df(gapslist=self.gaps)
+        # Format columns
+        gapsdf = gapsdf.rename(columns={"fill_value": "value"})
+        gapsdf = gapsdf[["value"]]
+        gapsdf["toolkit_representation"] = "_to_be_filled"
+        gapsdf["label"] = "to_be_filled"
 
-        gapsidx = get_gaps_indx_in_obs_space(
-            gapslist=self.gaps,
-            obsdf=self.df,
-            outliersdf=self.outliersdf,
-            resolutionseries=self.metadf["dataset_resolution"],
-        )
+        # update labels for unfilled records
+        unfilled_idxs = gapsdf[gapsdf["value"].isnull()].index
+        gapsdf.loc[unfilled_idxs, "toolkit_representation"] = "gap"
+        gapsdf.loc[unfilled_idxs, "label"] = self.settings.gap["gaps_info"]["gap"][
+            "outlier_flag"
+        ]
 
-        gapsdf = pd.DataFrame(index=gapsidx, columns=present_obstypes)
-        gapsdf = (
-            gapsdf.stack(dropna=False)
-            .reset_index()
-            .rename(columns={"level_2": "obstype", 0: "value"})
-            .set_index(["name", "datetime", "obstype"])
-        )
+        # update labels for filled records
+        filled_idxs = gapsdf[~gapsdf["value"].isnull()].index
+        gapsdf.loc[filled_idxs, "toolkit_representation"] = "gap fill"
+        # TODO: check if label OK is okay?
+        gapsdf.loc[filled_idxs, "label"] = "gap_debiased_era5"
+        print("deze lijn hierboven klop niet !!")
 
-        gapsdf["label"] = self.settings.gap["gaps_info"]["gap"]["outlier_flag"]
-        gapsdf["toolkit_representation"] = "gap"
+        # # add gapfill and remove the filled records from gaps
+        # gapsfilldf = self.gapfilldf.copy()
+
+        # # to triple index
+        # gapsfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
+        #     gapsfilldf, known_obstypes=list(self.obstypes.keys())
+        # )
+        # gapsfilldf["toolkit_representation"] = "gap fill"
+
+        # gapsidx = get_gaps_indx_in_obs_space(
+        #     gapslist=self.gaps,
+        #     obsdf=self.df,
+        #     outliersdf=self.outliersdf,
+        #     resolutionseries=self.metadf["dataset_resolution"],
+        # )
+
+        # gapsdf = pd.DataFrame(index=gapsidx, columns=present_obstypes)
+        # gapsdf = (
+        #     gapsdf.stack(dropna=False)
+        #     .reset_index()
+        #     .rename(columns={"level_2": "obstype", 0: "value"})
+        #     .set_index(["name", "datetime", "obstype"])
+        # )
+
+        # gapsdf["label"] = self.settings.gap["gaps_info"]["gap"]["outlier_flag"]
+        # gapsdf["toolkit_representation"] = "gap"
 
         # Remove gaps from df
         df = df[~df.index.isin(gapsdf.index)]
@@ -3296,51 +3306,58 @@ class Dataset:
             outliersdf = outliersdf.drop(index=gapsdf.index, errors="ignore")
 
         # Remove gapfill values records from the gaps
-        gapsdf = gapsdf.drop(index=gapsfilldf.index)
+        # gapsdf = gapsdf.drop(index=gapsfilldf.index)
 
         # =============================================================================
         # Stack missing
         # =============================================================================
-        missingfilldf = self.missing_fill_df.copy()
-        missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
-            missingfilldf, known_obstypes=list(self.obstypes.keys())
-        )
-        missingfilldf["toolkit_representation"] = "missing observation fill"
+        # missingfilldf = self.missing_fill_df.copy()
+        # missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
+        #     missingfilldf, known_obstypes=list(self.obstypes.keys())
+        # )
+        # missingfilldf["toolkit_representation"] = "missing observation fill"
 
-        # add missing observations if they occure in observation space
-        missingidx = self.missing_obs.get_missing_indx_in_obs_space(
-            self.df, self.metadf["dataset_resolution"]
-        )
+        # # add missing observations if they occure in observation space
+        # missingidx = self.missing_obs.get_missing_indx_in_obs_space(
+        #     self.df, self.metadf["dataset_resolution"]
+        # )
 
-        missingdf = pd.DataFrame(index=missingidx, columns=present_obstypes)
+        # missingdf = pd.DataFrame(index=missingidx, columns=present_obstypes)
 
-        missingdf = (
-            missingdf.stack(dropna=False)
-            .reset_index()
-            .rename(columns={"level_2": "obstype", 0: "value"})
-            .set_index(["name", "datetime", "obstype"])
-        )
+        # missingdf = (
+        #     missingdf.stack(dropna=False)
+        #     .reset_index()
+        #     .rename(columns={"level_2": "obstype", 0: "value"})
+        #     .set_index(["name", "datetime", "obstype"])
+        # )
 
-        missingdf["label"] = self.settings.gap["gaps_info"]["missing_timestamp"][
-            "outlier_flag"
-        ]
-        missingdf["toolkit_representation"] = "missing observation"
+        # missingdf["label"] = self.settings.gap["gaps_info"]["missing_timestamp"][
+        #     "outlier_flag"
+        # ]
+        # missingdf["toolkit_representation"] = "missing observation"
 
-        # Remove missing from df
-        df = df[~df.index.isin(missingdf.index)]
+        # # Remove missing from df
+        # df = df[~df.index.isin(missingdf.index)]
 
-        if overwrite_outliers_by_gaps_and_missing:
-            outliersdf = outliersdf.drop(index=missingdf.index, errors="ignore")
+        # if overwrite_outliers_by_gaps_and_missing:
+        #     outliersdf = outliersdf.drop(index=missingdf.index, errors="ignore")
 
-        # Remove missingfill values records from the missing
-        missingdf = missingdf.drop(index=missingfilldf.index)
+        # # Remove missingfill values records from the missing
+        # missingdf = missingdf.drop(index=missingfilldf.index)
 
         # =============================================================================
         # combine all
         # =============================================================================
 
         combdf = concat_save(
-            [df, outliersdf, gapsdf, gapsfilldf, missingdf, missingfilldf]
+            [
+                df,
+                outliersdf,
+                gapsdf,
+                # gapsfilldf,
+                # missingdf,
+                # missingfilldf,
+            ]
         ).sort_index()
         combdf.index.names = ["name", "datetime", "obstype"]
         # To be shure?

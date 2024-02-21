@@ -135,6 +135,9 @@ class Gap:
         print("---- Gap Data Frame -----")
         print(self.gapdf)
 
+    # =============================================================================
+    # Helpers
+    # =============================================================================
     def _get_gapfill_status(self):
         if not self.does_gap_holds_missing_records():
             return "Gap does not exist in observation space"
@@ -175,6 +178,10 @@ class Gap:
         self.gapdf[f"{self.obstype.name}_fill"] = np.nan  # fill with nan values
         self.gapdf["fill_method"] = None  # fill with None
         self.gapdf["msg"] = None  # Nonedataset
+
+    # =============================================================================
+    # Gap --- Records methods
+    # =============================================================================
 
     def get_missing_records(self, Dataset):
         """Find the missing records of a gap in observation-space.
@@ -623,6 +630,7 @@ class Gap:
         max_trail_to_gap_distance=None,
     ):
 
+        obsname = self.obstype.name
         # 1. Get leading and trailing info
         # get leading record, check validity and add to the gapfilldf
         (_, lead_dt, lead_val, lead_msg) = self.get_leading_record(
@@ -640,24 +648,53 @@ class Gap:
 
         anchor_df = pd.DataFrame(
             data={
-                self.obstype.name: [lead_val, trail_val],
+                obsname: [lead_val, trail_val],
                 "fill_method": ["leading", "trailing"],
                 "msg": [lead_msg, trail_msg],
             },
             index=idx,
         )
+        # Update attributes
         self.anchordf = anchor_df
+        self.gapdf["fill_method"] = f"{method}-interpolation"
+
+        # check if gapfill can proceed
+        if (lead_msg != "ok") & (trail_msg != "ok"):
+            logger.warning(
+                f"Cannot fill {self}, because leading and trailing records are not valid."
+            )
+            print(
+                f"Warning! Cannot fill {self}, because leading and trailing periods are not valid."
+            )
+
+            self.gapdf[f"{obsname}_fill"] = np.nan
+            self.gapdf["msg"] = f"{lead_msg} and {trail_msg}"
+            return
+        elif (lead_msg != "ok") & (trail_msg == "ok"):
+            logger.warning(f"Cannot fill {self}, because leading record is not valid.")
+            print(f"Warning! Cannot fill {self}, because leading record is not valid.")
+
+            self.gapdf[f"{obsname}_fill"] = np.nan
+            self.gapdf["msg"] = f"{lead_msg}"
+            return
+        elif (lead_msg == "ok") & (trail_msg != "ok"):
+            logger.warning(f"Cannot fill {self}, because trailing record is not valid.")
+            print(f"Warning! Cannot fill {self}, because trailing record is not valid.")
+
+            self.gapdf[f"{obsname}_fill"] = np.nan
+            self.gapdf["msg"] = f"{trail_msg}"
+            return
+        else:
+            pass
 
         # 3. Combine the anchors with the observations
-        tofilldf = pd.concat(
-            [self.gapdf[[self.obstype.name]], self.anchordf[[self.obstype.name]]]
-        )
+        tofilldf = pd.concat([self.gapdf[[obsname]], self.anchordf[[obsname]]])
 
         # 4. Replace the NaN's (GAPFILLING)
         # make shure only datetimes are in the index, and sorted by datetimes
         tofilldf = tofilldf.reset_index().set_index("datetime").sort_index()
         # Interpolate series
-        tofilldf[self.obstype.name].interpolate(
+        tofilldf[obsname].interpolate(
             method=method,
             limit=max_consec_fill,  # Maximum number of consecutive NaNs to fill. Must be greater than 0.
             limit_area="inside",
@@ -681,7 +718,7 @@ class Gap:
             trail_msg == "ok"
         ):  # labels are result of interpolation
             tofilldf["msg"] = tofilldf.apply(
-                _msg_interp, axis="columns", args=([self.obstype.name])
+                _msg_interp, axis="columns", args=([obsname])
             )
         elif (lead_msg == "ok") & (
             trail_msg != "ok"
@@ -699,10 +736,8 @@ class Gap:
             sys.exit("*unforseen situation* Report this error!!")
 
         # 6. Update the gapdf
-        self.gapdf[f"{self.obstype.name}_fill"] = tofilldf[
-            self.obstype.name
-        ]  # update values
-        self.gapdf["fill_method"] = f"{method}-interpolation"
+        self.gapdf[f"{obsname}_fill"] = tofilldf[obsname]  # update values
+
         self.gapdf["msg"] = tofilldf["msg"]
 
         return
@@ -828,81 +863,7 @@ class Gap:
 #         returndf.index.name = "name"
 #         return returndf
 
-#     def update_leading_trailing_obs(self, obsdf, outliersdf, obs_only=False):
-#         """Update leading and trailing periods in the attributes.
-
-#         Add the leading (last obs before gap) and trailing (first obs after gap)
-#         as extra columns to the self.df.
-
-#         One can specify to look for leading and trailing in the obsdf or in both
-#         the obsdf and outliersdf.
-
-#         The gap leading and trailing timestamps and value attributes are updated.
-
-#         If no leading/trailing timestamp is found, it is set to the gaps startdt/enddt.
-
-#         Parameters
-#         ----------
-#         obsdf : pandas.DataFrame
-#             Dataset.df
-#         outliersdf : pandas.DataFrame
-#             Dataset.outliersdf
-#         obs_only: bool, optional
-#             If True, only the obsdf will be used to search for leading and trailing.
-
-#         Returns
-#         -------
-#         None.
-
-#         """
-#         sta_obs = xs_save(obsdf, self.name, level="name").index
-#         if obs_only:
-#             sta_comb = sta_obs
-#         else:
-
-#             outliersdf = format_outliersdf_to_doubleidx(outliersdf)
-
-#             # combine timestamps of observations and outliers
-#             sta_outl = xs_save(outliersdf, self.name, level="name").index
-#             if sta_outl.empty:
-#                 sta_comb = sta_obs
-#             else:
-#                 sta_comb = sta_obs.append(sta_outl)
-
-#         # find minimium timediff before
-#         before_diff = _find_closes_occuring_date(
-#             refdt=self.startgap, series_of_dt=sta_comb, where="before"
-#         )
-
-#         # if no timestamps are before gap, assume gap at the start of the observations
-#         if math.isnan(before_diff):
-#             before_diff = 0.0
-
-#         # find minimum timediff after gap
-#         after_diff = _find_closes_occuring_date(
-#             refdt=self.endgap, series_of_dt=sta_comb, where="after"
-#         )
-#         # if no timestamps are after gap, assume gap at the end of the observations
-#         if math.isnan(after_diff):
-#             after_diff = 0.0
-
-#         # get before and after timestamps
-#         self.leading_timestamp = self.startgap - timedelta(seconds=before_diff)
-#         self.trailing_timestamp = self.endgap + timedelta(seconds=after_diff)
-
-#         # get the values
-#         try:
-#             self.leading_val = obsdf.loc[(self.name, self.leading_timestamp)].to_dict()
-#         except KeyError:
-#             logger.warning("Leading value not found in the observations")
-#             self.leading_val = {}
-#         try:
-#             self.trailing_val = obsdf.loc[
-#                 (self.name, self.trailing_timestamp)
-#             ].to_dict()
-#         except KeyError:
-#             logger.warning("Trailing value not found in the observations")
-#             self.trailing_val = {}
+#
 
 # def update_gaps_indx_in_obs_space(self, obsdf, outliersdf, dataset_res):
 #     """Get the gap records in observation-space.
@@ -949,82 +910,11 @@ class Gap:
 #     #         Gapfill
 #     # =============================================================================
 
-#     def apply_interpolate_gap(
-#         self,
-#         obsdf,
-#         outliersdf,
-#         dataset_res,
-#         obstype="temp",
-#         method="time",
-#         max_consec_fill=100,
-#     ):
-#         """Fill a Gap using a linear interpolation gapfill method for an obstype.
-
-#         The filled datetimes (in dataset resolution) are returned in the form
-#         af a multiindex pandas Series (name -- datetime) as index.
-
-#         Parameters
-#         ----------
-#         obsdf : Dataset.df
-#             The Dataset.df attribute. (Needed to extract trailing/leading
-#                                        observations.)
-#         outliersdf : Dataset.outliersdf
-#             The Dataset.outliersdf attribute.(Needed to extract trailing/leading
-#                                               observations.))
-#         resolutionseries : Datetime.timedelta
-#             Resolution of the station observations in the dataset.
-#         obstype : String, optional
-#             The observational type to apply gapfilling on. The default is 'temp'.
-#         method : String, optional
-#             Method to pass to the Numpy.interpolate function. The default is 'time'.
-#         max_consec_fill : Integer, optional
-#             Value to pass to the limit argument of Numpy.interpolate. The default is 100.
-
-#         Returns
-#         -------
-#         Pandas.Series
-#             Multiindex Series with filled gap values in dataset space.
-
-#         """
-#         logger.info(f" interpolate on {self}")
-#         outliersdf = format_outliersdf_to_doubleidx(outliersdf)
-
-#         gapfill_series = interpolate_gap(
-#             gap=self,
-#             obsdf=obsdf,
-#             outliersdf=outliersdf,
-#             dataset_res=dataset_res,
-#             obstype=obstype,
-#             method=method,
-#             max_consec_fill=max_consec_fill,
-#         )
-
-#         # update self
-#         self.gapfill_technique = "interpolation"
-#         self.gapfill_df[obstype] = gapfill_series
-
+#
 
 # # =============================================================================
 # # Find gaps and missing values
-# # =============================================================================
-# def get_station_gaps(gapslist, name):
-#     """Extract a Gap_collection specific to one station.
-
-#     If no gaps are found for the station, an empty Gap_collection is
-#     returned.
-
-#     Parameters
-#     ----------
-#     name : String
-#         Name of the station to extract a Gaps_collection from.
-
-#     Returns
-#     -------
-#     Gap_collection
-#         A Gap collection specific of the specified station.
-
-#     """
-#     return [gap for gap in gapslist if gap.name == name]
+# # =========================================================
 
 
 # def get_gaps_indx_in_obs_space(gapslist, obsdf, outliersdf, resolutionseries):
@@ -1066,6 +956,20 @@ class Gap:
 #     return expanded_gabsidx_obsspace
 
 
+def create_gaps_overview_df(gapslist):
+    """TODO: docstring"""
+    gapsdf_list = []
+    for gap in gapslist:
+        gapdf = gap.gapdf
+        gapdf["obstype"] = gap.obstype.name
+        gapdf = gapdf.rename(columns={f"{gap.obstype.name}_fill": "fill_value"})
+        gapsdf_list.append(gapdf[["fill_value", "obstype", "fill_method", "msg"]])
+
+    tot_gapdf = pd.concat(gapsdf_list)
+    tot_gapdf = tot_gapdf.reset_index().set_index(["name", "datetime", "obstype"])
+    return tot_gapdf.sort_index()
+
+
 # def gaps_to_df(gapslist):
 #     """Combine all gaps into a dataframe as an overview.
 
@@ -1094,43 +998,43 @@ class Gap:
 #     return concat_save(gapdflist)
 
 
-def remove_gaps_from_obs(gaplist, obsdf):
-    """
-    Remove station - datetime records that are in the gaps from the obsdf.
+# def remove_gaps_from_obs(gaplist, obsdf):
+#     """
+#     Remove station - datetime records that are in the gaps from the obsdf.
 
-    (Usefull when filling timestamps to a df, and if you whant to remove the
-      gaps.)
+#     (Usefull when filling timestamps to a df, and if you whant to remove the
+#       gaps.)
 
-    Parameters
-    ----------
-    obsdf : pandas.DataFrame()
-        A MultiIndex dataframe with name -- datetime as index.
+#     Parameters
+#     ----------
+#     obsdf : pandas.DataFrame()
+#         A MultiIndex dataframe with name -- datetime as index.
 
-    Returns
-    -------
-    obsdf : pandas.DataFrame()
-        The same dataframe with records inside gaps removed.
+#     Returns
+#     -------
+#     obsdf : pandas.DataFrame()
+#         The same dataframe with records inside gaps removed.
 
-    """
-    # Create index for gaps records in the obsdf
-    expanded_gabsidx = init_multiindex()
-    for gap in gaplist:
-        sta_records = xs_save(obsdf, gap.name, level="name").index  # filter by name
+#     """
+#     # Create index for gaps records in the obsdf
+#     expanded_gabsidx = init_multiindex()
+#     for gap in gaplist:
+#         sta_records = xs_save(obsdf, gap.name, level="name").index  # filter by name
 
-        gaps_dt = sta_records[
-            (sta_records >= gap.startgap)
-            & (sta_records <= gap.endgap)  # filter if the observations are within a gap
-        ]
+#         gaps_dt = sta_records[
+#             (sta_records >= gap.startgap)
+#             & (sta_records <= gap.endgap)  # filter if the observations are within a gap
+#         ]
 
-        gaps_multiidx = pd.MultiIndex.from_arrays(
-            arrays=[[gap.name] * len(gaps_dt), gaps_dt], names=["name", "datetime"]
-        )
+#         gaps_multiidx = pd.MultiIndex.from_arrays(
+#             arrays=[[gap.name] * len(gaps_dt), gaps_dt], names=["name", "datetime"]
+#         )
 
-        expanded_gabsidx = expanded_gabsidx.append(gaps_multiidx)
+#         expanded_gabsidx = expanded_gabsidx.append(gaps_multiidx)
 
-    # remove gaps idx from the obsdf
-    obsdf = obsdf.drop(index=expanded_gabsidx)
-    return obsdf
+#     # remove gaps idx from the obsdf
+#     obsdf = obsdf.drop(index=expanded_gabsidx)
+#     return obsdf
 
 
 # def remove_gaps_from_outliers(gaplist, outldf):
