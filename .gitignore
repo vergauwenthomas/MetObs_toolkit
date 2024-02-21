@@ -7,6 +7,7 @@ temp_output/*
 *.swp
 *poetry.lock
 poetry.lock
+.virtual_documents
 
 #Exclude deploy scripts
 deploiment/*_log
