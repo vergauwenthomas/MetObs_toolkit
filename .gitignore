@@ -28,6 +28,9 @@ docs/_*
 docs/api #for the full dev doc
 docs/reference/api
 
+#add the css formatters
+!docs/_static
+
 
 
 
