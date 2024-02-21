@@ -137,7 +137,7 @@ This class is used for comparing other sources to observations and for filling i
                                                 obstype='temp')
 
 
-The toolkit makes use of the Google Earth Engine (GEE), to extract these time-series. To use the GEE API, follow these steps on :ref:`Using Google Earth Engine<Using Google Earth Engine>`.
+The toolkit makes use of the Google Earth Engine (GEE), to extract these time-series. To use the GEE API, follow these steps on :ref:`Using Google Earth Engine<Using_gee>`.
 
 
 Settings()
