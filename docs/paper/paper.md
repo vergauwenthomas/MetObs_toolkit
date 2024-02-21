@@ -58,7 +58,7 @@ bibliography: paper.bib
 
 
 # Summary
-
+trigger
 In-situ meteorological observations are highly important for weather and climate research. The evolution towards more affordable sensor technology and data communication has resulted in the emergence of novel meteorological networks alongside the traditional high-quality measurement networks of meteorological institutions. Examples include urban measurement networks intended to study the impact of cities [@mocca] and networks consisting of devices of weather enthusiasts [@crowdsourcing_status]. However, exploiting the data of such non-traditional networks comes with significant challenges [@crowdsourcing]. Firstly, sensors and data communication protocols are usually low-cost, and this in general results in an increase of measurement errors, biases and data gaps. Secondly, data storage formats and temporal measurement frequencies are often not consistent or compatible. Finally, metadata, such as land use around a station and elevation, are not easily accessible or documented.
 
 The MetObs-toolkit is a Python package developed to address these issues and facilitate the use of non-traditional observations. The package provides automated quality control (QC) techniques to identify and flag erroneous observations, and includes methods to fill data gaps. Additionally, the package offers tools for analyzing the data, e.g. linkage with popular land-use datasets [@worldcover; @lcz_map] is included such that microclimate effects can be investigated with the MetObs-toolkit.
