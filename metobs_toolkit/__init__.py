@@ -57,8 +57,9 @@ from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfield
 
 
-# import GUI
+# Special functions that can be directly called by te user
 from metobs_toolkit.data_templates.template_build_prompt import build_template_prompt
+from metobs_toolkit.landcover_functions import connect_to_gee
 
 # =============================================================================
 # Import extenders
