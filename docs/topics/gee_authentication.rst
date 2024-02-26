@@ -151,9 +151,9 @@ Test your GEE access
 
        import metobs_toolkit
 
-        metobs_toolkit.connect_to_gee(force=True, #create new credentials
-                                      auth_mode='notebook', # 'notebook', 'localhost', 'gcloud' (requires gcloud installed) or 'colab' (works only in colab)
-                                      )
+       metobs_toolkit.connect_to_gee(force=True, #create new credentials
+                                     auth_mode='notebook', # 'notebook', 'localhost', 'gcloud' (requires gcloud installed) or 'colab' (works only in colab)
+                                     )
 
 
 
