@@ -62,10 +62,6 @@ def print_dataset_info(dataset, show_all_settings=False, max_disp_n_gaps=5):
         print("\n The first rows of the metadf looks like:")
         print(f"{dataset.metadf[relev_columns].head()}")
 
-    # "--------  Missing observations ---------")
-    if dataset.missing_obs is not None:
-        print(dataset.get_missing_obs_info())
-
     if dataset.gaps is not None:
         print("\n", "--------  Gaps ---------", "\n")
         if len(dataset.gaps) <= max_disp_n_gaps:

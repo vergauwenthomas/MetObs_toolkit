@@ -98,8 +98,15 @@ def _diurnal_debias_modeldata_fill(filldf):
 
     # Construct returns
     fillvalues = gapdf["modelvalues"] - gapdf["diff"]  # correct with diurnal biasses
+
+    def _msg_writer(row):
+        if not np.isnan(row["diff"]):
+            return f"Modelvalue: {row['modelvalues']:.2f} corrected with a {row['diff']:.2f} bias."
+        else:
+            return f"Modelvalue: {row['modelvalues']:.2f} cannot be corrected because anchor samples does not meet requirements"
+
     msg = gapdf.apply(
-        lambda x: f"Modelvalue: {x['modelvalues']:.2f} corrected with a {x['diff']:.2f} bias.",
+        lambda x: _msg_writer(x),
         axis=1,
     )
 
@@ -172,21 +179,33 @@ def _weighted_diurnal_debias_modeldata(filldf):
 
     # Construct returns
     fillvalues = gapdf["modelvalues"] - gapdf["diff"]  # correct with diurnal biasses
+
+    def _msg_writer(row):
+        if not np.isnan(row["diff"]):
+            return f"Modelvalue: {row['modelvalues']:.2f} corrected with ({row['lead_diff']:.2f} x {row['lead_weight']:.2f} + {row['trail_diff']:.2f} x {row['trail_weight']:.2f}) bias."
+        else:
+            return f"Modelvalue: {row['modelvalues']:.2f} cannot be corrected because anchor samples does not meet requirements"
+
     msg = gapdf.apply(
-        lambda x: f"Modelvalue: {x['modelvalues']:.2f} corrected with ({x['lead_diff']:.2f} x {x['lead_weight']:.2f} + {x['trail_diff']:.2f} x {x['trail_weight']:.2f}) bias.",
+        lambda x: _msg_writer(x),
         axis=1,
     )
-    # If the trailing/leading periods does not contain all diurnal categories
-    # as the the gap, the corresponding diff cannot be merge and Nan's are added.
-    # We specify this in the message
-    missing_lead_cat = gapdf[~gapdf["lead_diff"].notnull()].index  # find the indices
-    msg.loc[missing_lead_cat] = (
-        "This diurnal record is not represented in the leading period."
-    )
-    missing_trail_cat = gapdf[~gapdf["trail_diff"].notnull()].index  # find the indices
-    msg.loc[missing_trail_cat] = (
-        "This diurnal record is not represented in the trailing period."
-    )
+
+    # msg = gapdf.apply(
+    #     lambda x: f"Modelvalue: {x['modelvalues']:.2f} corrected with ({x['lead_diff']:.2f} x {x['lead_weight']:.2f} + {x['trail_diff']:.2f} x {x['trail_weight']:.2f}) bias.",
+    #     axis=1,
+    # )
+    # # If the trailing/leading periods does not contain all diurnal categories
+    # # as the the gap, the corresponding diff cannot be merge and Nan's are added.
+    # # We specify this in the message
+    # missing_lead_cat = gapdf[~gapdf["lead_diff"].notnull()].index  # find the indices
+    # msg.loc[missing_lead_cat] = (
+    #     "This diurnal record is not represented in the leading period."
+    # )
+    # missing_trail_cat = gapdf[~gapdf["trail_diff"].notnull()].index  # find the indices
+    # msg.loc[missing_trail_cat] = (
+    #     "This diurnal record is not represented in the trailing period."
+    # )
 
     return fillvalues, msg
 

@@ -226,7 +226,9 @@ class Gap:
     #  Gapfill anchor methods
     # =============================================================================
     def get_leading_period(
-        self, Dataset, leading_period_duration="24H", min_leading_records_total=60
+        self,
+        Dataset,
+        leading_period_duration="24H",
     ):
         """TODO update docstring
 
@@ -248,7 +250,7 @@ class Gap:
 
         Returns
         -------
-        tuple : (name, timestamp, obs-value, status-message)
+        tuple : (name, timestamp, obs-value)
             All information on the leading record stored in a tuple.
 
         """
@@ -268,19 +270,7 @@ class Gap:
                     self.name,
                     pd.DatetimeIndex([]),
                     np.nan,
-                    "no leading record candidates could be found.",
-                ]
-            )
-
-        elif (
-            leading_period.shape[0] < min_leading_records_total
-        ):  # not enouggh (total) records found
-            return tuple(
-                [
-                    self.name,
-                    leading_period,
-                    sta_obs.loc[leading_period][self.obstype.name].to_list(),
-                    f"minimum records ({min_leading_records_total}) for leading period not met.",
+                    # "no leading record candidates could be found.",
                 ]
             )
 
@@ -290,13 +280,11 @@ class Gap:
                     self.name,
                     leading_period,
                     sta_obs.loc[leading_period][self.obstype.name].to_list(),
-                    "ok",
+                    # "ok",
                 ]
             )
 
-    def get_trailing_period(
-        self, Dataset, trailing_period_duration="24H", min_trailing_records_total=60
-    ):
+    def get_trailing_period(self, Dataset, trailing_period_duration="24H"):
         """TODO update docstring
 
 
@@ -317,7 +305,7 @@ class Gap:
 
         Returns
         -------
-        tuple : (name, timestamp, obs-value, status-message)
+        tuple : (name, timestamp, obs-value)
             All information on the leading record stored in a tuple.
 
         """
@@ -337,19 +325,7 @@ class Gap:
                     self.name,
                     pd.DatetimeIndex([]),
                     [],
-                    "no trailing record candidates could be found.",
-                ]
-            )
-
-        elif (
-            trailing_period.shape[0] < min_trailing_records_total
-        ):  # not enouggh (total) records found
-            return tuple(
-                [
-                    self.name,
-                    trailing_period,
-                    sta_obs.loc[trailing_period][self.obstype.name].to_list(),
-                    f"minimum records ({min_trailing_records_total}) for trailing period not met.",
+                    # "no trailing record candidates could be found.",
                 ]
             )
 
@@ -359,7 +335,7 @@ class Gap:
                     self.name,
                     trailing_period,
                     sta_obs.loc[trailing_period][self.obstype.name].to_list(),
-                    "ok",
+                    # "ok",
                 ]
             )
 
@@ -471,124 +447,8 @@ class Gap:
     # Fill methods
     # =============================================================================
 
-    def model_gapfill(
-        self,
-        Dataset,
-        Modeldata,
-        method="debias_modeldata",
-        leading_period_duration="24H",
-        min_leading_records_total=60,
-        trailing_period_duration="24H",
-        min_trailing_records_total=60,
-    ):
-
-        # check attributes
-        assert method in [
-            "raw_modeldata",
-            "debias_modeldata",
-            "diurnal_debias_modeldata",
-            "period_diurnal_debias_modeldata",
-        ], f"{method} is not a valid method."
-
+    def raw_model_gapfill(self, Dataset, Modeldata):
         obsname = self.obstype.name
-        # 1. Get leading and trailing info
-        # get leading record, check validity and add to the gapfilldf
-        (_, lead_period, lead_vals, lead_msg) = self.get_leading_period(
-            Dataset=Dataset,
-            leading_period_duration=leading_period_duration,
-            min_leading_records_total=min_leading_records_total,
-        )
-        (_, trail_period, trail_vals, trail_msg) = self.get_trailing_period(
-            Dataset=Dataset,
-            trailing_period_duration=trailing_period_duration,
-            min_trailing_records_total=min_trailing_records_total,
-        )
-
-        # 2. Update anchordf
-        _leaddf_idx = pd.MultiIndex.from_arrays(
-            arrays=[[self.name] * lead_period.shape[0], lead_period],
-            names=["name", "datetime"],
-        )
-
-        _leaddf = pd.DataFrame(
-            data={
-                self.obstype.name: lead_vals,
-                "fill_method": ["leading period"],
-                "msg": lead_msg,
-            },
-            index=_leaddf_idx,
-        )
-
-        _traildf_idx = pd.MultiIndex.from_arrays(
-            arrays=[[self.name] * trail_period.shape[0], trail_period],
-            names=["name", "datetime"],
-        )
-
-        _traildf = pd.DataFrame(
-            data={
-                self.obstype.name: trail_vals,
-                "fill_method": ["trailing period"],
-                "msg": trail_msg,
-            },
-            index=_traildf_idx,
-        )
-
-        anchor_df = pd.concat([_leaddf, _traildf]).sort_index()
-
-        # 2b. Update attribute
-        self.anchordf = anchor_df
-        self.gapdf["fill_method"] = method
-
-        # check if gapfill can proceed
-        if method == "raw_modeldata":
-            # leading and trailing are not used for fill
-            pass
-        else:
-            if (lead_msg != "ok") & (trail_msg != "ok"):
-                logger.warning(
-                    f"Cannot fill {self}, because leading and trailing periods are not valid."
-                )
-                print(
-                    f"Warning! Cannot fill {self}, because leading and trailing periods are not valid."
-                )
-
-                self.gapdf[f"{obsname}_fill"] = np.nan
-                self.gapdf["msg"] = f"{lead_msg} and {trail_msg}"
-                return
-            elif (lead_msg != "ok") & (trail_msg == "ok"):
-                logger.warning(
-                    f"Cannot fill {self}, because leading period is not valid."
-                )
-                print(
-                    f"Warning! Cannot fill {self}, because leading period is not valid."
-                )
-
-                self.gapdf[f"{obsname}_fill"] = np.nan
-                self.gapdf["msg"] = f"{lead_msg}"
-                return
-            elif (lead_msg == "ok") & (trail_msg != "ok"):
-                logger.warning(
-                    f"Cannot fill {self}, because trailing period is not valid."
-                )
-                print(
-                    f"Warning! Cannot fill {self}, because trailing period is not valid."
-                )
-
-                self.gapdf[f"{obsname}_fill"] = np.nan
-                self.gapdf["msg"] = f"{trail_msg}"
-                return
-            else:
-                pass
-
-        # 3. extract modeldata for leading, trailing and gap period
-        debiasdf = Modeldata.interpolate_modeldata(anchor_df.index)
-        assert (
-            obsname in debiasdf.columns
-        ), f"{obsname} not present in the modeldata: {Modeldata}"
-        debiasdf = debiasdf[[obsname]]
-        debiasdf = debiasdf.rename(columns={obsname: "modelvalues"})
-        debiasdf["obsvalues"] = anchor_df[obsname]
-        debiasdf["fill_method"] = anchor_df["fill_method"]
 
         # add the gap period
         gapdf = Modeldata.interpolate_modeldata(self.gapdf.index)
@@ -597,28 +457,176 @@ class Gap:
         gapdf["obsvalues"] = np.nan
         gapdf["fill_method"] = "gap"
 
-        filldf = pd.concat([debiasdf, gapdf])
+        filldf = gapdf
         filldf = filldf.sort_index()
 
         # 4. Fill the gap
-        if method == "raw_modeldata":
-            fill_values, msg = gap_filling._raw_modeldata_fill(filldf)
-
-        elif method == "debias_modeldata":
-            fill_values, msg = gap_filling._debias_modeldata_fill(filldf)
-
-        elif method == "diurnal_debias_modeldata":
-            fill_values, msg = gap_filling._diurnal_debias_modeldata_fill(filldf)
-
-        elif method == "period_diurnal_debias_modeldata":
-            fill_values, msg = gap_filling._weighted_diurnal_debias_modeldata(filldf)
-
-        else:
-            sys.exit(f"Unknown method: {method}")
+        fill_values, msg = gap_filling._raw_modeldata_fill(filldf)
 
         # 5. Update gapdf attribute
         self.gapdf[f"{obsname}_fill"] = fill_values
-        self.gapdf["fill_method"] = method
+        self.gapdf["fill_method"] = "raw_modeldata"
+        self.gapdf["msg"] = msg
+
+    def debias_model_gapfill(
+        self,
+        Dataset,
+        Modeldata,
+        leading_period_duration="24H",
+        min_leading_records_total=60,
+        trailing_period_duration="24H",
+        min_trailing_records_total=60,
+    ):
+
+        obsname = self.obstype.name
+        self.gapdf["fill_method"] = "debias_modeldata"
+        # Create anchor periods
+        anchordf = self._create_anchor_df_for_leading_trailing_periods(
+            Dataset, leading_period_duration, trailing_period_duration
+        )
+        anchordf["msg"] = "_init_"
+        # Check validity of anchors
+        # 1. Check leading period total sample size and add msg
+        if (
+            anchordf[anchordf["fill_method"] == "leading period"].shape[0]
+            < min_leading_records_total
+        ):
+            msg_lead = f"minimum records ({min_leading_records_total}) for leading period not met."
+        else:
+            msg_lead = "ok"
+
+        anchordf.loc[anchordf["fill_method"] == "leading period", "msg"] = msg_lead
+
+        # 1B. Check trailing period total sample size and add msg
+        if (
+            anchordf[anchordf["fill_method"] == "trailing period"].shape[0]
+            < min_trailing_records_total
+        ):
+            msg_trail = f"minimum records ({min_trailing_records_total}) for trailing period not met."
+        else:
+            msg_trail = "ok"
+
+        anchordf.loc[anchordf["fill_method"] == "trailing period", "msg"] = msg_lead
+
+        # 2. Update the Anchor attribute
+        self.anchordf = anchordf
+
+        # 3.Test if anchor period is valid, if not write default attribute
+        if (msg_lead != "ok") & (msg_trail != "ok"):
+            logmsg = f"Cannot fill {self}, because leading and trailing periods are not valid."
+            gapmsg = f"{msg_lead} and {msg_trail}"
+            err = True
+        elif (msg_lead != "ok") & (msg_trail == "ok"):
+            logmsg = f"Cannot fill {self}, because leading period is not valid."
+            gapmsg = f"{msg_lead}"
+            err = True
+        elif (msg_lead == "ok") & (msg_trail != "ok"):
+            logmsg = f"Cannot fill {self}, because trailing period is not valid."
+            gapmsg = f"{msg_trail}"
+            err = True
+        else:
+            err = False
+
+        if err:
+            logger.warning(logmsg)
+            print("Warning! ", logmsg)
+            self.gapdf[f"{obsname}_fill"] = np.nan
+            self.gapdf["msg"] = gapmsg
+            return
+
+        # 4. combine learning and gap period
+        filldf = self._combine_learning_and_gap_to_one_df(Modeldata)
+
+        # 5. Fill the gap
+        fill_values, msg = gap_filling._debias_modeldata_fill(filldf)
+
+        # 6. Update gapdf attribute
+        self.gapdf[f"{obsname}_fill"] = fill_values
+        self.gapdf["fill_method"] = "debias_modeldata"
+        self.gapdf["msg"] = msg
+
+    def diurnal_debias_model_gapfill(
+        self,
+        Dataset,
+        Modeldata,
+        leading_period_duration="24H",
+        min_debias_sample_size=6,
+        trailing_period_duration="24H",
+    ):
+
+        obsname = self.obstype.name
+        # Create anchor periods
+        anchordf = self._create_anchor_df_for_leading_trailing_periods(
+            Dataset, leading_period_duration, trailing_period_duration
+        )
+        # Check validity of anchors and label them
+        anchordf = self._label_anchors_for_diurnal_gapfilling(
+            anchordf=anchordf, min_anchors_per_diurnal_timestamp=min_debias_sample_size
+        )
+
+        self.anchordf = anchordf
+
+        # 4. combine learning and gap period
+        filldf = self._combine_learning_and_gap_to_one_df(Modeldata)
+
+        # 5. apply blacklisting (remove anchors that do not fulfill criteria)
+        blacklist = self.anchordf[self.anchordf["msg"] != "ok"].index
+        filldf = filldf[~filldf.index.isin(blacklist)]
+
+        # 6. Fill the gap
+        fill_values, msg = gap_filling._diurnal_debias_modeldata_fill(filldf)
+
+        # 7. Update gapdf attribute
+        self.gapdf[f"{obsname}_fill"] = fill_values
+        self.gapdf["fill_method"] = "diurnal_debias_modeldata"
+        self.gapdf["msg"] = msg
+
+    def weighted_diurnal_debias_model_gapfill(
+        self,
+        Dataset,
+        Modeldata,
+        leading_period_duration="48H",
+        min_lead_debias_sample_size=2,
+        trailing_period_duration="48H",
+        min_trail_debias_sample_size=2,
+    ):
+
+        obsname = self.obstype.name
+        # Create anchor periods
+        anchordf = self._create_anchor_df_for_leading_trailing_periods(
+            Dataset, leading_period_duration, trailing_period_duration
+        )
+
+        # Check validity of anchors and label them
+        lead_anchorsdf = anchordf[anchordf["fill_method"] == "leading period"]
+        lead_anchorsdf = self._label_anchors_for_diurnal_gapfilling(
+            anchordf=lead_anchorsdf,
+            min_anchors_per_diurnal_timestamp=min_lead_debias_sample_size,
+        )
+
+        trail_anchorsdf = anchordf[anchordf["fill_method"] == "trailing period"]
+        trail_anchorsdf = self._label_anchors_for_diurnal_gapfilling(
+            anchordf=trail_anchorsdf,
+            min_anchors_per_diurnal_timestamp=min_trail_debias_sample_size,
+        )
+
+        anchordf = pd.concat([lead_anchorsdf, trail_anchorsdf])
+
+        self.anchordf = anchordf
+
+        # 4. combine learning and gap period
+        filldf = self._combine_learning_and_gap_to_one_df(Modeldata)
+
+        # 5. apply blacklisting (remove anchors that do not fulfill criteria)
+        blacklist = self.anchordf[self.anchordf["msg"] != "ok"].index
+        filldf = filldf[~filldf.index.isin(blacklist)]
+
+        # 6. Fill the gap
+        fill_values, msg = gap_filling._weighted_diurnal_debias_modeldata(filldf)
+
+        # 7. Update gapdf attribute
+        self.gapdf[f"{obsname}_fill"] = fill_values
+        self.gapdf["fill_method"] = "weighted_diurnal_debias_modeldata"
         self.gapdf["msg"] = msg
 
     def interpolate_gap(
@@ -742,53 +750,420 @@ class Gap:
 
         return
 
-        # if obs_only:
-        #         sta_comb = sta_obs
-        #     else:
+    # =============================================================================
+    # Fill helpers
+    # =============================================================================
 
-        #         outliersdf = format_outliersdf_to_doubleidx(outliersdf)
+    def _create_anchor_df_for_leading_trailing_periods(
+        self, Dataset, leading_period_duration, trailing_period_duration
+    ):
+        """
+        Helper method to construct the anchordf (the dataframe with all anchor
+        records) for a leading and trailing period.
 
-        #         # combine timestamps of observations and outliers
-        #         sta_outl = xs_save(outliersdf, self.name, level="name").index
-        #         if sta_outl.empty:
-        #             sta_comb = sta_obs
-        #         else:
-        #             sta_comb = sta_obs.append(sta_outl)
+        Parameters
+        ----------
+        Dataset : metobs_toolkit.Dataset
+            The dataset that contains the observations for the anchor records.
+        leading_period_duration : Timedelta or str
+            Size (in time) of the leading period.
+        trailing_period_duration : Timedelta or str
+            Size (in time) of the trailing period.
 
-        #     # find minimium timediff before
-        #     before_diff = _find_closes_occuring_date(
-        #         refdt=self.startgap, series_of_dt=sta_comb, where="before"
-        #     )
+        Returns
+        -------
+        anchor_df : pandas.dataframe
+            The anchordf (multiindex name-timestamp) with a column with values
+            and a "fill_method" column with labels ('leading period' or
+            'trailing period').
 
-        #     # if no timestamps are before gap, assume gap at the start of the observations
-        #     if math.isnan(before_diff):
-        #         before_diff = 0.0
+        """
+        # 1. Get leading and trailing info
+        # get leading record, check validity and add to the gapfilldf
+        (_, lead_period, lead_vals) = self.get_leading_period(
+            Dataset=Dataset,
+            leading_period_duration=leading_period_duration,
+        )
 
-        #     # find minimum timediff after gap
-        #     after_diff = _find_closes_occuring_date(
-        #         refdt=self.endgap, series_of_dt=sta_comb, where="after"
-        #     )
-        #     # if no timestamps are after gap, assume gap at the end of the observations
-        #     if math.isnan(after_diff):
-        #         after_diff = 0.0
+        (_, trail_period, trail_vals) = self.get_trailing_period(
+            Dataset=Dataset,
+            trailing_period_duration=trailing_period_duration,
+        )
 
-        #     # get before and after timestamps
-        #     self.leading_timestamp = self.startgap - timedelta(seconds=before_diff)
-        #     self.trailing_timestamp = self.endgap + timedelta(seconds=after_diff)
+        # 2. Create anchordf
+        _leaddf_idx = pd.MultiIndex.from_arrays(
+            arrays=[[self.name] * lead_period.shape[0], lead_period],
+            names=["name", "datetime"],
+        )
 
-        #     # get the values
-        #     try:
-        #         self.leading_val = obsdf.loc[(self.name, self.leading_timestamp)].to_dict()
-        #     except KeyError:
-        #         logger.warning("Leading value not found in the observations")
-        #         self.leading_val = {}
-        #     try:
-        #         self.trailing_val = obsdf.loc[
-        #             (self.name, self.trailing_timestamp)
-        #         ].to_dict()
-        #     except KeyError:
-        #         logger.warning("Trailing value not found in the observations")
-        #         self.trailing_val = {}
+        _leaddf = pd.DataFrame(
+            data={
+                self.obstype.name: lead_vals,
+                "fill_method": ["leading period"],
+                # "msg": lead_msg,
+            },
+            index=_leaddf_idx,
+        )
+
+        _traildf_idx = pd.MultiIndex.from_arrays(
+            arrays=[[self.name] * trail_period.shape[0], trail_period],
+            names=["name", "datetime"],
+        )
+
+        _traildf = pd.DataFrame(
+            data={
+                self.obstype.name: trail_vals,
+                "fill_method": ["trailing period"],
+                # "msg": trail_msg,
+            },
+            index=_traildf_idx,
+        )
+
+        anchor_df = pd.concat([_leaddf, _traildf]).sort_index()
+        return anchor_df
+
+    def _combine_learning_and_gap_to_one_df(self, Modeldata):
+        """
+        Helper method to combine the anchorsdf and the gapdf to one dataframe.
+        This combined dataframe is than used by the fill method.
+
+        Modeldata is extracted for all these records (and interpolated to the
+        to match time resolution).
+
+        Each record is labeld by 'leading period', 'trailing period' or 'gap'
+
+        Parameters
+        ----------
+        Modeldata : metobs_toolkit.Modeldata
+            The modeldata to use for the gapfilling
+
+        Returns
+        -------
+        filldf : pandas.DataFrame
+            The dataframe structured as the Gap.gapdf, that combines the
+            anchors and the gap records and the corresponding modelvalues.
+
+
+        """
+        anchordf = self.anchordf
+        obsname = self.obstype.name
+
+        debiasdf = Modeldata.interpolate_modeldata(anchordf.index)
+        assert (
+            obsname in debiasdf.columns
+        ), f"{obsname} not present in the modeldata: {Modeldata}"
+        debiasdf = debiasdf[[obsname]]
+        debiasdf = debiasdf.rename(columns={obsname: "modelvalues"})
+        debiasdf["obsvalues"] = anchordf[obsname]
+        debiasdf["fill_method"] = anchordf["fill_method"]
+
+        # add the gap period
+        gapdf = Modeldata.interpolate_modeldata(self.gapdf.index)
+        gapdf = gapdf[[obsname]]
+        gapdf = gapdf.rename(columns={obsname: "modelvalues"})
+        gapdf["obsvalues"] = np.nan
+        gapdf["fill_method"] = "gap"
+
+        filldf = pd.concat([debiasdf, gapdf])
+        filldf = filldf.sort_index()
+        return filldf
+
+    def _label_anchors_for_diurnal_gapfilling(
+        self, anchordf, min_anchors_per_diurnal_timestamp
+    ):
+        """
+        Helper method to label (in the msg column) all records of the anchorsdf.
+
+        This methods is applied when filling uses diurnal timestamps, thus the
+        'training period' depends on similar timestamps. This method checks if
+        all these periods have equal, or more records then set by min_anchors_per_diurnal_timestamp.
+
+        The following labels can be written:
+         * 'ok'
+         * 'will not be used (diurnal timestamp not in gap)'
+         * 'diurnal sampel size to small ...
+
+        Parameters
+        ----------
+        anchordf : pandas.DataFrame
+            The dataframe containing all the anchorrecords to check.
+        min_anchors_per_diurnal_timestamp : int
+            The minimum size for each timestamp group to check.
+
+        Returns
+        -------
+        anchordf : pandas.DataFrame
+            The anchordf with the 'msg' (string message on status -> label)
+            column and 'anchors' (count of records per group in the anchorsdf)
+
+        """
+
+        obsname = self.obstype.name
+        anchordf["msg"] = "_init_"  # these will be overwritten
+        # aggregate to diurnal groups and count number of samples For all anchors
+        anchordf = anchordf.dropna()
+        anchordf = anchordf.reset_index().set_index("datetime")
+        anchordf = gap_filling._add_diurnal_timestamps(anchordf)
+        anchordf = (
+            anchordf.reset_index()
+        )  # else the datetimes will be lost when mergeing
+
+        samplesizes = anchordf.groupby(["hour", "minutes", "seconds"])[obsname].count()
+        samplesizes.name = "anchors"
+
+        # aggregate the gaps records to diurnal groups, to find the diurnal timestamps that will be used
+        gap_records = self.gapdf.reset_index().set_index("datetime")
+        gap_records = gap_filling._add_diurnal_timestamps(gap_records)
+        gap_records = gap_records.groupby(["hour", "minutes", "seconds"])[
+            obsname
+        ].count()
+
+        # label the anchors
+        # A. 'will not be used' label
+        not_used = samplesizes[~samplesizes.index.isin(gap_records.index)]
+        not_useddf = not_used.to_frame().reset_index()
+        not_useddf["msg_not_used"] = "_found"  # dummy label
+
+        anchordf = anchordf.merge(
+            not_useddf[["hour", "minutes", "seconds", "msg_not_used"]],
+            how="left",
+            on=["hour", "minutes", "seconds"],
+        )
+
+        anchordf.loc[~anchordf["msg_not_used"].isnull(), "msg"] = (
+            "will not be used (diurnal timestamp not in gap)"
+        )
+
+        # B. "sample size to small
+        to_small_diurnal_stamps = samplesizes[
+            (
+                (~samplesizes.index.isin(not_used.index))
+                & (samplesizes < min_anchors_per_diurnal_timestamp)
+            )
+        ]
+
+        to_smalldf = to_small_diurnal_stamps.to_frame().reset_index()
+        to_smalldf["msg_to_small"] = to_smalldf.apply(
+            lambda x: f'diurnal sampel size to small ({x["anchors"]} < {min_anchors_per_diurnal_timestamp})',
+            axis=1,
+        )
+
+        anchordf = anchordf.merge(
+            to_smalldf[["hour", "minutes", "seconds", "msg_to_small"]],
+            how="left",
+            on=["hour", "minutes", "seconds"],
+        )
+
+        anchordf.loc[~anchordf["msg_to_small"].isnull(), "msg"] = anchordf.loc[
+            ~anchordf["msg_to_small"].isnull(), "msg_to_small"
+        ]
+
+        # C "ok"  the remaining anchors fulfill the requirements
+        anchordf["msg"] = anchordf["msg"].replace({"_init_": "ok"})
+
+        # Subset anchordf to standard format
+        anchordf = anchordf.reset_index().set_index(["name", "datetime"])
+        anchordf = anchordf[[obsname, "fill_method", "msg"]]
+
+        return anchordf
+
+    # def model_gapfill(
+    #     self,
+    #     Dataset,
+    #     Modeldata,
+    #     method="debias_modeldata",
+    #     leading_period_duration="24H",
+    #     min_leading_records_total=60,
+    #     trailing_period_duration="24H",
+    #     min_trailing_records_total=60,
+    # ):
+
+    #     # check attributes
+    #     assert method in [
+    #         "raw_modeldata",
+    #         "debias_modeldata",
+    #         "diurnal_debias_modeldata",
+    #         "period_diurnal_debias_modeldata",
+    #     ], f"{method} is not a valid method."
+
+    #     obsname = self.obstype.name
+    #     # 1. Get leading and trailing info
+    #     # get leading record, check validity and add to the gapfilldf
+    #     (_, lead_period, lead_vals, lead_msg) = self.get_leading_period(
+    #         Dataset=Dataset,
+    #         leading_period_duration=leading_period_duration,
+    #         min_leading_records_total=min_leading_records_total,
+    #     )
+    #     (_, trail_period, trail_vals, trail_msg) = self.get_trailing_period(
+    #         Dataset=Dataset,
+    #         trailing_period_duration=trailing_period_duration,
+    #         min_trailing_records_total=min_trailing_records_total,
+    #     )
+
+    #     # 2. Update anchordf
+    #     _leaddf_idx = pd.MultiIndex.from_arrays(
+    #         arrays=[[self.name] * lead_period.shape[0], lead_period],
+    #         names=["name", "datetime"],
+    #     )
+
+    #     _leaddf = pd.DataFrame(
+    #         data={
+    #             self.obstype.name: lead_vals,
+    #             "fill_method": ["leading period"],
+    #             "msg": lead_msg,
+    #         },
+    #         index=_leaddf_idx,
+    #     )
+
+    #     _traildf_idx = pd.MultiIndex.from_arrays(
+    #         arrays=[[self.name] * trail_period.shape[0], trail_period],
+    #         names=["name", "datetime"],
+    #     )
+
+    #     _traildf = pd.DataFrame(
+    #         data={
+    #             self.obstype.name: trail_vals,
+    #             "fill_method": ["trailing period"],
+    #             "msg": trail_msg,
+    #         },
+    #         index=_traildf_idx,
+    #     )
+
+    #     anchor_df = pd.concat([_leaddf, _traildf]).sort_index()
+
+    #     # 2b. Update attribute
+    #     self.anchordf = anchor_df
+    #     self.gapdf["fill_method"] = method
+
+    #     # check if gapfill can proceed
+    #     if method == "raw_modeldata":
+    #         # leading and trailing are not used for fill
+    #         pass
+    #     else:
+    #         if (lead_msg != "ok") & (trail_msg != "ok"):
+    #             logger.warning(
+    #                 f"Cannot fill {self}, because leading and trailing periods are not valid."
+    #             )
+    #             print(
+    #                 f"Warning! Cannot fill {self}, because leading and trailing periods are not valid."
+    #             )
+
+    #             self.gapdf[f"{obsname}_fill"] = np.nan
+    #             self.gapdf["msg"] = f"{lead_msg} and {trail_msg}"
+    #             return
+    #         elif (lead_msg != "ok") & (trail_msg == "ok"):
+    #             logger.warning(
+    #                 f"Cannot fill {self}, because leading period is not valid."
+    #             )
+    #             print(
+    #                 f"Warning! Cannot fill {self}, because leading period is not valid."
+    #             )
+
+    #             self.gapdf[f"{obsname}_fill"] = np.nan
+    #             self.gapdf["msg"] = f"{lead_msg}"
+    #             return
+    #         elif (lead_msg == "ok") & (trail_msg != "ok"):
+    #             logger.warning(
+    #                 f"Cannot fill {self}, because trailing period is not valid."
+    #             )
+    #             print(
+    #                 f"Warning! Cannot fill {self}, because trailing period is not valid."
+    #             )
+
+    #             self.gapdf[f"{obsname}_fill"] = np.nan
+    #             self.gapdf["msg"] = f"{trail_msg}"
+    #             return
+    #         else:
+    #             pass
+
+    #     # 3. extract modeldata for leading, trailing and gap period
+    #     debiasdf = Modeldata.interpolate_modeldata(anchor_df.index)
+    #     assert (
+    #         obsname in debiasdf.columns
+    #     ), f"{obsname} not present in the modeldata: {Modeldata}"
+    #     debiasdf = debiasdf[[obsname]]
+    #     debiasdf = debiasdf.rename(columns={obsname: "modelvalues"})
+    #     debiasdf["obsvalues"] = anchor_df[obsname]
+    #     debiasdf["fill_method"] = anchor_df["fill_method"]
+
+    #     # add the gap period
+    #     gapdf = Modeldata.interpolate_modeldata(self.gapdf.index)
+    #     gapdf = gapdf[[obsname]]
+    #     gapdf = gapdf.rename(columns={obsname: "modelvalues"})
+    #     gapdf["obsvalues"] = np.nan
+    #     gapdf["fill_method"] = "gap"
+
+    #     filldf = pd.concat([debiasdf, gapdf])
+    #     filldf = filldf.sort_index()
+
+    #     # 4. Fill the gap
+    #     if method == "raw_modeldata":
+    #         fill_values, msg = gap_filling._raw_modeldata_fill(filldf)
+
+    #     elif method == "debias_modeldata":
+    #         fill_values, msg = gap_filling._debias_modeldata_fill(filldf)
+
+    #     elif method == "diurnal_debias_modeldata":
+    #         fill_values, msg = gap_filling._diurnal_debias_modeldata_fill(filldf)
+
+    #     elif method == "period_diurnal_debias_modeldata":
+    #         fill_values, msg = gap_filling._weighted_diurnal_debias_modeldata(filldf)
+
+    #     else:
+    #         sys.exit(f"Unknown method: {method}")
+
+    #     # 5. Update gapdf attribute
+    #     self.gapdf[f"{obsname}_fill"] = fill_values
+    #     self.gapdf["fill_method"] = method
+    #     self.gapdf["msg"] = msg
+
+    # if obs_only:
+    #         sta_comb = sta_obs
+    #     else:
+
+    #         outliersdf = format_outliersdf_to_doubleidx(outliersdf)
+
+    #         # combine timestamps of observations and outliers
+    #         sta_outl = xs_save(outliersdf, self.name, level="name").index
+    #         if sta_outl.empty:
+    #             sta_comb = sta_obs
+    #         else:
+    #             sta_comb = sta_obs.append(sta_outl)
+
+    #     # find minimium timediff before
+    #     before_diff = _find_closes_occuring_date(
+    #         refdt=self.startgap, series_of_dt=sta_comb, where="before"
+    #     )
+
+    #     # if no timestamps are before gap, assume gap at the start of the observations
+    #     if math.isnan(before_diff):
+    #         before_diff = 0.0
+
+    #     # find minimum timediff after gap
+    #     after_diff = _find_closes_occuring_date(
+    #         refdt=self.endgap, series_of_dt=sta_comb, where="after"
+    #     )
+    #     # if no timestamps are after gap, assume gap at the end of the observations
+    #     if math.isnan(after_diff):
+    #         after_diff = 0.0
+
+    #     # get before and after timestamps
+    #     self.leading_timestamp = self.startgap - timedelta(seconds=before_diff)
+    #     self.trailing_timestamp = self.endgap + timedelta(seconds=after_diff)
+
+    #     # get the values
+    #     try:
+    #         self.leading_val = obsdf.loc[(self.name, self.leading_timestamp)].to_dict()
+    #     except KeyError:
+    #         logger.warning("Leading value not found in the observations")
+    #         self.leading_val = {}
+    #     try:
+    #         self.trailing_val = obsdf.loc[
+    #             (self.name, self.trailing_timestamp)
+    #         ].to_dict()
+    #     except KeyError:
+    #         logger.warning("Trailing value not found in the observations")
+    #         self.trailing_val = {}
 
 
 # class Gap:
@@ -1304,13 +1679,22 @@ def create_gaps_overview_df(gapslist):
 #     return filldf
 
 
-def find_gaps(df):
-    """Find missing timestamps and gaps in the observations.
+# =============================================================================
+# Gap finders
+# =============================================================================
 
-    Looking for missing timestaps by assuming an observation frequency. The assumed frequency is the highest occuring frequency PER STATION.
-    If missing observations are detected, they can be catogirized as a missing timestamp or as gap.
 
-    A gap is define as a sequence of missing values with more than N repetitive missing values. N is define in the QC settings.
+def find_gaps(df, known_obstypes, tstart=None, tend=None, freq_series=None):
+    """
+    #TODO update the docstring parameters
+    Find gaps in the observations.
+
+    Looking for gaps by assuming an observation frequency. The assumed frequency is the highest occuring frequency PER STATION.
+
+    A gap in the observations is located by two conditions:
+
+     * A timestamp is missing
+     * The value of an observation is invallid (i.e. Nan or non-numerical)
 
 
 
@@ -1318,50 +1702,71 @@ def find_gaps(df):
     ----------
     df : pandas.DataFrame
         The observations dataframe of the dataset object (Dataset.df)
-    gapsize_n : int
-        The minimum number of consecutive missing observations to identify the
-        period as a gap.
+    known_obstypes : list
+        A list of all known metobs_toolkit.Obstypes.
+
 
     Returns
     -------
     gap_list : list
-        A list of tuples with (name, startdt, enddt) of the gaps.
+        A list of gaps.
 
     """
     gap_list = []
 
-    # missing timestamp per station (because some stations can have other frequencies!)
+    # get all obstypes that are found in the dataframe
+    found_obstypes = [obst for obst in known_obstypes if obst.name in df.columns]
+
+    # gaps per station (because some stations can have other frequencies!)
     stationnames = df.index.get_level_values(level="name").unique()
     for station in stationnames:
-        # find missing timestamps
-        timestamps = xs_save(df, station, level="name").index
-        likely_freq = get_likely_frequency(timestamps, method="highest", simplify=False)
+
+        stadf = xs_save(df, station, level="name")
+
+        # Get frequency estimation per station
+        if freq_series is None:
+            likely_freq = get_likely_frequency(
+                stadf.index, method="highest", simplify=False
+            )
+        else:
+            likely_freq = freq_series[station]
+
+        # Define the start and end of the timeseries
+        if tstart is None:
+            tstart = stadf.index.min()
+        if tend is None:
+            tend = stadf.index.max()
+
         assert likely_freq.seconds > 0, "The frequency is not positive!"
-
-        missing_datetimeseries = (
-            pd.date_range(
-                start=timestamps.min(), end=timestamps.max(), freq=likely_freq
-            )
-            .difference(timestamps)
-            .to_series()
-            .diff()
-        )
-
-        if missing_datetimeseries.empty:
-            continue
-
-        # Check for gaps
-        gap_defenition = ((missing_datetimeseries != likely_freq)).cumsum()
-        consec_missing_groups = missing_datetimeseries.groupby(gap_defenition)
-        group_sizes = consec_missing_groups.size()
-
-        # iterate over the gabs and fill the gap_list
-        for gap_idx in group_sizes.index:
-            datetime_of_gap_records = consec_missing_groups.get_group(gap_idx).index
-            gapdef = tuple(
-                [station, datetime_of_gap_records.min(), datetime_of_gap_records.max()]
+        for obstype in found_obstypes:
+            # remove Nans --> so that nans are interpretted as missing records --> thus gaps
+            stadfnonan = stadf.dropna(subset=[obstype.name])[[obstype.name]]
+            #  Locate missing timestamps
+            missing_datetimeseries = (
+                pd.date_range(start=tstart, end=tend, freq=likely_freq)
+                .difference(stadfnonan.index)
+                .to_series()
+                .diff()
             )
 
-            gap_list.append(gapdef)
+            if missing_datetimeseries.empty:
+                continue
+
+            # Check for gaps
+            gap_defenition = ((missing_datetimeseries != likely_freq)).cumsum()
+            consec_missing_groups = missing_datetimeseries.groupby(gap_defenition)
+            group_sizes = consec_missing_groups.size()
+
+            # iterate over the gabs and fill the gap_list
+            for gap_idx in group_sizes.index:
+                datetime_of_gap_records = consec_missing_groups.get_group(gap_idx).index
+                gap_list.append(
+                    Gap(
+                        name=station,
+                        startdt=datetime_of_gap_records.min(),
+                        enddt=datetime_of_gap_records.max(),
+                        obstype=obstype,
+                    )
+                )
 
     return gap_list
