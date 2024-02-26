@@ -11,6 +11,7 @@ import os
 import sys
 import copy
 from datetime import timedelta
+import itertools
 import pytz
 import logging
 import pandas as pd
@@ -49,7 +50,7 @@ from metobs_toolkit.qc_checks import (
     duplicate_timestamp_check,
     step_check,
     window_variation_check,
-    invalid_input_check,
+    # invalid_input_check,
     toolkit_buddy_check,
     titan_buddy_check,
     titan_sct_resistant_check,
@@ -59,19 +60,21 @@ from metobs_toolkit.qc_checks import (
 from metobs_toolkit.qc_statistics import get_freq_statistics
 from metobs_toolkit.writing_files import write_dataset_to_csv
 
-from metobs_toolkit.missingobs import Missingob_collection
+# from metobs_toolkit.missingobs import Missingob_collection
 
 from metobs_toolkit.gap import (
     Gap,
-    remove_gaps_from_obs,
-    remove_gaps_from_outliers,
-    missing_timestamp_and_gap_check,
-    get_gaps_indx_in_obs_space,
-    get_station_gaps,
-    apply_interpolate_gaps,
-    make_gapfill_df,
-    apply_debias_era5_gapfill,
-    gaps_to_df,
+    find_gaps,
+    create_gaps_overview_df,
+    # remove_gaps_from_obs,
+    # remove_gaps_from_outliers,
+    # missing_timestamp_and_gap_check,
+    # get_gaps_indx_in_obs_space,
+    # get_station_gaps,
+    # apply_interpolate_gaps,
+    # make_gapfill_df,
+    # apply_debias_era5_gapfill,
+    # gaps_to_df,
 )
 
 
@@ -118,11 +121,11 @@ class Dataset:
         # Dataset with outlier observations
         self.outliersdf = init_triple_multiindexdf()
 
-        self.missing_obs = None  # becomes a Missingob_collection after import
+        # self.missing_obs = None  # becomes a Missingob_collection after import
         self.gaps = None  # becomes a list of gaps
 
-        self.gapfilldf = init_multiindexdf()
-        self.missing_fill_df = init_multiindexdf()
+        # self.gapfilldf = init_multiindexdf()
+        # self.missing_fill_df = init_multiindexdf()
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
@@ -167,7 +170,6 @@ class Dataset:
     *{n_obs_tot} observation records \n \
     *{n_outl} records labeled as outliers \n \
     *{len(self.gaps)} gaps \n \
-    *{self.missing_obs.series.shape[0]} missing observations \n \
     *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt}) \n \
     *time zone of the records: {self.settings.time_settings['timezone']} \n "
             + add_info
@@ -218,12 +220,6 @@ class Dataset:
         # their is a coarsening allied on either of them.
         new.gaps = []
 
-        # ---------- missing ---------
-        # Missing observations have to be recaluculated using a frequency assumtion from the
-        # combination of self.df and other.df, thus NOT the native frequency if
-        # their is a coarsening allied on either of them.
-        new.missing_obs = None
-
         # ---------- metadf -----------
         # Use the metadf from self and add new rows if they are present in other
         new.metadf = concat_save([self.metadf, other.metadf])
@@ -255,15 +251,7 @@ class Dataset:
         # that are dependand on the frequency (since the freq of the .df is used,
         # which is not the naitive frequency if coarsening is applied on either. )
 
-        # missing and gap check
-        if gapsize is None:
-            gapsize = new.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]
-
-        # note gapsize is now defined on the frequency of self
-        new.missing_obs, new.gaps = missing_timestamp_and_gap_check(
-            df=new.df,
-            gapsize_n=self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"],
-        )
+        new.gaps = find_gaps(new.df, known_obstypes=new.obstypes)
 
         # duplicate check
         new.df, dup_outl_df = duplicate_timestamp_check(
@@ -701,29 +689,16 @@ class Dataset:
         except KeyError:
             sta_outliers = init_triple_multiindexdf()
 
-        sta_gaps = get_station_gaps(self.gaps, stationname)
-        sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
-
-        try:
-            sta_gapfill = self.gapfilldf.xs(stationname, level="name", drop_level=False)
-        except KeyError:
-            sta_gapfill = init_multiindexdf()
-
-        try:
-            sta_missingfill = self.missing_fill_df.xs(
-                stationname, level="name", drop_level=False
-            )
-        except KeyError:
-            sta_missingfill = init_multiindexdf()
+        sta_gaps = [gap for gap in self.gaps if gap.name == stationname]
 
         return Station(
             name=stationname,
             df=sta_df,
             outliersdf=sta_outliers,
             gaps=sta_gaps,
-            missing_obs=sta_missingobs,
-            gapfilldf=sta_gapfill,
-            missing_fill_df=sta_missingfill,
+            # missing_obs=sta_missingobs,
+            # gapfilldf=sta_gapfill,
+            # missing_fill_df=sta_missingfill,
             metadf=sta_metadf,
             obstypes=self.obstypes,
             data_template=self.data_template,
@@ -1391,160 +1366,202 @@ class Dataset:
         )
         return Modl
 
-    def update_gaps_and_missing_from_outliers(self, obstype="temp", n_gapsize=None):
-        """Interpret the outliers as missing observations.
+    def convert_outliers_to_gaps(self):
+        # TODO : docstrinc + alles van de update gaps ... vervangend door deze methode
 
-        If there is a sequence
-        of these outliers for a station, larger than n_gapsize than this will
-        be interpreted as a gap.
+        if self.outliersdf.empty:
+            print("Warning! No outliers are found to convert!")
+            return
 
-        The outliers are not removed.
+        if bool(self.gaps):
+            print("Warning! The current gaps will be removed and new gaps are formed!")
 
-        Parameters
-        ----------
-        obstype : str, optional
-            Use the outliers on this observation type to update the gaps and
-            missing timestamps. The default is 'temp'.
-        n_gapsize : int, optional
-            The minimum number of consecutive missing observations to define
-            as a gap. If None, n_gapsize is taken from the settings defenition
-            of gaps. The default is None.
+        if (
+            self.metadf["assumed_import_frequency"] != self.metadf["dataset_resolution"]
+        ).any():
+            print(
+                "Warning! The current gaps are defined at a resolution different from the assumed import resolution!"
+            )
 
-        Returns
-        -------
-        None.
+        # Get start and end of timeseries (be shure to include gaps and outliers to determine start en endpoints)
+        combdf = self.combine_all_to_obsspace()
 
-        Note
-        -------
-        Gaps and missing observations resulting from an outlier on a specific
-        obstype, are assumed to be gaps/missing observation for all obstypes.
+        tstart = combdf.index.get_level_values("datetime").min()
+        tend = combdf.index.get_level_values("datetime").max()
 
-        Note
-        ------
-        Be aware that n_gapsize is used for the current resolution of the Dataset,
-        this is different from the gap check applied on the inported data, if
-        the dataset is coarsend.
+        # Since the outliers are Nan values in the dataset.df, and the find_gaps() method
+        # looks for missing records AND invalid values (thus also nans), this method could be applied
 
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *1932 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *235 records labeled as outliers
-                 *2 gaps
-                 *1473 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-
-        """
-        if n_gapsize is None:
-            n_gapsize = self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]
-            if (
-                not self.metadf["assumed_import_frequency"]
-                .eq(self.metadf["dataset_resolution"])
-                .all()
-            ):
-                logger.info(
-                    f"The defenition of the gapsize (n_gapsize = {n_gapsize}) \
-                               will have another effect on the update of the gaps and missing \
-                                   timestamps because coarsening is applied and the defenition \
-                                   of the gapsize is not changed."
-                )
-
-        # combine to one dataframe
-        mergedf = self.combine_all_to_obsspace()
-        mergedf = xs_save(mergedf, obstype, level="obstype")
-
-        # ignore labels
-        possible_outlier_labels = [
-            vals["outlier_flag"] for vals in self.settings.qc["qc_checks_info"].values()
-        ]
-
-        # create groups when the final label changes
-        persistance_filter = ((mergedf["label"].shift() != mergedf["label"])).cumsum()
-        grouped = mergedf.groupby(["name", persistance_filter])
-
-        # locate new gaps by size of consecutive the same final label per station
-        group_sizes = grouped.size()
-        large_groups = group_sizes[group_sizes > n_gapsize]
-
-        # find only groups with final label as an outlier
-        gaps = []
-        # new_gapsdf = pd.DataFrame()
-        new_gaps_idx = init_multiindex()
-        for group_idx in large_groups.index:
-            groupdf = grouped.get_group(group_idx)
-            group_final_label = groupdf["label"].iloc[0]
-            if group_final_label not in possible_outlier_labels:
-                # no gap candidates
-                continue
-            else:
-                gap = Gap(
-                    name=groupdf.index.get_level_values("name")[0],
-                    startdt=groupdf.index.get_level_values("datetime").min(),
-                    enddt=groupdf.index.get_level_values("datetime").max(),
-                )
-
-                gaps.append(gap)
-                new_gaps_idx = new_gaps_idx.union(groupdf.index, sort=False)
-
-        # add all the outliers, that are not in the new gaps to the new missing obs
-        new_missing_obs = mergedf[mergedf["label"].isin(possible_outlier_labels)].index
-        new_missing_obs = new_missing_obs.drop(new_gaps_idx.to_numpy(), errors="ignore")
-
-        # to series
-        missing_obs_series = (
-            new_missing_obs.to_frame()
-            .reset_index(drop=True)
-            .set_index("name")["datetime"]
-        )
-        # Create missing obs
-        new_missing_collection = Missingob_collection(missing_obs_series)
-
-        # update self
-        self.gaps.extend(gaps)
-        self.missing_obs = self.missing_obs + new_missing_collection
-
-        # remove outliers that are converted to gaps
-        self.outliersdf = remove_gaps_from_outliers(
-            gaplist=gaps, outldf=self.outliersdf
+        newgaps = find_gaps(
+            df=self.df,
+            known_obstypes=self.obstypes.values(),
+            tstart=tstart,
+            tend=tend,
+            freq_series=self.metadf["dataset_resolution"],
         )
 
-        # remove outliers that are converted to missing obs
-        self.outliersdf = self.missing_obs.remove_missing_from_outliers(self.outliersdf)
+        # initialize the gapdf attributes
+        for gap in newgaps:
+            gap._initiate_gapdf(Dataset=self)
+
+        # update attributes
+        self.gaps = newgaps  # overwrite previous gaps !
+        self.outliersdf = init_triple_multiindexdf()
+
+    # def update_gaps_and_missing_from_outliers(self, obstype="temp", n_gapsize=None):
+    #     """Interpret the outliers as missing observations.
+
+    #     If there is a sequence
+    #     of these outliers for a station, larger than n_gapsize than this will
+    #     be interpreted as a gap.
+
+    #     The outliers are not removed.
+
+    #     Parameters
+    #     ----------
+    #     obstype : str, optional
+    #         Use the outliers on this observation type to update the gaps and
+    #         missing timestamps. The default is 'temp'.
+    #     n_gapsize : int, optional
+    #         The minimum number of consecutive missing observations to define
+    #         as a gap. If None, n_gapsize is taken from the settings defenition
+    #         of gaps. The default is None.
+
+    #     Returns
+    #     -------
+    #     None.
+
+    #     Note
+    #     -------
+    #     Gaps and missing observations resulting from an outlier on a specific
+    #     obstype, are assumed to be gaps/missing observation for all obstypes.
+
+    #     Note
+    #     ------
+    #     Be aware that n_gapsize is used for the current resolution of the Dataset,
+    #     this is different from the gap check applied on the inported data, if
+    #     the dataset is coarsend.
+
+    #     Examples
+    #     --------
+    #     .. code-block:: python
+
+    #         >>> import metobs_toolkit
+    #         >>>
+    #         >>> # Import data into a Dataset
+    #         >>> dataset = metobs_toolkit.Dataset()
+    #         >>> dataset.update_settings(
+    #         ...                         input_data_file=metobs_toolkit.demo_datafile,
+    #         ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+    #         ...                         template_file=metobs_toolkit.demo_template,
+    #         ...                         )
+    #         >>> dataset.import_data_from_file()
+    #         >>> dataset.coarsen_time_resolution(freq='1H')
+    #         >>>
+    #         >>> # Apply quality control on the temperature observations
+    #         >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+    #         >>> dataset
+    #         Dataset instance containing:
+    #              *28 stations
+    #              *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+    #              *10080 observation records
+    #              *1932 records labeled as outliers
+    #              *0 gaps
+    #              *3 missing observations
+    #              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+    #              *time zone of the records: UTC
+    #              *Coordinates are available for all stations.
+    #         >>>
+    #         >>> # Interpret the outliers as missing/gaps
+    #         >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
+    #         >>> dataset
+    #         Dataset instance containing:
+    #              *28 stations
+    #              *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+    #              *10080 observation records
+    #              *235 records labeled as outliers
+    #              *2 gaps
+    #              *1473 missing observations
+    #              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+    #              *time zone of the records: UTC
+    #              *Coordinates are available for all stations.
+
+    #     """
+    #     if n_gapsize is None:
+    #         n_gapsize = self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]
+    #         if (
+    #             not self.metadf["assumed_import_frequency"]
+    #             .eq(self.metadf["dataset_resolution"])
+    #             .all()
+    #         ):
+    #             logger.info(
+    #                 f"The defenition of the gapsize (n_gapsize = {n_gapsize}) \
+    #                            will have another effect on the update of the gaps and missing \
+    #                                timestamps because coarsening is applied and the defenition \
+    #                                of the gapsize is not changed."
+    #             )
+
+    #     # combine to one dataframe
+    #     mergedf = self.combine_all_to_obsspace()
+    #     mergedf = xs_save(mergedf, obstype, level="obstype")
+
+    #     # ignore labels
+    #     possible_outlier_labels = [
+    #         vals["outlier_flag"] for vals in self.settings.qc["qc_checks_info"].values()
+    #     ]
+
+    #     # create groups when the final label changes
+    #     persistance_filter = ((mergedf["label"].shift() != mergedf["label"])).cumsum()
+    #     grouped = mergedf.groupby(["name", persistance_filter])
+
+    #     # locate new gaps by size of consecutive the same final label per station
+    #     group_sizes = grouped.size()
+    #     large_groups = group_sizes[group_sizes > n_gapsize]
+
+    #     # find only groups with final label as an outlier
+    #     gaps = []
+    #     # new_gapsdf = pd.DataFrame()
+    #     new_gaps_idx = init_multiindex()
+    #     for group_idx in large_groups.index:
+    #         groupdf = grouped.get_group(group_idx)
+    #         group_final_label = groupdf["label"].iloc[0]
+    #         if group_final_label not in possible_outlier_labels:
+    #             # no gap candidates
+    #             continue
+    #         else:
+    #             gap = Gap(
+    #                 name=groupdf.index.get_level_values("name")[0],
+    #                 startdt=groupdf.index.get_level_values("datetime").min(),
+    #                 enddt=groupdf.index.get_level_values("datetime").max(),
+    #             )
+
+    #             gaps.append(gap)
+    #             new_gaps_idx = new_gaps_idx.union(groupdf.index, sort=False)
+
+    #     # add all the outliers, that are not in the new gaps to the new missing obs
+    #     new_missing_obs = mergedf[mergedf["label"].isin(possible_outlier_labels)].index
+    #     new_missing_obs = new_missing_obs.drop(new_gaps_idx.to_numpy(), errors="ignore")
+
+    #     # to series
+    #     missing_obs_series = (
+    #         new_missing_obs.to_frame()
+    #         .reset_index(drop=True)
+    #         .set_index("name")["datetime"]
+    #     )
+    #     # Create missing obs
+    #     new_missing_collection = Missingob_collection(missing_obs_series)
+
+    #     # update self
+    #     self.gaps.extend(gaps)
+    #     self.missing_obs = self.missing_obs + new_missing_collection
+
+    #     # remove outliers that are converted to gaps
+    #     self.outliersdf = remove_gaps_from_outliers(
+    #         gaplist=gaps, outldf=self.outliersdf
+    #     )
+
+    #     # remove outliers that are converted to missing obs
+    #     self.outliersdf = self.missing_obs.remove_missing_from_outliers(self.outliersdf)
 
     # =============================================================================
     #   Gap Filling
@@ -1705,7 +1722,7 @@ class Dataset:
         comb_df = concat_save([filldf_interp, filldf_debias])
 
         # update attr
-        self.gapfilldf = comb_df
+        # self.gapfilldf = comb_df
 
         return comb_df
 
@@ -1826,12 +1843,12 @@ class Dataset:
         )
 
         # get gapfilldf
-        gapfilldf = make_gapfill_df(self.gaps)
+        # gapfilldf = make_gapfill_df(self.gaps)
 
         # update attr
-        self.gapfilldf = gapfilldf
+        # self.gapfilldf = gapfilldf
 
-        return gapfilldf
+        # return gapfilldf
 
     def fill_missing_obs_linear(self, obstype="temp"):
         """Interpolate missing observations.
@@ -2268,7 +2285,7 @@ class Dataset:
             sys.exit(f"{method} not implemented yet")
 
         # update attribute
-        self.gapfilldf = filldf
+        # self.gapfilldf = filldf
 
         return filldf
 
@@ -3261,32 +3278,54 @@ class Dataset:
         # =============================================================================
         # Stack gaps
         # =============================================================================
-        # add gapfill and remove the filled records from gaps
-        gapsfilldf = self.gapfilldf.copy()
 
-        # to triple index
-        gapsfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
-            gapsfilldf, known_obstypes=list(self.obstypes.keys())
-        )
-        gapsfilldf["toolkit_representation"] = "gap fill"
+        gapsdf = create_gaps_overview_df(gapslist=self.gaps)
+        # Format columns
+        gapsdf = gapsdf.rename(columns={"fill_value": "value"})
+        gapsdf = gapsdf[["value"]]
+        gapsdf["toolkit_representation"] = "_to_be_filled"
+        gapsdf["label"] = "to_be_filled"
 
-        gapsidx = get_gaps_indx_in_obs_space(
-            gapslist=self.gaps,
-            obsdf=self.df,
-            outliersdf=self.outliersdf,
-            resolutionseries=self.metadf["dataset_resolution"],
-        )
+        # update labels for unfilled records
+        unfilled_idxs = gapsdf[gapsdf["value"].isnull()].index
+        gapsdf.loc[unfilled_idxs, "toolkit_representation"] = "gap"
+        gapsdf.loc[unfilled_idxs, "label"] = self.settings.gap["gaps_info"]["gap"][
+            "outlier_flag"
+        ]
 
-        gapsdf = pd.DataFrame(index=gapsidx, columns=present_obstypes)
-        gapsdf = (
-            gapsdf.stack(dropna=False)
-            .reset_index()
-            .rename(columns={"level_2": "obstype", 0: "value"})
-            .set_index(["name", "datetime", "obstype"])
-        )
+        # update labels for filled records
+        filled_idxs = gapsdf[~gapsdf["value"].isnull()].index
+        gapsdf.loc[filled_idxs, "toolkit_representation"] = "gap fill"
+        # TODO: check if label OK is okay?
+        gapsdf.loc[filled_idxs, "label"] = "gap_debiased_era5"
+        print("deze lijn hierboven klop niet !!")
 
-        gapsdf["label"] = self.settings.gap["gaps_info"]["gap"]["outlier_flag"]
-        gapsdf["toolkit_representation"] = "gap"
+        # # add gapfill and remove the filled records from gaps
+        # gapsfilldf = self.gapfilldf.copy()
+
+        # # to triple index
+        # gapsfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
+        #     gapsfilldf, known_obstypes=list(self.obstypes.keys())
+        # )
+        # gapsfilldf["toolkit_representation"] = "gap fill"
+
+        # gapsidx = get_gaps_indx_in_obs_space(
+        #     gapslist=self.gaps,
+        #     obsdf=self.df,
+        #     outliersdf=self.outliersdf,
+        #     resolutionseries=self.metadf["dataset_resolution"],
+        # )
+
+        # gapsdf = pd.DataFrame(index=gapsidx, columns=present_obstypes)
+        # gapsdf = (
+        #     gapsdf.stack(dropna=False)
+        #     .reset_index()
+        #     .rename(columns={"level_2": "obstype", 0: "value"})
+        #     .set_index(["name", "datetime", "obstype"])
+        # )
+
+        # gapsdf["label"] = self.settings.gap["gaps_info"]["gap"]["outlier_flag"]
+        # gapsdf["toolkit_representation"] = "gap"
 
         # Remove gaps from df
         df = df[~df.index.isin(gapsdf.index)]
@@ -3295,51 +3334,58 @@ class Dataset:
             outliersdf = outliersdf.drop(index=gapsdf.index, errors="ignore")
 
         # Remove gapfill values records from the gaps
-        gapsdf = gapsdf.drop(index=gapsfilldf.index)
+        # gapsdf = gapsdf.drop(index=gapsfilldf.index)
 
         # =============================================================================
         # Stack missing
         # =============================================================================
-        missingfilldf = self.missing_fill_df.copy()
-        missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
-            missingfilldf, known_obstypes=list(self.obstypes.keys())
-        )
-        missingfilldf["toolkit_representation"] = "missing observation fill"
+        # missingfilldf = self.missing_fill_df.copy()
+        # missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
+        #     missingfilldf, known_obstypes=list(self.obstypes.keys())
+        # )
+        # missingfilldf["toolkit_representation"] = "missing observation fill"
 
-        # add missing observations if they occure in observation space
-        missingidx = self.missing_obs.get_missing_indx_in_obs_space(
-            self.df, self.metadf["dataset_resolution"]
-        )
+        # # add missing observations if they occure in observation space
+        # missingidx = self.missing_obs.get_missing_indx_in_obs_space(
+        #     self.df, self.metadf["dataset_resolution"]
+        # )
 
-        missingdf = pd.DataFrame(index=missingidx, columns=present_obstypes)
+        # missingdf = pd.DataFrame(index=missingidx, columns=present_obstypes)
 
-        missingdf = (
-            missingdf.stack(dropna=False)
-            .reset_index()
-            .rename(columns={"level_2": "obstype", 0: "value"})
-            .set_index(["name", "datetime", "obstype"])
-        )
+        # missingdf = (
+        #     missingdf.stack(dropna=False)
+        #     .reset_index()
+        #     .rename(columns={"level_2": "obstype", 0: "value"})
+        #     .set_index(["name", "datetime", "obstype"])
+        # )
 
-        missingdf["label"] = self.settings.gap["gaps_info"]["missing_timestamp"][
-            "outlier_flag"
-        ]
-        missingdf["toolkit_representation"] = "missing observation"
+        # missingdf["label"] = self.settings.gap["gaps_info"]["missing_timestamp"][
+        #     "outlier_flag"
+        # ]
+        # missingdf["toolkit_representation"] = "missing observation"
 
-        # Remove missing from df
-        df = df[~df.index.isin(missingdf.index)]
+        # # Remove missing from df
+        # df = df[~df.index.isin(missingdf.index)]
 
-        if overwrite_outliers_by_gaps_and_missing:
-            outliersdf = outliersdf.drop(index=missingdf.index, errors="ignore")
+        # if overwrite_outliers_by_gaps_and_missing:
+        #     outliersdf = outliersdf.drop(index=missingdf.index, errors="ignore")
 
-        # Remove missingfill values records from the missing
-        missingdf = missingdf.drop(index=missingfilldf.index)
+        # # Remove missingfill values records from the missing
+        # missingdf = missingdf.drop(index=missingfilldf.index)
 
         # =============================================================================
         # combine all
         # =============================================================================
 
         combdf = concat_save(
-            [df, outliersdf, gapsdf, gapsfilldf, missingdf, missingfilldf]
+            [
+                df,
+                outliersdf,
+                gapsdf,
+                # gapsfilldf,
+                # missingdf,
+                # missingfilldf,
+            ]
         ).sort_index()
         combdf.index.names = ["name", "datetime", "obstype"]
         # To be shure?
@@ -3601,11 +3647,17 @@ class Dataset:
         # update df
         self.df = df
 
+        # Since the gap period is defined by a start and end, the gap-records are
+        # depending (which form the index of gapdf) depends on the observation frequency.
+        # Thus the gapdf attributs must be updated of all gaps
+        for gap in self.gaps:
+            gap._initiate_gapdf(Dataset=self)
+
         # Remove gaps and missing from the observatios
         # most gaps and missing are already removed but when increasing timeres,
         # some records should be removed as well.
-        self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
-        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+        # self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
+        # self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
     def sync_observations(
         self,
@@ -4191,9 +4243,52 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         self.metadf["dataset_resolution"] = freq_series
 
+        # initialize the gapdf attributes
+        for gap in self.gaps:
+            gap._initiate_gapdf(Dataset=self)
+
         # Remove gaps and missing from the observations AFTER timecoarsening
-        self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
-        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+
+    #     self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
+    #     self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+
+    # def _remove_gaps_from_obs(gaplist, obsdf):
+    #     """
+    #     Remove station - datetime records that are in the gaps from the obsdf.
+
+    #     (Usefull when filling timestamps to a df, and if you whant to remove the
+    #       gaps.)
+
+    #     Parameters
+    #     ----------
+    #     obsdf : pandas.DataFrame()
+    #         A MultiIndex dataframe with name -- datetime as index.
+
+    #     Returns
+    #     -------
+    #     obsdf : pandas.DataFrame()
+    #         The same dataframe with records inside gaps removed.
+
+    #     """
+    #     # Create index for gaps records in the obsdf
+    #     expanded_gabsidx = init_multiindex()
+    #     for gap in gaplist:
+    #         sta_records = xs_save(obsdf, gap.name, level="name").index  # filter by name
+
+    #         gaps_dt = sta_records[
+    #             (sta_records >= gap.startgap)
+    #             & (sta_records <= gap.endgap)  # filter if the observations are within a gap
+    #         ]
+
+    #         gaps_multiidx = pd.MultiIndex.from_arrays(
+    #             arrays=[[gap.name] * len(gaps_dt), gaps_dt], names=["name", "datetime"]
+    #         )
+
+    #         expanded_gabsidx = expanded_gabsidx.append(gaps_multiidx)
+
+    #     # remove gaps idx from the obsdf
+    #     obsdf = obsdf.drop(index=expanded_gabsidx)
+    #     return obsdf
 
     def _initiate_df_attribute(self, dataframe, update_metadf=True):
         """Initialize dataframe attributes."""
@@ -4229,17 +4324,7 @@ station with the default name: {self.settings.app["default_name"]}.'
             )
             self.metadf = self.metadf[~self.metadf.index.isna()]
 
-        # find missing obs and gaps, and remove them from the df
-        self.missing_obs, self.gaps = missing_timestamp_and_gap_check(
-            df=self.df,
-            gapsize_n=self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"],
-        )
-
-        # Create gaps and missing obs objects
-        # self.gaps = gaps_list
-        # self.missing_obs = Missingob_collection(missing_obs)
-
-        # Perform QC checks on original observation frequencies
+        # 1. Perform Duplicate check on original observation frequencies
         self.df, dup_outl_df = duplicate_timestamp_check(
             df=self.df,
             checks_info=self.settings.qc["qc_checks_info"],
@@ -4248,20 +4333,28 @@ station with the default name: {self.settings.app["default_name"]}.'
         if not dup_outl_df.empty:
             self.update_outliersdf(add_to_outliersdf=dup_outl_df)
 
-        self.df, nan_outl_df = invalid_input_check(
-            self.df, checks_info=self.settings.qc["qc_checks_info"]
-        )
-        if not nan_outl_df.empty:
-            self.update_outliersdf(nan_outl_df)
+        # 2. Look for gaps (signature: the timestamp is missing == osbtype independant)
 
-        self.outliersdf = self.outliersdf.sort_index()
+        self.gaps = find_gaps(df=self.df, known_obstypes=self.obstypes.values())
+
+        # # 3. Look for gaps (signature: the value is missing or invalid == osbtype dependant)
+        # self.gaps.extend(find_gaps_from_missing_records(df = self.df,
+        #                                                 known_obstypes=self.obstypes.values()))
+
+        # self.df, nan_outl_df = invalid_input_check(
+        #     self.df, checks_info=self.settings.qc["qc_checks_info"]
+        # )
+        # if not nan_outl_df.empty:
+        #     self.update_outliersdf(nan_outl_df)
+
+        # self.outliersdf = self.outliersdf.sort_index()
 
         # update the order and which qc is applied on which obstype
         checked_obstypes = [
             obs for obs in self.df.columns if obs in self.obstypes.keys()
         ]
 
-        checknames = ["duplicated_timestamp", "invalid_input"]  # KEEP order
+        checknames = ["duplicated_timestamp"]  # KEEP order
 
         self._applied_qc = concat_save(
             [
