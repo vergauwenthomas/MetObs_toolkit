@@ -65,6 +65,7 @@ def connect_to_gee(**kwargs):
     Here is an example on how to update the credentials:
 
     .. code-block:: python
+
         import metobs_toolkit
 
         metobs_toolkit.connect_to_gee(force=True, #create new credentials
