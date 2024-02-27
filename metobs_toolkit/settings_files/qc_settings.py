@@ -111,57 +111,57 @@ checks_info = {
     # 1. --> on data import
     "duplicated_timestamp": {
         "outlier_flag": "duplicated timestamp outlier",
-        "numeric_flag": 1,
+        # "numeric_flag": 1,
         "apply_on": "record",
     },
     # 2. --> on data import
-    "invalid_input": {
-        "outlier_flag": "invalid input",
-        "numeric_flag": 2,
-        "apply_on": "obstype",
-    },
+    # "invalid_input": {
+    #     "outlier_flag": "invalid input",
+    #     # "numeric_flag": 2,
+    #     "apply_on": "obstype",
+    # },
     # 3. --> on observed values
     "gross_value": {
         "outlier_flag": "gross value outlier",
-        "numeric_flag": 4,
+        # "numeric_flag": 4,
         "apply_on": "obstype",
     },
     # 4(A). --> on observed values
     "persistance": {
         "outlier_flag": "persistance outlier",
-        "numeric_flag": 5,
+        # "numeric_flag": 5,
         "apply_on": "obstype",
     },
     # 4(B). --> on observed values
     "repetitions": {
         "outlier_flag": "repetitions outlier",
-        "numeric_flag": 6,
+        # "numeric_flag": 6,
         "apply_on": "obstype",
     },
     # 5. --> on observed values
     "step": {
         "outlier_flag": "in step outlier group",
-        "numeric_flag": 7,
+        # "numeric_flag": 7,
         "apply_on": "obstype",
     },
     "window_variation": {
         "outlier_flag": "in window variation outlier group",
-        "numeric_flag": 8,
+        # "numeric_flag": 8,
         "apply_on": "obstype",
     },
     "buddy_check": {
         "outlier_flag": "buddy check outlier",
-        "numeric_flag": 11,
+        # "numeric_flag": 11,
         "apply_on": "obstype",
     },
     "titan_buddy_check": {
         "outlier_flag": "titan buddy check outlier",
-        "numeric_flag": 9,
+        # "numeric_flag": 9,
         "apply_on": "obstype",
     },
     "titan_sct_resistant_check": {
         "outlier_flag": "sct resistant check outlier",
-        "numeric_flag": 10,
+        # "numeric_flag": 10,
         "apply_on": "obstype",
     },
 }

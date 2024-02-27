@@ -54,6 +54,9 @@ tests/*.html
 *.pyc
 .vscode
 *tempCodeRunnerFile.py
+*.virtual_documents*
+
+
 
 #GUI stuff
 GUI/tmp/*
