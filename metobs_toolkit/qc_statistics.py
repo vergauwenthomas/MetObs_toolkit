@@ -136,16 +136,16 @@ def get_freq_statistics(comb_df, obstype, checks_info, gaps_info, applied_qc_ord
         "ok": 100.0 - final_counts[gaps_info["gap"]["outlier_flag"]],
         "outlier": final_counts[gaps_info["gap"]["outlier_flag"]],
     }
-    specific_counts[gaps_info["gap"]["label_columnname"]] = gap_specific_counts
+    specific_counts["is_gap"] = gap_specific_counts
 
-    # misssing timestamps
-    missing_specific_counts = {
-        "not checked": 0,  # all obs are always checked
-        "ok": 100.0 - final_counts[gaps_info["missing_timestamp"]["outlier_flag"]],
-        "outlier": final_counts[gaps_info["missing_timestamp"]["outlier_flag"]],
-    }
-    specific_counts[
-        gaps_info["missing_timestamp"]["label_columnname"]
-    ] = missing_specific_counts
+    # # misssing timestamps
+    # missing_specific_counts = {
+    #     "not checked": 0,  # all obs are always checked
+    #     "ok": 100.0 - final_counts[gaps_info["missing_timestamp"]["outlier_flag"]],
+    #     "outlier": final_counts[gaps_info["missing_timestamp"]["outlier_flag"]],
+    # }
+    # specific_counts[
+    #     gaps_info["missing_timestamp"]["label_columnname"]
+    # ] = missing_specific_counts
 
     return (agg_dict, outl_dict, specific_counts)

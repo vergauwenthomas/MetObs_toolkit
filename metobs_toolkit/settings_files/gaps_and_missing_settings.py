@@ -8,27 +8,27 @@ Created on Thu Mar  2 18:47:05 2023
 
 from numpy import nan
 
-gaps_settings = {
-    "gaps_finder": {
-        "gapsize_n": 40
-    },  # gaps defined as n times the highest frequency on IO.
-}
+# gaps_settings = {
+#     "gaps_finder": {
+#         "gapsize_n": 40
+#     },  # gaps defined as n times the highest frequency on IO.
+# }
 
 gaps_info = {
     "gap": {
-        "label_columnname": "is_gap",
+        # "label_columnname": "is_gap",
         "outlier_flag": "gap",
         "negative_flag": "no gap",
-        "numeric_flag": 12,
+        # "numeric_flag": 12,
         "apply_on": "record",
     },
-    "missing_timestamp": {
-        "label_columnname": "is_missing_timestamp",
-        "outlier_flag": "missing timestamp",
-        "negative flag": "not missing",
-        "numeric_flag": 13,
-        "apply_on": "record",
-    },
+    # "missing_timestamp": {
+    #     # "label_columnname": "is_missing_timestamp",
+    #     "outlier_flag": "missing timestamp",
+    #     "negative flag": "not missing",
+    #     "numeric_flag": 13,
+    #     "apply_on": "record",
+    # },
 }
 
 
@@ -52,18 +52,29 @@ gaps_fill_settings = {
 
 
 gaps_fill_info = {
-    "label_columnname": "final_label",
-    "label": {"linear": "gap_interpolation", "model_debias": "gap_debiased_era5"},
-    "numeric_flag": 21,
+    "methods": [
+        "interpolation",
+        "raw_modeldata_fill",
+        "debias_modeldata_fill",
+        "diurnal_debias_modeldata_fill",
+        "weighted_diurnal_debias_modeldata_fill",
+    ]
 }
+
+
+# gaps_fill_info = {
+# "label_columnname": "final_label",
+# "label": {"linear": "gap_interpolation", "model_debias": "gap_debiased_era5"},
+# "numeric_flag": 21,
+# }
 
 # =============================================================================
 #  Missing obs filling settings
 # =============================================================================
-missing_obs_fill_settings = {"linear": {"method": "time"}}
+# missing_obs_fill_settings = {"linear": {"method": "time"}}
 
-missing_obs_fill_info = {
-    "label_columnname": "final_label",
-    "label": {"linear": "missing_obs_interpolation"},
-    "numeric_flag": 23,
-}
+# missing_obs_fill_info = {
+#     # "label_columnname": "final_label",
+#     "label": {"linear": "missing_obs_interpolation"},
+#     "numeric_flag": 23,
+# }

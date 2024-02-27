@@ -465,7 +465,7 @@ class Gap:
 
         # 5. Update gapdf attribute
         self.gapdf[f"{obsname}_fill"] = fill_values
-        self.gapdf["fill_method"] = "raw_modeldata"
+        self.gapdf["fill_method"] = "raw_modeldata_fill"
         self.gapdf["msg"] = msg
 
     def debias_model_gapfill(
@@ -479,7 +479,7 @@ class Gap:
     ):
 
         obsname = self.obstype.name
-        self.gapdf["fill_method"] = "debias_modeldata"
+        self.gapdf["fill_method"] = "debias_modeldata_fill"
         # Create anchor periods
         anchordf = self._create_anchor_df_for_leading_trailing_periods(
             Dataset, leading_period_duration, trailing_period_duration
@@ -578,7 +578,7 @@ class Gap:
 
         # 7. Update gapdf attribute
         self.gapdf[f"{obsname}_fill"] = fill_values
-        self.gapdf["fill_method"] = "diurnal_debias_modeldata"
+        self.gapdf["fill_method"] = "diurnal_debias_modeldata_fill"
         self.gapdf["msg"] = msg
 
     def weighted_diurnal_debias_model_gapfill(
@@ -626,7 +626,7 @@ class Gap:
 
         # 7. Update gapdf attribute
         self.gapdf[f"{obsname}_fill"] = fill_values
-        self.gapdf["fill_method"] = "weighted_diurnal_debias_modeldata"
+        self.gapdf["fill_method"] = "weighted_diurnal_debias_modeldata_fill"
         self.gapdf["msg"] = msg
 
     def interpolate_gap(
@@ -639,6 +639,7 @@ class Gap:
     ):
 
         obsname = self.obstype.name
+        label = "interpolation"
         # 1. Get leading and trailing info
         # get leading record, check validity and add to the gapfilldf
         (_, lead_dt, lead_val, lead_msg) = self.get_leading_record(
@@ -664,7 +665,7 @@ class Gap:
         )
         # Update attributes
         self.anchordf = anchor_df
-        self.gapdf["fill_method"] = f"{method}-interpolation"
+        self.gapdf["fill_method"] = label
 
         # check if gapfill can proceed
         if (lead_msg != "ok") & (trail_msg != "ok"):
@@ -676,21 +677,21 @@ class Gap:
             )
 
             self.gapdf[f"{obsname}_fill"] = np.nan
-            self.gapdf["msg"] = f"{lead_msg} and {trail_msg}"
+            self.gapdf["msg"] = f"{method}-interpolation: {lead_msg} and {trail_msg}"
             return
         elif (lead_msg != "ok") & (trail_msg == "ok"):
             logger.warning(f"Cannot fill {self}, because leading record is not valid.")
             print(f"Warning! Cannot fill {self}, because leading record is not valid.")
 
             self.gapdf[f"{obsname}_fill"] = np.nan
-            self.gapdf["msg"] = f"{lead_msg}"
+            self.gapdf["msg"] = f"{method}-interpolation: {lead_msg}"
             return
         elif (lead_msg == "ok") & (trail_msg != "ok"):
             logger.warning(f"Cannot fill {self}, because trailing record is not valid.")
             print(f"Warning! Cannot fill {self}, because trailing record is not valid.")
 
             self.gapdf[f"{obsname}_fill"] = np.nan
-            self.gapdf["msg"] = f"{trail_msg}"
+            self.gapdf["msg"] = f"{method}-interpolation: {trail_msg}"
             return
         else:
             pass
@@ -718,9 +719,9 @@ class Gap:
         # messager
         def _msg_interp(row, obstypename):
             if np.isnan(row[obstypename]):
-                return "Permitted_by_max_consecutive_fill"
+                return f"{method}-interpolation: Permitted_by_max_consecutive_fill"
             else:
-                return "ok"
+                return f"{method}-interpolation: ok"
 
         if (lead_msg == "ok") & (
             trail_msg == "ok"
@@ -731,21 +732,22 @@ class Gap:
         elif (lead_msg == "ok") & (
             trail_msg != "ok"
         ):  # labels are result of invalid trailing
-            tofilldf["msg"] = "Invalid trailing anchor"
+            tofilldf["msg"] = f"{method}-interpolation: Invalid trailing anchor"
         elif (lead_msg != "ok") & (
             trail_msg == "ok"
         ):  # labels are result of invalid leading
-            tofilldf["msg"] = "Invalid leading anchor"
+            tofilldf["msg"] = f"{method}-interpolation: Invalid leading anchor"
         elif (lead_msg != "ok") & (
             trail_msg != "ok"
         ):  # labels are result of invalid trailing
-            tofilldf["msg"] = "Invalid leading and trailing anchor"
+            tofilldf["msg"] = (
+                f"{method}-interpolation: Invalid leading and trailing anchor"
+            )
         else:
             sys.exit("*unforseen situation* Report this error!!")
 
         # 6. Update the gapdf
         self.gapdf[f"{obsname}_fill"] = tofilldf[obsname]  # update values
-
         self.gapdf["msg"] = tofilldf["msg"]
 
         return
