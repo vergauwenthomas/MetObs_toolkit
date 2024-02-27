@@ -19,11 +19,66 @@ logger = logging.getLogger(__name__)
 
 # =============================================================================
 #  Connection functions
-# =============================================================================
+# ============================================================================
 
 
-def connect_to_gee():
-    """Authenticate to GEE if needed."""
+def connect_to_gee(**kwargs):
+    """
+    Setup authentication for the use of the GEE Python API.
+
+    For a fresh kernel, without stored credentials, a prompt/browser window
+    will appear with further instructions for the authentication.
+
+
+    Parameters
+    ----------
+    **kwargs : Kwargs passed to ee.Authenticate()
+        Kwargs are only used by the user, for resetting the gee connection. See
+        the Note below.
+
+    Returns
+    -------
+    None.
+
+    Note
+    ------
+    Upon calling, this function assumes you have a Google developers account,
+    and a project with the Google Earth Engine API enabled.
+    See the * Using Google Earth Engine * page for more info.
+
+    Note
+    ------
+    During the Authentication, you will be asked if you want a read-only scope.
+    A read-only scope is sufficient when the data is transferred directly to your
+    machine (small data transfers), but will not be sufficient when extracting
+    large amounts of data (typical for extracting Modeldata). This is because
+    modeldata is written directly to your Google Drive, and therefore
+    the read-only scope is insufficient.
+
+    Note
+    ------
+    Due to several reasons, an EEExeption may be thrown. This is
+    likely because of an invalid credential file. To fix this, you
+    can update your credential file, and specify a specific authentication method.
+    We found that the "notebook" authentication method works best for most users.
+
+    Here is an example on how to update the credentials:
+
+    .. code-block:: python
+
+        import metobs_toolkit
+
+        metobs_toolkit.connect_to_gee(force=True, #create new credentials
+                                      auth_mode='notebook', # 'notebook', 'localhost', 'gcloud' (requires gcloud installed) or 'colab' (works only in colab)
+                                      )
+
+    """
+
+    if bool(kwargs):  # kwargs are always passed by user, so reinitialize
+        ee.Authenticate(**kwargs)
+        ee.Initialize()
+        return
+
     if not ee.data._credentials:  # check if ee connection is initialized
         ee.Authenticate()
         ee.Initialize()
