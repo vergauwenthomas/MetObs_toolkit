@@ -30,14 +30,7 @@ else:
 sys.path.insert(0, str(basefolder))
 sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
 
-try:
-    import metobs_toolkit
-except:
-    print("NOT ABLE TO IMPORT THE TOOLKIT!!")
-    pass
 
-print(sys.path)
-# %%
 logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
 
@@ -49,10 +42,6 @@ logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 project = "metobs_toolkit"
 copyright = "2023, Thomas Vergauwen"
 author = "Thomas Vergauwen"
-
-# The full version, including alpha/beta/rc tags
-version = metobs_toolkit.__version__
-release = metobs_toolkit.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -88,8 +77,6 @@ source_suffix = {
     ".md": "markdown",
 }
 source_encoding = "utf-8"
-
-
 master_doc = "index"  # The master toctree document.
 
 
@@ -107,6 +94,11 @@ autodoc_mock_imports = [
     "pyproj",
     "shapely",
     "cartopy",
+    "branca",
+    "geemap",
+    "folium",
+    "mpl_toolkits",
+    "scipy",
 ]
 
 # List of patterns, relative to source directory, that match files and
@@ -131,7 +123,7 @@ autosectionlabel_prefix_document = True
 
 
 html_theme = "pydata_sphinx_theme"
-html_title = f"MetObs Toolkit {metobs_toolkit.__version__} documentation"
+html_title = "MetObs Toolkit documentation"
 html_short_title = "MetObs Toolkit documentation"
 html_logo = "logo_small.svg"
 html_static_path = ["_static"]
@@ -154,12 +146,12 @@ html_theme_options = {
             "icon": "fab fa-github-square fa-xl",
         },
     ],
-    "navbar_center": ["version-switcher", "navbar-nav"],
-    "switcher": {
-        # The json url must be a full path operationally !!!
-        "json_url": "https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/docs/_static/custom.css",  # this file contains a dict of all versions to show
-        "version_match": f"v{metobs_toolkit.__version__}",  # currently being browsed
-    },
+    # "navbar_center": ["version-switcher", "navbar-nav"],
+    # "switcher": {
+    #     # The json url must be a full path operationally !!!
+    #     "json_url": "https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/docs/_static/custom.css",  # this file contains a dict of all versions to show
+    #     "version_match": f"v{version}",  # currently being browsed
+    # },
 }
 
 

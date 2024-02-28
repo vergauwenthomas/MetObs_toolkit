@@ -1,6 +1,6 @@
 :html_theme.sidebar_secondary.remove:
 
-MetObs Toolkit |version|
+MetObs Toolkit
 ============================
 .. image:: logo_small.svg
     :alt: logo
