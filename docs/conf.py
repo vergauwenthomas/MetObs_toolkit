@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
 #     print("NOT ABLE TO IMPORT THE TOOLKIT!!")
 #     pass
 
-print(sys.path)
+# print(sys.path)
 
 # %%
 # get version
@@ -144,7 +144,7 @@ autosectionlabel_prefix_document = True
 
 
 html_theme = "pydata_sphinx_theme"
-html_title = f"MetObs Toolkit {version} documentation"
+html_title = "MetObs Toolkit documentation"
 html_short_title = "MetObs Toolkit documentation"
 html_logo = "logo_small.svg"
 html_static_path = ["_static"]
@@ -168,11 +168,11 @@ html_theme_options = {
         },
     ],
     "navbar_center": ["version-switcher", "navbar-nav"],
-    "switcher": {
-        # The json url must be a full path operationally !!!
-        "json_url": "https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/docs/_static/custom.css",  # this file contains a dict of all versions to show
-        "version_match": f"v{version}",  # currently being browsed
-    },
+    # "switcher": {
+    #     # The json url must be a full path operationally !!!
+    #     "json_url": "https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/docs/_static/custom.css",  # this file contains a dict of all versions to show
+    #     "version_match": f"v{version}",  # currently being browsed
+    # },
 }
 
 
