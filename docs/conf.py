@@ -30,22 +30,7 @@ else:
 sys.path.insert(0, str(basefolder))
 sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
 
-# try:
-#     import metobs_toolkit
-# except:
-#     print("NOT ABLE TO IMPORT THE TOOLKIT!!")
-#     pass
 
-# print(sys.path)
-
-# %%
-# get version
-init_file = os.path.join(basefolder, "metobs_toolkit", "__init.py")
-
-version = "0.1.3a"
-
-
-# %%
 logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
 
@@ -57,10 +42,6 @@ logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 project = "metobs_toolkit"
 copyright = "2023, Thomas Vergauwen"
 author = "Thomas Vergauwen"
-
-# The full version, including alpha/beta/rc tags
-# version = metobs_toolkit.__version__
-# release = metobs_toolkit.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -96,8 +77,6 @@ source_suffix = {
     ".md": "markdown",
 }
 source_encoding = "utf-8"
-
-
 master_doc = "index"  # The master toctree document.
 
 
