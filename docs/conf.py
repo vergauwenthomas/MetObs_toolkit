@@ -167,7 +167,7 @@ html_theme_options = {
             "icon": "fab fa-github-square fa-xl",
         },
     ],
-    "navbar_center": ["version-switcher", "navbar-nav"],
+    # "navbar_center": ["version-switcher", "navbar-nav"],
     # "switcher": {
     #     # The json url must be a full path operationally !!!
     #     "json_url": "https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/docs/_static/custom.css",  # this file contains a dict of all versions to show
