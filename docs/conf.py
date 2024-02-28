@@ -36,15 +36,10 @@ except:
     print("NOT ABLE TO IMPORT THE TOOLKIT!!")
     pass
 
-print(sys.path)
-# %%
-logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
-
-# %%
-
-
-# -- Project information -----------------------------------------------------
+# =============================================================================
+# Project information -----------------------------------------------------
+# =============================================================================
 
 project = "metobs_toolkit"
 copyright = "2023, Thomas Vergauwen"
@@ -53,9 +48,14 @@ author = "Thomas Vergauwen"
 # The full version, including alpha/beta/rc tags
 version = metobs_toolkit.__version__
 release = metobs_toolkit.__version__
+language = "en"
+
+# logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
 
-# -- General configuration ---------------------------------------------------
+# =============================================================================
+# Load extensions
+# =============================================================================
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -73,12 +73,15 @@ extensions = [
     "nbsphinx",  # to render the notebook examples in the doc
 ]
 
-# -- General configuration ------------------------------------------------------------
+# =============================================================================
+# General configuration
+# =============================================================================
 
 # Add any paths that contain templates here, relative to this directory.
 
 
 templates_path = ["_templates"]
+source_encoding = "utf-8"
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
 # Specify how to render the following file formats:
@@ -87,8 +90,6 @@ source_suffix = {
     ".txt": "markdown",
     ".md": "markdown",
 }
-source_encoding = "utf-8"
-
 
 master_doc = "index"  # The master toctree document.
 
@@ -96,7 +97,6 @@ master_doc = "index"  # The master toctree document.
 # When building the doc, sphinx will try to import all the depending packages,
 # this is not needed and problematic when building the docs in a clean docker on gitlab.
 # So specify which packages can be mocked
-
 autodoc_mock_imports = [
     "ee",
     "pytz",
@@ -127,7 +127,11 @@ todo_include_todos = False  # Do not show TODOs in docs
 
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
-# -- Options for HTML output -------------------------------------------------
+
+
+# =============================================================================
+# Options for HTML output
+# =============================================================================
 
 
 html_theme = "pydata_sphinx_theme"
@@ -154,6 +158,7 @@ html_theme_options = {
             "icon": "fab fa-github-square fa-xl",
         },
     ],
+    "header_links_before_dropdown": 6,
     "navbar_center": ["version-switcher", "navbar-nav"],
     "switcher": {
         # The json url must be a full path operationally !!!
