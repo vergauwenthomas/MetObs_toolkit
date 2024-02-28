@@ -14,7 +14,7 @@ with the ![Static Badge](https://img.shields.io/badge/enhancement%20-%20%23a2eee
  label.
 
 In the issues describe clearly the new feature or functionality you want to see implemented in the toolkit. If the request is specific to your application/data, make sure to
-add a sample of your pickled Dataset (use [.save_dataset()](https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.save_dataset)).
+add a sample of your pickled Dataset (use [.save_dataset()](https://metobs-toolkit.readthedocs.io/en/latest/reference/api/metobs_toolkit.Dataset.save_dataset.html#metobs_toolkit.Dataset.save_dataset)).
 
 Assign yourself to the issue if you want to (help) implement the new request. All help is much appreciated!
 
@@ -27,7 +27,7 @@ If you are reporting a bug, please include:
 * The version of the MetObs-toolkit (use `metobs_toolkit.__version__`).
 * Any details about your local setup that might be helpful in troubleshooting.
 * Detailed steps to reproduce the bug.
-* If possible, provide a pickled version of your dataset (use [.save_dataset()](https://vergauwenthomas.github.io/MetObs_toolkit/_autosummary/metobs_toolkit.dataset.Dataset.html#metobs_toolkit.dataset.Dataset.save_dataset)). Limit the size of the dataset as much as possible.
+* If possible, provide a pickled version of your dataset (use [.save_dataset()](https://metobs-toolkit.readthedocs.io/en/latest/reference/api/metobs_toolkit.Dataset.save_dataset.html#metobs_toolkit.Dataset.save_dataset)). Limit the size of the dataset as much as possible.
 
 ### Fix Bugs
 
