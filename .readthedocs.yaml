@@ -6,20 +6,20 @@
 version: 2
 
 # # Set the version of Python and other tools you might need
-build:
-  os: ubuntu-22.04
-  tools: {python: "3.10"}
-  jobs:
-    pre_create_environment:
-      - asdf plugin add poetry
-      - asdf install poetry latest
-      - asdf global poetry latest
-      - poetry config virtualenvs.create false
-      - poetry build
-      - poetry update
-      - poetry install --all-extras
-    post_install:
-      - poetry install
+# build:
+#   os: ubuntu-22.04
+#   tools: {python: "3.10"}
+#   jobs:
+#     pre_create_environment:
+#       - asdf plugin add poetry
+#       - asdf install poetry latest
+#       - asdf global poetry latest
+#       - poetry config virtualenvs.create false
+#       - poetry build
+#       - poetry update
+#       - poetry install --all-extras
+#     post_install:
+#       - poetry install
 
 # # Build documentation in the docs/ directory with Sphinx
 # sphinx:
@@ -34,15 +34,15 @@ build:
 # Required
 #version: 2
 
-# Set the OS, Python version and other tools you might need
-# build:
-#   os: ubuntu-22.04
-#   tools:
-#     python: "3.12"
-    # You can also specify other tool versions:
-    # nodejs: "19"
-    # rust: "1.64"
-    # golang: "1.19"
+#Set the OS, Python version and other tools you might need
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.12"
+   # You can also specify other tool versions:
+   # nodejs: "19"
+   # rust: "1.64"
+   # golang: "1.19"
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
@@ -56,6 +56,6 @@ sphinx:
 # Optional but recommended, declare the Python requirements required
 # to build your documentation
 # See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
-# python:
-#    install:
-#    - requirements: docs/requirements.txt
+python:
+    install:
+    - requirements: docs/doc_environment.yml

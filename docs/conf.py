@@ -115,6 +115,11 @@ autodoc_mock_imports = [
     "pyproj",
     "shapely",
     "cartopy",
+    "branca",
+    "geemap",
+    "folium",
+    "mpl_toolkits",
+    "scipy",
 ]
 
 # List of patterns, relative to source directory, that match files and
