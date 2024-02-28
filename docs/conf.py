@@ -30,13 +30,21 @@ else:
 sys.path.insert(0, str(basefolder))
 sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
 
-try:
-    import metobs_toolkit
-except:
-    print("NOT ABLE TO IMPORT THE TOOLKIT!!")
-    pass
+# try:
+#     import metobs_toolkit
+# except:
+#     print("NOT ABLE TO IMPORT THE TOOLKIT!!")
+#     pass
 
 print(sys.path)
+
+# %%
+# get version
+init_file = os.path.join(basefolder, "metobs_toolkit", "__init.py")
+
+version = "0.1.3a"
+
+
 # %%
 logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
@@ -51,8 +59,8 @@ copyright = "2023, Thomas Vergauwen"
 author = "Thomas Vergauwen"
 
 # The full version, including alpha/beta/rc tags
-version = metobs_toolkit.__version__
-release = metobs_toolkit.__version__
+# version = metobs_toolkit.__version__
+# release = metobs_toolkit.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -131,7 +139,7 @@ autosectionlabel_prefix_document = True
 
 
 html_theme = "pydata_sphinx_theme"
-html_title = f"MetObs Toolkit {metobs_toolkit.__version__} documentation"
+html_title = f"MetObs Toolkit {version} documentation"
 html_short_title = "MetObs Toolkit documentation"
 html_logo = "logo_small.svg"
 html_static_path = ["_static"]
@@ -158,7 +166,7 @@ html_theme_options = {
     "switcher": {
         # The json url must be a full path operationally !!!
         "json_url": "https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/docs/_static/custom.css",  # this file contains a dict of all versions to show
-        "version_match": f"v{metobs_toolkit.__version__}",  # currently being browsed
+        "version_match": f"v{version}",  # currently being browsed
     },
 }
 
