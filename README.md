@@ -15,7 +15,7 @@ This repo contains all the software for the [metobs_toolkit](https://test.pypi.o
 
 ## Documentation
 
-Documentation can be found [here](https://vergauwenthomas.github.io/MetObs_toolkit/).
+Documentation can be found [here](https://metobs-toolkit.readthedocs.io/en/latest/index.html).
 
 ## Installing the package
 Install the package using pip:

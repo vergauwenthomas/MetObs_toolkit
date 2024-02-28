@@ -59,14 +59,17 @@ Done, you have set up a Google developer account
 Setup a cloud project on your developer account
 ============================================================================
 
-You need a cloud project to make use of the Google API's. The API's that are used by
-the toolkit has quite a lot of free credentials, so you do not need to worry about
-paying for these services.
+You need a cloud project to make use of the Google API's. Since the data requests
+by the toolkit are (in most non-commercial applictions) limited, the free credits
+provided by Google are sufficient.
 
 #. Create a cloud project: https://console.cloud.Google.com/projectcreate?pli=1
 
    #. Choose a project name and select No organization. --> hit create
    #. (It can take a few seconds to create your project, in the "Cloud overview" you should see your project appear.)
+
+
+For more information on the non-commercial policy we refer to the `Earth Engine for Noncommercial and Research Use page <https://earthengine.google.com/noncommercial/>`_.
 
 
 
@@ -127,3 +130,32 @@ Test your GEE access
    extract small data quantities from GEE. For larger data transfers, GEE will write
    the data to file on your Google Drive, which will raise an error when you select
    'read-only' scopes.
+
+
+.. warning::
+
+   Depending on how you use the toolkit (notebook, ipython, colab, scripts, ...),
+   it can happen that your credential file, which is used for authentication when
+   using GEE functionality, is invalid. If that is the case, an error that looks
+   like:
+
+   `EEException: Not signed up for Earth Engine or project is not registered. Visit https://developers.google.com/earth-engine/guides/access`
+
+   is thrown.
+
+   To update your credential file (which is saved at `~/.config/earthengine/credentials`),
+   you can use the ``connect_to_gee()`` function and pass additional arguments.
+   Here an exmaple on how to update the credetial files:
+
+   .. code-block:: python
+
+       import metobs_toolkit
+
+       metobs_toolkit.connect_to_gee(force=True, #create new credentials
+                                     auth_mode='notebook', # 'notebook', 'localhost', 'gcloud' (requires gcloud installed) or 'colab' (works only in colab)
+                                     )
+
+
+
+   For more information on Authentication we refer to the
+   `Authentication and Initialization Guide <https://developers.google.com/earth-engine/guides/auth>`_ .

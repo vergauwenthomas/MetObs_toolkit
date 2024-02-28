@@ -18,7 +18,7 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Atmospheric Science"
 ]
 description = "A Meteorological observations toolkit for scientists"
-documentation = "https://vergauwenthomas.github.io/MetObs_toolkit/"
+documentation = "https://metobs-toolkit.readthedocs.io/en/latest/index.html"
 keywords = ["meteorology", "observations", "urban climate"]
 license = "LICENSE"
 maintainers = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
