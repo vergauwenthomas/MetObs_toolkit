@@ -94,6 +94,17 @@ class Gap:
         """Text representation."""
         return self.__str__()
 
+    def get_duration(self):
+        """Get the duration of a gap
+
+        Returns
+        -------
+        pd.Timedelta
+            The duration of the gap.
+
+        """
+        return self.duration
+
     def get_info(self):
         """Print detailed information of a gap."""
         print(f"Gap for {self.name} with:")
