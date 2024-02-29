@@ -2684,6 +2684,21 @@ class Dataset:
         -------
         None.
 
+        Notes
+        -----
+        A schematic step by step description on the buddy check:
+
+          1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation, or by first converting the Coordinate Reference System (CRS) to a metric one, specified by an EPSG code.
+          2. A set of all (spatial) buddies per station is created by filtering out all stations that are too far.
+          3. The buddies are further filtered based on altitude differences with respect to the reference station.
+          4. For each station:
+            * Observations of buddies are extracted from all observations.
+            * These observations are corrected for altitude differences by assuming a constant lapse rate.
+            * For each reference record, the mean, standard deviation (std), and sample size of the corrected buddies’ observations are computed.
+            * If the std is lower than the minimum std, it is replaced by the minimum std.
+            * Chi values are calculated for all reference records.
+            * If the Chi value is larger than the std_threshold, the record is accepted; otherwise, it is marked as an outlier.
+
         Examples
         --------
         .. code-block:: python
