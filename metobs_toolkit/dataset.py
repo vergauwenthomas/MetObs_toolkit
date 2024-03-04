@@ -1247,7 +1247,8 @@ class Dataset:
         """Make Modeldata for the Dataset.
 
         Make a metobs_toolkit.Modeldata object with modeldata at the locations
-        of the stations present in the dataset.
+        of the stations present in the dataset. This Modeldata stores timeseries
+        of model data for each station.
 
         Parameters
         ----------
@@ -1284,13 +1285,6 @@ class Dataset:
         written to a file and saved on your google drive. In this case, you need
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
-
-        Note
-        ------
-        Only 2mT extraction of ERA5 is implemented by default.
-        To extract other variables, one must create a Modeldata instance in
-        advance, add or update a gee_dataset and give this Modeldata instance
-        to this method.
 
         Examples
         --------
@@ -1559,13 +1553,15 @@ class Dataset:
     ):
         """Fill the gaps by using linear interpolation or debiased modeldata.
 
-        The method that is applied to perform the gapfill will be determined by
-        the duration of the gap.
-
-        When the duration of a gap is smaller or equal than
+        This method serves as a triage to select the gaps to be filled with
+        linear interpolation and those to be filled using a diurnal debias
+        gapfill. When the duration of a gap is smaller or equal than
         max_interpolation_duration, the linear interpolation method is applied
         else the debiased modeldata method.
 
+        For detailed description of these methods, we refere to the
+        corresponding metobs_toolkit.Dataset.fill_gaps_linear() and
+        metobs_toolkit.Dataset.fill_gaps_era5().
 
         Parameters
         ----------
@@ -1587,9 +1583,8 @@ class Dataset:
 
         Returns
         -------
-        comb_df : TYPE
-            gapfilldf : pandas.DataFrame
-                A dataframe containing all the filled records.
+        comb_df : pandas.DataFrame
+            A dataframe containing all the filled records.
 
         Examples
         --------
@@ -1730,6 +1725,16 @@ class Dataset:
         gapfilldf : pandas.DataFrame
             A dataframe containing all the filled records.
 
+        Notes
+        -----
+        A schematic description on the linear gap fill:
+
+            1. Iterate over all gaps.
+            2. The gap is converted into a set of missing records (depends on time resolution of the observations).
+            3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
+            4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consicutive fill threshold is applied, if exeeded the fill values are Nan's.
+            5. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
+
         Examples
         --------
         .. code-block:: python
@@ -1848,6 +1853,16 @@ class Dataset:
         Returns
         -------
         None.
+
+        Notes
+        -----
+        A schematic description on the linear fill of missing observations:
+
+            1. Iterate over all missing observations.
+            2. The missing observations are converted into a set of missing records (depends on time resolution of the observations).
+            3. Find a leading (the last observations before the missing observation) record and a trailing record (the last observation after the missing observation).
+            4. By using the leading and trailing record, an interpolation is applied to fill the missing records.
+            5. The missing record is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df).
 
         Examples
         --------
@@ -2169,7 +2184,8 @@ class Dataset:
     def fill_gaps_era5(
         self, modeldata, method="debias", obstype="temp", overwrite_fill=False
     ):
-        """Fill the gaps using a Modeldata object.
+        """Fill the gaps using a diurnal debiased modeldata approach.
+
 
         Parameters
         ----------
@@ -2191,6 +2207,37 @@ class Dataset:
         -------
         Gapfilldf : pandas.DataFrame
             A dataframe containing all gap filled values and the use method.
+
+        Notes
+        -----
+        A schematic description on the fill_gaps_era5 method:
+
+            1. Modeldata is converted to the timezone of the observations.
+            2. Iterate over all gaps.
+                * The gap is converted into a set of missing records (depends on time resolution of the observations).
+                * Find a leading and trailing period. These periods are a subset
+                 of observations respectively before and after the gap. The size
+                 of these subset is set by a target size (in records) and a minimum
+                 size (in records). If the subset of observations is smalller than
+                 the corresponding minimum size, the gap cannot be filled.
+                * Modeldata, for the corresponding station and observation type, is extracted for the leading and trailing period.
+                * By comparing with the leading and trailing observations,and by
+                * By comparing the model data with the observations of the
+                 leading and trailing period, and grouping all records to their
+                 timestamp (i.g. diurnal categories), biasses are computed.
+                * Modeldata for the missing records is extracted.
+                * Weight ([0;1]) are computed for each gap record, representing
+                 the normelized distance (in time), to the beginning and end of
+                 the gap.
+                * The modeldata at the missing records is than corrected by
+                 a weighted sum of the leading and trailing biases at the
+                 corresponding timestamp. In general this means that the diurnal
+                 trend of the observations is restored as good as possible.
+            3. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
+
+        Note
+        -------
+        A scientific publication on the performance of this technique is expected.
 
         Examples
         --------
@@ -2697,7 +2744,7 @@ class Dataset:
             * For each reference record, the mean, standard deviation (std), and sample size of the corrected buddies’ observations are computed.
             * If the std is lower than the minimum std, it is replaced by the minimum std.
             * Chi values are calculated for all reference records.
-            * If the Chi value is larger than the std_threshold, the record is accepted; otherwise, it is marked as an outlier.
+            * If the Chi value is larger than the std_threshold, the record is accepted, otherwise it is marked as an outlier.
 
         Examples
         --------
