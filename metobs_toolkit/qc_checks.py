@@ -253,7 +253,13 @@ def duplicate_timestamp_check(df, checks_info, checks_settings):
 def gross_value_check(obsdf, obstype, checks_info, checks_settings):
     """Filter out gross outliers from the observations.
 
-    Looking for values of an observation type that are not physical. These values are labeled and the physical limits are specified in the qc_settings.
+    Looking for values of an observation type that are not physical. These
+    values are labeled and the physical limits are specified in the qc_settings.
+
+    This check looks for outliers based on unrealistic values
+
+    1. Find observations that exceed a minimum and maximum value threshold.
+    2. These observations are labeled as outliers.
 
     Parameters
     ------------
@@ -315,6 +321,17 @@ def persistance_check(
 
     In order to perform this check, at least N observations should be in that time window.
 
+    Schematically:
+    1. Find the stations that have a maximum assumed observation frequency
+       that does not exceed the minimum number of records for moving window
+       size. The window size is defined by a duration.
+    2. Subset to those stations.
+    3. For each station, a moving window scan is applied that validates if
+       there is variation in the observations (NaN's are excluded). The
+       validation is only applied when a sufficient amount of records are
+       found in the window specified by a threshold.
+    4. After the scan, all records found in the windows without variation
+       are labeled as outliers.
 
     Parameters
     ------------
@@ -429,6 +446,13 @@ def repetitions_check(obsdf, obstype, checks_info, checks_settings):
     Looking for values of an observation type that are repeated at least with
     the frequency specified in the qc_settings. These values are labeled.
 
+    Schematically:
+
+    1. For each station, make a group of consecutive records for which
+       the values do not change.
+    2. Filter those groups that have more records than the maximum valid
+       repetitions.
+    3. All the records in these groups are labeled as outliers
 
     Parameters
     ------------
@@ -450,6 +474,11 @@ def repetitions_check(obsdf, obstype, checks_info, checks_settings):
     outl_df : pandas.DataFrame
         The updated outliersdf.
 
+    Note
+    -----
+      The repetitions check is similar to the persistence check, but not identical.
+      The persistence check uses thresholds that are meteorologically based (i.g. the moving window is defined by a duration),
+      in contrast to the repetitions check whose thresholds are instrumentally based (i.g. the "window" is defined by a number of records.)
 
     """
     checkname = "repetitions"
@@ -509,6 +538,19 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
     The purpose of this check is to flag observations with a value that is too
     much different compared to the previous (not flagged) recorded value.
 
+    Schematically:
+
+    1. Iterate over all the stations.
+    2. Get the observations of the stations (i.g. drop the previously labeled outliers represented by NaN's).
+    3. Find the observations for which:
+
+       * The increase between two consecutive records is larger than the
+         threshold. This threshold is defined by a maximum increase per second
+         multiplied by the timedelta (in seconds) between the consecutive
+         records.
+       * Similar filter for a decrease.
+    4. The found observations are labeled as outliers.
+
     Parameters
     ------------
     obsdf : pandas.DataFrame
@@ -528,6 +570,12 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
         represented by Nan values.
     outl_df : pandas.DataFrame
         The updated outliersdf.
+
+    Note
+    -----
+      In general, for temperatures,  the decrease threshold is set less stringent than the increase
+      threshold. This is because a temperature drop is meteorologycally more
+      common than a sudden increase which is often the result of a radiation error.
 
     """
 
@@ -596,6 +644,21 @@ def window_variation_check(
 
     The check is only applied if there are at leas N observations in the time window.
 
+    Schematically:
+
+    1. Find the stations that have a maximum assumed observation frequency
+       that does not exceed the minimum number of records for moving window
+       size. The window size is defined by a duration.
+    2. Compute the maximum increase and decrease thresholds for a window.
+       This is done by multiplying the maximum increase per second by the
+       window size in seconds.
+    3. For each station, a moving window scan is applied that validates if
+       the maximum increase/decrease thresholds are exceeded. This is done
+       by comparison of the minimum and maximum values inside the window. The
+       validation is only applied when a sufficient amount of records are
+       found in the window specified by a threshold.
+    4. After the scan, *all* records found in the window that exceed one
+       of these thresholds are labeled as outliers.
 
     Parameters
     ------------

@@ -1559,7 +1559,7 @@ class Dataset:
         max_interpolation_duration, the linear interpolation method is applied
         else the debiased modeldata method.
 
-        For detailed description of these methods, we refere to the
+        For a detailed description of these methods, we refer to the
         corresponding metobs_toolkit.Dataset.fill_gaps_linear() and
         metobs_toolkit.Dataset.fill_gaps_era5().
 
@@ -1727,12 +1727,12 @@ class Dataset:
 
         Notes
         -----
-        A schematic description on the linear gap fill:
+        A schematic description of the linear gap fill:
 
             1. Iterate over all gaps.
-            2. The gap is converted into a set of missing records (depends on time resolution of the observations).
+            2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
             3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
-            4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consicutive fill threshold is applied, if exeeded the fill values are Nan's.
+            4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
             5. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
 
         Examples
@@ -1856,12 +1856,12 @@ class Dataset:
 
         Notes
         -----
-        A schematic description on the linear fill of missing observations:
+        A schematic description of the linear fill of missing observations:
 
             1. Iterate over all missing observations.
-            2. The missing observations are converted into a set of missing records (depends on time resolution of the observations).
+            2. The missing observations are converted into a set of missing records (depending on the time resolution of the observations).
             3. Find a leading (the last observations before the missing observation) record and a trailing record (the last observation after the missing observation).
-            4. By using the leading and trailing record, an interpolation is applied to fill the missing records.
+            4. By using the leading and trailing records, interpolation is applied to fill the missing records.
             5. The missing record is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df).
 
         Examples
@@ -2210,29 +2210,28 @@ class Dataset:
 
         Notes
         -----
-        A schematic description on the fill_gaps_era5 method:
+        A schematic description of the fill_gaps_era5 method:
 
             1. Modeldata is converted to the timezone of the observations.
             2. Iterate over all gaps.
-                * The gap is converted into a set of missing records (depends on time resolution of the observations).
+                * The gap is converted into a set of missing records (depending on the time resolution of the observations).
                 * Find a leading and trailing period. These periods are a subset
                  of observations respectively before and after the gap. The size
-                 of these subset is set by a target size (in records) and a minimum
-                 size (in records). If the subset of observations is smalller than
+                 of these subsets is set by a target size (in records) and a minimum
+                 size (in records). If the subset of observations is smaller than
                  the corresponding minimum size, the gap cannot be filled.
                 * Modeldata, for the corresponding station and observation type, is extracted for the leading and trailing period.
-                * By comparing with the leading and trailing observations,and by
                 * By comparing the model data with the observations of the
-                 leading and trailing period, and grouping all records to their
-                 timestamp (i.g. diurnal categories), biasses are computed.
+                  leading and trailing period, and grouping all records to their
+                  timestamp (i.g. diurnal categories), biasses are computed.
                 * Modeldata for the missing records is extracted.
-                * Weight ([0;1]) are computed for each gap record, representing
-                 the normelized distance (in time), to the beginning and end of
+                * Weights ([0;1]) are computed for each gap record, representing
+                 the normalized distance (in time), to the beginning and end of
                  the gap.
-                * The modeldata at the missing records is than corrected by
+                * The modeldata at the missing records is then corrected by
                  a weighted sum of the leading and trailing biases at the
-                 corresponding timestamp. In general this means that the diurnal
-                 trend of the observations is restored as good as possible.
+                 corresponding timestamp. In general, this means that the diurnal
+                 trend of the observations is restored as well as possible.
             3. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
 
         Note
@@ -2503,6 +2502,88 @@ class Dataset:
         Returns
         ---------
         None.
+
+        Notes
+        -----
+        A schematic description of the quality control checks.
+
+        Gross value check
+        ==================
+        This check looks for outliers based on unrealistic values
+
+        1. Find observations that exceed a minimum and maximum value threshold.
+        2. These observations are labeled as outliers.
+
+        Persistence check
+        =================
+        Test observations to change over a specific period.
+
+        1. Find the stations that have a maximum assumed observation frequency
+           that does not exceed the minimum number of records for moving window
+           size. The window size is defined by a duration.
+        2. Subset to those stations.
+        3. For each station, a moving window scan is applied that validates if
+           there is variation in the observations (NaN's are excluded). The
+           validation is only applied when a sufficient amount of records are
+           found in the window specified by a threshold.
+        4. After the scan, all records found in the windows without variation
+           are labeled as outliers.
+
+        Repetitions check
+        =================
+        Test if observation changes after a number of records.
+
+        1. For each station, make a group of consecutive records for which
+           the values do not change.
+        2. Filter those groups that have more records than the maximum valid
+           repetitions.
+        3. All the records in these groups are labeled as outliers
+
+        Note
+        -----
+          The repetitions check is similar to the persistence check, but not identical.
+          The persistence check uses thresholds that are meteorologically based (i.g. the moving window is defined by a duration),
+          in contrast to the repetitions check whose thresholds are instrumentally based (i.g. the "window" is defined by a number of records.)
+
+        Step check
+        ============
+        Test if observations do not produce unphysical spikes in time series.
+
+        1. Iterate over all the stations.
+        2. Get the observations of the stations (i.g. drop the previously labeled outliers represented by NaN's).
+        3. Find the observations for which:
+
+           * The increase between two consecutive records is larger than the
+             threshold. This threshold is defined by a maximum increase per second
+             multiplied by the timedelta (in seconds) between the consecutive
+             records.
+           * Similar filter for a decrease.
+        4. The found observations are labeled as outliers.
+
+        Note
+        -----
+          In general, for temperatures,  the decrease threshold is set less stringent than the increase
+          threshold. This is because a temperature drop is meteorologycally more
+          common than a sudden increase which is often the result of a radiation error.
+
+        Window Variation check
+        =======================
+        Test if the variation is found in a moving window.
+
+        1. Find the stations that have a maximum assumed observation frequency
+           that does not exceed the minimum number of records for moving window
+           size. The window size is defined by a duration.
+        2. Compute the maximum increase and decrease thresholds for a window.
+           This is done by multiplying the maximum increase per second by the
+           window size in seconds.
+        3. For each station, a moving window scan is applied that validates if
+           the maximum increase/decrease thresholds are exceeded. This is done
+           by comparison of the minimum and maximum values inside the window. The
+           validation is only applied when a sufficient amount of records are
+           found in the window specified by a threshold.
+        4. After the scan, *all* records found in the window that exceed one
+           of these thresholds are labeled as outliers.
+
 
         Examples
         --------

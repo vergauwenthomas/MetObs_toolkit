@@ -29,7 +29,7 @@ else:
 
 sys.path.insert(0, str(basefolder))
 sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
-
+import metobs_toolkit
 
 logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
