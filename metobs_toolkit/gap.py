@@ -524,6 +524,30 @@ def apply_debias_era5_gapfill(
 ):
     """Fill all gaps using ERA5 debiaset modeldata.
 
+    A schematic description of the fill_gaps_era5 method:
+
+        1. Modeldata is converted to the timezone of the observations.
+        2. Iterate over all gaps.
+            * The gap is converted into a set of missing records (depending on the time resolution of the observations).
+            * Find a leading and trailing period. These periods are a subset
+             of observations respectively before and after the gap. The size
+             of these subsets is set by a target size (in records) and a minimum
+             size (in records). If the subset of observations is smaller than
+             the corresponding minimum size, the gap cannot be filled.
+            * Modeldata, for the corresponding station and observation type, is extracted for the leading and trailing period.
+            * By comparing the model data with the observations of the
+              leading and trailing period, and grouping all records to their
+              timestamp (i.g. diurnal categories), biasses are computed.
+            * Modeldata for the missing records is extracted.
+            * Weights ([0;1]) are computed for each gap record, representing
+             the normalized distance (in time), to the beginning and end of
+             the gap.
+            * The modeldata at the missing records is then corrected by
+             a weighted sum of the leading and trailing biases at the
+             corresponding timestamp. In general, this means that the diurnal
+             trend of the observations is restored as well as possible.
+        3. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
+
     Parameters
     ----------
     gapslist : list
@@ -672,6 +696,14 @@ def apply_interpolate_gaps(
     overwrite_fill=False,
 ):
     """Fill all gaps with interpolation and update attributes.
+
+    A schematic description of the linear gap fill:
+
+        1. Iterate over all gaps.
+        2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
+        3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
+        4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
+        5. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
 
     Parameters
     ----------

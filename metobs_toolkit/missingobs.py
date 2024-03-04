@@ -223,6 +223,14 @@ class Missingob_collection:
 
         The "fill_df" and "fill_technique" attributes will be updated.
 
+        A schematic description of the linear fill of missing observations:
+
+            1. Iterate over all missing observations.
+            2. The missing observations are converted into a set of missing records (depending on the time resolution of the observations).
+            3. Find a leading (the last observations before the missing observation) record and a trailing record (the last observation after the missing observation).
+            4. By using the leading and trailing records, interpolation is applied to fill the missing records.
+            5. The missing record is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df).
+
         Parameters
         ----------
         obsdf : Metobs_toolkit.Dataset.df
