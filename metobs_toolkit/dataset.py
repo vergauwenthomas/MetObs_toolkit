@@ -1729,11 +1729,11 @@ class Dataset:
         -----
         A schematic description of the linear gap fill:
 
-            1. Iterate over all gaps.
-            2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
-            3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
-            4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
-            5. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
+        1. Iterate over all gaps.
+        2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
+        3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
+        4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
+        5. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
 
         Examples
         --------
@@ -1858,11 +1858,11 @@ class Dataset:
         -----
         A schematic description of the linear fill of missing observations:
 
-            1. Iterate over all missing observations.
-            2. The missing observations are converted into a set of missing records (depending on the time resolution of the observations).
-            3. Find a leading (the last observations before the missing observation) record and a trailing record (the last observation after the missing observation).
-            4. By using the leading and trailing records, interpolation is applied to fill the missing records.
-            5. The missing record is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df).
+        1. Iterate over all missing observations.
+        2. The missing observations are converted into a set of missing records (depending on the time resolution of the observations).
+        3. Find a leading (the last observations before the missing observation) record and a trailing record (the last observation after the missing observation).
+        4. By using the leading and trailing records, interpolation is applied to fill the missing records.
+        5. The missing record is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df).
 
         Examples
         --------
@@ -2212,27 +2212,27 @@ class Dataset:
         -----
         A schematic description of the fill_gaps_era5 method:
 
-            1. Modeldata is converted to the timezone of the observations.
-            2. Iterate over all gaps.
-                * The gap is converted into a set of missing records (depending on the time resolution of the observations).
-                * Find a leading and trailing period. These periods are a subset
-                 of observations respectively before and after the gap. The size
-                 of these subsets is set by a target size (in records) and a minimum
-                 size (in records). If the subset of observations is smaller than
-                 the corresponding minimum size, the gap cannot be filled.
-                * Modeldata, for the corresponding station and observation type, is extracted for the leading and trailing period.
-                * By comparing the model data with the observations of the
-                  leading and trailing period, and grouping all records to their
-                  timestamp (i.g. diurnal categories), biasses are computed.
-                * Modeldata for the missing records is extracted.
-                * Weights ([0;1]) are computed for each gap record, representing
-                 the normalized distance (in time), to the beginning and end of
-                 the gap.
-                * The modeldata at the missing records is then corrected by
-                 a weighted sum of the leading and trailing biases at the
-                 corresponding timestamp. In general, this means that the diurnal
-                 trend of the observations is restored as well as possible.
-            3. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
+        1. Modeldata is converted to the timezone of the observations.
+        2. Iterate over all gaps.
+            * The gap is converted into a set of missing records (depending on the time resolution of the observations).
+            * Find a leading and trailing period. These periods are a subset
+              of observations respectively before and after the gap. The size
+              of these subsets is set by a target size (in records) and a minimum
+              size (in records). If the subset of observations is smaller than
+              the corresponding minimum size, the gap cannot be filled.
+            * Modeldata, for the corresponding station and observation type, is extracted for the leading and trailing period.
+            * By comparing the model data with the observations of the
+              leading and trailing period, and grouping all records to their
+              timestamp (i.g. diurnal categories), biasses are computed.
+            * Modeldata for the missing records is extracted.
+            * Weights ([0;1]) are computed for each gap record, representing
+              the normalized distance (in time), to the beginning and end of
+              the gap.
+            * The modeldata at the missing records is then corrected by
+              a weighted sum of the leading and trailing biases at the
+              corresponding timestamp. In general, this means that the diurnal
+              trend of the observations is restored as well as possible.
+        3. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
 
         Note
         -------
@@ -2814,18 +2814,19 @@ class Dataset:
 
         Notes
         -----
-        A schematic step by step description on the buddy check:
+        A schematic step-by-step description of the buddy check:
 
-          1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation, or by first converting the Coordinate Reference System (CRS) to a metric one, specified by an EPSG code.
-          2. A set of all (spatial) buddies per station is created by filtering out all stations that are too far.
-          3. The buddies are further filtered based on altitude differences with respect to the reference station.
-          4. For each station:
-            * Observations of buddies are extracted from all observations.
-            * These observations are corrected for altitude differences by assuming a constant lapse rate.
-            * For each reference record, the mean, standard deviation (std), and sample size of the corrected buddies’ observations are computed.
-            * If the std is lower than the minimum std, it is replaced by the minimum std.
-            * Chi values are calculated for all reference records.
-            * If the Chi value is larger than the std_threshold, the record is accepted, otherwise it is marked as an outlier.
+        1. A distance matrix is constructed for all inter distances between the stations. This is done using the haversine approximation, or by first converting the Coordinate Reference System (CRS) to a metric one, specified by an EPSG code.
+        2. A set of all (spatial) buddies per station is created by filtering out all stations that are too far.
+        3. The buddies are further filtered based on altitude differences with respect to the reference station.
+        4. For each station:
+
+           * Observations of buddies are extracted from all observations.
+           * These observations are corrected for altitude differences by assuming a constant lapse rate.
+           * For each reference record, the mean, standard deviation (std), and sample size of the corrected buddies’ observations are computed.
+           * If the std is lower than the minimum std, it is replaced by the minimum std.
+           * Chi values are calculated for all reference records.
+           * If the Chi value is larger than the std_threshold, the record is accepted, otherwise it is marked as an outlier.
 
         Examples
         --------
