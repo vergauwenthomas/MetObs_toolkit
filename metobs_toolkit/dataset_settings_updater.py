@@ -8,13 +8,13 @@ Extension of the Dataset class (methods for updating settings).
 import logging
 import pandas as pd
 
+from metobs_toolkit import Dataset
 
-import metobs_toolkit.dataset as dataset
 
 logger = logging.getLogger(__name__)
 
 
-class Dataset(dataset.Dataset):
+class Dataset(Dataset):
     """Extension on the metobs_toolkit.Dataset class with updaters."""
 
     def update_settings(

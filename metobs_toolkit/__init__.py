@@ -65,6 +65,7 @@ from metobs_toolkit.landcover_functions import connect_to_gee
 # Import extenders
 # =============================================================================
 from metobs_toolkit.dataset_settings_updater import Dataset
+from metobs_toolkit.dataset_gapfill import Dataset
 
 # =============================================================================
 # Version

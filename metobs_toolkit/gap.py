@@ -139,6 +139,7 @@ class Gap:
     # Helpers
     # =============================================================================
     def _get_gapfill_status(self):
+        # Warning! do not change these labels (or replace all hardcode occurences)
         if not self.does_gap_holds_missing_records():
             return "Gap does not exist in observation space"
         if self.gapdf[f"{self.obstype.name}_fill"].isnull().all():
@@ -586,9 +587,9 @@ class Gap:
         Dataset,
         Modeldata,
         leading_period_duration="48H",
-        min_lead_debias_sample_size=2,
+        min_lead_debias_sample_size=3,
         trailing_period_duration="48H",
-        min_trail_debias_sample_size=2,
+        min_trail_debias_sample_size=3,
     ):
 
         obsname = self.obstype.name
