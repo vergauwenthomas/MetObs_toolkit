@@ -253,7 +253,13 @@ def duplicate_timestamp_check(df, checks_info, checks_settings):
 def gross_value_check(obsdf, obstype, checks_info, checks_settings):
     """Filter out gross outliers from the observations.
 
-    Looking for values of an observation type that are not physical. These values are labeled and the physical limits are specified in the qc_settings.
+    Looking for values of an observation type that are not physical. These
+    values are labeled and the physical limits are specified in the qc_settings.
+
+    This check looks for outliers based on unrealistic values
+
+    1. Find observations that exceed a minimum and maximum value threshold.
+    2. These observations are labeled as outliers.
 
     Parameters
     ------------
@@ -315,6 +321,17 @@ def persistance_check(
 
     In order to perform this check, at least N observations should be in that time window.
 
+    Schematically:
+    1. Find the stations that have a maximum assumed observation frequency
+       that does not exceed the minimum number of records for moving window
+       size. The window size is defined by a duration.
+    2. Subset to those stations.
+    3. For each station, a moving window scan is applied that validates if
+       there is variation in the observations (NaN's are excluded). The
+       validation is only applied when a sufficient amount of records are
+       found in the window specified by a threshold.
+    4. After the scan, all records found in the windows without variation
+       are labeled as outliers.
 
     Parameters
     ------------
@@ -429,6 +446,13 @@ def repetitions_check(obsdf, obstype, checks_info, checks_settings):
     Looking for values of an observation type that are repeated at least with
     the frequency specified in the qc_settings. These values are labeled.
 
+    Schematically:
+
+    1. For each station, make a group of consecutive records for which
+       the values do not change.
+    2. Filter those groups that have more records than the maximum valid
+       repetitions.
+    3. All the records in these groups are labeled as outliers
 
     Parameters
     ------------
@@ -450,6 +474,11 @@ def repetitions_check(obsdf, obstype, checks_info, checks_settings):
     outl_df : pandas.DataFrame
         The updated outliersdf.
 
+    Note
+    -----
+      The repetitions check is similar to the persistence check, but not identical.
+      The persistence check uses thresholds that are meteorologically based (i.g. the moving window is defined by a duration),
+      in contrast to the repetitions check whose thresholds are instrumentally based (i.g. the "window" is defined by a number of records.)
 
     """
     checkname = "repetitions"
@@ -509,6 +538,19 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
     The purpose of this check is to flag observations with a value that is too
     much different compared to the previous (not flagged) recorded value.
 
+    Schematically:
+
+    1. Iterate over all the stations.
+    2. Get the observations of the stations (i.g. drop the previously labeled outliers represented by NaN's).
+    3. Find the observations for which:
+
+       * The increase between two consecutive records is larger than the
+         threshold. This threshold is defined by a maximum increase per second
+         multiplied by the timedelta (in seconds) between the consecutive
+         records.
+       * Similar filter for a decrease.
+    4. The found observations are labeled as outliers.
+
     Parameters
     ------------
     obsdf : pandas.DataFrame
@@ -528,6 +570,12 @@ def step_check(obsdf, obstype, checks_info, checks_settings):
         represented by Nan values.
     outl_df : pandas.DataFrame
         The updated outliersdf.
+
+    Note
+    -----
+      In general, for temperatures,  the decrease threshold is set less stringent than the increase
+      threshold. This is because a temperature drop is meteorologycally more
+      common than a sudden increase which is often the result of a radiation error.
 
     """
 
@@ -596,6 +644,21 @@ def window_variation_check(
 
     The check is only applied if there are at leas N observations in the time window.
 
+    Schematically:
+
+    1. Find the stations that have a maximum assumed observation frequency
+       that does not exceed the minimum number of records for moving window
+       size. The window size is defined by a duration.
+    2. Compute the maximum increase and decrease thresholds for a window.
+       This is done by multiplying the maximum increase per second by the
+       window size in seconds.
+    3. For each station, a moving window scan is applied that validates if
+       the maximum increase/decrease thresholds are exceeded. This is done
+       by comparison of the minimum and maximum values inside the window. The
+       validation is only applied when a sufficient amount of records are
+       found in the window specified by a threshold.
+    4. After the scan, *all* records found in the window that exceed one
+       of these thresholds are labeled as outliers.
 
     Parameters
     ------------
@@ -811,6 +874,19 @@ def toolkit_buddy_check(
     buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
     (absolute value of the) difference between the observations and the average of the neighbours
     normalized by the standard deviation in the circle is greater than a predefined threshold.
+
+    A schematic step by step description on the buddy check:
+
+      1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation, or by first converting the Coordinate Reference System (CRS) to a metric one, specified by an EPSG code.
+      2. A set of all (spatial) buddies per station is created by filtering out all stations that are too far.
+      3. The buddies are further filtered based on altitude differences with respect to the reference station.
+      4. For each station:
+        * Observations of buddies are extracted from all observations.
+        * These observations are corrected for altitude differences by assuming a constant lapse rate.
+        * For each reference record, the mean, standard deviation (std), and sample size of the corrected buddies’ observations are computed.
+        * If the std is lower than the minimum std, it is replaced by the minimum std.
+        * Chi values are calculated for all reference records.
+        * If the Chi value is larger than the std_threshold, the record is accepted, otherwise it is marked as an outlier.
 
     Parameters
     ----------

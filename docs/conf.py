@@ -31,6 +31,12 @@ sys.path.insert(0, str(basefolder))
 sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
 
 
+# The toolkit must be imported when testing and building the documentation
+# locally. However this is overkill for RTD service, so only import it for
+# local builds
+if "/home/thoverga" in str(basefolder):
+    import metobs_toolkit
+
 logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
 
