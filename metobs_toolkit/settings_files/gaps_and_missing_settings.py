@@ -27,6 +27,14 @@ gaps_info = {
 
 gaps_fill_info = {
     "label_columnname": "final_label",
-    "label": {"linear": "gap_interpolation", "model_debias": "gap_debiased_era5"},
-    # "numeric_flag": 21,
+    # The following labels are used to categorze plotting legend.
+    "labels": [
+        "interpolation",
+        "raw_modeldata",
+        "debias_modeldata",
+        "diurnal_debias_modeldata",
+        "weighted_diurnal_debias_modeldata",
+    ],
+    # "label": {"linear": "gap_interpolation", "model_debias": "gap_debiased_era5"},
+    # "numeric_flag": 21
 }

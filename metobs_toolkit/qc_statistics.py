@@ -59,9 +59,9 @@ def get_freq_statistics(comb_df, obstype, checks_info, gaps_info, applied_qc_ord
     if not gaps_info["gap"]["outlier_flag"] in final_counts.index:
         non_triggered_labels_dict[gaps_info["gap"]["outlier_flag"]] = 0
 
-    # missing timestamps
-    if not gaps_info["missing_timestamp"]["outlier_flag"] in final_counts.index:
-        non_triggered_labels_dict[gaps_info["missing_timestamp"]["outlier_flag"]] = 0
+    # # missing timestamps
+    # if not gaps_info["missing_timestamp"]["outlier_flag"] in final_counts.index:
+    #     non_triggered_labels_dict[gaps_info["missing_timestamp"]["outlier_flag"]] = 0
 
     non_triggered_labels = pd.Series(non_triggered_labels_dict)
     final_counts = pd.concat([final_counts, non_triggered_labels])
@@ -83,9 +83,9 @@ def get_freq_statistics(comb_df, obstype, checks_info, gaps_info, applied_qc_ord
         "ok": agg_ok,
         "QC outliers": final_counts.loc[final_counts.index.isin(outlier_labels)].sum(),
         "missing (gaps)": final_counts[gaps_info["gap"]["outlier_flag"]].squeeze(),
-        "missing (individual)": final_counts[
-            gaps_info["missing_timestamp"]["outlier_flag"]
-        ].squeeze(),
+        # "missing (individual)": final_counts[
+        #     gaps_info["missing_timestamp"]["outlier_flag"]
+        # ].squeeze(),
     }
 
     # 2 indevidual outliers
@@ -138,14 +138,14 @@ def get_freq_statistics(comb_df, obstype, checks_info, gaps_info, applied_qc_ord
     }
     specific_counts[gaps_info["gap"]["label_columnname"]] = gap_specific_counts
 
-    # misssing timestamps
-    missing_specific_counts = {
-        "not checked": 0,  # all obs are always checked
-        "ok": 100.0 - final_counts[gaps_info["missing_timestamp"]["outlier_flag"]],
-        "outlier": final_counts[gaps_info["missing_timestamp"]["outlier_flag"]],
-    }
-    specific_counts[
-        gaps_info["missing_timestamp"]["label_columnname"]
-    ] = missing_specific_counts
+    # # misssing timestamps
+    # missing_specific_counts = {
+    #     "not checked": 0,  # all obs are always checked
+    #     "ok": 100.0 - final_counts[gaps_info["missing_timestamp"]["outlier_flag"]],
+    #     "outlier": final_counts[gaps_info["missing_timestamp"]["outlier_flag"]],
+    # }
+    # specific_counts[
+    #     gaps_info["missing_timestamp"]["label_columnname"]
+    # ] = missing_specific_counts
 
     return (agg_dict, outl_dict, specific_counts)

@@ -91,7 +91,7 @@ plot_settings["pie_charts"] = {
 plot_settings["color_mapper"] = {
     # QC specific labels
     "duplicated_timestamp": "#a32a1f",
-    "invalid_input": "#900357",
+    # "invalid_input": "#900357",
     "gross_value": "#f1ff2b",
     "persistance": "#f0051c",
     "repetitions": "#056ff0",
@@ -102,10 +102,15 @@ plot_settings["color_mapper"] = {
     "titan_sct_resistant_check": "#c17fe1",
     # missing and gap
     "gap": "#f00592",
-    "missing_timestamp": "#f78e0c",
+    # "missing_timestamp": "#f78e0c",
     # filling
-    "linear": "#d406c6",
-    "model_debias": "#6e1868",
+    "interpolation": "#d406c6",
+    "raw_modeldata": "#6e1868",
+    "debias_modeldata": "#6e1868",
+    "diurnal_debias_modeldata": "#6e1868",
+    "weighted_diurnal_debias_modeldata": "#6e1868",
+    # "interpolation": "#e303fc", #test (replace by above if okay)
+    # "model_debias": "#6e1868",
     # common
     "ok": "#07f72b",
     "not checked": "#f7cf07",

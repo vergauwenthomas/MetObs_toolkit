@@ -665,7 +665,7 @@ class Gap:
         )
         # Update attributes
         self.anchordf = anchor_df
-        self.gapdf["fill_method"] = f"{method}-interpolation"
+        self.gapdf["fill_method"] = "interpolation"
 
         # check if gapfill can proceed
         if (lead_msg != "ok") & (trail_msg != "ok"):

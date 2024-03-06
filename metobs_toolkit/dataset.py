@@ -1025,8 +1025,8 @@ class Dataset:
             label_col_map[val["outlier_flag"]] = gap_col
 
         # fill labels
-        for val in self.settings.missing_obs["missing_obs_fill_info"]["label"].values():
-            label_col_map[val] = fill_col
+        # for val in self.settings.missing_obs["missing_obs_fill_info"]["label"].values():
+        #     label_col_map[val] = fill_col
         for val in self.settings.gap["gaps_fill_info"]["label"].values():
             label_col_map[val] = fill_col
 
@@ -1597,13 +1597,13 @@ class Dataset:
             gapfill_settings = self.settings.gap["gaps_fill_info"]
             gapfilllabels = [val for val in gapfill_settings["label"].values()]
 
-            # missingfilled labels
-            missingfill_settings = self.settings.missing_obs["missing_obs_fill_info"]
-            missingfilllabels = [val for val in missingfill_settings["label"].values()]
+            # # missingfilled labels
+            # missingfill_settings = self.settings.missing_obs["missing_obs_fill_info"]
+            # missingfilllabels = [val for val in missingfill_settings["label"].values()]
 
             # get all labels
             fill_labels = gapfilllabels.copy()
-            fill_labels.extend(missingfilllabels)
+            # fill_labels.extend(missingfilllabels)
             fill_labels.append("ok")
 
             df = mergedf[mergedf["label"].isin(fill_labels)]
@@ -1725,7 +1725,7 @@ class Dataset:
         if not include_fill_values:
             fill_labels = [
                 "gap fill",
-                "missing observation fill",
+                # "missing observation fill",
             ]  # toolkit representation labels
             mergedf = mergedf[~mergedf["toolkit_representation"].isin(fill_labels)]
 
@@ -2728,9 +2728,8 @@ class Dataset:
         # TODO: check if label OK is okay?
         gapsdf.loc[filled_idxs, "label"] = gapsdf.loc[filled_idxs, "fill_method"]
         # gapsdf.loc[filled_idxs, "label"] = "gap_debiased_era5"
-        print("deze lijn hierboven klop niet !!")
 
-        gapsdf = gapsdf[["value", "label"]]
+        gapsdf = gapsdf[["value", "label", "toolkit_representation"]]
 
         # # add gapfill and remove the filled records from gaps
         # gapsfilldf = self.gapfilldf.copy()
@@ -3019,9 +3018,7 @@ class Dataset:
 
         if (
             self._applied_qc[
-                ~self._applied_qc["checkname"].isin(
-                    ["duplicated_timestamp", "invalid_input"]
-                )
+                ~self._applied_qc["checkname"].isin(["duplicated_timestamp"])
             ].shape[0]
             > 0
         ):
@@ -3150,7 +3147,7 @@ class Dataset:
         self.df = init_multiindexdf()
         self.outliersdf = init_triple_multiindexdf()
         self.gapfilldf = init_multiindexdf()
-        self.missing_obs = None
+        # self.missing_obs = None
         self.gaps = None
 
         # find simplified resolution

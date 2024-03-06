@@ -72,7 +72,6 @@ Updating Settings
    Dataset.add_new_unit
    Dataset.update_timezone
    Dataset.update_default_name
-   Dataset.update_gap_and_missing_fill_settings
    Dataset.update_qc_settings
    Dataset.update_titan_qc_settings
 
