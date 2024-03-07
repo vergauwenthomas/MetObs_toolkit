@@ -28,13 +28,13 @@ To do that, make sure you have installed the **Metobs-toolkit** and the **Metobs
 .. code-block:: console
 
     #install the metobs-toolkit
-    pip3 install metobs-toolkit
+    pip install metobs-toolkit
     #install the metobs-gui (currently only on github)
-    pip3 install git+https://github.com/vergauwenthomas/MetObs_GUI
+    pip install git+https://github.com/vergauwenthomas/MetObs_GUI
 
 
 
-Launch the GUI by running this code in a Python3 console or in a Jupyter notebook
+Launch the GUI by running this code in a Python console or in a Jupyter notebook
 
 .. code-block:: python
 
