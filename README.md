@@ -4,6 +4,8 @@
 [![Documentation Status](https://readthedocs.org/projects/metobs-toolkit/badge/?version=latest)](https://metobs-toolkit.readthedocs.io/en/latest/?badge=latest)
 [![status](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d/status.svg)](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d)
 [![Tests passing](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10792385.svg)](https://doi.org/10.5281/zenodo.10792385)
+
 
 
 <img src="https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/master/docs/logo_small.jpeg" alt="drawing" style="width:200px;"/>
