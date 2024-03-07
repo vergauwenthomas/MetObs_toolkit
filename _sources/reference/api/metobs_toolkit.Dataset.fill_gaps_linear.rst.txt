@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.fill\_gaps\_linear
+==========================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.fill_gaps_linear
