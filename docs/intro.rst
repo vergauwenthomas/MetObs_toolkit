@@ -27,7 +27,7 @@ To install the PyPi version of the toolkit. To install the github versions one c
    pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
 
    #specific release from github
-   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.1.3-joss
+   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.2.0
 
 
 For some advanced quality control methods, the `Titanlib <https://github.com/metno/titanlib>`_ package is used.

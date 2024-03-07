@@ -35,7 +35,7 @@ pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
 pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
 
 #specific release from github
-pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.1.3-joss
+pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.2.0
  ```
 For some advanced quality control methods, the [Titanlib package](https://github.com/metno/titanlib) is used. Since the installation of titanlib requires a c++ compiler, we have chosen not to include it in the toolkit. If you want to use the Titanlib functionality you must install both the toolkit and Titanlib:
 
