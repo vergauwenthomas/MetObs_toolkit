@@ -25,8 +25,8 @@ General methods and attributes
    Dataset.show
    Dataset.get_info
    Dataset.show_settings
-   Dataset.get_gaps_df
    Dataset.get_gaps_info
+   Dataset.get_gaps_fill_df
    Dataset.get_missing_obs_info
    Dataset.combine_all_to_obsspace
 
@@ -37,11 +37,12 @@ Common methods
    :toctree: api/
 
    Dataset.get_station
-   Dataset.update_gaps_and_missing_from_outliers
-   Dataset.fill_gaps_linear
-   Dataset.fill_gaps_era5
-   Dataset.fill_gaps_automatic
-   Dataset.fill_missing_obs_linear
+   Dataset.convert_outliers_to_gaps
+   Dataset.interpolate_gaps
+   Dataset.fill_gaps_with_raw_modeldata
+   Dataset.fill_gaps_with_debias_modeldata
+   Dataset.fill_gaps_with_diurnal_debias_modeldata
+   Dataset.fill_gaps_with_weighted_diurnal_debias_modeldata
    Dataset.get_analysis
    Dataset.apply_quality_control
    Dataset.apply_buddy_check

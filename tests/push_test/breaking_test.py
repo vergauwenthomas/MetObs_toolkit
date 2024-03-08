@@ -35,7 +35,6 @@ dataset_coarsened.update_settings(input_data_file=testdata, template_file=templa
 
 #####################################################################
 # Set settings for QC
-minimal_gapsize = 10  # gaps defined as n times the highest frequency on IO.
 dupl_dropping = False  # method used to drop duplicated timestamps
 
 persistance_time_window_to_check = "1h"  # Use this format as example: "1h20min50s"
@@ -64,7 +63,6 @@ max_decrease_per_second_step = (
 
 dataset_coarsened.update_qc_settings(
     obstype="temp",
-    gapsize_in_records=minimal_gapsize,
     dupl_timestamp_keep=dupl_dropping,
     persis_time_win_to_check=persistance_time_window_to_check,
     persis_min_num_obs=min_num_obs,
@@ -80,54 +78,6 @@ dataset_coarsened.update_qc_settings(
 )
 
 
-# dataset_coarsened.settings.gap["gaps_settings"]["gaps_finder"][
-#    "gapsize_n"
-# ] = minimal_gapsize
-#
-# dataset_coarsened.settings.qc["qc_check_settings"]["duplicated_timestamp"][
-#    "keep"
-# ] = dupl_dropping#
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["persistance"]["temp"][
-#    "time_window_to_check"
-# ] = persistance_time_window_to_check
-# dataset_coarsened.settings.qc["qc_check_settings"]["persistance"]["temp"][
-#    "min_num_obs"
-# ] = min_num_obs
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["repetitions"]["temp"][
-#    "max_valid_repetitions"
-# ] = max_valid_repetitions
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["gross_value"]["temp"][
-#    "min_value"
-# ] = min_value
-# dataset_coarsened.settings.qc["qc_check_settings"]["gross_value"]["temp"][
-#    "max_value"
-# ] = max_value
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-#    "max_increase_per_second"
-# ] = max_increase_per_second
-# dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-#    "max_decrease_per_second"
-# ] = max_decrease_per_second
-# dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-#    "time_window_to_check"
-# ] = time_window_to_check
-# dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-#    "min_window_members"
-# ] = min_window_members
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["step"]["temp"][
-#    "max_increase_per_second"
-# ] = max_increase_per_second_step
-# dataset_coarsened.settings.qc["qc_check_settings"]["step"]["temp"][
-#    "max_decrease_per_second"
-# ] = max_decrease_per_second_step
-#####################################################################
-
-
 dataset_coarsened.import_data_from_file()
 dataset_coarsened.coarsen_time_resolution()
 dataset_coarsened.apply_quality_control()
@@ -138,7 +88,6 @@ dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdata, template_file=template_file)
 dataset.update_qc_settings(
     obstype="temp",
-    gapsize_in_records=minimal_gapsize,
     dupl_timestamp_keep=dupl_dropping,
     persis_time_win_to_check=persistance_time_window_to_check,
     persis_min_num_obs=min_num_obs,
@@ -160,7 +109,7 @@ _ = dataset.get_qc_stats()
 
 dataset.make_plot(stationnames=["Fictional"], colorby="label", show_outliers=True)
 
-#%% Debug
+# %% Debug
 
 combdf = dataset.combine_all_to_obsspace()
 
@@ -171,6 +120,14 @@ combdf = dataset.combine_all_to_obsspace()
 man_df = dataset.input_df  # manual label
 
 tlk_df = dataset.combine_all_to_obsspace()
+
+
+tlk_temp_df = tlk_df.xs("temp", level="obstype").sort_index()
+
+# %%
+
+
+print(tlk_temp_df.iloc[35:39])
 
 
 # %%

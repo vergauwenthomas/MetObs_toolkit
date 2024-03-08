@@ -34,6 +34,7 @@ earthengine-api = "^0.1.340"
 geemap = '^0.20.0'
 geopandas = "^0.9.0"
 geos = "^0.2.3"
+jedi = "~0.18"
 # geos = '^3.7'
 mapclassify = "^2.4.0"
 # numpy = "^1.17.3" #in pandas

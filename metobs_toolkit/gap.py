@@ -986,7 +986,7 @@ def create_gaps_overview_df(gapslist):
 # =============================================================================
 
 
-def find_gaps(df, known_obstypes, tstart=None, tend=None, freq_series=None):
+def find_gaps(df, known_obstypes, freq_series=None):
     """
     #TODO update the docstring parameters
     Find gaps in the observations.
@@ -1034,10 +1034,8 @@ def find_gaps(df, known_obstypes, tstart=None, tend=None, freq_series=None):
             likely_freq = freq_series[station]
 
         # Define the start and end of the timeseries
-        if tstart is None:
-            tstart = stadf.index.min()
-        if tend is None:
-            tend = stadf.index.max()
+        tstart = stadf.index.min()
+        tend = stadf.index.max()
 
         assert likely_freq.seconds > 0, "The frequency is not positive!"
         for obstype in found_obstypes:

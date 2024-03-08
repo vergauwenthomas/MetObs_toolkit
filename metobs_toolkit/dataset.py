@@ -1594,8 +1594,7 @@ class Dataset:
             mergedf = self.combine_all_to_obsspace()
 
             # gapsfilled labels
-            gapfill_settings = self.settings.gap["gaps_fill_info"]
-            gapfilllabels = [val for val in gapfill_settings["label"].values()]
+            gapfilllabels = self.settings.gap["gaps_fill_info"]["labels"]
 
             # # missingfilled labels
             # missingfill_settings = self.settings.missing_obs["missing_obs_fill_info"]
