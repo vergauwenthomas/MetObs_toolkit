@@ -130,13 +130,13 @@ def get_freq_statistics(comb_df, obstype, checks_info, gaps_info, applied_qc_ord
     for checkname in not_perf_checknames:
         specific_counts[checkname] = {"not checked": 100.0, "ok": 0.0, "outlier": 0.0}
 
-    # add Gaps
-    gap_specific_counts = {
-        "not checked": 0,  # all obs are always checked
-        "ok": 100.0 - final_counts[gaps_info["gap"]["outlier_flag"]],
-        "outlier": final_counts[gaps_info["gap"]["outlier_flag"]],
-    }
-    specific_counts[gaps_info["gap"]["label_columnname"]] = gap_specific_counts
+    # add Gaps (gaps are not concidered as outliers)
+    # gap_specific_counts = {
+    #     "not checked": 0,  # all obs are always checked
+    #     "ok": 100.0 - final_counts[gaps_info["gap"]["outlier_flag"]],
+    #     "outlier": final_counts[gaps_info["gap"]["outlier_flag"]],
+    # }
+    # specific_counts[gaps_info["gap"]["label_columnname"]] = gap_specific_counts
 
     # # misssing timestamps
     # missing_specific_counts = {

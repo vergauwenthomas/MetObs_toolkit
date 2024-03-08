@@ -7,10 +7,10 @@ class.
 A Station holds all observations of one station.
 """
 import pandas as pd
-from metobs_toolkit import dataset
+from metobs_toolkit import Dataset
 
 
-class Station(dataset.Dataset):
+class Station(Dataset):
     """A class holding all information of one station. Inherit all from Dataset."""
 
     def __init__(

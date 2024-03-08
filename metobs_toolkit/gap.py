@@ -124,7 +124,7 @@ class Gap:
         print(f"  * Gapfill status >>>> {self._get_gapfill_status()}")
         if not self.does_gap_holds_missing_records():
             print(
-                "The gap holds no missing records at the current frequency resolution."
+                "The gap is unreal (=no missing records at the current frequency resolution)."
             )
             return
 
@@ -161,8 +161,8 @@ class Gap:
         logger.debug(f"initiate gapdf for {self}")
 
         if not self.gapdf.empty:
-            logger.warning(f"The gapdf of {self} will be overwritten and initialized")
-            print(f"The gapdf of {self} will be overwritten and initialized")
+            logger.debug(f"The gapdf of {self} will be overwritten and initialized")
+            # print(f"The gapdf of {self} will be overwritten and initialized")
             self.gapdf = init_multiindexdf()
 
         # Get the missing records in the observationspace-frequency

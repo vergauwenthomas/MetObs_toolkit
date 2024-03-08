@@ -3034,7 +3034,7 @@ class Dataset:
         df = self.df.reset_index()
 
         if origin is None:
-            # find earlyest timestamp, if it is on the hour, use it else use the following hour
+            # find earlyest timestamp, if it is on the h_initiate_gapdfour, use it else use the following hour
             tstart = df["datetime"].min()
 
             if tstart.minute != 0 or tstart.second != 0 or tstart.microsecond != 0:

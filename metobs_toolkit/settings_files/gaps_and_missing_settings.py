@@ -11,7 +11,7 @@ from numpy import nan
 
 gaps_info = {
     "gap": {
-        "label_columnname": "is_gap",
+        # "label_columnname": "is_gap",
         "outlier_flag": "gap",
         "negative_flag": "no gap",
         # "numeric_flag": 12,

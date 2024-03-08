@@ -51,6 +51,11 @@ demo_template = os.path.join(
 # =============================================================================
 
 from metobs_toolkit.dataset import Dataset
+
+# extensions of the dataset
+from metobs_toolkit.dataset_settings_updater import Dataset
+from metobs_toolkit.dataset_gapfill import Dataset
+
 from metobs_toolkit.station import Station
 from metobs_toolkit.modeldata import Modeldata
 from metobs_toolkit.obstypes import Obstype
@@ -61,11 +66,6 @@ from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfi
 from metobs_toolkit.data_templates.template_build_prompt import build_template_prompt
 from metobs_toolkit.landcover_functions import connect_to_gee
 
-# =============================================================================
-# Import extenders
-# =============================================================================
-from metobs_toolkit.dataset_settings_updater import Dataset
-from metobs_toolkit.dataset_gapfill import Dataset
 
 # =============================================================================
 # Version
