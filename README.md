@@ -4,7 +4,7 @@
 [![Documentation Status](https://readthedocs.org/projects/metobs-toolkit/badge/?version=latest)](https://metobs-toolkit.readthedocs.io/en/latest/?badge=latest)
 [![status](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d/status.svg)](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d)
 [![Tests passing](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml)
-
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10794417.svg)](https://doi.org/10.5281/zenodo.10794417)
 
 <img src="https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/master/docs/logo_small.jpeg" alt="drawing" style="width:200px;"/>
 
@@ -22,24 +22,24 @@ Documentation can be found [here](https://metobs-toolkit.readthedocs.io/en/lates
 Install the package using pip:
 
 ```bash
-pip3 install metobs-toolkit
+pip install metobs-toolkit
  ```
 To install the PyPi version of the toolkit. To install the github versions one can use these commands:
 
 ```bash
 #main versions
-pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
+pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
 
 #development version
-pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
+pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
 
 #specific release from github
-pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.1.1
+pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.2.0
  ```
 For some advanced quality control methods, the [Titanlib package](https://github.com/metno/titanlib) is used. Since the installation of titanlib requires a c++ compiler, we have chosen not to include it in the toolkit. If you want to use the Titanlib functionality you must install both the toolkit and Titanlib:
 
 ```bash
-pip3 install metobs-toolkit titanlib
+pip install metobs-toolkit titanlib
  ```
 
 To use the package, import it in Python:

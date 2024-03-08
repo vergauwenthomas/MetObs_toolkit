@@ -14,20 +14,20 @@ To install the package one can use pip:
 
 .. code-block:: console
 
-   pip3 install metobs-toolkit
+   pip install metobs-toolkit
 
 To install the PyPi version of the toolkit. To install the github versions one can use these commands:
 
 .. code-block:: console
 
    #main versions
-   pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
+   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
 
    #development version
-   pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
+   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
 
    #specific release from github
-   pip3 install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.1.1
+   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.2.0
 
 
 For some advanced quality control methods, the `Titanlib <https://github.com/metno/titanlib>`_ package is used.
@@ -36,7 +36,7 @@ the user must install titanlib manually if this functionality is required or use
 
 .. code-block:: console
 
-   pip3 install metobs-toolkit[titanlib]
+   pip install metobs-toolkit[titanlib]
 
 
 .. note::

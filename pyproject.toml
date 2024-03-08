@@ -25,7 +25,7 @@ maintainers = ["Thomas Vergauwen <thomas.vergauwen@meteo.be>"]
 name = "MetObs-toolkit"
 packages = [{include = "metobs_toolkit"}]
 readme = "README.md"
-version = "0.1.3a"
+version = "0.2.0"
 
 [tool.poetry.dependencies]
 cartopy = "^0.22.0"
