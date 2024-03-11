@@ -79,6 +79,9 @@ dataset_coarsened.update_qc_settings(
 
 
 dataset_coarsened.import_data_from_file()
+
+
+# %%
 dataset_coarsened.coarsen_time_resolution()
 dataset_coarsened.apply_quality_control()
 
