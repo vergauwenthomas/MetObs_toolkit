@@ -579,7 +579,7 @@ pressure_model = ModelObstype(
 )
 
 # Special obstypes
-wind.name = "wind"  # otherwise it is windspeed, which is confusing for vectorfield
+wind.name = "wind_speed"
 wind_model = ModelObstype_Vectorfield(
     wind,
     u_comp_model_equivalent_dict=tlk_std_modeldata_obstypes["u_wind"],
