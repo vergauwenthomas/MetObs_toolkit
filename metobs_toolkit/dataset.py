@@ -2202,43 +2202,57 @@ class Dataset:
         # TODO: implement buffer method
         df = self.df.reset_index()
 
-        if origin is None:
-            # find earlyest timestamp, if it is on the h_initiate_gapdfour, use it else use the following hour
-            tstart = df["datetime"].min()
+        # resample per station! Assume that the different obstypes per station
+        # have the same frequency
+        stationdfs = []
+        for station in df["name"].unique():
+            stadf = df[df["name"] == station]
 
-            if tstart.minute != 0 or tstart.second != 0 or tstart.microsecond != 0:
-                # Round up to nearest hour
-                tstart = tstart.ceil(freq=freq)
-        else:
-            origin_tz_aware = pytz.timezone(origin_tz).localize(origin)
-            tstart = origin_tz_aware.astimezone(
-                pytz.timezone(self.settings.time_settings["timezone"])
+            # Get the origin for the station observations
+            if origin is None:
+                tstart = stadf["datetime"].min()
+                if tstart.minute != 0 or tstart.second != 0 or tstart.microsecond != 0:
+                    # Round up to nearest hour
+                    tstart = tstart.ceil(freq=freq)
+            else:
+                origin_tz_aware = pytz.timezone(origin_tz).localize(origin)
+                tstart = origin_tz_aware.astimezone(
+                    pytz.timezone(self.settings.time_settings["timezone"])
+                )
+
+            # Coarsen timeresolution
+            if method == "nearest":
+                stadf = (
+                    stadf.set_index("datetime")
+                    .groupby("obstype")
+                    .resample(freq, origin=tstart)
+                    .nearest(limit=limit)
+                )
+
+            elif method == "bfill":
+                stadf = (
+                    stadf.set_index("datetime")
+                    .groupby("obstype")
+                    .resample(freq, origin=tstart)
+                    .bfill(limit=limit)
+                )
+
+            else:
+                logger.warning(
+                    f"The coarsening method: {method}, is not implemented yet."
+                )
+                df = df.set_index(["name", "obstype", "datetime"])
+
+            # format to the .df attribute
+            stadf = (
+                stadf.drop(columns=["obstype"])
+                .reset_index()
+                .set_index(["name", "obstype", "datetime"])
             )
 
-        # Coarsen timeresolution
+            stationdfs.append(stadf)
 
-        if method == "nearest":
-            df = (
-                df.set_index("datetime")
-                .groupby("name")
-                .resample(freq, origin=tstart)
-                .nearest(limit=limit)
-            )
-
-        elif method == "bfill":
-            df = (
-                df.set_index("datetime")
-                .groupby("name")
-                .resample(freq, origin=tstart)
-                .bfill(limit=limit)
-            )
-
-        else:
-            logger.warning(f"The coarsening method: {method}, is not implemented yet.")
-            df = df.set_index(["name", "datetime"])
-
-        if "name" in df.columns:
-            df = df.drop(columns=["name"])
+        df = pd.concat(stationdfs)
 
         # Update resolution info in metadf
         self.metadf["dataset_resolution"] = pd.to_timedelta(freq)

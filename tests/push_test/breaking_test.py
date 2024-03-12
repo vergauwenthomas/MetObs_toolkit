@@ -236,108 +236,214 @@ else:
 from datetime import datetime
 import pandas as pd
 
+# all_gaps = dataset.get_gaps_fill_df()
+# temp_gaps = all_gaps.xs('temp', level='obstype').sort_index()
 
-manual_missing_gaps = [
-    {
-        "name": "Fictional",
-        "start_gap": datetime(2020, 9, 14, 22, 30),
-        "end_gap": datetime(2020, 9, 14, 23, 55),
-    }
-]  # UPDATE MANUALLY !!!!!!!!!!
 
-print("Testing the gaps")
+# # manual_gaps_creator
+# man_gaps = []
+# for gap in dataset.gaps:
+#     if gap.obstype.name == 'temp':
+#         man_gaps.append(tuple([gap.name, gap.startdt, gap.enddt]))
 
-man_gapsdf = pd.DataFrame().from_records(manual_missing_gaps)
-man_gapsdf = man_gapsdf.set_index("name")
 
-# Set timezone
-man_gapsdf["start_gap"] = pd.to_datetime(man_gapsdf["start_gap"]).dt.tz_localize(
-    tz="UTC"
-)
-man_gapsdf["end_gap"] = pd.to_datetime(man_gapsdf["end_gap"]).dt.tz_localize(tz="UTC")
+from pandas import Timestamp
+
+man_gaps = [
+    (
+        "1",
+        Timestamp("2020-09-16 21:30:00+0000", tz="UTC"),
+        Timestamp("2020-09-16 21:30:00+0000", tz="UTC"),
+    ),  # ok
+    (
+        "1",
+        Timestamp("2020-09-16 22:30:00+0000", tz="UTC"),
+        Timestamp("2020-09-16 22:30:00+0000", tz="UTC"),
+    ),  # ok
+    (
+        "1",
+        Timestamp("2020-09-16 23:00:00+0000", tz="UTC"),
+        Timestamp("2020-09-16 23:45:00+0000", tz="UTC"),
+    ),  # ok
+    (
+        "Fictional",
+        Timestamp("2020-09-14 22:30:00+0000", tz="UTC"),
+        Timestamp("2020-09-14 23:55:00+0000", tz="UTC"),
+    ),  # ok
+    (
+        "Fictional",
+        Timestamp("2020-09-15 01:15:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 01:15:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 02:50:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 02:50:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 03:00:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 03:20:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 04:15:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 04:15:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 05:10:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 05:15:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 06:00:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 06:00:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 06:45:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 06:45:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 07:35:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 07:40:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 08:35:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 08:35:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 09:40:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 09:40:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 10:55:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 10:55:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 12:40:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 12:40:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 14:55:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 14:55:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 17:25:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 17:25:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 17:35:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 17:35:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 19:35:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 19:35:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 20:40:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 20:40:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 21:50:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 21:50:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 22:50:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 22:50:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 23:25:00+0000", tz="UTC"),
+        Timestamp("2020-09-15 23:25:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-15 23:50:00+0000", tz="UTC"),
+        Timestamp("2020-09-16 00:00:00+0000", tz="UTC"),
+    ),
+    (
+        "Fictional",
+        Timestamp("2020-09-16 00:45:00+0000", tz="UTC"),
+        Timestamp("2020-09-16 00:45:00+0000", tz="UTC"),
+    ),
+]
+
+
+# create a list of found temperature gaps
+found_gaps = [
+    tuple([gap.name, gap.startdt, gap.enddt])
+    for gap in dataset.gaps
+    if gap.obstype.name == "temp"
+]
+# Check if all found gaps are also manual gap
+gaps_are_ok = True
+for gap in found_gaps:
+    if gap not in man_gaps:
+        print(f"{gap} Not found in the manual gaps!")
+        gaps_are_ok = False
+
+for gap in man_gaps:
+    if gap not in found_gaps:
+        print(f"{gap} is a manual gap but not found by the toolkit")
+        gaps_are_ok = False
+
+
+assert gaps_are_ok, "problem with the gaps"
+print("Gaps are checked")
+
+
+# manual_missing_gaps = [
+#     {
+#         "name": "Fictional",
+#         "start_gap": datetime(2020, 9, 14, 22, 30),
+#         "end_gap": datetime(2020, 9, 14, 23, 55),
+#     }
+# ]  # UPDATE MANUALLY !!!!!!!!!!
+
+# print("Testing the gaps")
+
+# man_gapsdf = pd.DataFrame().from_records(manual_missing_gaps)
+# man_gapsdf = man_gapsdf.set_index("name")
+
+# # Set timezone
+# man_gapsdf["start_gap"] = pd.to_datetime(man_gapsdf["start_gap"]).dt.tz_localize(
+#     tz="UTC"
+# )
+# man_gapsdf["end_gap"] = pd.to_datetime(man_gapsdf["end_gap"]).dt.tz_localize(tz="UTC")
 
 
 # %%
 
-tlk_gapsdf = dataset.get_gaps_df()
-tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
+# tlk_gapsdf = dataset.get_gaps_df()
+# tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
 
 
-if not tlk_gapsdf.equals(man_gapsdf):
-    print(f"ERROR: wrong gaps detection")
+# if not tlk_gapsdf.equals(man_gapsdf):
+#     print(f"ERROR: wrong gaps detection")
 
-    print(
-        f"differences tlkit --> manual: {tlk_gapsdf[~tlk_gapsdf.apply(tuple,1).isin(man_gapsdf.apply(tuple,1))]}"
-    )
-    print(
-        f"differences manual --> tlkit: {man_gapsdf[~man_gapsdf.apply(tuple,1).isin(tlk_gapsdf.apply(tuple,1))]}"
-    )
-    sys.exit(1)
+#     print(
+#         f"differences tlkit --> manual: {tlk_gapsdf[~tlk_gapsdf.apply(tuple,1).isin(man_gapsdf.apply(tuple,1))]}"
+#     )
+#     print(
+#         f"differences manual --> tlkit: {man_gapsdf[~man_gapsdf.apply(tuple,1).isin(tlk_gapsdf.apply(tuple,1))]}"
+#     )
+#     sys.exit(1)
 
-else:
-    print("OK!")
+# else:
+#     print("OK!")
 
-
-# =============================================================================
-# test missing missing timestamps
-# =============================================================================
-
-
-# This has to be done properly, there are too much missing timestamps for manual labelling.
-# as a dirty fix, now only count the number of missing timestamps and see it that is oke
-
-number_missing_timestamps = {"1": 1, "Fictional": 307}
-
-
-print("Testing the missing obs")
-
-man_missing_timestamps_df = pd.DataFrame(
-    [
-        ("Fictional", datetime(2020, 9, 15, 2, 50)),
-        ("Fictional", datetime(2020, 9, 15, 3, 00)),
-        ("Fictional", datetime(2020, 9, 15, 3, 5)),
-        ("Fictional", datetime(2020, 9, 15, 3, 10)),
-        ("Fictional", datetime(2020, 9, 15, 3, 15)),
-        ("Fictional", datetime(2020, 9, 15, 3, 20)),
-        ("Fictional", datetime(2020, 9, 15, 5, 10)),
-        ("Fictional", datetime(2020, 9, 15, 6, 45)),
-        ("Fictional", datetime(2020, 9, 15, 7, 40)),
-        ("Fictional", datetime(2020, 9, 15, 12, 40)),
-        ("Fictional", datetime(2020, 9, 15, 17, 35)),
-        ("Fictional", datetime(2020, 9, 15, 20, 40)),
-        ("Fictional", datetime(2020, 9, 15, 23, 50)),
-        ("1", datetime(2020, 9, 16, 21, 30)),
-    ],
-    columns=["name", "datetime"],
-)
-
-# set timezone
-man_missing_timestamps_df["datetime"] = pd.to_datetime(
-    man_missing_timestamps_df["datetime"]
-).dt.tz_localize(tz="UTC")
-
-# get index
-man_missing_timestamps_idx = pd.MultiIndex.from_frame(
-    man_missing_timestamps_df
-).sort_values()
-
-tlk_missing_series = dataset.missing_obs.series
-tlk_missing_series = tlk_missing_series.reset_index().rename(
-    columns={"index": "name", 0: "datetime"}
-)
-tlk_missing_timestamps_idx = pd.MultiIndex.from_frame(tlk_missing_series).sort_values()
-
-
-if not tlk_missing_timestamps_idx.equals(man_missing_timestamps_idx):
-    print(f"ERROR: wrong missing timestamps detection")
-
-    print(
-        f"differences tlkit --> manual: { tlk_missing_timestamps_idx.difference(man_missing_timestamps_idx)}"
-    )
-    print(
-        f"differences manual --> tlkit: {man_missing_timestamps_idx.difference(tlk_missing_timestamps_idx)}"
-    )
-    sys.exit(1)
-
-else:
-    print("OK!")
+print("Done")

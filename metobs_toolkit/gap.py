@@ -1083,6 +1083,16 @@ def find_gaps(df, blacklist_records, Obstypesdict, freq_series=None):
                 ~missing_records.index.isin(blacklist_records)
             ]
 
+            # after the blacklist, recalculate the diff !!! because some records
+            # are removed, and the diff must thus be recalculated
+            missing_records = missing_records.reset_index()
+            missing_records["dtshift"] = missing_records["datetime"].shift()
+            missing_records["diff"] = (
+                missing_records["datetime"] - missing_records["dtshift"]
+            )
+            missing_records = missing_records.set_index(["name", "obstype", "datetime"])
+            missing_records = missing_records[["diff"]]
+
             if missing_records.empty:
                 continue
 
