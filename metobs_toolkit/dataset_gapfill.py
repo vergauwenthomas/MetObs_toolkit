@@ -11,7 +11,7 @@ import pandas as pd
 
 
 from metobs_toolkit import Dataset
-from metobs_toolkit.df_helpers import xs_save
+from metobs_toolkit.df_helpers import xs_save, init_triple_multiindexdf
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +70,10 @@ class Dataset(Dataset):
 
 
         """
+        if not bool(self.gaps):
+            # dataset does not hold gaps, return empyt df
+            return init_triple_multiindexdf()
+
         gaps_infodf_list = []
         for gap in self.gaps:
             gapfilldf = pd.concat([gap.gapdf, gap.anchordf])

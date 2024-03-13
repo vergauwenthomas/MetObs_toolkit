@@ -67,6 +67,14 @@ from metobs_toolkit.data_templates.template_build_prompt import build_template_p
 from metobs_toolkit.landcover_functions import connect_to_gee
 
 # =============================================================================
+# Pandas defaults
+# =============================================================================
+import pandas as pd
+
+pd.options.mode.copy_on_write = True  # This will become the default in pandas 3.0
+
+
+# =============================================================================
 # Version
 # =============================================================================
 

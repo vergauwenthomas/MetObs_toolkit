@@ -105,9 +105,9 @@ def init_multiindexdf():
 def init_triple_multiindex():
     """Construct a name-datetime-obstype pandas multiindex."""
     my_index = pd.MultiIndex(
-        levels=[["name"], ["datetime"], ["obstype"]],
+        levels=[["name"], ["obstype"], ["datetime"]],
         codes=[[], [], []],
-        names=["name", "datetime", "obstype"],
+        names=["name", "obstype", "datetime"],
     )
     return my_index
 

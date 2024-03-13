@@ -67,13 +67,13 @@
 "Fictional","2020-09-15","04:55:00",8.6,91,7,"in step outlier group",
 "Fictional","2020-09-15","05:00:00",6.8,92,8,"in step outlier group",
 "Fictional","2020-09-15","05:05:00",6.9,91,6,"ok","see below"
-"Fictional","2020-09-15","05:05:00",,9000.00%,7,"duplicated timestamp outlier","does not exist for temperature"
+"Fictional","2020-09-15","05:05:00",,"9000.00%",7,"duplicated timestamp outlier","does not exist for temperature"
 "Fictional","2020-09-15","05:15:00","qsfvqb",89,6,"gap",
 "Fictional","2020-09-15","05:20:00",7,88,5,"ok",
 "Fictional","2020-09-15","05:25:00",7.1,88,5,"ok",
 "Fictional","2020-09-15","05:30:00",7.1,87,6,"ok",
 "Fictional","2020-09-15","05:35:00",7.3,88,7,"ok",
-"Fictional","2020-09-15","05:40:00",,87,6,,"does not exist for temperature"
+"Fictional","2020-09-15","05:40:00",,87,6,"duplicated timestamp outlier","does not exist for temperature"
 "Fictional","2020-09-15","05:40:00",7.2,86,7,"duplicated timestamp outlier",
 "Fictional","2020-09-15","05:40:00",7.4,86,7,"duplicated timestamp outlier",
 "Fictional","2020-09-15","05:45:00",7.5,85,8,"ok",

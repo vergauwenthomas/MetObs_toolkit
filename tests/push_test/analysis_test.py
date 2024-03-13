@@ -18,10 +18,23 @@ lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-#%%
+# %%
 
 
 dataset = metobs_toolkit.Dataset()
+
+# # =============================================================================
+# # Create solution data and objects (DO NOT RUN IN A STANDARD CASE)
+# # =============================================================================
+# dataset = metobs_toolkit.Dataset()
+# dataset.update_settings(
+#                           input_data_file=metobs_toolkit.demo_datafile,
+#                           input_metadata_file=metobs_toolkit.demo_metadatafile,
+#                           template_file=metobs_toolkit.demo_template,
+#                           )
+# dataset.import_data_from_file()
+# dataset.apply_quality_control()
+# %%
 
 
 dataset = dataset.import_dataset(

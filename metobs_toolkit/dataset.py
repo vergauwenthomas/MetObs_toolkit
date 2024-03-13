@@ -12,6 +12,7 @@ import sys
 import copy
 from datetime import timedelta
 import itertools
+import time
 import pytz
 import logging
 import pandas as pd
@@ -35,7 +36,7 @@ from metobs_toolkit.landcover_functions import (
 )
 
 from metobs_toolkit.plotting_functions import (
-    geospatial_plot,
+    spatial_plot,
     timeseries_plot,
     qc_stats_pie,
     folium_plot,
@@ -1065,7 +1066,7 @@ class Dataset:
         vmin=None,
         vmax=None,
         legend_title=None,
-        boundbox=[],
+        is_categorical=False,
     ):
         """Make geospatial plot.
 
@@ -1139,7 +1140,7 @@ class Dataset:
             timeinstance, self.settings.time_settings["timezone"]
         )
         if timeinstance is None:
-            timeinstance = self.df.dropna(subset=["temp"]).index[0][1]
+            timeinstance = self.df.dropna().index.get_level_values("datetime").min()
 
         logger.info(f"Make {variable}-geo plot at {timeinstance}")
 
@@ -1153,12 +1154,12 @@ class Dataset:
             logger.error(f"Stations without coordinates detected: {_sta}")
             return None
 
-        if bool(boundbox):
-            if len(boundbox) != 4:
-                logger.warning(
-                    f"The boundbox ({boundbox}) does not contain 4 elements! The default boundbox is used!"
-                )
-                boundbox = []
+        # if bool(boundbox):
+        #     if len(boundbox) != 4:
+        #         logger.warning(
+        #             f"The boundbox ({boundbox}) does not contain 4 elements! The default boundbox is used!"
+        #         )
+        #         boundbox = []
 
         # Check if LCZ if available
         if variable == "lcz":
@@ -1170,12 +1171,40 @@ class Dataset:
             legend_title = ""
 
         # subset to timeinstance
-        plotdf = xs_save(self.df, timeinstance, level="datetime")
+        plotdf = xs_save(self.df, timeinstance, level="datetime", drop_level=True)
 
-        # merge metadata
-        plotdf = plotdf.merge(
-            self.metadf, how="left", left_index=True, right_index=True
-        )
+        # make a plotting df (2 columns: to_plot and the spatial geometry)
+        if variable in plotdf.index.get_level_values("obstype").unique():
+
+            plotdf = xs_save(plotdf, variable, level="obstype", drop_level=True)
+            plotdf = plotdf.rename(columns={"value": "to_plot"})
+            # merge metadata
+            plotdf = plotdf.merge(
+                self.metadf[["geometry"]], how="left", left_index=True, right_index=True
+            )
+
+            plotdf = plotdf[["to_plot", "geometry"]]
+
+        else:
+            # assume the variable is in the metadf
+            assert (
+                variable in self.metadf.columns
+            ), f"{variable} is not foud as an observation type, and not in the metadata: {self.metadf.columns}."
+            plotdf = self.metadf[[variable, "geometry"]]
+            plotdf = plotdf.rename(columns={variable: "to_plot"})
+
+        # # merge metadata
+        # plotdf = plotdf.merge(
+        #     self.metadf, how="left", left_index=True, right_index=True
+        # )
+        use_quantiles = False
+        if np.issubdtype(plotdf["to_plot"].dtype, np.number):
+            # to plot is numeric
+            if is_categorical:
+                use_quantiles = True
+        else:
+            is_categorical = True
+            use_quantiles = False
 
         # titles
         if title is None:
@@ -1188,22 +1217,40 @@ class Dataset:
             if legend_title is None:
                 legend_title = f"{self.obstypes[variable].get_standard_unit()}"
 
-        axis = geospatial_plot(
-            plotdf=plotdf,
-            variable=variable,
-            timeinstance=timeinstance,
-            title=title,
+        axis = spatial_plot(
+            gdf=plotdf,
+            variable="to_plot",
             legend=legend,
+            use_quantiles=use_quantiles,
+            is_categorical=is_categorical,
+            k_quantiles=self.settings.app["plot_settings"]["spatial_geo"][
+                "n_for_categorical"
+            ],
+            cmap=self.settings.app["plot_settings"]["spatial_geo"]["cmap"],
+            figsize=self.settings.app["plot_settings"]["spatial_geo"]["figsize"],
+            # extent=
+            title=title,
             legend_title=legend_title,
             vmin=vmin,
             vmax=vmax,
-            plotsettings=self.settings.app["plot_settings"],
-            categorical_fields=self.settings.app["categorical_fields"],
-            static_fields=self.settings.app["static_fields"],
-            display_name_mapper=self.settings.app["display_name_mapper"],
-            data_template=self.data_template,
-            boundbox=boundbox,
         )
+
+        # axis = geospatial_plot(
+        #     plotdf=plotdf,
+        #     variable=variable,
+        #     timeinstance=timeinstance,
+        #     title=title,
+        #     legend=legend,
+        #     legend_title=legend_title,
+        #     vmin=vmin,
+        #     vmax=vmax,
+        #     plotsettings=s,
+        #     categorical_fields=self.settings.app["categorical_fields"],
+        #     static_fields=self.settings.app["static_fields"],
+        #     display_name_mapper=self.settings.app["display_name_mapper"],
+        #     data_template=self.data_template,
+        #     boundbox=boundbox,
+        # )
 
         return axis
 
@@ -1379,19 +1426,29 @@ class Dataset:
 
         # Get start and end of timeseries (be shure to include gaps and outliers to determine start en endpoints)
         combdf = self.combine_all_to_obsspace()
+        startdict = {}
+        enddict = {}
+        for sta in combdf.index.get_level_values("name").unique():
+            startdict[sta] = (
+                combdf.xs(sta, level="name").index.get_level_values("datetime").min()
+            )
+            enddict[sta] = (
+                combdf.xs(sta, level="name").index.get_level_values("datetime").max()
+            )
 
-        tstart = combdf.index.get_level_values("datetime").min()
-        tend = combdf.index.get_level_values("datetime").max()
+        # tstart = combdf.index.get_level_values("datetime").min()
+        # tend = combdf.index.get_level_values("datetime").max()
 
         # Since the outliers are Nan values in the dataset.df, and the find_gaps() method
         # looks for missing records AND invalid values (thus also nans), this method could be applied
 
         newgaps = find_gaps(
             df=self.df,
-            known_obstypes=self.obstypes.values(),
-            tstart=tstart,
-            tend=tend,
+            blacklist_records=[],
+            Obstypesdict=self.obstypes,
             freq_series=self.metadf["dataset_resolution"],
+            startdict=startdict,
+            enddict=enddict,
         )
 
         # initialize the gapdf attributes
@@ -1847,7 +1904,7 @@ class Dataset:
         # =============================================================================
         # Stack observations and outliers
         # =============================================================================
-        df = self.df
+        dfobs = self.df
         # # better save than sorry
         # present_obstypes = list(self.obstypes.keys())
         # df = df[present_obstypes]
@@ -1860,8 +1917,8 @@ class Dataset:
         #     .set_index(["name", "datetime", "obstype"])
         # )
 
-        df["label"] = "ok"
-        df["toolkit_representation"] = "observation"
+        dfobs["label"] = "ok"
+        dfobs["toolkit_representation"] = "observation"
 
         # outliers
         outliersdf = self.outliersdf.copy()
@@ -1870,10 +1927,10 @@ class Dataset:
         # Careful! Some outliers exist on inport frequency (duplicated)
         # So only use the outliers for which station-datetime-obstype are present in the
         # dataset.df
-        outliersdf = outliersdf[outliersdf.index.isin(df.index)]
+        outliersdf = outliersdf[outliersdf.index.isin(dfobs.index)]
 
         # remove outliers from the observations
-        df = df[~df.index.isin(outliersdf.index)]
+        dfobs = dfobs[~dfobs.index.isin(outliersdf.index)]
 
         # =============================================================================
         # Stack gaps
@@ -1930,7 +1987,7 @@ class Dataset:
         # gapsdf["toolkit_representation"] = "gap"
 
         # Remove gaps from df
-        df = df[~df.index.isin(gapsdf.index)]
+        dfobs = dfobs[~dfobs.index.isin(gapsdf.index)]
 
         # I could not think of applications for the following two lines in
         # the obstype-dependant defenition of gaps.
@@ -1983,7 +2040,7 @@ class Dataset:
 
         combdf = concat_save(
             [
-                df,
+                dfobs,
                 outliersdf,
                 gapsdf,
                 # gapsfilldf,
@@ -2595,6 +2652,7 @@ class Dataset:
             >>> dataset.import_data_from_file()
 
         """
+
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         if freq_estimation_method is None:
@@ -2787,13 +2845,15 @@ station with the default name: {self.settings.app["default_name"]}.'
     ):
         """Construct the Dataset class from a IO dataframe.
 
-        The df, metadf, outliersdf, gaps, missing timestamps and observationtypes attributes are set.
+        1. Set the dataframe and metadataframe attributes
+        2. Drop stations that have Nan as name.
+        2. Find the duplicates (remove them from observations +  add them to outliers)
+        3. Convert the values to standard units + update the observationtypes (some template specific attribute)
+        5. Find gaps in the records (duplicates are excluded from the gaps)
+        6. Get a frequency estimate per station
+        7. Initiate the gaps (find missing records)
+        8. Add the missing records to the dataframe
 
-
-        The observations are converted to the toolkit standard units if possible.
-
-        Qc on IO is applied (duplicated check and invalid check) + gaps and missing
-        values are defined by assuming a frequency per station.
 
         Parameters
         ----------
@@ -2825,26 +2885,22 @@ station with the default name: {self.settings.app["default_name"]}.'
         # Convert dataframe to dataset attributes
         self._initiate_df_attribute(dataframe=df, update_metadf=update_full_metadf)
 
+        # Remove nan names
+        self._remove_nan_names()
+
+        # find the start and end timestamps for each station + write it to the metadf
+        self._get_start_and_end_dts()
+
         # Remove duplicates (needed in order to convert the units)
         self._find_duplicates_on_import()
 
         # Check observation types and convert units if needed.
         self._setup_of_obstypes_and_units()
 
-        # if the name is Nan, remove these records from df, and metadf (before)
-        # they end up in the gaps and missing obs
-        if np.nan in self.df.index.get_level_values("name"):
-            logger.warning(
-                f'Following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}'
-            )
-            self.df = self.df[~self.df.index.get_level_values("name").isna()]
-        if np.nan in self.metadf.index:
-            logger.warning(
-                f"Following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}"
-            )
-            self.metadf = self.metadf[~self.metadf.index.isna()]
-
         # Find gaps on Import resolution
+        if self.outliersdf.empty:
+            # create this empty column if no duplicates were found
+            self.outliersdf["label"] = np.nan
         blacklist = self.outliersdf[
             self.outliersdf["label"]
             == self.settings.qc["qc_checks_info"]["duplicated_timestamp"][
@@ -2857,10 +2913,9 @@ station with the default name: {self.settings.app["default_name"]}.'
             blacklist_records=blacklist,  # to ignore
             Obstypesdict=self.obstypes,  # to overload the obstype instances
             freq_series=None,  # find frequencies by highest assumption
+            startdict=self.metadf["dt_start"].to_dict(),
+            enddict=self.metadf["dt_end"].to_dict(),
         )
-
-        # TOCHECK: gaps are created but i do not think that a perfect frequency
-        # observational records are insured! Check if this is the case!
 
         if fixed_freq_series is None:
             freq_series = get_freqency_series(
@@ -2883,62 +2938,55 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         # add import frequencies to metadf (after import qc!)
         self.metadf["assumed_import_frequency"] = freq_series_import
-
         self.metadf["dataset_resolution"] = freq_series
 
-        # initialize the gapdf attributes
-        for gap in self.gaps:
-            # initiate the gaps (= find the missing records)
-            gap._initiate_gapdf(Dataset=self)
+        # # initialize the gapdf attributes
+        # for gap in self.gaps:
+        #     # initiate the gaps (= find the missing records)
+        #     gap._initiate_gapdf(Dataset=self)
 
         # add Nan's to the df for gaprecords
         gaps_overviewdf = create_gaps_overview_df(self.gaps)
         gaps_in_df = pd.DataFrame(index=gaps_overviewdf.index, data={"value": np.nan})
-
         self.df = pd.concat([self.df, gaps_in_df]).sort_index()
 
-        # Remove gaps and missing from the observations AFTER timecoarsening
+    def _get_start_and_end_dts(self):
+        """Find the start and end timestamp for each station seperatly.
+        add it to the metadf.
 
-    #     self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
-    #     self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+        Note
+        -----
+        The assumtion is made that all obstypes per station have the same start
+        and end timestamp.
+        """
+        # Find the start and end timestamp for each station
+        for sta in self.df.index.get_level_values("name").unique():
+            self.metadf.loc[sta, "dt_start"] = (
+                self.df.xs(sta, level="name", drop_level=True)
+                .droplevel("obstype")
+                .index.min()
+            )
+            self.metadf.loc[sta, "dt_end"] = (
+                self.df.xs(sta, level="name", drop_level=True)
+                .droplevel("obstype")
+                .index.max()
+            )
 
-    # def _remove_gaps_from_obs(gaplist, obsdf):
-    #     """
-    #     Remove station - datetime records that are in the gaps from the obsdf.
+    def _remove_nan_names(self):
+        """if the name is Nan, remove these records from df, and metadf (before)
+        # they end up in the gaps and missing obs"""
 
-    #     (Usefull when filling timestamps to a df, and if you whant to remove the
-    #       gaps.)
+        if np.nan in self.df.index.get_level_values("name"):
+            logger.warning(
+                f'Following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}'
+            )
+            self.df = self.df[~self.df.index.get_level_values("name").isna()]
 
-    #     Parameters
-    #     ----------
-    #     obsdf : pandas.DataFrame()
-    #         A MultiIndex dataframe with name -- datetime as index.
-
-    #     Returns
-    #     -------
-    #     obsdf : pandas.DataFrame()
-    #         The same dataframe with records inside gaps removed.
-
-    #     """
-    #     # Create index for gaps records in the obsdf
-    #     expanded_gabsidx = init_multiindex()
-    #     for gap in gaplist:
-    #         sta_records = xs_save(obsdf, gap.name, level="name").index  # filter by name
-
-    #         gaps_dt = sta_records[
-    #             (sta_records >= gap.startgap)
-    #             & (sta_records <= gap.endgap)  # filter if the observations are within a gap
-    #         ]
-
-    #         gaps_multiidx = pd.MultiIndex.from_arrays(
-    #             arrays=[[gap.name] * len(gaps_dt), gaps_dt], names=["name", "datetime"]
-    #         )
-
-    #         expanded_gabsidx = expanded_gabsidx.append(gaps_multiidx)
-
-    #     # remove gaps idx from the obsdf
-    #     obsdf = obsdf.drop(index=expanded_gabsidx)
-    #     return obsdf
+        if np.nan in self.metadf.index:
+            logger.warning(
+                f"Following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}"
+            )
+            self.metadf = self.metadf[~self.metadf.index.isna()]
 
     def _initiate_df_attribute(self, dataframe, update_metadf=True):
         """Initialize dataframe attributes."""
@@ -2970,12 +3018,12 @@ station with the default name: {self.settings.app["default_name"]}.'
             # drop dubplicates due to datetime
             metadf = metadf[~metadf.index.duplicated(keep="first")]
 
+            # Convert to geopandas dataframe
             self.metadf = metadf_to_gdf(metadf)
 
     def _setup_of_obstypes_and_units(self):
         """Function to setup all attributes related to observation types and
         convert to standard units."""
-
         # Check if all present observation types are known.
         present_obstypes = self._get_present_obstypes()
         unknown_obs_cols = [
@@ -2989,18 +3037,24 @@ station with the default name: {self.settings.app["default_name"]}.'
         # get the obstypes in the data, that can be linked to a knonw obstype
         mappable_obstypes = list(set(present_obstypes) - set(unknown_obs_cols))
 
+        # Found that it is approx 70 times faster convert obstype per obstype,
+        # add them to a list and concat them, than using the .loc method to
+        # assign the converted values directly to the df attribute
+
+        subdf_list = []
         for present_obs in mappable_obstypes:
             # Convert the units to the toolkit standards (if unit is known)
             input_unit = self.data_template.loc["units", present_obs]  # Get input unit
             # locate the specific obstype records
-            obstype_values = xs_save(self.df, present_obs, "obstype", drop_level=False)
+            obstype_values = xs_save(self.df, present_obs, "obstype", drop_level=False)[
+                "value"
+            ]
             # Convert to standard unit and replace them in the df attribute
-            self.df.loc[obstype_values.index, "value"] = self.obstypes[
-                present_obs
-            ].convert_to_standard_units(
-                input_data=obstype_values, input_unit=input_unit
+            subdf_list.append(
+                self.obstypes[present_obs].convert_to_standard_units(
+                    input_data=obstype_values, input_unit=input_unit
+                )
             )
-
             # Update the description of the obstype
             description = self.data_template.loc["description", present_obs]
             if pd.isna(description):
@@ -3014,6 +3068,8 @@ station with the default name: {self.settings.app["default_name"]}.'
             self.obstypes[present_obs].set_original_unit(
                 self.data_template.loc["units", present_obs]
             )
+
+        self.df = pd.concat(subdf_list).to_frame().sort_index()
 
         # subset the obstypes attribute
         self.obstypes = {

@@ -25,6 +25,7 @@ import metobs_toolkit.gap_filling as gap_filling
 
 from metobs_toolkit.df_helpers import (
     init_multiindexdf,
+    init_triple_multiindex,
     get_likely_frequency,
     xs_save,
 )
@@ -168,11 +169,18 @@ class Gap:
         # Get the missing records in the observationspace-frequency
         dtrecords = self.get_missing_records(Dataset)
 
+        # create and write the gapdf attribute
+        self._construct_gapdf(missing_datetime_records=dtrecords)
+
+    def _construct_gapdf(self, missing_datetime_records):
         # Create index
-        records_multiidx = pd.MultiIndex.from_arrays(
-            arrays=[[self.name] * len(dtrecords), dtrecords], names=["name", "datetime"]
+        self.gapdf.index = pd.MultiIndex.from_arrays(
+            arrays=[
+                [self.name] * len(missing_datetime_records),
+                missing_datetime_records,
+            ],
+            names=["name", "datetime"],
         )
-        self.gapdf.index = records_multiidx
 
         # Set columns with default values
         self.gapdf[f"{self.obstype.name}"] = np.nan  # fill with nan values
@@ -215,19 +223,22 @@ class Gap:
         # filter out start, end and freq of observations
         obsfreq = Dataset.metadf.loc[self.name, "dataset_resolution"]
 
-        obsstart = (
+        obs_datetime_idx = (
             Dataset.df.xs(self.name, level="name")
             .xs(self.obstype.name, level="obstype")
-            .index.min()
-        )
-        obsend = (
-            Dataset.df.xs(self.name, level="name")
-            .xs(self.obstype.name, level="obstype")
-            .index.max()
+            .index
         )
 
+        missing_records = self._missing_records_locator(
+            obs_datetime_index=obs_datetime_idx, obsfreq=obsfreq
+        )
+        return missing_records
+
+    def _missing_records_locator(self, obs_datetime_index, obsfreq):
         # create ideal datetimerange
-        obs_records_ideal = pd.date_range(start=obsstart, end=obsend, freq=obsfreq)
+        obs_records_ideal = pd.date_range(
+            start=obs_datetime_index.min(), end=obs_datetime_index.max(), freq=obsfreq
+        )
 
         # Subset to the gap-period (so only missing records are kept)
         missing_records = obs_records_ideal[
@@ -240,7 +251,7 @@ class Gap:
     # =============================================================================
     def get_leading_period(
         self,
-        Dataset,
+        observations_series,
         leading_period_duration="24H",
     ):
         """TODO update docstring
@@ -256,8 +267,10 @@ class Gap:
 
         Parameters
         ----------
-        Dataset : metobs_toolkit.Dataset
-            The dataset with the observations to look for the leading record.
+        observation_series : pandas.Series
+            The observation values for the specific station and obstype. This
+            is thus a pandas.Series with datetime as index. Outliers can be
+            represented by nan's.
         max_lead_to_gap_distance : Timedelta or str, optional
             The max distance, in time, between the gap start and leading record.
 
@@ -267,9 +280,9 @@ class Gap:
             All information on the leading record stored in a tuple.
 
         """
-        sta_obs = xs_save(Dataset.df, self.name, level="name")
-        sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
-        sta_obs = sta_obs.dropna()  # remove the Nans (from qc)
+        # sta_obs = xs_save(Dataset.df, self.name, level="name")
+        # sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
+        sta_obs = observations_series.dropna()  # remove the Nans (from qc)
         sta_obs_records = sta_obs.index
 
         period_start = self.startdt - pd.Timedelta(leading_period_duration)
@@ -292,12 +305,12 @@ class Gap:
                 [
                     self.name,
                     leading_period,
-                    sta_obs.loc[leading_period][self.obstype.name].to_list(),
+                    sta_obs.loc[leading_period].to_list(),
                     # "ok",
                 ]
             )
 
-    def get_trailing_period(self, Dataset, trailing_period_duration="24H"):
+    def get_trailing_period(self, observations_series, trailing_period_duration="24H"):
         """TODO update docstring
 
 
@@ -311,8 +324,10 @@ class Gap:
 
         Parameters
         ----------
-        Dataset : metobs_toolkit.Dataset
-            The dataset with the observations to look for the leading record.
+        observation_series : pandas.Series
+            The observation values for the specific station and obstype. This
+            is thus a pandas.Series with datetime as index. Outliers can be
+            represented by nan's.
         max_lead_to_gap_distance : Timedelta or str, optional
             The max distance, in time, between the gap start and leading record.
 
@@ -322,9 +337,9 @@ class Gap:
             All information on the leading record stored in a tuple.
 
         """
-        sta_obs = xs_save(Dataset.df, self.name, level="name")
-        sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
-        sta_obs = sta_obs.dropna()  # remove the Nans (from qc)
+        # sta_obs = xs_save(Dataset.df, self.name, level="name")
+        # sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
+        sta_obs = observations_series.dropna()  # remove the Nans (from qc)
         sta_obs_records = sta_obs.index
 
         period_end = self.enddt + pd.Timedelta(trailing_period_duration)
@@ -347,12 +362,12 @@ class Gap:
                 [
                     self.name,
                     trailing_period,
-                    sta_obs.loc[trailing_period][self.obstype.name].to_list(),
+                    sta_obs.loc[trailing_period].to_list(),
                     # "ok",
                 ]
             )
 
-    def get_leading_record(self, Dataset, max_lead_to_gap_distance=None):
+    def get_leading_record(self, observations_series, max_lead_to_gap_distance=None):
         """Find the leading observation (last ok-record before the gap).
 
         Get the last observation before the gap, for which an observation exists.
@@ -363,8 +378,10 @@ class Gap:
 
         Parameters
         ----------
-        Dataset : metobs_toolkit.Dataset
-            The dataset with the observations to look for the leading record.
+        observation_series : pandas.Series
+            The observation values for the specific station and obstype. This
+            is thus a pandas.Series with datetime as index. Outliers can be
+            represented by nan's.
         max_lead_to_gap_distance : Timedelta or str, optional
             The max distance, in time, between the gap start and leading record.
 
@@ -374,9 +391,9 @@ class Gap:
             All information on the leading record stored in a tuple.
 
         """
-        sta_obs = xs_save(Dataset.df, self.name, level="name")
-        sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
-        sta_obs = sta_obs.dropna()  # remove the Nans (from qc)
+        # sta_obs = xs_save(Dataset.df, self.name, level="name")
+        # sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
+        sta_obs = observations_series.dropna()  # remove the Nans (from qc)
         sta_obs_records = sta_obs.index
         leading_timestamp = sta_obs_records[sta_obs_records < self.startdt].max()
         if pd.isnull(leading_timestamp):
@@ -401,10 +418,10 @@ class Gap:
                     ]
                 )
 
-        leading_value = sta_obs.loc[leading_timestamp, self.obstype.name]
+        leading_value = sta_obs.loc[leading_timestamp]
         return tuple([self.name, leading_timestamp, leading_value, "ok"])
 
-    def get_trailing_record(self, Dataset, max_trail_to_gap_distance=None):
+    def get_trailing_record(self, observations_series, max_trail_to_gap_distance=None):
         """Find the trailing observation (first ok-record after gap).
 
         Get the first observation after the gap, for which an observation exists.
@@ -415,8 +432,10 @@ class Gap:
 
         Parameters
         ----------
-        Dataset : metobs_toolkit.Dataset
-            The dataset with the observations to look for the leading record.
+        observation_series : pandas.Series
+            The observation values for the specific station and obstype. This
+            is thus a pandas.Series with datetime as index. Outliers can be
+            represented by nan's.
         max_trail_to_gap_distance : Timedelta or str, optional
             The max distance, in time, between the gap end and trailing record.
 
@@ -426,9 +445,9 @@ class Gap:
             All information on the trailing record stored in a tuple.
 
         """
-        sta_obs = xs_save(Dataset.df, self.name, level="name")
-        sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
-        sta_obs = sta_obs.dropna()  # remove the Nans (from qc)
+        # sta_obs = xs_save(Dataset.df, self.name, level="name")
+        # sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
+        sta_obs = observations_series.dropna()  # remove the Nans (from qc)
         sta_obs_records = sta_obs.index
         trailing_timestamp = sta_obs_records[sta_obs_records > self.enddt].min()
         if pd.isnull(trailing_timestamp):
@@ -453,7 +472,7 @@ class Gap:
                     ]
                 )
 
-        trailing_value = sta_obs.loc[trailing_timestamp, self.obstype.name]
+        trailing_value = sta_obs.loc[trailing_timestamp]
         return tuple([self.name, trailing_timestamp, trailing_value, "ok"])
 
     # =============================================================================
@@ -652,13 +671,18 @@ class Gap:
     ):
 
         obsname = self.obstype.name
+        sta_obs_series = xs_save(Dataset.df, self.name, "name", drop_level=True)
+        sta_obs_series = xs_save(sta_obs_series, obsname, "obstype", drop_level=True)
+        sta_obs_series = sta_obs_series["value"]
         # 1. Get leading and trailing info
         # get leading record, check validity and add to the gapfilldf
         (_, lead_dt, lead_val, lead_msg) = self.get_leading_record(
-            Dataset=Dataset, max_lead_to_gap_distance=max_lead_to_gap_distance
+            observations_series=sta_obs_series,
+            max_lead_to_gap_distance=max_lead_to_gap_distance,
         )
         (_, trail_dt, trail_val, trail_msg) = self.get_trailing_record(
-            Dataset=Dataset, max_trail_to_gap_distance=max_trail_to_gap_distance
+            observations_series=sta_obs_series,
+            max_trail_to_gap_distance=max_trail_to_gap_distance,
         )
 
         # 2. Update the anchordf
@@ -791,15 +815,20 @@ class Gap:
             'trailing period').
 
         """
+        obsname = self.obstype.name
+        sta_obs_series = xs_save(Dataset.df, self.name, "name", drop_level=True)
+        sta_obs_series = xs_save(sta_obs_series, obsname, "obstype", drop_level=True)
+        sta_obs_series = sta_obs_series["value"]
+
         # 1. Get leading and trailing info
         # get leading record, check validity and add to the gapfilldf
         (_, lead_period, lead_vals) = self.get_leading_period(
-            Dataset=Dataset,
+            observations_series=sta_obs_series,
             leading_period_duration=leading_period_duration,
         )
 
         (_, trail_period, trail_vals) = self.get_trailing_period(
-            Dataset=Dataset,
+            observations_series=sta_obs_series,
             trailing_period_duration=trailing_period_duration,
         )
 
@@ -981,6 +1010,20 @@ class Gap:
 
 def create_gaps_overview_df(gapslist):
     """TODO: docstring"""
+
+    if not bool(gapslist):
+        # no gaps, so return default empty dataframe
+        defaultdf = pd.DataFrame(
+            data={
+                "fill_value": np.nan,
+                "obstype": np.nan,
+                "fill_method": np.nan,
+                "msg": np.nan,
+            },
+            index=init_triple_multiindex(),
+        )
+        return defaultdf
+
     gapsdf_list = []
     for gap in gapslist:
         gapdf = gap.gapdf
@@ -998,7 +1041,9 @@ def create_gaps_overview_df(gapslist):
 # =============================================================================
 
 
-def find_gaps(df, blacklist_records, Obstypesdict, freq_series=None):
+def find_gaps(
+    df, blacklist_records, Obstypesdict, freq_series=None, startdict=None, enddict=None
+):
     """
     #TODO update the docstring parameters
     Find gaps in the observations.
@@ -1052,8 +1097,15 @@ def find_gaps(df, blacklist_records, Obstypesdict, freq_series=None):
             likely_freq = freq_series[station]
 
         # Define the start and end of the timeseries
-        tstart = stadf.index.droplevel("obstype").min()
-        tend = stadf.index.droplevel("obstype").max()
+        if startdict is None:
+            tstart = stadf.index.droplevel("obstype").min()
+        else:
+            tstart = startdict[station]
+
+        if enddict is None:
+            tend = stadf.index.droplevel("obstype").max()
+        else:
+            tend = enddict[station]
 
         assert likely_freq.seconds > 0, "The frequency is not positive!"
         for obstype in found_obstypes:
@@ -1105,13 +1157,28 @@ def find_gaps(df, blacklist_records, Obstypesdict, freq_series=None):
             for gap_idx in group_sizes.index:
                 gap_idx = consec_missing_groups.get_group(gap_idx).index
 
-                gap_list.append(
-                    Gap(
-                        name=station,
-                        startdt=gap_idx.get_level_values("datetime").min(),
-                        enddt=gap_idx.get_level_values("datetime").max(),
-                        obstype=Obstypesdict[obstype],
-                    )
+                # Construct gap
+                gap = Gap(
+                    name=station,
+                    startdt=gap_idx.get_level_values("datetime").min(),
+                    enddt=gap_idx.get_level_values("datetime").max(),
+                    obstype=Obstypesdict[obstype],
                 )
+
+                # Compute missing records
+                # (It is found that there is a computational gain when the missing
+                # records are computed here, because all required filters are already
+                # applied)
+                missing_records = gap._missing_records_locator(
+                    obs_datetime_index=pd.date_range(
+                        start=tstart, end=tend, freq=likely_freq
+                    ),
+                    obsfreq=likely_freq,
+                )
+
+                gap._construct_gapdf(missing_datetime_records=missing_records)
+
+                # add gap to list
+                gap_list.append(gap)
 
     return gap_list
