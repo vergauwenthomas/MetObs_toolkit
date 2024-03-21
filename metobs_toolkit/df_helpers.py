@@ -509,7 +509,11 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
     freqs = {}
     for station in df.index.get_level_values(level="name").unique():
         subdf = xs_save(df, station, level="name")
-        subdf = subdf.droplevel("obstype").drop_duplicates(keep="first")
+        subdf = subdf.droplevel("obstype")  # remove the obstype level
+        subdf = subdf[
+            ~subdf.index.duplicated(keep="first")
+        ]  # drop duplicated timestamps
+
         # remove rows with all obstype nans
         subdf = subdf.dropna(axis=0, how="all")
 

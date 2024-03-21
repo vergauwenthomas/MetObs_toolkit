@@ -58,6 +58,7 @@ from metobs_toolkit.dataset_gapfill import Dataset
 from metobs_toolkit.dataset_qc import Dataset
 
 from metobs_toolkit.station import Station
+from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfield

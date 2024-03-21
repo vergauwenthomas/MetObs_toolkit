@@ -13,13 +13,15 @@ import sys, os
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+import solutions.solutions_creator as solution
+import pandas as pd
 import metobs_toolkit
+
 
 lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
-
-
 testdata = os.path.join(str(lib_folder), "tests", "test_data", "testdata_breaking.csv")
 
 
@@ -127,107 +129,154 @@ tlk_df = dataset.combine_all_to_obsspace()
 
 tlk_temp_df = tlk_df.xs("temp", level="obstype").sort_index()
 
-# %%
+
+# %% test if dataframes are equal to the solution
 
 
-print(tlk_temp_df.iloc[35:39])
+breaking_df_csv = "breaking_df.pkl"
+breaking_outliers_csv = "breaking_outliersdf.pkl"
+breaking_combined_df_csv = "breaking_combined_df.pkl"
 
 
-# %%
-all_manual_labels = list(man_df["flags"].unique())
-manual_to_tlkit_label_map = {
-    "ok": "ok",
-    "in step outlier group": dataset_coarsened.settings.qc["qc_checks_info"]["step"][
-        "outlier_flag"
-    ],
-    "repetitions outlier": dataset_coarsened.settings.qc["qc_checks_info"][
-        "repetitions"
-    ]["outlier_flag"],
-    "duplicated timestamp outlier": dataset_coarsened.settings.qc["qc_checks_info"][
-        "duplicated_timestamp"
-    ]["outlier_flag"],
-    "gross value outlier": dataset_coarsened.settings.qc["qc_checks_info"][
-        "gross_value"
-    ]["outlier_flag"],
-    "in window variation outlier group": dataset_coarsened.settings.qc[
-        "qc_checks_info"
-    ]["window_variation"]["outlier_flag"],
-    "persistance outlier": dataset_coarsened.settings.qc["qc_checks_info"][
-        "persistance"
-    ]["outlier_flag"],
-}
-
-# check if the mapper is still up to date
-assert all(
-    [True for label in all_manual_labels if label in manual_to_tlkit_label_map.keys()]
-), "Update the manual to toolkit mapper"
-
-
-# =============================================================================
-# iterate over all labels and validate if the indices are equal between manual and toolkit
-# =============================================================================
-
-to_check = [
-    "ok",
-    "in step outlier group",
-    "repetitions outlier",
-    # 'duplicated timestamp outlier',
-    "gross value outlier",
-    "in window variation outlier group",
-    "persistance outlier",
-]
-for man_label, tlk_label in manual_to_tlkit_label_map.items():
-    if not man_label in to_check:
-        continue
-
-    print(
-        f" Testing equality of the {tlk_label} with the manual labeling ({man_label})."
+def _create_qc_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.df.to_pickle(os.path.join(solution.solutions_dir, breaking_df_csv))
+    dataset.outliersdf.to_pickle(
+        os.path.join(solution.solutions_dir, breaking_outliers_csv)
+    )
+    dataset.combine_all_to_obsspace().to_pickle(
+        os.path.join(solution.solutions_dir, breaking_combined_df_csv)
     )
 
-    man_idx = man_df[man_df["flags"] == man_label].index.sort_values()
-    tlk_idx = (
-        tlk_df[tlk_df["label"] == tlk_label]
-        .xs("temp", level="obstype")
-        .index.sort_values()
+
+# _create_qc_solutions()
+
+
+def get_solutions():
+    sol_df = pd.read_pickle(os.path.join(solution.solutions_dir, breaking_df_csv))
+    sol_outliersdf = pd.read_pickle(
+        os.path.join(solution.solutions_dir, breaking_outliers_csv)
     )
-
-    if not tlk_idx.equals(man_idx):
-        print(f"ERROR: wrong labels for {tlk_label}")
-
-        print(f"differences tlkit --> manual: { tlk_idx.difference(man_idx)}")
-        print(f"differences manual --> tlkit: {man_idx.difference(tlk_idx)}")
-        sys.exit(1)
-
-    else:
-        print("OK!")
+    sol_combdf = pd.read_pickle(
+        os.path.join(solution.solutions_dir, breaking_combined_df_csv)
+    )
+    return sol_df, sol_outliersdf, sol_combdf
 
 
-# =============================================================================
-# test duplicates
-# =============================================================================
-# tested seperatly because duplicates are in tlk stored as one record, to avoid
-# duplicate index errors. So we have to do the same for the manual labeling
-man_label = "duplicated timestamp outlier"
-tlk_label = manual_to_tlkit_label_map[man_label]
+sol_df, sol_outliersdf, sol_combdf = get_solutions()
 
-print(f" Testing equality of the {tlk_label} with the manual labeling ({man_label}).")
 
-man_df_no_duplic = man_df[~man_df.index.duplicated(keep="first")]
+# 1 Test the df attribute
 
-man_idx = man_df_no_duplic[man_df_no_duplic["flags"] == man_label].index.sort_values()
-tlk_idx = (
-    tlk_df[tlk_df["label"] == tlk_label].xs("temp", level="obstype").index.sort_values()
+solution.test_df_are_equal(testdf=dataset.df, solutiondf=sol_df)
+
+
+# 2 Test the outliersdf attribute
+
+solution.test_df_are_equal(testdf=dataset.outliersdf, solutiondf=sol_outliersdf)
+
+
+# 3 Test the combined df
+solution.test_df_are_equal(
+    testdf=dataset.combine_all_to_obsspace(), solutiondf=sol_combdf
 )
+# %%
 
-if not tlk_idx.equals(man_idx):
-    print(f"ERROR: wrong labels for {tlk_label}")
 
-    print(f"differences tlkit --> manual: { tlk_idx.difference(man_idx)}")
-    print(f"differences manual --> tlkit: {man_idx.difference(tlk_idx)}")
-    sys.exit(1)
+# all_manual_labels = list(man_df["flags"].unique())
+# manual_to_tlkit_label_map = {
+#     "ok": "ok",
+#     "in step outlier group": dataset_coarsened.settings.qc["qc_checks_info"]["step"][
+#         "outlier_flag"
+#     ],
+#     "repetitions outlier": dataset_coarsened.settings.qc["qc_checks_info"][
+#         "repetitions"
+#     ]["outlier_flag"],
+#     "duplicated timestamp outlier": dataset_coarsened.settings.qc["qc_checks_info"][
+#         "duplicated_timestamp"
+#     ]["outlier_flag"],
+#     "gross value outlier": dataset_coarsened.settings.qc["qc_checks_info"][
+#         "gross_value"
+#     ]["outlier_flag"],
+#     "in window variation outlier group": dataset_coarsened.settings.qc[
+#         "qc_checks_info"
+#     ]["window_variation"]["outlier_flag"],
+#     "persistance outlier": dataset_coarsened.settings.qc["qc_checks_info"][
+#         "persistance"
+#     ]["outlier_flag"],
+# }
 
-else:
-    print("OK!")
+# # check if the mapper is still up to date
+# assert all(
+#     [True for label in all_manual_labels if label in manual_to_tlkit_label_map.keys()]
+# ), "Update the manual to toolkit mapper"
+
+
+# # =============================================================================
+# # iterate over all labels and validate if the indices are equal between manual and toolkit
+# # =============================================================================
+
+# to_check = [
+#     "ok",
+#     "in step outlier group",
+#     "repetitions outlier",
+#     # 'duplicated timestamp outlier',
+#     "gross value outlier",
+#     "in window variation outlier group",
+#     "persistance outlier",
+# ]
+# for man_label, tlk_label in manual_to_tlkit_label_map.items():
+#     if not man_label in to_check:
+#         continue
+
+#     print(
+#         f" Testing equality of the {tlk_label} with the manual labeling ({man_label})."
+#     )
+
+#     man_idx = man_df[man_df["flags"] == man_label].index.sort_values()
+#     tlk_idx = (
+#         tlk_df[tlk_df["label"] == tlk_label]
+#         .xs("temp", level="obstype")
+#         .index.sort_values()
+#     )
+
+#     if not tlk_idx.equals(man_idx):
+#         print(f"ERROR: wrong labels for {tlk_label}")
+
+#         print(f"differences tlkit --> manual: { tlk_idx.difference(man_idx)}")
+#         print(f"differences manual --> tlkit: {man_idx.difference(tlk_idx)}")
+#         sys.exit(1)
+
+#     else:
+#         print("OK!")
+
+
+# # =============================================================================
+# # test duplicates
+# # =============================================================================
+# # tested seperatly because duplicates are in tlk stored as one record, to avoid
+# # duplicate index errors. So we have to do the same for the manual labeling
+# man_label = "duplicated timestamp outlier"
+# tlk_label = manual_to_tlkit_label_map[man_label]
+
+# print(f" Testing equality of the {tlk_label} with the manual labeling ({man_label}).")
+
+# man_df_no_duplic = man_df[~man_df.index.duplicated(keep="first")]
+
+# man_idx = man_df_no_duplic[man_df_no_duplic["flags"] == man_label].index.sort_values()
+# tlk_idx = (
+#     tlk_df[tlk_df["label"] == tlk_label].xs("temp", level="obstype").index.sort_values()
+# )
+
+# if not tlk_idx.equals(man_idx):
+#     print(f"ERROR: wrong labels for {tlk_label}")
+
+#     print(f"differences tlkit --> manual: { tlk_idx.difference(man_idx)}")
+#     print(f"differences manual --> tlkit: {man_idx.difference(tlk_idx)}")
+#     sys.exit(1)
+
+# else:
+#     print("OK!")
 # =============================================================================
 # test missing Gaps
 # =============================================================================

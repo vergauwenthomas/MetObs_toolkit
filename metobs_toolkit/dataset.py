@@ -97,7 +97,7 @@ from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype as Obstype_class
 
 
-from metobs_toolkit.analysis import Analysis
+# from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
 
 
@@ -165,7 +165,7 @@ class Dataset:
             add_info += "    *Coordinates are available for all stations."
 
         return (
-            f"Dataset instance containing: \n \
+            f"{self._istype} instance containing: \n \
     *{n_stations} stations \n \
     *{self._get_present_obstypes()} observation types \n \
     *{n_obs_tot} observation records \n \
@@ -366,7 +366,9 @@ class Dataset:
         """
         self.show(show_all_settings, max_disp_n_gaps)
 
-    def save_dataset(self, outputfolder=None, filename="saved_dataset.pkl"):
+    def save_dataset(
+        self, outputfolder=None, filename="saved_dataset.pkl", overwrite=False
+    ):
         """Save a Dataset instance to a (pickle) file.
 
         Parameters
@@ -376,6 +378,9 @@ class Dataset:
             from the Settings is used. The default is None.
         filename : str, optional
             The name of the output file. The default is 'saved_dataset.pkl'.
+        overwrite : bool
+            If True, the file, if it already exists, will be overwritten. The
+            default is False.
 
         Returns
         -------
@@ -419,7 +424,13 @@ class Dataset:
         full_path = os.path.join(outputfolder, filename)
 
         # check if file exists
-        assert not os.path.isfile(full_path), f"{full_path} is already a file!"
+        file_exist = os.path.isfile(full_path)
+        if not overwrite:
+            assert not file_exist, f"{full_path} is already a file!"
+        else:
+            if file_exist:
+                logger.warning(f"{full_path} already exists, and will be overwritten!")
+                os.remove(full_path)
 
         with open(full_path, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
@@ -1605,76 +1616,76 @@ class Dataset:
     #     # empty obs protector in the .get_info method.
     #     self.missing_obs.get_info()
 
-    def get_analysis(self, add_gapfilled_values=False):
-        """Create an Analysis instance from the Dataframe.
+    # def get_analysis(self, add_gapfilled_values=False):
+    #     """Create an Analysis instance from the Dataframe.
 
-        Parameters
-        ----------
-        add_gapfilled_values : bool, optional
-            If True, all filled values (from gapfill and missing observation fill),
-            are added to the analysis records aswell. The default is False.
+    #     Parameters
+    #     ----------
+    #     add_gapfilled_values : bool, optional
+    #         If True, all filled values (from gapfill and missing observation fill),
+    #         are added to the analysis records aswell. The default is False.
 
-        Returns
-        -------
-        metobs_toolkit.Analysis
-            The Analysis instance of the Dataset.
+    #     Returns
+    #     -------
+    #     metobs_toolkit.Analysis
+    #         The Analysis instance of the Dataset.
 
-        Examples
-        --------
+    #     Examples
+    #     --------
 
-        .. code-block:: python
+    #     .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> # Create an Analysis from the dataset
-            >>> analysis = dataset.get_analysis()
-            >>> analysis
-            Analysis instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 ...
+    #         >>> import metobs_toolkit
+    #         >>>
+    #         >>> # Import data into a Dataset
+    #         >>> dataset = metobs_toolkit.Dataset()
+    #         >>> dataset.update_settings(
+    #         ...                         input_data_file=metobs_toolkit.demo_datafile,
+    #         ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+    #         ...                         template_file=metobs_toolkit.demo_template,
+    #         ...                         )
+    #         >>> dataset.import_data_from_file()
+    #         >>> dataset.coarsen_time_resolution(freq='1H')
+    #         >>>
+    #         >>> # Create an Analysis from the dataset
+    #         >>> analysis = dataset.get_analysis()
+    #         >>> analysis
+    #         Analysis instance containing:
+    #              *28 stations
+    #              *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+    #              *10080 observation records
+    #              ...
 
-        """
-        # combine all to obsspace and include gapfill
-        if add_gapfilled_values:
-            mergedf = self.combine_all_to_obsspace()
+    #     """
+    #     # combine all to obsspace and include gapfill
+    #     if add_gapfilled_values:
+    #         mergedf = self.combine_all_to_obsspace()
 
-            # gapsfilled labels
-            gapfilllabels = self.settings.gap["gaps_fill_info"]["labels"]
+    #         # gapsfilled labels
+    #         gapfilllabels = self.settings.gap["gaps_fill_info"]["labels"]
 
-            # # missingfilled labels
-            # missingfill_settings = self.settings.missing_obs["missing_obs_fill_info"]
-            # missingfilllabels = [val for val in missingfill_settings["label"].values()]
+    #         # # missingfilled labels
+    #         # missingfill_settings = self.settings.missing_obs["missing_obs_fill_info"]
+    #         # missingfilllabels = [val for val in missingfill_settings["label"].values()]
 
-            # get all labels
-            fill_labels = gapfilllabels.copy()
-            # fill_labels.extend(missingfilllabels)
-            fill_labels.append("ok")
+    #         # get all labels
+    #         fill_labels = gapfilllabels.copy()
+    #         # fill_labels.extend(missingfilllabels)
+    #         fill_labels.append("ok")
 
-            df = mergedf[mergedf["label"].isin(fill_labels)]
-            df = df[["value"]]
-            df = df.unstack(level="obstype")
-            df = df.droplevel(level=0, axis=1)
-        else:
-            df = self.df
+    #         df = mergedf[mergedf["label"].isin(fill_labels)]
+    #         df = df[["value"]]
 
-        return Analysis(
-            obsdf=df,
-            metadf=self.metadf,
-            settings=self.settings,
-            data_template=self.data_template,
-        )
+    #     else:
+    #         df = self.df
+    #     return Analysis(self)
+
+    #     # return Analysis(
+    #     #     obsdf=df,
+    #     #     metadf=self.metadf,
+    #     #     settings=self.settings,
+    #     #     obstypes=self.obstypes,
+    #     # )
 
     def write_to_csv(
         self,
@@ -2050,7 +2061,9 @@ class Dataset:
         ).sort_index()
         combdf.index.names = ["name", "obstype", "datetime"]
         # To be shure?
-        combdf = combdf[~combdf.index.duplicated(keep="first")]
+        # combdf = combdf[~combdf.index.duplicated(keep="first")]
+
+        self.df = self.df[["value"]]
         return combdf
 
     def get_qc_stats(self, obstype="temp", stationname=None, make_plot=True):

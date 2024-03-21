@@ -156,10 +156,6 @@ def analysis_test(dataset, name):
     an.get_anual_statistics(agg_method="median", plot=False)
     test3 = an.get_aggregated_cycle_statistics(aggregation=["lcz"], title=name)
 
-    print(an)
-
-    filter_an = an.apply_filter("temp < 15.5 &  hour <= 19")
-
     agg_df = an.aggregate_df(agg=["lcz", "hour"])
 
     if "humidity" in dataset.df.columns:
@@ -170,6 +166,16 @@ def analysis_test(dataset, name):
         an.get_lc_correlation_matrices(
             obstype=["temp"], groupby_labels=["lcz", "season"]
         )
+
+    print(an)
+    alldf = an.get_full_dataframe()
+    # filter the data
+    filterdf = alldf[
+        (alldf["obstype"] == "temp") & (alldf["value"] > 15.5) & (alldf["hour"] <= 19)
+    ]
+
+    # set data
+    an.set_data(df=filterdf)
 
 
 def get_lcz_and_lc(name, dataset):

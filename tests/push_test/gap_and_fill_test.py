@@ -16,6 +16,8 @@ from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+import solutions.solutions_creator as solution
 
 lib_folder = Path(__file__).resolve().parents[2]
 
@@ -32,10 +34,7 @@ testdatafile = os.path.join(
 
 static_data = os.path.join(str(lib_folder), "static_data", "vlinder_metadata.csv")
 
-
 # #% import data
-
-
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(
     input_data_file=testdatafile,
@@ -44,32 +43,135 @@ dataset.update_settings(
 )
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
-# %% Basic tests on the gaps
-gapsdf = dataset.get_gaps_df()
-# check if two gaps are found
-assert (
-    gapsdf.shape[0] == 2
-), f"There are assumed 2 gaps, but the tlkit found {gapsdf.shape[0]}"
-
-assert list(gapsdf.index.unique()) == [
-    "vlinder01"
-], f"Only gaps assumed in vlinder01. Tlkit found gaps for these {list(gapsdf.index.unique())}"
+# %% Basic tests on the gaps location and gaps functions
 
 
-# %% Basic tests on missing obs
-missingobs = dataset.missing_obs.series
-# check if two gaps are found
-assert (
-    missingobs.shape[0] == 26
-), f"There are assumed 26 missing obs, but the tlkit found {missingobs.shape[0]}"
+combdf_gaps_file = "gaps_test_combdf.pkl"
+gapsdf_file = "gaps_gapdf.pkl"
 
-assert list(missingobs.index.unique()) == [
-    "vlinder01",
-    "vlinder02",
-    "vlinder03",
-], f"Only missing obs assumed in vl01, vl02, vl03. Tlkit found missing obs for these {list(missingobs.index.unique())}"
 
-#%% Test linear interpolation on missing obs
+def _create_gap_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.combine_all_to_obsspace().to_pickle(
+        os.path.join(solution.solutions_dir, combdf_gaps_file)
+    )
+    dataset.get_gaps_fill_df().to_pickle(
+        os.path.join(solution.solutions_dir, gapsdf_file)
+    )
+
+
+# _create_gap_solutions()
+
+
+def get_unfilled_solutions():
+    sol_combdf = pd.read_pickle(os.path.join(solution.solutions_dir, combdf_gaps_file))
+    sol_gapsdf = pd.read_pickle(os.path.join(solution.solutions_dir, gapsdf_file))
+    return sol_combdf, sol_gapsdf
+
+
+sol_combdf, sol_gapsdf = get_unfilled_solutions()
+# Check if gaps are well found and converted to dataframes
+
+
+solution.test_df_are_equal(
+    testdf=dataset.combine_all_to_obsspace(), solutiondf=sol_combdf
+)
+
+solution.test_df_are_equal(testdf=dataset.get_gaps_fill_df(), solutiondf=sol_gapsdf)
+
+
+assert len(dataset.gaps) == 14, f"the number of gaps is not correct"
+
+# %% Real vs unreal gaps
+
+
+upsample_gapdf = "upsample_gapsdf.pkl"
+downsample_gapdf = "downsample_gapsdf.pkl"
+
+
+def _create_samplegap_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.coarsen_time_resolution(freq="30T")
+    dataset.get_gaps_fill_df().to_pickle(
+        os.path.join(solution.solutions_dir, upsample_gapdf)
+    )
+    dataset.coarsen_time_resolution(freq="4H")
+    dataset.get_gaps_fill_df().to_pickle(
+        os.path.join(solution.solutions_dir, downsample_gapdf)
+    )
+
+
+# _create_samplegap_solutions()
+
+
+def get_sample_solution():
+    upsampledf = pd.read_pickle(os.path.join(solution.solutions_dir, upsample_gapdf))
+    downsampledf = pd.read_pickle(
+        os.path.join(solution.solutions_dir, downsample_gapdf)
+    )
+    return upsampledf, downsampledf
+
+
+upsample_sol, downsample_sol = get_sample_solution()
+
+
+# to higher resolution
+dataset.coarsen_time_resolution(
+    freq="30T"
+)  # since some gaps are smaller than 30 minuts this must create unreal gaps
+
+solution.test_df_are_equal(testdf=dataset.get_gaps_fill_df(), solutiondf=upsample_sol)
+
+assert len(dataset.gaps) == 14, f"the number of gaps is not correct after upsampling"
+
+# to lower resolution
+dataset.coarsen_time_resolution(
+    freq="4H"
+)  # since some gaps are smaller than 30 minuts this must create unreal gaps
+
+solution.test_df_are_equal(testdf=dataset.get_gaps_fill_df(), solutiondf=downsample_sol)
+
+assert len(dataset.gaps) == 14, f"the number of gaps is not correct after downsampling"
+
+# %%
+# =============================================================================
+# Test interpolation on demo data
+# =============================================================================
+
+dataset = metobs_toolkit.Dataset()
+dataset.update_settings(
+    input_data_file=metobs_toolkit.demo_datafile,
+    input_metadata_file=metobs_toolkit.demo_metadatafile,
+    template_file=metobs_toolkit.demo_template,
+)
+dataset.import_data_from_file()
+dataset.coarsen_time_resolution(freq="1H")
+dataset.apply_quality_control()
+dataset.convert_outliers_to_gaps()
+
+combdf_demo_startpoin_file = "gapfill_startpoint_combdf.pkkl"
+
+
+def _create_startpoint_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.combine_all_to_obsspace().to_pickle(
+        os.path.join(solution.solutions_dir, combdf_demo_startpoin_file)
+    )
+
+
+# _create_startpoint_solutions()
+def get_startpoint_solution():
+    return pd.read_pickle(
+        os.path.join(solution.solutions_dir, combdf_demo_startpoin_file)
+    )
+
+
+solution.test_df_are_equal(
+    testdf=dataset.combine_all_to_obsspace(), solutiondf=get_startpoint_solution()
+)
+
+
+# %% Test linear interpolation on missing obs
 dataset.fill_missing_obs_linear()
 
 solution = {
@@ -155,7 +257,7 @@ assert (
 ).sum() < 1e-5, f"Tlk interpolation differs from manual: \n {gapsfilldf}"
 
 
-#%% Test if filled values are present in the combined df
+# %% Test if filled values are present in the combined df
 
 comb_df = dataset.combine_all_to_obsspace()
 comb_df = comb_df.xs("temp", level="obstype")
@@ -171,7 +273,7 @@ assert (
     comb_missing["value"].eq(dataset.missing_fill_df["temp"]).all()
 ), "Something wrong with the filled missing in the combined df"
 
-#%% Test the update of outliers to gaps
+# %% Test the update of outliers to gaps
 nobs_orig = len(dataset.missing_obs.idx)
 ngaps_orig = len(dataset.gaps)
 
@@ -228,7 +330,7 @@ era.set_model_from_csv(era_datafile)
 
 assert era.df.shape[0] == 5348, "Something wrong with importing era data from csv."
 
-#%%
+# %%
 output = dataset.fill_gaps_automatic(
     era, max_interpolate_duration_str="5H", overwrite_fill=True
 )
@@ -366,7 +468,7 @@ checkeddf = pd.DataFrame(checked)
 assert checkeddf.equals(output), "something wrong with the automatic gapfill"
 
 
-#%%
+# %%
 # # Fill gaps using era5 data:
 dataset.fill_gaps_era5(
     modeldata=era, method="debias", obstype="temp", overwrite_fill=True

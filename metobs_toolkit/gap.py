@@ -26,6 +26,7 @@ import metobs_toolkit.gap_filling as gap_filling
 from metobs_toolkit.df_helpers import (
     init_multiindexdf,
     init_triple_multiindex,
+    init_triple_multiindexdf,
     get_likely_frequency,
     xs_save,
 )
@@ -187,6 +188,83 @@ class Gap:
         self.gapdf[f"{self.obstype.name}_fill"] = np.nan  # fill with nan values
         self.gapdf["fill_method"] = None  # fill with None
         self.gapdf["msg"] = None  # Nonedataset
+
+    def _split_gap(self):
+        """Split the gap into a filled part, and an unfilled part. The filled
+        part is returned as a tripleindex dataframe. The unfilled part is constructed
+        as a list of new gaps. These new gaps respect the tstart and tend of the
+        original gap.
+        """
+        status = self._get_gapfill_status()
+        if status == "Gap does not exist in observation space":
+            to_obs = init_triple_multiindexdf()
+            new_gaps = [self]
+            return to_obs, new_gaps
+        if status == "Unfilled gap":
+            to_obs = init_triple_multiindexdf()
+            new_gaps = [self]
+            return to_obs, new_gaps
+
+        obsnam = self.obstype.name
+        if status == "Filled gap":
+            to_obs = self.gapdf[f"{obsnam}_fill"].to_frame()
+            to_obs["obstype"] = obsnam
+            to_obs = (
+                to_obs.reset_index()
+                .set_index(["name", "obstype", "datetime"])
+                .rename(columns={f"{obsnam}_fill": "value"})
+            )
+            new_gaps = []
+            return to_obs, new_gaps
+
+        if status == "Partially filled gap":
+            gapdf = self.gapdf
+            gapdf["groupdef"] = gapdf[f"{obsnam}_fill"].notna().cumsum()
+            mingroup = 0
+            maxgroup = gapdf["groupdef"].max()
+
+            to_obs = gapdf[gapdf[f"{obsnam}_fill"].notna()][f"{obsnam}_fill"].to_frame()
+            to_obs["obstype"] = obsnam
+            to_obs = (
+                to_obs.reset_index()
+                .set_index(["name", "obstype", "datetime"])
+                .rename(columns={f"{obsnam}_fill": "value"})
+            )
+
+            to_gaps = gapdf[gapdf[f"{obsnam}_fill"].isna()]
+
+            new_gaps = []
+            # gapcreator
+            for groupidx, groupdf in to_gaps.groupby("groupdef"):
+                # reuse start if it is a startgap
+                if groupidx == mingroup:
+                    gapstart = self.startdt
+                    gapend = groupdf.index.get_level_values("datetime").max()
+                elif groupidx == maxgroup:
+                    gapstart = groupdf.index.get_level_values("datetime").min()
+                    gapend = self.enddt
+                else:
+                    gapstart = groupdf.index.get_level_values("datetime").min()
+                    gapend = groupdf.index.get_level_values("datetime").max()
+
+                new_gaps.append(
+                    Gap(
+                        name=self.name,
+                        startdt=gapstart,
+                        enddt=gapend,
+                        obstype=self.obstype,
+                    )
+                )
+
+            # because gapdf is a pointer to the attribute, remove the gourpdef column
+            # by subsetting to the original columns
+            self.gapdf = self.gapdf[
+                [f"{obsnam}", f"{obsnam}_fill", "fill_method", "msg"]
+            ]
+            return to_obs, new_gaps
+
+        else:
+            sys.exit(f"Unforseen gap status: {status}")
 
     # =============================================================================
     # Gap --- Records methods

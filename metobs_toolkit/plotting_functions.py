@@ -1016,8 +1016,6 @@ def cycle_plot(
     title,
     plot_settings,
     aggregation,
-    data_template,
-    obstype,
     y_label,
     legend,
     show_zero_horizontal=False,
@@ -1037,10 +1035,6 @@ def cycle_plot(
         The cycle-specific settings.
     aggregation : list
         A list of strings to indicate the group defenition.
-    data_template : dict
-        The template of the dataset.
-    obstype : str
-        The observation type to plot.
     y_label : str
         The label for the vertical axes.
     legend : bool
@@ -1094,6 +1088,7 @@ def cycle_plot(
     if show_zero_horizontal:
         ax.axhline(y=0.0, color="black", linestyle="--")
 
+    ax.set_ylabel(y_label)
     return ax
 
 

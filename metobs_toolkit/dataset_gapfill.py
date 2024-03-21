@@ -82,7 +82,7 @@ class Dataset(Dataset):
             gapfilldf = gapfilldf.rename(columns={f"{gap.obstype.name}_fill": "fill"})
             gapfilldf = gapfilldf.drop(columns=[gap.obstype.name])
             gapfilldf = gapfilldf.reset_index().set_index(
-                ["name", "datetime", "obstype"]
+                ["name", "obstype", "datetime"]
             )
             # add a gapid column
             gapfilldf["gap_ID"] = f"{gap.name};{gap.startdt};{gap.enddt}"
@@ -90,6 +90,29 @@ class Dataset(Dataset):
             gaps_infodf_list.append(gapfilldf)
 
         return pd.concat(gaps_infodf_list).sort_index()
+
+    def convert_filled_to_obs(self):
+
+        # TODO update docstring
+        """Interpret the filled values as gaps, be allert that this is irreversable !!! new gaps are created"""
+
+        all_new_gaps = []
+        filled_records = []
+        for gap in self.gaps:
+            gapfill_rec, new_gaps = gap._split_gap()
+
+            filled_records.append(gapfill_rec)
+            all_new_gaps.extend(new_gaps)
+
+        df = pd.concat([*filled_records, self.df]).sort_index()
+        # gaps are by defualt present as nan's, so we introduced duplicated
+        # indices (line above). Now we remove the duplicates, and keep the first
+        df = df[~df.index.duplicated(keep="first")]
+        self.df = df
+        self.gaps = all_new_gaps
+
+        for gap in self.gaps:
+            gap._initiate_gapdf(Dataset=self)
 
     # def fill_gaps_automatic(
     #     self,
