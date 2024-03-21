@@ -1,0 +1,75 @@
+metobs\_toolkit.analysis.Analysis
+=================================
+
+.. currentmodule:: metobs_toolkit.analysis
+
+.. autoclass:: Analysis
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Analysis.__init__
+      ~Analysis.add_new_observationtype
+      ~Analysis.add_new_unit
+      ~Analysis.aggregate_df
+      ~Analysis.apply_buddy_check
+      ~Analysis.apply_quality_control
+      ~Analysis.apply_titan_buddy_check
+      ~Analysis.apply_titan_sct_resistant_check
+      ~Analysis.coarsen_time_resolution
+      ~Analysis.combine_all_to_obsspace
+      ~Analysis.convert_filled_to_obs
+      ~Analysis.convert_outliers_to_gaps
+      ~Analysis.fill_gaps_with_debias_modeldata
+      ~Analysis.fill_gaps_with_diurnal_debias_modeldata
+      ~Analysis.fill_gaps_with_raw_modeldata
+      ~Analysis.fill_gaps_with_weighted_diurnal_debias_modeldata
+      ~Analysis.get_aggregated_cycle_statistics
+      ~Analysis.get_altitude
+      ~Analysis.get_anual_statistics
+      ~Analysis.get_data_in_wide_format
+      ~Analysis.get_diurnal_statistics
+      ~Analysis.get_diurnal_statistics_with_reference
+      ~Analysis.get_full_dataframe
+      ~Analysis.get_gaps_fill_df
+      ~Analysis.get_gaps_info
+      ~Analysis.get_info
+      ~Analysis.get_landcover
+      ~Analysis.get_lc_correlation_matrices
+      ~Analysis.get_lcz
+      ~Analysis.get_modeldata
+      ~Analysis.get_qc_stats
+      ~Analysis.get_station
+      ~Analysis.import_data_from_file
+      ~Analysis.import_dataset
+      ~Analysis.interpolate_gaps
+      ~Analysis.make_gee_plot
+      ~Analysis.make_geo_plot
+      ~Analysis.make_interactive_plot
+      ~Analysis.make_plot
+      ~Analysis.plot_correlation_heatmap
+      ~Analysis.plot_correlation_variation
+      ~Analysis.save_dataset
+      ~Analysis.set_data
+      ~Analysis.show
+      ~Analysis.show_settings
+      ~Analysis.subset_period
+      ~Analysis.sync_observations
+      ~Analysis.update_default_name
+      ~Analysis.update_outliersdf
+      ~Analysis.update_qc_settings
+      ~Analysis.update_settings
+      ~Analysis.update_timezone
+      ~Analysis.update_titan_qc_settings
+      ~Analysis.write_to_csv
+   
+   
+
+   
+   
+   

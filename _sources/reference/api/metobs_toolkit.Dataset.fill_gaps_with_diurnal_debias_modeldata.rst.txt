@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.fill\_gaps\_with\_diurnal\_debias\_modeldata
+====================================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.fill_gaps_with_diurnal_debias_modeldata

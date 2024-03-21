@@ -1,0 +1,6 @@
+metobs\_toolkit.Modeldata.make\_plot
+====================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Modeldata.make_plot

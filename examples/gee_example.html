@@ -1,0 +1,1944 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Demo example: Using a Google Earth engine &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/gee_example';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo example: Applying Quality Control." href="qc_example.html" />
+    <link rel="prev" title="Demo example: Using a Dataset" href="doc_example.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../index.html">
+                        Home
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../intro.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../specific_topics.html">
+                        Specific topics
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        Examples
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+                        Documentation
+                      </a>
+                    </li>
+                
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+                    <li class="nav-item">
+                      <a class="nav-link dropdown-item nav-internal" href="../topics/contributing_link.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../index.html">
+                        Home
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../intro.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../specific_topics.html">
+                        Specific topics
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        Examples
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+                        Documentation
+                      </a>
+                    </li>
+                
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links-2">
+                    More
+                </button>
+                <ul id="pst-nav-more-links-2" class="dropdown-menu">
+                    
+                    <li class="nav-item">
+                      <a class="nav-link dropdown-item nav-internal" href="../topics/contributing_link.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="doc_example.html">Demo example: Using a Dataset</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Demo example: Using a Google Earth engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qc_example.html">Demo example: Applying Quality Control.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filling_example.html">Demo example: filling gaps and missing observations</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="analysis_example.html">Demo example: Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_obstypes.html">Working with specific observation types</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Examples</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Demo...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Demo-example:-Using-a-Google-Earth-engine">
+<h1>Demo example: Using a Google Earth engine<a class="headerlink" href="#Demo-example:-Using-a-Google-Earth-engine" title="Link to this heading">#</a></h1>
+<p>This example is the continuation of the previous example: <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/move_to_rtd/examples/doc_example.html">Using a Dataset</a>. This example serves as a demonstration on how to get meta-data from the Google Earth Engine (GEE).</p>
+<p>Before proceeding, make sure you have <strong>set up a Google developers account and a GEE project</strong>. See <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/move_to_rtd/topics/gee_authentication.html#using-google-earth-engine">Using Google Earth Engine</a> for a detailed description of this.</p>
+<section id="Create-your-Dataset">
+<h2>Create your Dataset<a class="headerlink" href="#Create-your-Dataset" title="Link to this heading">#</a></h2>
+<p>Create a dataset with the demo data.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span>
+    <span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="c1"># path to the data file</span>
+    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+    <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Extracting-LCZ-from-GEE">
+<h2>Extracting LCZ from GEE<a class="headerlink" href="#Extracting-LCZ-from-GEE" title="Link to this heading">#</a></h2>
+<p>Here is an example of how to extract the Local Climate Zone (LCZ) information of your stations. First, we take a look at what is present in the metadata of the dataset.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>network</th>
+      <th>lat</th>
+      <th>lon</th>
+      <th>call_name</th>
+      <th>location</th>
+      <th>geometry</th>
+      <th>lcz</th>
+      <th>assumed_import_frequency</th>
+      <th>dataset_resolution</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>vlinder01</th>
+      <td>Vlinder</td>
+      <td>50.980438</td>
+      <td>3.815763</td>
+      <td>Proefhoeve</td>
+      <td>Melle</td>
+      <td>POINT (3.81576 50.98044)</td>
+      <td>NaN</td>
+      <td>0 days 00:05:00</td>
+      <td>0 days 00:05:00</td>
+    </tr>
+    <tr>
+      <th>vlinder02</th>
+      <td>Vlinder</td>
+      <td>51.022379</td>
+      <td>3.709695</td>
+      <td>Sterre</td>
+      <td>Gent</td>
+      <td>POINT (3.70969 51.02238)</td>
+      <td>NaN</td>
+      <td>0 days 00:05:00</td>
+      <td>0 days 00:05:00</td>
+    </tr>
+    <tr>
+      <th>vlinder03</th>
+      <td>Vlinder</td>
+      <td>51.324583</td>
+      <td>4.952109</td>
+      <td>Centrum</td>
+      <td>Turnhout</td>
+      <td>POINT (4.95211 51.32458)</td>
+      <td>NaN</td>
+      <td>0 days 00:05:00</td>
+      <td>0 days 00:05:00</td>
+    </tr>
+    <tr>
+      <th>vlinder04</th>
+      <td>Vlinder</td>
+      <td>51.335522</td>
+      <td>4.934732</td>
+      <td>Stadsboerderij</td>
+      <td>Turnhout</td>
+      <td>POINT (4.93473 51.33552)</td>
+      <td>NaN</td>
+      <td>0 days 00:05:00</td>
+      <td>0 days 00:05:00</td>
+    </tr>
+    <tr>
+      <th>vlinder05</th>
+      <td>Vlinder</td>
+      <td>51.052655</td>
+      <td>3.675183</td>
+      <td>Watersportbaan</td>
+      <td>Gent</td>
+      <td>POINT (3.67518 51.05266)</td>
+      <td>NaN</td>
+      <td>0 days 00:05:00</td>
+      <td>0 days 00:05:00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>To extract geospatial information for your stations, the <strong>lat</strong> and <strong>lon</strong> (latitude and longitude) of your stations must be present in the metadf. If so, than geospatial information will be extracted from GEE at these locations.</p>
+<p>To extract the Local Climate Zones (LCZs) of your stations:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lcz_values</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_lcz</span><span class="p">()</span>
+<span class="c1"># The LCZs for all your stations are extracted</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lcz_values</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+name
+vlinder01         Low plants (LCZ D)
+vlinder02               Open midrise
+vlinder03               Open midrise
+vlinder04             Sparsely built
+vlinder05              Water (LCZ G)
+vlinder06    Scattered Trees (LCZ B)
+vlinder07            Compact midrise
+vlinder08            Compact midrise
+vlinder09    Scattered Trees (LCZ B)
+vlinder10            Compact midrise
+vlinder11               Open lowrise
+vlinder12              Open highrise
+vlinder13            Compact midrise
+vlinder14         Low plants (LCZ D)
+vlinder15             Sparsely built
+vlinder16              Water (LCZ G)
+vlinder17    Scattered Trees (LCZ B)
+vlinder18         Low plants (LCZ D)
+vlinder19            Compact midrise
+vlinder20            Compact midrise
+vlinder21             Sparsely built
+vlinder22         Low plants (LCZ D)
+vlinder23         Low plants (LCZ D)
+vlinder24        Dense Trees (LCZ A)
+vlinder25              Water (LCZ G)
+vlinder26               Open midrise
+vlinder27            Compact midrise
+vlinder28               Open lowrise
+Name: lcz, dtype: object
+</pre></div></div>
+</div>
+<p>The first time, in each session, you are asked to authenticated by Google. Select your Google account and billing project that you have set up and accept the terms of the condition.</p>
+<p><em>NOTE: For small data-requests the read-only scopes are sufficient, for large data-requests this is insufficient because the data will be written directly to your Google Drive.</em></p>
+<p>The metadata of your dataset is also updated</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">your_dataset</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s1">&#39;lcz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+name
+vlinder01    Low plants (LCZ D)
+vlinder02          Open midrise
+vlinder03          Open midrise
+vlinder04        Sparsely built
+vlinder05         Water (LCZ G)
+Name: lcz, dtype: object
+</pre></div></div>
+</div>
+<p>To make a geospatial plot you can use the following method:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">make_geo_plot</span><span class="p">(</span><span class="n">variable</span><span class="o">=</span><span class="s2">&quot;lcz&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;GeoAxes: title={&#39;center&#39;: &#39;Local climate zones at 2022-09-01 00:00:00+00:00.&#39;}&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_gee_example_11_1.png" src="../_images/examples_gee_example_11_1.png" />
+</div>
+</div>
+</section>
+<section id="Extracting-other-Geospatial-information">
+<h2>Extracting other Geospatial information<a class="headerlink" href="#Extracting-other-Geospatial-information" title="Link to this heading">#</a></h2>
+<p>Similar as LCZ extraction you can extract the altitude of the stations (from a digital elevation model):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">altitudes</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_altitude</span><span class="p">()</span> <span class="c1">#The altitudes are in meters above sea level.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">altitudes</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+name
+vlinder01    12
+vlinder02     7
+vlinder03    30
+vlinder04    25
+vlinder05     0
+vlinder06     0
+vlinder07     7
+vlinder08     7
+vlinder09    19
+vlinder10    14
+vlinder11     6
+vlinder12     9
+vlinder13    10
+vlinder14     4
+vlinder15    41
+vlinder16     4
+vlinder17    83
+vlinder18    35
+vlinder19    75
+vlinder20    44
+vlinder21    19
+vlinder22     3
+vlinder23     1
+vlinder24    12
+vlinder25    12
+vlinder26    24
+vlinder27    12
+vlinder28     7
+Name: altitude, dtype: int64
+</pre></div></div>
+</div>
+<p>A more detailed description of the landcover/land use in the microenvironment can be extracted in the form of landcover fractions in a circular buffer for each station.</p>
+<p>You can select to aggregate the landcover classes to water - pervious and impervious, or set aggregation to false to extract the landcover classes as present in the worldcover_10m dataset.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">aggregated_landcover</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_landcover</span><span class="p">(</span>
+                                        <span class="n">buffers</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">250</span><span class="p">],</span> <span class="c1"># a list of buffer radii in meters</span>
+                                        <span class="n">aggregate</span><span class="o">=</span><span class="kc">True</span> <span class="c1">#if True, aggregate landcover classes to the water, pervious and impervious.</span>
+                                        <span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">aggregated_landcover</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+                            water  pervious  impervious
+name      buffer_radius
+vlinder01 100            0.000000  0.981781    0.018219
+          250            0.000000  0.963635    0.036365
+vlinder02 100            0.000000  0.428769    0.571231
+          250            0.000000  0.535944    0.464056
+vlinder03 100            0.000000  0.245454    0.754546
+          250            0.000000  0.160831    0.839169
+vlinder04 100            0.000000  0.979569    0.020431
+          250            0.000000  0.881948    0.118052
+vlinder05 100            0.446604  0.224871    0.328525
+          250            0.242406  0.526977    0.230617
+vlinder06 100            0.000000  1.000000    0.000000
+          250            0.000000  0.995819    0.004181
+vlinder07 100            0.000000  0.433034    0.566966
+          250            0.002911  0.149681    0.847407
+vlinder08 100            0.000000  0.029552    0.970448
+          250            0.002911  0.030423    0.966666
+vlinder09 100            0.000000  1.000000    0.000000
+          250            0.000000  0.974895    0.025105
+vlinder10 100            0.000000  0.129686    0.870314
+          250            0.000000  0.125173    0.874827
+vlinder11 100            0.000000  0.273457    0.726543
+          250            0.000000  0.204337    0.795663
+vlinder12 100            0.000000  0.803321    0.196679
+          250            0.004188  0.313829    0.681983
+vlinder13 100            0.000000  0.006042    0.993958
+          250            0.000000  0.044648    0.955352
+vlinder14 100            0.000000  0.803469    0.196531
+          250            0.000000  0.835386    0.164614
+vlinder15 100            0.000000  0.798196    0.201804
+          250            0.000000  0.918644    0.081356
+vlinder16 100            0.367579  0.232926    0.399495
+          250            0.448841  0.217178    0.333981
+vlinder17 100            0.000000  0.989899    0.010101
+          250            0.000000  0.980923    0.019077
+vlinder18 100            0.000000  1.000000    0.000000
+          250            0.000000  1.000000    0.000000
+vlinder19 100            0.000000  0.447270    0.552730
+          250            0.000000  0.343485    0.656515
+vlinder20 100            0.000000  0.129964    0.870036
+          250            0.000000  0.039639    0.960361
+vlinder21 100            0.000000  1.000000    0.000000
+          250            0.000487  0.962068    0.037445
+vlinder22 100            0.973231  0.026769    0.000000
+          250            0.884010  0.115990    0.000000
+vlinder23 100            0.399503  0.600497    0.000000
+          250            0.272793  0.712724    0.014483
+vlinder24 100            0.000000  0.960773    0.039227
+          250            0.000000  0.946138    0.053862
+vlinder25 100            0.790001  0.152027    0.057972
+          250            0.899936  0.063972    0.036092
+vlinder26 100            0.000000  0.148975    0.851025
+          250            0.000000  0.174383    0.825617
+vlinder27 100            0.000000  0.011601    0.988399
+          250            0.018481  0.084840    0.896679
+vlinder28 100            0.000000  0.489951    0.510049
+          250            0.000000  0.721950    0.278050
+</pre></div></div>
+</div>
+</section>
+<section id="Extracting-ERA5-timeseries">
+<h2>Extracting ERA5 timeseries<a class="headerlink" href="#Extracting-ERA5-timeseries" title="Link to this heading">#</a></h2>
+<p>The toolkit has built-in functionality to extract ERA5 time series at the station locations. The ERA5 data will be stored in a <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/latest/reference/modeldata.html">Modeldata</a> instance. Here is an example on how to get the ERA5 time series by using the <code class="docutils literal notranslate"><span class="pre">get_modeldata()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Get the ERA5 data for a single station (to reduce data transfer)</span>
+<span class="n">your_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder02&#39;</span><span class="p">)</span>
+
+<span class="c1">#Extract time series at the location of the station</span>
+<span class="n">ERA5_data</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
+                                      <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                                      <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the start of the observations is used</span>
+                                      <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the end of the observations is used</span>
+                                      <span class="p">)</span>
+
+<span class="c1">#Get info</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ERA5_data</span><span class="p">)</span>
+<span class="n">ERA5_data</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">obstype_model</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                    <span class="n">dataset</span><span class="o">=</span><span class="n">your_station</span><span class="p">,</span> <span class="c1">#add the observations to the same plot</span>
+                    <span class="n">obstype_dataset</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
+Modeldata instance containing:
+     * Modelname: ERA5_hourly
+     * 1 timeseries
+     * The following obstypes are available: [&#39;temp&#39;]
+     * Data has these units: [&#39;Celsius&#39;]
+     * From 2022-09-01 00:00:00+00:00 --&gt; 2022-09-16 00:00:00+00:00 (with tz=UTC)
+
+ (Data is stored in the .df attribute)
+</pre></div></div>
+</div>
+<section id="GEE-data-transfer">
+<h3>GEE data transfer<a class="headerlink" href="#GEE-data-transfer" title="Link to this heading">#</a></h3>
+<p>There is a limit to the amount of data that can be transfered directly from GEE. When the data cannot be transferred directly, <strong>it will be written to a file on your Google Drive</strong>. The location of the file will be printed out. When the writing to the file is done, you must download the file and import it to an empty <em>Modeldata</em> instance using the <code class="docutils literal notranslate"><span class="pre">set_model_from_csv()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Illustration</span>
+<span class="c1">#Extract time series at the locations all the station</span>
+<span class="n">ERA5_data</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
+                                      <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                                      <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the start of the observations is used</span>
+                                      <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the end of the observations is used</span>
+                                      <span class="p">)</span>
+
+<span class="c1">#Because the data amount is too large, it will be written to a file on your Google Drive! The returned Modeldata is empty.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ERA5_data</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!
+The timeseries will be written to your Drive in era5_timeseries/era5_data
+The data is transfered! Open the following link in your browser:
+
+
+https://drive.google.com/#folders/1iSjU6u-kFeRS_YikiyaPoc09SNbmvvO1
+
+
+To upload the data to the model, use the Modeldata.set_model_from_csv() method
+(When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
+Empty Modeldata instance.
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#See the output to find the modeldata in your Google Drive, and download the file.</span>
+<span class="c1">#Update the empty Modeldata with the data from the file</span>
+
+<span class="c1">#ERA5_data.set_model_from_csv(csvpath=&#39;/home/..../era5_data.csv&#39;) #The path to the downloaded file</span>
+<span class="c1">#print(ERA5_data)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="Interactive-plotting-of-a-GEE-dataset">
+<h2>Interactive plotting of a GEE dataset<a class="headerlink" href="#Interactive-plotting-of-a-GEE-dataset" title="Link to this heading">#</a></h2>
+<p>You can make an interactive spatial plot to visualize the stations spatially by using the <code class="docutils literal notranslate"><span class="pre">make_gee_plot()</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spatial_map</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">make_gee_plot</span><span class="p">(</span><span class="n">gee_map</span><span class="o">=</span><span class="s1">&#39;worldcover&#39;</span><span class="p">)</span>
+<span class="n">spatial_map</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+
+    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
+
+        &lt;script&gt;
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        &lt;/script&gt;
+
+    &lt;style&gt;html, body {width: 100%;height: 100%;margin: 0;padding: 0;}&lt;/style&gt;
+    &lt;style&gt;#map {position:absolute;top:0;bottom:0;right:0;left:0;}&lt;/style&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;
+
+            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
+            &lt;style&gt;
+                #map_5008aaa20506858e0579964f36dace3f {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            &lt;/style&gt;
+
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.min.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.css&quot;/&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.css&quot;/&gt;
+    &lt;script src=&quot;https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css&quot;/&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_5008aaa20506858e0579964f36dace3f&quot; &gt;&lt;/div&gt;
+
+
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+  &lt;title&gt;jQuery UI Draggable - Default functionality&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css&quot;&gt;
+
+  &lt;script src=&quot;https://code.jquery.com/jquery-1.12.4.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;https://code.jquery.com/ui/1.12.1/jquery-ui.js&quot;&gt;&lt;/script&gt;
+
+  &lt;script&gt;
+  $( function() {
+    $( &quot;#maplegend&quot; ).draggable({
+                    start: function (event, ui) {
+                        $(this).css({
+                            right: &quot;auto&quot;,
+                            top: &quot;auto&quot;,
+                            bottom: &quot;auto&quot;
+                        });
+                    }
+                });
+});
+
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+
+&lt;div id=&#x27;maplegend&#x27; class=&#x27;maplegend&#x27;
+    style=&#x27;position: absolute; z-index:9999; border:2px solid grey; background-color:rgba(255, 255, 255, 0.8);
+     border-radius:6px; padding: 10px; font-size:14px; right: 20px; bottom: 20px;&#x27;&gt;
+
+&lt;div class=&#x27;legend-title&#x27;&gt;worldcover covers&lt;/div&gt;
+&lt;div class=&#x27;legend-scale&#x27;&gt;
+  &lt;ul class=&#x27;legend-labels&#x27;&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#006400;opacity:1.0;&#x27;&gt;&lt;/span&gt;Tree cover&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#ffbb22;opacity:1.0;&#x27;&gt;&lt;/span&gt;Shrubland&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#ffff4c;opacity:1.0;&#x27;&gt;&lt;/span&gt;Grassland&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#f096ff;opacity:1.0;&#x27;&gt;&lt;/span&gt;Cropland&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#fa0000;opacity:1.0;&#x27;&gt;&lt;/span&gt;Built-up&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#b4b4b4;opacity:1.0;&#x27;&gt;&lt;/span&gt;Bare / sparse vegetation&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#f0f0f0;opacity:1.0;&#x27;&gt;&lt;/span&gt;Snow and ice&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#0064c8;opacity:1.0;&#x27;&gt;&lt;/span&gt;Permanent water bodies&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#0096a0;opacity:1.0;&#x27;&gt;&lt;/span&gt;Herbaceous wetland&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#00cf75;opacity:1.0;&#x27;&gt;&lt;/span&gt;Mangroves&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#fae6a0;opacity:1.0;&#x27;&gt;&lt;/span&gt;Moss and lichen&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+&lt;style type=&#x27;text/css&#x27;&gt;
+  .maplegend .legend-title {
+    text-align: left;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 90%;
+    }
+  .maplegend .legend-scale ul {
+    margin: 0;
+    margin-bottom: 5px;
+    padding: 0;
+    float: left;
+    list-style: none;
+    }
+  .maplegend .legend-scale ul li {
+    font-size: 80%;
+    list-style: none;
+    margin-left: 0;
+    line-height: 18px;
+    margin-bottom: 2px;
+    }
+  .maplegend ul.legend-labels li span {
+    display: block;
+    float: left;
+    height: 16px;
+    width: 30px;
+    margin-right: 5px;
+    margin-left: 0;
+    border: 1px solid #999;
+    }
+  .maplegend .legend-source {
+    font-size: 80%;
+    color: #777;
+    clear: both;
+    }
+  .maplegend a {
+    color: #777;
+    }
+&lt;/style&gt;
+
+&lt;/body&gt;
+&lt;script&gt;
+
+
+            var map_5008aaa20506858e0579964f36dace3f = L.map(
+                &quot;map_5008aaa20506858e0579964f36dace3f&quot;,
+                {
+                    center: [20.0, 0.0],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 2,
+                    zoomControl: true,
+                    preferCanvas: false,
+                    eeInitialize: true,
+                    addGoogleMap: true,
+                    pluginLatlngpopup: false,
+                    pluginFullscreen: true,
+                    pluginDraw: true,
+                    DrawExport: false,
+                    pluginMinimap: false,
+                    locateControl: false,
+                    searchControl: true,
+                    layersControl: true,
+                }
+            );
+
+
+
+
+
+            var tile_layer_46e31f5e560d63d3432223367d194c98 = L.tileLayer(
+                &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
+                {&quot;attribution&quot;: &quot;\u0026copy; \u003ca href=\&quot;https://www.openstreetmap.org/copyright\&quot;\u003eOpenStreetMap\u003c/a\u003e contributors&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 19, &quot;maxZoom&quot;: 19, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+            tile_layer_46e31f5e560d63d3432223367d194c98.addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+            var tile_layer_5d72274a513a7ec3caf9cebfaa779bb5 = L.tileLayer(
+                &quot;https://mt1.google.com/vt/lyrs=m\u0026x={x}\u0026y={y}\u0026z={z}&quot;,
+                {&quot;attribution&quot;: &quot;Google&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 22, &quot;maxZoom&quot;: 22, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+            tile_layer_5d72274a513a7ec3caf9cebfaa779bb5.addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+            L.control.fullscreen(
+                {&quot;forceSeparateButton&quot;: false, &quot;position&quot;: &quot;topleft&quot;, &quot;title&quot;: &quot;Full Screen&quot;, &quot;titleCancel&quot;: &quot;Exit Full Screen&quot;}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+            var options = {
+              position: &quot;topleft&quot;,
+              draw: {},
+              edit: {},
+            }
+            // FeatureGroup is to store editable layers.
+            var drawnItems_draw_control_6d12fec7f7abee02c25b49b60fb92ee2 = new L.featureGroup().addTo(
+                map_5008aaa20506858e0579964f36dace3f
+            );
+            options.edit.featureGroup = drawnItems_draw_control_6d12fec7f7abee02c25b49b60fb92ee2;
+            var draw_control_6d12fec7f7abee02c25b49b60fb92ee2 = new L.Control.Draw(
+                options
+            ).addTo( map_5008aaa20506858e0579964f36dace3f );
+            map_5008aaa20506858e0579964f36dace3f.on(L.Draw.Event.CREATED, function(e) {
+                var layer = e.layer,
+                    type = e.layerType;
+                var coords = JSON.stringify(layer.toGeoJSON());
+                layer.on(&#x27;click&#x27;, function() {
+                    alert(coords);
+                    console.log(coords);
+                });
+                drawnItems_draw_control_6d12fec7f7abee02c25b49b60fb92ee2.addLayer(layer);
+             });
+            map_5008aaa20506858e0579964f36dace3f.on(&#x27;draw:created&#x27;, function(e) {
+                drawnItems_draw_control_6d12fec7f7abee02c25b49b60fb92ee2.addLayer(e.layer);
+            });
+
+
+
+
+            var geocoderOpts_geocoder_6e69f00fa7ec409e0102ca90786be4c0 = {&quot;collapsed&quot;: true, &quot;defaultMarkGeocode&quot;: true, &quot;position&quot;: &quot;topleft&quot;, &quot;provider&quot;: &quot;nominatim&quot;, &quot;providerOptions&quot;: {}, &quot;zoom&quot;: 11};
+
+            // note: geocoder name should start with lowercase
+            var geocoderName_geocoder_6e69f00fa7ec409e0102ca90786be4c0 = geocoderOpts_geocoder_6e69f00fa7ec409e0102ca90786be4c0[&quot;provider&quot;];
+
+            var customGeocoder_geocoder_6e69f00fa7ec409e0102ca90786be4c0 = L.Control.Geocoder[ geocoderName_geocoder_6e69f00fa7ec409e0102ca90786be4c0 ](
+                geocoderOpts_geocoder_6e69f00fa7ec409e0102ca90786be4c0[&#x27;providerOptions&#x27;]
+            );
+            geocoderOpts_geocoder_6e69f00fa7ec409e0102ca90786be4c0[&quot;geocoder&quot;] = customGeocoder_geocoder_6e69f00fa7ec409e0102ca90786be4c0;
+
+            L.Control.geocoder(
+                geocoderOpts_geocoder_6e69f00fa7ec409e0102ca90786be4c0
+            ).on(&#x27;markgeocode&#x27;, function(e) {
+                var zoom = geocoderOpts_geocoder_6e69f00fa7ec409e0102ca90786be4c0[&#x27;zoom&#x27;] || map_5008aaa20506858e0579964f36dace3f.getZoom();
+                map_5008aaa20506858e0579964f36dace3f.setView(e.geocode.center, zoom);
+            }).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+
+            map_5008aaa20506858e0579964f36dace3f.fitBounds(
+                [[20, 0], [20, 0]],
+                {&quot;maxZoom&quot;: 2}
+            );
+
+
+            var tile_layer_306fc3444e64605220a89dfa8f5e4f92 = L.tileLayer(
+                &quot;https://mt1.google.com/vt/lyrs=s\u0026x={x}\u0026y={y}\u0026z={z}&quot;,
+                {&quot;attribution&quot;: &quot;Google&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 22, &quot;maxZoom&quot;: 22, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+            tile_layer_306fc3444e64605220a89dfa8f5e4f92.addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+            var tile_layer_fb1307508306fb1209af0a562c5d745d = L.tileLayer(
+                &quot;https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/09c6cbfba515fe96a3231dccfee7e816-f1282688c16d2d65e8fdc274fe6f1eb6/tiles/{z}/{x}/{y}&quot;,
+                {&quot;attribution&quot;: &quot;Google Earth Engine&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 24, &quot;maxZoom&quot;: 24, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1.0, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+            tile_layer_fb1307508306fb1209af0a562c5d745d.addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+            var marker_858e81086c83ea613bc96693f43d4fd4 = L.marker(
+                [50.980438, 3.815763],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_c5c705dbeca41197975ae775e748e7ff = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_40c9ae307b505cbbabd874e750721ff8 = $(`&lt;div id=&quot;html_40c9ae307b505cbbabd874e750721ff8&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder01&lt;/div&gt;`)[0];
+                popup_c5c705dbeca41197975ae775e748e7ff.setContent(html_40c9ae307b505cbbabd874e750721ff8);
+
+
+
+        marker_858e81086c83ea613bc96693f43d4fd4.bindPopup(popup_c5c705dbeca41197975ae775e748e7ff)
+        ;
+
+
+
+
+            var marker_b4f0bcf1dabaf2c59063436a093e4472 = L.marker(
+                [51.022379, 3.709695],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_d7eb5e0aeeeae2dc854b92a8aa6006ee = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_4ae2d498812ee7aced9eeb84beff2e43 = $(`&lt;div id=&quot;html_4ae2d498812ee7aced9eeb84beff2e43&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder02&lt;/div&gt;`)[0];
+                popup_d7eb5e0aeeeae2dc854b92a8aa6006ee.setContent(html_4ae2d498812ee7aced9eeb84beff2e43);
+
+
+
+        marker_b4f0bcf1dabaf2c59063436a093e4472.bindPopup(popup_d7eb5e0aeeeae2dc854b92a8aa6006ee)
+        ;
+
+
+
+
+            var marker_96761301351d0276650c6a027b4d0ed4 = L.marker(
+                [51.324583, 4.952109],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_d8ed4f8c919547c4240e8c406fa910c6 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_16d8055767dcb6b37e0ebab1e97ed864 = $(`&lt;div id=&quot;html_16d8055767dcb6b37e0ebab1e97ed864&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder03&lt;/div&gt;`)[0];
+                popup_d8ed4f8c919547c4240e8c406fa910c6.setContent(html_16d8055767dcb6b37e0ebab1e97ed864);
+
+
+
+        marker_96761301351d0276650c6a027b4d0ed4.bindPopup(popup_d8ed4f8c919547c4240e8c406fa910c6)
+        ;
+
+
+
+
+            var marker_88c15d2e631ea224721db99817db2d73 = L.marker(
+                [51.335522, 4.934732],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_66abe1c2aa1194ebafe91c459212b711 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_122129a0f899d0c464acd91c83759910 = $(`&lt;div id=&quot;html_122129a0f899d0c464acd91c83759910&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder04&lt;/div&gt;`)[0];
+                popup_66abe1c2aa1194ebafe91c459212b711.setContent(html_122129a0f899d0c464acd91c83759910);
+
+
+
+        marker_88c15d2e631ea224721db99817db2d73.bindPopup(popup_66abe1c2aa1194ebafe91c459212b711)
+        ;
+
+
+
+
+            var marker_3bb417335d643679c558010a036118ab = L.marker(
+                [51.052655, 3.675183],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_892a218b18df990c201d1c12d775719e = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_3cceec8fac728813863d9bbc9dfa0f0d = $(`&lt;div id=&quot;html_3cceec8fac728813863d9bbc9dfa0f0d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder05&lt;/div&gt;`)[0];
+                popup_892a218b18df990c201d1c12d775719e.setContent(html_3cceec8fac728813863d9bbc9dfa0f0d);
+
+
+
+        marker_3bb417335d643679c558010a036118ab.bindPopup(popup_892a218b18df990c201d1c12d775719e)
+        ;
+
+
+
+
+            var marker_d1d3e9d9f2e34a83e9d23e43fe10243f = L.marker(
+                [51.0271, 4.5163],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_5e8a673b2cabe8d64c10583801c5b631 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_cb79109c579aab888fed26e06db3522d = $(`&lt;div id=&quot;html_cb79109c579aab888fed26e06db3522d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder06&lt;/div&gt;`)[0];
+                popup_5e8a673b2cabe8d64c10583801c5b631.setContent(html_cb79109c579aab888fed26e06db3522d);
+
+
+
+        marker_d1d3e9d9f2e34a83e9d23e43fe10243f.bindPopup(popup_5e8a673b2cabe8d64c10583801c5b631)
+        ;
+
+
+
+
+            var marker_668acc839a1f6b1ed3cbffaf6fee7d43 = L.marker(
+                [51.030889, 4.478445],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_ddab091c933a351e624ba6433e729758 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_5d479aa600531a53beadde7bdeb1ee6f = $(`&lt;div id=&quot;html_5d479aa600531a53beadde7bdeb1ee6f&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder07&lt;/div&gt;`)[0];
+                popup_ddab091c933a351e624ba6433e729758.setContent(html_5d479aa600531a53beadde7bdeb1ee6f);
+
+
+
+        marker_668acc839a1f6b1ed3cbffaf6fee7d43.bindPopup(popup_ddab091c933a351e624ba6433e729758)
+        ;
+
+
+
+
+            var marker_d552fa04a42fb34e5fae9950f6e4045b = L.marker(
+                [51.02813, 4.477398],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_5f13bb2e7775361f1856155d18794536 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_b79ce47e8bcec979973d00ff0a9282e8 = $(`&lt;div id=&quot;html_b79ce47e8bcec979973d00ff0a9282e8&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder08&lt;/div&gt;`)[0];
+                popup_5f13bb2e7775361f1856155d18794536.setContent(html_b79ce47e8bcec979973d00ff0a9282e8);
+
+
+
+        marker_d552fa04a42fb34e5fae9950f6e4045b.bindPopup(popup_5f13bb2e7775361f1856155d18794536)
+        ;
+
+
+
+
+            var marker_44a3ceaf7e2fb901248e41c18f73c70c = L.marker(
+                [50.927167, 4.075722],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_f857e952366b13623c73c13b4e896325 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_31d6f3b1152013d86e3cc0ca35f4fd97 = $(`&lt;div id=&quot;html_31d6f3b1152013d86e3cc0ca35f4fd97&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder09&lt;/div&gt;`)[0];
+                popup_f857e952366b13623c73c13b4e896325.setContent(html_31d6f3b1152013d86e3cc0ca35f4fd97);
+
+
+
+        marker_44a3ceaf7e2fb901248e41c18f73c70c.bindPopup(popup_f857e952366b13623c73c13b4e896325)
+        ;
+
+
+
+
+            var marker_1892931ade079a26f73f23bf421d4580 = L.marker(
+                [50.935556, 4.041389],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_7a5ef973eff82fbefa088c2b7a1aac3f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_b59e59a0858a44399ab9bd9d9f5237b1 = $(`&lt;div id=&quot;html_b59e59a0858a44399ab9bd9d9f5237b1&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder10&lt;/div&gt;`)[0];
+                popup_7a5ef973eff82fbefa088c2b7a1aac3f.setContent(html_b59e59a0858a44399ab9bd9d9f5237b1);
+
+
+
+        marker_1892931ade079a26f73f23bf421d4580.bindPopup(popup_7a5ef973eff82fbefa088c2b7a1aac3f)
+        ;
+
+
+
+
+            var marker_9fb67b56e784256bb1e0f3db3e4ae961 = L.marker(
+                [51.222422, 4.381726],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_b8fd77860a7e5fdff7cc5a54771e31ae = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_4660e9c6afbd27606cc1e06e8cbb224a = $(`&lt;div id=&quot;html_4660e9c6afbd27606cc1e06e8cbb224a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder11&lt;/div&gt;`)[0];
+                popup_b8fd77860a7e5fdff7cc5a54771e31ae.setContent(html_4660e9c6afbd27606cc1e06e8cbb224a);
+
+
+
+        marker_9fb67b56e784256bb1e0f3db3e4ae961.bindPopup(popup_b8fd77860a7e5fdff7cc5a54771e31ae)
+        ;
+
+
+
+
+            var marker_1a8126543c51a70d9c5cf1d7f9a02c3c = L.marker(
+                [51.216477, 4.42344],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_6d29b6afb44c3a929068da59114031f9 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_f893eaaf0d44fc4076fef77520af2a24 = $(`&lt;div id=&quot;html_f893eaaf0d44fc4076fef77520af2a24&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder12&lt;/div&gt;`)[0];
+                popup_6d29b6afb44c3a929068da59114031f9.setContent(html_f893eaaf0d44fc4076fef77520af2a24);
+
+
+
+        marker_1a8126543c51a70d9c5cf1d7f9a02c3c.bindPopup(popup_6d29b6afb44c3a929068da59114031f9)
+        ;
+
+
+
+
+            var marker_067ad517fac35f36ae4691d500cdec54 = L.marker(
+                [51.212211, 4.398065],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_4ed8d96475fbe3120323801bda50e009 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_6107b48120b246d28e9a3efe3be42371 = $(`&lt;div id=&quot;html_6107b48120b246d28e9a3efe3be42371&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder13&lt;/div&gt;`)[0];
+                popup_4ed8d96475fbe3120323801bda50e009.setContent(html_6107b48120b246d28e9a3efe3be42371);
+
+
+
+        marker_067ad517fac35f36ae4691d500cdec54.bindPopup(popup_4ed8d96475fbe3120323801bda50e009)
+        ;
+
+
+
+
+            var marker_5658264c74f63639291350b317ad934f = L.marker(
+                [51.350618, 4.315013],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_3a5f0bad1739c8a6749249b80e41d3ae = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_bd1f660446eaaaac51d97bcc884321a6 = $(`&lt;div id=&quot;html_bd1f660446eaaaac51d97bcc884321a6&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder14&lt;/div&gt;`)[0];
+                popup_3a5f0bad1739c8a6749249b80e41d3ae.setContent(html_bd1f660446eaaaac51d97bcc884321a6);
+
+
+
+        marker_5658264c74f63639291350b317ad934f.bindPopup(popup_3a5f0bad1739c8a6749249b80e41d3ae)
+        ;
+
+
+
+
+            var marker_28f4e59f25dd2b6dd47c78b3b672c311 = L.marker(
+                [50.9353, 4.1926],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_47e4f9752393cf786a672a9988c23a93 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_4d8b0ae1aa43198a0b1d07041697bb89 = $(`&lt;div id=&quot;html_4d8b0ae1aa43198a0b1d07041697bb89&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder15&lt;/div&gt;`)[0];
+                popup_47e4f9752393cf786a672a9988c23a93.setContent(html_4d8b0ae1aa43198a0b1d07041697bb89);
+
+
+
+        marker_28f4e59f25dd2b6dd47c78b3b672c311.bindPopup(popup_47e4f9752393cf786a672a9988c23a93)
+        ;
+
+
+
+
+            var marker_7531570e5d5c388cb2c5d48dd97ec89a = L.marker(
+                [51.26685, 4.293436],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_925997789bc515e495ce89759d4c266f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_cca53802d48983cb74c6648d3908c7c0 = $(`&lt;div id=&quot;html_cca53802d48983cb74c6648d3908c7c0&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder16&lt;/div&gt;`)[0];
+                popup_925997789bc515e495ce89759d4c266f.setContent(html_cca53802d48983cb74c6648d3908c7c0);
+
+
+
+        marker_7531570e5d5c388cb2c5d48dd97ec89a.bindPopup(popup_925997789bc515e495ce89759d4c266f)
+        ;
+
+
+
+
+            var marker_12b81082f85c36e66a9996a088fc2a3c = L.marker(
+                [51.065269, 5.613458],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_e11a9f1f5c905626e6fc1b5b58b858da = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_c6ea765254dd1705495b1f55e09af815 = $(`&lt;div id=&quot;html_c6ea765254dd1705495b1f55e09af815&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder17&lt;/div&gt;`)[0];
+                popup_e11a9f1f5c905626e6fc1b5b58b858da.setContent(html_c6ea765254dd1705495b1f55e09af815);
+
+
+
+        marker_12b81082f85c36e66a9996a088fc2a3c.bindPopup(popup_e11a9f1f5c905626e6fc1b5b58b858da)
+        ;
+
+
+
+
+            var marker_8794c06fee11a15cfb61befa54723353 = L.marker(
+                [51.136244, 5.656769],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_945c1027336391a7ad4cb450f2a6cc0f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_c56efc55b974d8d57282a3d72882f767 = $(`&lt;div id=&quot;html_c56efc55b974d8d57282a3d72882f767&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder18&lt;/div&gt;`)[0];
+                popup_945c1027336391a7ad4cb450f2a6cc0f.setContent(html_c56efc55b974d8d57282a3d72882f767);
+
+
+
+        marker_8794c06fee11a15cfb61befa54723353.bindPopup(popup_945c1027336391a7ad4cb450f2a6cc0f)
+        ;
+
+
+
+
+            var marker_8f0910e55fa46d0f89fe57babb0cc671 = L.marker(
+                [50.841455, 4.363672],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_cacff8b7ea7b5f2b8b9c9973f62e6bf1 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_5eb263fe99976c2fda1c93935347a797 = $(`&lt;div id=&quot;html_5eb263fe99976c2fda1c93935347a797&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder19&lt;/div&gt;`)[0];
+                popup_cacff8b7ea7b5f2b8b9c9973f62e6bf1.setContent(html_5eb263fe99976c2fda1c93935347a797);
+
+
+
+        marker_8f0910e55fa46d0f89fe57babb0cc671.bindPopup(popup_cacff8b7ea7b5f2b8b9c9973f62e6bf1)
+        ;
+
+
+
+
+            var marker_24ee715c0b8515cf82e697e5bebf04e8 = L.marker(
+                [50.847025, 4.357971],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_b4da2a5d0429e827554e278c559e00fa = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_725f02ad4ccd5c19904fc71104a7ab3a = $(`&lt;div id=&quot;html_725f02ad4ccd5c19904fc71104a7ab3a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder20&lt;/div&gt;`)[0];
+                popup_b4da2a5d0429e827554e278c559e00fa.setContent(html_725f02ad4ccd5c19904fc71104a7ab3a);
+
+
+
+        marker_24ee715c0b8515cf82e697e5bebf04e8.bindPopup(popup_b4da2a5d0429e827554e278c559e00fa)
+        ;
+
+
+
+
+            var marker_083bff050792f1175e3745bacd732d65 = L.marker(
+                [51.260389, 2.991917],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_fd8d7986f5641546ff381e77d7885879 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_6cb3f5533f85986825d81c4b6331e20d = $(`&lt;div id=&quot;html_6cb3f5533f85986825d81c4b6331e20d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder21&lt;/div&gt;`)[0];
+                popup_fd8d7986f5641546ff381e77d7885879.setContent(html_6cb3f5533f85986825d81c4b6331e20d);
+
+
+
+        marker_083bff050792f1175e3745bacd732d65.bindPopup(popup_fd8d7986f5641546ff381e77d7885879)
+        ;
+
+
+
+
+            var marker_d45486801dc8ceabd5a1dac7144fb0e2 = L.marker(
+                [50.989501, 2.85622],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_d02d558ffe22ed13c5df55a98c3d10b8 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_dbdcc2998b388bbe4b7b805ddfdb4556 = $(`&lt;div id=&quot;html_dbdcc2998b388bbe4b7b805ddfdb4556&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder22&lt;/div&gt;`)[0];
+                popup_d02d558ffe22ed13c5df55a98c3d10b8.setContent(html_dbdcc2998b388bbe4b7b805ddfdb4556);
+
+
+
+        marker_d45486801dc8ceabd5a1dac7144fb0e2.bindPopup(popup_d02d558ffe22ed13c5df55a98c3d10b8)
+        ;
+
+
+
+
+            var marker_fe5278a785a4a8796b200d2e9d732da0 = L.marker(
+                [51.260578, 3.580151],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_d319de05de58c5e38398240146400d28 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_3d671cdc6f79cb60f860204d2bfb6084 = $(`&lt;div id=&quot;html_3d671cdc6f79cb60f860204d2bfb6084&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder23&lt;/div&gt;`)[0];
+                popup_d319de05de58c5e38398240146400d28.setContent(html_3d671cdc6f79cb60f860204d2bfb6084);
+
+
+
+        marker_fe5278a785a4a8796b200d2e9d732da0.bindPopup(popup_d319de05de58c5e38398240146400d28)
+        ;
+
+
+
+
+            var marker_7d609b5e4c7d0e8448e68758cb155cad = L.marker(
+                [51.167015, 3.572062],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_b9e2f8971ffd5ae4b485ccf914d9a883 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_74910286985f44fb871715d0bc36bcf4 = $(`&lt;div id=&quot;html_74910286985f44fb871715d0bc36bcf4&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder24&lt;/div&gt;`)[0];
+                popup_b9e2f8971ffd5ae4b485ccf914d9a883.setContent(html_74910286985f44fb871715d0bc36bcf4);
+
+
+
+        marker_7d609b5e4c7d0e8448e68758cb155cad.bindPopup(popup_b9e2f8971ffd5ae4b485ccf914d9a883)
+        ;
+
+
+
+
+            var marker_1e69e06b21e4bcfb08250af99ff457f3 = L.marker(
+                [51.15472, 3.708611],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_f4bb981146bff3101e48060e4f3b3bd4 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_95955f5c9fc833c6055782be9e11d3ff = $(`&lt;div id=&quot;html_95955f5c9fc833c6055782be9e11d3ff&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder25&lt;/div&gt;`)[0];
+                popup_f4bb981146bff3101e48060e4f3b3bd4.setContent(html_95955f5c9fc833c6055782be9e11d3ff);
+
+
+
+        marker_1e69e06b21e4bcfb08250af99ff457f3.bindPopup(popup_f4bb981146bff3101e48060e4f3b3bd4)
+        ;
+
+
+
+
+            var marker_a8bebb66a179563aa236f12b9f637c5e = L.marker(
+                [51.16176, 4.997653],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_4f626212ad35db50d325eecd2d7b7e06 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_6b4616e88224c1fa661b8a16a4d30529 = $(`&lt;div id=&quot;html_6b4616e88224c1fa661b8a16a4d30529&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder26&lt;/div&gt;`)[0];
+                popup_4f626212ad35db50d325eecd2d7b7e06.setContent(html_6b4616e88224c1fa661b8a16a4d30529);
+
+
+
+        marker_a8bebb66a179563aa236f12b9f637c5e.bindPopup(popup_4f626212ad35db50d325eecd2d7b7e06)
+        ;
+
+
+
+
+            var marker_5b5cc973e08370b69c7d204e939f7780 = L.marker(
+                [51.058099, 3.728067],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_ff8de6b201ed02f003afdea787ed777c = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_0125e75b1e448a3b9c650ec6ab7d1db2 = $(`&lt;div id=&quot;html_0125e75b1e448a3b9c650ec6ab7d1db2&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder27&lt;/div&gt;`)[0];
+                popup_ff8de6b201ed02f003afdea787ed777c.setContent(html_0125e75b1e448a3b9c650ec6ab7d1db2);
+
+
+
+        marker_5b5cc973e08370b69c7d204e939f7780.bindPopup(popup_ff8de6b201ed02f003afdea787ed777c)
+        ;
+
+
+
+
+            var marker_ea91fb32245db6a372de66e2c689beef = L.marker(
+                [51.035293, 3.769741],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+        var popup_4da2c57580430346bbe77c586bb5b9cd = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_3c677f1d319806466edb3fa15a8e4528 = $(`&lt;div id=&quot;html_3c677f1d319806466edb3fa15a8e4528&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder28&lt;/div&gt;`)[0];
+                popup_4da2c57580430346bbe77c586bb5b9cd.setContent(html_3c677f1d319806466edb3fa15a8e4528);
+
+
+
+        marker_ea91fb32245db6a372de66e2c689beef.bindPopup(popup_4da2c57580430346bbe77c586bb5b9cd)
+        ;
+
+
+
+
+            var layer_control_03befceb6d41f21c1d3f3dd2d392e931_layers = {
+                base_layers : {
+                    &quot;openstreetmap&quot; : tile_layer_46e31f5e560d63d3432223367d194c98,
+                },
+                overlays :  {
+                    &quot;Google Maps&quot; : tile_layer_5d72274a513a7ec3caf9cebfaa779bb5,
+                    &quot;Google Satellite&quot; : tile_layer_306fc3444e64605220a89dfa8f5e4f92,
+                    &quot;worldcover&quot; : tile_layer_fb1307508306fb1209af0a562c5d745d,
+                },
+            };
+            let layer_control_03befceb6d41f21c1d3f3dd2d392e931 = L.control.layers(
+                layer_control_03befceb6d41f21c1d3f3dd2d392e931_layers.base_layers,
+                layer_control_03befceb6d41f21c1d3f3dd2d392e931_layers.overlays,
+                {&quot;autoZIndex&quot;: true, &quot;collapsed&quot;: true, &quot;position&quot;: &quot;topright&quot;}
+            ).addTo(map_5008aaa20506858e0579964f36dace3f);
+
+
+&lt;/script&gt;
+&lt;/html&gt;" width="100%" height="600"style="border:none !important;" "allowfullscreen" "webkitallowfullscreen" "mozallowfullscreen"></iframe></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="doc_example.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Demo example: Using a Dataset</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="qc_example.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Demo example: Applying Quality Control.</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Create-your-Dataset">Create your Dataset</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Extracting-LCZ-from-GEE">Extracting LCZ from GEE</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Extracting-other-Geospatial-information">Extracting other Geospatial information</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Extracting-ERA5-timeseries">Extracting ERA5 timeseries</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#GEE-data-transfer">GEE data transfer</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Interactive-plotting-of-a-GEE-dataset">Interactive plotting of a GEE dataset</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/examples/gee_example.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

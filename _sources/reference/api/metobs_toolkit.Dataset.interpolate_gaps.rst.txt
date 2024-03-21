@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.interpolate\_gaps
+=========================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.interpolate_gaps
