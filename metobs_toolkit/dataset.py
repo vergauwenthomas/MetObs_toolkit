@@ -11,6 +11,8 @@ import os
 import sys
 import copy
 from datetime import timedelta
+import itertools
+import time
 import pytz
 import logging
 import pandas as pd
@@ -34,7 +36,7 @@ from metobs_toolkit.landcover_functions import (
 )
 
 from metobs_toolkit.plotting_functions import (
-    geospatial_plot,
+    spatial_plot,
     timeseries_plot,
     qc_stats_pie,
     folium_plot,
@@ -42,36 +44,38 @@ from metobs_toolkit.plotting_functions import (
     make_folium_html_plot,
 )
 
-from metobs_toolkit.qc_checks import (
-    gross_value_check,
-    persistance_check,
-    repetitions_check,
-    duplicate_timestamp_check,
-    step_check,
-    window_variation_check,
-    invalid_input_check,
-    toolkit_buddy_check,
-    titan_buddy_check,
-    titan_sct_resistant_check,
-)
+# from metobs_toolkit.qc_checks import (
+#     gross_value_check,
+#     persistance_check,
+#     repetitions_check,
+#     duplicate_timestamp_check,
+#     step_check,
+#     window_variation_check,
+#     # invalid_input_check,
+#     toolkit_buddy_check,
+#     titan_buddy_check,
+#     titan_sct_resistant_check,
+# )
 
 
 from metobs_toolkit.qc_statistics import get_freq_statistics
 from metobs_toolkit.writing_files import write_dataset_to_csv
 
-from metobs_toolkit.missingobs import Missingob_collection
+# from metobs_toolkit.missingobs import Missingob_collection
 
 from metobs_toolkit.gap import (
-    Gap,
-    remove_gaps_from_obs,
-    remove_gaps_from_outliers,
-    missing_timestamp_and_gap_check,
-    get_gaps_indx_in_obs_space,
-    get_station_gaps,
-    apply_interpolate_gaps,
-    make_gapfill_df,
-    apply_debias_era5_gapfill,
-    gaps_to_df,
+    # Gap,
+    find_gaps,
+    create_gaps_overview_df,
+    # remove_gaps_from_obs,
+    # remove_gaps_from_outliers,
+    # missing_timestamp_and_gap_check,
+    # get_gaps_indx_in_obs_space,
+    # get_station_gaps,
+    # apply_interpolate_gaps,
+    # make_gapfill_df,
+    # apply_debias_era5_gapfill,
+    # gaps_to_df,
 )
 
 
@@ -93,7 +97,7 @@ from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype as Obstype_class
 
 
-from metobs_toolkit.analysis import Analysis
+# from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
 
 
@@ -113,22 +117,22 @@ class Dataset:
         logger.info("Initialise dataset")
 
         # Dataset with 'good' observations
-        self.df = pd.DataFrame()
+        self.df = init_triple_multiindexdf()
 
         # Dataset with outlier observations
         self.outliersdf = init_triple_multiindexdf()
 
-        self.missing_obs = None  # becomes a Missingob_collection after import
+        # self.missing_obs = None  # becomes a Missingob_collection after import
         self.gaps = None  # becomes a list of gaps
 
-        self.gapfilldf = init_multiindexdf()
-        self.missing_fill_df = init_multiindexdf()
+        # self.gapfilldf = init_multiindexdf()
+        # self.missing_fill_df = init_multiindexdf()
 
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
 
         # dictionary storing present observationtypes
-        self.obstypes = tlk_obstypes  # init with all tlk obstypes
+        self.obstypes = tlk_obstypes.copy()  # init with all tlk obstypes
 
         # dataframe containing all information on the description and mapping
         self.data_template = pd.DataFrame()
@@ -161,13 +165,12 @@ class Dataset:
             add_info += "    *Coordinates are available for all stations."
 
         return (
-            f"Dataset instance containing: \n \
+            f"{self._istype} instance containing: \n \
     *{n_stations} stations \n \
-    *{self.df.columns.to_list()} observation types \n \
+    *{self._get_present_obstypes()} observation types \n \
     *{n_obs_tot} observation records \n \
     *{n_outl} records labeled as outliers \n \
     *{len(self.gaps)} gaps \n \
-    *{self.missing_obs.series.shape[0]} missing observations \n \
     *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt}) \n \
     *time zone of the records: {self.settings.time_settings['timezone']} \n "
             + add_info
@@ -188,7 +191,7 @@ class Dataset:
         # resolution !
 
         new = Dataset()
-        self_obstypes = self.df.columns.to_list().copy()
+        self_obstypes = self._get_present_obstypes().copy()
         #  ---- df ----
 
         # check if observation of self are also in other
@@ -217,12 +220,6 @@ class Dataset:
         # combination of self.df and other.df, thus NOT the native frequency if
         # their is a coarsening allied on either of them.
         new.gaps = []
-
-        # ---------- missing ---------
-        # Missing observations have to be recaluculated using a frequency assumtion from the
-        # combination of self.df and other.df, thus NOT the native frequency if
-        # their is a coarsening allied on either of them.
-        new.missing_obs = None
 
         # ---------- metadf -----------
         # Use the metadf from self and add new rows if they are present in other
@@ -255,15 +252,7 @@ class Dataset:
         # that are dependand on the frequency (since the freq of the .df is used,
         # which is not the naitive frequency if coarsening is applied on either. )
 
-        # missing and gap check
-        if gapsize is None:
-            gapsize = new.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]
-
-        # note gapsize is now defined on the frequency of self
-        new.missing_obs, new.gaps = missing_timestamp_and_gap_check(
-            df=new.df,
-            gapsize_n=self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"],
-        )
+        new.gaps = find_gaps(new.df, known_obstypes=new.obstypes)
 
         # duplicate check
         new.df, dup_outl_df = duplicate_timestamp_check(
@@ -377,7 +366,9 @@ class Dataset:
         """
         self.show(show_all_settings, max_disp_n_gaps)
 
-    def save_dataset(self, outputfolder=None, filename="saved_dataset.pkl"):
+    def save_dataset(
+        self, outputfolder=None, filename="saved_dataset.pkl", overwrite=False
+    ):
         """Save a Dataset instance to a (pickle) file.
 
         Parameters
@@ -387,6 +378,9 @@ class Dataset:
             from the Settings is used. The default is None.
         filename : str, optional
             The name of the output file. The default is 'saved_dataset.pkl'.
+        overwrite : bool
+            If True, the file, if it already exists, will be overwritten. The
+            default is False.
 
         Returns
         -------
@@ -430,7 +424,13 @@ class Dataset:
         full_path = os.path.join(outputfolder, filename)
 
         # check if file exists
-        assert not os.path.isfile(full_path), f"{full_path} is already a file!"
+        file_exist = os.path.isfile(full_path)
+        if not overwrite:
+            assert not file_exist, f"{full_path} is already a file!"
+        else:
+            if file_exist:
+                logger.warning(f"{full_path} already exists, and will be overwritten!")
+                os.remove(full_path)
 
         with open(full_path, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
@@ -701,29 +701,16 @@ class Dataset:
         except KeyError:
             sta_outliers = init_triple_multiindexdf()
 
-        sta_gaps = get_station_gaps(self.gaps, stationname)
-        sta_missingobs = self.missing_obs.get_station_missingobs(stationname)
-
-        try:
-            sta_gapfill = self.gapfilldf.xs(stationname, level="name", drop_level=False)
-        except KeyError:
-            sta_gapfill = init_multiindexdf()
-
-        try:
-            sta_missingfill = self.missing_fill_df.xs(
-                stationname, level="name", drop_level=False
-            )
-        except KeyError:
-            sta_missingfill = init_multiindexdf()
+        sta_gaps = [gap for gap in self.gaps if gap.name == stationname]
 
         return Station(
             name=stationname,
             df=sta_df,
             outliersdf=sta_outliers,
             gaps=sta_gaps,
-            missing_obs=sta_missingobs,
-            gapfilldf=sta_gapfill,
-            missing_fill_df=sta_missingfill,
+            # missing_obs=sta_missingobs,
+            # gapfilldf=sta_gapfill,
+            # missing_fill_df=sta_missingfill,
             metadf=sta_metadf,
             obstypes=self.obstypes,
             data_template=self.data_template,
@@ -1002,7 +989,7 @@ class Dataset:
                     )
 
         # Check if the obstype is present in the data
-        if obstype.name not in self.df.columns:
+        if obstype.name not in self._get_present_obstypes():
             logger.error(f"{obstype.name} is not found in your the Dataset.")
             return None
 
@@ -1050,8 +1037,8 @@ class Dataset:
             label_col_map[val["outlier_flag"]] = gap_col
 
         # fill labels
-        for val in self.settings.missing_obs["missing_obs_fill_info"]["label"].values():
-            label_col_map[val] = fill_col
+        # for val in self.settings.missing_obs["missing_obs_fill_info"]["label"].values():
+        #     label_col_map[val] = fill_col
         for val in self.settings.gap["gaps_fill_info"]["label"].values():
             label_col_map[val] = fill_col
 
@@ -1090,7 +1077,7 @@ class Dataset:
         vmin=None,
         vmax=None,
         legend_title=None,
-        boundbox=[],
+        is_categorical=False,
     ):
         """Make geospatial plot.
 
@@ -1164,7 +1151,7 @@ class Dataset:
             timeinstance, self.settings.time_settings["timezone"]
         )
         if timeinstance is None:
-            timeinstance = self.df.dropna(subset=["temp"]).index[0][1]
+            timeinstance = self.df.dropna().index.get_level_values("datetime").min()
 
         logger.info(f"Make {variable}-geo plot at {timeinstance}")
 
@@ -1178,12 +1165,12 @@ class Dataset:
             logger.error(f"Stations without coordinates detected: {_sta}")
             return None
 
-        if bool(boundbox):
-            if len(boundbox) != 4:
-                logger.warning(
-                    f"The boundbox ({boundbox}) does not contain 4 elements! The default boundbox is used!"
-                )
-                boundbox = []
+        # if bool(boundbox):
+        #     if len(boundbox) != 4:
+        #         logger.warning(
+        #             f"The boundbox ({boundbox}) does not contain 4 elements! The default boundbox is used!"
+        #         )
+        #         boundbox = []
 
         # Check if LCZ if available
         if variable == "lcz":
@@ -1195,12 +1182,40 @@ class Dataset:
             legend_title = ""
 
         # subset to timeinstance
-        plotdf = xs_save(self.df, timeinstance, level="datetime")
+        plotdf = xs_save(self.df, timeinstance, level="datetime", drop_level=True)
 
-        # merge metadata
-        plotdf = plotdf.merge(
-            self.metadf, how="left", left_index=True, right_index=True
-        )
+        # make a plotting df (2 columns: to_plot and the spatial geometry)
+        if variable in plotdf.index.get_level_values("obstype").unique():
+
+            plotdf = xs_save(plotdf, variable, level="obstype", drop_level=True)
+            plotdf = plotdf.rename(columns={"value": "to_plot"})
+            # merge metadata
+            plotdf = plotdf.merge(
+                self.metadf[["geometry"]], how="left", left_index=True, right_index=True
+            )
+
+            plotdf = plotdf[["to_plot", "geometry"]]
+
+        else:
+            # assume the variable is in the metadf
+            assert (
+                variable in self.metadf.columns
+            ), f"{variable} is not foud as an observation type, and not in the metadata: {self.metadf.columns}."
+            plotdf = self.metadf[[variable, "geometry"]]
+            plotdf = plotdf.rename(columns={variable: "to_plot"})
+
+        # # merge metadata
+        # plotdf = plotdf.merge(
+        #     self.metadf, how="left", left_index=True, right_index=True
+        # )
+        use_quantiles = False
+        if np.issubdtype(plotdf["to_plot"].dtype, np.number):
+            # to plot is numeric
+            if is_categorical:
+                use_quantiles = True
+        else:
+            is_categorical = True
+            use_quantiles = False
 
         # titles
         if title is None:
@@ -1213,22 +1228,40 @@ class Dataset:
             if legend_title is None:
                 legend_title = f"{self.obstypes[variable].get_standard_unit()}"
 
-        axis = geospatial_plot(
-            plotdf=plotdf,
-            variable=variable,
-            timeinstance=timeinstance,
-            title=title,
+        axis = spatial_plot(
+            gdf=plotdf,
+            variable="to_plot",
             legend=legend,
+            use_quantiles=use_quantiles,
+            is_categorical=is_categorical,
+            k_quantiles=self.settings.app["plot_settings"]["spatial_geo"][
+                "n_for_categorical"
+            ],
+            cmap=self.settings.app["plot_settings"]["spatial_geo"]["cmap"],
+            figsize=self.settings.app["plot_settings"]["spatial_geo"]["figsize"],
+            # extent=
+            title=title,
             legend_title=legend_title,
             vmin=vmin,
             vmax=vmax,
-            plotsettings=self.settings.app["plot_settings"],
-            categorical_fields=self.settings.app["categorical_fields"],
-            static_fields=self.settings.app["static_fields"],
-            display_name_mapper=self.settings.app["display_name_mapper"],
-            data_template=self.data_template,
-            boundbox=boundbox,
         )
+
+        # axis = geospatial_plot(
+        #     plotdf=plotdf,
+        #     variable=variable,
+        #     timeinstance=timeinstance,
+        #     title=title,
+        #     legend=legend,
+        #     legend_title=legend_title,
+        #     vmin=vmin,
+        #     vmax=vmax,
+        #     plotsettings=s,
+        #     categorical_fields=self.settings.app["categorical_fields"],
+        #     static_fields=self.settings.app["static_fields"],
+        #     display_name_mapper=self.settings.app["display_name_mapper"],
+        #     data_template=self.data_template,
+        #     boundbox=boundbox,
+        # )
 
         return axis
 
@@ -1385,610 +1418,57 @@ class Dataset:
         )
         return Modl
 
-    def update_gaps_and_missing_from_outliers(self, obstype="temp", n_gapsize=None):
-        """Interpret the outliers as missing observations.
+    def convert_outliers_to_gaps(self):
+        # TODO : docstrinc + alles van de update gaps ... vervangend door deze methode
 
-        If there is a sequence
-        of these outliers for a station, larger than n_gapsize than this will
-        be interpreted as a gap.
+        if self.outliersdf.empty:
+            print("Warning! No outliers are found to convert!")
+            return
 
-        The outliers are not removed.
+        if bool(self.gaps):
+            print("Warning! The current gaps will be removed and new gaps are formed!")
 
-        Parameters
-        ----------
-        obstype : str, optional
-            Use the outliers on this observation type to update the gaps and
-            missing timestamps. The default is 'temp'.
-        n_gapsize : int, optional
-            The minimum number of consecutive missing observations to define
-            as a gap. If None, n_gapsize is taken from the settings defenition
-            of gaps. The default is None.
-
-        Returns
-        -------
-        None.
-
-        Note
-        -------
-        Gaps and missing observations resulting from an outlier on a specific
-        obstype, are assumed to be gaps/missing observation for all obstypes.
-
-        Note
-        ------
-        Be aware that n_gapsize is used for the current resolution of the Dataset,
-        this is different from the gap check applied on the inported data, if
-        the dataset is coarsend.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *1932 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *235 records labeled as outliers
-                 *2 gaps
-                 *1473 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-
-        """
-        if n_gapsize is None:
-            n_gapsize = self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]
-            if (
-                not self.metadf["assumed_import_frequency"]
-                .eq(self.metadf["dataset_resolution"])
-                .all()
-            ):
-                logger.info(
-                    f"The defenition of the gapsize (n_gapsize = {n_gapsize}) \
-                               will have another effect on the update of the gaps and missing \
-                                   timestamps because coarsening is applied and the defenition \
-                                   of the gapsize is not changed."
-                )
-
-        # combine to one dataframe
-        mergedf = self.combine_all_to_obsspace()
-        mergedf = xs_save(mergedf, obstype, level="obstype")
-
-        # ignore labels
-        possible_outlier_labels = [
-            vals["outlier_flag"] for vals in self.settings.qc["qc_checks_info"].values()
-        ]
-
-        # create groups when the final label changes
-        persistance_filter = ((mergedf["label"].shift() != mergedf["label"])).cumsum()
-        grouped = mergedf.groupby(["name", persistance_filter])
-
-        # locate new gaps by size of consecutive the same final label per station
-        group_sizes = grouped.size()
-        large_groups = group_sizes[group_sizes > n_gapsize]
-
-        # find only groups with final label as an outlier
-        gaps = []
-        # new_gapsdf = pd.DataFrame()
-        new_gaps_idx = init_multiindex()
-        for group_idx in large_groups.index:
-            groupdf = grouped.get_group(group_idx)
-            group_final_label = groupdf["label"].iloc[0]
-            if group_final_label not in possible_outlier_labels:
-                # no gap candidates
-                continue
-            else:
-                gap = Gap(
-                    name=groupdf.index.get_level_values("name")[0],
-                    startdt=groupdf.index.get_level_values("datetime").min(),
-                    enddt=groupdf.index.get_level_values("datetime").max(),
-                )
-
-                gaps.append(gap)
-                new_gaps_idx = new_gaps_idx.union(groupdf.index, sort=False)
-
-        # add all the outliers, that are not in the new gaps to the new missing obs
-        new_missing_obs = mergedf[mergedf["label"].isin(possible_outlier_labels)].index
-        new_missing_obs = new_missing_obs.drop(new_gaps_idx.to_numpy(), errors="ignore")
-
-        # to series
-        missing_obs_series = (
-            new_missing_obs.to_frame()
-            .reset_index(drop=True)
-            .set_index("name")["datetime"]
-        )
-        # Create missing obs
-        new_missing_collection = Missingob_collection(missing_obs_series)
-
-        # update self
-        self.gaps.extend(gaps)
-        self.missing_obs = self.missing_obs + new_missing_collection
-
-        # remove outliers that are converted to gaps
-        self.outliersdf = remove_gaps_from_outliers(
-            gaplist=gaps, outldf=self.outliersdf
-        )
-
-        # remove outliers that are converted to missing obs
-        self.outliersdf = self.missing_obs.remove_missing_from_outliers(self.outliersdf)
-
-    # =============================================================================
-    #   Gap Filling
-    # =============================================================================
-
-    def fill_gaps_automatic(
-        self,
-        modeldata,
-        obstype="temp",
-        max_interpolate_duration_str=None,
-        overwrite_fill=False,
-    ):
-        """Fill the gaps by using linear interpolation or debiased modeldata.
-
-        This method serves as a triage to select the gaps to be filled with
-        linear interpolation and those to be filled using a diurnal debias
-        gapfill. When the duration of a gap is smaller or equal than
-        max_interpolation_duration, the linear interpolation method is applied
-        else the debiased modeldata method.
-
-        For a detailed description of these methods, we refer to the
-        corresponding metobs_toolkit.Dataset.fill_gaps_linear() and
-        metobs_toolkit.Dataset.fill_gaps_era5().
-
-        Parameters
-        ----------
-        modeldata : metobs_toolkit.Modeldata
-            The modeldata to use for the gapfill. This model data should the required
-            timeseries to fill all gaps present in the dataset.
-        obstype : String, optional
-            Name of the observationtype you want to apply gap filling on. The
-            modeldata must contain this observation type as well. The
-            default is 'temp'.
-        max_interpolate_duration_str : Timedelta or str, optional
-            Maximum duration to apply interpolation for gapfill when using the
-            automatic gapfill method. Gaps with longer durations will be filled
-            using debiased modeldata. The default is None.
-        overwrite_fill: bool, optional
-            If a gap has already filled values, the interpolation of this gap
-            is skipped if overwrite_fill is False. If set to True, the gapfill
-            values and info will be overwitten. The default is False.
-
-        Returns
-        -------
-        comb_df : pandas.DataFrame
-            A dataframe containing all the filled records.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            import metobs_toolkit
-
-            your_dataset = metobs_toolkit.Dataset()
-            your_dataset.update_settings(
-                input_data_file=metobs_toolkit.demo_datafile, # path to the data file
-                input_metadata_file=metobs_toolkit.demo_metadatafile,
-                template_file=metobs_toolkit.demo_template,
+        if (
+            self.metadf["assumed_import_frequency"] != self.metadf["dataset_resolution"]
+        ).any():
+            print(
+                "Warning! The current gaps are defined at a resolution different from the assumed import resolution!"
             )
-            # Specify the gap defenition
-            your_dataset.update_qc_settings(gapsize_in_records = 20)
 
-            #Update the gapsize BEFORE importing the data
-            your_dataset.import_data_from_file()
-
-            #Update the settings (definition of the period to calculate biases for)
-            your_dataset.update_gap_and_missing_fill_settings(
-                                                              gap_debias_prefered_leading_period_hours=24,
-                                                              gap_debias_prefered_trailing_period_hours=24,
-                                                              gap_debias_minimum_leading_period_hours=6,
-                                                              gap_debias_minimum_trailing_period_hours=6,
-                                                              )
-            #(As a demonstration, we will fill the gaps of a single station. The following functions can also be
-            # directly applied to the dataset.)
-            your_station = your_dataset.get_station('vlinder05')
-
-
-            #Get ERA5 modeldata at the location of your stations and period.
-            ERA5_modeldata = your_station.get_modeldata(modelname='ERA5_hourly',
-                                                        obstype='temp')
-
-            #Use the debias method to fill the gaps
-            gapfill_df = your_station.fill_gaps_automatic(modeldata=ERA5_modeldata,
-                                                          max_interpolate_duration_str='6H', # <6 hours will be interpolated
-                                                          obstype='temp')
-
-        """
-        #  ----------- Validate ----------------------------------------
-
-        # check if modeldata is available
-        if modeldata is None:
-            logger.warning(
-                "The dataset has no modeldate. Use the set_modeldata() function to add modeldata."
+        # Get start and end of timeseries (be shure to include gaps and outliers to determine start en endpoints)
+        combdf = self.combine_all_to_obsspace()
+        startdict = {}
+        enddict = {}
+        for sta in combdf.index.get_level_values("name").unique():
+            startdict[sta] = (
+                combdf.xs(sta, level="name").index.get_level_values("datetime").min()
             )
-            return None
+            enddict[sta] = (
+                combdf.xs(sta, level="name").index.get_level_values("datetime").max()
+            )
 
-        # check if obstype is present in eramodel
-        assert (
-            obstype in modeldata.df.columns
-        ), f"{obstype} is not present in the modeldate: {modeldata}"
+        # tstart = combdf.index.get_level_values("datetime").min()
+        # tend = combdf.index.get_level_values("datetime").max()
 
-        # check if all station are present in eramodeldata
-        # stations = self.gaps.to_df().index.unique().to_list()
-        stations = list(set([gap.name for gap in self.gaps]))
-        assert all(
-            [sta in modeldata.df.index.get_level_values("name") for sta in stations]
-        ), "Not all stations with gaps are in the modeldata!"
+        # Since the outliers are Nan values in the dataset.df, and the find_gaps() method
+        # looks for missing records AND invalid values (thus also nans), this method could be applied
 
-        if max_interpolate_duration_str is None:
-            max_interpolate_duration_str = self.settings.gap["gaps_fill_settings"][
-                "automatic"
-            ]["max_interpolation_duration_str"]
-
-        #  ------------select the method to apply gapfill per gap ----------
-        interpolate_gaps = []
-        debias_gaps = []
-
-        for gap in self.gaps:
-            if gap.duration <= pd.to_timedelta(max_interpolate_duration_str):
-                interpolate_gaps.append(gap)
-            else:
-                debias_gaps.append(gap)
-
-        # 1   ---------------Fill by interpolation ---------------------
-
-        fill_settings_interp = self.settings.gap["gaps_fill_settings"]["linear"]
-
-        apply_interpolate_gaps(
-            gapslist=interpolate_gaps,
-            obsdf=self.df,
-            outliersdf=self.outliersdf,
-            dataset_res=self.metadf["dataset_resolution"],
-            gapfill_settings=self.settings.gap["gaps_fill_info"],
-            obstype=obstype,
-            method=fill_settings_interp["method"],
-            max_consec_fill=fill_settings_interp["max_consec_fill"],
-            overwrite_fill=overwrite_fill,
+        newgaps = find_gaps(
+            df=self.df,
+            blacklist_records=[],
+            Obstypesdict=self.obstypes,
+            freq_series=self.metadf["dataset_resolution"],
+            startdict=startdict,
+            enddict=enddict,
         )
 
-        filldf_interp = make_gapfill_df(interpolate_gaps)
+        # initialize the gapdf attributes
+        for gap in newgaps:
+            gap._initiate_gapdf(Dataset=self)
 
-        # 2  --------------  Fill by debias -----------------------------
-
-        fill_settings_debias = self.settings.gap["gaps_fill_settings"]["model_debias"]
-
-        apply_debias_era5_gapfill(
-            gapslist=debias_gaps,
-            dataset=self,
-            eraModelData=modeldata,
-            obstype=obstype,
-            debias_settings=fill_settings_debias,
-            overwrite_fill=overwrite_fill,
-        )
-
-        # add label column
-        filldf_debias = make_gapfill_df(debias_gaps)
-
-        # combine both fill df's
-        comb_df = concat_save([filldf_interp, filldf_debias])
-
-        # update attr
-        self.gapfilldf = comb_df
-
-        return comb_df
-
-    def fill_gaps_linear(self, obstype="temp", overwrite_fill=False):
-        """Fill the gaps using linear interpolation.
-
-        The gapsfilldf attribute of the Datasetinstance will be updated if
-        the gaps are not filled yet or if overwrite_fill is set to True.
-
-        Parameters
-        ----------
-        obstype : string, optional
-            Fieldname to visualise. This can be an observation or station
-            attribute. The default is 'temp'.
-        overwrite_fill: bool, optional
-            If a gap has already filled values, the interpolation of this gap
-            is skipped if overwrite_fill is False. If set to True, the gapfill
-            values and info will be overwitten. The default is False.
-
-        Returns
-        -------
-        gapfilldf : pandas.DataFrame
-            A dataframe containing all the filled records.
-
-        Notes
-        -----
-        A schematic description of the linear gap fill:
-
-        1. Iterate over all gaps.
-        2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
-        3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
-        4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
-        5. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
-
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *235 records labeled as outliers
-                 *2 gaps
-                 *1473 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-            >>>
-            >>> #Update the gapfill settings (else the defaults are used)
-            >>> dataset.update_gap_and_missing_fill_settings(gap_interpolation_max_consec_fill=35)
-            >>>
-            >>> # Fill the gaps
-            >>> dataset.fill_gaps_linear(obstype='temp')
-                                                      temp   temp_final_label
-            name      datetime
-            vlinder05 2022-09-06 21:00:00+00:00  21.378710  gap_interpolation
-                      2022-09-06 22:00:00+00:00  21.357419  gap_interpolation
-                      2022-09-06 23:00:00+00:00  21.336129  gap_interpolation
-                      2022-09-07 00:00:00+00:00  21.314839  gap_interpolation
-                      2022-09-07 01:00:00+00:00  21.293548  gap_interpolation
-                      2022-09-07 02:00:00+00:00  21.272258  gap_interpolation
-                      2022-09-07 03:00:00+00:00  21.250968  gap_interpolation
-                      2022-09-07 04:00:00+00:00  21.229677  gap_interpolation
-                      2022-09-07 05:00:00+00:00  21.208387  gap_interpolation
-                      2022-09-07 06:00:00+00:00  21.187097  gap_interpolation
-                      2022-09-07 07:00:00+00:00  21.165806  gap_interpolation
-                      2022-09-07 08:00:00+00:00  21.144516  gap_interpolation
-                      2022-09-07 09:00:00+00:00  21.123226  gap_interpolation
-                      2022-09-07 10:00:00+00:00  21.101935  gap_interpolation
-                      2022-09-07 11:00:00+00:00  21.080645  gap_interpolation
-                      2022-09-07 12:00:00+00:00  21.059355  gap_interpolation
-                      2022-09-07 13:00:00+00:00  21.038065  gap_interpolation
-                      2022-09-07 14:00:00+00:00  21.016774  gap_interpolation
-                      2022-09-07 15:00:00+00:00  20.995484  gap_interpolation
-                      2022-09-07 16:00:00+00:00  20.974194  gap_interpolation
-                      2022-09-07 17:00:00+00:00  20.952903  gap_interpolation
-                      2022-09-07 18:00:00+00:00  20.931613  gap_interpolation
-                      2022-09-07 19:00:00+00:00  20.910323  gap_interpolation
-                      2022-09-07 20:00:00+00:00  20.889032  gap_interpolation
-                      2022-09-07 21:00:00+00:00  20.867742  gap_interpolation
-                      2022-09-07 22:00:00+00:00  20.846452  gap_interpolation
-                      2022-09-07 23:00:00+00:00  20.825161  gap_interpolation
-                      2022-09-08 00:00:00+00:00  20.803871  gap_interpolation
-                      2022-09-08 01:00:00+00:00  20.782581  gap_interpolation
-                      2022-09-08 02:00:00+00:00  20.761290  gap_interpolation
-                      2022-09-08 03:00:00+00:00  20.740000  gap_interpolation
-                      2022-09-08 04:00:00+00:00  20.718710  gap_interpolation
-                      2022-09-08 05:00:00+00:00  20.697419  gap_interpolation
-                      2022-09-08 06:00:00+00:00  20.676129  gap_interpolation
-                      2022-09-08 07:00:00+00:00  20.654839  gap_interpolation
-            >>> dataset.get_gaps_info()
-            Gap for vlinder05 with:...
-
-        """
-        # TODO logging
-        fill_settings = self.settings.gap["gaps_fill_settings"]["linear"]
-
-        # fill gaps
-        apply_interpolate_gaps(
-            gapslist=self.gaps,
-            obsdf=self.df,
-            outliersdf=self.outliersdf,
-            dataset_res=self.metadf["dataset_resolution"],
-            gapfill_settings=self.settings.gap["gaps_fill_info"],
-            obstype=obstype,
-            method=fill_settings["method"],
-            max_consec_fill=fill_settings["max_consec_fill"],
-            overwrite_fill=overwrite_fill,
-        )
-
-        # get gapfilldf
-        gapfilldf = make_gapfill_df(self.gaps)
-
-        # update attr
-        self.gapfilldf = gapfilldf
-
-        return gapfilldf
-
-    def fill_missing_obs_linear(self, obstype="temp"):
-        """Interpolate missing observations.
-
-        Fill in the missing observation rectords using interpolation. The
-        missing_fill_df attribute of the Dataset will be updated.
-
-        Parameters
-        ----------
-        obstype : string, optional
-            Fieldname to visualise. This can be an observation or station
-            attribute. The default is 'temp'.
-
-        Returns
-        -------
-        None.
-
-        Notes
-        -----
-        A schematic description of the linear fill of missing observations:
-
-        1. Iterate over all missing observations.
-        2. The missing observations are converted into a set of missing records (depending on the time resolution of the observations).
-        3. Find a leading (the last observations before the missing observation) record and a trailing record (the last observation after the missing observation).
-        4. By using the leading and trailing records, interpolation is applied to fill the missing records.
-        5. The missing record is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df).
-
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *235 records labeled as outliers
-                 *2 gaps
-                 *1473 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-            >>>
-            >>> # Fill the missing observations
-            >>> dataset.fill_missing_obs_linear(obstype='temp')
-            >>> dataset.missing_obs.get_info()
-            -------- Missing observations info --------
-            (Note: missing observations are defined on the frequency estimation of the native dataset.)
-              * 1473 missing observations
-              * For 28 stations
-              * Missing observations are filled with interpolate for:
-                temp:
-                                                       temp
-            name      datetime
-            vlinder01 2022-09-08 08:00:00+00:00  18.630303
-                      2022-09-07 23:00:00+00:00  17.512121
-                      2022-09-08 00:00:00+00:00  17.636364
-                      2022-09-08 02:00:00+00:00  17.884848
-                      2022-09-08 03:00:00+00:00  18.009091
-            ...
-
-        """
-        # TODO logging
-        fill_settings = self.settings.missing_obs["missing_obs_fill_settings"]["linear"]
-        fill_info = self.settings.missing_obs["missing_obs_fill_info"]
-
-        # fill missing obs
-        self.missing_obs.interpolate_missing(
-            obsdf=self.df,
-            resolutionseries=self.metadf["dataset_resolution"],
-            obstype=obstype,
-            method=fill_settings["method"],
-        )
-
-        missing_fill_df = self.missing_obs.fill_df
-
-        missing_fill_df[obstype + "_" + fill_info["label_columnname"]] = fill_info[
-            "label"
-        ]["linear"]
-
-        # Update attribute
-
-        self.missing_fill_df = missing_fill_df
-
-    def get_gaps_df(self):
-        """
-        List all gaps into an overview dataframe.
-
-        Returns
-        -------
-        pandas.DataFrame
-            A DataFrame with stationnames as index, and the start, end and duretion
-            of the gaps as columns.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *235 records labeled as outliers
-                 *2 gaps
-                 *1473 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-            >>> dataset.get_gaps_df()
-                                      start_gap                   end_gap        duration
-            name
-            vlinder05 2022-09-06 21:00:00+00:00 2022-09-13 06:00:00+00:00 6 days 09:00:00
-            vlinder05 2022-09-13 20:00:00+00:00 2022-09-15 23:00:00+00:00 2 days 03:00:00
-
-
-        """
-        return gaps_to_df(self.gaps)
+        # update attributes
+        self.gaps = newgaps  # overwrite previous gaps !
+        self.outliersdf = init_triple_multiindexdf()
 
     def get_gaps_info(self):
         """Print out detailed information of the gaps.
@@ -2049,274 +1529,163 @@ class Dataset:
             (No gapfill applied)
 
         """
-        if bool(self.gaps):
-            # there are gaps
-            for gap in self.gaps:
-                gap.get_info()
-        else:
-            # no gaps
-            print("There are no gaps.")
-
-    def get_missing_obs_info(self):
-        """Print out detailed information of the missing observations.
-
-        Returns
-        -------
-        None.
-
-        Examples
-        --------
-
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *235 records labeled as outliers
-                 *2 gaps
-                 *1473 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-            >>> dataset.get_missing_obs_info()
-            -------- Missing observations info --------
-            (Note: missing observations are defined on the frequency estimation of the native dataset.)
-              * 1473 missing observations
-              * For 28 stations
-              * The missing observations are not filled.
-            (More details on the missing observation can be found in the .series and .fill_df attributes.)
-
-        """
-        # empty obs protector in the .get_info method.
-        self.missing_obs.get_info()
-
-    def get_analysis(self, add_gapfilled_values=False):
-        """Create an Analysis instance from the Dataframe.
-
-        Parameters
-        ----------
-        add_gapfilled_values : bool, optional
-            If True, all filled values (from gapfill and missing observation fill),
-            are added to the analysis records aswell. The default is False.
-
-        Returns
-        -------
-        metobs_toolkit.Analysis
-            The Analysis instance of the Dataset.
-
-        Examples
-        --------
-
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> # Create an Analysis from the dataset
-            >>> analysis = dataset.get_analysis()
-            >>> analysis
-            Analysis instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 ...
-
-        """
-        # combine all to obsspace and include gapfill
-        if add_gapfilled_values:
-            mergedf = self.combine_all_to_obsspace()
-
-            # gapsfilled labels
-            gapfill_settings = self.settings.gap["gaps_fill_info"]
-            gapfilllabels = [val for val in gapfill_settings["label"].values()]
-
-            # missingfilled labels
-            missingfill_settings = self.settings.missing_obs["missing_obs_fill_info"]
-            missingfilllabels = [val for val in missingfill_settings["label"].values()]
-
-            # get all labels
-            fill_labels = gapfilllabels.copy()
-            fill_labels.extend(missingfilllabels)
-            fill_labels.append("ok")
-
-            df = mergedf[mergedf["label"].isin(fill_labels)]
-            df = df[["value"]]
-            df = df.unstack(level="obstype")
-            df = df.droplevel(level=0, axis=1)
-        else:
-            df = self.df
-
-        return Analysis(
-            obsdf=df,
-            metadf=self.metadf,
-            settings=self.settings,
-            data_template=self.data_template,
-        )
-
-    def fill_gaps_era5(
-        self, modeldata, method="debias", obstype="temp", overwrite_fill=False
-    ):
-        """Fill the gaps using a diurnal debiased modeldata approach.
-
-
-        Parameters
-        ----------
-        modeldata : metobs_toolkit.Modeldata
-            The modeldata to use for the gapfill. This model data should the required
-            timeseries to fill all gaps present in the dataset.
-        method : 'debias', optional
-            Specify which method to use. The default is 'debias'.
-        obstype : String, optional
-           Name of the observationtype you want to apply gap filling on. The
-           modeldata must contain this observation type as well. The
-           default is 'temp'.
-        overwrite_fill: bool, optional
-            If a gap has already filled values, the interpolation of this gap
-            is skipped if overwrite_fill is False. If set to True, the gapfill
-            values and info will be overwitten. The default is False.
-
-        Returns
-        -------
-        Gapfilldf : pandas.DataFrame
-            A dataframe containing all gap filled values and the use method.
-
-        Notes
-        -----
-        A schematic description of the fill_gaps_era5 method:
-
-        1. Modeldata is converted to the timezone of the observations.
-        2. Iterate over all gaps.
-            * The gap is converted into a set of missing records (depending on the time resolution of the observations).
-            * Find a leading and trailing period. These periods are a subset
-              of observations respectively before and after the gap. The size
-              of these subsets is set by a target size (in records) and a minimum
-              size (in records). If the subset of observations is smaller than
-              the corresponding minimum size, the gap cannot be filled.
-            * Modeldata, for the corresponding station and observation type, is extracted for the leading and trailing period.
-            * By comparing the model data with the observations of the
-              leading and trailing period, and grouping all records to their
-              timestamp (i.g. diurnal categories), biasses are computed.
-            * Modeldata for the missing records is extracted.
-            * Weights ([0;1]) are computed for each gap record, representing
-              the normalized distance (in time), to the beginning and end of
-              the gap.
-            * The modeldata at the missing records is then corrected by
-              a weighted sum of the leading and trailing biases at the
-              corresponding timestamp. In general, this means that the diurnal
-              trend of the observations is restored as well as possible.
-        3. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
-
-        Note
-        -------
-        A scientific publication on the performance of this technique is expected.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            import metobs_toolkit
-
-            your_dataset = metobs_toolkit.Dataset()
-            your_dataset.update_settings(
-                input_data_file=metobs_toolkit.demo_datafile, # path to the data file
-                input_metadata_file=metobs_toolkit.demo_metadatafile,
-                template_file=metobs_toolkit.demo_template,
-            )
-            # Specify the gap defenition
-            your_dataset.update_qc_settings(gapsize_in_records = 20)
-
-            #Update the gapsize BEFORE importing the data
-            your_dataset.import_data_from_file()
-
-            #Update the settings (definition of the period to calculate biases for)
-            your_dataset.update_gap_and_missing_fill_settings(
-                                                              gap_debias_prefered_leading_period_hours=24,
-                                                              gap_debias_prefered_trailing_period_hours=24,
-                                                              gap_debias_minimum_leading_period_hours=6,
-                                                              gap_debias_minimum_trailing_period_hours=6,
-                                                              )
-            #(As a demonstration, we will fill the gaps of a single station. The following functions can also be
-            # directly applied to the dataset.)
-            your_station = your_dataset.get_station('vlinder05')
-
-
-            #Get ERA5 modeldata at the location of your stations and period.
-            ERA5_modeldata = your_station.get_modeldata(modelname='ERA5_hourly',
-                                                        obstype='temp')
-
-            #Use the debias method to fill the gaps
-            gapfill_df = your_station.fill_gaps_era5(modeldata=ERA5_modeldata,
-                                                     obstype='temp')
-
-        """
-        # check if modeldata is available
-        if modeldata is None:
-            logger.warning(
-                "The dataset has no modeldate. Use the set_modeldata() function to add modeldata."
-            )
-            return None
-        # check if obstype is present in eramodel
-        assert (
-            obstype in modeldata.df.columns
-        ), f"{obstype} is not present in the modeldate: {modeldata}"
-        # check if all station are present in eramodeldata
-        # stations = self.gaps.to_df().index.unique().to_list()
-        stations = list(set([gap.name for gap in self.gaps]))
-        assert all(
-            [sta in modeldata.df.index.get_level_values("name") for sta in stations]
-        ), "Not all stations with gaps are in the modeldata!"
-
-        if method == "debias":
-            fill_settings_debias = self.settings.gap["gaps_fill_settings"][
-                "model_debias"
-            ]
-
-            apply_debias_era5_gapfill(
-                gapslist=self.gaps,
-                dataset=self,
-                eraModelData=modeldata,
-                obstype=obstype,
-                debias_settings=fill_settings_debias,
-                overwrite_fill=overwrite_fill,
+        gaps_infodf_list = []
+        for gap in self.gaps:
+            gaps_infodf_list.append(
+                pd.DataFrame(
+                    data={
+                        "name": [gap.name],
+                        "obstype": [gap.obstype.name],
+                        "start": [gap.startdt],
+                        "end": [gap.enddt],
+                        "duration": [gap.duration],
+                        "gapfill_status": [gap._get_gapfill_status()],
+                        "gap_exits_in_osbspace": [gap.does_gap_holds_missing_records()],
+                    }
+                )
             )
 
-            # get fill df
-            filldf = make_gapfill_df(self.gaps)
-        else:
-            sys.exit(f"{method} not implemented yet")
+        gapinfodf = pd.concat(gaps_infodf_list).reset_index(drop=True)
+        print("---- Gap info ----")
+        if not bool(self.gaps):
+            print("No gaps are detected.")
+            return
 
-        # update attribute
-        self.gapfilldf = filldf
+        print(f" A total of {gapinfodf.shape[0]} was found with:")
 
-        return filldf
+        print(f' * for the following stations: {list(set(gapinfodf["name"]))}')
+        for gapobs in gapinfodf["obstype"].unique():
+            subgap = gapinfodf[gapinfodf["obstype"] == gapobs]
+            exists = subgap[subgap["gap_exits_in_osbspace"]]
+            print(
+                f" * {subgap.shape[0]} gaps for {gapobs} of which {exists.shape[0]} gaps exists are real."
+            )
+            status_counts = exists["gapfill_status"].value_counts().to_dict()
+            for key, val in status_counts.items():
+                print(f"  - {key} for {val} of the real ones.")
+
+    # def get_missing_obs_info(self):
+    #     """Print out detailed information of the missing observations.
+
+    #     Returns
+    #     -------
+    #     None.
+
+    #     Examples
+    #     --------
+
+    #     .. code-block:: python
+
+    #         >>> import metobs_toolkit
+    #         >>>
+    #         >>> # Import data into a Dataset
+    #         >>> dataset = metobs_toolkit.Dataset()
+    #         >>> dataset.update_settings(
+    #         ...                         input_data_file=metobs_toolkit.demo_datafile,
+    #         ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+    #         ...                         template_file=metobs_toolkit.demo_template,
+    #         ...                         )
+    #         >>> dataset.import_data_from_file()
+    #         >>> dataset.coarsen_time_resolution(freq='1H')
+    #         >>>
+    #         >>> # Apply quality control on the temperature observations
+    #         >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+    #         >>>
+    #         >>> # Interpret the outliers as missing/gaps
+    #         >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
+    #         >>> dataset
+    #         Dataset instance containing:
+    #              *28 stations
+    #              *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+    #              *10080 observation records
+    #              *235 records labeled as outliers
+    #              *2 gaps
+    #              *1473 missing observations
+    #              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+    #              *time zone of the records: UTC
+    #              *Coordinates are available for all stations.
+    #         >>> dataset.get_missing_obs_info()
+    #         -------- Missing observations info --------
+    #         (Note: missing observations are defined on the frequency estimation of the native dataset.)
+    #           * 1473 missing observations
+    #           * For 28 stations
+    #           * The missing observations are not filled.
+    #         (More details on the missing observation can be found in the .series and .fill_df attributes.)
+
+    #     """
+    #     # empty obs protector in the .get_info method.
+    #     self.missing_obs.get_info()
+
+    # def get_analysis(self, add_gapfilled_values=False):
+    #     """Create an Analysis instance from the Dataframe.
+
+    #     Parameters
+    #     ----------
+    #     add_gapfilled_values : bool, optional
+    #         If True, all filled values (from gapfill and missing observation fill),
+    #         are added to the analysis records aswell. The default is False.
+
+    #     Returns
+    #     -------
+    #     metobs_toolkit.Analysis
+    #         The Analysis instance of the Dataset.
+
+    #     Examples
+    #     --------
+
+    #     .. code-block:: python
+
+    #         >>> import metobs_toolkit
+    #         >>>
+    #         >>> # Import data into a Dataset
+    #         >>> dataset = metobs_toolkit.Dataset()
+    #         >>> dataset.update_settings(
+    #         ...                         input_data_file=metobs_toolkit.demo_datafile,
+    #         ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+    #         ...                         template_file=metobs_toolkit.demo_template,
+    #         ...                         )
+    #         >>> dataset.import_data_from_file()
+    #         >>> dataset.coarsen_time_resolution(freq='1H')
+    #         >>>
+    #         >>> # Create an Analysis from the dataset
+    #         >>> analysis = dataset.get_analysis()
+    #         >>> analysis
+    #         Analysis instance containing:
+    #              *28 stations
+    #              *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+    #              *10080 observation records
+    #              ...
+
+    #     """
+    #     # combine all to obsspace and include gapfill
+    #     if add_gapfilled_values:
+    #         mergedf = self.combine_all_to_obsspace()
+
+    #         # gapsfilled labels
+    #         gapfilllabels = self.settings.gap["gaps_fill_info"]["labels"]
+
+    #         # # missingfilled labels
+    #         # missingfill_settings = self.settings.missing_obs["missing_obs_fill_info"]
+    #         # missingfilllabels = [val for val in missingfill_settings["label"].values()]
+
+    #         # get all labels
+    #         fill_labels = gapfilllabels.copy()
+    #         # fill_labels.extend(missingfilllabels)
+    #         fill_labels.append("ok")
+
+    #         df = mergedf[mergedf["label"].isin(fill_labels)]
+    #         df = df[["value"]]
+
+    #     else:
+    #         df = self.df
+    #     return Analysis(self)
+
+    #     # return Analysis(
+    #     #     obsdf=df,
+    #     #     metadf=self.metadf,
+    #     #     settings=self.settings,
+    #     #     obstypes=self.obstypes,
+    #     # )
 
     def write_to_csv(
         self,
@@ -2423,7 +1792,7 @@ class Dataset:
         if not include_fill_values:
             fill_labels = [
                 "gap fill",
-                "missing observation fill",
+                # "missing observation fill",
             ]  # toolkit representation labels
             mergedf = mergedf[~mergedf["toolkit_representation"].isin(fill_labels)]
 
@@ -2455,834 +1824,6 @@ class Dataset:
             location_info=self.settings.app["location_info"],
             seperate_metadata_file=seperate_metadata_file,
         )
-
-    # =============================================================================
-    #     Quality control
-    # =============================================================================
-    def apply_quality_control(
-        self,
-        obstype="temp",
-        gross_value=True,
-        persistance=True,
-        repetitions=True,
-        step=True,
-        window_variation=True,
-    ):
-        """Apply quality control methods to the dataset.
-
-        The default settings are used, and can be changed in the
-        settings_files/qc_settings.py
-
-        The checks are performed in a sequence: gross_vallue -->
-        persistance --> ..., Outliers by a previous check are ignored in the
-        following checks!
-
-        The dataset is updated inline.
-
-        Parameters
-        ----------
-        obstype : String, optional
-            Name of the observationtype you want to apply the checks on. The
-            default is 'temp'.
-        gross_value : Bool, optional
-            If True the gross_value check is applied if False not. The default
-            is True.
-        persistance : Bool, optional
-            If True the persistance check is applied if False not. The default
-            is True.. The default is True.
-        repetition : Bool, optional
-            If True the repetations check is applied if False not. The default
-            is True.
-        step : Bool, optional
-            If True the step check is applied if False not. The default is True.
-        window_variation : Bool, optional
-            If True the window_variation check is applied if False not. The
-            default is True.
-
-        Returns
-        ---------
-        None.
-
-        Notes
-        -----
-        A schematic description of the quality control checks.
-
-        Gross value check
-        ==================
-        This check looks for outliers based on unrealistic values
-
-        1. Find observations that exceed a minimum and maximum value threshold.
-        2. These observations are labeled as outliers.
-
-        Persistence check
-        =================
-        Test observations to change over a specific period.
-
-        1. Find the stations that have a maximum assumed observation frequency
-           that does not exceed the minimum number of records for moving window
-           size. The window size is defined by a duration.
-        2. Subset to those stations.
-        3. For each station, a moving window scan is applied that validates if
-           there is variation in the observations (NaN's are excluded). The
-           validation is only applied when a sufficient amount of records are
-           found in the window specified by a threshold.
-        4. After the scan, all records found in the windows without variation
-           are labeled as outliers.
-
-        Repetitions check
-        =================
-        Test if observation changes after a number of records.
-
-        1. For each station, make a group of consecutive records for which
-           the values do not change.
-        2. Filter those groups that have more records than the maximum valid
-           repetitions.
-        3. All the records in these groups are labeled as outliers
-
-        Note
-        -----
-          The repetitions check is similar to the persistence check, but not identical.
-          The persistence check uses thresholds that are meteorologically based (i.g. the moving window is defined by a duration),
-          in contrast to the repetitions check whose thresholds are instrumentally based (i.g. the "window" is defined by a number of records.)
-
-        Step check
-        ============
-        Test if observations do not produce unphysical spikes in time series.
-
-        1. Iterate over all the stations.
-        2. Get the observations of the stations (i.g. drop the previously labeled outliers represented by NaN's).
-        3. Find the observations for which:
-
-           * The increase between two consecutive records is larger than the
-             threshold. This threshold is defined by a maximum increase per second
-             multiplied by the timedelta (in seconds) between the consecutive
-             records.
-           * Similar filter for a decrease.
-        4. The found observations are labeled as outliers.
-
-        Note
-        -----
-          In general, for temperatures,  the decrease threshold is set less stringent than the increase
-          threshold. This is because a temperature drop is meteorologycally more
-          common than a sudden increase which is often the result of a radiation error.
-
-        Window Variation check
-        =======================
-        Test if the variation is found in a moving window.
-
-        1. Find the stations that have a maximum assumed observation frequency
-           that does not exceed the minimum number of records for moving window
-           size. The window size is defined by a duration.
-        2. Compute the maximum increase and decrease thresholds for a window.
-           This is done by multiplying the maximum increase per second by the
-           window size in seconds.
-        3. For each station, a moving window scan is applied that validates if
-           the maximum increase/decrease thresholds are exceeded. This is done
-           by comparison of the minimum and maximum values inside the window. The
-           validation is only applied when a sufficient amount of records are
-           found in the window specified by a threshold.
-        4. After the scan, *all* records found in the window that exceed one
-           of these thresholds are labeled as outliers.
-
-
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> #Update some temperature QC settings
-            >>> dataset.update_qc_settings(obstype='temp',
-            ...                            gross_value_max_value=42.,
-            ...                            persis_time_win_to_check='4H',
-            ...                            buddy_min_std = 1.5)
-
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *1932 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-
-        """
-        if repetitions:
-            apliable = _can_qc_be_applied(self, obstype, "repetitions")
-            if apliable:
-                logger.info("Applying repetitions check.")
-
-                obsdf, outl_df = repetitions_check(
-                    obsdf=self.df,
-                    obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
-                    checks_settings=self.settings.qc["qc_check_settings"],
-                )
-
-                # update the dataset and outliers
-                self.df = obsdf
-                if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
-
-                # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype, ordered_checknames="repetitions"
-                        ),
-                    ],
-                    ignore_index=True,
-                )
-
-        if gross_value:
-            apliable = _can_qc_be_applied(self, obstype, "gross_value")
-
-            if apliable:
-                logger.info("Applying gross value check.")
-
-                obsdf, outl_df = gross_value_check(
-                    obsdf=self.df,
-                    obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
-                    checks_settings=self.settings.qc["qc_check_settings"],
-                )
-
-                # update the dataset and outliers
-                self.df = obsdf
-                if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
-
-                # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype, ordered_checknames="gross_value"
-                        ),
-                    ],
-                    ignore_index=True,
-                )
-
-        if persistance:
-            apliable = _can_qc_be_applied(self, obstype, "persistance")
-
-            if apliable:
-                logger.info("Applying persistance check.")
-                obsdf, outl_df = persistance_check(
-                    station_frequencies=self.metadf["dataset_resolution"],
-                    obsdf=self.df,
-                    obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
-                    checks_settings=self.settings.qc["qc_check_settings"],
-                )
-
-                # update the dataset and outliers
-                self.df = obsdf
-                if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
-
-                # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype, ordered_checknames="persistance"
-                        ),
-                    ],
-                    ignore_index=True,
-                )
-
-        if step:
-            apliable = _can_qc_be_applied(self, obstype, "step")
-
-            if apliable:
-                logger.info("Applying step-check.")
-                obsdf, outl_df = step_check(
-                    obsdf=self.df,
-                    obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
-                    checks_settings=self.settings.qc["qc_check_settings"],
-                )
-
-                # update the dataset and outliers
-                self.df = obsdf
-                if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
-
-                # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype, ordered_checknames="step"
-                        ),
-                    ],
-                    ignore_index=True,
-                )
-
-        if window_variation:
-            apliable = _can_qc_be_applied(self, obstype, "window_variation")
-            if apliable:
-                logger.info("Applying window variation-check.")
-                obsdf, outl_df = window_variation_check(
-                    station_frequencies=self.metadf["dataset_resolution"],
-                    obsdf=self.df,
-                    obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
-                    checks_settings=self.settings.qc["qc_check_settings"],
-                )
-
-                # update the dataset and outliers
-                self.df = obsdf
-                if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
-
-                # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype,
-                            ordered_checknames="window_variation",
-                        ),
-                    ],
-                    ignore_index=True,
-                )
-
-        self._qc_checked_obstypes.append(obstype)
-        self._qc_checked_obstypes = list(set(self._qc_checked_obstypes))
-        self.outliersdf = self.outliersdf.sort_index()
-
-    def apply_buddy_check(
-        self,
-        obstype="temp",
-        use_constant_altitude=False,
-        haversine_approx=True,
-        metric_epsg="31370",
-    ):
-        """Apply the buddy check on the observations.
-
-        The buddy check compares an observation against its neighbours (i.e.
-        buddies). The check looks for buddies in a neighbourhood specified by
-        a certain radius. The buddy check flags observations if the
-        (absolute value of the) difference between the observations and the
-        average of the neighbours normalized by the standard deviation in the
-        circle is greater than a predefined threshold.
-
-        This check is based on the buddy check from titanlib. Documentation on
-        the titanlib buddy check can be found
-        `here <https://github.com/metno/titanlib/wiki/Buddy-check>`_.
-
-
-        The observation and outliers attributes will be updated accordingly.
-
-        Parameters
-        ----------
-        obstype : String, optional
-            Name of the observationtype you want to apply the checks on. The
-            default is 'temp'.
-        use_constant_altitude : bool, optional
-            Use a constant altitude for all stations. The default is False.
-        haversine_approx : bool, optional
-            Use the haversine approximation (earth is a sphere) to calculate
-            distances between stations. The default is True.
-        metric_epsg : str, optional
-            EPSG code for the metric CRS to calculate distances in. Only used when
-            haversine approximation is set to False. Thus becoming a better
-            distance approximation but not global applicable The default is '31370'
-            (which is suitable for Belgium).
-
-        Returns
-        -------
-        None.
-
-        Notes
-        -----
-        A schematic step-by-step description of the buddy check:
-
-        1. A distance matrix is constructed for all inter distances between the stations. This is done using the haversine approximation, or by first converting the Coordinate Reference System (CRS) to a metric one, specified by an EPSG code.
-        2. A set of all (spatial) buddies per station is created by filtering out all stations that are too far.
-        3. The buddies are further filtered based on altitude differences with respect to the reference station.
-        4. For each station:
-
-           * Observations of buddies are extracted from all observations.
-           * These observations are corrected for altitude differences by assuming a constant lapse rate.
-           * For each reference record, the mean, standard deviation (std), and sample size of the corrected buddies’ observations are computed.
-           * If the std is lower than the minimum std, it is replaced by the minimum std.
-           * Chi values are calculated for all reference records.
-           * If the Chi value is larger than the std_threshold, the record is accepted, otherwise it is marked as an outlier.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> #Update some temperature QC settings
-            >>> dataset.update_qc_settings(obstype='temp',
-            ...                            buddy_min_std=1.5,
-            ...                            buddy_threshold=3.2)
-
-            >>> # Apply buddy check on the temperature observations
-            >>> dataset.apply_buddy_check(obstype='temp',
-            ...                           use_constant_altitude=True)
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *325 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-
-        """
-
-        logger.info("Applying the toolkit buddy check")
-
-        checkname = "buddy_check"
-
-        # 1. coordinates are available?
-        if self.metadf["lat"].isnull().any():
-            logger.warning(
-                f"Not all coordinates are available, the {checkname} cannot be executed!"
-            )
-            return
-        if self.metadf["lon"].isnull().any():
-            logger.warning(
-                f"Not all coordinates are available, the {checkname} cannot be executed!"
-            )
-            return
-
-        # set constant altitude if needed:
-
-        # if altitude is already available, save it to restore it after this check
-        restore_altitude = False
-        if use_constant_altitude:
-            if "altitulde" in self.metadf.columns:
-                self.metadf["altitude_backup"] = self.metadf["altitude"]
-                restore_altitude = True
-
-            self.metadf["altitude"] = 2.0  # absolut value does not matter
-
-        # 2. altitude available?
-        if (not use_constant_altitude) & ("altitude" not in self.metadf.columns):
-            logger.warning(
-                f"The altitude is not known for all stations. The {checkname} cannot be executed!"
-            )
-            logger.info(
-                '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.'
-            )
-            return
-        if (not use_constant_altitude) & (self.metadf["altitude"].isnull().any()):
-            logger.warning(
-                f"The altitude is not known for all stations. The {checkname} cannot be executed!"
-            )
-            logger.info(
-                '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)'
-            )
-            return
-
-        apliable = _can_qc_be_applied(self, obstype, checkname)
-        if apliable:
-            buddy_set = self.settings.qc["qc_check_settings"][checkname][obstype]
-            outl_flag = self.settings.qc["qc_checks_info"][checkname]["outlier_flag"]
-            obsdf, outliersdf = toolkit_buddy_check(
-                obsdf=self.df,
-                metadf=self.metadf,
-                obstype=obstype,
-                buddy_radius=buddy_set["radius"],
-                min_sample_size=buddy_set["num_min"],
-                max_alt_diff=buddy_set["max_elev_diff"],
-                min_std=buddy_set["min_std"],
-                std_threshold=buddy_set["threshold"],
-                metric_epsg=metric_epsg,
-                lapserate=buddy_set["elev_gradient"],
-                outl_flag=outl_flag,
-                haversine_approx=haversine_approx,
-            )
-
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outliersdf.empty:
-                self.outliersdf = concat_save([self.outliersdf, outliersdf])
-
-            # add this check to the applied checks
-            self._applied_qc = concat_save(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames=checkname
-                    ),
-                ],
-                ignore_index=True,
-            )
-
-        else:
-            logger.warning(
-                f"The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!"
-            )
-
-        # Revert artificial data that has been added if needed
-        if restore_altitude:  # altitude was overwritten, thus revert it
-            self.metadf["altitude"] = self.metadf["altitude_backup"]
-            self.metadf = self.metadf.drop(columns=["altitude_backup"])
-
-        elif use_constant_altitude:
-            # when no alitude was available apriori, remove the fake constant altitude column
-            self.metadf = self.metadf.drop(columns=["altitude"])
-
-    def apply_titan_buddy_check(self, obstype="temp", use_constant_altitude=False):
-        """Apply the TITAN buddy check on the observations.
-
-        The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
-        buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
-        (absolute value of the) difference between the observations and the average of the neighbours
-        normalized by the standard deviation in the circle is greater than a predefined threshold.
-
-        See the `titanlib documentation on the buddy check <https://github.com/metno/titanlib/wiki/Buddy-check>`_
-        for futher details.
-
-        The observation and outliers attributes will be updated accordingly.
-
-        Parameters
-        ----------
-        obstype : String, optional
-            Name of the observationtype you want to apply the checks on. The
-            default is 'temp'.
-        use_constant_altitude : bool, optional
-            Use a constant altitude for all stations. The default is False.
-
-        Returns
-        -------
-        None.
-
-        Note
-        -------
-        To update the check settings, use the update_titan_qc_settings method
-        of the Dataset class.
-
-        Warning
-        --------
-        To use this method, you must install titanlib. Windows users must have
-        a c++ compiler installed. See the titanlib documentation: https://github.com/metno/titanlib/wiki/Installation.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
-            >>>
-            >>> #Update some temperature QC settings
-            >>> dataset.update_titan_qc_settings(obstype='temp',
-            ...                                  buddy_min_std=1.5,
-            ...                                  buddy_threshold=3.2,
-            ...                                  buddy_num_min=5)
-            buddy num min for the TITAN buddy check updated:  2--> 5
-            buddy threshold for the TITAN buddy check updated:  1.5--> 3.2
-            buddy min std for the TITAN buddy check updated:  1.0--> 1.5
-            >>> # Apply buddy check on the temperature observations
-            >>> dataset.apply_titan_buddy_check(obstype='temp',
-            ...                                 use_constant_altitude=True)
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
-                 *10080 observation records
-                 *291 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-
-        """
-        logger.info("Applying the titan buddy check")
-
-        try:
-            import titanlib
-
-            # Add version restrictions??
-        except ModuleNotFoundError:
-            logger.warning(
-                "Titanlib is not installed, install it manually if you want to use this functionallity."
-            )
-            return
-
-        checkname = "titan_buddy_check"
-
-        # 1. coordinates are available?
-        if self.metadf["lat"].isnull().any():
-            logger.warning(
-                f"Not all coordinates are available, the {checkname} cannot be executed!"
-            )
-            return
-        if self.metadf["lon"].isnull().any():
-            logger.warning(
-                f"Not all coordinates are available, the {checkname} cannot be executed!"
-            )
-            return
-
-        # set constant altitude if needed:
-
-        # if altitude is already available, save it to restore it after this check
-        restore_altitude = False
-        if use_constant_altitude:
-            if "altitulde" in self.metadf.columns:
-                self.metadf["altitude_backup"] = self.metadf["altitude"]
-                restore_altitude = True
-
-            self.metadf["altitude"] = 2.0  # absolut value does not matter
-
-        # 2. altitude available?
-        if (not use_constant_altitude) & ("altitude" not in self.metadf.columns):
-            logger.warning(
-                f"The altitude is not known for all stations. The {checkname} cannot be executed!"
-            )
-            logger.info(
-                '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.'
-            )
-            return
-        if (not use_constant_altitude) & (self.metadf["altitude"].isnull().any()):
-            logger.warning(
-                f"The altitude is not known for all stations. The {checkname} cannot be executed!"
-            )
-            logger.info(
-                '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)'
-            )
-            return
-
-        apliable = _can_qc_be_applied(self, obstype, checkname)
-        if apliable:
-            obsdf, outliersdf = titan_buddy_check(
-                obsdf=self.df,
-                metadf=self.metadf,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["titan_check_settings"][checkname][
-                    obstype
-                ],
-                titan_specific_labeler=self.settings.qc["titan_specific_labeler"][
-                    checkname
-                ],
-            )
-
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outliersdf.empty:
-                self.outliersdf = concat_save([self.outliersdf, outliersdf])
-
-            # add this check to the applied checks
-            self._applied_qc = concat_save(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames=checkname
-                    ),
-                ],
-                ignore_index=True,
-            )
-
-        else:
-            logger.warning(
-                f"The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!"
-            )
-
-        # Revert artificial data that has been added if needed
-        if restore_altitude:  # altitude was overwritten, thus revert it
-            self.metadf["altitude"] = self.metadf["altitude_backup"]
-            self.metadf = self.metadf.drop(columns=["altitude_backup"])
-
-        elif use_constant_altitude:
-            # when no alitude was available apriori, remove the fake constant altitude column
-            self.metadf = self.metadf.drop(columns=["altitude"])
-
-    def apply_titan_sct_resistant_check(self, obstype="temp"):
-        """Apply the TITAN spatial consistency test (resistant).
-
-        The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
-        nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation
-        (OI) to compute an expected value for each observation. The background for the OI is computed from
-        a general vertical profile of observations in the area.
-
-        See the `titanlib documentation on the sct check <https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant>`_
-        for futher details.
-
-        The observation and outliers attributes will be updated accordingly.
-
-
-        Parameters
-        ----------
-        obstype : String, optional
-            Name of the observationtype you want to apply the checks on. The
-            default is 'temp'.
-
-        Returns
-        -------
-        None.
-
-        Note
-        -------
-        To update the check settings, use the update_titan_qc_settings method
-        of the Dataset class.
-
-        Warning
-        --------
-        To use this method, you must install titanlib. Windows users must have
-        a c++ compiler installed. See the titanlib documentation: https://github.com/metno/titanlib/wiki/Installation.
-
-        Warning
-        -------
-        This method is a python wrapper on titanlib c++ scripts, and it is prone
-        to segmentation faults. The perfomance of this check is thus not
-        guaranteed!
-
-        Examples
-        --------
-        .. code-block:: python
-
-             import metobs_toolkit
-
-             # Import data into a Dataset
-             dataset = metobs_toolkit.Dataset()
-             dataset.update_settings(
-                                     input_data_file=metobs_toolkit.demo_datafile,
-                                     input_metadata_file=metobs_toolkit.demo_metadatafile,
-                                     template_file=metobs_toolkit.demo_template,
-                                     )
-             dataset.import_data_from_file()
-             dataset.coarsen_time_resolution(freq='1H')
-
-             #Get altitude of all stations
-             dataset.get_altitude()
-
-             #Update some temperature QC settings
-             dataset.update_titan_qc_settings(obstype='temp',
-                                              sct_outer_radius=25000)
-
-
-             # Apply buddy check on the temperature observations
-             dataset.apply_titan_sct_resistant_check(obstype='temp')
-
-        """
-        logger.info("Applying the titan SCT check")
-
-        try:
-            import titanlib
-
-            # Add version restrictions??
-        except ModuleNotFoundError:
-            logger.warning(
-                "Titanlib is not installed, install it manually if you want to use this functionallity."
-            )
-            return
-
-        checkname = "titan_sct_resistant_check"
-        # check if required metadata is available:
-
-        # 1. coordinates are available?
-        if self.metadf["lat"].isnull().any():
-            logger.warning(
-                f"Not all coordinates are available, the {checkname} cannot be executed!"
-            )
-            return
-        if self.metadf["lon"].isnull().any():
-            logger.warning(
-                f"Not all coordinates are available, the {checkname} cannot be executed!"
-            )
-            return
-
-        # 2. altitude available?
-        if "altitude" not in self.metadf.columns:
-            logger.warning(
-                f"The altitude is not known for all stations. The {checkname} cannot be executed!"
-            )
-            logger.info(
-                '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.'
-            )
-            return
-        if self.metadf["altitude"].isnull().any():
-            logger.warning(
-                f"The altitude is not known for all stations. The {checkname} cannot be executed!"
-            )
-            logger.info(
-                '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)'
-            )
-            return
-
-        apliable = _can_qc_be_applied(self, obstype, checkname)
-        if apliable:
-            obsdf, outliersdf = titan_sct_resistant_check(
-                obsdf=self.df,
-                metadf=self.metadf,
-                obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
-                checks_settings=self.settings.qc["titan_check_settings"][checkname][
-                    obstype
-                ],
-                titan_specific_labeler=self.settings.qc["titan_specific_labeler"][
-                    checkname
-                ],
-            )
-
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outliersdf.empty:
-                self.outliersdf = concat_save([self.outliersdf, outliersdf])
-
-            # add this check to the applied checks
-            self._applied_qc = concat_save(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames=checkname
-                    ),
-                ],
-                ignore_index=True,
-            )
-
-        else:
-            logger.warning(
-                f"The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!"
-            )
 
     def combine_all_to_obsspace(
         self,
@@ -3374,120 +1915,155 @@ class Dataset:
         # =============================================================================
         # Stack observations and outliers
         # =============================================================================
-        df = self.df
-        # better save than sorry
-        present_obstypes = list(self.obstypes.keys())
-        df = df[present_obstypes]
+        dfobs = self.df
+        # # better save than sorry
+        # present_obstypes = list(self.obstypes.keys())
+        # df = df[present_obstypes]
 
-        # to tripple index
-        df = (
-            df.stack(dropna=False)
-            .reset_index()
-            .rename(columns={"level_2": "obstype", 0: "value"})
-            .set_index(["name", "datetime", "obstype"])
-        )
+        # # to tripple index
+        # df = (
+        #     df.stack(dropna=False)
+        #     .reset_index()
+        #     .rename(columns={"level_2": "obstype", 0: "value"})
+        #     .set_index(["name", "datetime", "obstype"])
+        # )
 
-        df["label"] = "ok"
-        df["toolkit_representation"] = "observation"
+        dfobs["label"] = "ok"
+        dfobs["toolkit_representation"] = "observation"
 
         # outliers
         outliersdf = self.outliersdf.copy()
         outliersdf["toolkit_representation"] = "outlier"
 
-        # Careful! Some outliers exist on inport frequency (duplicated, invalid)
+        # Careful! Some outliers exist on inport frequency (duplicated)
         # So only use the outliers for which station-datetime-obstype are present in the
         # dataset.df
-        outliersdf = outliersdf[outliersdf.index.isin(df.index)]
+        outliersdf = outliersdf[outliersdf.index.isin(dfobs.index)]
 
         # remove outliers from the observations
-        df = df[~df.index.isin(outliersdf.index)]
+        dfobs = dfobs[~dfobs.index.isin(outliersdf.index)]
 
         # =============================================================================
         # Stack gaps
         # =============================================================================
-        # add gapfill and remove the filled records from gaps
-        gapsfilldf = self.gapfilldf.copy()
 
-        # to triple index
-        gapsfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
-            gapsfilldf, known_obstypes=list(self.obstypes.keys())
-        )
-        gapsfilldf["toolkit_representation"] = "gap fill"
+        gapsdf = create_gaps_overview_df(gapslist=self.gaps)
+        # Format columns
+        gapsdf = gapsdf.rename(columns={"fill_value": "value"})
+        gapsdf = gapsdf[["value", "fill_method"]]
+        gapsdf["toolkit_representation"] = "_to_be_filled"
+        gapsdf["label"] = "to_be_filled"
 
-        gapsidx = get_gaps_indx_in_obs_space(
-            gapslist=self.gaps,
-            obsdf=self.df,
-            outliersdf=self.outliersdf,
-            resolutionseries=self.metadf["dataset_resolution"],
-        )
+        # update labels for unfilled records
+        unfilled_idxs = gapsdf[gapsdf["value"].isnull()].index
+        gapsdf.loc[unfilled_idxs, "toolkit_representation"] = "gap"
+        gapsdf.loc[unfilled_idxs, "label"] = self.settings.gap["gaps_info"]["gap"][
+            "outlier_flag"
+        ]
 
-        gapsdf = pd.DataFrame(index=gapsidx, columns=present_obstypes)
-        gapsdf = (
-            gapsdf.stack(dropna=False)
-            .reset_index()
-            .rename(columns={"level_2": "obstype", 0: "value"})
-            .set_index(["name", "datetime", "obstype"])
-        )
+        # update labels for filled records
+        filled_idxs = gapsdf[~gapsdf["value"].isnull()].index
+        gapsdf.loc[filled_idxs, "toolkit_representation"] = "gap fill"
+        # TODO: check if label OK is okay?
+        gapsdf.loc[filled_idxs, "label"] = gapsdf.loc[filled_idxs, "fill_method"]
+        # gapsdf.loc[filled_idxs, "label"] = "gap_debiased_era5"
 
-        gapsdf["label"] = self.settings.gap["gaps_info"]["gap"]["outlier_flag"]
-        gapsdf["toolkit_representation"] = "gap"
+        gapsdf = gapsdf[["value", "label", "toolkit_representation"]]
+
+        # # add gapfill and remove the filled records from gaps
+        # gapsfilldf = self.gapfilldf.copy()
+
+        # # to triple index
+        # gapsfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
+        #     gapsfilldf, known_obstypes=list(self.obstypes.keys())
+        # )
+        # gapsfilldf["toolkit_representation"] = "gap fill"
+
+        # gapsidx = get_gaps_indx_in_obs_space(
+        #     gapslist=self.gaps,
+        #     obsdf=self.df,
+        #     outliersdf=self.outliersdf,
+        #     resolutionseries=self.metadf["dataset_resolution"],
+        # )
+
+        # gapsdf = pd.DataFrame(index=gapsidx, columns=present_obstypes)
+        # gapsdf = (
+        #     gapsdf.stack(dropna=False)
+        #     .reset_index()
+        #     .rename(columns={"level_2": "obstype", 0: "value"})
+        #     .set_index(["name", "datetime", "obstype"])
+        # )
+
+        # gapsdf["label"] = self.settings.gap["gaps_info"]["gap"]["outlier_flag"]
+        # gapsdf["toolkit_representation"] = "gap"
 
         # Remove gaps from df
-        df = df[~df.index.isin(gapsdf.index)]
+        dfobs = dfobs[~dfobs.index.isin(gapsdf.index)]
 
-        if overwrite_outliers_by_gaps_and_missing:
-            outliersdf = outliersdf.drop(index=gapsdf.index, errors="ignore")
+        # I could not think of applications for the following two lines in
+        # the obstype-dependant defenition of gaps.
+        # if overwrite_outliers_by_gaps_and_missing:
+        #     outliersdf = outliersdf.drop(index=gapsdf.index, errors="ignore")
 
         # Remove gapfill values records from the gaps
-        gapsdf = gapsdf.drop(index=gapsfilldf.index)
+        # gapsdf = gapsdf.drop(index=gapsfilldf.index)
 
         # =============================================================================
         # Stack missing
         # =============================================================================
-        missingfilldf = self.missing_fill_df.copy()
-        missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
-            missingfilldf, known_obstypes=list(self.obstypes.keys())
-        )
-        missingfilldf["toolkit_representation"] = "missing observation fill"
+        # missingfilldf = self.missing_fill_df.copy()
+        # missingfilldf = value_labeled_doubleidxdf_to_triple_idxdf(
+        #     missingfilldf, known_obstypes=list(self.obstypes.keys())
+        # )
+        # missingfilldf["toolkit_representation"] = "missing observation fill"
 
-        # add missing observations if they occure in observation space
-        missingidx = self.missing_obs.get_missing_indx_in_obs_space(
-            self.df, self.metadf["dataset_resolution"]
-        )
+        # # add missing observations if they occure in observation space
+        # missingidx = self.missing_obs.get_missing_indx_in_obs_space(
+        #     self.df, self.metadf["dataset_resolution"]
+        # )
 
-        missingdf = pd.DataFrame(index=missingidx, columns=present_obstypes)
+        # missingdf = pd.DataFrame(index=missingidx, columns=present_obstypes)
 
-        missingdf = (
-            missingdf.stack(dropna=False)
-            .reset_index()
-            .rename(columns={"level_2": "obstype", 0: "value"})
-            .set_index(["name", "datetime", "obstype"])
-        )
+        # missingdf = (
+        #     missingdf.stack(dropna=False)
+        #     .reset_index()
+        #     .rename(columns={"level_2": "obstype", 0: "value"})
+        #     .set_index(["name", "datetime", "obstype"])
+        # )
 
-        missingdf["label"] = self.settings.gap["gaps_info"]["missing_timestamp"][
-            "outlier_flag"
-        ]
-        missingdf["toolkit_representation"] = "missing observation"
+        # missingdf["label"] = self.settings.gap["gaps_info"]["missing_timestamp"][
+        #     "outlier_flag"
+        # ]
+        # missingdf["toolkit_representation"] = "missing observation"
 
-        # Remove missing from df
-        df = df[~df.index.isin(missingdf.index)]
+        # # Remove missing from df
+        # df = df[~df.index.isin(missingdf.index)]
 
-        if overwrite_outliers_by_gaps_and_missing:
-            outliersdf = outliersdf.drop(index=missingdf.index, errors="ignore")
+        # if overwrite_outliers_by_gaps_and_missing:
+        #     outliersdf = outliersdf.drop(index=missingdf.index, errors="ignore")
 
-        # Remove missingfill values records from the missing
-        missingdf = missingdf.drop(index=missingfilldf.index)
+        # # Remove missingfill values records from the missing
+        # missingdf = missingdf.drop(index=missingfilldf.index)
 
         # =============================================================================
         # combine all
         # =============================================================================
 
         combdf = concat_save(
-            [df, outliersdf, gapsdf, gapsfilldf, missingdf, missingfilldf]
+            [
+                dfobs,
+                outliersdf,
+                gapsdf,
+                # gapsfilldf,
+                # missingdf,
+                # missingfilldf,
+            ]
         ).sort_index()
-        combdf.index.names = ["name", "datetime", "obstype"]
+        combdf.index.names = ["name", "obstype", "datetime"]
         # To be shure?
-        combdf = combdf[~combdf.index.duplicated(keep="first")]
+        # combdf = combdf[~combdf.index.duplicated(keep="first")]
+
+        self.df = self.df[["value"]]
         return combdf
 
     def get_qc_stats(self, obstype="temp", stationname=None, make_plot=True):
@@ -3602,10 +2178,6 @@ class Dataset:
 
         return (final_freq, outl_freq, specific_freq)
 
-    def update_outliersdf(self, add_to_outliersdf):
-        """Update the outliersdf attribute."""
-        self.outliersdf = concat_save([self.outliersdf, add_to_outliersdf])
-
     def coarsen_time_resolution(
         self, origin=None, origin_tz=None, freq=None, method=None, limit=None
     ):
@@ -3685,9 +2257,7 @@ class Dataset:
 
         if (
             self._applied_qc[
-                ~self._applied_qc["checkname"].isin(
-                    ["duplicated_timestamp", "invalid_input"]
-                )
+                ~self._applied_qc["checkname"].isin(["duplicated_timestamp"])
             ].shape[0]
             > 0
         ):
@@ -3702,54 +2272,74 @@ class Dataset:
         # TODO: implement buffer method
         df = self.df.reset_index()
 
-        if origin is None:
-            # find earlyest timestamp, if it is on the hour, use it else use the following hour
-            tstart = df["datetime"].min()
+        # resample per station! Assume that the different obstypes per station
+        # have the same frequency
+        stationdfs = []
+        for station in df["name"].unique():
+            stadf = df[df["name"] == station]
 
-            if tstart.minute != 0 or tstart.second != 0 or tstart.microsecond != 0:
-                # Round up to nearest hour
-                tstart = tstart.ceil(freq=freq)
-        else:
-            origin_tz_aware = pytz.timezone(origin_tz).localize(origin)
-            tstart = origin_tz_aware.astimezone(
-                pytz.timezone(self.settings.time_settings["timezone"])
+            # Get the origin for the station observations
+            if origin is None:
+                tstart = stadf["datetime"].min()
+                if tstart.minute != 0 or tstart.second != 0 or tstart.microsecond != 0:
+                    # Round up to nearest hour
+                    tstart = tstart.ceil(freq=freq)
+            else:
+                origin_tz_aware = pytz.timezone(origin_tz).localize(origin)
+                tstart = origin_tz_aware.astimezone(
+                    pytz.timezone(self.settings.time_settings["timezone"])
+                )
+
+            # Coarsen timeresolution
+            if method == "nearest":
+                stadf = (
+                    stadf.set_index("datetime")
+                    .groupby("obstype")
+                    .resample(freq, origin=tstart)
+                    .nearest(limit=limit)
+                )
+
+            elif method == "bfill":
+                stadf = (
+                    stadf.set_index("datetime")
+                    .groupby("obstype")
+                    .resample(freq, origin=tstart)
+                    .bfill(limit=limit)
+                )
+
+            else:
+                logger.warning(
+                    f"The coarsening method: {method}, is not implemented yet."
+                )
+                df = df.set_index(["name", "obstype", "datetime"])
+
+            # format to the .df attribute
+            stadf = (
+                stadf.drop(columns=["obstype"])
+                .reset_index()
+                .set_index(["name", "obstype", "datetime"])
             )
 
-        # Coarsen timeresolution
+            stationdfs.append(stadf)
 
-        if method == "nearest":
-            df = (
-                df.set_index("datetime")
-                .groupby("name")
-                .resample(freq, origin=tstart)
-                .nearest(limit=limit)
-            )
-
-        elif method == "bfill":
-            df = (
-                df.set_index("datetime")
-                .groupby("name")
-                .resample(freq, origin=tstart)
-                .bfill(limit=limit)
-            )
-
-        else:
-            logger.warning(f"The coarsening method: {method}, is not implemented yet.")
-            df = df.set_index(["name", "datetime"])
-
-        if "name" in df.columns:
-            df = df.drop(columns=["name"])
+        df = pd.concat(stationdfs)
 
         # Update resolution info in metadf
         self.metadf["dataset_resolution"] = pd.to_timedelta(freq)
         # update df
         self.df = df
 
+        # Since the gap period is defined by a start and end, the gap-records are
+        # depending (which form the index of gapdf) depends on the observation frequency.
+        # Thus the gapdf attributs must be updated of all gaps
+        for gap in self.gaps:
+            gap._initiate_gapdf(Dataset=self)
+
         # Remove gaps and missing from the observatios
         # most gaps and missing are already removed but when increasing timeres,
         # some records should be removed as well.
-        self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
-        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+        # self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
+        # self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
 
     def sync_observations(
         self,
@@ -3810,7 +2400,7 @@ class Dataset:
         self.df = init_multiindexdf()
         self.outliersdf = init_triple_multiindexdf()
         self.gapfilldf = init_multiindexdf()
-        self.missing_obs = None
+        # self.missing_obs = None
         self.gaps = None
 
         # find simplified resolution
@@ -4075,6 +2665,7 @@ class Dataset:
             >>> dataset.import_data_from_file()
 
         """
+
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
         if freq_estimation_method is None:
@@ -4094,7 +2685,7 @@ class Dataset:
         if obstype is not None:
             assert obstype in list(
                 self.obstypes.keys()
-            ), f"{obstype} is not a known observation type. Use one of the default, or add a new to the defaults: {tlk_obstypes.keys()}."
+            ), f"{obstype} is not a known observation type. Use one of the default, or add a new to the defaults: {self.obstypes.keys()}."
 
         # Read template
         template, options_kwargs = read_csv_template(
@@ -4267,13 +2858,15 @@ station with the default name: {self.settings.app["default_name"]}.'
     ):
         """Construct the Dataset class from a IO dataframe.
 
-        The df, metadf, outliersdf, gaps, missing timestamps and observationtypes attributes are set.
+        1. Set the dataframe and metadataframe attributes
+        2. Drop stations that have Nan as name.
+        2. Find the duplicates (remove them from observations +  add them to outliers)
+        3. Convert the values to standard units + update the observationtypes (some template specific attribute)
+        5. Find gaps in the records (duplicates are excluded from the gaps)
+        6. Get a frequency estimate per station
+        7. Initiate the gaps (find missing records)
+        8. Add the missing records to the dataframe
 
-
-        The observations are converted to the toolkit standard units if possible.
-
-        Qc on IO is applied (duplicated check and invalid check) + gaps and missing
-        values are defined by assuming a frequency per station.
 
         Parameters
         ----------
@@ -4305,11 +2898,37 @@ station with the default name: {self.settings.app["default_name"]}.'
         # Convert dataframe to dataset attributes
         self._initiate_df_attribute(dataframe=df, update_metadf=update_full_metadf)
 
+        # Remove nan names
+        self._remove_nan_names()
+
+        # find the start and end timestamps for each station + write it to the metadf
+        self._get_start_and_end_dts()
+
+        # Remove duplicates (needed in order to convert the units)
+        self._find_duplicates_on_import()
+
         # Check observation types and convert units if needed.
         self._setup_of_obstypes_and_units()
 
-        # Apply quality control on Import resolution
-        self._apply_qc_on_import()
+        # Find gaps on Import resolution
+        if self.outliersdf.empty:
+            # create this empty column if no duplicates were found
+            self.outliersdf["label"] = np.nan
+        blacklist = self.outliersdf[
+            self.outliersdf["label"]
+            == self.settings.qc["qc_checks_info"]["duplicated_timestamp"][
+                "outlier_flag"
+            ]
+        ].index
+
+        self.gaps = find_gaps(
+            df=self.df,
+            blacklist_records=blacklist,  # to ignore
+            Obstypesdict=self.obstypes,  # to overload the obstype instances
+            freq_series=None,  # find frequencies by highest assumption
+            startdict=self.metadf["dt_start"].to_dict(),
+            enddict=self.metadf["dt_end"].to_dict(),
+        )
 
         if fixed_freq_series is None:
             freq_series = get_freqency_series(
@@ -4332,12 +2951,55 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         # add import frequencies to metadf (after import qc!)
         self.metadf["assumed_import_frequency"] = freq_series_import
-
         self.metadf["dataset_resolution"] = freq_series
 
-        # Remove gaps and missing from the observations AFTER timecoarsening
-        self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
-        self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
+        # # initialize the gapdf attributes
+        # for gap in self.gaps:
+        #     # initiate the gaps (= find the missing records)
+        #     gap._initiate_gapdf(Dataset=self)
+
+        # add Nan's to the df for gaprecords
+        gaps_overviewdf = create_gaps_overview_df(self.gaps)
+        gaps_in_df = pd.DataFrame(index=gaps_overviewdf.index, data={"value": np.nan})
+        self.df = pd.concat([self.df, gaps_in_df]).sort_index()
+
+    def _get_start_and_end_dts(self):
+        """Find the start and end timestamp for each station seperatly.
+        add it to the metadf.
+
+        Note
+        -----
+        The assumtion is made that all obstypes per station have the same start
+        and end timestamp.
+        """
+        # Find the start and end timestamp for each station
+        for sta in self.df.index.get_level_values("name").unique():
+            self.metadf.loc[sta, "dt_start"] = (
+                self.df.xs(sta, level="name", drop_level=True)
+                .droplevel("obstype")
+                .index.min()
+            )
+            self.metadf.loc[sta, "dt_end"] = (
+                self.df.xs(sta, level="name", drop_level=True)
+                .droplevel("obstype")
+                .index.max()
+            )
+
+    def _remove_nan_names(self):
+        """if the name is Nan, remove these records from df, and metadf (before)
+        # they end up in the gaps and missing obs"""
+
+        if np.nan in self.df.index.get_level_values("name"):
+            logger.warning(
+                f'Following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}'
+            )
+            self.df = self.df[~self.df.index.get_level_values("name").isna()]
+
+        if np.nan in self.metadf.index:
+            logger.warning(
+                f"Following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}"
+            )
+            self.metadf = self.metadf[~self.metadf.index.isna()]
 
     def _initiate_df_attribute(self, dataframe, update_metadf=True):
         """Initialize dataframe attributes."""
@@ -4348,7 +3010,19 @@ station with the default name: {self.settings.app["default_name"]}.'
             col for col in list(self.obstypes.keys()) if col in dataframe.columns
         ]
 
-        self.df = dataframe[obs_col_order].sort_index()
+        df = dataframe[obs_col_order].sort_index()
+        # convert the wide df to a long format
+        triple_df = (
+            # convert columns to an index level and reset the index
+            df.stack().reset_index()
+            # rename the default genereted columns
+            .rename(columns={"level_2": "obstype", 0: "value"})
+            # set and order the triple index
+            .set_index(["name", "obstype", "datetime"])
+            # sort by index
+            .sort_index()
+        )
+        self.df = triple_df
 
         if update_metadf:
             # create metadataframe with fixed number and order of columns
@@ -4357,103 +3031,62 @@ station with the default name: {self.settings.app["default_name"]}.'
             # drop dubplicates due to datetime
             metadf = metadf[~metadf.index.duplicated(keep="first")]
 
+            # Convert to geopandas dataframe
             self.metadf = metadf_to_gdf(metadf)
-
-    def _apply_qc_on_import(self):
-        # if the name is Nan, remove these records from df, and metadf (before)
-        # they end up in the gaps and missing obs
-        if np.nan in self.df.index.get_level_values("name"):
-            logger.warning(
-                f'Following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}'
-            )
-            self.df = self.df[~self.df.index.get_level_values("name").isna()]
-        if np.nan in self.metadf.index:
-            logger.warning(
-                f"Following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}"
-            )
-            self.metadf = self.metadf[~self.metadf.index.isna()]
-
-        # find missing obs and gaps, and remove them from the df
-        self.missing_obs, self.gaps = missing_timestamp_and_gap_check(
-            df=self.df,
-            gapsize_n=self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"],
-        )
-
-        # Create gaps and missing obs objects
-        # self.gaps = gaps_list
-        # self.missing_obs = Missingob_collection(missing_obs)
-
-        # Perform QC checks on original observation frequencies
-        self.df, dup_outl_df = duplicate_timestamp_check(
-            df=self.df,
-            checks_info=self.settings.qc["qc_checks_info"],
-            checks_settings=self.settings.qc["qc_check_settings"],
-        )
-        if not dup_outl_df.empty:
-            self.update_outliersdf(add_to_outliersdf=dup_outl_df)
-
-        self.df, nan_outl_df = invalid_input_check(
-            self.df, checks_info=self.settings.qc["qc_checks_info"]
-        )
-        if not nan_outl_df.empty:
-            self.update_outliersdf(nan_outl_df)
-
-        self.outliersdf = self.outliersdf.sort_index()
-
-        # update the order and which qc is applied on which obstype
-        checked_obstypes = [
-            obs for obs in self.df.columns if obs in self.obstypes.keys()
-        ]
-
-        checknames = ["duplicated_timestamp", "invalid_input"]  # KEEP order
-
-        self._applied_qc = concat_save(
-            [
-                self._applied_qc,
-                conv_applied_qc_to_df(
-                    obstypes=checked_obstypes, ordered_checknames=checknames
-                ),
-            ],
-            ignore_index=True,
-        )
 
     def _setup_of_obstypes_and_units(self):
         """Function to setup all attributes related to observation types and
         convert to standard units."""
-
         # Check if all present observation types are known.
+        present_obstypes = self._get_present_obstypes()
         unknown_obs_cols = [
-            obs_col
-            for obs_col in self.df.columns
-            if obs_col not in self.obstypes.keys()
+            obs_pres
+            for obs_pres in present_obstypes
+            if obs_pres not in self.obstypes.keys()
         ]
         if len(unknown_obs_cols) > 0:
             sys.exit(f"The following observation types are unknown: {unknown_obs_cols}")
 
-        for obs_col in self.df.columns:
-            # Convert the units to the toolkit standards (if unit is known)
-            input_unit = self.data_template.loc["units", obs_col]
-            self.df[obs_col] = self.obstypes[obs_col].convert_to_standard_units(
-                input_data=self.df[obs_col], input_unit=input_unit
-            )
+        # get the obstypes in the data, that can be linked to a knonw obstype
+        mappable_obstypes = list(set(present_obstypes) - set(unknown_obs_cols))
 
+        # Found that it is approx 70 times faster convert obstype per obstype,
+        # add them to a list and concat them, than using the .loc method to
+        # assign the converted values directly to the df attribute
+
+        subdf_list = []
+        for present_obs in mappable_obstypes:
+            # Convert the units to the toolkit standards (if unit is known)
+            input_unit = self.data_template.loc["units", present_obs]  # Get input unit
+            # locate the specific obstype records
+            obstype_values = xs_save(self.df, present_obs, "obstype", drop_level=False)[
+                "value"
+            ]
+            # Convert to standard unit and replace them in the df attribute
+            subdf_list.append(
+                self.obstypes[present_obs].convert_to_standard_units(
+                    input_data=obstype_values, input_unit=input_unit
+                )
+            )
             # Update the description of the obstype
-            description = self.data_template.loc["description", obs_col]
+            description = self.data_template.loc["description", present_obs]
             if pd.isna(description):
                 description = None
-            self.obstypes[obs_col].set_description(desc=description)
+            self.obstypes[present_obs].set_description(desc=description)
 
             # Update the original column name and original units
-            self.obstypes[obs_col].set_original_name(
-                self.data_template.loc["orig_name", obs_col]
+            self.obstypes[present_obs].set_original_name(
+                self.data_template.loc["orig_name", present_obs]
             )
-            self.obstypes[obs_col].set_original_unit(
-                self.data_template.loc["units", obs_col]
+            self.obstypes[present_obs].set_original_unit(
+                self.data_template.loc["units", present_obs]
             )
+
+        self.df = pd.concat(subdf_list).to_frame().sort_index()
 
         # subset the obstypes attribute
         self.obstypes = {
-            name: obj for name, obj in self.obstypes.items() if name in self.df.columns
+            name: obj for name, obj in self.obstypes.items() if name in present_obstypes
         }
 
     # =============================================================================
@@ -4776,58 +3409,5 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         return Map
 
-
-def _can_qc_be_applied(dataset, obstype, checkname):
-    """Test if a qc check can be applied."""
-    # test if check is already applied on the obstype
-    applied_df = dataset._applied_qc
-    can_be_applied = (
-        not applied_df[
-            (applied_df["obstype"] == obstype) & (applied_df["checkname"] == checkname)
-        ].shape[0]
-        > 0
-    )
-
-    if not can_be_applied:
-        logger.warning(
-            f"The {checkname} check can NOT be applied on {obstype} because it was already applied on this observation type!"
-        )
-        return False
-    # test of all settings are present for the check on the obstype
-    if checkname not in [
-        "duplicated_timestamp",
-        "titan_buddy_check",
-        "titan_sct_resistant_check",
-    ]:
-        # these checks are obstype depending,
-        required_keys = list(
-            dataset.settings.qc["qc_check_settings"][checkname]["temp"].keys()
-        )  # use temp to find all required settings
-        if obstype not in dataset.settings.qc["qc_check_settings"][checkname].keys():
-            logger.warning(
-                f"The {checkname} check can NOT be applied on {obstype} because none of the required check settings are found. The following are missing: {required_keys}"
-            )
-            return False
-
-        if not all(
-            [
-                req_key
-                in dataset.settings.qc["qc_check_settings"][checkname][obstype].keys()
-                for req_key in required_keys
-            ]
-        ):
-            # not all required settings are available
-            missing_settings = [
-                req_key
-                for req_key in required_keys
-                if req_key
-                not in dataset.settings.qc["qc_check_settings"][checkname][
-                    obstype
-                ].keys()
-            ]
-            logger.warning(
-                f"The {checkname} check can NOT be applied on {obstype} because not all required check settings ar found. The following are missing: {missing_settings}"
-            )
-            return False
-
-    return True
+    def _get_present_obstypes(self):
+        return self.df.index.get_level_values("obstype").unique().to_list()

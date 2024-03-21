@@ -10,6 +10,7 @@ import logging
 from collections.abc import Iterable
 
 import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -300,7 +301,9 @@ class Obstype:
         data = input_data
         for conv in conv_expr_list:
             data = expression_calculator(conv, data)
-
+        # format to series if input is series
+        if isinstance(input_data, pd.core.series.Series):
+            data = pd.Series(index=input_data.index, data=data, name=input_data.name)
         return data
 
     # ------------- Helpers ----------------------------------

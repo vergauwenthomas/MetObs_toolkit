@@ -51,20 +51,29 @@ demo_template = os.path.join(
 # =============================================================================
 
 from metobs_toolkit.dataset import Dataset
+
+# extensions of the dataset
+from metobs_toolkit.dataset_settings_updater import Dataset
+from metobs_toolkit.dataset_gapfill import Dataset
+from metobs_toolkit.dataset_qc import Dataset
+
 from metobs_toolkit.station import Station
+from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfield
-
 
 # Special functions that can be directly called by te user
 from metobs_toolkit.data_templates.template_build_prompt import build_template_prompt
 from metobs_toolkit.landcover_functions import connect_to_gee
 
 # =============================================================================
-# Import extenders
+# Pandas defaults
 # =============================================================================
-from metobs_toolkit.dataset_settings_updater import Dataset
+import pandas as pd
+
+pd.options.mode.copy_on_write = True  # This will become the default in pandas 3.0
+
 
 # =============================================================================
 # Version

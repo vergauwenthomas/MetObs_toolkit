@@ -284,122 +284,119 @@ def make_folium_html_plot(
     return m
 
 
-def geospatial_plot(
-    plotdf,
-    variable,
-    timeinstance,
-    title,
-    legend,
-    legend_title,
-    vmin,
-    vmax,
-    plotsettings,
-    categorical_fields,
-    static_fields,
-    display_name_mapper,
-    data_template,
-    boundbox,
-):
-    """Make geospatial plot of a variable (matplotlib).
+# def geospatial_plot(
+#     plotdf,
+#     variable,
+#     timeinstance,
+#     title,
+#     legend,
+#     legend_title,
+#     vmin,
+#     vmax,
+#     plotsettings,
+#     is_categorical,
+#     display_name_mapper,
+#     data_template,
+#     boundbox,
+# ):
+#     """Make geospatial plot of a variable (matplotlib).
 
-    Parameters
-    ----------
-    plotdf : geopandas.GeoDataFrame
-        A geodataframe containing a geometry column and the column representing
-        the variable to plot.
-    variable : str
-        Name of the variable to plot.
-    timeinstance : datetime.datetime
-        The timeinstance to plot the variable for, if the variable is
-        timedependant.
-    title : str
-        Title of the figure.
-    legend : bool
-        If True the legend will be added to the figure.
-    vmin : numeric
-        The variable value to use the minimum-color for..
-    vmax : numeric
-        The variable value to use the maximum-color for.
-    plotsettings : dict
-        The default plotting settings.
-    categorical_fields : list
-        A list of variables that are interpreted to be categorical, so to use
-        a categorical coloring scheme.
-    static_fields : bool
-        If True the variable is assumed to be time independant.
-    display_name_mapper : dict
-        Must contain at least {varname: varname_str_rep}, where the
-        varname_str_rep is the string representation of the variable to plot.
-    data_template : dict
-        The dataset template for string representations.
-    boundbox : shapely.box
-        The boundbox to represent the spatial extend of the plot.
+#     Parameters
+#     ----------
+#     plotdf : geopandas.GeoDataFrame
+#         A geodataframe containing a geometry column and the column representing
+#         the variable to plot.
+#     variable : str
+#         Name of the variable to plot.
+#     timeinstance : datetime.datetime
+#         The timeinstance to plot the variable for, if the variable is
+#         timedependant.
+#     title : str
+#         Title of the figure.
+#     legend : bool
+#         If True the legend will be added to the figure.
+#     vmin : numeric
+#         The variable value to use the minimum-color for..
+#     vmax : numeric
+#         The variable value to use the maximum-color for.
+#     plotsettings : dict
+#         The default plotting settings.
+#     is_categorical: bool
+#         if True, a categorical coloring scheme is used.
+#     display_name_mapper : dict
+#         Must contain at least {varname: varname_str_rep}, where the
+#         varname_str_rep is the string representation of the variable to plot.
+#     data_template : dict
+#         The dataset template for string representations.
+#     boundbox : shapely.box
+#         The boundbox to represent the spatial extend of the plot.
 
-    Returns
-    -------
-    ax : matplotlib.pyplot.axes
-        The plotted axes.
+#     Returns
+#     -------
+#     ax : matplotlib.pyplot.axes
+#         The plotted axes.
 
-    """
-    # Load default plot settings
-    default_settings = plotsettings["spatial_geo"]
+#     """
+#     # Load default plot settings
+#     default_settings = plotsettings["spatial_geo"]
 
-    # subset to obstype
-    plotdf = plotdf[[variable, "geometry"]]
+#     # subset to obstype
+#     plotdf = plotdf[[variable, "geometry"]]
 
-    # Subset to the stations that have coordinates
-    ignored_stations = plotdf[plotdf["geometry"].isnull()]
-    plotdf = plotdf[~plotdf["geometry"].isnull()]
-    if plotdf.empty:
-        logger.warning(
-            f"No coordinate data found, geoplot can not be made. Plotdf: {plotdf}"
-        )
-        return
+#     # Subset to the stations that have coordinates
+#     ignored_stations = plotdf[plotdf["geometry"].isnull()]
+#     plotdf = plotdf[~plotdf["geometry"].isnull()]
+#     if plotdf.empty:
+#         logger.warning(
+#             f"No coordinate data found, geoplot can not be made. Plotdf: {plotdf}"
+#         )
+#         return
 
-    if not ignored_stations.empty:
-        # logger.error(f'No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!')
-        logger.warning(
-            f"No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!"
-        )
+#     if not ignored_stations.empty:
+#         # logger.error(f'No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!')
+#         logger.warning(
+#             f"No coordinate found for following stations: {ignored_stations.index.to_list()}, these will be ignored in the geo-plot!"
+#         )
 
-    # make color scheme for field
-    if variable in categorical_fields:
-        is_categorical = True
-        if variable == "lcz":
-            # use all available LCZ categories
-            use_quantiles = False
-        else:
-            use_quantiles = True
-    else:
-        is_categorical = False
-        use_quantiles = False
+#     # make color scheme for field
+#     if is_categorical:
+#     if variable in categorical_fields:
+#         is_categorical = True
+#         if variable == "lcz":
+#             # use all available LCZ categories
+#             use_quantiles = False
+#         else:
+#             use_quantiles = True
+#     else:
+#         is_categorical = False
+#         use_quantiles = False
 
-    # if observations extend is contained by default exten, use default else use obs extend
-    use_extent = find_plot_extent(
-        geodf=gpd.GeoDataFrame(plotdf),
-        user_bounds=boundbox,
-        default_extentlist=default_settings["extent"],
-    )
+#     # if observations extend is contained by default exten, use default else use obs extend
+#     use_extent = find_plot_extent(
+#         geodf=gpd.GeoDataFrame(plotdf),
+#         user_bounds=boundbox,
+#         default_extentlist=default_settings["extent"],
+#     )
 
-    ax = _spatial_plot(
-        gdf=plotdf,
-        variable=variable,
-        legend=legend,
-        use_quantiles=use_quantiles,
-        is_categorical=is_categorical,
-        k_quantiles=default_settings["n_for_categorical"],
-        cmap=default_settings["cmap"],
-        figsize=default_settings["figsize"],
-        extent=use_extent,
-        title=title,
-        legend_title=legend_title,
-        vmin=vmin,
-        vmax=vmax,
-    )
-    return ax
+#     ax = _spatial_plot(
+#         gdf=plotdf,
+#         variable=variable,
+#         legend=legend,
+#         use_quantiles=use_quantiles,
+#         is_categorical=is_categorical,
+#         k_quantiles=default_settings["n_for_categorical"],
+#         cmap=default_settings["cmap"],
+#         figsize=default_settings["figsize"],
+#         extent=use_extent,
+#         title=title,
+#         legend_title=legend_title,
+#         vmin=vmin,
+#         vmax=vmax,
+#     )
+#     return ax
 
 
-def _spatial_plot(
+def spatial_plot(
     gdf,
     variable,
     legend,
@@ -408,7 +405,7 @@ def _spatial_plot(
     k_quantiles,
     cmap,
     figsize,
-    extent,
+    # extent,
     title,
     legend_title,
     vmin,
@@ -421,6 +418,12 @@ def _spatial_plot(
     fig, ax = plt.subplots(
         1, 1, figsize=figsize, subplot_kw={"projection": ccrs.PlateCarree()}
     )
+
+    # use_extent = find_plot_extent(
+    #     geodf=gpd.GeoDataFrame(gdf),
+    #     user_bounds=[],
+    #     default_extentlist=default_settings["extent"],
+    # )
 
     # Make color scheme
     if use_quantiles:
@@ -470,8 +473,8 @@ def _spatial_plot(
     )
 
     # set extent
-    ax.set_xlim(left=extent[0], right=extent[2])
-    ax.set_ylim(bottom=extent[1], top=extent[3])
+    # ax.set_xlim(left=extent[0], right=extent[2])
+    # ax.set_ylim(bottom=extent[1], top=extent[3])
 
     ax.add_feature(cfeature.LAND)
     ax.add_feature(cfeature.BORDERS)
@@ -618,11 +621,7 @@ def timeseries_plot(
     ok_labels = ["ok"]
 
     # filled value groups
-    fill_labels = [val for val in settings.gap["gaps_fill_info"]["label"].values()]
-    missing_fill_labels = [
-        val for val in settings.missing_obs["missing_obs_fill_info"]["label"].values()
-    ]
-    fill_labels.extend(missing_fill_labels)
+    fill_labels = settings.gap["gaps_fill_info"]["labels"]
 
     # qc outlier labels
     qc_labels = [
@@ -632,15 +631,15 @@ def timeseries_plot(
     # no value group
     no_vals_labels = [
         settings.gap["gaps_info"]["gap"]["outlier_flag"],
-        settings.gap["gaps_info"]["missing_timestamp"]["outlier_flag"],
+        # settings.gap["gaps_info"]["missing_timestamp"]["outlier_flag"],
     ]
-    # duplicated timestamp and invalid input outliers do not have a known value, so add them to this group
+    # duplicated timestamp do not have a known value, so add them to this group
     no_vals_labels.append(
         settings.qc["qc_checks_info"]["duplicated_timestamp"]["outlier_flag"]
     )
-    no_vals_labels.append(
-        settings.qc["qc_checks_info"]["invalid_input"]["outlier_flag"]
-    )
+    # no_vals_labels.append(
+    #     settings.qc["qc_checks_info"]["invalid_input"]["outlier_flag"]
+    # )
 
     # no_vals_df = mergedf[mergedf['label'].isin(no_vals_labels)]
 
@@ -1017,8 +1016,6 @@ def cycle_plot(
     title,
     plot_settings,
     aggregation,
-    data_template,
-    obstype,
     y_label,
     legend,
     show_zero_horizontal=False,
@@ -1038,10 +1035,6 @@ def cycle_plot(
         The cycle-specific settings.
     aggregation : list
         A list of strings to indicate the group defenition.
-    data_template : dict
-        The template of the dataset.
-    obstype : str
-        The observation type to plot.
     y_label : str
         The label for the vertical axes.
     legend : bool
@@ -1095,6 +1088,7 @@ def cycle_plot(
     if show_zero_horizontal:
         ax.axhline(y=0.0, color="black", linestyle="--")
 
+    ax.set_ylabel(y_label)
     return ax
 
 
@@ -1363,7 +1357,7 @@ def _all_possible_labels_colormapper(settings):
     plot_settings = settings.app["plot_settings"]
     gap_settings = settings.gap
     qc_info_settings = settings.qc["qc_checks_info"]
-    missing_obs_settings = settings.missing_obs["missing_obs_fill_info"]
+    # missing_obs_settings = settings.missing_obs["missing_obs_fill_info"]
 
     color_defenitions = plot_settings["color_mapper"]
 
@@ -1382,17 +1376,17 @@ def _all_possible_labels_colormapper(settings):
 
     # update gap and missing timestamp labels
     mapper[gap_settings["gaps_info"]["gap"]["outlier_flag"]] = color_defenitions["gap"]
-    mapper[
-        gap_settings["gaps_info"]["missing_timestamp"]["outlier_flag"]
-    ] = color_defenitions["missing_timestamp"]
+    # mapper[
+    #     gap_settings["gaps_info"]["missing_timestamp"]["outlier_flag"]
+    # ] = color_defenitions["missing_timestamp"]
 
     # add fill for gaps
-    for method, label in gap_settings["gaps_fill_info"]["label"].items():
-        mapper[label] = color_defenitions[method]
+    for label in gap_settings["gaps_fill_info"]["labels"]:
+        mapper[label] = color_defenitions[label]
 
-    # add fill for missing
-    for method, label in missing_obs_settings["label"].items():
-        mapper[label] = color_defenitions[method]
+    # # add fill for missing
+    # for method, label in missing_obs_settings["label"].items():
+    #     mapper[label] = color_defenitions[method]
 
     return mapper
 
@@ -1454,7 +1448,7 @@ def qc_stats_pie(
         "ok": color_defenitions["ok"],
         "QC outliers": color_defenitions["outlier"],
         "missing (gaps)": color_defenitions["gap"],
-        "missing (individual)": color_defenitions["missing_timestamp"],
+        # "missing (individual)": color_defenitions["missing_timestamp"],
     }
 
     _make_pie_from_freqs(
@@ -1499,7 +1493,7 @@ def qc_stats_pie(
         "not checked": color_defenitions["not checked"],
         "outlier": color_defenitions["outlier"],
         "gap": color_defenitions["gap"],
-        "missing timestamp": color_defenitions["missing_timestamp"],
+        # "missing timestamp": color_defenitions["missing_timestamp"],
     }
 
     specific_df = pd.DataFrame(specific_stats)

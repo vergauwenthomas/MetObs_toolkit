@@ -105,9 +105,9 @@ def init_multiindexdf():
 def init_triple_multiindex():
     """Construct a name-datetime-obstype pandas multiindex."""
     my_index = pd.MultiIndex(
-        levels=[["name"], ["datetime"], ["obstype"]],
+        levels=[["name"], ["obstype"], ["datetime"]],
         codes=[[], [], []],
-        names=["name", "datetime", "obstype"],
+        names=["name", "obstype", "datetime"],
     )
     return my_index
 
@@ -416,7 +416,7 @@ def get_likely_frequency(
 
     freqs_blacklist = [pd.Timedelta(0), np.nan]  # avoid a zero frequency
 
-    freqs = timestamps.to_series().diff()
+    freqs = timestamps.to_series().sort_index().diff()
     freqs = freqs[~freqs.isin(freqs_blacklist)]
 
     if method == "highest":
@@ -497,11 +497,23 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
     freq_series : pandas.Series
         A pandas series with 'name' as index and likely frequencies as values.
 
+    Note
+    -------
+    The frequency is estimated from a set of datetimestamps, which is a combination
+    of all datetimestamps (for all obstypes per station), and then the duplicate
+    timestamps are dropped. This approach assumes that all obstypes have the
+    same frequency for a station.
+
     """
     problematic_stations = []
     freqs = {}
     for station in df.index.get_level_values(level="name").unique():
         subdf = xs_save(df, station, level="name")
+        subdf = subdf.droplevel("obstype")  # remove the obstype level
+        subdf = subdf[
+            ~subdf.index.duplicated(keep="first")
+        ]  # drop duplicated timestamps
+
         # remove rows with all obstype nans
         subdf = subdf.dropna(axis=0, how="all")
 
