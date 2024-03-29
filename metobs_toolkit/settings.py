@@ -28,10 +28,11 @@ class Settings:
 
         # define thematics in settings. Corresponds to settings files.
         self.time_settings = {}
+        self.time_settings["timezone"] = "UTC"  # the default time 'coordinate'
         self.app = {}
         self.qc = {}
         self.gap = {}
-        self.missing_obs = {}
+        # self.missing_obs = {}
         self.templates = {}
         self.gee = {}
         self.IO = {
@@ -41,7 +42,7 @@ class Settings:
         }
 
         # Update (instance and class variables) what can be updated by setingsfiles
-        self._update_time_res_settings()
+        # self._update_time_res_settings()
         self._update_app_settings()
         self._update_qc_settings()
         self._update_gap_settings()
@@ -52,38 +53,27 @@ class Settings:
     #     Update settings from files in initialisation
     # =============================================================================
 
-    def _update_time_res_settings(self):
-        """
-        Update settings on time resolutions of self using the default settings templates.
+    # def _update_time_res_settings(self):
+    #     """
+    #     Update settings on time resolutions of self using the default settings templates.
 
-        Returns
-        -------
-        None.
-        """
-        logger.debug("Updating time resolution settings.")
-        f = open(
-            os.path.join(
-                Settings._settings_files_path, "dataset_resolution_settings.json"
-            )
-        )
-        res_settings = json.load(f)
-        f.close()
+    #     Returns
+    #     -------
+    #     None.
+    #     """
+    #     logger.debug("Updating time resolution settings.")
+    #     f = open(
+    #         os.path.join(
+    #             Settings._settings_files_path, "dataset_resolution_settings.json"
+    #         )
+    #     )
+    #     res_settings = json.load(f)
+    #     f.close()
 
-        self.time_settings["target_time_res"] = res_settings["target_time_resolution"]
-        self.time_settings["resample_method"] = res_settings["method"]
-        self.time_settings["resample_limit"] = res_settings["limit"]
-        self.time_settings["timezone"] = res_settings["timezone"]
-
-        # Freq estimation
-        self.time_settings["freq_estimation_method"] = res_settings[
-            "freq_estimation_method"
-        ]
-        self.time_settings["freq_estimation_simplify"] = bool(
-            res_settings["freq_estimation_simplify"]
-        )
-        self.time_settings["freq_estimation_simplify_error"] = res_settings[
-            "freq_estimation_simplify_error"
-        ]
+    #     # self.time_settings["target_time_res"] = res_settings["target_time_resolution"]
+    #     # self.time_settings["resample_method"] = res_settings["method"]
+    #     self.time_settings["resample_limit"] = res_settings["limit"]
+    #     self.time_settings["timezone"] = res_settings["timezone"]
 
     def _update_app_settings(self):
         """
@@ -155,21 +145,12 @@ class Settings:
         """
         logger.debug("Updating gap settings.")
         from .settings_files.gaps_and_missing_settings import (
-            gaps_settings,
             gaps_info,
-            gaps_fill_settings,
             gaps_fill_info,
-            missing_obs_fill_settings,
-            missing_obs_fill_info,
         )
 
-        self.gap["gaps_settings"] = gaps_settings
         self.gap["gaps_info"] = gaps_info
-        self.gap["gaps_fill_settings"] = gaps_fill_settings
         self.gap["gaps_fill_info"] = gaps_fill_info
-
-        self.missing_obs["missing_obs_fill_settings"] = missing_obs_fill_settings
-        self.missing_obs["missing_obs_fill_info"] = missing_obs_fill_info
 
     def _update_templates(self):
         """
@@ -333,7 +314,7 @@ class Settings:
             "app",
             "qc",
             "gap",
-            "missing_obs",
+            # "missing_obs",
             "templates",
             "gee",
         ]

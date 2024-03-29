@@ -30,6 +30,7 @@ else:
 sys.path.insert(0, str(basefolder))
 sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
 
+
 # The toolkit must be imported when testing and building the documentation
 # locally. However this is overkill for RTD service, so only import it for
 # local builds
