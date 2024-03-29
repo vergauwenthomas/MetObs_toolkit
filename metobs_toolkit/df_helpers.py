@@ -377,6 +377,39 @@ def conv_applied_qc_to_df(obstypes, ordered_checknames):
 # =============================================================================
 # Records frequencies
 # =============================================================================
+
+
+def _simplify_time(time, max_simplyfi_error):
+    # try simplyfy to round hours
+    trail_hour = time.ceil("H")
+    lead_hour = time.floor("H")
+
+    if (abs(lead_hour - time) <= abs(trail_hour - time)) & (
+        lead_hour.total_seconds() != 0.0
+    ):  # avoid assume freq of 0 seconds
+        best_candidate = lead_hour
+    else:
+        best_candidate = trail_hour
+
+    if abs(time - best_candidate) < pd.to_timedelta(max_simplyfi_error):
+        simplify_freq = best_candidate
+
+    # try simplyfy to round minutes
+    if simplify_freq is None:
+        trail_min = time.ceil("T")
+        lead_min = time.floor("T")
+
+        if (abs(lead_min - time) <= abs(trail_min - time)) & (
+            lead_min.total_seconds() != 0.0
+        ):  # avoid assume freq of 0 seconds
+            best_candidate = lead_min
+        else:
+            best_candidate = trail_min
+
+        if abs(time - best_candidate) < pd.to_timedelta(max_simplyfi_error):
+            simplify_freq = best_candidate
+
+
 def get_likely_frequency(
     timestamps, method="highest", simplify=True, max_simplify_error="2T"
 ):
@@ -544,3 +577,106 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
             freqs[prob_station] = assign_med_freq
 
     return pd.Series(data=freqs)
+
+
+def _simplify_time(time, max_simplify_error):
+    """
+    Find a simplified timestamp, given a maximum tolerance.
+    A simplified candidate is looked for in the following order:
+        * hourly timestamp
+        * 10-fold minutes
+        * 5 - fold minutes
+        * 1-fold minutes
+    If no candindate is found, given the max_simplify_error, the
+    original timestamp is returned.
+
+    Parameters
+    ----------
+    time : pandas.Timestamp
+        The timeestamp to find a simplification for.
+    max_simplyfi_error : Timedelta or str, optional
+        The maximum deviation from the time.
+
+
+    Returns
+    -------
+    pandas.Timestamp
+        The simplified version of the timestamp, if possible.
+
+    """
+
+    tolerance_time = pd.to_timedelta(max_simplify_error)
+    # 1. check if time can be rounded to the hour
+    # try simplyfy to round hours
+    trail_hour = time.ceil("H")
+    lead_hour = time.floor("H")
+
+    if abs(lead_hour - time) <= abs(trail_hour - time):
+        # lead hour is closer
+        if abs(lead_hour - time) <= tolerance_time:
+            return lead_hour
+    else:
+        if abs(trail_hour - time) <= tolerance_time:
+            return trail_hour
+
+    # 2. find the most suitable 10-fold (in minutes)
+    trail_tenf = time.ceil("10T")
+    lead_tenf = time.floor("10T")
+
+    if abs(lead_tenf - time) <= abs(trail_tenf - time):
+        # lead hour is closer
+        if abs(lead_tenf - time) <= tolerance_time:
+            return lead_tenf
+    else:
+        if abs(trail_tenf - time) <= tolerance_time:
+            return trail_tenf
+
+    # 3. find the most suitable 5-fold (in minutes)
+    trail_fivef = time.ceil("5T")
+    lead_fivef = time.floor("5T")
+
+    if abs(lead_fivef - time) <= abs(trail_fivef - time):
+        # lead hour is closer
+        if abs(lead_fivef - time) <= tolerance_time:
+            return lead_fivef
+    else:
+        if abs(trail_fivef - time) <= tolerance_time:
+            return trail_fivef
+
+    # 4. find the most suitable minute base
+    trail_minf = time.ceil("1T")
+    lead_minf = time.floor("1T")
+
+    if abs(lead_minf - time) <= abs(trail_minf - time):
+        # lead hour is closer
+        if abs(lead_minf - time) <= tolerance_time:
+            return lead_minf
+    else:
+        if abs(trail_minf - time) <= tolerance_time:
+            return trail_minf
+    # no simplification possible
+    return time
+
+
+def _find_target_freq_for_each_station(
+    df, estimation_method="highest", freq_simplify=True, freq_simplify_error="1T"
+):
+
+    # 1 Get frequency target for each station
+
+    freqs_dict = {sta: [] for sta in df.index.get_level_values("name")}
+
+    for groupidx, groupdf in df.reset_index().groupby(["name", "obstype"]):
+        groupdf = groupdf.set_index("datetime")
+        freqs_dict[groupidx[0]].append(
+            get_likely_frequency(
+                timestamps=groupdf.index,
+                method=estimation_method,
+                simplify=freq_simplify,
+                max_simplify_error=freq_simplify_error,
+            )
+        )
+
+    freqs_target = {sta: min(val) for sta, val in freqs_dict.items()}
+
+    return freqs_target

@@ -389,7 +389,7 @@ class Dataset(Dataset):
                 if status == "Gap does not exist in observation space":
                     logger.info(f"{gap} cannot be filled because it is not a real one")
                     continue
-                elif status != "Unfilled gap":
+                if status != "Unfilled gap":
                     # already filled values
                     if not overwrite_fill:
                         logger.warning(
@@ -399,15 +399,15 @@ class Dataset(Dataset):
                             f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
                         )
                         continue
-                else:
-                    logger.debug(f"filling {gap} with {method} interpolation.")
-                    gap.interpolate_gap(
-                        Dataset=self,
-                        method=method,
-                        max_consec_fill=max_consec_fill,
-                        max_lead_to_gap_distance=max_lead_to_gap_distance,
-                        max_trail_to_gap_distance=max_trail_to_gap_distance,
-                    )
+
+                logger.debug(f"filling {gap} with {method} interpolation.")
+                gap.interpolate_gap(
+                    Dataset=self,
+                    method=method,
+                    max_consec_fill=max_consec_fill,
+                    max_lead_to_gap_distance=max_lead_to_gap_distance,
+                    max_trail_to_gap_distance=max_trail_to_gap_distance,
+                )
 
         infodf = self.get_gaps_fill_df()
         return xs_save(infodf, obstype, "obstype").sort_index()

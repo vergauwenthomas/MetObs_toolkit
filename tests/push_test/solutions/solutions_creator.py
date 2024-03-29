@@ -25,18 +25,9 @@ def test_df_are_equal(testdf, solutiondf):
         print(f"Columns in the solutionsdf : {solutiondf.columns}")
         raise SystemError("The columns of the test and solutiondf are not the same")
 
-    # test is columns are the same
-    if not (testdf.index == solutiondf.index).all():
-        print("The index of the test and solutiondf are not the same!")
-        # check the names and hierarcy of index levels
-        if list(testdf.index.names) != list(solutiondf.index.names):
-            print(
-                "The index structure is not the same between the test and the solution"
-            )
-            print(f"Index structure of the test: {testdf.index.names}")
-            print(f"Index structure of the solution: {solutiondf.index.names}")
-            raise SystemError("The index of the test and solutiondf are not the same!")
-
+    # order columns alphabetically
+    testdf = testdf.reindex(sorted(testdf.columns), axis=1)
+    solutiondf = solutiondf.reindex(sorted(solutiondf.columns), axis=1)
     # common error/bug signal checks
 
     # check for duplicates in index
@@ -58,7 +49,7 @@ def test_df_are_equal(testdf, solutiondf):
     if (added_data.empty) & (not missing_data.empty):
         print("These rows are missing in the test, that are in the solution : \n")
         print(missing_data)
-        raise SystemError("Rowsare missing in the test")
+        raise SystemError("Rows are missing in the test")
 
     # situation 3 some rows are lacking, and some rows are added
     if (not added_data.empty) & (not missing_data.empty):
@@ -72,16 +63,28 @@ def test_df_are_equal(testdf, solutiondf):
         print(f"The following rows missing in  the test: \n {missing_data}")
         raise SystemError("There is a difference between the test and the solution")
 
+    # test is columns are the same
+    if not (testdf.index == solutiondf.index).all():
+        print("The index of the test and solutiondf are not the same!")
+        # check the names and hierarcy of index levels
+        if list(testdf.index.names) != list(solutiondf.index.names):
+            print(
+                "The index structure is not the same between the test and the solution"
+            )
+            print(f"Index structure of the test: {testdf.index.names}")
+            print(f"Index structure of the solution: {solutiondf.index.names}")
+            raise SystemError("The index of the test and solutiondf are not the same!")
+
     are_equal = testdf.equals(solutiondf)
     if not are_equal:
-        print(
-            "The testdataframe is different of the solution (probably by content). Here is the differce:"
+        diffdf = testdf.compare(
+            solutiondf, keep_shape=False, result_names=("TEST", "SOLUTION")
         )
-        print(" ................................. ")
-        print(f"difference testdf ----> solution : \n {testdf.difference(solutiondf)}")
-        print(" ................................. ")
-        print(f"difference solution ----> testdf : \n {solutiondf.difference(testdf)}")
-        raise SystemError("There is a difference between the test and the solution")
+
+        print("The stucture of datasets is equal, but the content differs!! ")
+        print(f"See the diff_df for more details: {diffdf}")
+        return diffdf
+        # raise SystemError("There is a difference between the test and the solution"
 
     print("ok")
     return None

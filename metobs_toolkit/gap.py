@@ -298,31 +298,30 @@ class Gap:
             "obstype"
         ), f"{self.obstype.name} not found in the observation records of {Dataset}"
 
-        # filter out start, end and freq of observations
-        obsfreq = Dataset.metadf.loc[self.name, "dataset_resolution"]
-
-        obs_datetime_idx = (
-            Dataset.df.xs(self.name, level="name")
-            .xs(self.obstype.name, level="obstype")
-            .index
+        # get start, end and freq of observations
+        target_obs_timestamps = pd.date_range(
+            start=Dataset.metadf.loc[self.name, "dt_start"],
+            end=Dataset.metadf.loc[self.name, "dt_end"],
+            freq=Dataset.metadf.loc[self.name, "dataset_resolution"],
         )
-
-        missing_records = self._missing_records_locator(
-            obs_datetime_index=obs_datetime_idx, obsfreq=obsfreq
-        )
-        return missing_records
-
-    def _missing_records_locator(self, obs_datetime_index, obsfreq):
-        # create ideal datetimerange
-        obs_records_ideal = pd.date_range(
-            start=obs_datetime_index.min(), end=obs_datetime_index.max(), freq=obsfreq
-        )
-
-        # Subset to the gap-period (so only missing records are kept)
-        missing_records = obs_records_ideal[
-            (obs_records_ideal <= self.enddt) & ((obs_records_ideal >= self.startdt))
+        return target_obs_timestamps[
+            (
+                (target_obs_timestamps >= self.startdt)
+                & (target_obs_timestamps <= self.enddt)
+            )
         ]
-        return missing_records
+
+    # def _missing_records_locator(self, obs_datetime_index, obsfreq):
+    #     # create ideal datetimerange
+    #     obs_records_ideal = pd.date_range(
+    #         start=obs_datetime_index.min(), end=obs_datetime_index.max(), freq=obsfreq
+    #     )
+
+    #     # Subset to the gap-period (so only missing records are kept)
+    #     missing_records = obs_records_ideal[
+    #         (obs_records_ideal <= self.enddt) & ((obs_records_ideal >= self.startdt))
+    #     ]
+    #     return missing_records
 
     # =============================================================================
     #  Gapfill anchor methods
@@ -817,6 +816,7 @@ class Gap:
         # make shure only datetimes are in the index, and sorted by datetimes
         tofilldf = tofilldf.reset_index().set_index("datetime").sort_index()
         # Interpolate series
+
         tofilldf[obsname].interpolate(
             method=method,
             limit=max_consec_fill,  # Maximum number of consecutive NaNs to fill. Must be greater than 0.
@@ -1117,146 +1117,267 @@ def create_gaps_overview_df(gapslist):
 # =============================================================================
 # Gap finders
 # =============================================================================
+def find_gaps(df, metadf, outliersdf, obstypes):
 
-
-def find_gaps(
-    df, blacklist_records, Obstypesdict, freq_series=None, startdict=None, enddict=None
-):
-    """
-    #TODO update the docstring parameters
-    Find gaps in the observations.
-
-    Looking for gaps by assuming an observation frequency. The assumed frequency is the highest occuring frequency PER STATION.
-
-    A gap in the observations is located by two conditions:
-
-     * A timestamp is missing
-     * The value of an observation is invallid (i.e. Nan or non-numerical)
-
-
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The observations dataframe of the dataset object (Dataset.df)
-    known_obstypes : list
-        A list of all known metobs_toolkit.Obstypes.
-
-
-    Returns
-    -------
-    gap_list : list
-        A list of gaps.
-
-    """
     gap_list = []
+    # Replace the nans in the df, which are assigned as outliers, to a default value
+    df.loc[outliersdf.index, "value"] = (
+        -999
+    )  # WARNING! df is a pointer, so this affects the self.df of the dataset !!!
+    # make sure to revert this!!
 
-    # get all obstypes that are found in the dataframe
-    # found_obstypes = [1obst for obst in known_obstypes if obst.name in df.columns]
+    # Subset to the missing records
+    missing_records = df[df["value"].isnull()]
 
-    # gaps per station (because some stations can have other frequencies!)
-    stationnames = df.index.get_level_values(level="name").unique()
-    for station in stationnames:
+    # Group by station and obstype to locate and define gaps
+    for groupidx, groupdf in missing_records.reset_index().groupby(["name", "obstype"]):
+        staname = groupidx[0]
+        obsname = groupidx[1]
+        sta_res = metadf.loc[staname, "dataset_resolution"]
 
-        stadf = xs_save(df, station, level="name")
-        found_obstypes = stadf.index.get_level_values("obstype").unique().to_list()
-        # Get frequency estimation per station
-        # ASSUMPTION: We assume that all obstypes per station are in the
-        # same frequency and the first and last found timestap (for all obstypes)
-        # is assumed for all obstypes.
+        # calculate differences (at level of obstype) because else
+        # gaps are computed wrong !! (DO NOT TRY TO REDUCE COMPUTATIONS ON THIS STEP! )
+        groupdf["diff"] = groupdf["datetime"] - groupdf["datetime"].shift()
 
-        if freq_series is None:
-            likely_freq = get_likely_frequency(
-                timestamps=stadf.index.droplevel("obstype").drop_duplicates(),
-                method="highest",
-                simplify=False,
-            )
-        else:
-            likely_freq = freq_series[station]
+        # find groups of consecutive missing records
+        groupdf["gap_def"] = ((groupdf["diff"] != sta_res)).cumsum()
+        gapgroups = groupdf.groupby("gap_def")
 
-        # Define the start and end of the timeseries
-        if startdict is None:
-            tstart = stadf.index.droplevel("obstype").min()
-        else:
-            tstart = startdict[station]
-
-        if enddict is None:
-            tend = stadf.index.droplevel("obstype").max()
-        else:
-            tend = enddict[station]
-
-        assert likely_freq.seconds > 0, "The frequency is not positive!"
-        for obstype in found_obstypes:
-            # remove Nans --> so that nans are interpretted as missing records --> thus gaps
-            subdf = xs_save(stadf, obstype, "obstype")
-            stadfnonan = subdf.dropna()
-            #  Locate missing timestamps
-            missing_datetimeseries = (
-                pd.date_range(start=tstart, end=tend, freq=likely_freq)
-                .difference(stadfnonan.index)
-                .to_series()
-                .diff()
+        for _idx, gapgroup in gapgroups:
+            # Construct gap
+            gap = Gap(
+                name=staname,
+                startdt=gapgroup["datetime"].min(),
+                enddt=gapgroup["datetime"].max(),
+                obstype=obstypes[obsname],
             )
 
-            # Convert back to a triple index
-            missing_records = missing_datetimeseries.to_frame()
-            missing_records = missing_records.rename(columns={0: "diff"})
-            missing_records.index.name = "datetime"
-            missing_records["name"] = station
-            missing_records["obstype"] = obstype
-            missing_records = missing_records.reset_index().set_index(
-                ["name", "obstype", "datetime"]
+            # Compute missing records
+            missing_records = pd.date_range(
+                start=gap.startdt, end=gap.enddt, freq=sta_res, tz=gap.startdt.tz
             )
+            gap._construct_gapdf(missing_datetime_records=missing_records)
 
-            # apply blacklist
-            missing_records = missing_records[
-                ~missing_records.index.isin(blacklist_records)
-            ]
+            # add gap to list
+            gap_list.append(gap)
 
-            # after the blacklist, recalculate the diff !!! because some records
-            # are removed, and the diff must thus be recalculated
-            missing_records = missing_records.reset_index()
-            missing_records["dtshift"] = missing_records["datetime"].shift()
-            missing_records["diff"] = (
-                missing_records["datetime"] - missing_records["dtshift"]
-            )
-            missing_records = missing_records.set_index(["name", "obstype", "datetime"])
-            missing_records = missing_records[["diff"]]
-
-            if missing_records.empty:
-                continue
-
-            # Check for gaps
-            gap_defenition = ((missing_records["diff"] != likely_freq)).cumsum()
-            consec_missing_groups = missing_records["diff"].groupby(gap_defenition)
-            group_sizes = consec_missing_groups.size()
-
-            # iterate over the gabs and fill the gap_list
-            for gap_idx in group_sizes.index:
-                gap_idx = consec_missing_groups.get_group(gap_idx).index
-
-                # Construct gap
-                gap = Gap(
-                    name=station,
-                    startdt=gap_idx.get_level_values("datetime").min(),
-                    enddt=gap_idx.get_level_values("datetime").max(),
-                    obstype=Obstypesdict[obstype],
-                )
-
-                # Compute missing records
-                # (It is found that there is a computational gain when the missing
-                # records are computed here, because all required filters are already
-                # applied)
-                missing_records = gap._missing_records_locator(
-                    obs_datetime_index=pd.date_range(
-                        start=tstart, end=tend, freq=likely_freq
-                    ),
-                    obsfreq=likely_freq,
-                )
-
-                gap._construct_gapdf(missing_datetime_records=missing_records)
-
-                # add gap to list
-                gap_list.append(gap)
+    # Make sure to revert all outlier values to Nan (because they are present as -999)
+    df.loc[outliersdf.index, "value"] = np.nan
 
     return gap_list
+
+
+# def find_gaps(df, metadf, outliersdf, obstypes):
+
+#     gap_list = []
+#     for sta in df.index.get_level_values("name").unique():
+#         stadf = (
+#             df.xs(sta, level="name")  # subset to the station
+#             .unstack(0)  # long to wide
+#             .droplevel(0, axis="columns")
+#         )  # drop columnmultiindex
+
+#         # add the duplicates as -999 values (not NANs! )
+#         sta_dup = xs_save(outliersdf, sta, level="name")
+#         if 'label' in sta_dup.columns:
+#             sta_dup = sta_dup[sta_dup['label'] == 'duplicated timestamp outlier']
+#             #fitler out the duplicates
+#             for (obstype, dt), _ in sta_dup.iterrows():
+#                 stadf.loc[dt, obstype] = -999
+
+#         # create perfect dt range
+#         sta_res = metadf.loc[sta, "dataset_resolution"]
+#         target_dt = pd.date_range(
+#             start=metadf.loc[sta, "dt_start"],
+#             end=metadf.loc[sta, "dt_end"],
+#             freq=sta_res,
+#         )
+
+#         # missing records (over all obstypes)
+#         missing_records = target_dt[~target_dt.isin(stadf.index)]
+#         missing_df = pd.DataFrame(index=missing_records)
+
+#         stadf = pd.concat([stadf, missing_df]).sort_index()
+#         # subset to only nan's
+#         gapdf = stadf[stadf.isnull().any(axis=1)]
+#         present_obstypes = gapdf.columns
+
+#         # Locate gaps per obstype
+#         for obs in present_obstypes:
+#             obsgapdf = gapdf[[obs]]
+#             obsgapdf = obsgapdf[obsgapdf[obs].isna()]  # remove good records
+
+#             # calculate differences (at level of obstype) because else
+#             # gaps are computed wrong !! (DO NOT TRY TO REDUCE COMPUTATIONS ON THIS STEP! )
+#             obsgapdf["diff"] = (
+#                 obsgapdf.index.to_series() - obsgapdf.index.to_series().shift()
+#             )
+
+#             # find groups of consecutive missing records
+#             obsgapdf["gap_def"] = ((obsgapdf["diff"] != sta_res)).cumsum()
+#             gapgroups = obsgapdf.groupby("gap_def")
+
+#             for _idx, gapgroup in gapgroups:
+#                 # Construct gap
+#                 gap = Gap(
+#                     name=sta,
+#                     startdt=gapgroup.index.min(),
+#                     enddt=gapgroup.index.max(),
+#                     obstype=obstypes[obs],
+#                 )
+
+#                 # Compute missing records
+#                 # (It is found that there is a computational gain when the missing
+#                 # records are computed here, because all required filters are already
+#                 # applied)
+#                 missing_records = target_dt[
+#                     (target_dt >= gap.startdt) & (target_dt <= gap.enddt)
+#                 ]
+
+#                 gap._construct_gapdf(missing_datetime_records=missing_records)
+#                 # add gap to list
+#                 gap_list.append(gap)
+
+#     return gap_list
+
+
+# def find_gaps(
+#     df, blacklist_records, Obstypesdict, freq_series=None, startdict=None, enddict=None
+# ):
+#     """
+#     #TODO update the docstring parameters
+#     Find gaps in the observations.
+
+#     Looking for gaps by assuming an observation frequency. The assumed frequency is the highest occuring frequency PER STATION.
+
+#     A gap in the observations is located by two conditions:
+
+#      * A timestamp is missing
+#      * The value of an observation is invallid (i.e. Nan or non-numerical)
+
+
+#     Parameters
+#     ----------
+#     df : pandas.DataFrame
+#         The observations dataframe of the dataset object (Dataset.df)
+#     known_obstypes : list
+#         A list of all known metobs_toolkit.Obstypes.
+
+
+#     Returns
+#     -------
+#     gap_list : list
+#         A list of gaps.
+
+#     """
+#     gap_list = []
+
+#     # get all obstypes that are found in the dataframe
+#     # found_obstypes = [1obst for obst in known_obstypes if obst.name in df.columns]
+
+#     # gaps per station (because some stations can have other frequencies!)
+#     stationnames = df.index.get_level_values(level="name").unique()
+#     for station in stationnames:
+
+#         stadf = xs_save(df, station, level="name")
+#         found_obstypes = stadf.index.get_level_values("obstype").unique().to_list()
+#         # Get frequency estimation per station
+#         # ASSUMPTION: We assume that all obstypes per station are in the
+#         # same frequency and the first and last found timestap (for all obstypes)
+#         # is assumed for all obstypes.
+
+#         if freq_series is None:
+#             likely_freq = get_likely_frequency(
+#                 timestamps=stadf.index.droplevel("obstype").drop_duplicates(),
+#                 method="highest",
+#                 simplify=False,
+#             )
+#         else:
+#             likely_freq = freq_series[station]
+
+#         # Define the start and end of the timeseries
+#         if startdict is None:
+#             tstart = stadf.index.droplevel("obstype").min()
+#         else:
+#             tstart = startdict[station]
+
+#         if enddict is None:
+#             tend = stadf.index.droplevel("obstype").max()
+#         else:
+#             tend = enddict[station]
+
+#         assert likely_freq.seconds > 0, "The frequency is not positive!"
+#         for obstype in found_obstypes:
+#             # remove Nans --> so that nans are interpretted as missing records --> thus gaps
+#             subdf = xs_save(stadf, obstype, "obstype")
+#             stadfnonan = subdf.dropna()
+#             #  Locate missing timestamps
+#             missing_datetimeseries = (
+#                 pd.date_range(start=tstart, end=tend, freq=likely_freq)
+#                 .difference(stadfnonan.index)
+#                 .to_series()
+#                 .diff()
+#             )
+
+#             # Convert back to a triple index
+#             missing_records = missing_datetimeseries.to_frame()
+#             missing_records = missing_records.rename(columns={0: "diff"})
+#             missing_records.index.name = "datetime"
+#             missing_records["name"] = station
+#             missing_records["obstype"] = obstype
+#             missing_records = missing_records.reset_index().set_index(
+#                 ["name", "obstype", "datetime"]
+#             )
+
+#             # apply blacklist
+#             missing_records = missing_records[
+#                 ~missing_records.index.isin(blacklist_records)
+#             ]
+
+#             # after the blacklist, recalculate the diff !!! because some records
+#             # are removed, and the diff must thus be recalculated
+#             missing_records = missing_records.reset_index()
+#             missing_records["dtshift"] = missing_records["datetime"].shift()
+#             missing_records["diff"] = (
+#                 missing_records["datetime"] - missing_records["dtshift"]
+#             )
+#             missing_records = missing_records.set_index(["name", "obstype", "datetime"])
+#             missing_records = missing_records[["diff"]]
+
+#             if missing_records.empty:
+#                 continue
+
+#             # Check for gaps
+#             gap_defenition = ((missing_records["diff"] != likely_freq)).cumsum()
+#             consec_missing_groups = missing_records["diff"].groupby(gap_defenition)
+#             group_sizes = consec_missing_groups.size()
+
+#             # iterate over the gabs and fill the gap_list
+#             for gap_idx in group_sizes.index:
+#                 gap_idx = consec_missing_groups.get_group(gap_idx).index
+
+#                 # Construct gap
+#                 gap = Gap(
+#                     name=station,
+#                     startdt=gap_idx.get_level_values("datetime").min(),
+#                     enddt=gap_idx.get_level_values("datetime").max(),
+#                     obstype=Obstypesdict[obstype],
+#                 )
+
+#                 # Compute missing records
+#                 # (It is found that there is a computational gain when the missing
+#                 # records are computed here, because all required filters are already
+#                 # applied)
+#                 missing_records = gap._missing_records_locator(
+#                     obs_datetime_index=pd.date_range(
+#                         start=tstart, end=tend, freq=likely_freq
+#                     ),
+#                     obsfreq=likely_freq,
+#                 )
+
+#                 gap._construct_gapdf(missing_datetime_records=missing_records)
+
+#                 # add gap to list
+#                 gap_list.append(gap)
+
+#     return gap_list

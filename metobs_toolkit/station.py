@@ -44,7 +44,7 @@ class Station(Dataset):
     def setup_metadata_dtyes(self):
         """Make sure the dtypes are not lost when subsetting."""
         numeric_columns = ["lat", "lon"]
-        timedelta_columns = ["assumed_import_frequency", "dataset_resolution"]
+        timedelta_columns = ["dataset_resolution"]  # "assumed_import_frequency",
 
         for col in numeric_columns:
             if col in self.metadf.columns:

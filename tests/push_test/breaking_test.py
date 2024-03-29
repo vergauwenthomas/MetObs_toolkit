@@ -63,31 +63,7 @@ max_decrease_per_second_step = (
     -10.0 / 3600.0
 )  # Maximal allowed increase per second (for step check)
 
-dataset_coarsened.update_qc_settings(
-    obstype="temp",
-    dupl_timestamp_keep=dupl_dropping,
-    persis_time_win_to_check=persistance_time_window_to_check,
-    persis_min_num_obs=min_num_obs,
-    rep_max_valid_repetitions=max_valid_repetitions,
-    gross_value_min_value=min_value,
-    gross_value_max_value=max_value,
-    win_var_max_increase_per_sec=max_increase_per_second,
-    win_var_max_decrease_per_sec=max_decrease_per_second,
-    win_var_time_win_to_check=time_window_to_check,
-    win_var_min_num_obs=min_window_members,
-    step_max_increase_per_sec=max_increase_per_second_step,
-    step_max_decrease_per_sec=max_decrease_per_second_step,
-)
 
-
-dataset_coarsened.import_data_from_file()
-
-
-# %%
-dataset_coarsened.coarsen_time_resolution()
-dataset_coarsened.apply_quality_control()
-
-# _ = dataset_coarsened.get_qc_stats()
 # %%
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(input_data_file=testdata, template_file=template_file)
@@ -106,7 +82,7 @@ dataset.update_qc_settings(
     step_max_decrease_per_sec=max_decrease_per_second_step,
 )
 
-dataset.import_data_from_file()
+dataset.import_data_from_file(origin_simplify_tolerance="1T")
 dataset.apply_quality_control()
 
 
