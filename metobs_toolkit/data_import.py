@@ -240,58 +240,58 @@ def extract_options_from_template(templ, known_obstypes):
     return new_templ, opt_kwargs
 
 
-def read_csv_template(file, known_obstypes, data_long_format=True):
-    """Import a template from a csv file.
+# def read_csv_template(file, known_obstypes, data_long_format=True):
+#     """Import a template from a csv file.
 
-    Format options will be stored in a seperate dictionary. (Because these
-    do not relate to any of the data columns.)
+#     Format options will be stored in a seperate dictionary. (Because these
+#     do not relate to any of the data columns.)
 
-    Parameters
-    ----------
-    file : str
-        Path to the csv template file.
-    known_obstypes : list
-        A list of known observation types. These consist of the default
-        obstypes and the ones added by the user.
-    data_long_format : bool, optional
-        If True, this format structure has priority over the format structure
-        in the template file. The default is True.
+#     Parameters
+#     ----------
+#     file : str
+#         Path to the csv template file.
+#     known_obstypes : list
+#         A list of known observation types. These consist of the default
+#         obstypes and the ones added by the user.
+#     data_long_format : bool, optional
+#         If True, this format structure has priority over the format structure
+#         in the template file. The default is True.
 
-    Returns
-    -------
-    template : dict
-        The template related to the data/metadata columns.
-    opt_kwargs : dict
-        Options and settings present in the template.
+#     Returns
+#     -------
+#     template : dict
+#         The template related to the data/metadata columns.
+#     opt_kwargs : dict
+#         Options and settings present in the template.
 
-    """
-    templ = _read_csv_to_df(filepath=file, kwargsdict={})
+#     """
+#     templ = _read_csv_to_df(filepath=file, kwargsdict={})
 
-    # Extract structure options from template
-    templ, opt_kwargs = extract_options_from_template(templ, known_obstypes)
+#     # Extract structure options from template
+#     templ, opt_kwargs = extract_options_from_template(templ, known_obstypes)
 
-    # Drop emty rows
-    templ = templ.dropna(axis="index", how="all")
+#     # Drop emty rows
+#     templ = templ.dropna(axis="index", how="all")
 
-    if "long_format" in opt_kwargs.keys():
-        data_long_format = opt_kwargs["long_format"]
+#     if "long_format" in opt_kwargs.keys():
+#         data_long_format = opt_kwargs["long_format"]
 
-    if data_long_format:
-        # Drop variables that are not present in templ
-        templ = templ[templ["template column name"].notna()]
+#     if data_long_format:
+#         # Drop variables that are not present in templ
+#         templ = templ[templ["template column name"].notna()]
 
-    # templates have nested dict structure where the keys are the column names in the csv file, and the
-    # values contain the mapping information to the toolkit classes and names.
+#     # templates have nested dict structure where the keys are the column names in the csv file, and the
+#     # values contain the mapping information to the toolkit classes and names.
 
-    # create dictionary from templframe
-    templ = templ.set_index("template column name")
+#     # create dictionary from templframe
+#     templ = templ.set_index("template column name")
 
-    # create a dict from the dataframe, remove Nan value row wise
-    template = {}
-    for idx, row in templ.iterrows():
-        template[idx] = row[~row.isnull()].to_dict()
+#     # create a dict from the dataframe, remove Nan value row wise
+#     template = {}
+#     for idx, row in templ.iterrows():
+#         template[idx] = row[~row.isnull()].to_dict()
 
-    return template, opt_kwargs
+#     return template, opt_kwargs
 
 
 # =============================================================================

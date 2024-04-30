@@ -21,8 +21,9 @@ from metobs_toolkit.settings import Settings
 from metobs_toolkit.data_import import (
     import_data_from_csv,
     import_metadata_from_csv,
-    read_csv_template,
+    # read_csv_template,
 )
+from metobs_toolkit.template import Template, read_csv_template
 
 from metobs_toolkit.printing import print_dataset_info
 from metobs_toolkit.landcover_functions import (
@@ -4102,6 +4103,8 @@ class Dataset:
             known_obstypes=list(self.obstypes.keys()),
             data_long_format=long_format,
         )
+
+        return
 
         # update the kwargs using the option kwargs (i.g. arguments from in the template)
         logger.debug(f"Options found in the template: {options_kwargs}")
