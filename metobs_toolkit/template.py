@@ -40,6 +40,9 @@ class Template:
         # Extra options (not required)
         self.tz = None
 
+        # Not activaly used attributes
+        self.filepath = None
+
     def get_info(self):
         key_len = 7
         print("------ Template columns map ---------")
@@ -49,6 +52,9 @@ class Template:
     # =============================================================================
     # Setters
     # =============================================================================
+    def _set_filepath(self, filepath):
+        self.filepath = str(filepath)
+
     def _set_dataformat(self, datafmt):
         if str(datafmt).lower() == "long":
             self.dataformat = "long"
@@ -181,6 +187,8 @@ def read_csv_template(file, known_obstypes, data_long_format=True):
     options = dict(zip(optionsdf["options"], optionsdf["options_values"]))
 
     # Updatet template attributes
+    template._set_filepath(file)
+
     assert (
         "data_structure" in options.keys()
     ), 'the "data_structure" is a required option that must be in the "options" column of the template.'
@@ -207,90 +215,90 @@ def read_csv_template(file, known_obstypes, data_long_format=True):
     return template
 
 
-def extract_options_from_template(templ, known_obstypes):
-    """Filter out options settings from the template dataframe.
+# def extract_options_from_template(templ, known_obstypes):
+#     """Filter out options settings from the template dataframe.
 
-    Parameters
-    ----------
-    templ : pandas.DataFrame()
-        Template in a dataframe structure
-    known_obstypes : list
-        A list of known observation types. These consist of the default
-        obstypes and the ones added by the user.
+#     Parameters
+#     ----------
+#     templ : pandas.DataFrame()
+#         Template in a dataframe structure
+#     known_obstypes : list
+#         A list of known observation types. These consist of the default
+#         obstypes and the ones added by the user.
 
-    Returns
-    -------
-    new_templ : pandas.DataFrame()
-        The template dataframe with optioncolumns removed.
-    opt_kwargs : dict
-        Options and settings present in the template dataframe.
+#     Returns
+#     -------
+#     new_templ : pandas.DataFrame()
+#         The template dataframe with optioncolumns removed.
+#     opt_kwargs : dict
+#         Options and settings present in the template dataframe.
 
-    """
-    opt_kwargs = {}
-    if "options" in templ.columns:
-        if "options_values" in templ.columns:
-            opt = templ[["options", "options_values"]]
-            # drop nan columns
-            opt = opt[opt["options"].notna()]
-            # convert to dict
-            opt = opt.set_index("options")["options_values"].to_dict()
+#     """
+#     opt_kwargs = {}
+#     if "options" in templ.columns:
+#         if "options_values" in templ.columns:
+#             opt = templ[["options", "options_values"]]
+#             # drop nan columns
+#             opt = opt[opt["options"].notna()]
+#             # convert to dict
+#             opt = opt.set_index("options")["options_values"].to_dict()
 
-            # check options if valid
-            possible_options = {
-                "data_structure": ["long", "wide", "single_station"],
-                "stationname": "_any_",
-                "obstype": known_obstypes,
-                "obstype_unit": "_any_",
-                "obstype_description": "_any_",
-                "timezone": all_timezones,
-            }
-            for key, val in opt.items():
-                key, val = str(key), str(val)
-                if key not in possible_options:
-                    sys.exit(
-                        f"{key} is not a known option in the template. These are the possible options: {list(possible_options.keys())}"
-                    )
+#             # check options if valid
+#             possible_options = {
+#                 "data_structure": ["long", "wide", "single_station"],
+#                 "stationname": "_any_",
+#                 "obstype": known_obstypes,
+#                 "obstype_unit": "_any_",
+#                 "obstype_description": "_any_",
+#                 "timezone": all_timezones,
+#             }
+#             for key, val in opt.items():
+#                 key, val = str(key), str(val)
+#                 if key not in possible_options:
+#                     sys.exit(
+#                         f"{key} is not a known option in the template. These are the possible options: {list(possible_options.keys())}"
+#                     )
 
-                if possible_options[key] == "_any_":
-                    pass  # value can be any string
+#                 if possible_options[key] == "_any_":
+#                     pass  # value can be any string
 
-                else:
-                    if val not in possible_options[key]:
-                        sys.exit(
-                            f"{val} is not a possible value for {key}. These values are possible for {key}: {possible_options[key]}"
-                        )
+#                 else:
+#                     if val not in possible_options[key]:
+#                         sys.exit(
+#                             f"{val} is not a possible value for {key}. These values are possible for {key}: {possible_options[key]}"
+#                         )
 
-                # overload to kwargs:
+#                 # overload to kwargs:
 
-                if key == "data_structure":
-                    if val == "long":
-                        opt_kwargs["long_format"] = True
-                    elif val == "wide":
-                        opt_kwargs["long_format"] = False
-                    else:
-                        # single station
-                        opt_kwargs["long_format"] = True
-                if key == "stationname":
-                    if not opt["data_structure"] == "single_station":
-                        logger.warning(
-                            f'{val} as {key} in the template options will be ignored because the datastructure is not "single_station" (but {opt["data_structure"]})'
-                        )
-                    else:
-                        opt_kwargs["single"] = val
-                if key == "obstype":
-                    opt_kwargs["obstype"] = val
-                if key == "obstype_unit":
-                    opt_kwargs["obstype_unit"] = val
-                if key == "obstype_description":
-                    opt_kwargs["obstype_description"] = val
-                if key == "timezone":
-                    opt_kwargs["timezone"] = val
+#                 if key == "data_structure":
+#                     if val == "long":
+#                         opt_kwargs["long_format"] = True
+#                     elif val == "wide":
+#                         opt_kwargs["long_format"] = False
+#                     else:
+#                         # single station
+#                         opt_kwargs["long_format"] = True
+#                 if key == "stationname":
+#                     if not opt["data_structure"] == "single_station":
+#                         logger.warning(
+#                             f'{val} as {key} in the template options will be ignored because the datastructure is not "single_station" (but {opt["data_structure"]})'
+#                         )
+#                     else:
+#                         opt_kwargs["single"] = val
+#                 if key == "obstype":
+#                     opt_kwargs["obstype"] = val
+#                 if key == "obstype_unit":
+#                     opt_kwargs["obstype_unit"] = val
+#                 if key == "obstype_description":
+#                     opt_kwargs["obstype_description"] = val
+#                 if key == "timezone":
+#                     opt_kwargs["timezone"] = val
 
-        else:
-            sys.exit(
-                '"options" column found in the template, but no "options_values" found!'
-            )
+#         else:
+#             sys.exit(
+#                 '"options" column found in the template, but no "options_values" found!'
+#             )
 
-    # remove the options from the template
-    new_templ = templ.drop(columns=["options", "options_values"], errors="ignore")
-    return new_templ, opt_kwargs
+#     # remove the options from the template
+#     new_templ = templ.drop(columns=["options", "options_values"], errors="ignore")
+#     return new_templ, opt_kwargs
