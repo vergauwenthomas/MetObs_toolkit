@@ -115,7 +115,10 @@ def col_option_input(columns):
     mapper = {}
     i = 1
     for col in columns:
-        print(f"  {i}. {col}")
+        if col == "Unnamed: 0":
+            print(f"  {i}. {col} (--> this is the index of your csv file)")
+        else:
+            print(f"  {i}. {col}")
         mapper[i] = col
         i += 1
 
@@ -222,7 +225,7 @@ def build_template_prompt(debug=False):
 
     # datafilepath = usr_input_file('Give the full path to your data file')
     print(" ... opening the data file ...")
-    data = _read_csv_to_df(datafilepath, {})
+    data = _read_csv_to_df(datafilepath, {"nrows": 10})
     columnnames = data.columns.to_list()
 
     format_dict = {
@@ -310,7 +313,12 @@ def build_template_prompt(debug=False):
         print("What do the following columns represent: \n")
 
         for col in columnnames:
-            contin = yes_no_ques(f"\n add column {col} to the template?")
+            if col == "Unnamed: 0":
+                contin = yes_no_ques(
+                    f"\n add column {col} (: probably this is the index of the csv file) to the template?"
+                )
+            else:
+                contin = yes_no_ques(f"\n add column {col} to the template?")
 
             if contin is False:
                 continue
@@ -431,8 +439,12 @@ def build_template_prompt(debug=False):
         print("What do the following columns represent: \n")
         meta_options = list(meta_desc.values())
         for col in metacolumnnames:
-
-            contin = yes_no_ques(f"add {col} to the template?")
+            if col == "Unnamed: 0":
+                contin = yes_no_ques(
+                    f"\n add column {col} (: probably this is the index of the csv file) to the template?"
+                )
+            else:
+                contin = yes_no_ques(f"add {col} to the template?")
             if contin is False:
                 continue
 
@@ -676,22 +688,6 @@ def build_template_prompt(debug=False):
     else:
         options_dict["timezone"] = "UTC"
 
-    print("\n \n *******      Extra options    ***********")
-
-    if (format_option == 3) & (
-        not "name" in template_dict
-    ):  # single station with no name information
-        staname = input("\n What is the name of your station : ")
-        options_dict["stationname"] = staname
-
-    tzchange = yes_no_ques("\n Are the timestamps in UTC?")
-    if tzchange is False:
-        print("\n Select a timezone: ")
-        tzstring = col_option_input(pytz.all_timezones)
-        options_dict["timezone"] = tzstring
-    else:
-        options_dict["timezone"] = "UTC"
-
     # =============================================================================
     # Saving the template
     # =============================================================================
@@ -753,11 +749,11 @@ def build_template_prompt(debug=False):
         print("\n\n ========= RUN THIS CODE ========= \n\n")
 
         print("\n#1. Define the paths to your files: \n")
-        print(f'data_file = "{datafilepath}"')
+        print(f'data_file = r"{datafilepath}"')
         if bool(metatemplate_dict):
-            print(f'meta_data_file = "{metadatafilepath}"')
+            print(f'meta_data_file = r"{metadatafilepath}"')
 
-        print(f'template = "{templatefilepath}"')
+        print(f'template = r"{templatefilepath}"')
 
         print("\n#2. initiate a dataset: \n")
         print("your_dataset = metobs_toolkit.Dataset()")
