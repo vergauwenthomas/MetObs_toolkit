@@ -313,7 +313,12 @@ def build_template_prompt(debug=False):
         print("What do the following columns represent: \n")
 
         for col in columnnames:
-            contin = yes_no_ques(f"\n add column {col} to the template?")
+            if col == "Unnamed: 0":
+                contin = yes_no_ques(
+                    f"\n add column {col} (: probably this is the index of the csv file) to the template?"
+                )
+            else:
+                contin = yes_no_ques(f"\n add column {col} to the template?")
 
             if contin is False:
                 continue
@@ -434,8 +439,12 @@ def build_template_prompt(debug=False):
         print("What do the following columns represent: \n")
         meta_options = list(meta_desc.values())
         for col in metacolumnnames:
-
-            contin = yes_no_ques(f"add {col} to the template?")
+            if col == "Unnamed: 0":
+                contin = yes_no_ques(
+                    f"\n add column {col} (: probably this is the index of the csv file) to the template?"
+                )
+            else:
+                contin = yes_no_ques(f"add {col} to the template?")
             if contin is False:
                 continue
 
@@ -662,22 +671,6 @@ def build_template_prompt(debug=False):
     template_dict.update(
         metatemplate_dict
     )  # this is why name in data and metadata should have the same mapping !!
-
-    print("\n \n *******      Extra options    ***********")
-
-    if (format_option == 3) & (
-        not "name" in template_dict
-    ):  # single station with no name information
-        staname = input("\n What is the name of your station : ")
-        options_dict["stationname"] = staname
-
-    tzchange = yes_no_ques("\n Are the timestamps in UTC?")
-    if tzchange is False:
-        print("\n Select a timezone: ")
-        tzstring = col_option_input(pytz.all_timezones)
-        options_dict["timezone"] = tzstring
-    else:
-        options_dict["timezone"] = "UTC"
 
     print("\n \n *******      Extra options    ***********")
 
