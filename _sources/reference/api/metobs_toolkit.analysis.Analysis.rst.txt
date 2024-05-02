@@ -1,0 +1,32 @@
+metobs\_toolkit.analysis.Analysis
+=================================
+
+.. currentmodule:: metobs_toolkit.analysis
+
+.. autoclass:: Analysis
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Analysis.__init__
+      ~Analysis.aggregate_df
+      ~Analysis.apply_filter
+      ~Analysis.get_aggregated_cycle_statistics
+      ~Analysis.get_anual_statistics
+      ~Analysis.get_diurnal_statistics
+      ~Analysis.get_diurnal_statistics_with_reference
+      ~Analysis.get_lc_correlation_matrices
+      ~Analysis.plot_correlation_heatmap
+      ~Analysis.plot_correlation_variation
+      ~Analysis.subset_period
+   
+   
+
+   
+   
+   
