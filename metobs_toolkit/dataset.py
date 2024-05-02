@@ -3967,7 +3967,7 @@ class Dataset:
 
     def import_data_from_file(
         self,
-        long_format=True,
+        long_format=None,
         obstype=None,
         obstype_unit=None,
         obstype_description=None,
@@ -4008,7 +4008,8 @@ class Dataset:
         Parameters
         ----------
         long_format : bool, optional
-            True if the inputdata has a long-format, False if it has a wide-format. The default is True.
+            True if the inputdata has a long-format, False if it has a
+            wide-format. The default is None and then the value in the template is used.
         obstype : str, optional
             If the dataformat is wide, specify which observation type the
             observations represent. The obstype should be an element of
@@ -4098,53 +4099,59 @@ class Dataset:
             ), f"{obstype} is not a known observation type. Use one of the default, or add a new to the defaults: {tlk_obstypes.keys()}."
 
         # Read template
-        template, options_kwargs = read_csv_template(
+        template = read_csv_template(
             file=self.settings.templates["template_file"],
             known_obstypes=list(self.obstypes.keys()),
             data_long_format=long_format,
         )
 
-        return
+        # Kwargs of this method overwrite settings in the template file.
+        if not long_format is None:
+            if long_format:
+                template._set_dataformat(datafmt="long")
+            else:
+                # either wide or single station (single station descrepated??)
+                template._set_dataformat(datafmt="wide")
 
-        # update the kwargs using the option kwargs (i.g. arguments from in the template)
-        logger.debug(f"Options found in the template: {options_kwargs}")
-        if "long_format" in options_kwargs:
-            long_format = options_kwargs["long_format"]
-            logger.info(f"Set long_format = {long_format} from options in template.")
-        if "obstype" in options_kwargs:
-            obstype = options_kwargs["obstype"]
-            logger.info(f"Set obstype = {obstype} from options in template.")
-        if "obstype_unit" in options_kwargs:
-            obstype_unit = options_kwargs["obstype_unit"]
-            logger.info(f"Set obstype_unit = {obstype_unit} from options in template.")
-        if "obstype_description" in options_kwargs:
-            obstype_description = options_kwargs["obstype_description"]
-            logger.info(
-                f"Set obstype description = {obstype_description} from options in template."
-            )
-        if "single" in options_kwargs:
-            self.update_default_name(options_kwargs["single"])
-            logger.info(
-                f'Set single station name = {options_kwargs["single"]} from options in template.'
-            )
-        if "timezone" in options_kwargs:
-            self.update_timezone(options_kwargs["timezone"])
-            logger.info(
-                f'Set timezone = {options_kwargs["timezone"]} from options in template.'
-            )
+        # # update the kwargs using the option kwargs (i.g. arguments from in the template)
+        # logger.debug(f"Options found in the template: {options_kwargs}")
+        # if "long_format" in options_kwargs:
+        #     long_format = options_kwargs["long_format"]
+        #     logger.info(f"Set long_format = {long_format} from options in template.")
+        # if "obstype" in options_kwargs:
+        #     obstype = options_kwargs["obstype"]
+        #     logger.info(f"Set obstype = {obstype} from options in template.")
+        # if "obstype_unit" in options_kwargs:
+        #     obstype_unit = options_kwargs["obstype_unit"]
+        #     logger.info(f"Set obstype_unit = {obstype_unit} from options in template.")
+        # if "obstype_description" in options_kwargs:
+        #     obstype_description = options_kwargs["obstype_description"]
+        #     logger.info(
+        #         f"Set obstype description = {obstype_description} from options in template."
+        #     )
+        # if "single" in options_kwargs:
+        #     self.update_default_name(options_kwargs["single"])
+        #     logger.info(
+        #         f'Set single station name = {options_kwargs["single"]} from options in template.'
+        #     )
+        if not template.tz is None:
+            self.update_timezone(template.tz)
+            logger.info(f"Set timezone = {template.tz} from options in template.")
+
+        self.template = template
 
         # Read observations into pandas dataframe
-        df, template = import_data_from_csv(
+        df = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
-            template=template,
-            long_format=long_format,
-            obstype=obstype,  # only relevant in wide format
-            obstype_units=obstype_unit,  # only relevant in wide format
-            obstype_description=obstype_description,  # only relevant in wide format
+            template=self.template,
+            # long_format=long_format,
+            # obstype=obstype,  # only relevant in wide format
+            # obstype_units=obstype_unit,  # only relevant in wide format
+            # obstype_description=obstype_description,  # only relevant in wide format
             known_obstypes=list(self.obstypes.keys()),
             kwargs_data_read=kwargs_data_read,
         )
-
+        return
         # Set timezone information
         df.index = df.index.tz_localize(
             tz=self.settings.time_settings["timezone"],

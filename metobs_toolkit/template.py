@@ -46,7 +46,7 @@ class Template:
     def get_info(self):
         key_len = 7
         print("------ Template columns map ---------")
-        for key, val in self.obscolumnmap:
+        for key, val in self.obscolumnmap.items():
             print(f" * {key.ljust(key_len)} <---> {val.ljust(key_len)}")
 
     # =============================================================================

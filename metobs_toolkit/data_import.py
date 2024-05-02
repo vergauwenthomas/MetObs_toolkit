@@ -388,10 +388,10 @@ def wide_to_long(df, template, obstype):
 def import_data_from_csv(
     input_file,
     template,
-    long_format,
-    obstype,
-    obstype_units,
-    obstype_description,
+    # long_format,
+    # obstype,
+    # obstype_units,
+    # obstype_description,
     known_obstypes,
     kwargs_data_read,
 ):
