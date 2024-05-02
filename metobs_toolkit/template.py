@@ -9,6 +9,7 @@ Created on Tue Apr 30 09:48:24 2024
 import os
 import sys
 import logging
+import json
 
 
 import pandas as pd
@@ -17,16 +18,64 @@ from pytz import all_timezones
 from metobs_toolkit.data_import import _read_csv_to_df
 
 
+def _get_empty_templ_dict():
+    templ_dict = {
+        # data file
+        "data_related": {
+            "structure": None,  # long, wide or singl-station
+            "timestamp": {
+                "datetime_column": None,
+                "datetime_fmt": None,
+                "date_column": None,
+                "date_fmt": None,
+                "time_column": None,
+                "time_fmt": None,
+                "timezone": None,
+            },
+            "name_column": None,
+            "obstype_mapping": [
+                {
+                    "tlk_obstype": None,
+                    "columnname": None,
+                    "unit": None,
+                    "description": None,
+                },
+            ],
+        },
+        # Meta data file
+        "metadata_related": {
+            "name_column": None,
+            "lat_column": None,
+            "lon_column": None,
+            "columns_to_include": [],
+        },
+        # extra settings
+        "single_station_name": None,
+    }
+    return templ_dict
+
+
+def _pwrite_templdict_to_json(templdict, trgfile):
+    j = json.dumps(templdict, indent=4)
+    with open(trgfile, "w") as f:
+        print(j, file=f)
+    return
+
+
 class Template:
     """Contains all info and methods to work with a template."""
 
     def __init__(self):
         # to renmae the columns
-        self.obscolumnmap = {}  # toolkitname --> datacolumnname
-        self.namemap = {"name": None}  # name --> name column in data AND metadata
+
+        self.data_namemap = {"name": None}  # name --> name column in data
+        self.metadata_namemap = {"name": None}  # name --> name column in metadata
 
         # obstypes details
+        self.obscolumnmap = {}  # toolkitname --> datacolumnname
         self.obsdetails = {}  # obsname(tlk) --> {unit: , description: ..}
+
+        self.metacolmapname = {}  # toolkitname --> metadatacolumnname
 
         # Special always required
         self.dataformat = "long"  # long or wide or single_station?
@@ -42,6 +91,44 @@ class Template:
 
         # Not activaly used attributes
         self.filepath = None
+
+    def read_template_from_file(self, jsonpath):
+
+        with open(jsonpath, "r") as f:
+            tml_dict = json.load(f)
+
+        # set attributes
+        self.data_namemap = {"name": tml_dict["data_related"]["name_column"]}
+        self.metadata_namemap = {"name": tml_dict["metadata_related"]["name_column"]}
+        self.dataformat = tml_dict["data_related"]["structure"]
+
+        if tml_dict["data_related"]["timestamp"]["datetime_column"] is None:
+            dt_fmt = f'{tml_dict["data_related"]["timestamp"]["date_fmt"]} {tml_dict["data_related"]["timestamp"]["time_fmt"]}'
+        else:
+            dt_fmt = f'{tml_dict["data_related"]["timestamp"]["datetime_fmt"]}'
+
+        self.timestampinfo = {
+            "datetimecolumn": tml_dict["data_related"]["timestamp"]["datetime_column"],
+            "time_column": tml_dict["data_related"]["timestamp"]["time_column"],
+            "date_column": tml_dict["data_related"]["timestamp"]["date_column"],
+            "fmt": dt_fmt,
+        }
+
+        for obsdict in tml_dict["data_related"]["obstype_mapping"]:
+            self.obscolumnmap[obsdict["tlk_obstype"]] = obsdict["columnname"]
+            self.obsdetails[obsdict["tlk_obstype"]] = {
+                "unit": obsdict["units"],
+                "description": obsdict["description"],
+            }
+
+        self.metacolmapname["name"] = tml_dict["metadata_related"]["name_column"]
+        if tml_dict["metadata_related"]["lat_column"] is not None:
+            self.metacolmapname["lat"] = tml_dict["metadata_related"]["lat_column"]
+        if tml_dict["metadata_related"]["lon_column"] is not None:
+            self.metacolmapname["lon"] = tml_dict["metadata_related"]["lon_column"]
+
+        for extra_col in tml_dict["metadata_related"]["columns_to_include"]:
+            self.metacolmapname[extra_col] = extra_col
 
     def get_info(self):
         key_len = 7

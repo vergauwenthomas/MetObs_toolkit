@@ -1,0 +1,30 @@
+{
+    "data_related": {
+        "structure": null,
+        "timestamp": {
+            "datetimecolumn": null,
+            "datetime_fmt": null,
+            "date_column": null,
+            "date_fmt": null,
+            "time_column": null,
+            "time_fmt": null,
+            "timezone": null
+        },
+        "name_column": null,
+        "obstype_mapping": [
+            {
+                "tlk_obstype": null,
+                "columnname": null,
+                "unit": null,
+                "description": null
+            }
+        ]
+    },
+    "metadata_related": {
+        "name_column": null,
+        "lat_column": null,
+        "lon_column": null,
+        "columns_to_include": []
+    },
+    "single_station_name": null
+}

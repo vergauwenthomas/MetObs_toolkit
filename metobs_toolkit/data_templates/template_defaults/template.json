@@ -1,0 +1,45 @@
+{
+    "data_related": {
+        "structure": "long",
+        "timestamp": {
+            "datetime_column": null,
+            "datetime_fmt": null,
+            "date_column": "Datum",
+            "date_fmt": "%Y-%m-%s",
+            "time_column": "Tijd (UTC)",
+            "time_fmt": "%H:%M:%S",
+            "timezone": "Portugal"
+        },
+        "name_column": "Vlinder",
+        "obstype_mapping": [
+            {
+                "tlk_obstype": "temp",
+                "columnname": "Temperatuur",
+                "units": "Celsius",
+                "description": ""
+            },
+            {
+                "tlk_obstype": "humidity",
+                "columnname": "Vochtigheid",
+                "units": "%",
+                "description": "details"
+            },
+            {
+                "tlk_obstype": "pressure",
+                "columnname": "Luchtdruk",
+                "units": "fakepa",
+                "description": ""
+            }
+        ]
+    },
+    "metadata_related": {
+        "name_column": "Vlinder",
+        "lat_column": "lat",
+        "lon_column": "lon",
+        "columns_to_include": [
+            "stad",
+            "sponsor"
+        ]
+    },
+    "single_station_name": null
+}

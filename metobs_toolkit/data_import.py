@@ -79,13 +79,20 @@ def compress_dict(nested_dict, valuesname):
 
 def _read_csv_to_df(filepath, kwargsdict):
     assert not isinstance(filepath, type(None)), f"No filepath is specified: {filepath}"
-
+    common_seperators = [None, ";", ",", "    ", "."]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
+
         if bool(kwargsdict):
-            df = pd.read_csv(filepath_or_buffer=filepath, **kwargsdict)
+            if "sep" not in kwargsdict:
+                for sep in common_seperators:
+                    df = pd.read_csv(filepath, sep=sep, **kwargsdict)
+                    assert not df.empty, f"{filepath} is empty!"
+                    if len(df.columns) > 1:
+                        break
+            else:
+                df = pd.read_csv(filepath_or_buffer=filepath, **kwargsdict)
         else:
-            common_seperators = [None, ";", ",", "    ", "."]
             for sep in common_seperators:
                 df = pd.read_csv(filepath, sep=sep)
                 assert not df.empty, f"{filepath} is empty!"
