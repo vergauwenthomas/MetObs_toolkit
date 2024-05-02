@@ -115,7 +115,10 @@ def col_option_input(columns):
     mapper = {}
     i = 1
     for col in columns:
-        print(f"  {i}. {col}")
+        if col == "Unnamed: 0":
+            print(f"  {i}. {col} (--> this is the index of your csv file)")
+        else:
+            print(f"  {i}. {col}")
         mapper[i] = col
         i += 1
 
@@ -222,7 +225,7 @@ def build_template_prompt(debug=False):
 
     # datafilepath = usr_input_file('Give the full path to your data file')
     print(" ... opening the data file ...")
-    data = _read_csv_to_df(datafilepath, {})
+    data = _read_csv_to_df(datafilepath, {"nrows": 10})
     columnnames = data.columns.to_list()
 
     format_dict = {
@@ -753,11 +756,11 @@ def build_template_prompt(debug=False):
         print("\n\n ========= RUN THIS CODE ========= \n\n")
 
         print("\n#1. Define the paths to your files: \n")
-        print(f'data_file = "{datafilepath}"')
+        print(f'data_file = r"{datafilepath}"')
         if bool(metatemplate_dict):
-            print(f'meta_data_file = "{metadatafilepath}"')
+            print(f'meta_data_file = r"{metadatafilepath}"')
 
-        print(f'template = "{templatefilepath}"')
+        print(f'template = r"{templatefilepath}"')
 
         print("\n#2. initiate a dataset: \n")
         print("your_dataset = metobs_toolkit.Dataset()")
