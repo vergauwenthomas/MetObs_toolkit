@@ -15,7 +15,9 @@ import json
 import pandas as pd
 from pytz import all_timezones
 
-from metobs_toolkit.data_import import _read_csv_to_df
+# from metobs_toolkit.data_import import _read_csv_to_df
+
+logger = logging.getLogger(__name__)
 
 
 def _get_empty_templ_dict():
@@ -92,53 +94,39 @@ class Template:
         # Not activaly used attributes
         self.filepath = None
 
-    def read_template_from_file(self, jsonpath):
-
-        with open(jsonpath, "r") as f:
-            tml_dict = json.load(f)
-
-        # set attributes
-        self.data_namemap = {"name": tml_dict["data_related"]["name_column"]}
-        self.metadata_namemap = {"name": tml_dict["metadata_related"]["name_column"]}
-        self.dataformat = tml_dict["data_related"]["structure"]
-
-        if tml_dict["data_related"]["timestamp"]["datetime_column"] is None:
-            dt_fmt = f'{tml_dict["data_related"]["timestamp"]["date_fmt"]} {tml_dict["data_related"]["timestamp"]["time_fmt"]}'
-        else:
-            dt_fmt = f'{tml_dict["data_related"]["timestamp"]["datetime_fmt"]}'
-
-        self.timestampinfo = {
-            "datetimecolumn": tml_dict["data_related"]["timestamp"]["datetime_column"],
-            "time_column": tml_dict["data_related"]["timestamp"]["time_column"],
-            "date_column": tml_dict["data_related"]["timestamp"]["date_column"],
-            "fmt": dt_fmt,
-        }
-
-        for obsdict in tml_dict["data_related"]["obstype_mapping"]:
-            self.obscolumnmap[obsdict["tlk_obstype"]] = obsdict["columnname"]
-            self.obsdetails[obsdict["tlk_obstype"]] = {
-                "unit": obsdict["units"],
-                "description": obsdict["description"],
-            }
-
-        self.metacolmapname["name"] = tml_dict["metadata_related"]["name_column"]
-        if tml_dict["metadata_related"]["lat_column"] is not None:
-            self.metacolmapname["lat"] = tml_dict["metadata_related"]["lat_column"]
-        if tml_dict["metadata_related"]["lon_column"] is not None:
-            self.metacolmapname["lon"] = tml_dict["metadata_related"]["lon_column"]
-
-        for extra_col in tml_dict["metadata_related"]["columns_to_include"]:
-            self.metacolmapname[extra_col] = extra_col
-
     def get_info(self):
-        key_len = 7
-        print("------ Template columns map ---------")
+        key_len = 15
+        print("------ Data obstypes map ---------")
         for key, val in self.obscolumnmap.items():
-            print(f" * {key.ljust(key_len)} <---> {val.ljust(key_len)}")
+            print(f" * {key.ljust(key_len)} <---> {str(val).ljust(key_len)}")
+
+        print("\n------ Data extra mapping info ---------")
+
+        print(
+            f" * {'name column (data)'.ljust(key_len)} <---> {str(self.data_namemap['name'])}"
+        )
+        print(f" * {'single station name'.ljust(key_len)} <---> {'NOG TE FIXE?'}")
+
+        print("\n------ Data timestamp map ---------")
+        for key, val in self.timestampinfo.items():
+            print(f" * {key.ljust(key_len)} <---> {str(val).ljust(key_len)}")
+        print(f" * {'Timezone'.ljust(key_len)} <---> {self.tz}")
+
+        print("\n------ Metadata map ---------")
+        for key, val in self.metacolmapname.items():
+            print(f" * {key.ljust(key_len)} <---> {str(val).ljust(key_len)}")
 
     # =============================================================================
     # Setters
     # =============================================================================
+
+    def _set_wide_obstype(self, obstypename, obstype_unit, obstype_descr):
+        if obstypename is not None:
+            self.obsdetails[str(obstypename)] = {
+                "unit": str(obstype_unit),
+                "description": str(obstype_descr),
+            }
+
     def _set_filepath(self, filepath):
         self.filepath = str(filepath)
 
@@ -226,80 +214,237 @@ class Template:
             )
 
     # =============================================================================
+    # OVerwriters (from method args)
+    # =============================================================================
+    def _overwrite_data_format(self, long_fmt):
+        if long_fmt is None:
+            # keep format from template
+            return
+        else:
+            assert long_fmt in ["long", "wide"], f'{long_fmt} is not "long" or "wide".'
+            self.dataformat = str(long_fmt)
+        return
+
+    # =============================================================================
     # Getters
     # =============================================================================
+    def _is_data_long(self):
+        if self.dataformat is "long":
+            return True
+        else:
+            return False
+
+    def _get_wide_obstype(self):
+        return list(self.obsdetails.keys())[0]
+
+    def _get_tz(self):
+        return self.tz
+
+    # =============================================================================
+    # Validity checkers
+    # =============================================================================
+    def _check_if_datetime_is_mapped(self):
+        ts_info = self.timestampinfo
+        # situation 1:  datetime column is present
+        if ts_info["datetimecolumn"] is not None:
+            assert (
+                ts_info["fmt"] is not None
+            ), f"Datetimes are assumed to be present in ONE column, but no datetime format is specified."
+            if ts_info["time_column"] is not None:
+                self.timestampinfo["time_column"] = None
+                logger.warning(
+                    f"The mapping of the time column ({ts_info['time_column']}) is ignored because of the presence of a datetime column."
+                )
+            if ts_info["date_column"] is not None:
+                self.timestampinfo["date_column"] = None
+                logger.warning(
+                    f"The mapping of the date column ({ts_info['date_column']}) is ignored because of the presence of a datetime column."
+                )
+            return
+
+        # Situation 2: a seperate date and time columns is present.
+        if (ts_info["time_column"] is not None) & (ts_info["date_column"] is not None):
+            assert (
+                ts_info["fmt"] is not None
+            ), f"Datetimes are assumed to be present as a date and time column, but no formats are specified."
+            return
+        sys.exit(
+            "The timestamps are not correctly mapped (either by using a datetime column, or by a time and date column)"
+        )
+
+    # =============================================================================
+    # Other methods
+    # =============================================================================
+    def make_obs_column_map(self):
+        # Check if datetime mapping is valid
+        self._check_if_datetime_is_mapped()
+
+        if self.dataformat is "long":
+            columnmmap = {}
+            # add name column in map
+            columnmmap[self.data_namemap["name"]] = "name"
+            # add all obstype columns
+            for key, val in self.obscolumnmap.items():
+                columnmmap[val] = key
+
+            # #add datetime mapping
+            # if self.timestampinfo["datetimecolumn"] is not None:
+            #     #singel datetime column
+            #     columnmmap[self.timestampinfo["datetimecolumn"]] ="datetime"
+            # else:
+            #     #a seperate date and time column
+            #     columnmmap[self.timestampinfo["time_column"]] ="_time"
+            #     columnmmap[self.timestampinfo["date_column"]] ="_date"
+
+        else:
+            return {}  # no mapping done on wide
+
+    def read_template_from_file(self, jsonpath):
+        assert str(jsonpath).endswith(".json", f"{jsonpath}, is not a json file.")
+
+        with open(jsonpath, "r") as f:
+            tml_dict = json.load(f)
+
+        # set attributes
+        self.data_namemap = {"name": tml_dict["data_related"]["name_column"]}
+        self.metadata_namemap = {"name": tml_dict["metadata_related"]["name_column"]}
+        self.dataformat = tml_dict["data_related"]["structure"]
+
+        if tml_dict["data_related"]["timestamp"]["datetime_column"] is None:
+            dt_fmt = f'{tml_dict["data_related"]["timestamp"]["date_fmt"]} {tml_dict["data_related"]["timestamp"]["time_fmt"]}'
+        else:
+            dt_fmt = f'{tml_dict["data_related"]["timestamp"]["datetime_fmt"]}'
+
+        self.timestampinfo = {
+            "datetimecolumn": tml_dict["data_related"]["timestamp"]["datetime_column"],
+            "time_column": tml_dict["data_related"]["timestamp"]["time_column"],
+            "date_column": tml_dict["data_related"]["timestamp"]["date_column"],
+            "fmt": dt_fmt,
+        }
+
+        for obsdict in tml_dict["data_related"]["obstype_mapping"]:
+            self.obscolumnmap[obsdict["tlk_obstype"]] = obsdict["columnname"]
+            self.obsdetails[obsdict["tlk_obstype"]] = {
+                "unit": obsdict["units"],
+                "description": obsdict["description"],
+            }
+
+        self.metacolmapname["name"] = tml_dict["metadata_related"]["name_column"]
+        if tml_dict["metadata_related"]["lat_column"] is not None:
+            self.metacolmapname["lat"] = tml_dict["metadata_related"]["lat_column"]
+        if tml_dict["metadata_related"]["lon_column"] is not None:
+            self.metacolmapname["lon"] = tml_dict["metadata_related"]["lon_column"]
+
+        for extra_col in tml_dict["metadata_related"]["columns_to_include"]:
+            self.metacolmapname[extra_col] = extra_col
 
 
-def read_csv_template(file, known_obstypes, data_long_format=True):
-    """
-    Import a template from a csv file.
+def _create_datetime_column(df, template):
+    """Use the template to construct a tz-naive "datetime" column."""
 
-    Format options will be stored in a seperate dictionary. (Because these
-    do not relate to any of the data columns.)
+    template._check_if_datetime_is_mapped()
 
-    Parameters
-    ----------
-    file : str
-        Path to the csv template file.
-    known_obstypes : list
-        A list of known observation types. These consist of the default
-        obstypes and the ones added by the user.
-    data_long_format : bool, optional
-        If True, this format structure has priority over the format structure
-        in the template file. The default is True.
+    if template.timestampinfo["datetimecolumn"] is not None:
+        assert (
+            template.timestampinfo["datetimecolumn"] in df.columns
+        ), f'The {template.timestampinfo["datetimecolumn"]} is not found in the columns of the data file: {df.columns}'
+        df = df.map({template.timestampinfo["datetimecolumn"]: "datetime"})
+        df["datetime"] = pd.to_datetime(
+            df["datetime"], format=template.timestampinfo["fmt"]
+        )
 
-    Returns
-    -------
-    template : dict
-        The template related to the data/metadata columns.
-    opt_kwargs : dict
-        Options and settings present in the template.
+    else:
+        # by date and time column
+        assert (
+            template.timestampinfo["time_column"] in df.columns
+        ), f'The {template.timestampinfo["time_column"]} is not found in the columns of the data file: {df.columns}'
+        assert (
+            template.timestampinfo["date_column"] in df.columns
+        ), f'The {template.timestampinfo["date_column"]} is not found in the columns of the data file: {df.columns}'
+        df = df.map(
+            {
+                template.timestampinfo["time_column"]: "_time",
+                template.timestampinfo["date_column"]: "_date",
+            }
+        )
+        df["datetime"] = pd.to_datetime(
+            df["_date"] + " " + df["_time"], format=template.timestampinfo["fmt"]
+        )
 
-    """
-    template = Template()
+        df = df.drop(coluns=["_date", "_time"])
+    return df
 
-    templdf = _read_csv_to_df(filepath=file, kwargsdict={})
-    # Drop emty rows
-    templdf = templdf.dropna(axis="index", how="all")
 
-    # Extracting general settings
-    assert (
-        "options" in templdf.columns
-    ), 'The "options" column is not present in the template.'
-    assert (
-        "options_values" in templdf.columns
-    ), 'The "options" column is not present in the template.'
+# def read_csv_template(file, known_obstypes, data_long_format=True):
+#     """
+#     Import a template from a csv file.
 
-    optionsdf = templdf[["options", "options_values"]].dropna(axis="index", how="all")
-    options = dict(zip(optionsdf["options"], optionsdf["options_values"]))
+#     Format options will be stored in a seperate dictionary. (Because these
+#     do not relate to any of the data columns.)
 
-    # Updatet template attributes
-    template._set_filepath(file)
+#     Parameters
+#     ----------
+#     file : str
+#         Path to the csv template file.
+#     known_obstypes : list
+#         A list of known observation types. These consist of the default
+#         obstypes and the ones added by the user.
+#     data_long_format : bool, optional
+#         If True, this format structure has priority over the format structure
+#         in the template file. The default is True.
 
-    assert (
-        "data_structure" in options.keys()
-    ), 'the "data_structure" is a required option that must be in the "options" column of the template.'
-    template._set_dataformat(datafmt=options["data_structure"])
+#     Returns
+#     -------
+#     template : dict
+#         The template related to the data/metadata columns.
+#     opt_kwargs : dict
+#         Options and settings present in the template.
 
-    # Get timestamps info (how they are represented in the data)
-    template._set_timestampinfo(templdf=templdf)
+#     """
+#     template = Template()
 
-    if "timezone" in options:
-        template._set_tz(tzstring=options["timezone"])
+#     templdf = _read_csv_to_df(filepath=file, kwargsdict={})
+#     # Drop emty rows
+#     templdf = templdf.dropna(axis="index", how="all")
 
-    assert (
-        "name" in templdf["varname"].values
-    ), '"name" is required in the "varname" column of the template.'
-    template._set_name(
-        namecolumn=templdf.loc[
-            templdf["varname"] == "name", "template column name"
-        ].squeeze()
-    )
+#     # Extracting general settings
+#     assert (
+#         "options" in templdf.columns
+#     ), 'The "options" column is not present in the template.'
+#     assert (
+#         "options_values" in templdf.columns
+#     ), 'The "options" column is not present in the template.'
 
-    obstempldf = templdf.loc[templdf["varname"].isin(known_obstypes)]
-    template._set_obs_info(obstempldf=obstempldf)
+#     optionsdf = templdf[["options", "options_values"]].dropna(axis="index", how="all")
+#     options = dict(zip(optionsdf["options"], optionsdf["options_values"]))
 
-    return template
+#     # Updatet template attributes
+#     template._set_filepath(file)
+
+#     assert (
+#         "data_structure" in options.keys()
+#     ), 'the "data_structure" is a required option that must be in the "options" column of the template.'
+#     template._set_dataformat(datafmt=options["data_structure"])
+
+#     # Get timestamps info (how they are represented in the data)
+#     template._set_timestampinfo(templdf=templdf)
+
+#     if "timezone" in options:
+#         template._set_tz(tzstring=options["timezone"])
+
+#     assert (
+#         "name" in templdf["varname"].values
+#     ), '"name" is required in the "varname" column of the template.'
+#     template._set_name(
+#         namecolumn=templdf.loc[
+#             templdf["varname"] == "name", "template column name"
+#         ].squeeze()
+#     )
+
+#     obstempldf = templdf.loc[templdf["varname"].isin(known_obstypes)]
+#     template._set_obs_info(obstempldf=obstempldf)
+
+#     return template
 
 
 # def extract_options_from_template(templ, known_obstypes):

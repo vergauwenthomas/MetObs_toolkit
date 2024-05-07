@@ -23,7 +23,7 @@ from metobs_toolkit.data_import import (
     import_metadata_from_csv,
     # read_csv_template,
 )
-from metobs_toolkit.template import Template, read_csv_template
+from metobs_toolkit.template import Template
 
 from metobs_toolkit.printing import print_dataset_info
 from metobs_toolkit.landcover_functions import (
@@ -131,8 +131,8 @@ class Dataset:
         # dictionary storing present observationtypes
         self.obstypes = tlk_obstypes  # init with all tlk obstypes
 
-        # dataframe containing all information on the description and mapping
-        self.data_template = pd.DataFrame()
+        # Template for mapping data and metadata
+        self.template = Template()
 
         self._istype = "Dataset"
         self._freqs = pd.Series(dtype=object)
@@ -4098,47 +4098,32 @@ class Dataset:
                 self.obstypes.keys()
             ), f"{obstype} is not a known observation type. Use one of the default, or add a new to the defaults: {tlk_obstypes.keys()}."
 
+            # check if unit is known
+            known_bool = self.obstypes[obstype].test_if_unit_is_known(str(obstype_unit))
+            assert (
+                known_bool
+            ), f"{obstype_unit} is not a known unit of {self.obstypes[obstype]}"
+
         # Read template
-        template = read_csv_template(
-            file=self.settings.templates["template_file"],
-            known_obstypes=list(self.obstypes.keys()),
-            data_long_format=long_format,
+        self.template.read_template_from_file(
+            jsonpath=self.settings.templates["template_file"]
         )
 
         # Kwargs of this method overwrite settings in the template file.
-        if not long_format is None:
-            if long_format:
-                template._set_dataformat(datafmt="long")
-            else:
-                # either wide or single station (single station descrepated??)
-                template._set_dataformat(datafmt="wide")
+        self.template._overwrite_data_format(long_fmt=long_format)
+        if not self.template._is_data_long():
+            self.template._set_wide_obstype(
+                obstypename=obstype,
+                obstype_unit=obstype_unit,
+                obstype_descr=obstype_description,
+            )
 
-        # # update the kwargs using the option kwargs (i.g. arguments from in the template)
-        # logger.debug(f"Options found in the template: {options_kwargs}")
-        # if "long_format" in options_kwargs:
-        #     long_format = options_kwargs["long_format"]
-        #     logger.info(f"Set long_format = {long_format} from options in template.")
-        # if "obstype" in options_kwargs:
-        #     obstype = options_kwargs["obstype"]
-        #     logger.info(f"Set obstype = {obstype} from options in template.")
-        # if "obstype_unit" in options_kwargs:
-        #     obstype_unit = options_kwargs["obstype_unit"]
-        #     logger.info(f"Set obstype_unit = {obstype_unit} from options in template.")
-        # if "obstype_description" in options_kwargs:
-        #     obstype_description = options_kwargs["obstype_description"]
-        #     logger.info(
-        #         f"Set obstype description = {obstype_description} from options in template."
-        #     )
-        # if "single" in options_kwargs:
-        #     self.update_default_name(options_kwargs["single"])
-        #     logger.info(
-        #         f'Set single station name = {options_kwargs["single"]} from options in template.'
-        #     )
-        if not template.tz is None:
-            self.update_timezone(template.tz)
-            logger.info(f"Set timezone = {template.tz} from options in template.")
-
-        self.template = template
+        # overload the timezone from template to the settings
+        if not self.template.get_tz() is None:
+            self.update_timezone(self.template.get_tz())
+            logger.info(
+                f"Set timezone = {self.template.get_tz()} from options in template."
+            )
 
         # Read observations into pandas dataframe
         df = import_data_from_csv(
