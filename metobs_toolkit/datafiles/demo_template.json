@@ -5,30 +5,30 @@
             "datetime_column": null,
             "datetime_fmt": null,
             "date_column": "Datum",
-            "date_fmt": "%Y-%m-%s",
+            "date_fmt": "%Y-%m-%d",
             "time_column": "Tijd (UTC)",
             "time_fmt": "%H:%M:%S",
-            "timezone": "Portugal"
+            "timezone": "US/Hawaii"
         },
         "name_column": "Vlinder",
         "obstype_mapping": [
             {
                 "tlk_obstype": "temp",
                 "columnname": "Temperatuur",
-                "units": "Celsius",
+                "unit": "Celsius",
                 "description": ""
             },
             {
-                "tlk_obstype": "humidity",
+                "tlk_obstype": "fake_humidity",
                 "columnname": "Vochtigheid",
-                "units": "%",
-                "description": "details"
+                "unit": "percentage",
+                "description": "no"
             },
             {
                 "tlk_obstype": "pressure",
                 "columnname": "Luchtdruk",
-                "units": "fakepa",
-                "description": ""
+                "unit": "pa",
+                "description": "moijmj7"
             }
         ]
     },
@@ -37,8 +37,7 @@
         "lat_column": "lat",
         "lon_column": "lon",
         "columns_to_include": [
-            "stad",
-            "sponsor"
+            "school"
         ]
     },
     "single_station_name": null

@@ -378,7 +378,7 @@ def build_template_prompt(debug=False):
             obsdict = {
                 "tlk_obstype": obstype,
                 "columnname": col,
-                "units": str(units),
+                "unit": str(units),
                 "description": str(description),
             }
 
@@ -862,4 +862,4 @@ def build_template_prompt(debug=False):
 
         print("your_dataset.import_data_from_file()")
 
-    return df
+    return

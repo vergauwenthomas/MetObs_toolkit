@@ -328,15 +328,27 @@ def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
     """
     assert not isinstance(input_file, type(None)), "Specify input file in the settings!"
 
-    df = _read_csv_to_df(input_file, kwargs_metadata_read)
+    # 1. Read metadata into df
+    df = _read_csv_to_df(filepath=input_file, kwargsdict=kwargs_metadata_read)
 
-    # validate template
-    # template = read_csv_template(template_file)
-    check_template_compatibility(template, df.columns, filetype="metadata")
+    # 3. map the name column
+    df.rename(columns=template._get_metadata_name_map(), inplace=True)
 
-    # rename columns to toolkit attriute names
-    column_mapper = {val["orig_name"]: key for key, val in template.items()}
-    df = df.rename(columns=column_mapper)
+    # 4. map all observation column names
+    metacolmap = template._get_metadata_column_map()
+    df.rename(columns=metacolmap, inplace=True)
+
+    # 5. subset to relevant columns (name + datetime + all_obstypes_in_tlk_space)
+    relev_columns = ["name"]
+    relev_columns.extend(list(metacolmap.values()))
+    df = df[list(set(relev_columns))]
+    # make shure the names are strings
+    df["name"] = df["name"].astype(str)
+
+    # 8. map to numeric dtypes
+    for col in df.columns:
+        if col in ["lat", "lon"]:  # all other columns are observations
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
     return df
 
@@ -386,10 +398,6 @@ def wide_to_long(df, obstypename):
 def import_data_from_csv(
     input_file,
     template,
-    # long_format,
-    # obstype,
-    # obstype_units,
-    # obstype_description,
     known_obstypes,
     kwargs_data_read,
 ):
@@ -399,16 +407,8 @@ def import_data_from_csv(
     ----------
     input_file : str
         Path to the data (csv) file.
-    template : dict
-        template dictionary.
-    long_format : bool
-        If True, a long format is assumed else wide.
-    obstype : str
-        If format is wide, this is the observationtype.
-    obstype_units : str
-       If format is wide, this is the observation unit.
-    obstype_description : str
-        If format is wide, this is the observation description.
+    template : metobs_toolkit.Template
+        template for mapping the data.
     known_obstypes : list
         A list of known observation types. These consist of the default
         obstypes and the ones added by the user.
@@ -430,10 +430,31 @@ def import_data_from_csv(
     df = _create_datetime_column(df=df, template=template)
 
     # 2B if the data is wide, convert it into a long format
-    if not template._is_date_long():
+    if not template._is_data_long():
         df = wide_to_long(df=df, obstypename=template._get_wide_obstype())
 
-    # 3. Map the columns of obstypes to the default namespace
+    # 3. map the name column
+    df.rename(columns=template._get_data_name_map(), inplace=True)
+    # make shure the names are strings
+    df["name"] = df["name"].astype(str)
+    # 4. map all observation column names
+    df.rename(columns=template._get_obs_column_map(), inplace=True)
+
+    # 5. subset to relevant columns (name + datetime + all_obstypes_in_tlk_space)
+    df = df[template._get_all_mapped_data_cols_in_tlk_space()]
+
+    # 6.. Set index
+    df.set_index("datetime", inplace=True)
+    # df = df.reset_index()
+    # df = df.drop(columns=["index"], errors="ignore")
+    # df = df.set_index("datetime")
+
+    # 8. map to numeric dtypes
+    for col in df.columns:
+        if col != "name":  # all other columns are observations
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    return df
 
     # # 2. Read template
     # invtemplate = template_to_package_space(template)
@@ -497,29 +518,29 @@ def import_data_from_csv(
     #     df, template = wide_to_long(df, template, obstype)
 
     # 5. check compatibility
-    check_template_compatibility(template, df.columns, filetype="data")
+    # check_template_compatibility(template, df.columns, filetype="data")
 
-    # 6. map to default name space
-    df = df.rename(columns=compress_dict(template, "varname"))
+    # # 6. map to default name space
+    # df = df.rename(columns=compress_dict(template, "varname"))
 
-    # 7. Keep only columns as defined in the template
-    cols_to_keep = list(invtemplate.keys())
-    cols_to_keep.append("datetime")
-    cols_to_keep.append("name")
-    cols_to_keep = list(set(cols_to_keep))
-    df = df.loc[:, df.columns.isin(cols_to_keep)]
+    # # 7. Keep only columns as defined in the template
+    # cols_to_keep = list(invtemplate.keys())
+    # cols_to_keep.append("datetime")
+    # cols_to_keep.append("name")
+    # cols_to_keep = list(set(cols_to_keep))
+    # df = df.loc[:, df.columns.isin(cols_to_keep)]
 
-    # 8. Set index
-    df = df.reset_index()
-    df = df.drop(columns=["index"], errors="ignore")
-    df = df.set_index("datetime")
+    # # 8. Set index
+    # df = df.reset_index()
+    # df = df.drop(columns=["index"], errors="ignore")
+    # df = df.set_index("datetime")
 
-    # 8. map to numeric dtypes
-    for col in df.columns:
-        if col in known_obstypes:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-        if col in ["lon", "lat"]:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+    # # 8. map to numeric dtypes
+    # for col in df.columns:
+    #     if col in known_obstypes:
+    #         df[col] = pd.to_numeric(df[col], errors="coerce")
+    #     if col in ["lon", "lat"]:
+    #         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # add template to the return
-    return df, invtemplate
+    # # add template to the return
+    # return df, invtemplate

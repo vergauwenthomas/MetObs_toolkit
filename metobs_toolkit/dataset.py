@@ -4119,7 +4119,7 @@ class Dataset:
             )
 
         # overload the timezone from template to the settings
-        if not self.template.get_tz() is None:
+        if not self.template._get_tz() is None:
             self.update_timezone(self.template.get_tz())
             logger.info(
                 f"Set timezone = {self.template.get_tz()} from options in template."
@@ -4136,7 +4136,6 @@ class Dataset:
             known_obstypes=list(self.obstypes.keys()),
             kwargs_data_read=kwargs_data_read,
         )
-        return
         # Set timezone information
         df.index = df.index.tz_localize(
             tz=self.settings.time_settings["timezone"],
@@ -4173,7 +4172,7 @@ station with the default name: {self.settings.app["default_name"]}.'
             )
             meta_df = import_metadata_from_csv(
                 input_file=self.settings.IO["input_metadata_file"],
-                template=template,
+                template=self.template,
                 kwargs_metadata_read=kwargs_metadata_read,
             )
 
@@ -4200,8 +4199,8 @@ station with the default name: {self.settings.app["default_name"]}.'
                     )
 
             # make sure name column in metadata and data have the same type for merging
-            df["name"] = df["name"].astype(str)
-            meta_df["name"] = meta_df["name"].astype(str)
+            # df["name"] = df["name"].astype(str)
+            # meta_df["name"] = meta_df["name"].astype(str)
 
             # merge additional metadata to observations
             logger.debug(f"Head of data file, before merge: {df.head()}")
@@ -4225,7 +4224,7 @@ station with the default name: {self.settings.app["default_name"]}.'
                 df.index = df_index
 
         # update dataset object
-        self.data_template = pd.DataFrame().from_dict(template)
+        # self.data_template = pd.DataFrame().from_dict(template)
 
         # Remove stations whith only one observation (no freq estimation)
         station_counts = df["name"].value_counts()
@@ -4427,23 +4426,24 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         for obs_col in self.df.columns:
             # Convert the units to the toolkit standards (if unit is known)
-            input_unit = self.data_template.loc["units", obs_col]
+
             self.df[obs_col] = self.obstypes[obs_col].convert_to_standard_units(
-                input_data=self.df[obs_col], input_unit=input_unit
+                input_data=self.df[obs_col],
+                input_unit=self.template._get_input_unit_of_tlk_obstype(obs_col),
             )
 
             # Update the description of the obstype
-            description = self.data_template.loc["description", obs_col]
+            description = self.template._get_description_of_tlk_obstype(obs_col)
             if pd.isna(description):
                 description = None
             self.obstypes[obs_col].set_description(desc=description)
 
             # Update the original column name and original units
             self.obstypes[obs_col].set_original_name(
-                self.data_template.loc["orig_name", obs_col]
+                self.template._get_original_obstype_columnname(obs_col)
             )
             self.obstypes[obs_col].set_original_unit(
-                self.data_template.loc["units", obs_col]
+                self.template._get_input_unit_of_tlk_obstype(obs_col)
             )
 
         # subset the obstypes attribute

@@ -226,10 +226,10 @@ class Template:
         return
 
     # =============================================================================
-    # Getters
+    # Getters (used by other classes to extract specific data from a template)
     # =============================================================================
     def _is_data_long(self):
-        if self.dataformat is "long":
+        if self.dataformat == "long":
             return True
         else:
             return False
@@ -239,6 +239,47 @@ class Template:
 
     def _get_tz(self):
         return self.tz
+
+    def _get_data_name_map(self):
+        return {self.data_namemap["name"]: "name"}
+
+    def _get_metadata_name_map(self):
+        return {self.metadata_namemap["name"]: "name"}
+
+    def _get_metadata_column_map(self):
+        return {val: key for key, val in self.metacolmapname.items()}
+
+    def _get_obs_column_map(self):
+        # Check if datetime mapping is valid
+        self._check_if_datetime_is_mapped()
+        columnmmap = {}
+        if self.dataformat == "long":
+
+            # add all obstype columns
+            for key, val in self.obscolumnmap.items():
+                columnmmap[val] = key
+        else:
+            pass  # no mapping done on wide
+        return columnmmap
+
+    def _get_all_mapped_data_cols_in_tlk_space(self):
+        # all mapped columns are: name, datetime and all mapped obstypes
+        mapped_cols = ["name", "datetime"]
+        if self.dataformat == "long":
+            mapped_cols.extend(list(self.obscolumnmap.keys()))
+        else:
+            # wide only represents one obstype
+            mapped_cols.append(list(self.obsdetails.keys())[0])
+        return mapped_cols
+
+    def _get_original_obstype_columnname(self, obstypename):
+        return str(self.obscolumnmap[obstypename])
+
+    def _get_input_unit_of_tlk_obstype(self, obstypename):
+        return str(self.obsdetails[obstypename]["unit"])
+
+    def _get_description_of_tlk_obstype(self, obstypename):
+        return str(self.obsdetails[obstypename]["description"])
 
     # =============================================================================
     # Validity checkers
@@ -275,32 +316,9 @@ class Template:
     # =============================================================================
     # Other methods
     # =============================================================================
-    def make_obs_column_map(self):
-        # Check if datetime mapping is valid
-        self._check_if_datetime_is_mapped()
-
-        if self.dataformat is "long":
-            columnmmap = {}
-            # add name column in map
-            columnmmap[self.data_namemap["name"]] = "name"
-            # add all obstype columns
-            for key, val in self.obscolumnmap.items():
-                columnmmap[val] = key
-
-            # #add datetime mapping
-            # if self.timestampinfo["datetimecolumn"] is not None:
-            #     #singel datetime column
-            #     columnmmap[self.timestampinfo["datetimecolumn"]] ="datetime"
-            # else:
-            #     #a seperate date and time column
-            #     columnmmap[self.timestampinfo["time_column"]] ="_time"
-            #     columnmmap[self.timestampinfo["date_column"]] ="_date"
-
-        else:
-            return {}  # no mapping done on wide
 
     def read_template_from_file(self, jsonpath):
-        assert str(jsonpath).endswith(".json", f"{jsonpath}, is not a json file.")
+        assert str(jsonpath).endswith(".json"), f"{jsonpath}, is not a json file."
 
         with open(jsonpath, "r") as f:
             tml_dict = json.load(f)
@@ -325,7 +343,7 @@ class Template:
         for obsdict in tml_dict["data_related"]["obstype_mapping"]:
             self.obscolumnmap[obsdict["tlk_obstype"]] = obsdict["columnname"]
             self.obsdetails[obsdict["tlk_obstype"]] = {
-                "unit": obsdict["units"],
+                "unit": obsdict["unit"],
                 "description": obsdict["description"],
             }
 
@@ -361,8 +379,8 @@ def _create_datetime_column(df, template):
         assert (
             template.timestampinfo["date_column"] in df.columns
         ), f'The {template.timestampinfo["date_column"]} is not found in the columns of the data file: {df.columns}'
-        df = df.map(
-            {
+        df = df.rename(
+            columns={
                 template.timestampinfo["time_column"]: "_time",
                 template.timestampinfo["date_column"]: "_date",
             }
@@ -371,7 +389,7 @@ def _create_datetime_column(df, template):
             df["_date"] + " " + df["_time"], format=template.timestampinfo["fmt"]
         )
 
-        df = df.drop(coluns=["_date", "_time"])
+        df = df.drop(columns=["_date", "_time"])
     return df
 
 
