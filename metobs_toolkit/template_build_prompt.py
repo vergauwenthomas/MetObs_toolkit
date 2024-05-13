@@ -309,7 +309,7 @@ def build_template_prompt(debug=False):
     obstype_desc = {"name": "name (name of the stations represented by strings)"}
     obstype_desc.update(
         {
-            ob.name: f" {ob.name} : {ob.get_description()}"
+            ob.name: f"{ob.name} : {ob.get_description()}"
             for ob in known_obstypes.values()
         }
     )

@@ -3967,10 +3967,10 @@ class Dataset:
 
     def import_data_from_file(
         self,
-        long_format=None,
-        obstype=None,
-        obstype_unit=None,
-        obstype_description=None,
+        # long_format=None,
+        # obstype=None,
+        # obstype_unit=None,
+        # obstype_description=None,
         freq_estimation_method=None,
         freq_estimation_simplify=None,
         freq_estimation_simplify_error=None,
@@ -4007,19 +4007,19 @@ class Dataset:
 
         Parameters
         ----------
-        long_format : bool, optional
-            True if the inputdata has a long-format, False if it has a
-            wide-format. The default is None and then the value in the template is used.
-        obstype : str, optional
-            If the dataformat is wide, specify which observation type the
-            observations represent. The obstype should be an element of
-            metobs_toolkit.observation_types. The default is None.
-        obstype_unit : str, optional
-            If the dataformat is wide, specify the unit of the obstype. The
-            default is None.
-        obstype_description : str, optional
-            If the dataformat is wide, specify the description of the obstype.
-            The default is None.
+        # long_format : bool, optional
+        #     True if the inputdata has a long-format, False if it has a
+        #     wide-format. The default is None and then the value in the template is used.
+        # obstype : str, optional
+        #     If the dataformat is wide, specify which observation type the
+        #     observations represent. The obstype should be an element of
+        #     metobs_toolkit.observation_types. The default is None.
+        # obstype_unit : str, optional
+        #     If the dataformat is wide, specify the unit of the obstype. The
+        #     default is None.
+        # obstype_description : str, optional
+        #     If the dataformat is wide, specify the description of the obstype.
+        #     The default is None.
         freq_estimation_method : 'highest' or 'median', optional
             Select wich method to use for the frequency estimation. If
             'highest', the highest apearing frequency is used. If 'median', the
@@ -4092,31 +4092,31 @@ class Dataset:
                 "freq_estimation_simplify_error"
             ]
 
-        # check if obstype is valid
-        if obstype is not None:
-            assert obstype in list(
-                self.obstypes.keys()
-            ), f"{obstype} is not a known observation type. Use one of the default, or add a new to the defaults: {tlk_obstypes.keys()}."
+        # # check if obstype is valid
+        # if obstype is not None:
+        #     assert obstype in list(
+        #         self.obstypes.keys()
+        #     ), f"{obstype} is not a known observation type. Use one of the default, or add a new to the defaults: {tlk_obstypes.keys()}."
 
-            # check if unit is known
-            known_bool = self.obstypes[obstype].test_if_unit_is_known(str(obstype_unit))
-            assert (
-                known_bool
-            ), f"{obstype_unit} is not a known unit of {self.obstypes[obstype]}"
+        #     # check if unit is known
+        #     known_bool = self.obstypes[obstype].test_if_unit_is_known(str(obstype_unit))
+        #     assert (
+        #         known_bool
+        #     ), f"{obstype_unit} is not a known unit of {self.obstypes[obstype]}"
 
         # Read template
         self.template.read_template_from_file(
             jsonpath=self.settings.templates["template_file"]
         )
 
-        # Kwargs of this method overwrite settings in the template file.
-        self.template._overwrite_data_format(long_fmt=long_format)
-        if not self.template._is_data_long():
-            self.template._set_wide_obstype(
-                obstypename=obstype,
-                obstype_unit=obstype_unit,
-                obstype_descr=obstype_description,
-            )
+        # # Kwargs of this method overwrite settings in the template file.
+        # self.template._overwrite_data_format(long_fmt=long_format)
+        # if not self.template._is_data_long():
+        #     self.template._set_wide_obstype(
+        #         obstypename=obstype,
+        #         obstype_unit=obstype_unit,
+        #         obstype_descr=obstype_description,
+        #     )
 
         # overload the timezone from template to the settings
         if not self.template._get_tz() is None:
@@ -4159,12 +4159,15 @@ class Dataset:
 
             # if no metadata is given, and no stationname found, assume one station
             # with default name
-            if "name" not in df.columns:
-                logger.warning(
-                    f'No station names find in the observations! Assume the dataset is for ONE\
-station with the default name: {self.settings.app["default_name"]}.'
-                )
+            if self.template._is_data_single_station():
+                # rename the singel station by the settings default
                 df["name"] = str(self.settings.app["default_name"])
+        #             if "name" not in df.columns:
+        #                 logger.warning(
+        #                     f'No station names find in the observations! Assume the dataset is for ONE\
+        # station with the default name: {self.settings.app["default_name"]}.'
+        #                 )
+        #                 df["name"] = str(self.settings.app["default_name"])
 
         else:
             logger.info(
@@ -4175,9 +4178,9 @@ station with the default name: {self.settings.app["default_name"]}.'
                 template=self.template,
                 kwargs_metadata_read=kwargs_metadata_read,
             )
-            # in dataset of one station, the name is most often not present!
-            if "name" not in df.columns:
-                logger.warning("No station names find in the observations!")
+            # in dataset of one station
+            if self.template._is_data_single_station():
+                # logger.warning("No station names find in the observations!")
 
                 # If there is ONE name in the metadf, than we use that name for
                 # the df, else we use the default name

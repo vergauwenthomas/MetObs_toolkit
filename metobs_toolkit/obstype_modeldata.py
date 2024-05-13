@@ -11,7 +11,7 @@ import numpy as np
 import logging
 from metobs_toolkit.obstypes import Obstype, expression_calculator
 
-from metobs_toolkit.obstypes import temperature, pressure, wind, direction_aliases
+from metobs_toolkit.obstypes import temperature, pressure, wind_speed, direction_aliases
 
 logger = logging.getLogger(__name__)
 
@@ -579,9 +579,9 @@ pressure_model = ModelObstype(
 )
 
 # Special obstypes
-wind.name = "wind"  # otherwise it is windspeed, which is confusing for vectorfield
+wind_speed.name = "wind_speed"
 wind_model = ModelObstype_Vectorfield(
-    wind,
+    wind_speed,
     u_comp_model_equivalent_dict=tlk_std_modeldata_obstypes["u_wind"],
     v_comp_model_equivalent_dict=tlk_std_modeldata_obstypes["v_wind"],
 )
@@ -593,5 +593,5 @@ wind_model = ModelObstype_Vectorfield(
 model_obstypes = {
     "temp": temp_model,
     "pressure": pressure_model,
-    "wind": wind_model,
+    "wind_speed": wind_model,
 }

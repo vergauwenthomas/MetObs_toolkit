@@ -331,6 +331,12 @@ def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
     # 1. Read metadata into df
     df = _read_csv_to_df(filepath=input_file, kwargsdict=kwargs_metadata_read)
 
+    # 2. Check template on blacklist columnnames and compatibility
+    template._metadata_template_compatibility_test(df.columns)
+
+    blacklist_remapper = template._apply_blacklist(columns=df.columns, on_data=False)
+    df.rename(columns=blacklist_remapper, inplace=True)
+
     # 3. map the name column
     df.rename(columns=template._get_metadata_name_map(), inplace=True)
 
@@ -423,14 +429,30 @@ def import_data_from_csv(
         Template in toolkit space.
 
     """
+
     # 1. Read data into df
     df = _read_csv_to_df(filepath=input_file, kwargsdict=kwargs_data_read)
+
+    # Test blacklist columns and apply compatibility check of template and data
+    blacklist_remapper = template._apply_blacklist(columns=df.columns, on_data=True)
+    df.rename(columns=blacklist_remapper, inplace=True)
+
+    template._data_template_compatibility_test(datacolumns=df.columns)
 
     # 2. Create a singel "datetime" column (needed for wide-long transfer)
     df = _create_datetime_column(df=df, template=template)
 
-    # 2B if the data is wide, convert it into a long format
-    if not template._is_data_long():
+    # 2B if the data is singel station, add a name column if is is not present
+    if template._is_data_single_station():
+        # check if there is a column indicating the name of the station that is mapped
+        assumed_name_col = list(template._get_data_name_map().keys())[0]
+        if assumed_name_col is None:
+            df["_dummy_name_column"] = "_dummy_station"
+            # add it to the template
+            template._set_dataname("_dummy_name_column")
+
+    # 2C if the data is wide, convert it into a long format
+    elif not template._is_data_long():
         df = wide_to_long(df=df, obstypename=template._get_wide_obstype())
 
     # 3. map the name column
