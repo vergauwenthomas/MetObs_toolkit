@@ -217,14 +217,11 @@ def build_template_prompt(debug=False):
 
     print(" *******      File locations   *********** \n")
 
-    # FIXME
-    # datafilepath = usr_input_file("Give the full path to your data file")
-    datafilepath = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/datafiles/demo_datafile.csv"
+    datafilepath = usr_input_file("Give the full path to your data file")
     meta_avail = yes_no_ques("Do you have a file with the metadata?")
     if meta_avail:
-        # FIXME
-        # metadatafilepath = usr_input_file("Give the full path to your metadata file")
-        metadatafilepath = "/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/datafiles/demo_metadatafile.csv"
+        metadatafilepath = usr_input_file("Give the full path to your metadata file")
+
     # =============================================================================
     # Map data file
     # =============================================================================
@@ -311,7 +308,10 @@ def build_template_prompt(debug=False):
     # Obstype mapping in long format:
     obstype_desc = {"name": "name (name of the stations represented by strings)"}
     obstype_desc.update(
-        {ob.name: ob.get_description() for ob in known_obstypes.values()}
+        {
+            ob.name: f" {ob.name} : {ob.get_description()}"
+            for ob in known_obstypes.values()
+        }
     )
     obstype_desc.update(
         {
@@ -428,17 +428,15 @@ def build_template_prompt(debug=False):
         obsdict = {
             "tlk_obstype": wide_obstype,
             "columnname": None,
-            "units": str(units),
+            "unit": str(units),
             "description": str(description),
         }
 
         tmpl_dict["data_related"]["obstype_mapping"].append(obsdict)
 
     if debug:
-        print(f"format option: {format_option}")
         print(f"template_dict: {tmpl_dict}")
-    # FIXME
-    print(f"template_dict: {tmpl_dict}")
+
     # =============================================================================
     # Map metadatafile
     # =============================================================================
@@ -793,7 +791,7 @@ def build_template_prompt(debug=False):
 
         print("\n#1. Define the paths to your files: \n")
         print(f'data_file = r"{datafilepath}"')
-        if bool(metatemplate_dict):
+        if meta_avail:
             print(f'meta_data_file = r"{metadatafilepath}"')
 
         print(f'template = r"{templatefilepath}"')
@@ -804,7 +802,7 @@ def build_template_prompt(debug=False):
         print("\n#3. Update the paths to your files: \n")
         print("your_dataset.update_settings(")
         print("    input_data_file = data_file,")
-        if bool(metatemplate_dict):
+        if meta_avail:
             print("    input_metadata_file = meta_data_file,")
         print("    template_file = template,")
         if output_update:

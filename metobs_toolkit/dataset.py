@@ -4175,7 +4175,6 @@ station with the default name: {self.settings.app["default_name"]}.'
                 template=self.template,
                 kwargs_metadata_read=kwargs_metadata_read,
             )
-
             # in dataset of one station, the name is most often not present!
             if "name" not in df.columns:
                 logger.warning("No station names find in the observations!")
@@ -4326,7 +4325,6 @@ station with the default name: {self.settings.app["default_name"]}.'
 
         # add import frequencies to metadf (after import qc!)
         self.metadf["assumed_import_frequency"] = freq_series_import
-
         self.metadf["dataset_resolution"] = freq_series
 
         # Remove gaps and missing from the observations AFTER timecoarsening
@@ -4345,11 +4343,17 @@ station with the default name: {self.settings.app["default_name"]}.'
         self.df = dataframe[obs_col_order].sort_index()
 
         if update_metadf:
-            # create metadataframe with fixed number and order of columns
-            metadf = dataframe.reindex(columns=self.settings.app["location_info"])
+            # create metadataframe
+            metadf = dataframe.drop(columns=list(self.obstypes.keys()), errors="ignore")
             metadf.index = metadf.index.droplevel("datetime")  # drop datetimeindex
             # drop dubplicates due to datetime
             metadf = metadf[~metadf.index.duplicated(keep="first")]
+
+            # "lat' and 'lon' column are required, so add them as empty if not present
+            if "lat" not in metadf.columns:
+                metadf["lat"] = np.nan
+            if "lon" not in metadf.columns:
+                metadf["lon"] = np.nan
 
             self.metadf = metadf_to_gdf(metadf)
 
