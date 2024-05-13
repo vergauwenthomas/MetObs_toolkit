@@ -235,18 +235,23 @@ class Template:
             return False
 
     def _get_wide_obstype(self):
+        """Get the name of the wide obstype, in tlk space"""
         return list(self.obsdetails.keys())[0]
 
     def _get_tz(self):
+        """Get the timezone string"""
         return self.tz
 
     def _get_data_name_map(self):
+        """Get the name-map for the data file"""
         return {self.data_namemap["name"]: "name"}
 
     def _get_metadata_name_map(self):
+        """Get the name-map for the metadata file"""
         return {self.metadata_namemap["name"]: "name"}
 
     def _get_metadata_column_map(self):
+        """Get the mapper for all metadata columns (name, lat, lon included)"""
         return {val: key for key, val in self.metacolmapname.items()}
 
     def _get_obs_column_map(self):

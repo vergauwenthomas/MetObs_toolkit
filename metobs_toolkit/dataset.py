@@ -4343,17 +4343,21 @@ station with the default name: {self.settings.app["default_name"]}.'
         self.df = dataframe[obs_col_order].sort_index()
 
         if update_metadf:
-            # create metadataframe
-            metadf = dataframe.drop(columns=list(self.obstypes.keys()), errors="ignore")
-            metadf.index = metadf.index.droplevel("datetime")  # drop datetimeindex
-            # drop dubplicates due to datetime
-            metadf = metadf[~metadf.index.duplicated(keep="first")]
-
+            metadf = dataframe
             # "lat' and 'lon' column are required, so add them as empty if not present
             if "lat" not in metadf.columns:
                 metadf["lat"] = np.nan
             if "lon" not in metadf.columns:
                 metadf["lon"] = np.nan
+
+            # create metadataframe
+            metacolumns = list(self.template._get_metadata_column_map().values())
+            metacolumns.remove("name")  # This is the index
+            metadf = metadf.reindex(columns=metacolumns)
+            metadf.index = metadf.index.droplevel("datetime")  # drop datetimeindex
+
+            # drop dubplicates due to datetime
+            metadf = metadf[~metadf.index.duplicated(keep="first")]
 
             self.metadf = metadf_to_gdf(metadf)
 
