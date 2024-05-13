@@ -542,7 +542,7 @@ def _create_datetime_column(df, template):
         assert (
             template.timestampinfo["datetimecolumn"] in df.columns
         ), f'The {template.timestampinfo["datetimecolumn"]} is not found in the columns of the data file: {df.columns}'
-        df = df.map({template.timestampinfo["datetimecolumn"]: "datetime"})
+        df = df.rename(columns={template.timestampinfo["datetimecolumn"]: "datetime"})
         df["datetime"] = pd.to_datetime(
             df["datetime"], format=template.timestampinfo["fmt"]
         )

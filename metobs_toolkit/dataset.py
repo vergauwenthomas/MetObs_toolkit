@@ -129,7 +129,7 @@ class Dataset:
         self.metadf = pd.DataFrame()
 
         # dictionary storing present observationtypes
-        self.obstypes = tlk_obstypes  # init with all tlk obstypes
+        self.obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
 
         # Template for mapping data and metadata
         self.template = Template()
@@ -234,7 +234,7 @@ class Dataset:
         # ------- specific attributes ----------
 
         # Template (units and descritpions) are taken from self
-        new.data_template = self.data_template
+        new.template = self.template
 
         # Inherit Settings from self
         new.settings = copy.deepcopy(self.settings)
@@ -727,7 +727,7 @@ class Dataset:
             missing_fill_df=sta_missingfill,
             metadf=sta_metadf,
             obstypes=self.obstypes,
-            data_template=self.data_template,
+            template=self.template,
             settings=self.settings,
             _qc_checked_obstypes=self._qc_checked_obstypes,
             _applied_qc=self._applied_qc,
@@ -1227,7 +1227,7 @@ class Dataset:
             categorical_fields=self.settings.app["categorical_fields"],
             static_fields=self.settings.app["static_fields"],
             display_name_mapper=self.settings.app["display_name_mapper"],
-            data_template=self.data_template,
+            # data_template=self.data_template,
             boundbox=boundbox,
         )
 
@@ -2179,7 +2179,7 @@ class Dataset:
             obsdf=df,
             metadf=self.metadf,
             settings=self.settings,
-            data_template=self.data_template,
+            obstypes=self.obstypes,
         )
 
     def fill_gaps_era5(
@@ -4347,11 +4347,6 @@ class Dataset:
 
         if update_metadf:
             metadf = dataframe
-            # "lat' and 'lon' column are required, so add them as empty if not present
-            if "lat" not in metadf.columns:
-                metadf["lat"] = np.nan
-            if "lon" not in metadf.columns:
-                metadf["lon"] = np.nan
 
             # create metadataframe
             metacolumns = list(self.template._get_metadata_column_map().values())
@@ -4361,6 +4356,12 @@ class Dataset:
 
             # drop dubplicates due to datetime
             metadf = metadf[~metadf.index.duplicated(keep="first")]
+
+            # "lat' and 'lon' column are required, so add them as empty if not present
+            if "lat" not in metadf.columns:
+                metadf["lat"] = np.nan
+            if "lon" not in metadf.columns:
+                metadf["lon"] = np.nan
 
             self.metadf = metadf_to_gdf(metadf)
 

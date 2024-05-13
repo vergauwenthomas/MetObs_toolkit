@@ -30,12 +30,12 @@ logger = logging.getLogger(__name__)
 class Analysis:
     """The Analysis class contains methods for analysing observations."""
 
-    def __init__(self, obsdf, metadf, settings, data_template):
+    def __init__(self, obsdf, metadf, settings, obstypes):
         """Initialize an Analysis."""
         self.df = obsdf
         self.metadf = metadf
         self.settings = settings
-        self.data_template = data_template
+        self.obstypes = obstypes
 
         # analysis objects
         self.lc_cor_dict = {}

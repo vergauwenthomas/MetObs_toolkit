@@ -24,7 +24,7 @@ class Station(dataset.Dataset):
         missing_fill_df,
         metadf,
         obstypes,
-        data_template,
+        template,
         settings,
         _qc_checked_obstypes,
         _applied_qc,
@@ -39,7 +39,7 @@ class Station(dataset.Dataset):
         self.missing_fill_df = missing_fill_df
         self.metadf = metadf
         self.obstypes = obstypes
-        self.data_template = data_template
+        self.template = template
         self.settings = settings
         self._qc_checked_obstypes = _qc_checked_obstypes
         self._applied_qc = _applied_qc

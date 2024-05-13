@@ -1,6 +1,0 @@
-varname,template column name,format,units,description
-_date,Datum_dummy,%Y-%m-%d,,
-_time,Tijd (UTC),%H:%M:%S,,
-temp,temperature air,,Celcius,feiojmi
-lat,lat,,,
-lon,lon,,,

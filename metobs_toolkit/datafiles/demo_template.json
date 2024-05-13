@@ -16,19 +16,19 @@
                 "tlk_obstype": "temp",
                 "columnname": "Temperatuur",
                 "unit": "Celsius",
-                "description": ""
+                "description": "2mT passive"
             },
             {
-                "tlk_obstype": "fake_humidity",
+                "tlk_obstype": "humidity",
                 "columnname": "Vochtigheid",
-                "unit": "percentage",
-                "description": "no"
+                "unit": "%",
+                "description": "2m relative humidity passive"
             },
             {
-                "tlk_obstype": "pressure",
-                "columnname": "Luchtdruk",
-                "unit": "pa",
-                "description": "moijmj7"
+                "tlk_obstype": "wind_speed",
+                "columnname": "Windsnelheid",
+                "unit": "km/h",
+                "description": "Average 2m  10-min windspeed"
             }
         ]
     },
