@@ -514,7 +514,7 @@ class Analysis(_DatasetBase):
             Element of the metobs_toolkit.observation_types The default is 'temp'.
         tolerance : Timedelta or str, optional
             The tolerance string or object representing the maximum translation in time to find a reference
-            observation for each observation. Ex: '5min' is 5 minutes, '1H', is one hour. The default is '30min'.
+            observation for each observation. Ex: '5min' is 5 minutes, '1h', is one hour. The default is '30min'.
         stations : list, optional
             List of station names to use. If None, all present stations will be used. The default is None.
         startdt : datetime.datetime, optional

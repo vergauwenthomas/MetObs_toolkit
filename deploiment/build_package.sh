@@ -28,7 +28,7 @@ poetry add geopandas@latest
 poetry add geos@latest
 poetry add mapclassify@latest
 poetry add matplotlib@latest
-poetry add pandas@latest
+poetry add pandas@^2
 poetry add shapely@latest
 
 

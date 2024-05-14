@@ -385,7 +385,9 @@ class Dataset(_DatasetBase):
         """
         self.show(show_all_settings, max_disp_n_gaps)
 
-    def save_dataset(self, outputfolder=None, filename="saved_dataset.pkl"):
+    def save_dataset(
+        self, outputfolder=None, filename="saved_dataset.pkl", overwrite=False
+    ):
         """Save a Dataset instance to a (pickle) file.
 
         Parameters
@@ -395,6 +397,9 @@ class Dataset(_DatasetBase):
             from the Settings is used. The default is None.
         filename : str, optional
             The name of the output file. The default is 'saved_dataset.pkl'.
+        overwrite : bool, optional
+            If True, the target file will be overwritten if it exist. The
+            default is False.
 
         Returns
         -------
@@ -418,7 +423,8 @@ class Dataset(_DatasetBase):
             >>>
             >>> # Save dataset to a .pkl file
             >>> dataset.save_dataset(outputfolder=os.getcwd(),
-            ...                     filename='your_saved_dataset.pkl')
+            ...                     filename='your_saved_dataset.pkl',
+            ...                     overwrite=True)
             Dataset saved in ...
 
         """
@@ -436,6 +442,9 @@ class Dataset(_DatasetBase):
             filename += ".pkl"
 
         full_path = os.path.join(outputfolder, filename)
+        if (os.path.isfile(full_path)) & overwrite:
+            logger.info(f"The file {full_path} will be overwritten!")
+            os.remove(full_path)
 
         # check if file exists
         assert not os.path.isfile(full_path), f"{full_path} is already a file!"
@@ -531,8 +540,7 @@ class Dataset(_DatasetBase):
             >>> dataset = metobs_toolkit.Dataset()
             >>> dataset.add_new_observationtype(co2_concentration)
             >>> dataset.obstypes
-            {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction, 'co2': Obstype instance of co2}
-
+            {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind_speed, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction, 'co2': Obstype instance of co2}
         """
         # Test if the obstype is of the correct class.
         if not isinstance(Obstype, Obstype_class):
@@ -675,9 +683,9 @@ class Dataset(_DatasetBase):
             >>> dataset.import_data_from_file()
             >>>
             >>> dataset.get_station('vlinder12')
-            Dataset instance containing:
+            Station instance containing:
                  *1 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *4320 observation records
                  *0 records labeled as outliers
                  *0 gaps
@@ -1441,7 +1449,7 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> # Apply quality control on the temperature observations
             >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
@@ -1630,7 +1638,7 @@ class Dataset(_DatasetBase):
 
             #Use the debias method to fill the gaps
             gapfill_df = your_station.fill_gaps_automatic(modeldata=ERA5_modeldata,
-                                                          max_interpolate_duration_str='6H', # <6 hours will be interpolated
+                                                          max_interpolate_duration_str='6h', # <6 hours will be interpolated
                                                           obstype='temp')
 
         """
@@ -1757,7 +1765,7 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> # Apply quality control on the temperature observations
             >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
@@ -1767,9 +1775,9 @@ class Dataset(_DatasetBase):
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *235 records labeled as outliers
+                 *0 records labeled as outliers
                  *2 gaps
                  *1473 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -1886,7 +1894,7 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> # Apply quality control on the temperature observations
             >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
@@ -1896,9 +1904,9 @@ class Dataset(_DatasetBase):
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *235 records labeled as outliers
+                 *0 records labeled as outliers
                  *2 gaps
                  *1473 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -1970,7 +1978,7 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> # Apply quality control on the temperature observations
             >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
@@ -1980,9 +1988,9 @@ class Dataset(_DatasetBase):
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *235 records labeled as outliers
+                 *0 records labeled as outliers
                  *2 gaps
                  *1473 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -2020,7 +2028,7 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> # Apply quality control on the temperature observations
             >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
@@ -2030,9 +2038,9 @@ class Dataset(_DatasetBase):
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *235 records labeled as outliers
+                 *0 records labeled as outliers
                  *2 gaps
                  *1473 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -2087,7 +2095,7 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> # Apply quality control on the temperature observations
             >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
@@ -2146,16 +2154,19 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> # Create an Analysis from the dataset
             >>> analysis = dataset.get_analysis()
             >>> analysis
             Analysis instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 ...
+                 *Coordinates are available for all stations.
+            <BLANKLINE>
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)     *Coordinates are available for all stations.
+            <BLANKLINE>
 
         """
         # combine all to obsspace and include gapfill
@@ -2607,12 +2618,12 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> #Update some temperature QC settings
             >>> dataset.update_qc_settings(obstype='temp',
             ...                            gross_value_max_value=42.,
-            ...                            persis_time_win_to_check='4H',
+            ...                            persis_time_win_to_check='4h',
             ...                            buddy_min_std = 1.5)
 
             >>> # Apply quality control on the temperature observations
@@ -2620,9 +2631,9 @@ class Dataset(_DatasetBase):
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *1932 records labeled as outliers
+                 *1676 records labeled as outliers
                  *0 gaps
                  *3 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -2850,7 +2861,7 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> #Update some temperature QC settings
             >>> dataset.update_qc_settings(obstype='temp',
@@ -2863,15 +2874,14 @@ class Dataset(_DatasetBase):
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *325 records labeled as outliers
+                 *69 records labeled as outliers
                  *0 gaps
                  *3 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
                  *time zone of the records: UTC
                  *Coordinates are available for all stations.
-
         """
 
         logger.info("Applying the toolkit buddy check")
@@ -3017,7 +3027,7 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> #Update some temperature QC settings
             >>> dataset.update_titan_qc_settings(obstype='temp',
@@ -3033,9 +3043,9 @@ class Dataset(_DatasetBase):
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *291 records labeled as outliers
+                 *35 records labeled as outliers
                  *0 gaps
                  *3 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -3197,7 +3207,7 @@ class Dataset(_DatasetBase):
                                      template_file=metobs_toolkit.demo_template,
                                      )
              dataset.import_data_from_file()
-             dataset.coarsen_time_resolution(freq='1H')
+             dataset.coarsen_time_resolution(freq='1h')
 
              #Get altitude of all stations
              dataset.get_altitude()
@@ -3341,16 +3351,16 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> # Apply quality control on the temperature observations
             >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *1932 records labeled as outliers
+                 *1676 records labeled as outliers
                  *0 gaps
                  *3 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -3360,20 +3370,22 @@ class Dataset(_DatasetBase):
             >>> # Combine all records to one dataframe in Observation-resolution
             >>> overview_df = dataset.combine_all_to_obsspace()
             >>> overview_df.head(12)
-                                                                          value label toolkit_representation
-            name      datetime                  obstype
-            vlinder01 2022-09-01 00:00:00+00:00 humidity                   65.0    ok            observation
-                                                precip                      0.0    ok            observation
-                                                precip_sum                  0.0    ok            observation
-                                                pressure               101739.0    ok            observation
-                                                pressure_at_sea_level  102005.0    ok            observation
-                                                radiation_temp              NaN    ok            observation
-                                                temp                       18.8    ok            observation
-                                                wind_direction             65.0    ok            observation
-                                                wind_gust                  11.3    ok            observation
-                                                wind_speed                  5.6    ok            observation
-                      2022-09-01 01:00:00+00:00 humidity                   65.0    ok            observation
-                                                precip                      0.0    ok            observation
+                                                                    value  ... toolkit_representation
+            name      datetime                  obstype                    ...
+            vlinder01 2022-09-01 00:00:00+00:00 humidity        65.000000  ...            observation
+                                                temp            18.800000  ...            observation
+                                                wind_direction  65.000000  ...            observation
+                                                wind_speed       1.555556  ...            observation
+                      2022-09-01 01:00:00+00:00 humidity        65.000000  ...            observation
+                                                temp            18.400000  ...            observation
+                                                wind_direction  55.000000  ...            observation
+                                                wind_speed       1.416667  ...            observation
+                      2022-09-01 02:00:00+00:00 humidity        68.000000  ...            observation
+                                                temp            17.100000  ...            observation
+                                                wind_direction  45.000000  ...            observation
+                                                wind_speed       1.583333  ...            observation
+            <BLANKLINE>
+            [12 rows x 3 columns]
 
         """
         # TODO: label values from settings not hardcoding
@@ -3541,16 +3553,16 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1H')
+            >>> dataset.coarsen_time_resolution(freq='1h')
             >>>
             >>> # Apply quality control on the temperature observations
             >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *1932 records labeled as outliers
+                 *1676 records labeled as outliers
                  *0 gaps
                  *3 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -3635,7 +3647,7 @@ class Dataset(_DatasetBase):
             used. The default is None.
         freq : DateOffset, Timedelta or str, optional
             The offset string or object representing target conversion.
-            Ex: '15min' is 15 minutes, '1H', is one hour. If None, the target time
+            Ex: '15min' is 15 minutes, '1h', is one hour. If None, the target time
             resolution of the dataset.settings is used. The default is None.
         method : 'nearest' or 'bfill', optional
             Method to apply for the resampling. If None, the resample method of
@@ -3663,15 +3675,15 @@ class Dataset(_DatasetBase):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
             >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='15T') #to 15 minutes resolution
+            >>> dataset.coarsen_time_resolution(freq='15min') #to 15 minutes resolution
             >>> dataset.df[['temp', 'humidity']].head()
                                                  temp  humidity
             name      datetime
-            vlinder01 2022-09-01 00:00:00+00:00  18.8      65.0
-                      2022-09-01 00:15:00+00:00  18.7      65.0
-                      2022-09-01 00:30:00+00:00  18.7      65.0
-                      2022-09-01 00:45:00+00:00  18.6      65.0
-                      2022-09-01 01:00:00+00:00  18.4      65.0
+            vlinder01 2022-09-01 00:00:00+00:00  18.8      65
+                      2022-09-01 00:15:00+00:00  18.7      65
+                      2022-09-01 00:30:00+00:00  18.7      65
+                      2022-09-01 00:45:00+00:00  18.6      65
+                      2022-09-01 01:00:00+00:00  18.4      65
 
         """
         if freq is None:
@@ -3782,7 +3794,7 @@ class Dataset(_DatasetBase):
         ----------
         tolerance :  Timedelta or str
             The tolerance string or object representing the maximum translation in time.
-            Ex: '5min' is 5 minutes, '1H', is one hour.
+            Ex: '5min' is 5 minutes, '1h', is one hour.
         verbose : bool, optional
             If True, a dataframe illustrating the mapping from original datetimes to simplified and syncronized is returned. The default is True.
         _drop_target_nan_dt : bool, optional
@@ -4043,7 +4055,7 @@ class Dataset(_DatasetBase):
             The default is None.
         freq_estimation_simplify_error : Timedelta or str, optional
             The tolerance string or object representing the maximum translation in time to form a simplified frequency estimation.
-            Ex: '5min' is 5 minutes, '1H', is one hour. If None, the method
+            Ex: '5min' is 5 minutes, '1h', is one hour. If None, the method
             stored in the
             Dataset.settings.time_settings['freq_estimation_simplify_error'] is
             used. The default is None.
@@ -4295,7 +4307,7 @@ class Dataset(_DatasetBase):
             the simplification is not performed.
         freq_estimation_simplify_error : Timedelta or str, optional
             The tolerance string or object representing the maximum translation in time to form a simplified frequency estimation.
-            Ex: '5min' is 5 minutes, '1H', is one hour.
+            Ex: '5min' is 5 minutes, '1h', is one hour.
         fixed_freq_series : pandas.series or None, optional
             If you do not want the frequencies to be recalculated, one can pass the
             frequency series to update the metadf["dataset_resolution"]. If None, the frequencies will be estimated. The default is None.

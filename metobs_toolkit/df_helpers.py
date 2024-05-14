@@ -429,8 +429,8 @@ def get_likely_frequency(
         simplify_freq = None
 
         # try simplyfy to round hours
-        trail_hour = assume_freq.ceil("H")
-        lead_hour = assume_freq.floor("H")
+        trail_hour = assume_freq.ceil("h")
+        lead_hour = assume_freq.floor("h")
 
         if (abs(lead_hour - assume_freq) <= abs(trail_hour - assume_freq)) & (
             lead_hour.total_seconds() != 0.0
