@@ -1456,23 +1456,23 @@ class Dataset(_DatasetBase):
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *1932 records labeled as outliers
+                 *1676 records labeled as outliers
                  *0 gaps
                  *3 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
                  *time zone of the records: UTC
                  *Coordinates are available for all stations.
-            >>>
+
             >>> # Interpret the outliers as missing/gaps
             >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *235 records labeled as outliers
+                 *0 records labeled as outliers
                  *2 gaps
                  *1473 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -2105,9 +2105,9 @@ class Dataset(_DatasetBase):
             >>> dataset
             Dataset instance containing:
                  *28 stations
-                 *['temp', 'humidity', 'radiation_temp', 'pressure', 'pressure_at_sea_level', 'precip', 'precip_sum', 'wind_speed', 'wind_gust', 'wind_direction'] observation types
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
                  *10080 observation records
-                 *235 records labeled as outliers
+                 *0 records labeled as outliers
                  *2 gaps
                  *1473 missing observations
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
@@ -2471,7 +2471,6 @@ class Dataset(_DatasetBase):
             metadf=self.metadf,
             filename=filename,
             outputfolder=self.settings.IO["output_folder"],
-            location_info=self.settings.app["location_info"],
             seperate_metadata_file=seperate_metadata_file,
         )
 
@@ -3401,7 +3400,7 @@ class Dataset(_DatasetBase):
 
         # to tripple index
         df = (
-            df.stack(dropna=False)
+            df.stack(dropna=False, future_stack=False)
             .reset_index()
             .rename(columns={"level_2": "obstype", 0: "value"})
             .set_index(["name", "datetime", "obstype"])
@@ -3443,7 +3442,7 @@ class Dataset(_DatasetBase):
 
         gapsdf = pd.DataFrame(index=gapsidx, columns=present_obstypes)
         gapsdf = (
-            gapsdf.stack(dropna=False)
+            gapsdf.stack(dropna=False, future_stack=False)
             .reset_index()
             .rename(columns={"level_2": "obstype", 0: "value"})
             .set_index(["name", "datetime", "obstype"])
@@ -3478,7 +3477,7 @@ class Dataset(_DatasetBase):
         missingdf = pd.DataFrame(index=missingidx, columns=present_obstypes)
 
         missingdf = (
-            missingdf.stack(dropna=False)
+            missingdf.stack(dropna=False, future_stack=False)
             .reset_index()
             .rename(columns={"level_2": "obstype", 0: "value"})
             .set_index(["name", "datetime", "obstype"])

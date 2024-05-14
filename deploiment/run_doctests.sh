@@ -25,7 +25,7 @@ for t in $modules; do
         python3 -m doctest -o ELLIPSIS -o NORMALIZE_WHITESPACE ${module_file} 2>&1 | tee ${LOGDIR}/DOCtest_output_${t:2:-3}_log
 done
 
-rm ${WORKDIR}/metobs_toolkit/*.pkl #created by doctest
-rm ${WORKDIR}/metobs_toolkit/*.csv #created by docstest
+rm ${WORKDIR}/*.pkl #created by doctest
+rm ${WORKDIR}/*.csv #created by docstest
 
 cd ${DEPLOY_DIR}

@@ -177,7 +177,7 @@ def value_labeled_doubleidxdf_to_triple_idxdf(
     # get all values in triple index form
     values = (
         df[present_obstypes]
-        .stack(dropna=False)
+        .stack(dropna=False, future_stack=False)
         .reset_index()
         .rename(columns={"level_2": "obstype", 0: value_col_name})
         .set_index(["name", "datetime", "obstype"])
