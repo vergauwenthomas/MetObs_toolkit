@@ -10,12 +10,9 @@ poetry.lock
 .virtual_documents
 
 #Exclude deploy scripts
-deploiment/*_log
-deploiment/*online* #only for thomas
-deploiment/update_version.sh #only for thomas
-deploiment/*
+deploiment/logs/*
 
-#Exclude local package builds
+#Exclude local package builds (are build on github)
 dist/*
 
 #exclude the python versions of the doc example notebooks

@@ -394,7 +394,6 @@ class Template:
                 if mapped_obscol not in datacolumns:
                     msg = f"{mapped_obscol} is a mapped observation, present in the template but not found in the data! This obstype will be ignored."
                     logger.warning(msg)
-                    print("WARNING: ", msg)
 
             # check if data has obstypes not present in the template
             for data_col in datacolumns:
@@ -409,7 +408,6 @@ class Template:
                 if data_col not in self.obscolumnmap.values():
                     msg = f"{data_col} is present in the datafile, but not found in the template! This column will be ignored."
                     logger.warning(msg)
-                    print("WARNING: ", msg)
 
         else:
             # wide tests"
@@ -429,7 +427,6 @@ class Template:
             if mapped_col not in metadatacolumns:
                 msg = f"{mapped_col} is a mapped metadata column, present in the template but not found in the metadata! This column will be ignored."
                 logger.warning(msg)
-                print("WARNING: ", msg)
 
         # check if metadata has columns which are not mapped by the template
         unmapped = (
@@ -438,7 +435,6 @@ class Template:
         if not bool(unmapped):
             msg = f"The following columns are found in the metadata, but not in the template and are therefore ignored: \n{list(unmapped)}"
             logger.warning(msg)
-            print("WARNING: ", msg)
 
     def _apply_blacklist(self, columns, on_data):
         """Create a mapper for columns in the data or metadata file, which have
@@ -485,7 +481,6 @@ class Template:
             else:
                 msg = f"The following metadata columns are renamed because of special meaning by the toolkit: {blacklist_mapper}"
             logger.warning(msg)
-            print("WARNING: ", msg)
 
         return blacklist_mapper
 
