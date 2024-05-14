@@ -1014,7 +1014,6 @@ def cycle_plot(
     title,
     plot_settings,
     aggregation,
-    data_template,
     obstype,
     y_label,
     legend,
@@ -1035,8 +1034,6 @@ def cycle_plot(
         The cycle-specific settings.
     aggregation : list
         A list of strings to indicate the group defenition.
-    data_template : dict
-        The template of the dataset.
     obstype : str
         The observation type to plot.
     y_label : str

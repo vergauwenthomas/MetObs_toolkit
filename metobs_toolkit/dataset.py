@@ -97,6 +97,8 @@ from metobs_toolkit.obstypes import Obstype as Obstype_class
 from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
 
+from metobs_toolkit.datasetbase import _DatasetBase
+
 
 logger = logging.getLogger(__name__)
 
@@ -106,15 +108,17 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class Dataset:
+class Dataset(_DatasetBase):
     """Objects holding observations and methods on observations."""
 
     def __init__(self):
         """Construct all the necessary attributes for Dataset object."""
         logger.info("Initialise dataset")
 
+        _DatasetBase.__init__(self)  # holds df, metadf, obstypes and settings
+
         # Dataset with 'good' observations
-        self.df = pd.DataFrame()
+        # self.df = pd.DataFrame()
 
         # Dataset with outlier observations
         self.outliersdf = init_triple_multiindexdf()
@@ -126,10 +130,10 @@ class Dataset:
         self.missing_fill_df = init_multiindexdf()
 
         # Dataset with metadata (static)
-        self.metadf = pd.DataFrame()
+        # self.metadf = pd.DataFrame()
 
         # dictionary storing present observationtypes
-        self.obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
+        # self.obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
 
         # Template for mapping data and metadata
         self.template = Template()
@@ -140,15 +144,18 @@ class Dataset:
         self._applied_qc = pd.DataFrame(columns=["obstype", "checkname"])
         self._qc_checked_obstypes = []  # list with qc-checked obstypes
 
-        self.settings = copy.deepcopy(Settings())
+        # self.settings = copy.deepcopy(Settings())
 
     def __str__(self):
         """Represent as text."""
         if self.df.empty:
             if self._istype == "Dataset":
                 return "Empty instance of a Dataset."
-            else:
+            elif self._istype == "Station":
                 return "Empty instance of a Station."
+            else:
+                return "Empty instance of a Analysis."
+
         add_info = ""
         n_stations = self.df.index.get_level_values("name").unique().shape[0]
         n_obs_tot = self.df.shape[0]
@@ -162,7 +169,7 @@ class Dataset:
             add_info += "    *Coordinates are available for all stations."
 
         return (
-            f"Dataset instance containing: \n \
+            f"{self._istype} instance containing: \n \
     *{n_stations} stations \n \
     *{self.df.columns.to_list()} observation types \n \
     *{n_obs_tot} observation records \n \

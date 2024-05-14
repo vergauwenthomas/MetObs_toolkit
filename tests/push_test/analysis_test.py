@@ -18,7 +18,7 @@ lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-#%%
+# %%
 
 
 dataset = metobs_toolkit.Dataset()
@@ -26,8 +26,24 @@ dataset = metobs_toolkit.Dataset()
 
 dataset = dataset.import_dataset(
     folder_path=os.path.join(str(lib_folder), "tests", "test_data"),
-    filename="tests_dataset.pkl",
+    filename="tests_dataset3.pkl",
 )
+
+
+# dataset = metobs_toolkit.Dataset()
+# dataset.update_settings(input_data_file=metobs_toolkit.demo_datafile,
+#                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+#                         template_file=metobs_toolkit.demo_template,
+#                         )
+
+
+# dataset.import_data_from_file()
+
+# dataset.get_lcz()
+# dataset.get_landcover()
+
+# dataset.save_dataset(outputfolder=os.path.join(str(lib_folder), "tests", "test_data"),
+#                       filename="tests_dataset3.pkl")
 
 
 an = dataset.get_analysis()
@@ -138,14 +154,14 @@ print(an)
 
 filter_an = an.apply_filter('temp < 15.5 &  hour <= 19 & lcz == "Open midrise"')
 
-assert filter_an.df.shape == (2481, 10), "filter on analysis problem"
+assert filter_an.df.shape == (2481, 4), "filter on analysis problem"
 
 # =============================================================================
 # aggregate method
 # =============================================================================
 
 agg_df = an.aggregate_df(agg=["lcz", "hour"])
-assert agg_df.shape == (216, 10), "aggregate on analysis problem"
+assert agg_df.shape == (216, 4), "aggregate on analysis problem"
 
 
 # =============================================================================
