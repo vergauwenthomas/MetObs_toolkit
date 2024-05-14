@@ -18,6 +18,9 @@ cd ${DEPLOY_DIR}
 #2. Build documentation
 ./build_documentation.sh
 
+#remove previous logs
+LOGDIR=${DEPLOY_DIR}/logs
+rm ${LOGDIR}/*_log
 
 #3. Run examples as test
 ./run_examples_as_test.sh
