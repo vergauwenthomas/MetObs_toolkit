@@ -40,6 +40,7 @@ dataset = metobs_toolkit.Dataset()
 dataset.update_settings(
     input_data_file=testdatafile,
     input_metadata_file=static_data,
+    template_file=metobs_toolkit.demo_template,
     output_folder="/home/thoverga/Documents/VLINDER_github/metobs_toolkit",
 )
 dataset.import_data_from_file()
@@ -69,7 +70,7 @@ assert list(missingobs.index.unique()) == [
     "vlinder03",
 ], f"Only missing obs assumed in vl01, vl02, vl03. Tlkit found missing obs for these {list(missingobs.index.unique())}"
 
-#%% Test linear interpolation on missing obs
+# %% Test linear interpolation on missing obs
 dataset.fill_missing_obs_linear()
 
 solution = {
@@ -155,7 +156,7 @@ assert (
 ).sum() < 1e-5, f"Tlk interpolation differs from manual: \n {gapsfilldf}"
 
 
-#%% Test if filled values are present in the combined df
+# %% Test if filled values are present in the combined df
 
 comb_df = dataset.combine_all_to_obsspace()
 comb_df = comb_df.xs("temp", level="obstype")
@@ -171,7 +172,7 @@ assert (
     comb_missing["value"].eq(dataset.missing_fill_df["temp"]).all()
 ), "Something wrong with the filled missing in the combined df"
 
-#%% Test the update of outliers to gaps
+# %% Test the update of outliers to gaps
 nobs_orig = len(dataset.missing_obs.idx)
 ngaps_orig = len(dataset.gaps)
 
@@ -210,6 +211,7 @@ dataset = metobs_toolkit.Dataset()
 dataset.update_settings(
     input_data_file=testdatafile,
     input_metadata_file=static_data,
+    template_file=metobs_toolkit.demo_template,
     output_folder="/home/thoverga/Documents/VLINDER_github/metobs_toolkit",
 )
 
@@ -228,7 +230,7 @@ era.set_model_from_csv(era_datafile)
 
 assert era.df.shape[0] == 5348, "Something wrong with importing era data from csv."
 
-#%%
+# %%
 output = dataset.fill_gaps_automatic(
     era, max_interpolate_duration_str="5H", overwrite_fill=True
 )
@@ -366,7 +368,7 @@ checkeddf = pd.DataFrame(checked)
 assert checkeddf.equals(output), "something wrong with the automatic gapfill"
 
 
-#%%
+# %%
 # # Fill gaps using era5 data:
 dataset.fill_gaps_era5(
     modeldata=era, method="debias", obstype="temp", overwrite_fill=True

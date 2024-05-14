@@ -57,7 +57,7 @@ dataset.show_settings()
 
 dataset.import_data_from_file()
 
-assert dataset.df.shape == (120957, 3), "Shape of demo data is not correct."
+assert dataset.df.shape == (120957, 4), "Shape of demo data is not correct."
 
 
 # %% Import wide dataset (Multiple stations) + syncronize
