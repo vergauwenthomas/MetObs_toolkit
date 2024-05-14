@@ -494,6 +494,7 @@ class Template:
     # =============================================================================
 
     def read_template_from_file(self, jsonpath):
+
         assert str(jsonpath).endswith(".json"), f"{jsonpath}, is not a json file."
 
         with open(jsonpath, "r") as f:

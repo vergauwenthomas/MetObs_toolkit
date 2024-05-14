@@ -4103,6 +4103,9 @@ class Dataset:
         #     assert (
         #         known_bool
         #     ), f"{obstype_unit} is not a known unit of {self.obstypes[obstype]}"
+        assert (
+            self.settings.templates["template_file"] is not None
+        ), "No templatefile is specified."
 
         # Read template
         self.template.read_template_from_file(

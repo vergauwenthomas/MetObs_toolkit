@@ -29,6 +29,12 @@
                 "columnname": "Windsnelheid",
                 "unit": "km/h",
                 "description": "Average 2m  10-min windspeed"
+            },
+            {
+                "tlk_obstype": "wind_direction",
+                "columnname": "Windrichting",
+                "unit": "° from north (CW)",
+                "description": "Average 2m  10-min windspeed"
             }
         ]
     },

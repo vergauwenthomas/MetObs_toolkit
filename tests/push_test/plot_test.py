@@ -28,7 +28,11 @@ metadatafile = os.path.join(str(lib_folder), "static_data", "vlinder_metadata.cs
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=testdatafile, input_metadata_file=metadatafile)
+dataset.update_settings(
+    input_data_file=testdatafile,
+    template_file=metobs_toolkit.demo_template,
+    input_metadata_file=metadatafile,
+)
 
 
 dataset.import_data_from_file()
@@ -58,7 +62,7 @@ dataset.make_geo_plot(
 
 dataset.make_geo_plot(variable="temp", timeinstance=datetime(2022, 9, 5, 12, 0))
 
-#%% Interactive spatial plot
+# %% Interactive spatial plot
 
 outfile = os.path.join(str(lib_folder), "development", "delete_me")
 
