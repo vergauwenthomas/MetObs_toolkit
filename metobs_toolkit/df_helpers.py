@@ -378,7 +378,7 @@ def conv_applied_qc_to_df(obstypes, ordered_checknames):
 # Records frequencies
 # =============================================================================
 def get_likely_frequency(
-    timestamps, method="highest", simplify=True, max_simplify_error="2T"
+    timestamps, method="highest", simplify=True, max_simplify_error="2min"
 ):
     """Find the most likely observation frequency of a datetimeindex.
 
@@ -394,7 +394,7 @@ def get_likely_frequency(
         The "max_simplify_error' is used as a constrain. If the constrain is not met,
         the simplification is not performed.The default is True.
     max_simplify_error : datetimestring, optional
-        The maximum deviation from the found frequency when simplifying. The default is '2T'.
+        The maximum deviation from the found frequency when simplifying. The default is '2min'.
 
     Returns
     -------
@@ -444,8 +444,8 @@ def get_likely_frequency(
 
         # try simplyfy to round minutes
         if simplify_freq is None:
-            trail_min = assume_freq.ceil("T")
-            lead_min = assume_freq.floor("T")
+            trail_min = assume_freq.ceil("min")
+            lead_min = assume_freq.floor("min")
 
             if (abs(lead_min - assume_freq) <= abs(trail_min - assume_freq)) & (
                 lead_min.total_seconds() != 0.0
@@ -471,7 +471,7 @@ def get_likely_frequency(
     return assume_freq
 
 
-def get_freqency_series(df, method="highest", simplify=True, max_simplify_error="2T"):
+def get_freqency_series(df, method="highest", simplify=True, max_simplify_error="2min"):
     """Get the most likely frequencies of all stations.
 
     Find the most likely observation frequency for all stations individually
@@ -490,7 +490,7 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
         The "max_simplify_error' is used as a constrain. If the constrain is not met,
         the simplification is not performed.The default is True.
     max_simplify_error : Timedelta or str, optional
-        The maximum deviation from the found frequency when simplifying. The default is '2T'.
+        The maximum deviation from the found frequency when simplifying. The default is '2min'.
 
     Returns
     -------

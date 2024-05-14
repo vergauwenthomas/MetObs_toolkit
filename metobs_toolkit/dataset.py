@@ -3635,7 +3635,7 @@ class Dataset(_DatasetBase):
             used. The default is None.
         freq : DateOffset, Timedelta or str, optional
             The offset string or object representing target conversion.
-            Ex: '15T' is 15 minuts, '1H', is one hour. If None, the target time
+            Ex: '15min' is 15 minutes, '1H', is one hour. If None, the target time
             resolution of the dataset.settings is used. The default is None.
         method : 'nearest' or 'bfill', optional
             Method to apply for the resampling. If None, the resample method of
@@ -3782,7 +3782,7 @@ class Dataset(_DatasetBase):
         ----------
         tolerance :  Timedelta or str
             The tolerance string or object representing the maximum translation in time.
-            Ex: '5T' is 5 minuts, '1H', is one hour.
+            Ex: '5min' is 5 minutes, '1H', is one hour.
         verbose : bool, optional
             If True, a dataframe illustrating the mapping from original datetimes to simplified and syncronized is returned. The default is True.
         _drop_target_nan_dt : bool, optional
@@ -4043,7 +4043,7 @@ class Dataset(_DatasetBase):
             The default is None.
         freq_estimation_simplify_error : Timedelta or str, optional
             The tolerance string or object representing the maximum translation in time to form a simplified frequency estimation.
-            Ex: '5T' is 5 minuts, '1H', is one hour. If None, the method
+            Ex: '5min' is 5 minutes, '1H', is one hour. If None, the method
             stored in the
             Dataset.settings.time_settings['freq_estimation_simplify_error'] is
             used. The default is None.
@@ -4295,7 +4295,7 @@ class Dataset(_DatasetBase):
             the simplification is not performed.
         freq_estimation_simplify_error : Timedelta or str, optional
             The tolerance string or object representing the maximum translation in time to form a simplified frequency estimation.
-            Ex: '5T' is 5 minuts, '1H', is one hour.
+            Ex: '5min' is 5 minutes, '1H', is one hour.
         fixed_freq_series : pandas.series or None, optional
             If you do not want the frequencies to be recalculated, one can pass the
             frequency series to update the metadf["dataset_resolution"]. If None, the frequencies will be estimated. The default is None.
