@@ -3,6 +3,9 @@
 """
 Created on Thu Sep 22 16:28:15 2022
 
+Test importing a variaty of data/metadata combinations and formats
+
+
 @author: thoverga
 """
 
