@@ -24,6 +24,7 @@ dataset = metobs_toolkit.Dataset()
 dataset.update_settings(
     input_data_file=metobs_toolkit.demo_datafile,
     input_metadata_file=metobs_toolkit.demo_metadatafile,
+    template_file=metobs_toolkit.demo_template,
 )
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
@@ -38,7 +39,7 @@ outliersdf = dataset.combine_all_to_obsspace()
 dataset.get_qc_stats(make_plot=False)
 dataset.get_qc_stats(obstype="humidity", make_plot=False)
 
-#%% Apply buddy check
+# %% Apply buddy check
 dataset.update_qc_settings(
     buddy_radius=17000,
     buddy_min_sample_size=3,
@@ -67,7 +68,7 @@ sta.apply_buddy_check(use_constant_altitude=True)
 test = sta.get_qc_stats(make_plot=True)
 
 
-#%% Apply titan checks
+# %% Apply titan checks
 
 #  ------ Buddy check --------------
 dataset.update_titan_qc_settings(
@@ -102,7 +103,7 @@ assert (
 ), "The buddy check did overwrite itself!"
 
 
-#%%
+# %%
 
 
 # import numpy as np

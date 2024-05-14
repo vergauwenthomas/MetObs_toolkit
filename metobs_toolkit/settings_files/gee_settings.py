@@ -57,7 +57,7 @@ gee_datasets = {
         "scale": 2500,
         "is_image": False,
         "is_imagecollection": True,
-        "time_res": "1H",
+        "time_res": "1h",
         "credentials": "",
     },
     "worldcover": {

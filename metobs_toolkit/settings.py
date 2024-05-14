@@ -32,7 +32,7 @@ class Settings:
         self.qc = {}
         self.gap = {}
         self.missing_obs = {}
-        self.templates = {}
+        self.templates = {"template_file": None}
         self.gee = {}
         self.IO = {
             "output_folder": None,
@@ -45,7 +45,6 @@ class Settings:
         self._update_app_settings()
         self._update_qc_settings()
         self._update_gap_settings()
-        self._update_templates()
         self._update_gee_settings()
 
     # =============================================================================
@@ -171,21 +170,6 @@ class Settings:
         self.missing_obs["missing_obs_fill_settings"] = missing_obs_fill_settings
         self.missing_obs["missing_obs_fill_info"] = missing_obs_fill_info
 
-    def _update_templates(self):
-        """
-        Import the default mapper-template, and used it on the observations and metadata.
-
-        Returns
-        -------
-        None.
-
-        """
-        logger.debug("Updating data templates settings.")
-        from .data_templates.import_templates import default_template_file
-
-        # Set default templates
-        self.templates["template_file"] = default_template_file
-
     def _update_gee_settings(self):
         """
         Update the google earth enginge settings using the default settings templates.
@@ -280,33 +264,6 @@ class Settings:
                 f'Update template file:  {self.templates["template_file"]}  -->  {template_file}'
             )
             self.templates["template_file"] = template_file
-
-    def copy_template_csv_files(self, target_folder):
-        """Copy the default template.
-
-        A function to copy the default template file to an other location. This
-        can be of use when creating a template file to start from the default.
-
-        Parameters
-        ----------
-        target_folder : str
-            Directory to copy the default template to (default_template.csv).
-
-        Returns
-        -------
-        None.
-
-        """
-        from .data_templates.import_templates import default_template_file
-
-        # test if target_folder is a folder
-        assert os.path.isdir(target_folder), f"{target_folder} is not a folder"
-
-        target_file = os.path.join(target_folder, "default_template.csv")
-
-        shutil.copy2(default_template_file, target_file)
-
-        logger.info("Templates copied to : ", target_file)
 
     # =============================================================================
     #     Check settings

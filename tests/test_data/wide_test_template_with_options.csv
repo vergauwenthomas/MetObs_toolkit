@@ -1,8 +1,0 @@
-"varname","template column name","units","description","format","options","options_values"
-,,,,,"data_structure","wide"
-,,,,,"obstype","temp"
-"datetime","Tijd",,,"%Y-%m-%d %H:%M:%S","obstype_unit","Celcius"
-,,,,,"obstype_description","ukgliuhijm"
-,,,,,"timezone","Australia/LHI"
-,,,,,,
-"temp",,,,,,

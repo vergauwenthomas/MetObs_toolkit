@@ -1,0 +1,36 @@
+{
+    "data_related": {
+        "structure": "single_station",
+        "timestamp": {
+            "datetime_column": null,
+            "datetime_fmt": null,
+            "date_column": "Datum_dummy",
+            "date_fmt": "%Y-%m-%d",
+            "time_column": "Tijd (UTC)",
+            "time_fmt": "%H:%M:%S",
+            "timezone": "UTC"
+        },
+        "name_column": null,
+        "obstype_mapping": [
+            {
+                "tlk_obstype": "temp",
+                "columnname": "temperature air",
+                "unit": "Kelvin",
+                "description": "1"
+            },
+            {
+                "tlk_obstype": "wind_speed",
+                "columnname": "windspeed air",
+                "unit": "km/h",
+                "description": "the 2m windspeed"
+            }
+        ]
+    },
+    "metadata_related": {
+        "name_column": "station",
+        "lat_column": "lat",
+        "lon_column": "lon",
+        "columns_to_include": []
+    },
+    "single_station_name": null
+}

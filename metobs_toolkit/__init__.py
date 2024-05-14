@@ -42,7 +42,7 @@ demo_metadatafile = os.path.join(
     BASE_PATH, "metobs_toolkit", "datafiles", "demo_metadatafile.csv"
 )
 demo_template = os.path.join(
-    BASE_PATH, "metobs_toolkit", "datafiles", "demo_templatefile.csv"
+    BASE_PATH, "metobs_toolkit", "datafiles", "demo_template.json"
 )
 
 
@@ -58,7 +58,7 @@ from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfi
 
 
 # Special functions that can be directly called by te user
-from metobs_toolkit.data_templates.template_build_prompt import build_template_prompt
+from metobs_toolkit.template_build_prompt import build_template_prompt
 from metobs_toolkit.landcover_functions import connect_to_gee
 
 # =============================================================================
@@ -72,4 +72,4 @@ from metobs_toolkit.dataset_settings_updater import Dataset
 
 # DO not change this manually!
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"

@@ -26,7 +26,7 @@ testdata = os.path.join(str(lib_folder), "tests", "test_data", "testdata_breakin
 ####### Create dataset ######
 # % add template
 template_file = os.path.join(
-    str(lib_folder), "tests", "test_data", "template_breaking.csv"
+    str(lib_folder), "tests", "test_data", "template_breaking.json"
 )
 
 dataset_coarsened = metobs_toolkit.Dataset()
@@ -160,15 +160,33 @@ _ = dataset.get_qc_stats()
 
 dataset.make_plot(stationnames=["Fictional"], colorby="label", show_outliers=True)
 
-#%% Debug
-
-combdf = dataset.combine_all_to_obsspace()
-
 
 # %% Compare manual and toolkit labeling
+import pandas as pd
 
 
-man_df = dataset.input_df  # manual label
+man_df = pd.read_csv(testdata)
+
+# create datetime axes
+man_df["datetime"] = pd.to_datetime(
+    man_df["date"] + " " + man_df["time"], format="%Y-%m-%d %H:%M:%S", utc=True
+)
+
+man_df = (
+    man_df.rename(
+        columns={
+            "station": "name",
+            "temperature": "temp",
+            "humidity": "humidity",
+            "wind_speed": "windspeed",
+            "qc_flags": "flags",
+        }
+    )
+    .set_index(["name", "datetime"])
+    .sort_index()
+    .drop(columns=["date", "time"])
+)
+
 
 tlk_df = dataset.combine_all_to_obsspace()
 

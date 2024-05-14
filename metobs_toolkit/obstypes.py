@@ -438,7 +438,7 @@ precip_sum = Obstype(
     unit_aliases=all_units_aliases["precip_sum"],
     unit_conversions=all_conversion_table["precip_sum"],
 )
-wind = Obstype(
+wind_speed = Obstype(
     obsname="wind_speed",
     std_unit=tlk_std_units["wind_speed"],
     description="wind speed",
@@ -471,7 +471,7 @@ tlk_obstypes = {
     "pressure_at_sea_level": pressure_at_sea_level,
     "precip": precip,
     "precip_sum": precip_sum,
-    "wind_speed": wind,
+    "wind_speed": wind_speed,
     "wind_gust": windgust,
     "wind_direction": wind_direction,
 }

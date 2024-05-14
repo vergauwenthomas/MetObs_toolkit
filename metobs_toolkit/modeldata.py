@@ -141,7 +141,7 @@ class Modeldata:
         units,
         scale,
         band_desc=None,
-        time_res="1H",
+        time_res="1h",
         is_image=False,
         is_numeric=True,
         credentials="",

@@ -12,9 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def write_dataset_to_csv(
-    df, metadf, filename, outputfolder, location_info, seperate_metadata_file
-):
+def write_dataset_to_csv(df, metadf, filename, outputfolder, seperate_metadata_file):
     """Write a dataset to a csv files.
 
     Write the dataset to a file where the observations, metadata and (if available)
@@ -44,7 +42,7 @@ def write_dataset_to_csv(
     df = df.reset_index()
 
     # find metadata that are not present
-    ignore_metadat = [col for col in location_info if metadf[col].isnull().all()]
+    ignore_metadat = [col for col in metadf.columns if metadf[col].isnull().all()]
 
     if not seperate_metadata_file:
         # merge metadata
