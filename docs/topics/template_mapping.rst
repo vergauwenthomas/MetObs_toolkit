@@ -8,86 +8,60 @@ your observational data must be converted to the toolkit standards this is refer
 To specify how the mapping must be done a **template** is used. This template contains
 all the information on how to convert your tabular data to the toolkit standards.
 Since the structure of data files differs for different networks, this template is
-unique for each data file. A template is saved as a tabular .csv file to reuse and share them.
+unique for each data file.
 
-On this page, you can find information on how to construct a template.
-
-
-..  _link-target:
-
-Toolkit Standards
-====================
-
-The toolkit has standard names for observation types and metadata. Here these standards are presented and described.
+A template is saved as a json file (>v0.2.1) to reuse and share. Previous versions of the toolkit used a .csv file type for the template.
 
 
-.. list-table:: Standard observation types
-   :widths: 25 25 15
-   :header-rows: 1
-
-   * - Standard name
-     - Toolkit description
-     - Type
-   * - temp
-     - temperature
-     - numeric
-   * - humidity
-     - Relative humidity
-     - numeric
-   * - precip
-     - precipitation intensity
-     - numeric
-   * - precip_sum
-     - accumulated precipitation
-     - numeric
-   * - pressure
-     - air pressure (measured)
-     - numeric
-   * - pressure_at_sea_level
-     - air pressure (corrected to sea level)
-     - numeric
-   * - wind_speed
-     - wind speed
-     - numeric
-   * - wind_gust
-     - wind gust
-     - numeric
-   * - wind_direction
-     - wind direction as ° from the north, clock-wise
-     - numeric
-   * - radiation_temp
-     - radiation temperature (black globe observations)
-     - numeric
+On this page, you can find information on data formats and how to construct a template.
 
 
-.. list-table:: Standard Metadata
-   :widths: 20 25 15
-   :header-rows: 1
+Template creation
+=======================
 
-   * - Standard name
-     - Toolkit description
-     - Type
-   * - name
-     - the name of the stations (must be unique for each station)
-     - string
-   * - lat
-     - the latitude of the station
-     - numeric
-   * - lon
-     - the longitude of the station
-     - numeric
-   * - location
-     - location (the city/region of the stations) (OPTIONAL)
-     - string
-   * - call_name
-     - call_name (an informal name of the stations) (OPTIONAL)
-     - string
-   * - network
-     - network (the name of the network the stations belong to) (OPTIONAL)
-     - string
+Once you have converted your tabular data files to either long-, wide-, or single-station-format, and saved them as a .csv file, a template can be made. See below for more details on these data structures.
+
+.. Note::
+   If you want to use a metadata file, make sure it is converted to a long-format (=each station takes up a row) and saved as a .csv file.
+
+The fastest and simplest way to make a template is by using the :py:meth:`metobs_toolkit.build_template_prompt()<metobs_toolkit.data_templates.template_build_prompt.build_template_prompt>` function.
+
+.. code-block:: python
+
+   import metobs_toolkit
+
+   #create a template
+   metobs_toolkit.build_template_prompt()
 
 
-In the template, you map your observations and metadata to one of these standards. What is not mapped, will not be used in the toolkit.
+This function will prompt questions and build a template that matches your data file (and metadata) file.
+The *template.json* file will be stored at a location of your choice. If you plan to use multiple datafiles, make sure to rename your templates accordingly.
+
+To use this template, feed the path to the *template.csv* file to the data_template_file (and metadata_template_file)
+arguments of the :py:meth:`update_settings()<metobs_toolkit.dataset_settings_updater.Dataset.update_settings>` method.
+
+.. code-block:: python
+
+   import metobs_toolkit
+
+   #1. Define the paths to your files:
+   data_file = r"... <path_to_your_datafile> ..."
+   meta_data_file = r"... <path_to_your_metadatafile> ..."
+   template = r"... <path_to_your_templatefile> ..."
+
+   #2. initiate a dataset:
+   your_dataset = metobs_toolkit.Dataset()
+
+   #3. Update the paths to your files:
+   your_dataset.update_settings(
+       input_data_file = data_file,
+       input_metadata_file=meta_data_file,
+       template_file = template,
+       )
+
+   #4. Import your data :
+   your_dataset.import_data_from_file()
+
 
 
 Data structures
@@ -166,7 +140,7 @@ To make a template you must be aware of which format your data is in. The toolki
 
 Metadata structures
 =======================
-The metadata **must be in a Wide-format**. Here an example
+The metadata **must be in a long-format**. Here an example
 
 .. list-table:: Metadata example
    :widths: 15 15 15 15
@@ -185,32 +159,6 @@ The metadata **must be in a Wide-format**. Here an example
      - 5.1332
      - demo-network
 
-
-Template creation
-=======================
-
-Once you have converted your tabular data files to either long-, wide-, or single-station-format, and saved them as a .csv file, a template can be made.
-
-.. Note::
-   If you want to use a metadata file, make sure it is converted to a wide-format and saved as a .csv file.
-
-The fastest and simplest way to make a template is by using the :py:meth:`metobs_toolkit.build_template_prompt<metobs_toolkit.data_templates.template_build_prompt.build_template_prompt>` function.
-
-.. code-block:: python
-
-   import metobs_toolkit
-
-   #create a template
-   metobs_toolkit.build_template_prompt()
-
-
-This function will prompt questions and build a template that matches your data file (and metadata) file.
-The *template.csv* file will be stored at a location of your choice.
-
-To use this template, feed the path to the *template.csv* file to the data_template_file (and metadata_template_file)
-arguments of the :py:meth:`update_settings()<metobs_toolkit.dataset_settings_updater.Dataset.update_settings>` method.
-
-
 .. note::
-   When the prompt asks if you need further help, and you type yes, some more questions are prompted.
-   Once all information is given to the prompt, it will print out a piece of code that you have to run to load your data into the toolkit.
+   All CSV data files must be in UTF-8 encoding. For most CSV files, this condition is already met. To make sure, in Microsoft Excel (or similar), you can specify to export as **`CSV UTF-8`**.
+   If you encounter an error, mentioning a `"/ueff..."` tag in a CSV file, it is solved by converting the CSV to UTF-8.
