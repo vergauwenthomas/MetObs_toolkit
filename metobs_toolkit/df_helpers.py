@@ -177,7 +177,7 @@ def value_labeled_doubleidxdf_to_triple_idxdf(
     # get all values in triple index form
     values = (
         df[present_obstypes]
-        .stack(dropna=False, future_stack=False)
+        .stack(future_stack=True)
         .reset_index()
         .rename(columns={"level_2": "obstype", 0: value_col_name})
         .set_index(["name", "datetime", "obstype"])
@@ -411,7 +411,7 @@ def get_likely_frequency(
         pd.to_timedelta(max_simplify_error)
     except ValueError:
         sys.exit(
-            f'{max_simplify_error} is not valid timeindication. Example: "5T" indicates 5 minutes.'
+            f'{max_simplify_error} is not valid timeindication. Example: "5min" indicates 5 minutes.'
         )
 
     freqs_blacklist = [pd.Timedelta(0), np.nan]  # avoid a zero frequency

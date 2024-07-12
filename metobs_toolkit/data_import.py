@@ -459,7 +459,7 @@ def import_data_from_csv(
         # check if there is a column indicating the name of the station that is mapped
         assumed_name_col = list(template._get_data_name_map().keys())[0]
         if assumed_name_col is None:
-            df["_dummy_name_column"] = "_dummy_station"
+            df["_dummy_name_column"] = template._get_single_station_default_name()
             # add it to the template
             template._set_dataname("_dummy_name_column")
 

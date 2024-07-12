@@ -217,7 +217,7 @@ dataset.update_settings(
 
 
 dataset.import_data_from_file()
-dataset.coarsen_time_resolution(freq="30T")
+dataset.coarsen_time_resolution(freq="30min")
 
 
 # offline mode

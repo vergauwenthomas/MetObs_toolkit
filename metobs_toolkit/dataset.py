@@ -3400,7 +3400,7 @@ class Dataset(_DatasetBase):
 
         # to tripple index
         df = (
-            df.stack(dropna=False, future_stack=False)
+            df.stack(future_stack=True)
             .reset_index()
             .rename(columns={"level_2": "obstype", 0: "value"})
             .set_index(["name", "datetime", "obstype"])
@@ -3442,7 +3442,7 @@ class Dataset(_DatasetBase):
 
         gapsdf = pd.DataFrame(index=gapsidx, columns=present_obstypes)
         gapsdf = (
-            gapsdf.stack(dropna=False, future_stack=False)
+            gapsdf.stack(future_stack=True)
             .reset_index()
             .rename(columns={"level_2": "obstype", 0: "value"})
             .set_index(["name", "datetime", "obstype"])
@@ -3477,7 +3477,7 @@ class Dataset(_DatasetBase):
         missingdf = pd.DataFrame(index=missingidx, columns=present_obstypes)
 
         missingdf = (
-            missingdf.stack(dropna=False, future_stack=False)
+            missingdf.stack(future_stack=True)
             .reset_index()
             .rename(columns={"level_2": "obstype", 0: "value"})
             .set_index(["name", "datetime", "obstype"])
@@ -3985,10 +3985,6 @@ class Dataset(_DatasetBase):
 
     def import_data_from_file(
         self,
-        # long_format=None,
-        # obstype=None,
-        # obstype_unit=None,
-        # obstype_description=None,
         freq_estimation_method=None,
         freq_estimation_simplify=None,
         freq_estimation_simplify_error=None,
@@ -4003,14 +3999,10 @@ class Dataset(_DatasetBase):
 
         If the metadata is stored in a seperate file, and the
         Settings.input_metadata_file is correct, than this metadata is also
-        imported (if a suitable template is in the Settings.template_list.)
+        imported.
 
-        The dataset is by default assumed to be in long-format (each column represent an observation type, one column indicates the stationname).
-        Wide-format can be used if
+        The input data (and metadata) are interpreted by using a template.
 
-        - the 'wide' option is present in the template (this is done automatically if the themplate was made using the metobs_toolkit.build_template_prompt())
-
-        - 'long_format' is set to False and if the observation type is specified (obstype, obstype_unit and obstype_description)
 
         An estimation of the observational frequency is made per station. This is used
         to find missing observations and gaps.
@@ -4025,19 +4017,6 @@ class Dataset(_DatasetBase):
 
         Parameters
         ----------
-        # long_format : bool, optional
-        #     True if the inputdata has a long-format, False if it has a
-        #     wide-format. The default is None and then the value in the template is used.
-        # obstype : str, optional
-        #     If the dataformat is wide, specify which observation type the
-        #     observations represent. The obstype should be an element of
-        #     metobs_toolkit.observation_types. The default is None.
-        # obstype_unit : str, optional
-        #     If the dataformat is wide, specify the unit of the obstype. The
-        #     default is None.
-        # obstype_description : str, optional
-        #     If the dataformat is wide, specify the description of the obstype.
-        #     The default is None.
         freq_estimation_method : 'highest' or 'median', optional
             Select wich method to use for the frequency estimation. If
             'highest', the highest apearing frequency is used. If 'median', the
@@ -4110,17 +4089,6 @@ class Dataset(_DatasetBase):
                 "freq_estimation_simplify_error"
             ]
 
-        # # check if obstype is valid
-        # if obstype is not None:
-        #     assert obstype in list(
-        #         self.obstypes.keys()
-        #     ), f"{obstype} is not a known observation type. Use one of the default, or add a new to the defaults: {tlk_obstypes.keys()}."
-
-        #     # check if unit is known
-        #     known_bool = self.obstypes[obstype].test_if_unit_is_known(str(obstype_unit))
-        #     assert (
-        #         known_bool
-        #     ), f"{obstype_unit} is not a known unit of {self.obstypes[obstype]}"
         assert (
             self.settings.templates["template_file"] is not None
         ), "No templatefile is specified."
@@ -4129,15 +4097,6 @@ class Dataset(_DatasetBase):
         self.template.read_template_from_file(
             jsonpath=self.settings.templates["template_file"]
         )
-
-        # # Kwargs of this method overwrite settings in the template file.
-        # self.template._overwrite_data_format(long_fmt=long_format)
-        # if not self.template._is_data_long():
-        #     self.template._set_wide_obstype(
-        #         obstypename=obstype,
-        #         obstype_unit=obstype_unit,
-        #         obstype_descr=obstype_description,
-        #     )
 
         # overload the timezone from template to the settings
         if not self.template._get_tz() is None:
@@ -4150,10 +4109,6 @@ class Dataset(_DatasetBase):
         df = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
             template=self.template,
-            # long_format=long_format,
-            # obstype=obstype,  # only relevant in wide format
-            # obstype_units=obstype_unit,  # only relevant in wide format
-            # obstype_description=obstype_description,  # only relevant in wide format
             known_obstypes=list(self.obstypes.keys()),
             kwargs_data_read=kwargs_data_read,
         )
@@ -4178,11 +4133,11 @@ class Dataset(_DatasetBase):
                     no metadata attributes can be set!"
             )
 
-            # if no metadata is given, and no stationname found, assume one station
-            # with default name
-            if self.template._is_data_single_station():
-                # rename the singel station by the settings default
-                df["name"] = str(self.settings.app["default_name"])
+            # # if no metadata is given, and no stationname found, assume one station
+            # # with default name
+            # if self.template._is_data_single_station():
+            #     # rename the singel station by the settings default
+            #     df["name"] = str(self.settings.app["default_name"])
         #             if "name" not in df.columns:
         #                 logger.warning(
         #                     f'No station names find in the observations! Assume the dataset is for ONE\
@@ -4220,10 +4175,6 @@ class Dataset(_DatasetBase):
                         f'Assume the dataset is for ONE station with the \
                         default name: {self.settings.app["default_name"]}.'
                     )
-
-            # make sure name column in metadata and data have the same type for merging
-            # df["name"] = df["name"].astype(str)
-            # meta_df["name"] = meta_df["name"].astype(str)
 
             # merge additional metadata to observations
             logger.debug(f"Head of data file, before merge: {df.head()}")

@@ -29,7 +29,7 @@ testdata = {
         "metadatafile": metobs_toolkit.demo_metadatafile,
         "template": metobs_toolkit.demo_template,
         # "kwargs": {},
-        "coarsen": "20T",
+        "coarsen": "20min",
     },
     # paper dataset (based on the demo dataset)
     "paper_dataset": {
@@ -37,7 +37,7 @@ testdata = {
         "metadatafile": join(test_data_dir, "paper_dataset", "metadatafile.csv"),
         "template": join(test_data_dir, "paper_dataset", "paper_dataset_template.json"),
         # "kwargs": {},
-        "coarsen": "20T",
+        "coarsen": "20min",
     },
     # wide test dataset
     "debug_wide": {
@@ -45,7 +45,7 @@ testdata = {
         "metadatafile": join(test_data_dir, "debug_wide_metadata.csv"),
         "template": join(test_data_dir, "debug_wide_template.json"),
         # "kwargs": {"long_format": False, "obstype": "temp"},
-        "coarsen": "20T",
+        "coarsen": "20min",
     },
     # Single station dataset
     "single_station": {
@@ -53,7 +53,7 @@ testdata = {
         "metadatafile": join(test_data_dir, "single_station_metadata.csv"),
         "template": join(test_data_dir, "single_station_template.json"),
         # "kwargs": {"long_format": False, "obstype": "temp"},
-        "coarsen": "20T",
+        "coarsen": "20min",
     },
     # breaking
     "breaking data": {
@@ -61,7 +61,7 @@ testdata = {
         "metadatafile": None,
         "template": join(test_data_dir, "template_breaking.json"),
         # "kwargs": {},
-        "coarsen": "60T",
+        "coarsen": "60min",
     },
     # Kobe congo (single station)
     "Congo_single_station": {
@@ -75,7 +75,7 @@ testdata = {
             test_data_dir, "testdata_testday", "Kobe", "kongo_template.json"
         ),
         # "kwargs": {},
-        "coarsen": "60T",
+        "coarsen": "60min",
     },
     # Single Netatmo station Sara
     "single_netatmo_sara_station": {
@@ -95,7 +95,7 @@ testdata = {
             test_data_dir, "testdata_testday", "Sara", "sara_template.json"
         ),
         # "kwargs": {"freq_estimation_method": "median"},
-        "coarsen": "60T",
+        "coarsen": "60min",
     },
     # Vlinders 2022
     "vlindergent2022": {
@@ -109,7 +109,7 @@ testdata = {
             test_data_dir, "testdata_testday", "Sara", "vlinders22_template.json"
         ),
         # "kwargs": {"freq_estimation_method": "median"},
-        "coarsen": "60T",
+        "coarsen": "60min",
     },
     # amsterdam
     "amsterdam": {
@@ -129,6 +129,6 @@ testdata = {
             test_data_dir, "testdata_testday", "amsterdam", "amsterdam_template.json"
         ),
         # "kwargs": {},
-        "coarsen": "60T",
+        "coarsen": "60min",
     },
 }

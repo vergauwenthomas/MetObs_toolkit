@@ -20,11 +20,11 @@ rm ${DISTDIR}/*.tar.gz
 #2. Update the dependencies in the  toml
 
 # Toolkit dependencies
-
+poetry add numpy@^1 #v2.x.x conflicting with titanlib
 poetry add cartopy@latest
 poetry add earthengine-api@latest
 poetry add geemap@latest
-poetry add geopandas@latest
+poetry add geopandas@^0
 poetry add geos@latest
 poetry add mapclassify@latest
 poetry add matplotlib@latest
@@ -35,7 +35,6 @@ poetry add shapely@latest
 # Toolkit DEV group
 poetry add poetry@latest --group dev
 poetry add pre-commit@latest --group dev
-
 
 # Toolkit documentation group
 poetry add myst_parser@latest --group documentation

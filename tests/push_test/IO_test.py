@@ -90,7 +90,7 @@ assert dataset.df.shape == (597, 1), "Shape of unsynced widedata is not correct.
 # %% Test syncronizing wide
 
 # Sycnronize data
-test = dataset.sync_observations(tolerance="5T", verbose=True)
+test = dataset.sync_observations(tolerance="5min", verbose=True)
 
 
 assert dataset.df.shape == (182, 1), "Shape after syncronizing widedata is not correct."

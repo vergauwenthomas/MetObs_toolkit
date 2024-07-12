@@ -54,7 +54,7 @@ def IO_test(dataset, name):
             print(f"{file_path} not found.")
 
     # Sycnronize data
-    test = dataset.sync_observations(tolerance="5T")
+    test = dataset.sync_observations(tolerance="5min")
 
     # pickel test
     outfolder = os.path.join(str(lib_folder), "tests", "test_data")
