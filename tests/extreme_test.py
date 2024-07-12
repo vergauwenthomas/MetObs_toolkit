@@ -30,7 +30,7 @@ def read_in_the_dataset(dataname, testdatadict):
     datafile = testdatadict[dataname]["datafile"]
     metafile = testdatadict[dataname]["metadatafile"]
     template = testdatadict[dataname]["template"]
-    kwargsdict = testdatadict[dataname]["kwargs"]
+    # kwargsdict = testdatadict[dataname]["kwargs"]
 
     dataset = metobs_toolkit.Dataset()
     dataset.update_settings(
@@ -39,7 +39,7 @@ def read_in_the_dataset(dataname, testdatadict):
         template_file=template,
     )
 
-    dataset.import_data_from_file(**kwargsdict)
+    dataset.import_data_from_file()
     return dataset
 
 
@@ -210,7 +210,7 @@ for name in testdata:
     print(f"\n ************ {name} *************\n")
     dataset = read_in_the_dataset(name, testdata)
     print(f"Initial df shape: {dataset.df.shape}")
-    # dataset.coarsen_time_resolution(freq=testdata[name]["coarsen"])
+    dataset.coarsen_time_resolution(freq=testdata[name]["coarsen"])
     # print(f"after coarsening df shape: {dataset.df.shape}")
     # qc_testing(dataset, name)
     # plot_testing(dataset, name)

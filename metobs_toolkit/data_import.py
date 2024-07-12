@@ -353,7 +353,13 @@ def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
     # 5. subset to relevant columns (name + datetime + all_obstypes_in_tlk_space)
     relev_columns = ["name"]
     relev_columns.extend(list(metacolmap.values()))
-    df = df[list(set(relev_columns))]
+    try:
+        df = df[list(set(relev_columns))]
+    except KeyError as e:
+        raise MetobsDataImportError(
+            "The template refers to columns not present in the metadata file."
+        )
+
     # make shure the names are strings
     df["name"] = df["name"].astype(str)
 

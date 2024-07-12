@@ -554,9 +554,14 @@ def _create_datetime_column(df, template):
                 f'The {template.timestampinfo["datetimecolumn"]} is not found in the columns of the data file: {df.columns}'
             )
         df = df.rename(columns={template.timestampinfo["datetimecolumn"]: "datetime"})
-        df["datetime"] = pd.to_datetime(
-            df["datetime"], format=template.timestampinfo["fmt"]
-        )
+        try:
+            df["datetime"] = pd.to_datetime(
+                df["datetime"], format=template.timestampinfo["fmt"]
+            )
+        except Exception as e:
+            raise MetobsTemplateError(
+                "The timestamps could not be converted to datetimes, check the timestamp format(s) in your template."
+            )
 
     else:
         # by date and time column
