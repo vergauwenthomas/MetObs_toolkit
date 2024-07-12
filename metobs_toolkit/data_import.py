@@ -338,7 +338,13 @@ def import_metadata_from_csv(input_file, template, kwargs_metadata_read):
     df.rename(columns=blacklist_remapper, inplace=True)
 
     # 3. map the name column
-    df.rename(columns=template._get_metadata_name_map(), inplace=True)
+    # If single stations, AND name column is None (not mapped), then add name column with default name
+    if (template._is_data_single_station()) & (
+        template.metadata_namemap["name"] is None
+    ):
+        df["name"] = template.single_station_name
+    else:
+        df.rename(columns=template._get_metadata_name_map(), inplace=True)
 
     # 4. map all observation column names
     metacolmap = template._get_metadata_column_map()
@@ -463,7 +469,12 @@ def import_data_from_csv(
     df.rename(columns=template._get_obs_column_map(), inplace=True)
 
     # 5. subset to relevant columns (name + datetime + all_obstypes_in_tlk_space)
-    df = df[template._get_all_mapped_data_cols_in_tlk_space()]
+    try:
+        df = df[template._get_all_mapped_data_cols_in_tlk_space()]
+    except Exception as e:
+        raise MetobsDataImportError(
+            "Template-Datafile mismatch (template refers to non-existing column in the dataset)."
+        )
 
     # 6.. Set index
     df.set_index("datetime", inplace=True)
@@ -477,6 +488,17 @@ def import_data_from_csv(
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     return df
+
+
+# =============================================================================
+# Exceptions
+# =============================================================================
+
+
+class MetobsDataImportError(Exception):
+    """Exception raised for errors on importing Data."""
+
+    pass
 
     # # 2. Read template
     # invtemplate = template_to_package_space(template)

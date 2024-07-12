@@ -35,7 +35,7 @@ testdata = {
     "paper_dataset": {
         "datafile": join(test_data_dir, "paper_dataset", "datafile.csv"),
         "metadatafile": join(test_data_dir, "paper_dataset", "metadatafile.csv"),
-        "template": join(test_data_dir, "paper_dataset", "templatefile.csv"),
+        "template": join(test_data_dir, "paper_dataset", "paper_dataset_template.json"),
         "kwargs": {},
         "coarsen": "20T",
     },
@@ -43,23 +43,23 @@ testdata = {
     "debug_wide": {
         "datafile": join(test_data_dir, "debug_wide.csv"),
         "metadatafile": join(test_data_dir, "debug_wide_metadata.csv"),
-        "template": join(test_data_dir, "debug_wide_template.csv"),
-        "kwargs": {"long_format": False, "obstype": "temp"},
+        "template": join(test_data_dir, "debug_wide_template.json"),
+        # "kwargs": {"long_format": False, "obstype": "temp"},
         "coarsen": "20T",
     },
     # Single station dataset
     "single_station": {
         "datafile": join(test_data_dir, "single_station.csv"),
         "metadatafile": join(test_data_dir, "single_station_metadata.csv"),
-        "template": join(test_data_dir, "single_station_template.csv"),
-        "kwargs": {"long_format": False, "obstype": "temp"},
+        "template": join(test_data_dir, "single_station_template.json"),
+        # "kwargs": {"long_format": False, "obstype": "temp"},
         "coarsen": "20T",
     },
     # breaking
     "breaking data": {
         "datafile": join(test_data_dir, "testdata_breaking.csv"),
         "metadatafile": None,
-        "template": join(test_data_dir, "template_breaking.csv"),
+        "template": join(test_data_dir, "template_breaking.json"),
         "kwargs": {},
         "coarsen": "60T",
     },
@@ -72,7 +72,7 @@ testdata = {
             test_data_dir, "testdata_testday", "Kobe", "CONGO_meta.csv"
         ),
         "template": join(
-            test_data_dir, "testdata_testday", "Kobe", "CONGO_template.csv"
+            test_data_dir, "testdata_testday", "Kobe", "kongo_template.json"
         ),
         "kwargs": {},
         "coarsen": "60T",
@@ -92,7 +92,7 @@ testdata = {
             "metadata_Outdoor_module_Netatmo_Sara_new.csv",
         ),
         "template": join(
-            test_data_dir, "testdata_testday", "Sara", "template_sara.csv"
+            test_data_dir, "testdata_testday", "Sara", "sara_template.json"
         ),
         "kwargs": {"freq_estimation_method": "median"},
         "coarsen": "60T",

@@ -451,10 +451,18 @@ def build_template_prompt(debug=False):
         metacolumnnames = metadata.columns.to_list()
 
         # map the required columns (name)
-        print("Which column does represent the NAMES of the stations?")
-        name_column = col_option_input(metacolumnnames)
-        tmpl_dict["metadata_related"]["name_column"] = name_column
-        metacolumnnames.remove(name_column)
+
+        # if multiple stations are in the dataset, this column is required
+        if format_option != 3:
+            print("Which column does represent the NAMES of the stations?")
+            name_column = col_option_input(metacolumnnames)
+            tmpl_dict["metadata_related"]["name_column"] = name_column
+            metacolumnnames.remove(name_column)
+
+        # if the data is a single station, this column is ignored
+        else:
+            staname = input("\n What is the name of your station : ")
+            tmpl_dict["single_station_name"] = staname
 
         # map columns that are used by the toolit (lat, lon)
         with_coords = yes_no_ques(
@@ -729,13 +737,13 @@ def build_template_prompt(debug=False):
     # )  # this is why name in data and metadata should have the same mapping !!
 
     print("\n \n *******      Extra options    ***********")
-    if (tmpl_dict["data_related"]["structure"] == "single_station") & (
-        tmpl_dict["metadata_related"]["name_column"] is None
-    ):
+    # if (tmpl_dict["data_related"]["structure"] == "single_station") & (
+    #     tmpl_dict["metadata_related"]["name_column"] is None
+    # ):
 
-        # single station with no name information
-        staname = input("\n What is the name of your station : ")
-        tmpl_dict["single_station_name"] = staname
+    #     # single station with no name information
+    #     staname = input("\n What is the name of your station : ")
+    #     tmpl_dict["single_station_name"] = staname
 
     tzchange = yes_no_ques("\n Are the timestamps in UTC?")
     if tzchange is False:

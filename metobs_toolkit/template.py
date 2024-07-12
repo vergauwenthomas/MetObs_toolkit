@@ -67,7 +67,7 @@ def _get_empty_templ_dict():
             "columns_to_include": [],
         },
         # extra settings
-        "single_station_name": None,
+        "single_station_name": "dummy_station_name",
     }
     return templ_dict
 
@@ -98,7 +98,10 @@ class Template:
         self.dataformat = (
             "long"  # long or wide (single station is converted to long on import)
         )
+
+        # For single stations data
         self.data_is_single_station = False  # datafmt is assumed to be long, but name column is not required in the data
+        self.single_station_name = None
 
         self.timestampinfo = {
             "datetimecolumn": None,
@@ -124,7 +127,10 @@ class Template:
         print(
             f" * {'name column (data)'.ljust(key_len)} <---> {str(self.data_namemap['name'])}"
         )
-        print(f" * {'single station name'.ljust(key_len)} <---> {'NOG TE FIXE?'}")
+        if self.data_is_single_station:
+            print(
+                f" * {'single station name'.ljust(key_len)} <---> {self.single_station_name}"
+            )
 
         print("\n------ Data timestamp map ---------")
         for key, val in self.timestampinfo.items():
@@ -368,26 +374,30 @@ class Template:
         # check datetime
         self._check_if_datetime_is_mapped()
         if self.timestampinfo["datetimecolumn"] is not None:
-            assert (
-                self.timestampinfo["datetimecolumn"] in datacolumns
-            ), f'The column {self.timestampinfo["datetimecolumn"]} is incorrectly mapped in the template as the "datetime" column. The template is therefore not valid with the data.'
+            if not (self.timestampinfo["datetimecolumn"] in datacolumns):
+                raise MetobsTemplateError(
+                    f'The column {self.timestampinfo["datetimecolumn"]} is incorrectly mapped in the template as the "datetime" column. The template is therefore not valid with the data.'
+                )
 
         if self.timestampinfo["time_column"] is not None:
-            assert (
-                self.timestampinfo["time_column"] in datacolumns
-            ), f'The column {self.timestampinfo["time_column"]} is incorrectly mapped in the template as the "_time" column. The template is therefore not valid with the data.'
+            if not (self.timestampinfo["time_column"] in datacolumns):
+                raise MetobsTemplateError(
+                    f'The column {self.timestampinfo["time_column"]} is incorrectly mapped in the template as the "_time" column. The template is therefore not valid with the data.'
+                )
 
         if self.timestampinfo["date_column"] is not None:
-            assert (
-                self.timestampinfo["date_column"] in datacolumns
-            ), f'The column {self.timestampinfo["date_column"]} is incorrectly mapped in the template as the "_date" column. The template is therefore not valid with the data.'
+            if not (self.timestampinfo["date_column"] in datacolumns):
+                raise MetobsTemplateError(
+                    f'The column {self.timestampinfo["date_column"]} is incorrectly mapped in the template as the "_date" column. The template is therefore not valid with the data.'
+                )
 
         if self._is_data_long():
             # check name column
             if not self._is_data_single_station():
-                assert (
-                    self.data_namemap["name"] in datacolumns
-                ), f'The column {self.data_namemap["name"]} is not (or incorrectly) mapped in the template as the "name" column. The template is therefore not valid with the data.'
+                if not (self.data_namemap["name"] in datacolumns):
+                    raise MetobsTemplateError(
+                        f'The column {self.data_namemap["name"]} is not (or incorrectly) mapped in the template as the "name" column. The template is therefore not valid with the data.'
+                    )
 
             # check of templates has obstypes not present in the data
             for mapped_obscol in self.obscolumnmap.values():
@@ -417,10 +427,12 @@ class Template:
     def _metadata_template_compatibility_test(self, metadatacolumns):
         """Check the compatibility of the template and the columns of the metadata"""
 
-        # check name column
-        assert (
-            self.metadata_namemap["name"] in metadatacolumns
-        ), f'The column {self.metadata_namemap["name"]} is not (or incorrectly) mapped in the template as the "name" column. The template is therefore not valid with the metadata.'
+        # check name column (must be present if multiple station are in the data)
+        if not self._is_data_single_station():
+            if not (self.metadata_namemap["name"] in metadatacolumns):
+                raise MetobsTemplateError(
+                    f'The column {self.metadata_namemap["name"]} is not (or incorrectly) mapped in the template as the "name" column. The template is therefore not valid with the metadata.'
+                )
 
         # check if templates contains mapped columns not present in the metadata
         for mapped_col in self.metacolmapname.values():
@@ -490,7 +502,8 @@ class Template:
 
     def read_template_from_file(self, jsonpath):
 
-        assert str(jsonpath).endswith(".json"), f"{jsonpath}, is not a json file."
+        if not str(jsonpath).endswith(".json"):
+            raise MetobsTemplateError(f"{jsonpath}, is not a json file.")
 
         with open(jsonpath, "r") as f:
             tml_dict = json.load(f)
@@ -499,6 +512,7 @@ class Template:
         self.data_namemap = {"name": tml_dict["data_related"]["name_column"]}
         self.metadata_namemap = {"name": tml_dict["metadata_related"]["name_column"]}
         self._set_dataformat(tml_dict["data_related"]["structure"])
+        self.single_station_name = str(tml_dict["single_station_name"])
 
         if tml_dict["data_related"]["timestamp"]["datetime_column"] is None:
             dt_fmt = f'{tml_dict["data_related"]["timestamp"]["date_fmt"]} {tml_dict["data_related"]["timestamp"]["time_fmt"]}'
@@ -535,9 +549,10 @@ def _create_datetime_column(df, template):
     template._check_if_datetime_is_mapped()
 
     if template.timestampinfo["datetimecolumn"] is not None:
-        assert (
-            template.timestampinfo["datetimecolumn"] in df.columns
-        ), f'The {template.timestampinfo["datetimecolumn"]} is not found in the columns of the data file: {df.columns}'
+        if not (template.timestampinfo["datetimecolumn"] in df.columns):
+            raise MetobsTemplateError(
+                f'The {template.timestampinfo["datetimecolumn"]} is not found in the columns of the data file: {df.columns}'
+            )
         df = df.rename(columns={template.timestampinfo["datetimecolumn"]: "datetime"})
         df["datetime"] = pd.to_datetime(
             df["datetime"], format=template.timestampinfo["fmt"]
@@ -545,24 +560,45 @@ def _create_datetime_column(df, template):
 
     else:
         # by date and time column
-        assert (
-            template.timestampinfo["time_column"] in df.columns
-        ), f'The {template.timestampinfo["time_column"]} is not found in the columns of the data file: {df.columns}'
-        assert (
-            template.timestampinfo["date_column"] in df.columns
-        ), f'The {template.timestampinfo["date_column"]} is not found in the columns of the data file: {df.columns}'
+        if not (template.timestampinfo["time_column"] in df.columns):
+            raise MetobsTemplateError(
+                f'The {template.timestampinfo["time_column"]} is not found in the columns of the data file: {df.columns}'
+            )
+        if not (template.timestampinfo["date_column"] in df.columns):
+            raise MetobsTemplateError(
+                f'The {template.timestampinfo["date_column"]} is not found in the columns of the data file: {df.columns}'
+            )
+
         df = df.rename(
             columns={
                 template.timestampinfo["time_column"]: "_time",
                 template.timestampinfo["date_column"]: "_date",
             }
         )
-        df["datetime"] = pd.to_datetime(
-            df["_date"] + " " + df["_time"], format=template.timestampinfo["fmt"]
-        )
+        try:
+            df["datetime"] = pd.to_datetime(
+                df["_date"] + " " + df["_time"], format=template.timestampinfo["fmt"]
+            )
+
+        except Exception as e:
+            raise MetobsTemplateError(
+                "The timestamps could not be converted to datetimes, check the timestamp format(s) in your template."
+            )
+            # raise Exception('The timestamps could not be converted to datetimes, check the timestamp format(s) in your template. \n').with_traceback(e.__traceback__)
 
         df = df.drop(columns=["_date", "_time"])
     return df
+
+
+# =============================================================================
+# Exceptions
+# =============================================================================
+
+
+class MetobsTemplateError(Exception):
+    """Exception raised for errors in the template."""
+
+    pass
 
 
 # def read_csv_template(file, known_obstypes, data_long_format=True):
