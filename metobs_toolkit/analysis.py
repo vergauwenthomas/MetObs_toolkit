@@ -336,13 +336,6 @@ class Analysis(_DatasetBase):
         ), f"{obstype} is not a known observation type: \n {self.obstypes}"
         Obstype = self.obstypes[obstype]
 
-        # desc_dict = self.data_template[obstype].to_dict()
-
-        # if "description" not in desc_dict:
-        #     desc_dict["description"] = obstype
-        # if not isinstance(desc_dict["description"], str):
-        #     desc_dict["description"] = obstype
-
         if title is None:
             title = f"Anual {Obstype.name} cycle plot per {groupby}."
         else:
@@ -431,12 +424,6 @@ class Analysis(_DatasetBase):
             obstype in self.obstypes
         ), f"{obstype} is not a known observation type: \n {self.obstypes}"
         Obstype = self.obstypes[obstype]
-        # desc_dict = self.data_template[obstype].to_dict()
-
-        # if "description" not in desc_dict:
-        #     desc_dict["description"] = obstype
-        # if not isinstance(desc_dict["description"], str):
-        #     desc_dict["description"] = obstype
 
         if title is None:
             if startdt is None:

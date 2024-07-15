@@ -32,7 +32,7 @@ class Settings:
         self.qc = {}
         self.gap = {}
         self.missing_obs = {}
-        self.templates = {"template_file": None}
+        self.templatefile = None  # filepath
         self.gee = {}
         self.IO = {
             "output_folder": None,
@@ -230,7 +230,7 @@ class Settings:
         input_metadata_file : str, optional
             Path to the input metadata file, defaults to None
         template_file : str, optional
-            Path to the mapper-template csv file to be used on the observations
+            Path to the mapper-template json file to be used on the observations
             and metadata. If not given, the default template is used. The
             default is None.
 
@@ -261,9 +261,9 @@ class Settings:
 
         if not isinstance(template_file, type(None)):
             logger.info(
-                f'Update template file:  {self.templates["template_file"]}  -->  {template_file}'
+                f"Update template file:  {self.templatefile}  -->  {template_file}"
             )
-            self.templates["template_file"] = template_file
+            self.templatefile = str(template_file)
 
     # =============================================================================
     #     Check settings
@@ -291,7 +291,7 @@ class Settings:
             "qc",
             "gap",
             "missing_obs",
-            "templates",
+            "templatefile",
             "gee",
         ]
 
@@ -303,13 +303,20 @@ class Settings:
         for theme in attr_list:
             print(f" ---------------- {theme} (settings) ----------------------\n")
             printdict = getattr(self, theme)
-            for key1, item1 in printdict.items():
-                print(f"* {key1}: \n")
-                if isinstance(item1, type({})):
-                    # nested dict level 1
-                    for key2, item2 in item1.items():
-                        print(f"  - {key2}: \n")
-                        print(f"    -{item2} \n")
-                else:
-                    # not nested
-                    print(f"  -{item1} \n")
+
+            # if attribute is a dict
+            if isinstance(printdict, dict):
+                for key1, item1 in printdict.items():
+                    print(f"* {key1}: \n")
+                    if isinstance(item1, type({})):
+                        # nested dict level 1
+                        for key2, item2 in item1.items():
+                            print(f"  - {key2}: \n")
+                            print(f"    -{item2} \n")
+                    else:
+                        # not nested
+                        print(f"  -{item1} \n")
+            elif isinstance(printdict, str):
+                print(printdict)
+            else:
+                continue

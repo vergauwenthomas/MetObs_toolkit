@@ -115,11 +115,40 @@ class Template:
         # Not activaly used attributes
         self.filepath = None
 
+    def show(self):
+        """
+        Prints out an overview of Template.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        self.get_info()
+
     def get_info(self):
+        """
+        Prints out an overview of Template.
+
+        Returns
+        -------
+        None.
+
+        """
+
         key_len = 15
         print("------ Data obstypes map ---------")
         for key, val in self.obscolumnmap.items():
             print(f" * {key.ljust(key_len)} <---> {str(val).ljust(key_len)}")
+            print(f'     (raw data in {self.obsdetails[key]["unit"]})')
+            descr = self.obsdetails[key]["description"]
+            if len(descr) > 30:
+                print(f"     (description: {descr[:30]} ...)")
+            else:
+                print(f"     (description: {descr})")
+
+            print("")
 
         print("\n------ Data extra mapping info ---------")
 
@@ -230,6 +259,9 @@ class Template:
     # Validity checkers
     # =============================================================================
     def _check_if_datetime_is_mapped(self):
+        """
+        Test if the required template details are present to construct a timestamp column.
+        """
         ts_info = self.timestampinfo
         # situation 1:  datetime column is present
         if ts_info["datetimecolumn"] is not None:
@@ -391,6 +423,7 @@ class Template:
     # =============================================================================
 
     def read_template_from_file(self, jsonpath):
+        """Read the templatefile (json), and update the attributes of this Template."""
 
         if not str(jsonpath).endswith(".json"):
             raise MetobsTemplateError(f"{jsonpath}, is not a json file.")

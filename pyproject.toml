@@ -31,8 +31,8 @@ version = "0.2.1"
 cartopy = "^0.23.0"
 # cartopy = '^0.21.1'
 earthengine-api = "^0.1.411"
-geemap = "^0.32.1"
-geopandas = "^0"
+geemap = "^0.33.0"
+geopandas = "^1.0.1"
 geos = "^0.2.3"
 # geos = '^3.7'
 mapclassify = "^2.7.0"
@@ -43,7 +43,7 @@ pandas = "^2"
 # pygeos = "^0.14"
 # pyproj = "~3.4"
 python = "^3.9"
-shapely = "^2.0.4"
+shapely = "^2.0.5"
 
 [tool.poetry.group.dev.dependencies]
 jedi = "^0.19"
@@ -58,7 +58,7 @@ pandoc = "^2.3"  # Check on PyPi (not in local conda env) + with system wide ins
 # sphinx-rtd-theme = '^1.3.0'
 pydata-sphinx-theme = "^0.15.4"
 # Group of dep packages for building the documentation
-sphinx = "^7.3.7"
+sphinx = "^7.4.3"
 sphinx-copybutton = "^0.5.2"
 sphinx-rtd-theme = "^2.0.0"
 

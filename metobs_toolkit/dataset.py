@@ -18,11 +18,7 @@ import numpy as np
 import pickle
 
 from metobs_toolkit.settings import Settings
-from metobs_toolkit.data_import import (
-    import_data_from_csv,
-    import_metadata_from_csv,
-    # read_csv_template,
-)
+from metobs_toolkit.data_import import import_data_from_csv, import_metadata_from_csv
 from metobs_toolkit.template import Template
 
 from metobs_toolkit.printing import print_dataset_info
@@ -117,9 +113,6 @@ class Dataset(_DatasetBase):
 
         _DatasetBase.__init__(self)  # holds df, metadf, obstypes and settings
 
-        # Dataset with 'good' observations
-        # self.df = pd.DataFrame()
-
         # Dataset with outlier observations
         self.outliersdf = init_triple_multiindexdf()
 
@@ -129,12 +122,6 @@ class Dataset(_DatasetBase):
         self.gapfilldf = init_multiindexdf()
         self.missing_fill_df = init_multiindexdf()
 
-        # Dataset with metadata (static)
-        # self.metadf = pd.DataFrame()
-
-        # dictionary storing present observationtypes
-        # self.obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
-
         # Template for mapping data and metadata
         self.template = Template()
 
@@ -143,8 +130,6 @@ class Dataset(_DatasetBase):
 
         self._applied_qc = pd.DataFrame(columns=["obstype", "checkname"])
         self._qc_checked_obstypes = []  # list with qc-checked obstypes
-
-        # self.settings = copy.deepcopy(Settings())
 
     def __str__(self):
         """Represent as text."""
@@ -1242,7 +1227,6 @@ class Dataset(_DatasetBase):
             categorical_fields=self.settings.app["categorical_fields"],
             static_fields=self.settings.app["static_fields"],
             display_name_mapper=self.settings.app["display_name_mapper"],
-            # data_template=self.data_template,
             boundbox=boundbox,
         )
 
@@ -3985,6 +3969,9 @@ class Dataset(_DatasetBase):
 
     def import_data_from_file(
         self,
+        input_data_file=None,
+        input_metadata_file=None,
+        template_file=None,
         freq_estimation_method=None,
         freq_estimation_simplify=None,
         freq_estimation_simplify_error=None,
@@ -3993,20 +3980,15 @@ class Dataset(_DatasetBase):
     ):
         """Read observations from a csv file.
 
-        The paths are defined in the Settings.input_file. The input file
-        columns should have a template that is stored in
-        Settings.template_list.
+        The paths (data, metadata and template) are stored in the settings if
+        Dataset.update_settings() is called on this object. These paths can be
+        updated by adding them as argument to this method.
 
-        If the metadata is stored in a seperate file, and the
-        Settings.input_metadata_file is correct, than this metadata is also
-        imported.
-
-        The input data (and metadata) are interpreted by using a template.
-
+        The input data (and metadata) are interpreted by using a template
+        (json file).
 
         An estimation of the observational frequency is made per station. This is used
         to find missing observations and gaps.
-
 
         The Dataset attributes are set and the following checks are executed:
                 * Duplicate check
@@ -4017,6 +3999,15 @@ class Dataset(_DatasetBase):
 
         Parameters
         ----------
+        input_data_file : string, optional
+            Path to the input data file with observations. If None, the input
+            data path in the settings is used.
+        input_metadata_file : string, optional
+            Path to the input metadata file. If None, the input metadata path
+            in the settings is used.
+        template_file : string, optional
+            Path to the template (json) file to be used on the observations
+            and metadata. If None, the template path in the settings is used.
         freq_estimation_method : 'highest' or 'median', optional
             Select wich method to use for the frequency estimation. If
             'highest', the highest apearing frequency is used. If 'median', the
@@ -4052,7 +4043,13 @@ class Dataset(_DatasetBase):
         --------
         If options are present in the template, these will have priority over the arguments of this function.
 
-
+        Warning
+        ---------
+        All CSV data files must be in *UTF-8 encoding*. For most CSV files,
+        this condition is already met. To make sure, in Microsoft Excel (or
+        similar), you can specify to export as **`CSV UTF-8`**. If you
+        encounter an error, mentioning a `"/ueff..."` tag in a CSV file, it is
+        often solved by converting the CSV to UTF-8.
 
         Returns
         -------
@@ -4076,6 +4073,14 @@ class Dataset(_DatasetBase):
         """
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
+        # Update paths to the input files, if given.
+        if input_data_file is not None:
+            self.update_settings(input_data_file=input_data_file)
+        if input_metadata_file is not None:
+            self.update_settings(input_metadata_file=input_metadata_file)
+        if template_file is not None:
+            self.update_settings(template_file=template_file)
+
         if freq_estimation_method is None:
             freq_estimation_method = self.settings.time_settings[
                 "freq_estimation_method"
@@ -4089,14 +4094,10 @@ class Dataset(_DatasetBase):
                 "freq_estimation_simplify_error"
             ]
 
-        assert (
-            self.settings.templates["template_file"] is not None
-        ), "No templatefile is specified."
+        assert self.settings.templatefile is not None, "No templatefile is specified."
 
         # Read template
-        self.template.read_template_from_file(
-            jsonpath=self.settings.templates["template_file"]
-        )
+        self.template.read_template_from_file(jsonpath=self.settings.templatefile)
 
         # overload the timezone from template to the settings
         if not self.template._get_tz() is None:
@@ -4132,18 +4133,6 @@ class Dataset(_DatasetBase):
                 "No metadata file is defined,\
                     no metadata attributes can be set!"
             )
-
-            # # if no metadata is given, and no stationname found, assume one station
-            # # with default name
-            # if self.template._is_data_single_station():
-            #     # rename the singel station by the settings default
-            #     df["name"] = str(self.settings.app["default_name"])
-        #             if "name" not in df.columns:
-        #                 logger.warning(
-        #                     f'No station names find in the observations! Assume the dataset is for ONE\
-        # station with the default name: {self.settings.app["default_name"]}.'
-        #                 )
-        #                 df["name"] = str(self.settings.app["default_name"])
 
         else:
             logger.info(
@@ -4198,7 +4187,6 @@ class Dataset(_DatasetBase):
                 df.index = df_index
 
         # update dataset object
-        # self.data_template = pd.DataFrame().from_dict(template)
 
         # Remove stations whith only one observation (no freq estimation)
         station_counts = df["name"].value_counts()

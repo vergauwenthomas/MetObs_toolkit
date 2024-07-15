@@ -38,6 +38,8 @@ dataset.import_data_from_file()
 
 dataset.show()
 
+dataset.template.show()
+
 
 station = dataset.get_station("vlinder02")
 
@@ -77,12 +79,7 @@ dataset.update_settings(
 )
 
 
-dataset.import_data_from_file(
-    # long_format=False,
-    # obstype="temp",
-    # obstype_description="2mT",
-    # obstype_unit="Celcius"
-)
+dataset.import_data_from_file()
 
 assert dataset.df.shape == (597, 1), "Shape of unsynced widedata is not correct."
 
@@ -244,6 +241,7 @@ dataset.update_settings(
 )
 
 dataset.import_data_from_file()
+dataset.template.show()
 
 
 # test if all obstypes are present in the dataset

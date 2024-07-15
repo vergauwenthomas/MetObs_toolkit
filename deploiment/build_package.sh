@@ -18,13 +18,14 @@ rm ${DISTDIR}/*.whl
 rm ${DISTDIR}/*.tar.gz
 
 #2. Update the dependencies in the  toml
+poetry update
 
 # Toolkit dependencies
 poetry add numpy@^1 #v2.x.x conflicting with titanlib
 poetry add cartopy@latest
 poetry add earthengine-api@latest
 poetry add geemap@latest
-poetry add geopandas@^0
+poetry add geopandas@latest
 poetry add geos@latest
 poetry add mapclassify@latest
 poetry add matplotlib@latest
@@ -50,7 +51,7 @@ poetry add titanlib@latest --group titan
 
 
 # 3. update the lock file
-poetry update #to update the poetry.lock with the latest versions of the depending packages
+#poetry update #to update the poetry.lock with the latest versions of the depending packages
 poetry install --all-extras
 poetry show
 

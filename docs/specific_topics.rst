@@ -6,9 +6,9 @@ Specific topics
 .. toctree::
    :maxdepth: 3
 
-   topics/template_mapping
+   notebook_references/template_doc.ipynb
    topics/gee_authentication
-   topics/create_obstypes
+   notebook_references/new_obstypes_doc.ipynb
    topics/irregular_timestamps
    topics/gui
    paper/index

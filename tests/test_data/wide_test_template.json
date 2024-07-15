@@ -26,5 +26,5 @@
         "lon_column": null,
         "columns_to_include": []
     },
-    "single_station_name": null
+    "single_station_name": "dummy_station_name"
 }

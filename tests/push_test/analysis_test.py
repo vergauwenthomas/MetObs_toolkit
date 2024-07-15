@@ -20,23 +20,6 @@ print(str(lib_folder))
 
 # %%
 
-
-# dataset = metobs_toolkit.Dataset()
-# dataset.update_settings(input_data_file=metobs_toolkit.demo_datafile,
-#                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-#                         template_file=metobs_toolkit.demo_template,
-#                         )
-
-
-# dataset.import_data_from_file()
-
-# dataset.get_lcz()
-# dataset.get_landcover()
-
-# dataset.save_dataset(outputfolder=os.path.join(str(lib_folder), "tests", "test_data"),
-#                       filename="tests_dataset.pkl")
-
-
 dataset = metobs_toolkit.Dataset()
 dataset = dataset.import_dataset(
     folder_path=os.path.join(str(lib_folder), "tests", "test_data"),

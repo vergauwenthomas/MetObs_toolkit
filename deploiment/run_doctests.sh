@@ -22,7 +22,9 @@ modules=`ls ./*.py`
 cd ${WORKDIR} #call poetry run from in root?
 for t in $modules; do
         module_file=${WORKDIR}/metobs_toolkit/${t}
-        python3 -m doctest -o ELLIPSIS -o NORMALIZE_WHITESPACE ${module_file} 2>&1 | tee ${LOGDIR}/DOCtest_output_${t:2:-3}_log
+        echo "Running doctests in ${module_file}"
+
+	python3 -m doctest -o ELLIPSIS -o NORMALIZE_WHITESPACE ${module_file} | tee ${LOGDIR}/DOCtest_output_${t:2:-3}_log
 done
 
 rm ${WORKDIR}/*.pkl #created by doctest
