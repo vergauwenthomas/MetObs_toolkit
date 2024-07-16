@@ -1,0 +1,6 @@
+metobs\_toolkit.template.Template.show
+======================================
+
+.. currentmodule:: metobs_toolkit.template
+
+.. automethod:: Template.show

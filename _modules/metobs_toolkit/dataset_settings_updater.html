@@ -1,0 +1,1307 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>metobs_toolkit.dataset_settings_updater &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/metobs_toolkit/dataset_settings_updater';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">metobs_toolk...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for metobs_toolkit.dataset_settings_updater</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Extension of the Dataset class (methods for updating settings).</span>
+<span class="sd">@author: thoverga</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit</span> <span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extension on the metobs_toolkit.Dataset class with updaters.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Dataset.update_settings">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.update_settings.html#metobs_toolkit.Dataset.update_settings">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_settings</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">output_folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">input_data_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">input_metadata_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">template_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the most common input-output (IO) settings.</span>
+
+<span class="sd">        (This should be applied before importing the observations.)</span>
+
+<span class="sd">        When an update value is None, the specific setting will not be updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        output_folder : string, optional</span>
+<span class="sd">            A directory to store the output to. The default is None.</span>
+<span class="sd">        input_data_file : string, optional</span>
+<span class="sd">            Path to the input data file with observations. The default is None.</span>
+<span class="sd">        input_metadata_file : string, optional</span>
+<span class="sd">            Path to the input metadata file. The default is None.</span>
+<span class="sd">        template_file : string, optional</span>
+<span class="sd">            Path to the template (json) file to be used on the observations</span>
+<span class="sd">            and metadata. The default is None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">update_IO</span><span class="p">(</span>
+            <span class="n">output_folder</span><span class="o">=</span><span class="n">output_folder</span><span class="p">,</span>
+            <span class="n">input_data_file</span><span class="o">=</span><span class="n">input_data_file</span><span class="p">,</span>
+            <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">input_metadata_file</span><span class="p">,</span>
+            <span class="n">template_file</span><span class="o">=</span><span class="n">template_file</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.update_timezone">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.update_timezone.html#metobs_toolkit.Dataset.update_timezone">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_timezone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timezonestr</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Change the timezone of the input data.</span>
+
+<span class="sd">        By default UTC is assumed.</span>
+<span class="sd">        A valid timezonestring is an element of the pytz.all_timezones.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        timezonestr : string</span>
+<span class="sd">            Timezone string of the input observations. Element of pytz.all_timezones.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">update_timezone</span><span class="p">(</span><span class="n">timezonestr</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.update_default_name">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.update_default_name.html#metobs_toolkit.Dataset.update_default_name">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_default_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the default name (the name of the station).</span>
+
+<span class="sd">        This name will be used when no names are found in the observational dataset.</span>
+
+<span class="sd">        (All observations are assumed to come from one station.)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        default_name : string</span>
+<span class="sd">            Default name to use when no names are present in the data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;default_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">default_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.update_gap_and_missing_fill_settings">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.update_gap_and_missing_fill_settings.html#metobs_toolkit.Dataset.update_gap_and_missing_fill_settings">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_gap_and_missing_fill_settings</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gap_interpolation_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap_interpolation_max_consec_fill</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap_debias_prefered_leading_period_hours</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap_debias_prefered_trailing_period_hours</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap_debias_minimum_leading_period_hours</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap_debias_minimum_trailing_period_hours</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">automatic_max_interpolation_duration_str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">missing_obs_interpolation_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update fill settings for gaps and missing observations.</span>
+
+<span class="sd">        If None, the current setting is not updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        gap_interpolation_method : str, optional</span>
+<span class="sd">            The interpolation method to pass to numpy.interpolate. The default is None.</span>
+<span class="sd">        gap_interpolation_max_consec_fill : int, optional</span>
+<span class="sd">            Maximum number of lacking observations to interpolate. This is</span>
+<span class="sd">            passed to the limit argument of Numpy.interpolate. The default is</span>
+<span class="sd">            None.</span>
+<span class="sd">        gap_debias_prefered_leading_period_hours : int, optional</span>
+<span class="sd">            The preferd size of the leading period for calculating hourly</span>
+<span class="sd">            biasses wrt the model. The default is None.</span>
+<span class="sd">        gap_debias_prefered_trailing_period_hours : int, optional</span>
+<span class="sd">            The preferd size of the trailing period for calculating hourly</span>
+<span class="sd">            biasses wrt the model. The default is None.</span>
+<span class="sd">        gap_debias_minimum_leading_period_hours : int, optional</span>
+<span class="sd">            The minimum size of the leading period for calculating hourly</span>
+<span class="sd">            biasses wrt the model. The default is None.</span>
+<span class="sd">        gap_debias_minimum_trailing_period_hours : int, optional</span>
+<span class="sd">            The minimum size of the trailing period for calculating hourly</span>
+<span class="sd">            biasses wrt the model. The default is None.</span>
+<span class="sd">        automatic_max_interpolation_duration_str : Timedelta or str, optional</span>
+<span class="sd">            Maximum duration to apply interpolation for gapfill when using the</span>
+<span class="sd">            automatic gapfill method. Gaps with longer durations will be filled</span>
+<span class="sd">            using debiased modeldata. The default is None.</span>
+<span class="sd">        missing_obs_interpolation_method : str, optional</span>
+<span class="sd">            The interpolation method to pass to numpy.interpolate. The default is None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Gap linear interpolation</span>
+        <span class="k">if</span> <span class="n">gap_interpolation_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39; The gap interpolation method is updated: </span><span class="se">\</span>
+<span class="s1">        </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;linear&quot;</span><span class="p">][</span><span class="s2">&quot;method&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt; </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">gap_interpolation_method</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;linear&quot;</span><span class="p">][</span><span class="s2">&quot;method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+                <span class="n">gap_interpolation_method</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gap_interpolation_max_consec_fill</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39; The gap max number of consecutive interpolations is updated: </span><span class="se">\</span>
+<span class="s1">        </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;linear&quot;</span><span class="p">][</span><span class="s2">&quot;max_consec_fill&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt; </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gap_interpolation_max_consec_fill</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;linear&quot;</span><span class="p">][</span><span class="s2">&quot;max_consec_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">gap_interpolation_max_consec_fill</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Gap debias fill</span>
+        <span class="k">if</span> <span class="n">gap_debias_prefered_leading_period_hours</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39; The size of the prefered leading period for debias gapfill is updated: </span><span class="se">\</span>
+<span class="s1">        </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">][</span><span class="s2">&quot;debias_period&quot;</span><span class="p">][</span><span class="s2">&quot;prefered_leading_sample_duration_hours&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt; </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gap_debias_prefered_leading_period_hours</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">][</span><span class="s2">&quot;debias_period&quot;</span><span class="p">][</span>
+                <span class="s2">&quot;prefered_leading_sample_duration_hours&quot;</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gap_debias_prefered_leading_period_hours</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">gap_debias_prefered_trailing_period_hours</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39; The size of the prefered trailing period for debias gapfill is updated: </span><span class="se">\</span>
+<span class="s1">        </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">][</span><span class="s2">&quot;debias_period&quot;</span><span class="p">][</span><span class="s2">&quot;prefered_trailing_sample_duration_hours&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt; </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gap_debias_prefered_trailing_period_hours</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">][</span><span class="s2">&quot;debias_period&quot;</span><span class="p">][</span>
+                <span class="s2">&quot;prefered_trailing_sample_duration_hours&quot;</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gap_debias_prefered_trailing_period_hours</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">gap_debias_minimum_leading_period_hours</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39; The minimum size of the leading period for debias gapfill is updated: </span><span class="se">\</span>
+<span class="s1">        </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">][</span><span class="s2">&quot;debias_period&quot;</span><span class="p">][</span><span class="s2">&quot;minimum_leading_sample_duration_hours&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt; </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gap_debias_minimum_leading_period_hours</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">][</span><span class="s2">&quot;debias_period&quot;</span><span class="p">][</span>
+                <span class="s2">&quot;minimum_leading_sample_duration_hours&quot;</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gap_debias_minimum_leading_period_hours</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">gap_debias_minimum_trailing_period_hours</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39; The minimum size of the trailing period for debias gapfill is updated: </span><span class="se">\</span>
+<span class="s1">        </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">][</span><span class="s2">&quot;debias_period&quot;</span><span class="p">][</span><span class="s2">&quot;minimum_trailing_sample_duration_hours&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt; </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gap_debias_minimum_trailing_period_hours</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;model_debias&quot;</span><span class="p">][</span><span class="s2">&quot;debias_period&quot;</span><span class="p">][</span>
+                <span class="s2">&quot;minimum_trailing_sample_duration_hours&quot;</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gap_debias_minimum_trailing_period_hours</span><span class="p">))</span>
+
+        <span class="c1"># Gapfill automatic</span>
+        <span class="k">if</span> <span class="n">automatic_max_interpolation_duration_str</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_timedelta</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">automatic_max_interpolation_duration_str</span><span class="p">)):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39; The maximum interpolation duration for automatic gapfill is updated: </span><span class="se">\</span>
+<span class="s1">            </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;automatic&quot;</span><span class="p">][</span><span class="s2">&quot;max_interpolation_duration_str&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt; </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">automatic_max_interpolation_duration_str</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;automatic&quot;</span><span class="p">][</span>
+                    <span class="s2">&quot;max_interpolation_duration_str&quot;</span>
+                <span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">automatic_max_interpolation_duration_str</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">automatic_max_interpolation_duration_str</span><span class="p">)</span><span class="si">}</span><span class="s2"> is not a valid timedelta string. No update on this setting.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Missing obs interpolation</span>
+        <span class="k">if</span> <span class="n">missing_obs_interpolation_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39; The missing observations interpolation method is updated: </span><span class="se">\</span>
+<span class="s1">        </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">missing_obs</span><span class="p">[</span><span class="s2">&quot;missing_obs_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;linear&quot;</span><span class="p">][</span><span class="s2">&quot;method&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt; </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">missing_obs_interpolation_method</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">missing_obs</span><span class="p">[</span><span class="s2">&quot;missing_obs_fill_settings&quot;</span><span class="p">][</span><span class="s2">&quot;linear&quot;</span><span class="p">][</span>
+                <span class="s2">&quot;method&quot;</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">missing_obs_interpolation_method</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.update_qc_settings">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.update_qc_settings.html#metobs_toolkit.Dataset.update_qc_settings">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_qc_settings</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+        <span class="n">gapsize_in_records</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dupl_timestamp_keep</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">persis_time_win_to_check</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">persis_min_num_obs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">rep_max_valid_repetitions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gross_value_min_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">gross_value_max_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">win_var_max_increase_per_sec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">win_var_max_decrease_per_sec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">win_var_time_win_to_check</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">win_var_min_num_obs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">step_max_increase_per_sec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">step_max_decrease_per_sec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_min_sample_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_max_elev_diff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_min_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_elev_gradient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the QC settings for the specified observation type.</span>
+
+<span class="sd">        If a argument value is None, the default settings will not be updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obstype : str, optional</span>
+<span class="sd">            The observation type to update the quality control settings for.</span>
+<span class="sd">            The default is &#39;temp&#39;.</span>
+<span class="sd">        gapsize_in_records : int (&gt; 0), optional</span>
+<span class="sd">            A gap is defined as a sequence of missing observations with a length</span>
+<span class="sd">            greater or equal to this number, on the input frequencies. The default is None.</span>
+<span class="sd">        dupl_timestamp_keep : bool, optional</span>
+<span class="sd">            Setting that determines to keep, or remove duplicated timestamps. The default is None.</span>
+<span class="sd">        persis_time_win_to_check : Timedelta or str, optional</span>
+<span class="sd">            Time window for persistance check. The default is None.</span>
+<span class="sd">        persis_min_num_obs : int (&gt; 0), optional</span>
+<span class="sd">            Minimal window members for persistance check. The default is None.</span>
+<span class="sd">        rep_max_valid_repetitions : int (&gt; 0), optional</span>
+<span class="sd">            Maximal valid repetitions for repetitions check. The default is None.</span>
+<span class="sd">        gross_value_min_value : numeric, optional</span>
+<span class="sd">            Minimal value for gross value check. The default is None.</span>
+<span class="sd">        gross_value_max_value : numeric, optional</span>
+<span class="sd">            Maximal value for gross value check. The default is None.</span>
+<span class="sd">        win_var_max_increase_per_sec : numeric (&gt; 0), optional</span>
+<span class="sd">            Maximal increase per second for window variation check. The default is None.</span>
+<span class="sd">        win_var_max_decrease_per_sec : numeric (&gt; 0), optional</span>
+<span class="sd">            Maximal decrease per second for window variation check. The default is None.</span>
+<span class="sd">        win_var_time_win_to_check : Timedelta or str, optional</span>
+<span class="sd">            Time window for window variation check. The default is None.</span>
+<span class="sd">        win_var_min_num_obs : int (&gt; 0), optional</span>
+<span class="sd">            Minimal window members for window variation check. The default is None.</span>
+<span class="sd">        step_max_increase_per_sec : numeric, optional</span>
+<span class="sd">            Maximal increase per second for step check. The default is None.</span>
+<span class="sd">        step_max_decrease_per_sec : numeric (&lt; 0), optional</span>
+<span class="sd">            Maximal decrease per second for step check. The default is None.</span>
+<span class="sd">        buddy_radius : numeric (&gt; 0), optional</span>
+<span class="sd">            The radius to define neighbours in meters. The default is None.</span>
+<span class="sd">        buddy_min_sample_size : int (&gt; 2), optional</span>
+<span class="sd">            The minimum sample size to calculate statistics on. The default is</span>
+<span class="sd">            None.</span>
+<span class="sd">        buddy_max_elev_diff : numeric (&gt; 0), optional</span>
+<span class="sd">            The maximum altitude difference allowed for buddies. The default is</span>
+<span class="sd">            None.</span>
+<span class="sd">        buddy_min_std : numeric (&gt; 0), optional</span>
+<span class="sd">            The minimum standard deviation for sample statistics. This should</span>
+<span class="sd">            represent the accuracty of the observations. The default is None.</span>
+<span class="sd">        buddy_threshold : numeric (&gt; 0), optional</span>
+<span class="sd">            The threshold (std units) for flaggging observations as buddy</span>
+<span class="sd">            outliers. The default is None.</span>
+<span class="sd">        buddy_elev_gradient : numeric, optional</span>
+<span class="sd">            Describes how the obstype changes with altitude (in meters). The</span>
+<span class="sd">            default is -0.0065. The default is None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        -------</span>
+<span class="sd">        The gap defenition is independend of the observation type, and is thus set for</span>
+<span class="sd">        all the observation types.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">obstype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is not a known observation type&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_updater</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Update nested dictionaries.&quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">obstype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">dictionary</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">printstr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> : unexisting --&gt; </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="n">argname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">[</span><span class="n">obstype</span><span class="p">]:</span>
+                <span class="n">printstr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> : unexisting --&gt; </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">printstr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">dictionary</span><span class="p">[</span><span class="n">obstype</span><span class="p">][</span><span class="n">argname</span><span class="p">]</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="n">dictionary</span><span class="p">[</span><span class="n">obstype</span><span class="p">][</span><span class="n">argname</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">return</span> <span class="n">dictionary</span><span class="p">,</span> <span class="n">printstr</span>
+
+        <span class="c1"># Gap defenition</span>
+        <span class="k">if</span> <span class="n">gapsize_in_records</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39; The defenition of a gap (=gapsize) is updated: </span><span class="se">\</span>
+<span class="s1">        </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_settings&quot;</span><span class="p">][</span><span class="s2">&quot;gaps_finder&quot;</span><span class="p">][</span><span class="s2">&quot;gapsize_n&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt; </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">gapsize_in_records</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="s2">&quot;gaps_settings&quot;</span><span class="p">][</span><span class="s2">&quot;gaps_finder&quot;</span><span class="p">][</span><span class="s2">&quot;gapsize_n&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">gapsize_in_records</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Gross value check</span>
+        <span class="k">if</span> <span class="n">gross_value_max_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;gross_value&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;gross_value&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;max_value&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">gross_value_max_value</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Maximal value for gross value check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gross_value_min_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;gross_value&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;gross_value&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;min_value&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">gross_value_min_value</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Minimal value for gross value check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Duplicate check</span>
+        <span class="k">if</span> <span class="n">dupl_timestamp_keep</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Setting to keep (True) are remove (False) duplicate timestamps updated: </span><span class="se">\</span>
+<span class="s1">        </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;duplicated_timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;keep&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> --&gt;  </span><span class="si">{</span><span class="nb">bool</span><span class="p">(</span><span class="n">dupl_timestamp_keep</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;duplicated_timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;keep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">bool</span><span class="p">(</span><span class="n">dupl_timestamp_keep</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Persistance check</span>
+        <span class="k">if</span> <span class="n">persis_time_win_to_check</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_timedelta</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">persis_time_win_to_check</span><span class="p">)):</span>
+                <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;persistance&quot;</span><span class="p">],</span>
+                    <span class="n">updatestr</span><span class="p">,</span>
+                <span class="p">)</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;persistance&quot;</span><span class="p">],</span>
+                    <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                    <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;time_window_to_check&quot;</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">persis_time_win_to_check</span><span class="p">),</span>
+                <span class="p">)</span>
+
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Time window size for persistance check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">persis_time_win_to_check</span><span class="p">)</span><span class="si">}</span><span class="s2"> is not a valid timedelta string. No update on this setting.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">persis_min_num_obs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;persistance&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;persistance&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;min_num_obs&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">persis_min_num_obs</span><span class="p">)),</span>
+            <span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Minimal window members for persistance check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Repetitions check</span>
+        <span class="k">if</span> <span class="n">rep_max_valid_repetitions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;repetitions&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;repetitions&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;max_valid_repetitions&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">rep_max_valid_repetitions</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Maximal valid repetitions for repetitions check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Window variation check</span>
+        <span class="k">if</span> <span class="n">win_var_max_increase_per_sec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;window_variation&quot;</span><span class="p">],</span>
+                <span class="n">updatestr</span><span class="p">,</span>
+            <span class="p">)</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;window_variation&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;max_increase_per_second&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">win_var_max_increase_per_sec</span><span class="p">)),</span>
+            <span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Maximal increase per second for window variation check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">win_var_max_decrease_per_sec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;window_variation&quot;</span><span class="p">],</span>
+                <span class="n">updatestr</span><span class="p">,</span>
+            <span class="p">)</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;window_variation&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;max_decrease_per_second&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">win_var_max_decrease_per_sec</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Maximal decrease per second for window variation check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">win_var_time_win_to_check</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_timedelta</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">win_var_time_win_to_check</span><span class="p">)):</span>
+                <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;window_variation&quot;</span><span class="p">],</span>
+                    <span class="n">updatestr</span><span class="p">,</span>
+                <span class="p">)</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;window_variation&quot;</span><span class="p">],</span>
+                    <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                    <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;time_window_to_check&quot;</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">win_var_time_win_to_check</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Time window for window variation check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">persis_time_win_to_check</span><span class="p">)</span><span class="si">}</span><span class="s2"> is not a valid timedelta string. No update on this setting.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">win_var_min_num_obs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;window_variation&quot;</span><span class="p">],</span>
+                <span class="n">updatestr</span><span class="p">,</span>
+            <span class="p">)</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;window_variation&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;min_window_members&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">win_var_min_num_obs</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Minimal window members for window variation check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Step check</span>
+        <span class="k">if</span> <span class="n">step_max_increase_per_sec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;step&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;step&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;max_increase_per_second&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">step_max_increase_per_sec</span><span class="p">)),</span>
+            <span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Maximal increase per second for step check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">step_max_decrease_per_sec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;step&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;step&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;max_decrease_per_second&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">step_max_decrease_per_sec</span><span class="p">)),</span>
+            <span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Maximal decrease per second for step check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Buddy check</span>
+        <span class="n">buddy_elev_gradient</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">buddy_radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;radius&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">buddy_radius</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Buddy radius for buddy check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">buddy_min_sample_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">buddy_min_sample_size</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span>
+                    <span class="n">updatestr</span><span class="p">,</span>
+                <span class="p">)</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span>
+                    <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                    <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;num_min&quot;</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Minimum number of buddies for buddy check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Minimum number of buddies must be &gt;= 2, but </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> is given. Not updated.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">buddy_max_elev_diff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;max_elev_diff&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">buddy_max_elev_diff</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Max elevation differences for buddy check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">buddy_min_std</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;min_std&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">buddy_min_std</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Minimum std in sample for buddy check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">buddy_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;threshold&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">buddy_threshold</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Outlier threshold (in sigma) for buddy check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">buddy_elev_gradient</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span> <span class="n">updatestr</span> <span class="o">=</span> <span class="n">_updater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;qc_check_settings&quot;</span><span class="p">][</span><span class="s2">&quot;buddy_check&quot;</span><span class="p">],</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstype</span><span class="p">,</span>
+                <span class="n">argname</span><span class="o">=</span><span class="s2">&quot;elev_gradient&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">buddy_max_elev_diff</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Elevation gradient for buddy check updated: </span><span class="si">{</span><span class="n">updatestr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.update_titan_qc_settings">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.update_titan_qc_settings.html#metobs_toolkit.Dataset.update_titan_qc_settings">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_titan_qc_settings</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+        <span class="c1"># buddy settings</span>
+        <span class="n">buddy_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_num_min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_max_elev_diff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_elev_gradient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_min_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_num_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">buddy_debug</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="c1"># sct settings</span>
+        <span class="n">sct_num_min_outer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_num_max_outer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_inner_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_outer_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_num_iterations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_num_min_prof</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_min_elev_diff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_min_horizontal_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_max_horizontal_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_kth_closest_obs_horizontal_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_vertical_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_mina_deviation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># vec Minimum admissible value</span>
+        <span class="n">sct_maxa_deviation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># vec Maximum admissible value</span>
+        <span class="n">sct_minv_deviation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># vec Minimum valid value</span>
+        <span class="n">sct_maxv_deviation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># vec Maximum valid value</span>
+        <span class="n">sct_eps2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Ratio of observation error variance to background variance</span>
+        <span class="n">sct_tpos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># vec Positive deviation allowed</span>
+        <span class="n">sct_tneg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># vec Negative deviation allowed</span>
+        <span class="n">sct_basic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sct_debug</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the TITAN QC settings for the specified observation type.</span>
+
+<span class="sd">        If a argument value is None, the default settings will not be updated.</span>
+
+<span class="sd">        For a detailed explanation of the settings, we refer to the</span>
+<span class="sd">        [TITAN documetation](https://github.com/metno/titanlib/wiki)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        The observation type to update the quality control settings for.</span>
+<span class="sd">        The default is &#39;temp&#39;.</span>
+<span class="sd">        buddy_radius : int (&gt; 0), optional</span>
+<span class="sd">            Search radius in m. The default is None.</span>
+<span class="sd">        buddy_num_min : int (&gt; 0), optional</span>
+<span class="sd">            The minimum number of buddies a station can have. The default is</span>
+<span class="sd">            None.</span>
+<span class="sd">        buddy_threshold : num (&gt; 0), optional</span>
+<span class="sd">            The variance threshold for flagging a station. The default is None.</span>
+<span class="sd">        buddy_max_elev_diff : num, optional</span>
+<span class="sd">            The maximum difference in elevation for a buddy (if negative will not check for heigh difference). The default is None.</span>
+<span class="sd">        buddy_elev_gradient : num, optional</span>
+<span class="sd">            Linear elevation temperature gradient with height. The default is None.</span>
+<span class="sd">        buddy_min_std : num (&gt; 0), optional</span>
+<span class="sd">            If the standard deviation of values in a neighborhood are less than min_std, min_std will be used instead. The default is None.</span>
+<span class="sd">        buddy_num_iterations : int (&gt; 0), optional</span>
+<span class="sd">            The number of iterations to perform. The default is None.</span>
+<span class="sd">        buddy_debug : bool, optional</span>
+<span class="sd">            If True, print out debug information. The default is None.</span>
+<span class="sd">        sct_num_min_outer : int (&gt; 0), optional</span>
+<span class="sd">            Minimal points in outer circle. The default is None.</span>
+<span class="sd">        sct_num_max_outer : int (&gt; 0), optional</span>
+<span class="sd">            Maximal points in outer circle. The default is None.</span>
+<span class="sd">        sct_inner_radius : num (&gt; 0), optional</span>
+<span class="sd">            Radius of inner circle. The default is None.</span>
+<span class="sd">        sct_outer_radius : num (&gt; 0), optional</span>
+<span class="sd">            Radius of outer circle. The default is None.</span>
+<span class="sd">        sct_num_iterations : int (&gt; 0), optional</span>
+<span class="sd">            Number of iterations. The default is None.</span>
+<span class="sd">        sct_num_min_prof : int (&gt; 0), optional</span>
+<span class="sd">            Minimum number of observations to compute vertical profile. The default is None.</span>
+<span class="sd">        sct_min_elev_diff : num (&gt; 0), optional</span>
+<span class="sd">            Minimum elevation difference to compute vertical profile. The default is None.</span>
+<span class="sd">        sct_min_horizontal_scale : num (&gt; 0), optional</span>
+<span class="sd">            Minimum horizontal decorrelation length. The default is None.</span>
+<span class="sd">        sct_max_horizontal_scale : num (&gt; 0), optional</span>
+<span class="sd">            Maximum horizontal decorrelation length. The default is None.</span>
+<span class="sd">        sct_kth_closest_obs_horizontal_scale : int (&gt; 0), optional</span>
+<span class="sd">            Number of closest observations to consider. The default is None.</span>
+<span class="sd">        sct_vertical_scale : num (&gt; 0), optional</span>
+<span class="sd">            Vertical decorrelation length. The default is None.</span>
+<span class="sd">        sct_mina_deviation : num (&gt; 0), optional</span>
+<span class="sd">            Minimum admissible value deviation. The default is None.</span>
+<span class="sd">        sct_maxa_deviation : num (&gt; 0), optional</span>
+<span class="sd">            Maximum admissible value deviation. The default is None.</span>
+<span class="sd">        sct_minv_deviation : num (&gt; 0), optional</span>
+<span class="sd">            Minimum valid value deviation. The default is None.</span>
+<span class="sd">        sct_maxv_deviation : num (&gt; 0), optional</span>
+<span class="sd">            Maximum valid value deviation. The default is None.</span>
+<span class="sd">        sct_eps2 : num (&gt; 0), optional</span>
+<span class="sd">            Ratio of observation error variance to background variance. The default is None.</span>
+<span class="sd">        sct_tpos : num (&gt; 0), optional</span>
+<span class="sd">            Positive deviation allowed. The default is None.</span>
+<span class="sd">        sct_tneg : num (&gt; 0), optional</span>
+<span class="sd">            Positive deviation allowed. The default is None.</span>
+<span class="sd">        sct_basic : bool, optional</span>
+<span class="sd">            Basic mode. The default is None.</span>
+<span class="sd">        sct_debug : bool, optional</span>
+<span class="sd">            If True, print out debug information. The default is None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">obstype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is not a known observation type&quot;</span>
+
+        <span class="c1"># check buddy settings for updates</span>
+        <span class="n">buddy_attrs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;buddy_radius&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">buddy_radius</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;buddy_num_min&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">buddy_num_min</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;buddy_threshold&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">buddy_threshold</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;buddy_max_elev_diff&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">buddy_max_elev_diff</span><span class="p">,</span>
+                <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;buddy_elev_gradient&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">buddy_elev_gradient</span><span class="p">,</span>
+                <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;buddy_min_std&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">buddy_min_std</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;buddy_num_iterations&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">buddy_num_iterations</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;buddy_debug&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">buddy_debug</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;bool&quot;</span><span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="n">sct_attrs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;sct_num_min_outer&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_num_min_outer</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_num_max_outer&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_num_max_outer</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_inner_radius&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_inner_radius</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_outer_radius&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_outer_radius</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_num_iterations&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_num_iterations</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_num_min_prof&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_num_min_prof</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_min_elev_diff&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_min_elev_diff</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_min_horizontal_scale&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_min_horizontal_scale</span><span class="p">,</span>
+                <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;sct_max_horizontal_scale&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_max_horizontal_scale</span><span class="p">,</span>
+                <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;sct_kth_closest_obs_horizontal_scale&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_kth_closest_obs_horizontal_scale</span><span class="p">,</span>
+                <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;sct_vertical_scale&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_vertical_scale</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_mina_deviation&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_mina_deviation</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_minv_deviation&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_minv_deviation</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_maxv_deviation&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_maxv_deviation</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_eps2&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_eps2</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_tpos&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_tpos</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_tneg&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_tneg</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;numeric&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_basic&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_basic</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;bool&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;sct_debug&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;new_value&quot;</span><span class="p">:</span> <span class="n">sct_debug</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;bool&quot;</span><span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="k">def</span> <span class="nf">_iterate_attributes</span><span class="p">(</span><span class="n">obstype</span><span class="p">,</span> <span class="n">attr_dict</span><span class="p">,</span> <span class="n">attr_prefix</span><span class="p">,</span> <span class="n">checkname</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">obstype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;titan_check_settings&quot;</span><span class="p">][</span><span class="n">checkname</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;titan_check_settings&quot;</span><span class="p">][</span><span class="n">checkname</span><span class="p">][</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">attr_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;new_value&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">settings_key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">attr_prefix</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># remove &#39;buddy_&#39;</span>
+                    <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;numeric&quot;</span><span class="p">:</span>
+                        <span class="n">new_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;new_value&quot;</span><span class="p">])</span>
+                    <span class="k">elif</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;int&quot;</span><span class="p">:</span>
+                        <span class="n">new_val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;new_value&quot;</span><span class="p">])</span>
+                    <span class="k">elif</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;bool&quot;</span><span class="p">:</span>
+                        <span class="n">new_val</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;new_value&quot;</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c1"># val[&#39;dtype&#39;] == &#39;str&#39;:</span>
+                        <span class="n">new_val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;new_value&quot;</span><span class="p">])</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">old_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;titan_check_settings&quot;</span><span class="p">][</span><span class="n">checkname</span><span class="p">][</span>
+                            <span class="n">obstype</span>
+                        <span class="p">][</span><span class="n">settings_key</span><span class="p">]</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot; &quot;</span><span class="p">)</span><span class="si">}</span><span class="s1"> for the TITAN buddy check updated:  </span><span class="si">{</span><span class="n">old_value</span><span class="si">}</span><span class="s1">--&gt; </span><span class="si">{</span><span class="n">new_val</span><span class="si">}</span><span class="s1">&#39;</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot; &quot;</span><span class="p">)</span><span class="si">}</span><span class="s1"> for the TITAN buddy check added:  --&gt; </span><span class="si">{</span><span class="n">new_val</span><span class="si">}</span><span class="s1">&#39;</span>
+                        <span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">qc</span><span class="p">[</span><span class="s2">&quot;titan_check_settings&quot;</span><span class="p">][</span><span class="n">checkname</span><span class="p">][</span><span class="n">obstype</span><span class="p">][</span>
+                        <span class="n">settings_key</span>
+                    <span class="p">]</span> <span class="o">=</span> <span class="n">new_val</span>
+
+        <span class="n">_iterate_attributes</span><span class="p">(</span><span class="n">obstype</span><span class="p">,</span> <span class="n">buddy_attrs</span><span class="p">,</span> <span class="s2">&quot;buddy_&quot;</span><span class="p">,</span> <span class="s2">&quot;titan_buddy_check&quot;</span><span class="p">)</span>
+        <span class="n">_iterate_attributes</span><span class="p">(</span><span class="n">obstype</span><span class="p">,</span> <span class="n">sct_attrs</span><span class="p">,</span> <span class="s2">&quot;sct_&quot;</span><span class="p">,</span> <span class="s2">&quot;titan_sct_resistant_check&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># dtype check functions</span>
+<span class="c1"># =============================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">is_timedelta</span><span class="p">(</span><span class="n">timedeltastr</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if string can be timedelta representation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    timedeltastr : str</span>
+<span class="sd">        Representation of timedelta.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">timedeltastr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

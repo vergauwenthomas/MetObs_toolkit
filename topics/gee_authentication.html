@@ -1,0 +1,711 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Using Google Earth Engine &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'topics/gee_authentication';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Creating a new observation type" href="../notebook_references/new_obstypes_doc.html" />
+    <link rel="prev" title="Mapping to the toolkit" href="../notebook_references/template_doc.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../notebook_references/template_doc.html">Mapping to the toolkit</a></li>
+
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Using Google Earth Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebook_references/new_obstypes_doc.html">Creating a new observation type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="irregular_timestamps.html">Using irregular timestamp datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Using the GUI</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../paper/index.html">JOSS publication</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../paper/paper_figures.html">JOSS publication figures creator</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../specific_topics.html" class="nav-link">Specific topics</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Using...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="using-google-earth-engine">
+<span id="using-gee"></span><h1>Using Google Earth Engine<a class="headerlink" href="#using-google-earth-engine" title="Link to this heading">#</a></h1>
+<p>The Google Earth Engine is used to download geospatial information, and model data
+to use for your dataset. This is done to avoid downloading/reprojecting/preprocessing large
+geospatial datasets and to make it possible to switch easily between different datasets.</p>
+<p>There are two methods that are used to download the GEE data:</p>
+<ul class="simple">
+<li><p>Directly to your computer –&gt; Only for small data transfers</p></li>
+<li><p>To your Google drive –&gt; Only when the direct download is not possible.</p></li>
+</ul>
+<p>This page will help you how to set up your personal Google earth engine authentication.
+This is needed because the GEE (Google earth engine) can only be used if you</p>
+<ul class="simple">
+<li><p>have a Google developers account (free of charge)</p></li>
+<li><p>Create a cloud project on your developers account (sufficient free credits for these applications)</p></li>
+<li><p>enable the GEE API on your project</p></li>
+</ul>
+<p>Here is a step-by-step guide on how to do this.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This guide is to obtain a basic working setup. There are a lot of ways on how to
+set up a googel cloud project, but we only cover the minimum required steps.</p>
+</div>
+<section id="setup-of-a-google-account">
+<h2>Setup of a Google account<a class="headerlink" href="#setup-of-a-google-account" title="Link to this heading">#</a></h2>
+<p>If you do not have a Google account, start by creating one.</p>
+</section>
+<section id="setup-of-a-google-developers-account">
+<h2>Setup of a Google developers account<a class="headerlink" href="#setup-of-a-google-developers-account" title="Link to this heading">#</a></h2>
+<p>A Google developers account is linked to your (regular) Google account.</p>
+<ol class="arabic simple">
+<li><p>open a browser, and login to Google with your account.</p></li>
+<li><p>Go to this website, to create a developers account: <a class="reference external" href="https://developers.Google.com/">https://developers.Google.com/</a></p>
+<ol class="arabic simple">
+<li><p>Click on the three vertical dots –&gt; hit start</p></li>
+<li><p>Fill in your name and (optional) affiliations –&gt; hit next</p></li>
+<li><p>(optional) Select your interests –&gt; hit next</p></li>
+<li><p>(optional) Confirm newsletter subscription –&gt; hit next</p></li>
+</ol>
+</li>
+</ol>
+<p>Done, you have set up a Google developer account</p>
+</section>
+<section id="setup-a-cloud-project-on-your-developer-account">
+<h2>Setup a cloud project on your developer account<a class="headerlink" href="#setup-a-cloud-project-on-your-developer-account" title="Link to this heading">#</a></h2>
+<p>You need a cloud project to make use of the Google API’s. Since the data requests
+by the toolkit are (in most non-commercial applictions) limited, the free credits
+provided by Google are sufficient.</p>
+<ol class="arabic simple">
+<li><p>Create a cloud project: <a class="reference external" href="https://console.cloud.Google.com/projectcreate?pli=1">https://console.cloud.Google.com/projectcreate?pli=1</a></p>
+<ol class="arabic simple">
+<li><p>Choose a project name and select No organization. –&gt; hit create</p></li>
+<li><p>(It can take a few seconds to create your project, in the “Cloud overview” you should see your project appear.)</p></li>
+</ol>
+</li>
+</ol>
+<p>For more information on the non-commercial policy we refer to the <a class="reference external" href="https://earthengine.google.com/noncommercial/">Earth Engine for Noncommercial and Research Use page</a>.</p>
+</section>
+<section id="enable-api-s-on-your-project">
+<h2>Enable API’s on your project<a class="headerlink" href="#enable-api-s-on-your-project" title="Link to this heading">#</a></h2>
+<p>In the last step, you need to enable the use of some API’s on your project.</p>
+<ol class="arabic simple">
+<li><p>Go to your project platform page: <a class="reference external" href="https://console.cloud.Google.com/">https://console.cloud.Google.com/</a></p></li>
+<li><p>Click on “APIs &amp; Services”</p></li>
+<li><p>Click at the top on “+ ENABLE APIS AND SERVICES”</p>
+<ol class="arabic simple">
+<li><p>Search for the ‘Google Earth Engine API’, click on it –&gt; hit ENABLE</p></li>
+<li><p>Register your GEE project: <a class="reference external" href="https://code.earthengine.Google.com/register">https://code.earthengine.Google.com/register</a></p>
+<ol class="arabic simple">
+<li><p>Hit “Use with a cloud project” –&gt; hit “Unpaid usage” and select ‘Academia &amp; Research’</p></li>
+<li><p>Select “Choose an existing Google Cloud Project” –&gt; select your project –&gt; hit “CONTINUE TO SUMMARY”</p></li>
+<li><p>Hit “CONFIRM AND CONTINUE”</p></li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</section>
+<section id="test-your-gee-access">
+<h2>Test your GEE access<a class="headerlink" href="#test-your-gee-access" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="c1"># Use the demo files, and extract LCZ from GEE</span>
+
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span><span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span>
+                        <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+                        <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">)</span>
+
+<span class="n">dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span>
+
+<span class="c1"># Extract LCZ using GEE:</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">get_lcz</span><span class="p">()</span>
+
+<span class="c1"># Selecting your cloud project:</span>
+    <span class="c1"># 1. A link will appear, click on it</span>
+    <span class="c1"># 2. (first time only) hit &#39;CHOOSE PROJECT&#39; and select your existing cloud project</span>
+    <span class="c1"># 3. do NOT click the read_only scopes!</span>
+    <span class="c1"># 4. hit &#39;GENERATE TOKEN&#39; --&gt; select your Google account --&gt; hit &#39;CONTINUE&#39;</span>
+    <span class="c1"># 5. Select both boxes and hit &#39;Continue&#39;</span>
+    <span class="c1"># 6. An authorization code is generated, copy it.</span>
+    <span class="c1"># 7. In your notebook, paste the code in propted-box and hit Enter</span>
+
+
+<span class="c1"># The LCZ are stored in the metadf attribute of your dataset.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">metadf</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you click on select ‘read-only’ scopes in the authentication, you can only
+extract small data quantities from GEE. For larger data transfers, GEE will write
+the data to file on your Google Drive, which will raise an error when you select
+‘read-only’ scopes.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Depending on how you use the toolkit (notebook, ipython, colab, scripts, …),
+it can happen that your credential file, which is used for authentication when
+using GEE functionality, is invalid. If that is the case, an error that looks
+like:</p>
+<p><cite>EEException: Not signed up for Earth Engine or project is not registered. Visit https://developers.google.com/earth-engine/guides/access</cite></p>
+<p>is thrown.</p>
+<p>To update your credential file (which is saved at <cite>~/.config/earthengine/credentials</cite>),
+you can use the <code class="docutils literal notranslate"><span class="pre">connect_to_gee()</span></code> function and pass additional arguments.
+Here an exmaple on how to update the credetial files:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">connect_to_gee</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1">#create new credentials</span>
+                              <span class="n">auth_mode</span><span class="o">=</span><span class="s1">&#39;notebook&#39;</span><span class="p">,</span> <span class="c1"># &#39;notebook&#39;, &#39;localhost&#39;, &#39;gcloud&#39; (requires gcloud installed) or &#39;colab&#39; (works only in colab)</span>
+                              <span class="p">)</span>
+</pre></div>
+</div>
+<p>For more information on Authentication we refer to the
+<a class="reference external" href="https://developers.google.com/earth-engine/guides/auth">Authentication and Initialization Guide</a> .</p>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../notebook_references/template_doc.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Mapping to the toolkit</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../notebook_references/new_obstypes_doc.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Creating a new observation type</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-of-a-google-account">Setup of a Google account</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-of-a-google-developers-account">Setup of a Google developers account</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-a-cloud-project-on-your-developer-account">Setup a cloud project on your developer account</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#enable-api-s-on-your-project">Enable API’s on your project</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-your-gee-access">Test your GEE access</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/topics/gee_authentication.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

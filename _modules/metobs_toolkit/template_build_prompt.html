@@ -1,0 +1,1147 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>metobs_toolkit.template_build_prompt &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/metobs_toolkit/template_build_prompt';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">metobs_toolk...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for metobs_toolkit.template_build_prompt</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed May 24 10:25:45 2023</span>
+
+<span class="sd">@author: thoverga</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">pytz</span>
+
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.template</span> <span class="kn">import</span> <span class="n">_get_empty_templ_dict</span><span class="p">,</span> <span class="n">_pwrite_templdict_to_json</span>
+
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">Obstype</span><span class="p">,</span> <span class="n">tlk_obstypes</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.data_import</span> <span class="kn">import</span> <span class="n">_read_csv_to_df</span>
+
+
+<span class="k">def</span> <span class="nf">add_new_obstype</span><span class="p">():</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> --- Adding a new observation type --- </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get obsname</span>
+    <span class="n">name_ok</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">name_ok</span><span class="p">:</span>
+        <span class="n">obsname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Give the name of your observation type: &quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">obsname</span> <span class="ow">in</span> <span class="n">tlk_obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;!! </span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2"> is already a knonw observation type. This cannot be added.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">name_ok</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># get std unit</span>
+    <span class="n">std_unit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+        <span class="nb">input</span><span class="p">(</span>
+            <span class="s2">&quot;Give the standard unit (how the toolkit should store/present the data): &quot;</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Get input data unit</span>
+    <span class="n">is_std_unit</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Are the </span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2"> values in your data in </span><span class="si">{</span><span class="n">std_unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_std_unit</span><span class="p">:</span>
+        <span class="n">cur_unit</span> <span class="o">=</span> <span class="n">std_unit</span>
+        <span class="n">unit_conv</span> <span class="o">=</span> <span class="p">{</span><span class="n">std_unit</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cur_unit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Give the unit your data is in: &quot;</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Give the expression on how to convert </span><span class="si">{</span><span class="n">cur_unit</span><span class="si">}</span><span class="s2"> values to </span><span class="si">{</span><span class="n">std_unit</span><span class="si">}</span><span class="s2">. &quot;</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  * Example: Kelvin (= new unit) to °C :  x - 273.15 &quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;  * Example: Farenheit to °C : x-32.0; x/1.8    (executed left to right)&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">conv_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot; : &quot;</span><span class="p">))</span>
+        <span class="c1"># cleanup and make list if needend</span>
+        <span class="n">conv_str</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">conv_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">))</span>
+
+        <span class="n">unit_conv</span> <span class="o">=</span> <span class="p">{</span><span class="n">cur_unit</span><span class="p">:</span> <span class="n">conv_str</span><span class="p">}</span>
+    <span class="c1"># Description</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+        <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Give a detailed description of the </span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2"> type (optional): &quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Aliases and coversions</span>
+
+    <span class="c1"># Do not add this in the prompt, the prompt should not check the more advanced</span>
+    <span class="c1"># settigns. If the prompt could cover 95% of all user needs, that would be great.</span>
+    <span class="c1"># The others should help themself with the documentation to create aliases</span>
+    <span class="c1"># and conversions</span>
+
+    <span class="n">unit_aliases</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># create obstype:</span>
+    <span class="n">new_obstype</span> <span class="o">=</span> <span class="n">Obstype</span><span class="p">(</span>
+        <span class="n">obsname</span><span class="o">=</span><span class="n">obsname</span><span class="p">,</span>
+        <span class="n">std_unit</span><span class="o">=</span><span class="n">std_unit</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+        <span class="n">unit_aliases</span><span class="o">=</span><span class="n">unit_aliases</span><span class="p">,</span>
+        <span class="n">unit_conversions</span><span class="o">=</span><span class="n">unit_conv</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_obstype</span><span class="p">,</span> <span class="n">cur_unit</span>
+
+
+<span class="k">def</span> <span class="nf">get_unit</span><span class="p">(</span><span class="n">obstype</span><span class="p">):</span>
+
+    <span class="n">available_units</span> <span class="o">=</span> <span class="n">obstype</span><span class="o">.</span><span class="n">get_all_units</span><span class="p">()</span>
+    <span class="n">available_units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ADD A NEW UNIT&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Select the unit your </span><span class="si">{</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> data is in:  </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">conv_str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">available_units</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s2">&quot;ADD A NEW UNIT&quot;</span><span class="p">:</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Give the unit your data is in: &quot;</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Give the expression on how to convert </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2"> values to </span><span class="si">{</span><span class="n">obstype</span><span class="o">.</span><span class="n">get_standard_unit</span><span class="p">()</span><span class="si">}</span><span class="s2">. &quot;</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  * Example: Kelvin (= new unit) to °C :  x - 273.15 &quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;  * Example: Farenheit to °C : x-32.0; x/1.8    (executed left to right)&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">conv_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot; : &quot;</span><span class="p">))</span>
+        <span class="c1"># cleanup and make list if needend</span>
+        <span class="n">conv_str</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">conv_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">unit</span><span class="p">,</span> <span class="n">conv_str</span>
+
+
+<span class="k">def</span> <span class="nf">col_option_input</span><span class="p">(</span><span class="n">columns</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert options to numerics and ask for input.&quot;&quot;&quot;</span>
+    <span class="n">mapper</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s2">&quot;Unnamed: 0&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> (--&gt; this is the index of your csv file)&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">mapper</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">col</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  x. -- not valid --&quot;</span><span class="p">)</span>
+    <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">while</span> <span class="n">valid_input</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">repr_str</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+                <span class="n">repr_str</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+            <span class="c1"># remove last comma</span>
+            <span class="n">repr_str</span> <span class="o">=</span> <span class="n">repr_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;) : &quot;</span>
+            <span class="n">num_ans</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">repr_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_ans</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;(1 - </span><span class="si">{</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2">) : &quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">num_ans</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; ... This setting is not provided! ...&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">mapper</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">num_ans</span><span class="p">)]</span>
+            <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num_ans</span><span class="si">}</span><span class="s2"> is not a valid input.&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; ... </span><span class="si">{</span><span class="n">mapper</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">num_ans</span><span class="p">)]</span><span class="si">}</span><span class="s2"> selected ... </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mapper</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">num_ans</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">yes_no_ques</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get yes/no input.&quot;&quot;&quot;</span>
+    <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">while</span> <span class="n">valid_input</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">prompt</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">. (y/n) : &quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">prompt</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">prompt</span> <span class="o">==</span> <span class="s2">&quot;Y&quot;</span><span class="p">):</span>
+            <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">prompt</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">prompt</span> <span class="o">==</span> <span class="s2">&quot;N&quot;</span><span class="p">):</span>
+            <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">prompt</span><span class="si">}</span><span class="s2"> is not y or n, give a suitable answer.&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">usr_input_dir</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prompt directory path.</span>
+
+<span class="sd">    question and check if the answer is a directory, return the path</span>
+<span class="sd">    if it is a directory, repeat else.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">is_dir</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">while</span> <span class="n">is_dir</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">inp_dir</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> : &quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">inp_dir</span><span class="p">):</span>
+            <span class="n">is_dir</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">inp_dir</span><span class="si">}</span><span class="s2"> is not a directory, try again.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">inp_dir</span>
+
+
+<span class="k">def</span> <span class="nf">usr_input_file</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prompt file path.</span>
+
+<span class="sd">    Prompt question and check if the answer is a file, return the path if it</span>
+<span class="sd">    exists, repeat else.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">is_file</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">while</span> <span class="n">is_file</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">inp_file</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> : &quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">inp_file</span><span class="p">):</span>
+            <span class="n">is_file</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">inp_file</span><span class="si">}</span><span class="s2"> is not found, try again.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">inp_file</span>
+
+
+<div class="viewcode-block" id="build_template_prompt">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.build_template_prompt.html#metobs_toolkit.build_template_prompt">[docs]</a>
+<span class="k">def</span> <span class="nf">build_template_prompt</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Launch an interactive prompt to construct a template.json file.</span>
+
+<span class="sd">    When called, an interactive prompt will start. Answer the questions, and hit</span>
+<span class="sd">    Enter to continue. At the end of the prompt, you can specify a location where</span>
+<span class="sd">    to save the template.json file.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ------</span>
+<span class="sd">    It is a good practice to rename the template.json file to specify the corresponding datafile(s).</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ------</span>
+<span class="sd">    At the end, the prompt asks if you need further assistance. If you do, the prompt</span>
+<span class="sd">    will print out code that you can copy and run to create a `Dataset()`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Launch the prompt</span>
+<span class="sd">        &gt;&gt;&gt; metobs_toolkit.build_template_prompt() # doctest: +SKIP</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tmpl_dict</span> <span class="o">=</span> <span class="n">_get_empty_templ_dict</span><span class="p">()</span>
+    <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;obstype_mapping&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">known_obstypes</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">tlk_obstypes</span><span class="p">)</span>
+    <span class="n">new_units</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;This prompt will help to build a template for your data and metadata. Answer the prompt and hit Enter. </span><span class="se">\n</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; *******      File locations   *********** </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">datafilepath</span> <span class="o">=</span> <span class="n">usr_input_file</span><span class="p">(</span><span class="s2">&quot;Give the full path to your data file&quot;</span><span class="p">)</span>
+    <span class="n">meta_avail</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span><span class="s2">&quot;Do you have a file with the metadata?&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">meta_avail</span><span class="p">:</span>
+        <span class="n">metadatafilepath</span> <span class="o">=</span> <span class="n">usr_input_file</span><span class="p">(</span><span class="s2">&quot;Give the full path to your metadata file&quot;</span><span class="p">)</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Map data file</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"> *******      Data File   ***********&quot;</span><span class="p">)</span>
+
+    <span class="c1"># datafilepath = usr_input_file(&#39;Give the full path to your data file&#39;)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; ... opening the data file ...&quot;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">_read_csv_to_df</span><span class="p">(</span><span class="n">datafilepath</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;nrows&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+    <span class="n">columnnames</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+
+    <span class="n">format_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;Long format (station observations are stacked as rows)&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;Wide format (columns represent different stations)&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s2">&quot;Single station format (columns represent observation(s) of one station)&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;How is your dataset structured : </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">format_option</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">format_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="se">\n</span><span class="s2">... oke, </span><span class="si">{</span><span class="n">format_option</span><span class="si">}</span><span class="s2"> selected ...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">format_option</span> <span class="o">=</span> <span class="n">format_dict</span><span class="p">[</span><span class="n">format_option</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">format_option</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;long&quot;</span>
+        <span class="c1"># options_dict[&quot;data_structure&quot;] = &quot;long&quot;</span>
+    <span class="k">if</span> <span class="n">format_option</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;wide&quot;</span>
+        <span class="c1"># options_dict[&quot;data_structure&quot;] = &quot;wide&quot;</span>
+    <span class="k">if</span> <span class="n">format_option</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;single_station&quot;</span>
+        <span class="c1"># options_dict[&quot;data_structure&quot;] = &quot;single_station&quot;</span>
+
+    <span class="c1"># Datatime mapping</span>
+    <span class="n">dt_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;In a single column (ex: 2023/06/07 16:12:30)&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;By a column with dates, and another column with times&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;How are the timestamps present in your data file : </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">datetime_option</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">dt_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">datetime_option</span> <span class="o">=</span> <span class="n">dt_dict</span><span class="p">[</span><span class="n">datetime_option</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">datetime_option</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+
+        <span class="c1"># Datetime mapping</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Which is your timestamp columnname: &quot;</span><span class="p">)</span>
+
+        <span class="n">datetimecolumn</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">columnnames</span><span class="p">)</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;datetime_column&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetimecolumn</span>
+        <span class="n">columnnames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">datetimecolumn</span><span class="p">)</span>
+
+        <span class="n">example</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">datetimecolumn</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;datetime_fmt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Type your datetime format (ex. %Y-%m-%d %H:%M:%S), (your first timestamp: </span><span class="si">{</span><span class="n">example</span><span class="si">}</span><span class="s2">) : &quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Date mapping</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Which column represents the DATES : &quot;</span><span class="p">)</span>
+        <span class="n">datecolumn</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">columnnames</span><span class="p">)</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;date_column&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datecolumn</span>
+        <span class="n">columnnames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">datecolumn</span><span class="p">)</span>
+
+        <span class="n">example</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">datecolumn</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;date_fmt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Type your date format (ex. %Y-%m-%d), (your first timestamp: </span><span class="si">{</span><span class="n">example</span><span class="si">}</span><span class="s2">) : &quot;</span>
+        <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Time mapping</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Which column represents the TIMES : &quot;</span><span class="p">)</span>
+        <span class="n">timecolumn</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">columnnames</span><span class="p">)</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;time_column&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timecolumn</span>
+        <span class="n">columnnames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">timecolumn</span><span class="p">)</span>
+
+        <span class="n">example</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">timecolumn</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;time_fmt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Type your time format (ex. %H:%M:%S), (your first timestamp: </span><span class="si">{</span><span class="n">example</span><span class="si">}</span><span class="s2">) : &quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Obstype mapping in long format:</span>
+    <span class="n">obstype_desc</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;name (name of the stations represented by strings)&quot;</span><span class="p">}</span>
+    <span class="n">obstype_desc</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="n">ob</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ob</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">ob</span><span class="o">.</span><span class="n">get_description</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">ob</span> <span class="ow">in</span> <span class="n">known_obstypes</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">obstype_desc</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;ADD NEW OBSERVATION TYPE&quot;</span><span class="p">:</span> <span class="s2">&quot;add a new observation type if it is not present in this list.&quot;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">inv_obstype_desc</span> <span class="o">=</span> <span class="p">{</span><span class="n">val</span><span class="p">:</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">obstype_desc</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">obstype_options</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">obstype_desc</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">format_option</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">format_option</span> <span class="o">==</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="c1"># long format</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;What do the following columns represent: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columnnames</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s2">&quot;Unnamed: 0&quot;</span><span class="p">:</span>
+                <span class="n">contin</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> add column </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> (: probably this is the index of the csv file) to the template?&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">contin</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> add column </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> to the template?&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">contin</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> : &quot;</span><span class="p">)</span>
+
+            <span class="n">desc_return</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">obstype_options</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">desc_return</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># when enter x</span>
+
+            <span class="c1"># 1) add a new obstype</span>
+            <span class="k">if</span> <span class="n">inv_obstype_desc</span><span class="p">[</span><span class="n">desc_return</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;ADD NEW OBSERVATION TYPE&quot;</span><span class="p">:</span>
+                <span class="n">new_obstype</span><span class="p">,</span> <span class="n">cur_unit</span> <span class="o">=</span> <span class="n">add_new_obstype</span><span class="p">()</span>
+
+                <span class="n">known_obstypes</span><span class="p">[</span><span class="n">new_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_obstype</span>  <span class="c1"># add to knonw obstypes</span>
+                <span class="n">obstype</span> <span class="o">=</span> <span class="n">new_obstype</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">units</span> <span class="o">=</span> <span class="n">cur_unit</span>
+                <span class="n">description</span> <span class="o">=</span> <span class="n">new_obstype</span><span class="o">.</span><span class="n">get_description</span><span class="p">()</span>
+
+            <span class="c1"># 2) name column is mapped</span>
+            <span class="k">elif</span> <span class="n">inv_obstype_desc</span><span class="p">[</span><span class="n">desc_return</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span>
+                <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;name_column&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">col</span>
+                <span class="n">obstype_options</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span>
+                    <span class="s2">&quot;name (name of the stations represented by strings)&quot;</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># 3) existing obstype</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obstype</span> <span class="o">=</span> <span class="n">inv_obstype_desc</span><span class="p">[</span><span class="n">desc_return</span><span class="p">]</span>
+
+                <span class="c1"># add unit</span>
+                <span class="n">units</span><span class="p">,</span> <span class="n">conv_str</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">known_obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">conv_str</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># add new units to the dict</span>
+                    <span class="n">new_units</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="n">units</span><span class="p">,</span> <span class="s2">&quot;conv&quot;</span><span class="p">:</span> <span class="n">conv_str</span><span class="p">}</span>
+
+                <span class="n">description</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Some more details on the observation (optional): &quot;</span><span class="p">)</span>
+                <span class="n">obstype_options</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">obstype_desc</span><span class="p">[</span><span class="n">obstype</span><span class="p">])</span>
+
+            <span class="c1"># update template</span>
+
+            <span class="n">obsdict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;tlk_obstype&quot;</span><span class="p">:</span> <span class="n">obstype</span><span class="p">,</span>
+                <span class="s2">&quot;columnname&quot;</span><span class="p">:</span> <span class="n">col</span><span class="p">,</span>
+                <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">description</span><span class="p">),</span>
+            <span class="p">}</span>
+
+            <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;obstype_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obsdict</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">format_option</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Does these columns represent stations: &quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columnnames</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span>
+
+        <span class="n">cont</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cont</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> In a Wide-format, REMOVE THE COLUMNS that do not represent different satations, before proceding! </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stationnames</span> <span class="o">=</span> <span class="n">columnnames</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> What observation type does you data represent : &quot;</span><span class="p">)</span>
+        <span class="n">obstype_options</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">obstype_desc</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+        <span class="n">desc_return</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">obstype_options</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">desc_return</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This is not an option, select an observation type.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;invalid obstype for wide dataset, see last message. &quot;</span><span class="p">)</span>
+        <span class="n">wide_obstype</span> <span class="o">=</span> <span class="n">inv_obstype_desc</span><span class="p">[</span><span class="n">desc_return</span><span class="p">]</span>
+
+        <span class="c1"># 1) add a new obstype</span>
+        <span class="k">if</span> <span class="n">wide_obstype</span> <span class="o">==</span> <span class="s2">&quot;ADD NEW OBSERVATION TYPE&quot;</span><span class="p">:</span>
+            <span class="n">new_obstype</span><span class="p">,</span> <span class="n">cur_unit</span> <span class="o">=</span> <span class="n">add_new_obstype</span><span class="p">()</span>
+            <span class="n">wide_obstype</span> <span class="o">=</span> <span class="n">new_obstype</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">known_obstypes</span><span class="p">[</span><span class="n">new_obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_obstype</span>  <span class="c1"># add to knonw obstypes</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">cur_unit</span>
+            <span class="n">description</span> <span class="o">=</span> <span class="n">new_obstype</span><span class="o">.</span><span class="n">get_description</span><span class="p">()</span>
+
+        <span class="c1"># 2) Knonw obstype</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># add unit</span>
+            <span class="n">units</span><span class="p">,</span> <span class="n">conv_str</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">known_obstypes</span><span class="p">[</span><span class="n">wide_obstype</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">conv_str</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># add new units to the dict</span>
+                <span class="n">new_units</span><span class="p">[</span><span class="n">wide_obstype</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="n">units</span><span class="p">,</span> <span class="s2">&quot;conv&quot;</span><span class="p">:</span> <span class="n">conv_str</span><span class="p">}</span>
+
+            <span class="n">description</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Some more details on the observation (optional): &quot;</span><span class="p">)</span>
+
+        <span class="c1"># update template</span>
+
+        <span class="n">obsdict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;tlk_obstype&quot;</span><span class="p">:</span> <span class="n">wide_obstype</span><span class="p">,</span>
+            <span class="s2">&quot;columnname&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">description</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;obstype_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obsdict</span><span class="p">)</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Map metadatafile</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> *******      Meta Data   ***********&quot;</span><span class="p">)</span>
+
+    <span class="n">metatemplate_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">meta_avail</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; ... opening the metadata file ...&quot;</span><span class="p">)</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">_read_csv_to_df</span><span class="p">(</span><span class="n">metadatafilepath</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;nrows&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+        <span class="n">metacolumnnames</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+
+        <span class="c1"># map the required columns (name)</span>
+
+        <span class="c1"># if multiple stations are in the dataset, this column is required</span>
+        <span class="k">if</span> <span class="n">format_option</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Which column does represent the NAMES of the stations?&quot;</span><span class="p">)</span>
+            <span class="n">name_column</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">metacolumnnames</span><span class="p">)</span>
+            <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;metadata_related&quot;</span><span class="p">][</span><span class="s2">&quot;name_column&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name_column</span>
+            <span class="n">metacolumnnames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">name_column</span><span class="p">)</span>
+
+        <span class="c1"># if the data is a single station, this column is ignored</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">staname</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> What is the name of your station : &quot;</span><span class="p">)</span>
+            <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;single_station_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">staname</span>
+
+        <span class="c1"># map columns that are used by the toolit (lat, lon)</span>
+        <span class="n">with_coords</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> are there coordinates (latitude, longitude) columns in the metadata?&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">with_coords</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Which column does represent the LATITUDES?&quot;</span><span class="p">)</span>
+            <span class="n">lat_column</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">metacolumnnames</span><span class="p">)</span>
+            <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;metadata_related&quot;</span><span class="p">][</span><span class="s2">&quot;lat_column&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lat_column</span>
+            <span class="n">metacolumnnames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">lat_column</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Which column does represent the LONGITUDES?&quot;</span><span class="p">)</span>
+            <span class="n">lon_column</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">metacolumnnames</span><span class="p">)</span>
+            <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;metadata_related&quot;</span><span class="p">][</span><span class="s2">&quot;lon_column&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lon_column</span>
+            <span class="n">metacolumnnames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">lon_column</span><span class="p">)</span>
+
+        <span class="c1"># Which other (not used by the toolkit) to add.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metacolumnnames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">add_cols</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Do you want to include/use remaining columns in the metadatafile? </span><span class="se">\n</span><span class="s2"> (</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">metacolumnnames</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">add_cols</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">metacolumnnames</span><span class="p">:</span>
+                    <span class="n">add_bool</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Add </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> in the metada?&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">add_bool</span><span class="p">:</span>
+                        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;metadata_related&quot;</span><span class="p">][</span><span class="s2">&quot;columns_to_include&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+                        <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> *******      Extra options    ***********&quot;</span><span class="p">)</span>
+
+    <span class="n">tzchange</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Are the timestamps in UTC?&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tzchange</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Select a timezone: &quot;</span><span class="p">)</span>
+        <span class="n">tzstring</span> <span class="o">=</span> <span class="n">col_option_input</span><span class="p">(</span><span class="n">pytz</span><span class="o">.</span><span class="n">all_timezones</span><span class="p">)</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;timezone&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tzstring</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tmpl_dict</span><span class="p">[</span><span class="s2">&quot;data_related&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">][</span><span class="s2">&quot;timezone&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Saving the template</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> ------ Saving the template ----- </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">save_dir</span> <span class="o">=</span> <span class="n">usr_input_dir</span><span class="p">(</span>
+        <span class="s2">&quot;Give a directory where to save the template (as template.json)&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># write to csv</span>
+    <span class="n">templatefilepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;template.json&quot;</span><span class="p">)</span>
+    <span class="n">_pwrite_templdict_to_json</span><span class="p">(</span><span class="n">templdict</span><span class="o">=</span><span class="n">tmpl_dict</span><span class="p">,</span> <span class="n">trgfile</span><span class="o">=</span><span class="n">templatefilepath</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; DONE! The template is written here: </span><span class="si">{</span><span class="n">templatefilepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Tips for the user</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="n">apply_tips</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span><span class="s2">&quot;Do you want some help creating your Dataset?&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">apply_tips</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> ------ How to use the template ----- &quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;(Some questions will be asked that are case-specific) </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">output_change</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span><span class="s2">&quot;Do you plan to save images to a direcory?&quot;</span><span class="p">)</span>
+        <span class="n">output_update</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">output_change</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">output_folder</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot; Give the path of your output direcory : &quot;</span><span class="p">)</span>
+            <span class="n">output_update</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">gaps_change</span> <span class="o">=</span> <span class="n">yes_no_ques</span><span class="p">(</span><span class="s2">&quot;Do you want to use the default gaps defenition?&quot;</span><span class="p">)</span>
+        <span class="n">gaps_update</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">gaps_change</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">gapsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+                <span class="nb">input</span><span class="p">(</span>
+                    <span class="s2">&quot; What is the minimum number of consecutive missing records to define as a gap? (default=40) : &quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">gaps_update</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"> ========= RUN THIS CODE ========= </span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#1. Define the paths to your files: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;data_file = r&quot;</span><span class="si">{</span><span class="n">datafilepath</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">meta_avail</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;meta_data_file = r&quot;</span><span class="si">{</span><span class="n">metadatafilepath</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;template = r&quot;</span><span class="si">{</span><span class="n">templatefilepath</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#2. initiate a dataset: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;your_dataset = metobs_toolkit.Dataset()&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#3. Update the paths to your files: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;your_dataset.update_settings(&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    input_data_file = data_file,&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">meta_avail</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    input_metadata_file = meta_data_file,&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    template_file = template,&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">output_update</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    output_folder = &quot;</span><span class="si">{</span><span class="n">output_folder</span><span class="si">}</span><span class="s1">&quot;,&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    )&quot;</span><span class="p">)</span>
+
+        <span class="c1"># extra case specific options</span>
+        <span class="k">if</span> <span class="n">gaps_update</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#3B. Update specific settings (optional): </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gaps_update</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;your_dataset.update_qc_settings(gapsize_in_records = </span><span class="si">{</span><span class="n">gapsize</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+        <span class="c1"># add new obstypes if needed</span>
+        <span class="n">to_add_obstypes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">newobsname</span>
+            <span class="k">for</span> <span class="n">newobsname</span> <span class="ow">in</span> <span class="n">known_obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">newobsname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tlk_obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">to_add_obstypes</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Define non-standard observation types, and add them to the dataset: </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">newob</span> <span class="ow">in</span> <span class="n">to_add_obstypes</span><span class="p">:</span>
+                <span class="n">new_obstype</span> <span class="o">=</span> <span class="n">known_obstypes</span><span class="p">[</span><span class="n">newob</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;new_obstype = metobs_toolkit.Obstype(&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;                 obsname=&quot;</span><span class="si">{</span><span class="n">new_obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;,&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;                 std_unit=&quot;</span><span class="si">{</span><span class="n">new_obstype</span><span class="o">.</span><span class="n">get_standard_unit</span><span class="p">()</span><span class="si">}</span><span class="s1">&quot;,&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;                 description=&quot;</span><span class="si">{</span><span class="n">new_obstype</span><span class="o">.</span><span class="n">get_description</span><span class="p">()</span><span class="si">}</span><span class="s1">&quot;,&#39;</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;                 unit_aliases=</span><span class="si">{</span><span class="n">new_obstype</span><span class="o">.</span><span class="n">units_aliases</span><span class="si">}</span><span class="s2">,&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;                 unit_conversions=</span><span class="si">{</span><span class="n">new_obstype</span><span class="o">.</span><span class="n">conv_table</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"> #add the new obstype to your dataset. </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;your_dataset.add_new_observationtype(Obstype=new_obstype)&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># add new units if needed</span>
+
+        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">new_units</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Define non-standard units, and add them to the corresponding units: </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">unit_info</span> <span class="ow">in</span> <span class="n">new_units</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;your_dataset.add_new_unit(&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;                         obstype=&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s1">&quot;,&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;                         new_unit=&quot;</span><span class="si">{</span><span class="n">unit_info</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&quot;,&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;                         conversion_expression=</span><span class="si">{</span><span class="n">unit_info</span><span class="p">[</span><span class="s2">&quot;conv&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">)&#39;</span>
+                <span class="p">)</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#4. Import your data : </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;your_dataset.import_data_from_file()&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,869 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Mapping to the toolkit &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'topics/template_doc';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Mapping to...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Mapping-to-the-toolkit">
+<h1>Mapping to the toolkit<a class="headerlink" href="#Mapping-to-the-toolkit" title="Link to this heading">#</a></h1>
+<p>The MetObs-toolkit uses standard names and formats for your data. To use the toolkit, your observational data must be converted to the toolkit standards this is referred to as <strong>mapping</strong>.</p>
+<p>To specify how the mapping must be done a <strong>template</strong> is used. This template contains all the information on how to convert your tabular data to the toolkit standards. Since the structure of data files differs for different networks, this template is unique for each data file. A template is saved as a tabular .csv file to reuse and share them.</p>
+<p>On this page, you can find information on how to construct a template.</p>
+</section>
+<section id="Toolkit-Standards">
+<h1>Toolkit Standards<a class="headerlink" href="#Toolkit-Standards" title="Link to this heading">#</a></h1>
+<p>The toolkit has standard names for observation types and metadata. Here these standards are presented and described.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#This codeblock is for illustration, it has no practical use.</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.miscellaneous</span> <span class="kn">import</span> <span class="n">_tlk_print_standard_obstypes</span>
+<span class="n">_tlk_print_standard_obstypes</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The standard observations present in the Metobs toolkit
+ -----------------------------------------------------
+
+temp                     | 2mT passive              | Celsius
+humidity                 | 2m relative humidity passive | %
+radiation_temp           | 2m - Black globe         | Celsius
+pressure                 | atmospheric pressure (at station) | pa
+pressure_at_sea_level    | atmospheric pressure (at sea level) | pa
+precip                   | precipitation intensity  | mm/m²
+precip_sum               | Cummulated precipitation | mm/m²
+wind_speed               | Average 2m  10-min windspeed | m/s
+wind_gust                | wind gust                | m/s
+wind_direction           | Average 2m  10-min windspeed | ° from north (CW)
+</pre></div></div>
+</div>
+<section id="Data-Structures">
+<h2>Data Structures<a class="headerlink" href="#Data-Structures" title="Link to this heading">#</a></h2>
+<p>To make a template you must be aware of which format your data is in. The toolkit can handle the following data structures:</p>
+<section id="Long-format">
+<h3>Long-format<a class="headerlink" href="#Long-format" title="Link to this heading">#</a></h3>
+<p>Observations are stacked in rows per station. One column represents the station names.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Timestamp</p></th>
+<th class="head"><p>2m Temperature</p></th>
+<th class="head"><p>2m Humidity</p></th>
+<th class="head"><p>ID</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2022-06-07 13:20:00</p></td>
+<td><p>16.4</p></td>
+<td><p>77.3</p></td>
+<td><p>Station_A</p></td>
+</tr>
+<tr class="row-odd"><td><p>2022-06-07 13:30:00</p></td>
+<td><p>16.7</p></td>
+<td><p>75.6</p></td>
+<td><p>Station_A</p></td>
+</tr>
+<tr class="row-even"><td><p>2022-06-07 13:20:00</p></td>
+<td><p>18.3</p></td>
+<td><p>68.9</p></td>
+<td><p>Station_B</p></td>
+</tr>
+<tr class="row-odd"><td><p>2022-06-07 13:30:00</p></td>
+<td><p>18.6</p></td>
+<td><p>71.9</p></td>
+<td><p>Station_B</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="Single-statio-format">
+<h3>Single-statio-format<a class="headerlink" href="#Single-statio-format" title="Link to this heading">#</a></h3>
+<p>The same as a long format but without a column indicating the station names. Be aware that the toolkit interprets it as observations coming from one station.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Timestamp</p></th>
+<th class="head"><p>2m Temperature</p></th>
+<th class="head"><p>2m Humidity</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2022-06-07 13:20:00</p></td>
+<td><p>16.4</p></td>
+<td><p>77.3</p></td>
+</tr>
+<tr class="row-odd"><td><p>2022-06-07 13:30:00</p></td>
+<td><p>16.7</p></td>
+<td><p>75.6</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="Wide-format">
+<h3>Wide-format<a class="headerlink" href="#Wide-format" title="Link to this heading">#</a></h3>
+<p>Columns represent different stations. The data represents one observation type.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Timestamp</p></th>
+<th class="head"><p>Station_A</p></th>
+<th class="head"><p>Station_B</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2022-06-07 13:20:00</p></td>
+<td><p>16.4</p></td>
+<td><p>18.3</p></td>
+</tr>
+<tr class="row-odd"><td><p>2022-06-07 13:30:00</p></td>
+<td><p>16.7</p></td>
+<td><p>18.6</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="Template-creation">
+<h2>Template creation<a class="headerlink" href="#Template-creation" title="Link to this heading">#</a></h2>
+<p>Once you have converted your tabular data files to either long-, wide-, or single-station-format, and saved them as a .csv file, a template can be made.</p>
+<div class="alert alert-block alert-info"><p>Note: If you want to use a metadata file, make sure it is converted to a Wide-format and saved as a .csv file.</p>
+</div><p>The fastest and simplest way to make a template is by using the <code class="docutils literal notranslate"><span class="pre">metobs_toolkit.build_template_prompt()</span></code> function.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="c1">#create a template</span>
+<span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">build_template_prompt</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="alert alert-block alert-info"><p>Note: When the prompt asks if you need further help, and you type yes, some more questions are prompted. Once all information is given to the prompt, it will print out a piece of code that you have to run to load your data into the toolkit.</p>
+</div><p>This function will prompt questions and build a template that matches your data file (and metadata) file. The <em>template.json</em> file will be stored at a location of your choice.</p>
+<p>To use this template, feed the path to the <em>template.json</em> file to the data_template_file (and metadata_template_file) arguments of the <code class="docutils literal notranslate"><span class="pre">update_settings()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span> <span class="c1">#initiate an empty dataset</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span>
+    <span class="n">input_data_file</span><span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="c1">#Path to your data (csv) file</span>
+    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span> <span class="c1">#Path to your metadata (csv) file</span>
+    <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">)</span> <span class="c1">#Path to your template (json) file.</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<p>The template (file) is read when calling the <code class="docutils literal notranslate"><span class="pre">Dataset.import_data_from_file()</span></code> method, and converted to a <code class="docutils literal notranslate"><span class="pre">metobs_toolkit.Template</span></code> which is accesible for each dataset.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span> <span class="c1">#will read the data, metadata and template.</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">template</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;metobs_toolkit.template.Template at 0x7f5b4da492d0&gt;
+</pre></div></div>
+</div>
+<p>An overview of the template can be printed using the <code class="docutils literal notranslate"><span class="pre">show()</span></code> on the <code class="docutils literal notranslate"><span class="pre">Template</span></code> instance:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+------ Data obstypes map ---------
+ * temp            &lt;---&gt; Temperatuur
+     (raw data in Celsius)
+     (description: 2mT passive)
+
+ * humidity        &lt;---&gt; Vochtigheid
+     (raw data in %)
+     (description: 2m relative humidity passive)
+
+ * wind_speed      &lt;---&gt; Windsnelheid
+     (raw data in km/h)
+     (description: Average 2m  10-min windspeed)
+
+ * wind_direction  &lt;---&gt; Windrichting
+     (raw data in ° from north (CW))
+     (description: Average 2m  10-min windspeed)
+
+
+------ Data extra mapping info ---------
+ * name column (data) &lt;---&gt; Vlinder
+
+------ Data timestamp map ---------
+ * datetimecolumn  &lt;---&gt; None
+ * time_column     &lt;---&gt; Tijd (UTC)
+ * date_column     &lt;---&gt; Datum
+ * fmt             &lt;---&gt; %Y-%m-%d %H:%M:%S
+ * Timezone        &lt;---&gt; None
+
+------ Metadata map ---------
+ * name            &lt;---&gt; Vlinder
+ * lat             &lt;---&gt; lat
+ * lon             &lt;---&gt; lon
+ * school          &lt;---&gt; school
+</pre></div></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Mapping to the toolkit</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#Toolkit-Standards">Toolkit Standards</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Data-Structures">Data Structures</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Long-format">Long-format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Single-statio-format">Single-statio-format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Wide-format">Wide-format</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Template-creation">Template creation</a></li>
+</ul>
+</li>
+</ul>
+
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/topics/template_doc.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

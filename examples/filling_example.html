@@ -1,0 +1,998 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Demo example: filling gaps and missing observations &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/filling_example';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo example: Analysis" href="analysis_example.html" />
+    <link rel="prev" title="Demo example: Applying Quality Control." href="qc_example.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="doc_example.html">Demo example: Using a Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gee_example.html">Demo example: Using a Google Earth engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qc_example.html">Demo example: Applying Quality Control.</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Demo example: filling gaps and missing observations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis_example.html">Demo example: Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_obstypes.html">Working with specific observation types</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Examples</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Demo...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Demo-example:-filling-gaps-and-missing-observations">
+<h1>Demo example: filling gaps and missing observations<a class="headerlink" href="#Demo-example:-filling-gaps-and-missing-observations" title="Link to this heading">#</a></h1>
+<p>This example is the continuation of the previous example: <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/latest/examples/qc_example.html">Apply quality control</a>. This example serves as a demonstration of how to fill missing observations and gaps.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+<span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span>
+    <span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="c1"># path to the data file</span>
+    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+    <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Missing-observations-and-Gaps">
+<h2>Missing observations and Gaps<a class="headerlink" href="#Missing-observations-and-Gaps" title="Link to this heading">#</a></h2>
+<p>When there is no (specific) observation value for a timestamp we have a <em>missing observation</em>. If there are multiple consecutive timestamps without an observation value and the number of consecutive missing timestamps &gt;= the <em>gapsize</em> threshold, we label the period as a gap.</p>
+<p>The default gapsize is set to 40. As mentioned before, the gaps and missing observations are localized when importing the data from file. To change the default gapsize use:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">update_qc_settings</span><span class="p">(</span><span class="n">gapsize_in_records</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+
+<span class="c1">#Update the gapsize BEFORE importing the data</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">coarsen_time_resolution</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="s1">&#39;15T&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Inspect-missing-observations">
+<h2>Inspect missing observations<a class="headerlink" href="#Inspect-missing-observations" title="Link to this heading">#</a></h2>
+<p>To get an overview of the missing observation use the <code class="docutils literal notranslate"><span class="pre">get_info()</span></code> method on the missing observations.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">missing_obs</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+ -------- Missing observations info --------
+
+(Note: missing observations are defined on the frequency estimation of the native dataset.)
+  * 3 missing observations
+
+ name
+vlinder02   2022-09-10 17:10:00+00:00
+vlinder02   2022-09-10 17:15:00+00:00
+vlinder02   2022-09-10 17:45:00+00:00
+Name: datetime, dtype: datetime64[ns, UTC]
+
+  * For these stations: [&#39;vlinder02&#39;]
+  * The missing observations are not filled.
+(More details on the missing observation can be found in the .series and .fill_df attributes.)
+</pre></div></div>
+</div>
+<p>These missing observations are indicated in time series plots as vertical lines:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder02&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder02&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_7_1.png" src="../_images/examples_filling_example_7_1.png" />
+</div>
+</div>
+</section>
+<section id="Inspect-gaps">
+<h2>Inspect gaps<a class="headerlink" href="#Inspect-gaps" title="Link to this heading">#</a></h2>
+<p>To get an overview of the gaps use the <code class="docutils literal notranslate"><span class="pre">get_gap_info()</span></code> method on the missing Dataset.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_gaps_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+There are no gaps.
+</pre></div></div>
+</div>
+</section>
+<section id="Outliers-to-gaps-and-missing-observations">
+<h2>Outliers to gaps and missing observations<a class="headerlink" href="#Outliers-to-gaps-and-missing-observations" title="Link to this heading">#</a></h2>
+<p>In practice the observations that are labeled as outliers are interpreted as missing observations (because we assume that the observation value is erroneous). In the toolkit it is possible to convert the outliers to missing observations and gaps by using the <code class="docutils literal notranslate"><span class="pre">update_gaps_and_missing_from_outliers()</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#first apply (default) quality control</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">apply_quality_control</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span> <span class="c1">#we use the default settings in this example</span>
+
+<span class="c1">#Interpret the outliers as missing observations and gaps.</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_gaps_and_missing_from_outliers</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                                                   <span class="n">n_gapsize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="c1">#It is possible to change the definition of gapsize.</span>
+<span class="c1">#Inspect your gaps using a printout or by plotting</span>
+<span class="c1">#your_dataset.get_gaps_info()</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur for all stations. &#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_11_1.png" src="../_images/examples_filling_example_11_1.png" />
+</div>
+</div>
+<p>When plotting a single station, the figure becomes more clear</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder05&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_13_1.png" src="../_images/examples_filling_example_13_1.png" />
+</div>
+</div>
+</section>
+<section id="Fill-missing-observations">
+<h2>Fill missing observations<a class="headerlink" href="#Fill-missing-observations" title="Link to this heading">#</a></h2>
+<p>Missing observations typically span short periods, so interpolation is the most suitable method for filling the observations. To interpolate values over the missing timestamps use the <code class="docutils literal notranslate"><span class="pre">fill_missing_obs_linear()</span></code> method. The specific settings that are used for the interpolation can be changed with the <code class="docutils literal notranslate"><span class="pre">update_gap_and_missing_fill_settings()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Update the specific settings</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_gap_and_missing_fill_settings</span><span class="p">(</span><span class="n">missing_obs_interpolation_method</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+
+<span class="c1">#Interpolate the missing timestamps</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">fill_missing_obs_linear</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+
+<span class="c1">#Inspect the filled values by plotting or printing out the info.</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">missing_obs</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+ -------- Missing observations info --------
+
+(Note: missing observations are defined on the frequency estimation of the native dataset.)
+  * 892 missing observations
+  * For 28 stations
+  * Missing observations are filled with interpolate for:
+    temp:
+                                           temp
+name      datetime
+vlinder01 2022-09-14 17:45:00+00:00  14.657143
+          2022-09-14 18:45:00+00:00  14.485714
+          2022-09-14 18:30:00+00:00  14.528571
+          2022-09-14 18:15:00+00:00  14.571429
+          2022-09-14 18:00:00+00:00  14.614286
+...                                        ...
+vlinder28 2022-09-12 07:15:00+00:00  13.600000
+          2022-09-05 18:15:00+00:00  21.300000
+          2022-09-14 18:00:00+00:00  14.800000
+          2022-09-14 08:45:00+00:00  15.025000
+          2022-09-14 18:15:00+00:00  14.800000
+
+[891 rows x 1 columns]
+  * Missing observations that could NOT be filled for:
+    temp:
+ MultiIndex([(&#39;vlinder02&#39;, &#39;2022-09-10 17:10:00+00:00&#39;)],
+           names=[&#39;name&#39;, &#39;datetime&#39;])
+(More details on the missing observation can be found in the .series and .fill_df attributes.)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_15_1.png" src="../_images/examples_filling_example_15_1.png" />
+</div>
+</div>
+</section>
+<section id="Fill-gaps">
+<h2>Fill gaps<a class="headerlink" href="#Fill-gaps" title="Link to this heading">#</a></h2>
+<p>Because gaps can span longer periods, interpolation is not (always) the most suitable method to fill the gaps. The following method can be used to fill the gaps:</p>
+<ul class="simple">
+<li><p>interpolation: linear interpolation of the gaps. Use the <code class="docutils literal notranslate"><span class="pre">fill_gaps_linear()</span></code> method for this.</p></li>
+<li><p>Debias ERA5 gapfill: Use ERA5 and a debiasing algorithm to fill the gaps by calling the <code class="docutils literal notranslate"><span class="pre">fill_gaps_era5()</span></code> method.</p></li>
+<li><p>Automatic gapfill: A combination of the interpolation and ERA5-debias. For the shortest gaps interpolation is used and debias-ERA5 for the longer gaps. Use the <code class="docutils literal notranslate"><span class="pre">fill_gaps_automatic()</span></code> method for this.</p></li>
+</ul>
+<p>Here is an example of using debias ERA5 gapfilling of temperature observations.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Update the settings (definition of the period to calculate biases for)</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_gap_and_missing_fill_settings</span><span class="p">(</span>
+                                                  <span class="n">gap_debias_prefered_leading_period_hours</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+                                                  <span class="n">gap_debias_prefered_trailing_period_hours</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+                                                  <span class="n">gap_debias_minimum_leading_period_hours</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+                                                  <span class="n">gap_debias_minimum_trailing_period_hours</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+                                                  <span class="p">)</span>
+<span class="c1">#(As a demonstration, we will fill the gaps of a single station. The following functions can also be</span>
+<span class="c1"># directly applied to the dataset.)</span>
+<span class="n">your_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">)</span>
+
+
+<span class="c1">#Get ERA5 modeldata at the location of your stations and period.</span>
+<span class="n">ERA5_modeldata</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">modelname</span><span class="o">=</span><span class="s1">&#39;ERA5_hourly&#39;</span><span class="p">,</span>
+                                                                    <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+
+<span class="c1">#Use the debias method to fill the gaps</span>
+<span class="n">gapfill_df</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">fill_gaps_era5</span><span class="p">(</span><span class="n">modeldata</span><span class="o">=</span><span class="n">ERA5_modeldata</span><span class="p">,</span>
+                                         <span class="n">method</span><span class="o">=</span><span class="s1">&#39;debias&#39;</span><span class="p">,</span>
+                                         <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<p>To authorize access needed by Earth Engine, open the following
+        URL in a web browser and follow the instructions:</p>
+        <p><a href=https://code.earthengine.google.com/client-auth?scopes=https%3A//www.googleapis.com/auth/earthengine%20https%3A//www.googleapis.com/auth/devstorage.full_control&request_id=gOIKcfY39t-LaSM_esufmUl1XAlzLqE3KVIYY7vUJ04&tc=5laNPc-Y_M4z8qVxTUtp71dwfdgRuNHjkYgSdWvirrQ&cc=3Auxy8YEGzBho3lWk01G2QP8A9QF5VEoEoHxuxl65-0>https://code.earthengine.google.com/client-auth?scopes=https%3A//www.googleapis.com/auth/earthengine%20https%3A//www.googleapis.com/auth/devstorage.full_control&request_id=gOIKcfY39t-LaSM_esufmUl1XAlzLqE3KVIYY7vUJ04&tc=5laNPc-Y_M4z8qVxTUtp71dwfdgRuNHjkYgSdWvirrQ&cc=3Auxy8YEGzBho3lWk01G2QP8A9QF5VEoEoHxuxl65-0</a></p>
+        <p>The authorization workflow will generate a code, which you should paste in the box below.</p></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Enter verification code:  4/1AfJohXnKdN9MAKx-q9l7U6FHNF4FR7u6VH8zU5WXCgT1sZMJKO7TfV3G3ig
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+Successfully saved authorization token.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+*** Earth Engine *** Share your feedback by taking our Annual Developer Satisfaction Survey: https://google.qualtrics.com/jfe/form/SV_doiqkQG3NJ1t8IS?source=API
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(When using the .set_model_from_csv() method, make shure the modelname of your Modeldata is ERA5_hourly)
+</pre></div></div>
+</div>
+<p>The gaps in the station are now filled. To inspect these filled values, you can plot them</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_station</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder05&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;Temperatuur (Celcius) \n 2m-temperature&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_19_1.png" src="../_images/examples_filling_example_19_1.png" />
+</div>
+</div>
+<p>If you want more details you can inspect the DataFrame with the gapfill values, or print out the information.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#inspect the gapfilldf attribute direct</span>
+<span class="n">your_station</span><span class="o">.</span><span class="n">gapfilldf</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+
+<span class="c1">#or print out info</span>
+<span class="c1">#your_station.get_gaps_info()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>temp_final_label</th>
+      <th>temp</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">vlinder05</th>
+      <th>2022-09-01 19:45:00+00:00</th>
+      <td>gap_debiased_era5</td>
+      <td>20.470136</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 20:00:00+00:00</th>
+      <td>gap_debiased_era5</td>
+      <td>20.200433</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 20:15:00+00:00</th>
+      <td>gap_debiased_era5</td>
+      <td>20.018491</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 20:30:00+00:00</th>
+      <td>gap_debiased_era5</td>
+      <td>19.836549</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 20:45:00+00:00</th>
+      <td>gap_debiased_era5</td>
+      <td>19.654607</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="Filling-gaps-exercise">
+<h2>Filling gaps exercise<a class="headerlink" href="#Filling-gaps-exercise" title="Link to this heading">#</a></h2>
+<p>For a more detailed reference you can use this <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/blob/4d5a35954eb8ff153eb0d9e9c8a34cee7e3c50f4/fairness_demo_exercises/Gap_filling_excercise_03.ipynb">Filling gaps exercise</a>, which was created in the context of the <a class="reference external" href="https://www.cost.eu/actions/CA20108/">COST FAIRNESS</a> summer school 2023 in Ghent.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="qc_example.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Demo example: Applying Quality Control.</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="analysis_example.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Demo example: Analysis</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Missing-observations-and-Gaps">Missing observations and Gaps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Inspect-missing-observations">Inspect missing observations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Inspect-gaps">Inspect gaps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Outliers-to-gaps-and-missing-observations">Outliers to gaps and missing observations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Fill-missing-observations">Fill missing observations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Fill-gaps">Fill gaps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Filling-gaps-exercise">Filling gaps exercise</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/examples/filling_example.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

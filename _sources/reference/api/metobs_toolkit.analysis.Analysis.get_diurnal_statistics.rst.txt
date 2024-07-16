@@ -1,0 +1,6 @@
+metobs\_toolkit.analysis.Analysis.get\_diurnal\_statistics
+==========================================================
+
+.. currentmodule:: metobs_toolkit.analysis
+
+.. automethod:: Analysis.get_diurnal_statistics

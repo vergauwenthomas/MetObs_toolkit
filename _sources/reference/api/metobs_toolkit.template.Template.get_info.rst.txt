@@ -1,0 +1,6 @@
+metobs\_toolkit.template.Template.get\_info
+===========================================
+
+.. currentmodule:: metobs_toolkit.template
+
+.. automethod:: Template.get_info

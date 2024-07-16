@@ -1,0 +1,1634 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Demo example: Using a Dataset &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/doc_example';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo example: Using a Google Earth engine" href="gee_example.html" />
+    <link rel="prev" title="Examples" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Demo example: Using a Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gee_example.html">Demo example: Using a Google Earth engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qc_example.html">Demo example: Applying Quality Control.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filling_example.html">Demo example: filling gaps and missing observations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis_example.html">Demo example: Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_obstypes.html">Working with specific observation types</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Examples</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Demo...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Demo-example:-Using-a-Dataset">
+<h1>Demo example: Using a Dataset<a class="headerlink" href="#Demo-example:-Using-a-Dataset" title="Link to this heading">#</a></h1>
+<p>This is an introduction to get started with the MetObs toolkit. These examples are making use of the demo data files that comes with the toolkit. Once the MetObs toolkit package is installed, you can import its functionality by:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+</pre></div>
+</div>
+</div>
+<section id="The-Dataset">
+<h2>The Dataset<a class="headerlink" href="#The-Dataset" title="Link to this heading">#</a></h2>
+<p>A dataset is a collection of all observational data. Most of the methods are applied directly to a dataset. Start by creating an empty Dataset object:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<p>The most relevant attributes of a Dataset are: * .df –&gt; a pandas DataFrame where all the observational data are stored * .metadf –&gt; a pandas DataFrame where all the metadata for each station are stored * .settings –&gt; a Settings object to store all specific settings. * .missing_obs and .gaps –&gt; here the missing records and gaps are stored if present.</p>
+<p>Note that each Dataset will be equipped with the default settings.</p>
+<p>We created a dataset and stored in under the variable ‘your_dataset’. The show method prints out an overview of data in the dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># or .get_info()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+--------  General ---------
+
+Empty instance of a Dataset.
+
+ --------  Observation types ---------
+
+temp observation with:
+     * standard unit: Celsius
+     * data column as None in None
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;]}
+     * description: 2m - temperature
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;]}
+     * originates from data column: None with None as native unit.
+humidity observation with:
+     * standard unit: %
+     * data column as None in None
+     * known units and aliases: {&#39;%&#39;: [&#39;percent&#39;, &#39;percentage&#39;]}
+     * description: 2m - relative humidity
+     * conversions to known units: {}
+     * originates from data column: None with None as native unit.
+radiation_temp observation with:
+     * standard unit: Celsius
+     * data column as None in None
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;]}
+     * description: 2m - Black globe
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;]}
+     * originates from data column: None with None as native unit.
+pressure observation with:
+     * standard unit: pa
+     * data column as None in None
+     * known units and aliases: {&#39;pa&#39;: [&#39;Pascal&#39;, &#39;pascal&#39;, &#39;Pa&#39;], &#39;hpa&#39;: [&#39;hecto pascal&#39;, &#39;hPa&#39;], &#39;psi&#39;: [&#39;Psi&#39;], &#39;bar&#39;: [&#39;Bar&#39;]}
+     * description: atmospheric pressure (at station)
+     * conversions to known units: {&#39;hpa&#39;: [&#39;x * 100&#39;], &#39;psi&#39;: [&#39;x * 6894.7573&#39;], &#39;bar&#39;: [&#39;x * 100000.&#39;]}
+     * originates from data column: None with None as native unit.
+pressure_at_sea_level observation with:
+     * standard unit: pa
+     * data column as None in None
+     * known units and aliases: {&#39;pa&#39;: [&#39;Pascal&#39;, &#39;pascal&#39;, &#39;Pa&#39;], &#39;hpa&#39;: [&#39;hecto pascal&#39;, &#39;hPa&#39;], &#39;psi&#39;: [&#39;Psi&#39;], &#39;bar&#39;: [&#39;Bar&#39;]}
+     * description: atmospheric pressure (at sea level)
+     * conversions to known units: {&#39;hpa&#39;: [&#39;x * 100&#39;], &#39;psi&#39;: [&#39;x * 6894.7573&#39;], &#39;bar&#39;: [&#39;x * 100000.&#39;]}
+     * originates from data column: None with None as native unit.
+precip observation with:
+     * standard unit: mm/m²
+     * data column as None in None
+     * known units and aliases: {&#39;mm/m²&#39;: [&#39;mm&#39;, &#39;liter&#39;, &#39;liters&#39;, &#39;l/m²&#39;, &#39;milimeter&#39;]}
+     * description: precipitation intensity
+     * conversions to known units: {}
+     * originates from data column: None with None as native unit.
+precip_sum observation with:
+     * standard unit: mm/m²
+     * data column as None in None
+     * known units and aliases: {&#39;mm/m²&#39;: [&#39;mm&#39;, &#39;liter&#39;, &#39;liters&#39;, &#39;l/m²&#39;, &#39;milimeter&#39;]}
+     * description: Cummulated precipitation
+     * conversions to known units: {}
+     * originates from data column: None with None as native unit.
+wind_speed observation with:
+     * standard unit: m/s
+     * data column as None in None
+     * known units and aliases: {&#39;m/s&#39;: [&#39;meters/second&#39;, &#39;m/sec&#39;], &#39;km/h&#39;: [&#39;kilometers/hour&#39;, &#39;kph&#39;], &#39;mph&#39;: [&#39;miles/hour&#39;]}
+     * description: wind speed
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+     * originates from data column: None with None as native unit.
+wind_gust observation with:
+     * standard unit: m/s
+     * data column as None in None
+     * known units and aliases: {&#39;m/s&#39;: [&#39;meters/second&#39;, &#39;m/sec&#39;], &#39;km/h&#39;: [&#39;kilometers/hour&#39;, &#39;kph&#39;], &#39;mph&#39;: [&#39;miles/hour&#39;]}
+     * description: wind gust
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+     * originates from data column: None with None as native unit.
+wind_direction observation with:
+     * standard unit: ° from north (CW)
+     * data column as None in None
+     * known units and aliases: {&#39;° from north (CW)&#39;: [&#39;°&#39;, &#39;degrees&#39;]}
+     * description: wind direction
+     * conversions to known units: {}
+     * originates from data column: None with None as native unit.
+
+ --------  Settings ---------
+
+(to show all settings use the .show_settings() method, or set show_all_settings = True)
+
+ --------  Outliers ---------
+
+No outliers.
+
+ --------  Meta data ---------
+
+No metadata is found.
+</pre></div></div>
+</div>
+<p>TIP: to get an extensive overview of an object, call the .show() method on it.</p>
+</section>
+<section id="Importing-data">
+<h2>Importing data<a class="headerlink" href="#Importing-data" title="Link to this heading">#</a></h2>
+<p>To import your data into a Dataset, the following files are required:</p>
+<ul class="simple">
+<li><p>data file: This is the CSV file containing the observations</p></li>
+<li><p>(optional) metadata file: The CSV file containing metadata for all stations.</p></li>
+<li><p>template file: This is a (json) file that is used to interpret your data, and metadata file (if present).</p></li>
+</ul>
+<p>In practice, you need to start by creating a template file for your data. More information on the creation of the template can be found in the documentation (under <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/latest/topics/template_mapping.html">Mapping to the toolkit</a>).</p>
+<p>TIP: <em>Use the ``build_template_prompt()`` of the toolkit for creating a template file.</em></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># metobs_toolkit.build_template_prompt()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<p>To import data, you must specify the paths to your data, metadata and template. For this example, we use the demo data, metadata and template that come with the toolkit.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">update_settings</span><span class="p">(</span>
+    <span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="c1"># path to the data file</span>
+    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+    <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<p>The settings of your Dataset are updated with the required paths. Now the data can be imported into your empty Dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+</section>
+<section id="Inspecting-the-Template">
+<h2>Inspecting the Template<a class="headerlink" href="#Inspecting-the-Template" title="Link to this heading">#</a></h2>
+<p>In practice, you need to start by creating a template file for your data. The role of the template is to translate your data and metadata file, to a standard structure used by the toolkit. It is thus the explanation of how your raw data is structured. More information on the creation of the template can be found in the documentation (under <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/latest/topics/template_mapping.html">Mapping to the toolkit</a>).</p>
+<p>TIP: <em>Use the ``build_template_prompt()`` of the toolkit for creating a template file.</em></p>
+<p>As an illustration, you can use the <code class="docutils literal notranslate"><span class="pre">show()</span></code> method on the template attribute to print out an overview of the template:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+------ Data obstypes map ---------
+ * temp            &lt;---&gt; Temperatuur
+     (raw data in Celsius)
+     (description: 2mT passive)
+
+ * humidity        &lt;---&gt; Vochtigheid
+     (raw data in %)
+     (description: 2m relative humidity passive)
+
+ * wind_speed      &lt;---&gt; Windsnelheid
+     (raw data in km/h)
+     (description: Average 2m  10-min windspeed)
+
+ * wind_direction  &lt;---&gt; Windrichting
+     (raw data in ° from north (CW))
+     (description: Average 2m  10-min windspeed)
+
+
+------ Data extra mapping info ---------
+ * name column (data) &lt;---&gt; Vlinder
+
+------ Data timestamp map ---------
+ * datetimecolumn  &lt;---&gt; None
+ * time_column     &lt;---&gt; Tijd (UTC)
+ * date_column     &lt;---&gt; Datum
+ * fmt             &lt;---&gt; %Y-%m-%d %H:%M:%S
+ * Timezone        &lt;---&gt; None
+
+------ Metadata map ---------
+ * name            &lt;---&gt; Vlinder
+ * lat             &lt;---&gt; lat
+ * lon             &lt;---&gt; lon
+ * school          &lt;---&gt; school
+</pre></div></div>
+</div>
+</section>
+<section id="Inspecting-the-Data">
+<h2>Inspecting the Data<a class="headerlink" href="#Inspecting-the-Data" title="Link to this heading">#</a></h2>
+<p>To get an overview of the data stored in your Dataset you can use</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+--------  General ---------
+
+Dataset instance containing:
+     *28 stations
+     *[&#39;temp&#39;, &#39;humidity&#39;, &#39;wind_speed&#39;, &#39;wind_direction&#39;] observation types
+     *120957 observation records
+     *0 records labeled as outliers
+     *0 gaps
+     *3 missing observations
+     *records range: 2022-09-01 00:00:00+00:00 --&gt; 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+     *time zone of the records: UTC
+     *Coordinates are available for all stations.
+
+ --------  Observation types ---------
+
+temp observation with:
+     * standard unit: Celsius
+     * data column as Temperatuur in Celsius
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;]}
+     * description: 2mT passive
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;]}
+     * originates from data column: Temperatuur with Celsius as native unit.
+humidity observation with:
+     * standard unit: %
+     * data column as Vochtigheid in %
+     * known units and aliases: {&#39;%&#39;: [&#39;percent&#39;, &#39;percentage&#39;]}
+     * description: 2m relative humidity passive
+     * conversions to known units: {}
+     * originates from data column: Vochtigheid with % as native unit.
+wind_speed observation with:
+     * standard unit: m/s
+     * data column as Windsnelheid in km/h
+     * known units and aliases: {&#39;m/s&#39;: [&#39;meters/second&#39;, &#39;m/sec&#39;], &#39;km/h&#39;: [&#39;kilometers/hour&#39;, &#39;kph&#39;], &#39;mph&#39;: [&#39;miles/hour&#39;]}
+     * description: Average 2m  10-min windspeed
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+     * originates from data column: Windsnelheid with km/h as native unit.
+wind_direction observation with:
+     * standard unit: ° from north (CW)
+     * data column as Windrichting in ° from north (CW)
+     * known units and aliases: {&#39;° from north (CW)&#39;: [&#39;°&#39;, &#39;degrees&#39;]}
+     * description: Average 2m  10-min windspeed
+     * conversions to known units: {}
+     * originates from data column: Windrichting with ° from north (CW) as native unit.
+
+ --------  Settings ---------
+
+(to show all settings use the .show_settings() method, or set show_all_settings = True)
+
+ --------  Outliers ---------
+
+No outliers.
+
+ --------  Meta data ---------
+
+The following metadata is found: [&#39;lat&#39;, &#39;lon&#39;, &#39;school&#39;, &#39;geometry&#39;, &#39;assumed_import_frequency&#39;, &#39;dataset_resolution&#39;]
+
+ The first rows of the metadf looks like:
+                 lat       lon        school                  geometry  \
+name
+vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)
+vlinder02  51.022379  3.709695         UGent  POINT (3.70969 51.02238)
+vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)
+vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)
+vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)
+
+          assumed_import_frequency dataset_resolution
+name
+vlinder01          0 days 00:05:00    0 days 00:05:00
+vlinder02          0 days 00:05:00    0 days 00:05:00
+vlinder03          0 days 00:05:00    0 days 00:05:00
+vlinder04          0 days 00:05:00    0 days 00:05:00
+vlinder05          0 days 00:05:00    0 days 00:05:00
+-------- Missing observations info --------
+(Note: missing observations are defined on the frequency estimation of the native dataset.)
+  * 3 missing observations
+
+ name
+vlinder02   2022-09-10 17:10:00+00:00
+vlinder02   2022-09-10 17:15:00+00:00
+vlinder02   2022-09-10 17:45:00+00:00
+Name: datetime, dtype: datetime64[ns, UTC]
+
+  * For these stations: [&#39;vlinder02&#39;]
+  * The missing observations are not filled.
+(More details on the missing observation can be found in the .series and .fill_df attributes.)
+None
+
+ --------  Gaps ---------
+
+There are no gaps.
+None
+</pre></div></div>
+</div>
+<p>If you want to inspect the data in your Dataset directly, you can take a look at the .df and .metadf attributes</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">your_dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<span class="c1"># equivalent for the metadata</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">your_dataset</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+                                     temp  humidity  wind_speed  \
+name      datetime
+vlinder01 2022-09-01 00:00:00+00:00  18.8        65    1.555556
+          2022-09-01 00:05:00+00:00  18.8        65    1.527778
+          2022-09-01 00:10:00+00:00  18.8        65    1.416667
+          2022-09-01 00:15:00+00:00  18.7        65    1.666667
+          2022-09-01 00:20:00+00:00  18.7        65    1.388889
+
+                                     wind_direction
+name      datetime
+vlinder01 2022-09-01 00:00:00+00:00              65
+          2022-09-01 00:05:00+00:00              75
+          2022-09-01 00:10:00+00:00              75
+          2022-09-01 00:15:00+00:00              85
+          2022-09-01 00:20:00+00:00              65
+                 lat       lon        school                  geometry  \
+name
+vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)
+vlinder02  51.022379  3.709695         UGent  POINT (3.70969 51.02238)
+vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)
+vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)
+vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)
+
+          assumed_import_frequency dataset_resolution
+name
+vlinder01          0 days 00:05:00    0 days 00:05:00
+vlinder02          0 days 00:05:00    0 days 00:05:00
+vlinder03          0 days 00:05:00    0 days 00:05:00
+vlinder04          0 days 00:05:00    0 days 00:05:00
+vlinder05          0 days 00:05:00    0 days 00:05:00
+</pre></div></div>
+</div>
+<section id="Inspecting-a-Station">
+<h3>Inspecting a Station<a class="headerlink" href="#Inspecting-a-Station" title="Link to this heading">#</a></h3>
+<p>If you are interested in one station, you can extract all the info for that one station from the dataset by:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">favorite_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">stationname</span><span class="o">=</span><span class="s2">&quot;vlinder02&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<p>Favorite station now contains all the information of that one station. All methods that are applicable to a Dataset are also applicable to a Station. So to inspect your favorite station, you can:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">favorite_station</span><span class="o">.</span><span class="n">show</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+--------  General ---------
+
+Station instance containing:
+     *1 stations
+     *[&#39;temp&#39;, &#39;humidity&#39;, &#39;wind_speed&#39;, &#39;wind_direction&#39;] observation types
+     *4317 observation records
+     *0 records labeled as outliers
+     *0 gaps
+     *3 missing observations
+     *records range: 2022-09-01 00:00:00+00:00 --&gt; 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+     *time zone of the records: UTC
+     *Coordinates are available for all stations.
+
+ --------  Observation types ---------
+
+temp observation with:
+     * standard unit: Celsius
+     * data column as Temperatuur in Celsius
+     * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;]}
+     * description: 2mT passive
+     * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;]}
+     * originates from data column: Temperatuur with Celsius as native unit.
+humidity observation with:
+     * standard unit: %
+     * data column as Vochtigheid in %
+     * known units and aliases: {&#39;%&#39;: [&#39;percent&#39;, &#39;percentage&#39;]}
+     * description: 2m relative humidity passive
+     * conversions to known units: {}
+     * originates from data column: Vochtigheid with % as native unit.
+wind_speed observation with:
+     * standard unit: m/s
+     * data column as Windsnelheid in km/h
+     * known units and aliases: {&#39;m/s&#39;: [&#39;meters/second&#39;, &#39;m/sec&#39;], &#39;km/h&#39;: [&#39;kilometers/hour&#39;, &#39;kph&#39;], &#39;mph&#39;: [&#39;miles/hour&#39;]}
+     * description: Average 2m  10-min windspeed
+     * conversions to known units: {&#39;km/h&#39;: [&#39;x / 3.6&#39;], &#39;mph&#39;: [&#39;x * 0.44704&#39;]}
+     * originates from data column: Windsnelheid with km/h as native unit.
+wind_direction observation with:
+     * standard unit: ° from north (CW)
+     * data column as Windrichting in ° from north (CW)
+     * known units and aliases: {&#39;° from north (CW)&#39;: [&#39;°&#39;, &#39;degrees&#39;]}
+     * description: Average 2m  10-min windspeed
+     * conversions to known units: {}
+     * originates from data column: Windrichting with ° from north (CW) as native unit.
+
+ --------  Settings ---------
+
+(to show all settings use the .show_settings() method, or set show_all_settings = True)
+
+ --------  Outliers ---------
+
+No outliers.
+
+ --------  Meta data ---------
+
+The following metadata is found: [&#39;lat&#39;, &#39;lon&#39;, &#39;school&#39;, &#39;geometry&#39;, &#39;assumed_import_frequency&#39;, &#39;dataset_resolution&#39;]
+
+ The first rows of the metadf looks like:
+                 lat       lon school                    geometry  \
+name
+vlinder02  51.022379  3.709695  UGent  POINT (3.709695 51.022379)
+
+          assumed_import_frequency dataset_resolution
+name
+vlinder02          0 days 00:05:00    0 days 00:05:00
+-------- Missing observations info --------
+(Note: missing observations are defined on the frequency estimation of the native dataset.)
+  * 3 missing observations
+
+ name
+vlinder02   2022-09-10 17:10:00+00:00
+vlinder02   2022-09-10 17:15:00+00:00
+vlinder02   2022-09-10 17:45:00+00:00
+Name: datetime, dtype: datetime64[ns, UTC]
+
+  * For these stations: [&#39;vlinder02&#39;]
+  * The missing observations are not filled.
+(More details on the missing observation can be found in the .series and .fill_df attributes.)
+None
+
+ --------  Gaps ---------
+
+There are no gaps.
+None
+None
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Making-timeseries-plots">
+<h2>Making timeseries plots<a class="headerlink" href="#Making-timeseries-plots" title="Link to this heading">#</a></h2>
+<p>To make timeseries plots, use the following syntax to plot the <em>temperature</em> observations of the full Dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur for all stations. &#39;}, ylabel=&#39;temp (Celsius)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_doc_example_24_2.png" src="../_images/examples_doc_example_24_2.png" />
+</div>
+</div>
+<p>See the documentation of the <code class="docutils literal notranslate"><span class="pre">make_plot()</span></code> method for more details. Here an example of common used arguments.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Import the standard datetime library to make timestamps from datetime objects</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span>
+    <span class="c1"># specify the names of the stations in a list, or use None to plot all of them.</span>
+    <span class="n">stationnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;vlinder01&#39;</span><span class="p">,</span> <span class="s1">&#39;vlinder03&#39;</span><span class="p">,</span> <span class="s1">&#39;vlinder05&#39;</span><span class="p">],</span>
+    <span class="c1"># what obstype to plot (default is &#39;temp&#39;)</span>
+    <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;humidity&quot;</span><span class="p">,</span>
+    <span class="c1"># choose how to color the timeseries:</span>
+    <span class="c1">#&#39;name&#39; : a specific color per station</span>
+    <span class="c1">#&#39;label&#39;: a specific color per quality control label</span>
+    <span class="n">colorby</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span>
+    <span class="c1"># choose a start and endtime for the series (datetime).</span>
+    <span class="c1"># Default is None, which uses all available data</span>
+    <span class="n">starttime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">endtime</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span>
+    <span class="c1"># Specify a title if you do not want the default title</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;your custom title&#39;</span><span class="p">,</span>
+    <span class="c1"># Add legend to plot?, by default true</span>
+    <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="c1"># Plot observations that are labeled as outliers.</span>
+    <span class="n">show_outliers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;your custom title&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;humidity (%)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_doc_example_26_2.png" src="../_images/examples_doc_example_26_2.png" />
+</div>
+</div>
+<p>as mentioned above, one can apply the same methods to a Station object:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">favorite_station</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder02&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_doc_example_28_2.png" src="../_images/examples_doc_example_28_2.png" />
+</div>
+</div>
+</section>
+<section id="Resampling-the-time-resolution">
+<h2>Resampling the time resolution<a class="headerlink" href="#Resampling-the-time-resolution" title="Link to this heading">#</a></h2>
+<p>Coarsening the time resolution (i.g. frequency) of your data can be done by using the <code class="docutils literal notranslate"><span class="pre">coarsen_time_resolution()</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">coarsen_time_resolution</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="s1">&#39;30min&#39;</span><span class="p">)</span> <span class="c1">#&#39;30min&#39; means 30 minutes</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>temp</th>
+      <th>humidity</th>
+      <th>wind_speed</th>
+      <th>wind_direction</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">vlinder01</th>
+      <th>2022-09-01 00:00:00+00:00</th>
+      <td>18.8</td>
+      <td>65</td>
+      <td>1.555556</td>
+      <td>65</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 00:30:00+00:00</th>
+      <td>18.7</td>
+      <td>65</td>
+      <td>1.500000</td>
+      <td>85</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 01:00:00+00:00</th>
+      <td>18.4</td>
+      <td>65</td>
+      <td>1.416667</td>
+      <td>55</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 01:30:00+00:00</th>
+      <td>18.0</td>
+      <td>65</td>
+      <td>1.972222</td>
+      <td>55</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 02:00:00+00:00</th>
+      <td>17.1</td>
+      <td>68</td>
+      <td>1.583333</td>
+      <td>45</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="Introduction-exercise">
+<h2>Introduction exercise<a class="headerlink" href="#Introduction-exercise" title="Link to this heading">#</a></h2>
+<p>For a more detailed reference, you can use this <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/blob/4d5a35954eb8ff153eb0d9e9c8a34cee7e3c50f4/fairness_demo_exercises/Introduction_01.ipynb">introduction exercise</a>, that was created in the context of the <a class="reference external" href="https://www.cost.eu/actions/CA20108/">COST FAIRNESS</a> summerschool 2023 in Ghent.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Examples</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="gee_example.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Demo example: Using a Google Earth engine</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#The-Dataset">The Dataset</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Importing-data">Importing data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Inspecting-the-Template">Inspecting the Template</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Inspecting-the-Data">Inspecting the Data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Inspecting-a-Station">Inspecting a Station</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Making-timeseries-plots">Making timeseries plots</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Resampling-the-time-resolution">Resampling the time resolution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Introduction-exercise">Introduction exercise</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/examples/doc_example.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
