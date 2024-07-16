@@ -41,7 +41,7 @@ _tlk_print_standard_obstypes()
 # | 2022-06-07 13:30:00  | 18.6 |  71.9 | Station_B |
 #
 
-# ### Single-statio-format
+# ### Single-station-format
 # The same as a long format but without a column indicating the station names. Be aware that the toolkit interprets it as observations coming from one station.
 
 # | Timestamp   | 2m Temperature | 2m Humidity |

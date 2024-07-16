@@ -34,7 +34,6 @@ BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_PATH)
 
 # demo files
-
 demo_datafile = os.path.join(
     BASE_PATH, "metobs_toolkit", "datafiles", "demo_datafile.csv"
 )
@@ -50,7 +49,15 @@ demo_template = os.path.join(
 # Import classes and function to be used by the user
 # =============================================================================
 
-from metobs_toolkit.dataset import Dataset
+# import the Dataset core + extensions
+# (Do not change order!!)
+from metobs_toolkit.dataset_core import Dataset
+from metobs_toolkit.dataset_settings_updater import Dataset
+from metobs_toolkit.dataset_visuals import Dataset
+from metobs_toolkit.dataset_gap_handling import Dataset
+from metobs_toolkit.dataset_qc_handling import Dataset
+
+
 from metobs_toolkit.station import Station
 from metobs_toolkit.modeldata import Modeldata
 from metobs_toolkit.obstypes import Obstype
@@ -61,10 +68,6 @@ from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfi
 from metobs_toolkit.template_build_prompt import build_template_prompt
 from metobs_toolkit.landcover_functions import connect_to_gee
 
-# =============================================================================
-# Import extenders
-# =============================================================================
-from metobs_toolkit.dataset_settings_updater import Dataset
 
 # =============================================================================
 # Version
