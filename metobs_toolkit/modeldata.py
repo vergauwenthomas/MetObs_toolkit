@@ -732,6 +732,8 @@ class Modeldata:
             if col in self.obstypes.keys():
                 # column is a regular obstype
                 data_present_obstypes.append(col)
+                # Set the current unit (at this point, it is the unit as define in the band)
+                self.obstypes[col].setup_current_data_unit(mapname=self.modelname)
             else:
                 # check if column represents a vector component
                 for known_obs in self.obstypes.values():
@@ -739,6 +741,11 @@ class Modeldata:
                         comps = [known_obs.get_u_column(), known_obs.get_v_column()]
                         if col in comps:
                             data_present_obstypes.append(known_obs.name)
+                            # Set the current unit (at this point, it is the unit as define in the band)
+                            self.obstypes[known_obs.name].setup_current_data_unit(
+                                mapname=self.modelname
+                            )
+
         data_present_obstypes = list(set(data_present_obstypes))
         # A. scalar obstypes (same name as column)
 
