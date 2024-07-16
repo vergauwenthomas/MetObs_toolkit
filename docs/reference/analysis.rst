@@ -16,7 +16,7 @@ Constructor
 .. autosummary::
    :toctree: api/
 
-   metobs_toolkit.analysis.Analysis
+   analysis.Analysis
 
 .. note::
    It is most common to construct the Analysis directly from a Dataset using `metobs_toolkit.Dataset.get_analysis()` method.
@@ -27,14 +27,14 @@ General methods and attributes
 .. autosummary::
    :toctree: api/
 
-   metobs_toolkit.analysis.Analysis.subset_period
-   metobs_toolkit.analysis.Analysis.apply_filter
-   metobs_toolkit.analysis.Analysis.aggregate_df
-   metobs_toolkit.analysis.Analysis.get_anual_statistics
-   metobs_toolkit.analysis.Analysis.get_diurnal_statistics
-   metobs_toolkit.analysis.Analysis.get_diurnal_statistics_with_reference
-   metobs_toolkit.analysis.Analysis.get_aggregated_cycle_statistics
-   metobs_toolkit.analysis.Analysis.get_lc_correlation_matrices
+   analysis.Analysis.subset_period
+   analysis.Analysis.apply_filter
+   analysis.Analysis.aggregate_df
+   analysis.Analysis.get_anual_statistics
+   analysis.Analysis.get_diurnal_statistics
+   analysis.Analysis.get_diurnal_statistics_with_reference
+   analysis.Analysis.get_aggregated_cycle_statistics
+   analysis.Analysis.get_lc_correlation_matrices
 
 
 
@@ -44,5 +44,5 @@ Plotting methods
 .. autosummary::
    :toctree: api/
 
-   metobs_toolkit.analysis.Analysis.plot_correlation_heatmap
-   metobs_toolkit.analysis.Analysis.plot_correlation_variation
+   analysis.Analysis.plot_correlation_heatmap
+   analysis.Analysis.plot_correlation_variation

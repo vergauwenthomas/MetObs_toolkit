@@ -128,5 +128,5 @@ These functions are used by the :ref:`ModelObstype_Vectorfield api` to convert c
 .. autosummary::
    :toctree: api/
 
-   metobs_toolkit.obstype_modeldata.compute_amplitude
-   metobs_toolkit.obstype_modeldata.compute_angle
+   obstype_modeldata.compute_amplitude
+   obstype_modeldata.compute_angle
