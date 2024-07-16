@@ -7,8 +7,6 @@ class.
 A Station holds all observations of one station.
 """
 import pandas as pd
-
-# Import Dataset from latest extension, so it encorps lal methods.
 from metobs_toolkit import Dataset
 
 

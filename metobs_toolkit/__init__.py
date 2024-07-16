@@ -58,7 +58,7 @@ from metobs_toolkit.dataset_gap_handling import Dataset
 from metobs_toolkit.dataset_qc_handling import Dataset
 
 
-from metobs_toolkit.station import Station
+from metobs_toolkit.station import Station  # after all Dataset extensions !!
 from metobs_toolkit.modeldata import Modeldata
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfield
