@@ -116,8 +116,9 @@ class Template:
         self.filepath = None
 
     def show(self):
-        """
-        Prints out an overview of Template.
+        """Prints out an overview of Template.
+
+        Alias of Template.get_info().
 
         Returns
         -------
@@ -134,6 +135,45 @@ class Template:
         Returns
         -------
         None.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>>
+            >>> #Add observations to the Dataset
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>>
+            >>> # Print out details
+            >>> dataset.template.get_info()
+            ------ Data obstypes map ---------
+             * temp            <---> Temperatuur
+                 (raw data in Celsius)
+                 (description: 2mT passive)
+            <BLANKLINE>
+             * humidity        <---> Vochtigheid
+                 (raw data in %)
+                 (description: 2m relative humidity passive)
+            <BLANKLINE>
+             * wind_speed      <---> Windsnelheid
+                 (raw data in km/h)
+                 (description: Average 2m  10-min windspeed)
+            <BLANKLINE>
+             * wind_direction  <---> Windrichting
+                 (raw data in ° from north (CW))
+                 (description: Average 2m  10-min windspeed)
+            <BLANKLINE>
+            <BLANKLINE>
+            ...
 
         """
 

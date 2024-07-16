@@ -14,6 +14,7 @@ the MetObs toolkit to be used by a user and developer.
   Obstype <reference/obstype>
   Analysis <reference/analysis>
   Modeldata <reference/modeldata>
+  Template <reference/template>
 
 ********************************************
 Modules for MetObs toolkit Developers

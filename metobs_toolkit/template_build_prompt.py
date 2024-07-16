@@ -203,8 +203,36 @@ def usr_input_file(text):
     return inp_file
 
 
-def build_template_prompt(debug=False):
-    """Launch the prompt to help make a template."""
+def build_template_prompt():
+    """Launch an interactive prompt to construct a template.json file.
+
+    When called, an interactive prompt will start. Answer the questions, and hit
+    Enter to continue. At the end of the prompt, you can specify a location where
+    to save the template.json file.
+
+    Note
+    ------
+    It is a good practice to rename the template.json file to specify the corresponding datafile(s).
+
+    Note
+    ------
+    At the end, the prompt asks if you need further assistance. If you do, the prompt
+    will print out code that you can copy and run to create a `Dataset()`.
+
+    Returns
+    -------
+    None.
+
+    Examples
+    --------
+    .. code-block:: python
+
+        >>> import metobs_toolkit
+        >>>
+        >>> # Launch the prompt
+        >>> metobs_toolkit.build_template_prompt() # doctest: +SKIP
+
+    """
     tmpl_dict = _get_empty_templ_dict()
     tmpl_dict["data_related"]["obstype_mapping"] = []
 
@@ -243,8 +271,7 @@ def build_template_prompt(debug=False):
     format_option = col_option_input(format_dict.keys())
     print(f" \n... oke, {format_option} selected ...\n")
     format_option = format_dict[format_option]
-    if debug:
-        print(f"format numeric option: {format_option}")
+
     if format_option == 1:
         tmpl_dict["data_related"]["structure"] = "long"
         # options_dict["data_structure"] = "long"
@@ -434,9 +461,6 @@ def build_template_prompt(debug=False):
 
         tmpl_dict["data_related"]["obstype_mapping"].append(obsdict)
 
-    if debug:
-        print(f"template_dict: {tmpl_dict}")
-
     # =============================================================================
     # Map metadatafile
     # =============================================================================
@@ -492,258 +516,7 @@ def build_template_prompt(debug=False):
                             str(col)
                         )
 
-    #     meta_desc = {
-    #         "name": "name (the column with the stationnames, must be unique for each station)",
-    #         "lat": "lat (the latitudes of the stations as a numeric values)",
-    #         "lon": "lon (The longtitudes of the stations as a numeric values)",
-    #         "location": "location (the city/region of the stations) (OPTIONAL)",
-    #         "call_name": "call_name (an informal name of the stations) (OPTIONAL)",
-    #         "network": "network (the name of the network the stations belong to) (OPTIONAL)",
-    #     }
-    #     inv_meta_desc = {val: key for key, val in meta_desc.items()}
-
-    #     print("What do the following columns represent: \n")
-    #     meta_options = list(meta_desc.values())
-    #     for col in metacolumnnames:
-    #         if col == 'Unnamed: 0':
-    #             contin = yes_no_ques(f"\n add column {col} (: probably this is the index of the csv file) to the template?")
-    #         else:
-    #             contin = yes_no_ques(f"add {col} to the template?")
-    #         if contin is False:
-    #             continue
-
-    #         print(f"\n {col} : ")
-    #         desc_return = col_option_input(meta_options)
-    #         if desc_return is None:
-    #             continue  # when enter x
-    #         metatype = inv_meta_desc[desc_return]
-
-    #         # check if the name column is equalt in the data template to avoid creating
-    #         # two templates
-    #         if metatype == "name":
-    #             if "name" in template_dict:
-    #                 if not col == template_dict["name"]["orig_name"]:
-    #                     print(
-    #                         f'WARNING, the "name" column in the datafile is different than in the metadatafile! \
-    # Rename in your metadatafile : {col} ---> {template_dict["name"]["orig_name"]}'
-    #                     )
-    #                     cont = yes_no_ques("Renaming done?")
-    #                     if cont is False:
-    #                         sys.exit(
-    #                             f'Please rename {col} ---> {template_dict["name"]["orig_name"]} in your metadata file.'
-    #                         )
-
-    #         metatemplate_dict[metatype] = {"orig_name": col}
-    #         meta_options.remove(meta_desc[metatype])
-    # if debug:
-    #     print(f"metatemplate_dict : {metatemplate_dict}")
-
-    # =============================================================================
-    # Apply tests
-    # =============================================================================
-    # print("\n \n *******      Testing template compatibility   ***********")
-    # print(
-    #     "\n   ... Oke, that is all the info for the mapping. Now i will do some basic tests to see if the mapping works."
-    # )
-
-    # #  ------- tests on data ---------
-    # # apply tests the first row
-    # data_test = data.iloc[0].to_dict()
-
-    # # test if a stationname column is available in a long format
-    # print(" *  ... checking data columns ... ")
-    # if (format_option == 1) & (not "name" in template_dict):
-    #     print(
-    #         " \n WARNING: There is no information which column in the data file represents the names of the stations. The toolkit will assume that the observations are from ONE station! \n"
-    #     )
-    #     format_option = 3
-
-    # # check if a least one mapped observation type exist
-    # if format_option != 2:
-    #     present_obs = [
-    #         key for key in template_dict.keys() if key in known_obstypes.keys()
-    #     ]
-    #     if not bool(present_obs):
-    #         print(
-    #             "ERROR! There is no observation type included in the template! Add at least one observation type when mapping the data file."
-    #         )
-    #         sys.exit("Template invalid, see last message. ")
-
-    # # test datetime format
-    # print(" *  ... checking timestamps formats ... ")
-    # if "datetime" in template_dict:
-    #     escape = False
-    #     while not escape:
-    #         test_dt = data_test[template_dict["datetime"]["orig_name"]]
-    #         try:
-    #             _ = datetime.strptime(test_dt, template_dict["datetime"]["format"])
-    #             print("   ... testing datetime format is ...  OK!")
-    #             escape = True
-    #         except:
-    #             print(
-    #                 f'ERROR: the {template_dict["datetime"]["format"]} does not work for {test_dt}'
-    #             )
-    #             template_dict["datetime"]["format"] = input(
-    #                 "\n Try new timestamp format (ex. %Y-%m-%d %H:%M:%S) : "
-    #             )
-
-    # if "_date" in template_dict:
-    #     escape = False
-    #     while not escape:
-    #         test_dt = data_test[template_dict["_date"]["orig_name"]]
-    #         try:
-    #             _ = datetime.strptime(test_dt, template_dict["_date"]["format"])
-    #             print("   ... testing date format is OK!")
-    #             escape = True
-    #         except:
-    #             print(
-    #                 f'ERROR: the {template_dict["_date"]["format"]} does not work for {test_dt}'
-    #             )
-    #             template_dict["_date"]["format"] = input(
-    #                 "\n Try new date format (ex. %Y-%m-%d) : "
-    #             )
-    # if "_time" in template_dict:
-    #     escape = False
-    #     while not escape:
-    #         test_dt = data_test[template_dict["_time"]["orig_name"]]
-    #         try:
-    #             _ = datetime.strptime(test_dt, template_dict["_time"]["format"])
-    #             print("   ... testing time format is OK!")
-    #             escape = True
-    #         except:
-    #             print(
-    #                 f'ERROR: the {template_dict["_time"]["format"]} does not work for {test_dt}'
-    #             )
-    #             template_dict["_time"]["format"] = input(
-    #                 "\n Try new time format (ex. %H:%M:%S) : "
-    #             )
-
-    # # check if all data columns are mapped
-    # print(" *  ... checking for unmapped data columns ... ")
-    # if (format_option == 1) | (format_option == 3):
-    #     present_columns = list(data_test.keys())
-    #     mapped_cols = [val["orig_name"] for val in template_dict.values()]
-    #     for col in present_columns:
-    #         if not col in mapped_cols:
-    #             print(
-    #                 f" Warning! {col} in the datafile is not present in the template, and thus it will not be used."
-    #             )
-
-    # # -------- tests on metadata ----------
-    # if bool(metatemplate_dict):
-    #     # apply tests the first row
-    #     metadata_test = metadata.iloc[0].to_dict()
-
-    #     # test if name is in the metadat in a long format
-    #     print(" *  ... checking metadata columns ... ")
-    #     if (not "name" in metatemplate_dict) & ((format_option in [1, 2])):
-    #         print(
-    #             f"Error! There is no metadata column containing the station names in the template! Add this column to the metadatafile of the template."
-    #         )
-    #         sys.exit("Template invalid, see last message. ")
-
-    #     print(" *  ... checking metadata name duplicates... ")
-    #     if format_option in [1, 2]:
-    #         stanames_metadata = metadata[metatemplate_dict["name"]["orig_name"]]
-    #         if stanames_metadata.duplicated().any():
-    #             dubs = stanames_metadata[stanames_metadata.duplicated()]
-    #             print(
-    #                 f"Error! There are duplicated names present in the metadatafile {dubs}. Remove the duplicates manually."
-    #             )
-    #             sys.exit("Template invalid, see last message. ")
-
-    #     # test if all stationnames are present in the metadata
-    #     print(" *  ... checking compatible station names ... ")
-    #     if (format_option == 1) & ("name" in template_dict):
-    #         stanames_data = data[template_dict["name"]["orig_name"]].unique()
-    #         stanames_metadata = metadata[
-    #             metatemplate_dict["name"]["orig_name"]
-    #         ].unique()
-
-    #         unmapped = [sta for sta in stanames_data if not sta in stanames_metadata]
-    #         if bool(unmapped):
-    #             print(
-    #                 f"Warning! The following stations are found in the data, but not in the metadata: {unmapped}"
-    #             )
-
-    #     if format_option == 2:
-    #         # 1. no duplicates in stationnames
-    #         if not (len(stationnames) == len(set(stationnames))):
-    #             print(
-    #                 f"Error! Duplicated station names found in the columns of the dataset: {stationnames}"
-    #             )
-    #             sys.exit("Template invalid, see last message. ")
-
-    #         # 2. check if all stationname in the data are defined in the metadata,
-    #         # If there are no mapped stationnames give error, else give warning
-
-    #         stanames_metadata = metadata[
-    #             metatemplate_dict["name"]["orig_name"]
-    #         ].to_list()
-    #         unmapped = [
-    #             staname for staname in stationnames if not staname in stanames_metadata
-    #         ]
-
-    #         if len(unmapped) == len(stationnames):
-    #             print(
-    #                 f"Error! None of the stationnames in the dataset ({stationnames}), are found in the metadataset ({stanames_metadata})."
-    #             )
-    #             sys.exit("Template invalid, see last message. ")
-
-    #         if len(unmapped) < len(stationnames):
-    #             print(f" unmapped: {unmapped}")
-    #             print(f" stationnames: {stationnames}")
-    #             print(f" stationnames metadta: {stanames_metadata}")
-    #             print(
-    #                 f"Warning! The following stations are present in the data but not in the metadata: {unmapped}"
-    #             )
-
-    #     # check if all metadata columns are mapped
-    #     print(" *  ... checking for unmapped metadata columns ... ")
-    #     present_columns = list(metadata_test.keys())
-    #     mapped_cols = [val["orig_name"] for val in metatemplate_dict.values()]
-    #     for col in present_columns:
-    #         if not col in mapped_cols:
-    #             print(
-    #                 f" Warning! {col} in the metadatafile is not present in the template, and thus it will not be used."
-    #             )
-
-    # # make sure the stationname is unique in single station datafile
-    # if format_option == 3:
-    #     print(" *  ... checking if stationname is unique ... ")
-    #     if bool(metatemplate_dict):
-    #         if "name" in metatemplate_dict:
-    #             names = metadata[metatemplate_dict["name"]["orig_name"]].unique()
-    #             if len(names) > 1:
-    #                 print(
-    #                     f"Error! multiple station names found in the {metatemplate_dict['name']['orig_name']} metadata column."
-    #                 )
-    #                 sys.exit("Template invalid, see last message. ")
-    #     else:
-    #         if "name" in template_dict:
-    #             names = data[template_dict["name"]["orig_name"]].unique()
-    #             if len(names) > 1:
-    #                 print(
-    #                     f"Error! multiple station names found in the {template_dict['name']['orig_name']} data column."
-    #                 )
-    #                 sys.exit("Template invalid, see last message. ")
-
-    # =============================================================================
-    #     Some extra options
-    # =============================================================================
-
-    # template_dict.update(
-    #     metatemplate_dict
-    # )  # this is why name in data and metadata should have the same mapping !!
-
     print("\n \n *******      Extra options    ***********")
-    # if (tmpl_dict["data_related"]["structure"] == "single_station") & (
-    #     tmpl_dict["metadata_related"]["name_column"] is None
-    # ):
-
-    #     # single station with no name information
-    #     staname = input("\n What is the name of your station : ")
-    #     tmpl_dict["single_station_name"] = staname
 
     tzchange = yes_no_ques("\n Are the timestamps in UTC?")
     if tzchange is False:
