@@ -72,4 +72,4 @@ from metobs_toolkit.dataset_settings_updater import Dataset
 
 # DO not change this manually!
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
