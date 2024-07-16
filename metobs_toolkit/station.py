@@ -24,27 +24,34 @@ class Station(dataset.Dataset):
         missing_fill_df,
         metadf,
         obstypes,
-        data_template,
+        template,
         settings,
         _qc_checked_obstypes,
         _applied_qc,
     ):
         """Initiate the Station object."""
-        self.name = name
-        self.df = df
-        self.outliersdf = outliersdf
+        dataset.Dataset.__init__(self)
+
+        # Set data attributes (using abstract dataset class)
+        self._set_df(df)
+        self._set_metadf(metadf)
+        self._set_obstypes(obstypes)
+        self._set_settings(settings)
+
+        # Set data attribute
         self.gaps = gaps
         self.missing_obs = missing_obs
         self.gapfilldf = gapfilldf
         self.missing_fill_df = missing_fill_df
-        self.metadf = metadf
-        self.obstypes = obstypes
-        self.data_template = data_template
-        self.settings = settings
+        self.template = template
         self._qc_checked_obstypes = _qc_checked_obstypes
         self._applied_qc = _applied_qc
 
+        # Station specific
+        self.name = name
         self._istype = "Station"
+
+        # setup of object
         self.setup_metadata_dtyes()
 
     def setup_metadata_dtyes(self):

@@ -297,7 +297,6 @@ def geospatial_plot(
     categorical_fields,
     static_fields,
     display_name_mapper,
-    data_template,
     boundbox,
 ):
     """Make geospatial plot of a variable (matplotlib).
@@ -330,8 +329,6 @@ def geospatial_plot(
     display_name_mapper : dict
         Must contain at least {varname: varname_str_rep}, where the
         varname_str_rep is the string representation of the variable to plot.
-    data_template : dict
-        The dataset template for string representations.
     boundbox : shapely.box
         The boundbox to represent the spatial extend of the plot.
 
@@ -1017,7 +1014,6 @@ def cycle_plot(
     title,
     plot_settings,
     aggregation,
-    data_template,
     obstype,
     y_label,
     legend,
@@ -1038,8 +1034,6 @@ def cycle_plot(
         The cycle-specific settings.
     aggregation : list
         A list of strings to indicate the group defenition.
-    data_template : dict
-        The template of the dataset.
     obstype : str
         The observation type to plot.
     y_label : str
@@ -1382,9 +1376,9 @@ def _all_possible_labels_colormapper(settings):
 
     # update gap and missing timestamp labels
     mapper[gap_settings["gaps_info"]["gap"]["outlier_flag"]] = color_defenitions["gap"]
-    mapper[
-        gap_settings["gaps_info"]["missing_timestamp"]["outlier_flag"]
-    ] = color_defenitions["missing_timestamp"]
+    mapper[gap_settings["gaps_info"]["missing_timestamp"]["outlier_flag"]] = (
+        color_defenitions["missing_timestamp"]
+    )
 
     # add fill for gaps
     for method, label in gap_settings["gaps_fill_info"]["label"].items():

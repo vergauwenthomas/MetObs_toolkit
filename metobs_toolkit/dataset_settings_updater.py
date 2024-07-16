@@ -39,7 +39,7 @@ class Dataset(dataset.Dataset):
         input_metadata_file : string, optional
             Path to the input metadata file. The default is None.
         template_file : string, optional
-            Path to the mapper-template csv file to be used on the observations
+            Path to the template (json) file to be used on the observations
             and metadata. The default is None.
 
         Returns

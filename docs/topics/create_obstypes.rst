@@ -8,7 +8,28 @@ Observation types for Datasets
 The toolkit comes with a set of predefined observation types. Each observation type has a standard-toolkit-unit,
 this is the unit the toolkit will store and display the values.
 
-An overview can be found on `this <./template_mapping.html#toolkit-standards>`_ page.
+A :py:meth:`metobs_toolkit.Dataset()<metobs_toolkit.dataset.Dataset>` is equiped with a set of predefined observationtypes:
+
+
+.. code-block:: python
+
+   import metobs_toolkit
+
+   print(metobs_toolkit.Dataset().obstypes)
+
+   {'temp': Obstype instance of temp,
+    'humidity': Obstype instance of humidity,
+    'radiation_temp': Obstype instance of radiation_temp,
+    'pressure': Obstype instance of pressure,
+    'pressure_at_sea_level': Obstype instance of pressure_at_sea_level,
+    'precip': Obstype instance of precip,
+    'precip_sum': Obstype instance of precip_sum,
+    'wind_speed': Obstype instance of wind_speed,
+    'wind_gust': Obstype instance of wind_gust,
+    'wind_direction': Obstype instance of wind_direction}
+
+
+How your data corresponds with observationtypes is defind in your template (see `this <./template_mapping.html>`_ page.).
 
 Each observation type is represented by an instance of the :py:meth:`Obstype<metobs_toolkit.obstypes.Obstype>` class.
 
@@ -32,6 +53,8 @@ As an example, here is the definition of the temperature observation type:
 
 Similar as this example a user can create a new observation type and add it to a :py:meth:`Dataset<metobs_toolkit.dataset.Dataset>`,
 using the :py:meth:`add_new_observationtype()<metobs_toolkit.dataset.Dataset.add_new_observationtype>` method.
+
+
 
 .. code-block:: python
 
@@ -58,6 +81,13 @@ using the :py:meth:`add_new_observationtype()<metobs_toolkit.dataset.Dataset.add
 
 If you want to add a new unit to an existing observation type you can do so by
 using the :py:meth:`add_new_unit()<metobs_toolkit.dataset.Dataset.add_new_unit>` method.
+
+
+.. note::
+   In the :py:meth:`metobs_toolkit.build_template_prompt()<metobs_toolkit.data_templates.template_build_prompt.build_template_prompt>` function,
+   you can specify if your observations are not in the defaults, or if you need to add a new unit to a default obstype. Thus you can rely on the
+   :py:meth:`metobs_toolkit.build_template_prompt()<metobs_toolkit.data_templates.template_build_prompt.build_template_prompt>` function, to addres the
+   issue of adding a new obervation type/ unit.
 
 
 Observation types for (ERA5) Modeldata

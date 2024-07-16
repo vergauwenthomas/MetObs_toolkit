@@ -1,0 +1,86 @@
+{
+    "data_related": {
+        "structure": "long",
+        "timestamp": {
+            "datetime_column": null,
+            "datetime_fmt": null,
+            "date_column": "Datum",
+            "date_fmt": "%Y-%m-%d",
+            "time_column": "Tijd (UTC)",
+            "time_fmt": "%H:%M:%S",
+            "timezone": "UTC"
+        },
+        "name_column": "Vlinder",
+        "obstype_mapping": [
+            {
+                "tlk_obstype": "temp",
+                "columnname": "Temperatuur",
+                "unit": "Celsius",
+                "description": "2m-temperature"
+            },
+            {
+                "tlk_obstype": "humidity",
+                "columnname": "Vochtigheid",
+                "unit": "%",
+                "description": "relative humidity"
+            },
+            {
+                "tlk_obstype": "pressure",
+                "columnname": "Luchtdruk",
+                "unit": "pa",
+                "description": "air pressure"
+            },
+            {
+                "tlk_obstype": "precip",
+                "columnname": "Neerslagintensiteit",
+                "unit": "mm/m²",
+                "description": "precipitation intensity"
+            },
+            {
+                "tlk_obstype": "precip_sum",
+                "columnname": "Neerslagsom",
+                "unit": "mm/m²",
+                "description": "Precipitation cumulated from midnight"
+            },
+            {
+                "tlk_obstype": "wind_direction",
+                "columnname": "Windrichting",
+                "unit": "°",
+                "description": "° from North (CW)"
+            },
+            {
+                "tlk_obstype": "wind_speed",
+                "columnname": "Windsnelheid",
+                "unit": "m/s",
+                "description": "windspeed"
+            },
+            {
+                "tlk_obstype": "wind_gust",
+                "columnname": "Rukwind",
+                "unit": "m/s",
+                "description": "windgust"
+            },
+            {
+                "tlk_obstype": "pressure_at_sea_level",
+                "columnname": "Luchtdruk_Zeeniveau",
+                "unit": "pa",
+                "description": "pressure at sea level"
+            },
+            {
+                "tlk_obstype": "radiation_temp",
+                "columnname": "Globe Temperatuur",
+                "unit": "°C",
+                "description": "Radiative blackglobe temperature"
+            }
+        ]
+    },
+    "metadata_related": {
+        "name_column": "Vlinder",
+        "lat_column": "lat",
+        "lon_column": "lon",
+        "columns_to_include": [
+            "school", "benaming", "Network"
+        ]
+    },
+    "single_station_name": "dummy_station_name"
+}

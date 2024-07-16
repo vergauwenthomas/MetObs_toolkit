@@ -11,7 +11,7 @@ import numpy as np
 import logging
 from metobs_toolkit.obstypes import Obstype, expression_calculator
 
-from metobs_toolkit.obstypes import temperature, pressure, wind, direction_aliases
+from metobs_toolkit.obstypes import temperature, pressure, wind_speed, direction_aliases
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +102,9 @@ class ModelObstype(Obstype):
         )
 
         self.modl_equi_dict = model_equivalent_dict
+        self.current_data_unit = (
+            None  # represents at any time the unit of the data stored
+        )
         self._is_valid()
 
     def __repr__(self):
@@ -155,6 +158,23 @@ class ModelObstype(Obstype):
             return True
         except KeyError:
             return False
+
+    def get_current_data_unit(self):
+        """Get the current unit of the corresponding data."""
+        return self.current_data_unit
+
+    def setup_current_data_unit(self, mapname):
+        """Set the current data unit to the one define by the corresponding band."""
+        self.current_data_unit = self.get_modelunit(mapname=mapname)
+        return
+
+    def set_current_data_unit(self, current_data_unit):
+        """Set the current data unit."""
+        assert (
+            str(current_data_unit) in self.get_all_units()
+        ), f"{current_data_unit} is not a known unit for {self}."
+        self.current_data_unit = str(current_data_unit)
+        return
 
     def add_new_band(self, mapname, bandname, bandunit, band_desc=None):
         """Add a new representing dataset/bandname to the obstype.
@@ -235,6 +255,7 @@ class ModelObstype_Vectorfield(Obstype):
             }
 
         self.modl_comp_dict = mod_comp_dict
+        self.current_data_unit = None
         self._is_valid()
 
     def __repr__(self):
@@ -288,6 +309,23 @@ class ModelObstype_Vectorfield(Obstype):
         """Return the units of the representing bandname of the obstype from a given gee dataset."""
         # u and v comp must have the same units, this is tested in the _is_valid()
         return str(self.modl_comp_dict[mapname]["u_comp"]["units"])
+
+    def get_current_data_unit(self):
+        """Get the current unit of the corresponding data."""
+        return self.current_data_unit
+
+    def setup_current_data_unit(self, mapname):
+        """Set the current data unit to the one define by the corresponding band."""
+        self.current_data_unit = self.get_modelunit(mapname=mapname)
+        return
+
+    def set_current_data_unit(self, current_data_unit):
+        """Set the current data unit."""
+        assert (
+            str(current_data_unit) in self.get_all_units()
+        ), f"{current_data_unit} is not a known unit for {self}."
+        self.current_data_unit = str(current_data_unit)
+        return
 
     def has_mapped_band(self, mapname):
         """Test is a gee dataset has a representing band."""
@@ -343,9 +381,9 @@ class ModelObstype_Vectorfield(Obstype):
 
         if mapname in self.modl_comp_dict.keys():
             # check if band is already knonw
-            logger.debug(f"Update {bandname} of (known) map: {mapname}")
+            logger.debug(f"Update {bandname_u_comp} of (known) map: {mapname}")
         else:
-            logger.debug(f"Add new map: {mapname} with band: {bandname}.")
+            logger.debug(f"Add new map: {mapname} with band: {bandname_u_comp }.")
 
         self.modl_comp_dict[mapname] = {}
         self.modl_comp_dict[mapname]["u_comp"] = {
@@ -579,9 +617,9 @@ pressure_model = ModelObstype(
 )
 
 # Special obstypes
-wind.name = "wind"  # otherwise it is windspeed, which is confusing for vectorfield
+wind_speed.name = "wind_speed"
 wind_model = ModelObstype_Vectorfield(
-    wind,
+    wind_speed,
     u_comp_model_equivalent_dict=tlk_std_modeldata_obstypes["u_wind"],
     v_comp_model_equivalent_dict=tlk_std_modeldata_obstypes["v_wind"],
 )
@@ -593,5 +631,5 @@ wind_model = ModelObstype_Vectorfield(
 model_obstypes = {
     "temp": temp_model,
     "pressure": pressure_model,
-    "wind": wind_model,
+    "wind_speed": wind_model,
 }

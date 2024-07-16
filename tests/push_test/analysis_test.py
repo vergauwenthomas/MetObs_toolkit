@@ -18,12 +18,9 @@ lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
 
-#%%
-
+# %%
 
 dataset = metobs_toolkit.Dataset()
-
-
 dataset = dataset.import_dataset(
     folder_path=os.path.join(str(lib_folder), "tests", "test_data"),
     filename="tests_dataset.pkl",
@@ -138,14 +135,14 @@ print(an)
 
 filter_an = an.apply_filter('temp < 15.5 &  hour <= 19 & lcz == "Open midrise"')
 
-assert filter_an.df.shape == (2481, 10), "filter on analysis problem"
+assert filter_an.df.shape == (2481, 4), "filter on analysis problem"
 
 # =============================================================================
 # aggregate method
 # =============================================================================
 
 agg_df = an.aggregate_df(agg=["lcz", "hour"])
-assert agg_df.shape == (216, 10), "aggregate on analysis problem"
+assert agg_df.shape == (216, 4), "aggregate on analysis problem"
 
 
 # =============================================================================

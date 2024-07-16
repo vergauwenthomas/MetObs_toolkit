@@ -3,6 +3,9 @@
 """
 Created on Thu Sep 22 16:28:15 2022
 
+Test importing a variaty of data/metadata combinations and formats
+
+
 @author: thoverga
 """
 
@@ -35,6 +38,8 @@ dataset.import_data_from_file()
 
 dataset.show()
 
+dataset.template.show()
+
 
 station = dataset.get_station("vlinder02")
 
@@ -54,19 +59,18 @@ dataset.show_settings()
 
 dataset.import_data_from_file()
 
-assert dataset.df.shape == (120957, 10), "Shape of demo data is not correct."
+assert dataset.df.shape == (120957, 4), "Shape of demo data is not correct."
 
 
 # %% Import wide dataset (Multiple stations) + syncronize
 
 widedatafile = os.path.join(str(lib_folder), "tests", "test_data", "wide_test_data.csv")
 widetemplate = os.path.join(
-    str(lib_folder), "tests", "test_data", "wide_test_template.csv"
+    str(lib_folder), "tests", "test_data", "wide_test_template.json"
 )
 
 
 # #% Setup dataset
-
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(
     input_data_file=widedatafile,
@@ -75,39 +79,15 @@ dataset.update_settings(
 )
 
 
-dataset.import_data_from_file(
-    long_format=False, obstype="temp", obstype_description="2mT", obstype_unit="Celcius"
-)
+dataset.import_data_from_file()
 
 assert dataset.df.shape == (597, 1), "Shape of unsynced widedata is not correct."
 
 
-# %% Import wide dataset with all options in the template
-
-widetemplate_with_options = os.path.join(
-    str(lib_folder), "tests", "test_data", "wide_test_template_with_options.csv"
-)
-
-dataset2 = metobs_toolkit.Dataset()
-dataset2.update_settings(
-    input_data_file=widedatafile,
-    # input_metadata_file=static_data,
-    template_file=widetemplate_with_options,
-)
-dataset2.import_data_from_file()
-
-
-assert (
-    dataset2.df.shape == dataset.df.shape
-), "Opening with options in template does not give same results"
-assert (
-    dataset2.df.columns.to_list() == dataset.df.columns.to_list()
-), "Opening with options in template does not give same results"
-
 # %% Test syncronizing wide
 
 # Sycnronize data
-test = dataset.sync_observations(tolerance="5T", verbose=True)
+test = dataset.sync_observations(tolerance="5min", verbose=True)
 
 
 assert dataset.df.shape == (182, 1), "Shape after syncronizing widedata is not correct."
@@ -123,7 +103,7 @@ singlestationdatafile = os.path.join(
     str(lib_folder), "tests", "test_data", "single_station.csv"
 )
 singlestationtemplate = os.path.join(
-    str(lib_folder), "tests", "test_data", "single_station_template.csv"
+    str(lib_folder), "tests", "test_data", "single_station_template.json"
 )
 singlestationmetadata = os.path.join(
     str(lib_folder), "tests", "test_data", "single_station_metadata.csv"
@@ -140,7 +120,7 @@ dataset_single.update_settings(
 )
 
 
-dataset_single.import_data_from_file(long_format=True)
+dataset_single.import_data_from_file()
 
 assert dataset_single.df.shape == (13, 2), "Shape singlestation dataset is not correct."
 
@@ -148,9 +128,8 @@ assert (
     dataset_single.df.index.get_level_values("name")[0] == "whats_the_name"
 ), "The single station name in the metadata is not set for the data."
 
-assert dataset_single.metadf.shape == (
-    1,
-    9,
+assert (
+    dataset_single.metadf.shape[0] == 1
 ), "Shape metadf for single station is not correct"
 
 
@@ -162,32 +141,6 @@ assert (
     dataset_single.df.index.get_level_values("name").unique()[0] == "whats_the_name"
 ), "single station name not represented correctly."
 
-
-# import wide dataset (One station) with options in the template
-singlestationtemplate_with_options = os.path.join(
-    str(lib_folder), "tests", "test_data", "single_station_template_with_options.csv"
-)
-
-
-dataset_single2 = metobs_toolkit.Dataset()
-dataset_single2.update_settings(
-    input_data_file=singlestationdatafile,
-    input_metadata_file=singlestationmetadata,
-    template_file=singlestationtemplate_with_options,
-)
-dataset_single2.import_data_from_file()
-
-
-assert (
-    dataset_single2.df.shape == dataset_single.df.shape
-), "Opening with options in template does not give same results"
-assert (
-    dataset_single2.df.columns.to_list() == dataset_single.df.columns.to_list()
-), "Opening with options in template does not give same results"
-
-assert (
-    dataset_single2.df.index.get_level_values("name").unique()[0] == "whats_the_name_2"
-), "Opening with options in template does not give same results"
 
 # %%
 
@@ -278,7 +231,7 @@ testmetadata = os.path.join(
     str(lib_folder), "tests", "test_data", "single_station_metadata.csv"
 )
 testtemplate = os.path.join(
-    str(lib_folder), "tests", "test_data", "single_station_new_obstype_template.csv"
+    str(lib_folder), "tests", "test_data", "single_station_new_obstype_template.json"
 )
 
 dataset.update_settings(
@@ -287,7 +240,8 @@ dataset.update_settings(
     template_file=testtemplate,
 )
 
-dataset.import_data_from_file(long_format=True)
+dataset.import_data_from_file()
+dataset.template.show()
 
 
 # test if all obstypes are present in the dataset

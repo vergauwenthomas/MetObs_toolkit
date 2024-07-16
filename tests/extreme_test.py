@@ -30,7 +30,7 @@ def read_in_the_dataset(dataname, testdatadict):
     datafile = testdatadict[dataname]["datafile"]
     metafile = testdatadict[dataname]["metadatafile"]
     template = testdatadict[dataname]["template"]
-    kwargsdict = testdatadict[dataname]["kwargs"]
+    # kwargsdict = testdatadict[dataname]["kwargs"]
 
     dataset = metobs_toolkit.Dataset()
     dataset.update_settings(
@@ -39,7 +39,7 @@ def read_in_the_dataset(dataname, testdatadict):
         template_file=template,
     )
 
-    dataset.import_data_from_file(**kwargsdict)
+    dataset.import_data_from_file()
     return dataset
 
 
@@ -54,7 +54,7 @@ def IO_test(dataset, name):
             print(f"{file_path} not found.")
 
     # Sycnronize data
-    test = dataset.sync_observations(tolerance="5T")
+    test = dataset.sync_observations(tolerance="5min")
 
     # pickel test
     outfolder = os.path.join(str(lib_folder), "tests", "test_data")

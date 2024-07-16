@@ -28,40 +28,40 @@ testdata = {
         "datafile": metobs_toolkit.demo_datafile,
         "metadatafile": metobs_toolkit.demo_metadatafile,
         "template": metobs_toolkit.demo_template,
-        "kwargs": {},
-        "coarsen": "20T",
+        # "kwargs": {},
+        "coarsen": "20min",
     },
     # paper dataset (based on the demo dataset)
     "paper_dataset": {
         "datafile": join(test_data_dir, "paper_dataset", "datafile.csv"),
         "metadatafile": join(test_data_dir, "paper_dataset", "metadatafile.csv"),
-        "template": join(test_data_dir, "paper_dataset", "templatefile.csv"),
-        "kwargs": {},
-        "coarsen": "20T",
+        "template": join(test_data_dir, "paper_dataset", "paper_dataset_template.json"),
+        # "kwargs": {},
+        "coarsen": "20min",
     },
     # wide test dataset
     "debug_wide": {
         "datafile": join(test_data_dir, "debug_wide.csv"),
         "metadatafile": join(test_data_dir, "debug_wide_metadata.csv"),
-        "template": join(test_data_dir, "debug_wide_template.csv"),
-        "kwargs": {"long_format": False, "obstype": "temp"},
-        "coarsen": "20T",
+        "template": join(test_data_dir, "debug_wide_template.json"),
+        # "kwargs": {"long_format": False, "obstype": "temp"},
+        "coarsen": "20min",
     },
     # Single station dataset
     "single_station": {
         "datafile": join(test_data_dir, "single_station.csv"),
         "metadatafile": join(test_data_dir, "single_station_metadata.csv"),
-        "template": join(test_data_dir, "single_station_template.csv"),
-        "kwargs": {"long_format": False, "obstype": "temp"},
-        "coarsen": "20T",
+        "template": join(test_data_dir, "single_station_template.json"),
+        # "kwargs": {"long_format": False, "obstype": "temp"},
+        "coarsen": "20min",
     },
     # breaking
     "breaking data": {
         "datafile": join(test_data_dir, "testdata_breaking.csv"),
         "metadatafile": None,
-        "template": join(test_data_dir, "template_breaking.csv"),
-        "kwargs": {},
-        "coarsen": "60T",
+        "template": join(test_data_dir, "template_breaking.json"),
+        # "kwargs": {},
+        "coarsen": "60min",
     },
     # Kobe congo (single station)
     "Congo_single_station": {
@@ -72,10 +72,10 @@ testdata = {
             test_data_dir, "testdata_testday", "Kobe", "CONGO_meta.csv"
         ),
         "template": join(
-            test_data_dir, "testdata_testday", "Kobe", "CONGO_template.csv"
+            test_data_dir, "testdata_testday", "Kobe", "kongo_template.json"
         ),
-        "kwargs": {},
-        "coarsen": "60T",
+        # "kwargs": {},
+        "coarsen": "60min",
     },
     # Single Netatmo station Sara
     "single_netatmo_sara_station": {
@@ -92,10 +92,10 @@ testdata = {
             "metadata_Outdoor_module_Netatmo_Sara_new.csv",
         ),
         "template": join(
-            test_data_dir, "testdata_testday", "Sara", "template_sara.csv"
+            test_data_dir, "testdata_testday", "Sara", "sara_template.json"
         ),
-        "kwargs": {"freq_estimation_method": "median"},
-        "coarsen": "60T",
+        # "kwargs": {"freq_estimation_method": "median"},
+        "coarsen": "60min",
     },
     # Vlinders 2022
     "vlindergent2022": {
@@ -106,19 +106,29 @@ testdata = {
             test_data_dir, "testdata_testday", "Sara", "all_vlinders_metadata.csv"
         ),
         "template": join(
-            test_data_dir, "testdata_testday", "Sara", "bigvlinder_templatefile.csv"
+            test_data_dir, "testdata_testday", "Sara", "vlinders22_template.json"
         ),
-        "kwargs": {"freq_estimation_method": "median"},
-        "coarsen": "60T",
+        # "kwargs": {"freq_estimation_method": "median"},
+        "coarsen": "60min",
     },
-    # Siebe stations (6 vlinders for 15 days)
-    "siebevlinder": {
+    # amsterdam
+    "amsterdam": {
         "datafile": join(
-            test_data_dir, "testdata_testday", "Siebe", "vlindersdata.csv"
+            test_data_dir,
+            "testdata_testday",
+            "amsterdam",
+            "Amsterdam_D2222z6together.csv",
         ),
-        "metadatafile": None,
-        "template": metobs_toolkit.demo_template,
-        "kwargs": {},
-        "coarsen": "60T",
+        "metadatafile": join(
+            test_data_dir,
+            "testdata_testday",
+            "amsterdam",
+            "Latlon_stations_Amsterdam.csv",
+        ),
+        "template": join(
+            test_data_dir, "testdata_testday", "amsterdam", "amsterdam_template.json"
+        ),
+        # "kwargs": {},
+        "coarsen": "60min",
     },
 }

@@ -141,7 +141,7 @@ class Modeldata:
         units,
         scale,
         band_desc=None,
-        time_res="1H",
+        time_res="1h",
         is_image=False,
         is_numeric=True,
         credentials="",
@@ -334,7 +334,7 @@ class Modeldata:
                 )
                 return
 
-        cur_unit = self.obstypes[obstype].get_modelunit(self.modelname)
+        cur_unit = self.obstypes[obstype].get_current_data_unit()
 
         if isinstance(self.obstypes[obstype], ModelObstype):
             converted_data = self.obstypes[obstype].convert_to_standard_units(
@@ -342,6 +342,9 @@ class Modeldata:
             )
             # Update the data and the current unit
             self.df[obstype] = converted_data
+            self.obstypes[obstype].set_current_data_unit(
+                current_data_unit=self.obstypes[obstype].get_standard_unit()
+            )
         if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
             u_comp_name = self.obstypes[obstype].get_u_column()
             v_comp_name = self.obstypes[obstype].get_v_column()
@@ -522,9 +525,13 @@ class Modeldata:
         self.modelname = mapname
 
         if not self.df.empty:
+            # Set extra attributes
             self.df_tz = "UTC"
+
             # convert to standard units
             for obstype in obstypes:
+                # Set the current unit (at this point, it is the unit as define in the band)
+                self.obstypes[obstype].setup_current_data_unit(mapname=mapname)
                 self.convert_units_to_tlk(obstype)
                 if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
                     self.exploid_2d_vector_field(obstype)
@@ -725,6 +732,8 @@ class Modeldata:
             if col in self.obstypes.keys():
                 # column is a regular obstype
                 data_present_obstypes.append(col)
+                # Set the current unit (at this point, it is the unit as define in the band)
+                self.obstypes[col].setup_current_data_unit(mapname=self.modelname)
             else:
                 # check if column represents a vector component
                 for known_obs in self.obstypes.values():
@@ -732,6 +741,11 @@ class Modeldata:
                         comps = [known_obs.get_u_column(), known_obs.get_v_column()]
                         if col in comps:
                             data_present_obstypes.append(known_obs.name)
+                            # Set the current unit (at this point, it is the unit as define in the band)
+                            self.obstypes[known_obs.name].setup_current_data_unit(
+                                mapname=self.modelname
+                            )
+
         data_present_obstypes = list(set(data_present_obstypes))
         # A. scalar obstypes (same name as column)
 

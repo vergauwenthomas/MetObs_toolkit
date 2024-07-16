@@ -27,15 +27,19 @@ from metobs_toolkit.df_helpers import (
 logger = logging.getLogger(__name__)
 
 
-class Analysis:
+from metobs_toolkit.datasetbase import _DatasetBase
+
+
+class Analysis(_DatasetBase):
     """The Analysis class contains methods for analysing observations."""
 
-    def __init__(self, obsdf, metadf, settings, data_template):
-        """Initialize an Analysis."""
-        self.df = obsdf
-        self.metadf = metadf
-        self.settings = settings
-        self.data_template = data_template
+    def __init__(self, obsdf, metadf, settings, obstypes):
+        _DatasetBase.__init__(self)
+
+        self._set_df(df=obsdf)
+        self._set_metadf(metadf)
+        self._set_obstypes(obstypes)
+        self._set_settings(settings)
 
         # analysis objects
         self.lc_cor_dict = {}
@@ -169,7 +173,7 @@ class Analysis:
             obsdf=child_df,
             metadf=child_metadf,
             settings=self.settings,
-            data_template=self.data_template,
+            obstypes=self.obstypes,
         )
 
     def aggregate_df(self, df=None, agg=["lcz", "hour"], method="mean"):
@@ -327,24 +331,19 @@ class Analysis:
 
         """
         # title
-        desc_dict = self.data_template[obstype].to_dict()
-
-        if "description" not in desc_dict:
-            desc_dict["description"] = obstype
-        if not isinstance(desc_dict["description"], str):
-            desc_dict["description"] = obstype
+        assert (
+            obstype in self.obstypes
+        ), f"{obstype} is not a known observation type: \n {self.obstypes}"
+        Obstype = self.obstypes[obstype]
 
         if title is None:
-            title = f'Anual {desc_dict["description"]} cycle plot per {groupby}.'
+            title = f"Anual {Obstype.name} cycle plot per {groupby}."
         else:
             title = str(title)
 
         # ylabel
         if y_label is None:
-            if "units" not in desc_dict:
-                y_label = f'{desc_dict["description"]} (units unknown)'
-            else:
-                y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+            y_label = f"{Obstype.get_plot_y_label()}"
         else:
             y_label = str(y_label)
 
@@ -420,34 +419,32 @@ class Analysis:
 
         """
         # title
-        desc_dict = self.data_template[obstype].to_dict()
 
-        if "description" not in desc_dict:
-            desc_dict["description"] = obstype
-        if not isinstance(desc_dict["description"], str):
-            desc_dict["description"] = obstype
+        assert (
+            obstype in self.obstypes
+        ), f"{obstype} is not a known observation type: \n {self.obstypes}"
+        Obstype = self.obstypes[obstype]
 
         if title is None:
             if startdt is None:
                 if enddt is None:
-                    title = f"Hourly average {obstype} diurnal cycle"
+                    title = f"Hourly average {Obstype.name} diurnal cycle"
                 else:
-                    title = f"Hourly average {obstype} diurnal cycle until {enddt}"
+                    title = f"Hourly average {Obstype.name} diurnal cycle until {enddt}"
             else:
                 if enddt is None:
-                    title = f"Hourly average {obstype} diurnal cycle from {startdt}"
+                    title = (
+                        f"Hourly average {Obstype.name} diurnal cycle from {startdt}"
+                    )
                 else:
-                    title = f"Hourly average {obstype} diurnal cycle for period {startdt} - {enddt}"
+                    title = f"Hourly average {Obstype.name} diurnal cycle for period {startdt} - {enddt}"
 
         else:
             title = str(title)
 
         # ylabel
         if y_label is None:
-            if "units" not in desc_dict:
-                y_label = f'{desc_dict["description"]} (units unknown)'
-            else:
-                y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+            y_label = f"{Obstype.get_plot_y_label()}"
         else:
             y_label = str(y_label)
 
@@ -473,7 +470,7 @@ class Analysis:
         refstation,
         colorby="name",
         obstype="temp",
-        tolerance="30T",
+        tolerance="30min",
         stations=None,
         startdt=None,
         enddt=None,
@@ -504,7 +501,7 @@ class Analysis:
             Element of the metobs_toolkit.observation_types The default is 'temp'.
         tolerance : Timedelta or str, optional
             The tolerance string or object representing the maximum translation in time to find a reference
-            observation for each observation. Ex: '5T' is 5 minutes, '1H', is one hour. The default is '30T'.
+            observation for each observation. Ex: '5min' is 5 minutes, '1h', is one hour. The default is '30min'.
         stations : list, optional
             List of station names to use. If None, all present stations will be used. The default is None.
         startdt : datetime.datetime, optional
@@ -535,8 +532,13 @@ class Analysis:
         as if it has the same timezone as the observations.
 
         """
+        assert (
+            obstype in self.obstypes
+        ), f"{obstype} is not a known observation type: \n {self.obstypes}"
+        Obstype = self.obstypes[obstype]
+
         obsdf = self.df
-        obsdf = obsdf[obstype].reset_index()
+        obsdf = obsdf[Obstype.name].reset_index()
 
         # extract refernce from observations
         refdf = obsdf[obsdf["name"] == refstation]
@@ -549,11 +551,13 @@ class Analysis:
 
         # Syncronize observations with the reference observations
         refdf = refdf.rename(
-            columns={obstype: "ref_" + obstype, "datetime": "ref_datetime"}
+            columns={Obstype.name: "ref_" + Obstype.name, "datetime": "ref_datetime"}
         )
         mergedf = pd.merge_asof(
             left=obsdf.sort_values("datetime"),
-            right=refdf[["ref_datetime", "ref_" + obstype]].sort_values("ref_datetime"),
+            right=refdf[["ref_datetime", "ref_" + Obstype.name]].sort_values(
+                "ref_datetime"
+            ),
             right_on="ref_datetime",
             left_on="datetime",
             direction="nearest",
@@ -565,42 +569,33 @@ class Analysis:
 
         # Subset to relavent columns
         mergedf = mergedf.reset_index()
-        mergedf = mergedf[["name", "datetime", obstype]]
+        mergedf = mergedf[["name", "datetime", Obstype.name]]
         mergedf = mergedf.set_index(["name", "datetime"])
 
         # title
-        desc_dict = self.data_template[obstype].to_dict()
-        if "description" not in desc_dict:
-            desc_dict["description"] = obstype
-        if not isinstance(desc_dict["description"], str):
-            desc_dict["description"] = obstype
-
         if title is None:
             if startdt is None:
                 if enddt is None:
-                    title = f"Hourly average {obstype} diurnal cycle, with {refstation} as reference,"
+                    title = f"Hourly average {Obstype.name} diurnal cycle, with {refstation} as reference,"
                 else:
-                    title = f"Hourly average {obstype} diurnal cycle, with {refstation} as reference, until {enddt}"
+                    title = f"Hourly average {Obstype.name} diurnal cycle, with {refstation} as reference, until {enddt}"
             else:
                 if enddt is None:
-                    title = f"Hourly average {obstype} diurnal cycle, with {refstation} as reference, from {startdt}"
+                    title = f"Hourly average {Obstype.name} diurnal cycle, with {refstation} as reference, from {startdt}"
                 else:
-                    title = f"Hourly average {obstype} diurnal cycle, with {refstation} as reference, for period {startdt} - {enddt}"
+                    title = f"Hourly average {Obstype.name} diurnal cycle, with {refstation} as reference, for period {startdt} - {enddt}"
 
         else:
             title = str(title)
 
         # ylabel
         if y_label is None:
-            if "units" not in desc_dict:
-                y_label = f'{desc_dict["description"]} (units unknown)'
-            else:
-                y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+            y_label = f"{Obstype.get_plot_y_label()}"
         else:
             y_label = str(y_label)
 
         stats = self.get_aggregated_cycle_statistics(
-            obstype=obstype,
+            obstype=Obstype.name,
             stations=stations,
             aggregation=[colorby],
             aggregation_method="mean",
@@ -688,6 +683,11 @@ class Analysis:
         as if it has the same timezone as the observations.
 
         """
+        assert (
+            obstype in self.obstypes
+        ), f"{obstype} is not a known observation type: \n {self.obstypes}"
+        Obstype = self.obstypes[obstype]
+
         if _obsdf is None:
             obsdf = self.df[[obstype]]
         else:
@@ -805,16 +805,6 @@ class Analysis:
             std_df.columns = [" ,".join(col).strip() for col in std_df.columns.values]
 
         if plot:
-            # description of the obstype
-            desc_dict = self.data_template[obstype].to_dict()
-            if "description" not in desc_dict:
-                desc_dict["description"] = obstype
-
-            if not isinstance(desc_dict["description"], str):
-                desc_dict["description"] = obstype
-
-            description = desc_dict["description"]
-
             # generate title
             if title is None:
                 startdtstr = datetime.strftime(
@@ -823,14 +813,11 @@ class Analysis:
                 enddtstr = datetime.strftime(
                     enddt, format=self.settings.app["print_fmt_datetime"]
                 )
-                title = f"{aggregation_method} - {horizontal_axis } {obstype} cycle for period {startdtstr} - {enddtstr} grouped by {aggregation}"
+                title = f"{aggregation_method} - {horizontal_axis } {Obstype.name} cycle for period {startdtstr} - {enddtstr} grouped by {aggregation}"
 
             # ylabel
             if y_label is None:
-                if "units" not in desc_dict:
-                    y_label = f'{desc_dict["description"]} (units unknown)'
-                else:
-                    y_label = f'{desc_dict["description"]} ({desc_dict["units"]})'
+                y_label = f"{Obstype.get_plot_y_label()}"
             else:
                 y_label = str(y_label)
 
@@ -847,8 +834,8 @@ class Analysis:
                 title=title,
                 plot_settings=self.settings.app["plot_settings"]["diurnal"],
                 aggregation=aggregation,
-                data_template=self.data_template,
-                obstype=obstype,
+                # data_template=self.data_template,
+                obstype=Obstype.name,
                 y_label=y_label,
                 legend=legend,
                 show_zero_horizontal=_show_zero_line,

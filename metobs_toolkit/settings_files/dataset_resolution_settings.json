@@ -1,9 +1,9 @@
 {
-    "target_time_resolution": "60T",
+    "target_time_resolution": "60min",
     "timezone":"UTC",
     "method": "nearest",
     "limit": 1,
     "freq_estimation_method": "highest",
     "freq_estimation_simplify": true,
-    "freq_estimation_simplify_error": "2T"
+    "freq_estimation_simplify_error": "2min"
 }
