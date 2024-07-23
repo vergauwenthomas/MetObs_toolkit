@@ -158,7 +158,7 @@ assert (
 
 # %% Test if filled values are present in the combined df
 
-comb_df = dataset.combine_all_to_obsspace()
+comb_df = dataset.get_full_status_df()
 comb_df = comb_df.xs("temp", level="obstype")
 
 
@@ -195,7 +195,7 @@ assert (ngaps == 5) & (
 
 
 # check if the mergedf does not contain them as duplicates
-comb2 = dataset2.combine_all_to_obsspace()
+comb2 = dataset2.get_full_status_df()
 
 assert (
     comb2[comb2.index.duplicated()].shape[0] == 0

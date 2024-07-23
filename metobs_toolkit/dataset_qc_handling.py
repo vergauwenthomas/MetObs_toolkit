@@ -32,7 +32,7 @@ from metobs_toolkit.df_helpers import (
     fmt_datetime_argument,
     init_multiindex,
     init_multiindexdf,
-    init_triple_multiindexdf,
+    # init_triple_multiindexdf,
     metadf_to_gdf,
     conv_applied_qc_to_df,
     get_freqency_series,
@@ -44,6 +44,15 @@ from metobs_toolkit.df_helpers import (
 
 class Dataset(Dataset):
     """Extension on the metobs_toolkit.Dataset class with QC related methods"""
+
+    def _update_outliersdf(self, add_to_outliersdf):
+        """Update the outliersdf attribute."""
+
+        # Keep_all_nan_cols is True, because else the 'value' column is not
+        # concated if all values are Nan (the case when invalidcheck is applied)
+        self._set_outliersdf(
+            concat_save([self.outliersdf, add_to_outliersdf], keep_all_nan_cols=True)
+        )
 
     def get_qc_stats(self, obstype="temp", stationname=None, make_plot=True):
         """Get quality control statistics.
@@ -111,9 +120,9 @@ class Dataset(Dataset):
 
         """
         # cobmine all and get final label
-        comb_df = self.combine_all_to_obsspace()
+        comb_df = self.get_full_status_df(return_as_wide=False)
 
-        # subset to relevant columnt
+        # subset to relevant columns
         comb_df = xs_save(comb_df, obstype, level="obstype")[["label"]]
 
         # subset to stationnames
@@ -128,7 +137,7 @@ class Dataset(Dataset):
         final_freq, outl_freq, specific_freq = get_freq_statistics(
             comb_df=comb_df,
             obstype=obstype,
-            checks_info=self.settings.qc["qc_checks_info"],
+            outlierlabel=self.settings.qc["qc_checks_info"],
             gaps_info=self.settings.gap["gaps_info"],
             applied_qc_order=self._applied_qc,
         )
@@ -328,7 +337,7 @@ class Dataset(Dataset):
                 obsdf, outl_df = repetitions_check(
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
+                    outlierlabel=self.settings.label_def["repetitions"]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -357,7 +366,7 @@ class Dataset(Dataset):
                 obsdf, outl_df = gross_value_check(
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
+                    outlierlabel=self.settings.label_def["gross_value"]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -386,7 +395,7 @@ class Dataset(Dataset):
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
+                    outlierlabel=self.settings.label_def["persistance"]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -414,7 +423,7 @@ class Dataset(Dataset):
                 obsdf, outl_df = step_check(
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
+                    outlierlabel=self.settings.label_def["step"]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -442,7 +451,7 @@ class Dataset(Dataset):
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
+                    outlierlabel=self.settings.label_def["window_variation"]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -611,7 +620,6 @@ class Dataset(Dataset):
         apliable = _can_qc_be_applied(self, obstype, checkname)
         if apliable:
             buddy_set = self.settings.qc["qc_check_settings"][checkname][obstype]
-            outl_flag = self.settings.qc["qc_checks_info"][checkname]["outlier_flag"]
             obsdf, outliersdf = toolkit_buddy_check(
                 obsdf=self.df,
                 metadf=self.metadf,
@@ -623,7 +631,7 @@ class Dataset(Dataset):
                 std_threshold=buddy_set["threshold"],
                 metric_epsg=metric_epsg,
                 lapserate=buddy_set["elev_gradient"],
-                outl_flag=outl_flag,
+                outlierlabel=self.settings.label_def["buddy_check"]["label"],
                 haversine_approx=haversine_approx,
             )
 
@@ -793,7 +801,7 @@ class Dataset(Dataset):
                 obsdf=self.df,
                 metadf=self.metadf,
                 obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
+                outlierlabel=self.settings.label_def["titan_buddy_check"]["label"],
                 checks_settings=self.settings.qc["titan_check_settings"][checkname][
                     obstype
                 ],
@@ -951,7 +959,9 @@ class Dataset(Dataset):
                 obsdf=self.df,
                 metadf=self.metadf,
                 obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
+                outlierlabel=self.settings.label_def["titan_sct_resistant_check"][
+                    "label"
+                ],
                 checks_settings=self.settings.qc["titan_check_settings"][checkname][
                     obstype
                 ],

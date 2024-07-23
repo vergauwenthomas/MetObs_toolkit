@@ -188,7 +188,7 @@ man_df = (
 )
 
 
-tlk_df = dataset.combine_all_to_obsspace()
+tlk_df = dataset.get_full_status_df(return_as_wide=False)
 
 
 # %%
@@ -318,6 +318,8 @@ man_gapsdf["end_gap"] = pd.to_datetime(man_gapsdf["end_gap"]).dt.tz_localize(tz=
 # %%
 
 tlk_gapsdf = dataset.get_gaps_df()
+
+
 tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
 
 

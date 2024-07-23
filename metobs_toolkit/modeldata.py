@@ -132,6 +132,19 @@ class Modeldata:
         self.obstypes[obs.name] = modeldata_obstype
         logger.info(f"{obs.name} added to the known observation types.")
 
+    def _df_as_triple_idx(self):
+        """Return the data in the same form as Dataset records.
+
+        The returned dataframe has ['name', 'obstype', 'datetime'] as index,
+        and one column: 'value'.
+
+        """
+        df = self.df.stack()
+        df.index = df.index.set_names("obstype", level=-1)
+        df.name = "value"
+        df = df.reset_index().set_index(["name", "obstype", "datetime"]).sort_index()
+        return df
+
     def add_gee_dataset(
         self,
         mapname,
@@ -787,38 +800,50 @@ class Modeldata:
             sta_recordsdf = xs_save(recordsdf, sta, level="name", drop_level=False)
             sta_moddf = xs_save(self.df, sta, level="name", drop_level=False)
 
-            # convert modeldata to timezone of observations
-            sta_moddf = conv_tz_multiidxdf(
-                df=sta_moddf,
-                timezone=sta_recordsdf.index.get_level_values("datetime").tz,
-            )
+            if sta_moddf.empty:
+                logger.warning(f"There are not modeldata records for {sta}!")
+                # empyt sta_moddg --> not model data --> empyt return
+                mergedf = sta_recordsdf  # overload the records index
+                mergedf = mergedf.reindex(
+                    columns=list(self.df.columns)
+                )  # add all present obstypes as nan columns
 
-            # check if modeldata is will not be extrapolated !
-            if min(sta_recordsdf.index.get_level_values("datetime")) < min(
-                sta_moddf.index.get_level_values("datetime")
-            ):
-                logger.warning("Modeldata will be extrapolated")
-            if max(sta_recordsdf.index.get_level_values("datetime")) > max(
-                sta_moddf.index.get_level_values("datetime")
-            ):
-                logger.warning("Modeldata will be extrapolated")
+            else:
+                # convert modeldata to timezone of observations
+                sta_moddf = conv_tz_multiidxdf(
+                    df=sta_moddf,
+                    timezone=sta_recordsdf.index.get_level_values("datetime").tz,
+                )
 
-            # combine model and records
-            mergedf = sta_recordsdf.merge(
-                sta_moddf, how="outer", left_index=True, right_index=True
-            )
+                # check if modeldata is will not be extrapolated !
+                if min(sta_recordsdf.index.get_level_values("datetime")) < min(
+                    sta_moddf.index.get_level_values("datetime")
+                ):
+                    logger.warning("Modeldata will be extrapolated")
+                if max(sta_recordsdf.index.get_level_values("datetime")) > max(
+                    sta_moddf.index.get_level_values("datetime")
+                ):
+                    logger.warning("Modeldata will be extrapolated")
 
-            # reset index for time interpolation
-            mergedf = mergedf.reset_index().set_index("datetime").sort_index()
+                # combine model and records
+                mergedf = sta_recordsdf.merge(
+                    sta_moddf, how="outer", left_index=True, right_index=True
+                )
 
-            # interpolate missing modeldata
-            mergedf = mergedf.drop(columns=["name"])
-            mergedf.interpolate(method="time", limit_area="inside", inplace=True)
-            mergedf["name"] = sta
-            # convert back to multiindex
-            mergedf = mergedf.reset_index().set_index(["name", "datetime"]).sort_index()
-            # filter only records
-            mergedf = mergedf.loc[sta_recordsdf.index]
+                # reset index for time interpolation
+                mergedf = mergedf.reset_index().set_index("datetime").sort_index()
+
+                # interpolate missing modeldata
+                mergedf = mergedf.drop(columns=["name"])
+                mergedf.interpolate(method="time", limit_area="inside", inplace=True)
+                mergedf["name"] = sta
+
+                # convert back to multiindex
+                mergedf = (
+                    mergedf.reset_index().set_index(["name", "datetime"]).sort_index()
+                )
+                # filter only records
+                mergedf = mergedf.loc[sta_recordsdf.index]
 
             returndf = pd.concat([returndf, mergedf])
         return returndf
@@ -926,7 +951,7 @@ class Modeldata:
         #  -------- Filter dataset (if available) -----------
         if dataset is not None:
             # combine all dataframes
-            mergedf = dataset.combine_all_to_obsspace()
+            mergedf = dataset.get_full_status_df()
 
             # subset to obstype
             mergedf = xs_save(mergedf, obstype_dataset, level="obstype")

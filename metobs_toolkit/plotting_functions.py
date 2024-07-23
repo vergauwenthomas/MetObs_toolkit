@@ -612,34 +612,45 @@ def timeseries_plot(
 
     # define different groups (different plotting styles)
     # ok group
-    ok_labels = ["ok"]
+    ok_labels = [settings.label_def["goodrecord"]["label"]]
 
     # filled value groups
-    fill_labels = [val for val in settings.gap["gaps_fill_info"]["label"].values()]
-    missing_fill_labels = [
-        val for val in settings.missing_obs["missing_obs_fill_info"]["label"].values()
-    ]
-    fill_labels.extend(missing_fill_labels)
+    fill_labels = [
+        settings.label_def["interpolated_gap"]["label"],
+        settings.label_def["raw_modeldata_fill"]["label"],
+        settings.label_def["debias_modeldata_fill"]["label"],
+        settings.label_def["diurnal_debias_modeldata_fill"]["label"],
+        settings.label_def["weighted_diurnal_debias_modeldata_fill"]["label"],
+    ]  # add references
 
     # qc outlier labels
-    qc_labels = [
-        val["outlier_flag"] for key, val in settings.qc["qc_checks_info"].items()
+    outliergroups = [
+        # 'duplicated_timestamp', #NO value to display
+        # 'invalid_input', #NO value to display
+        "gross_value",
+        "persistance",
+        "repetitions",
+        "step",
+        "window_variation",
+        "buddy_check",
+        "titan_buddy_check",
+        "titan_sct_resistant_check",
     ]
+    qc_labels = [settings.label_def[qc_group]["label"] for qc_group in outliergroups]
 
     # no value group
     no_vals_labels = [
-        settings.gap["gaps_info"]["gap"]["outlier_flag"],
-        settings.gap["gaps_info"]["missing_timestamp"]["outlier_flag"],
+        settings.label_def["regular_gap"]["label"],
+        # duplicated timestamp and invalid input outliers do not have a known value, so add them to this group
+        settings.label_def["invalid_input"]["label"],
+        settings.label_def["duplicated_timestamp"]["label"],
+        # all failed gapfill labels
+        settings.label_def["failed_interpolation_gap"]["label"],
+        settings.label_def["failed_raw_modeldata_fill"]["label"],
+        settings.label_def["failed_debias_modeldata_fill"]["label"],
+        settings.label_def["failed_diurnal_debias_modeldata_fill"]["label"],
+        settings.label_def["failed_weighted_diurnal_debias_modeldata_fill"]["label"],
     ]
-    # duplicated timestamp and invalid input outliers do not have a known value, so add them to this group
-    no_vals_labels.append(
-        settings.qc["qc_checks_info"]["duplicated_timestamp"]["outlier_flag"]
-    )
-    no_vals_labels.append(
-        settings.qc["qc_checks_info"]["invalid_input"]["outlier_flag"]
-    )
-
-    # no_vals_df = mergedf[mergedf['label'].isin(no_vals_labels)]
 
     if colorby == "label":
 
@@ -1354,39 +1365,42 @@ def _outl_value_to_colormapper(plot_settings, qc_check_info):
 
 def _all_possible_labels_colormapper(settings):
     """Make color mapper for all LABELVALUES to colors."""
-    plot_settings = settings.app["plot_settings"]
-    gap_settings = settings.gap
-    qc_info_settings = settings.qc["qc_checks_info"]
-    missing_obs_settings = settings.missing_obs["missing_obs_fill_info"]
 
-    color_defenitions = plot_settings["color_mapper"]
+    mapper = {group["label"]: group["color"] for group in settings.label_def.values()}
 
-    mapper = dict()
+    # plot_settings = settings.app["plot_settings"]
+    # gap_settings = settings.gap
+    # qc_info_settings = settings.qc["qc_checks_info"]
+    # # missing_obs_settings = settings.missing_obs["missing_obs_fill_info"]
 
-    # get QC outlier labels
+    # color_defenitions = plot_settings["color_mapper"]
 
-    outl_col_mapper = _outl_value_to_colormapper(
-        plot_settings=plot_settings, qc_check_info=qc_info_settings
-    )
-    mapper.update(outl_col_mapper)
+    # mapper = dict()
 
-    # get 'ok' and 'not checked'
-    mapper["ok"] = color_defenitions["ok"]
-    mapper["not checked"] = color_defenitions["not checked"]
+    # # get QC outlier labels
 
-    # update gap and missing timestamp labels
-    mapper[gap_settings["gaps_info"]["gap"]["outlier_flag"]] = color_defenitions["gap"]
-    mapper[gap_settings["gaps_info"]["missing_timestamp"]["outlier_flag"]] = (
-        color_defenitions["missing_timestamp"]
-    )
+    # outl_col_mapper = _outl_value_to_colormapper(
+    #     plot_settings=plot_settings, qc_check_info=qc_info_settings
+    # )
+    # mapper.update(outl_col_mapper)
 
-    # add fill for gaps
-    for method, label in gap_settings["gaps_fill_info"]["label"].items():
-        mapper[label] = color_defenitions[method]
+    # # get 'ok' and 'not checked'
+    # mapper["ok"] = color_defenitions["ok"]
+    # mapper["not checked"] = color_defenitions["not checked"]
 
-    # add fill for missing
-    for method, label in missing_obs_settings["label"].items():
-        mapper[label] = color_defenitions[method]
+    # # update gap and missing timestamp labels
+    # mapper[gap_settings["gaps_info"]["gap"]["outlier_flag"]] = color_defenitions["gap"]
+    # # mapper[gap_settings["gaps_info"]["missing_timestamp"]["outlier_flag"]] = (
+    # #     color_defenitions["missing_timestamp"]
+    # # )
+
+    # # add fill for gaps
+    # for method, label in gap_settings["gaps_fill_info"]["label"].items():
+    #     mapper[label] = color_defenitions[method]
+
+    # # # add fill for missing
+    # # for method, label in missing_obs_settings["label"].items():
+    # #     mapper[label] = color_defenitions[method]
 
     return mapper
 
@@ -1448,7 +1462,7 @@ def qc_stats_pie(
         "ok": color_defenitions["ok"],
         "QC outliers": color_defenitions["outlier"],
         "missing (gaps)": color_defenitions["gap"],
-        "missing (individual)": color_defenitions["missing_timestamp"],
+        # "missing (individual)": color_defenitions["missing_timestamp"],
     }
 
     _make_pie_from_freqs(
@@ -1493,7 +1507,7 @@ def qc_stats_pie(
         "not checked": color_defenitions["not checked"],
         "outlier": color_defenitions["outlier"],
         "gap": color_defenitions["gap"],
-        "missing timestamp": color_defenitions["missing_timestamp"],
+        # "missing timestamp": color_defenitions["missing_timestamp"],
     }
 
     specific_df = pd.DataFrame(specific_stats)

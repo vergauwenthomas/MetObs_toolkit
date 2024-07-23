@@ -10,6 +10,7 @@ import logging
 from collections.abc import Iterable
 
 import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -275,7 +276,7 @@ class Obstype:
 
         Returns
         -------
-        data  numeric/numpy.array
+        data  numeric/numpy.array/
             The data in standard units.
 
         """
@@ -301,7 +302,24 @@ class Obstype:
         for conv in conv_expr_list:
             data = expression_calculator(conv, data)
 
-        return data
+        # convert output to same type as input
+        if (isinstance(input_data, int)) | (isinstance(input_data, float)):
+            return float(
+                data
+            )  # always float because int can be converted to fload due to conversiontable
+
+        elif isinstance(input_data, pd.core.series.Series):
+            data = pd.Series(index=input_data.index, data=data, name=input_data.name)
+            return data
+
+        elif isinstance(input_data, np.ndarray):
+            return np.asarray(data)
+
+        else:
+            logger.warning(
+                f"The dtype ({type(input_data)}), of input data for unit conversion is not a default."
+            )
+            return data
 
     # ------------- Helpers ----------------------------------
 

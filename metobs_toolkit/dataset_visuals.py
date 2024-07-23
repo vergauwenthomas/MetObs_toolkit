@@ -26,7 +26,7 @@ from metobs_toolkit.df_helpers import (
     fmt_datetime_argument,
     init_multiindex,
     init_multiindexdf,
-    init_triple_multiindexdf,
+    # init_triple_multiindexdf,
     metadf_to_gdf,
     conv_applied_qc_to_df,
     get_freqency_series,
@@ -131,7 +131,7 @@ class Dataset(Dataset):
             logger.info(f"Make {obstype}-timeseries plot for {stationnames}")
 
         # combine all dataframes
-        mergedf = self.combine_all_to_obsspace()
+        mergedf = self.get_full_status_df(return_as_wide=False)
 
         # subset to obstype
         mergedf = xs_save(mergedf, obstype, level="obstype")
@@ -141,12 +141,8 @@ class Dataset(Dataset):
             mergedf = mergedf[mergedf.index.get_level_values("name").isin(stationnames)]
 
         # Subset on start and endtime
-        starttime = fmt_datetime_argument(
-            starttime, self.settings.time_settings["timezone"]
-        )
-        endtime = fmt_datetime_argument(
-            endtime, self.settings.time_settings["timezone"]
-        )
+        starttime = fmt_datetime_argument(starttime, self._get_tz())
+        endtime = fmt_datetime_argument(endtime, self._get_tz())
 
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
@@ -327,7 +323,7 @@ class Dataset(Dataset):
             return None
 
         # Construct dataframe
-        combdf = self.combine_all_to_obsspace()
+        combdf = self.get_full_status_df()
         combdf = xs_save(combdf, obstype.name, level="obstype")
         # Merge geospatial info
         combgdf = combdf.merge(

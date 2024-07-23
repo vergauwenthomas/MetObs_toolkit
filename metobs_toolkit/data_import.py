@@ -236,10 +236,8 @@ def import_data_from_csv(
     # 6.. Set index
     df.set_index("datetime", inplace=True)
 
-    # 8. map to numeric dtypes
-    for col in df.columns:
-        if col != "name":  # all other columns are observations
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+    # 7. create timezone-aware datetime index
+    df.index = df.index.tz_localize(tz=template._get_tz())
 
     return df
 

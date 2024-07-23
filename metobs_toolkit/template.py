@@ -31,6 +31,9 @@ column_meta_blacklist = [
     "dataset_resolution",
     "lcz",
     "altitude",
+    "dataset_resolution",
+    "dt_start",
+    "dt_end",
 ]
 
 
@@ -46,7 +49,7 @@ def _get_empty_templ_dict():
                 "date_fmt": None,
                 "time_column": None,
                 "time_fmt": None,
-                "timezone": None,
+                "timezone": "UTC",
             },
             "name_column": None,
             "obstype_mapping": [
@@ -303,6 +306,11 @@ class Template:
         Test if the required template details are present to construct a timestamp column.
         """
         ts_info = self.timestampinfo
+
+        # Check if timezone is known
+        if self._get_tz() not in all_timezones:
+            raise MetobsTemplateError(f"{self._get_tz()} is not a known timezone.")
+
         # situation 1:  datetime column is present
         if ts_info["datetimecolumn"] is not None:
             assert (
@@ -489,6 +497,8 @@ class Template:
             "fmt": dt_fmt,
         }
 
+        self.tz = str(tml_dict["data_related"]["timestamp"]["timezone"])
+
         for obsdict in tml_dict["data_related"]["obstype_mapping"]:
             self.obscolumnmap[obsdict["tlk_obstype"]] = obsdict["columnname"]
             self.obsdetails[obsdict["tlk_obstype"]] = {
@@ -555,6 +565,7 @@ def _create_datetime_column(df, template):
             # raise Exception('The timestamps could not be converted to datetimes, check the timestamp format(s) in your template. \n').with_traceback(e.__traceback__)
 
         df = df.drop(columns=["_date", "_time"])
+
     return df
 
 

@@ -19,15 +19,15 @@ class Station(Dataset):
         df,
         outliersdf,
         gaps,
-        missing_obs,
-        gapfilldf,
-        missing_fill_df,
+        # missing_obs,
+        # gapfilldf,
+        # missing_fill_df,
         metadf,
         obstypes,
         template,
         settings,
-        _qc_checked_obstypes,
-        _applied_qc,
+        # _qc_checked_obstypes,
+        # _applied_qc,
     ):
         """Initiate the Station object."""
         Dataset.__init__(self)
@@ -37,15 +37,16 @@ class Station(Dataset):
         self._set_metadf(metadf)
         self._set_obstypes(obstypes)
         self._set_settings(settings)
+        self._set_gaps(gaps)
 
-        # Set data attribute
-        self.gaps = gaps
-        self.missing_obs = missing_obs
-        self.gapfilldf = gapfilldf
-        self.missing_fill_df = missing_fill_df
-        self.template = template
-        self._qc_checked_obstypes = _qc_checked_obstypes
-        self._applied_qc = _applied_qc
+        # # Set data attribute
+        # self.gaps = gaps
+        # self.missing_obs = missing_obs
+        # self.gapfilldf = gapfilldf
+        # self.missing_fill_df = missing_fill_df
+        # self.template = template
+        # self._qc_checked_obstypes = _qc_checked_obstypes
+        # self._applied_qc = _applied_qc
 
         # Station specific
         self.name = name

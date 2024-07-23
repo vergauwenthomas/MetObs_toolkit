@@ -28,7 +28,7 @@ General methods and attributes
    Dataset.get_gaps_df
    Dataset.get_gaps_info
    Dataset.get_missing_obs_info
-   Dataset.combine_all_to_obsspace
+   Dataset.get_full_status_df
 
 Common methods
 --------------------

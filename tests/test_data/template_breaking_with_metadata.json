@@ -33,10 +33,10 @@
         ]
     },
     "metadata_related": {
-        "name_column": null,
-        "lat_column": null,
-        "lon_column": null,
-        "columns_to_include": []
+        "name_column": "namen",
+        "lat_column": "link",
+        "lon_column": "noord",
+        "columns_to_include": ["extra"]
     },
     "single_station_name": "dummy_station_name"
 }

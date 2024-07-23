@@ -35,7 +35,7 @@ dataset.coarsen_time_resolution()
 dataset.apply_quality_control(obstype="temp")
 
 
-outliersdf = dataset.combine_all_to_obsspace()
+outliersdf = dataset.get_full_status_df()
 dataset.get_qc_stats(make_plot=False)
 dataset.get_qc_stats(obstype="humidity", make_plot=False)
 

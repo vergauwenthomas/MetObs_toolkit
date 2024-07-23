@@ -80,12 +80,15 @@ def xs_save(df, key, level, drop_level=True):
     return pd.DataFrame(index=idx, columns=columns)
 
 
-def concat_save(df_list, **kwargs):
+def concat_save(df_list, keep_all_nan_cols=False, **kwargs):
     """Concat dataframes row-wise without triggering the Futurwarning of concating empyt df's."""
 
     if all([isinstance(df, pd.DataFrame) for df in df_list]):
-        # This line will filter columns with all NAN values (so empty dfs + all NA entries are filtered out)
-        return pd.concat([df.dropna(axis=1, how="all") for df in df_list], **kwargs)
+        if keep_all_nan_cols:
+            return pd.concat(df_list, **kwargs)
+        else:
+            # This line will filter columns with all NAN values (so empty dfs + all NA entries are filtered out)
+            return pd.concat([df.dropna(axis=1, how="all") for df in df_list], **kwargs)
     if all([isinstance(df, pd.Series) for df in df_list]):
         # This line will filter out empty series
         return pd.concat([ser for ser in df_list if not ser.empty], **kwargs)
@@ -107,15 +110,23 @@ def init_multiindexdf():
 def init_triple_multiindex():
     """Construct a name-datetime-obstype pandas multiindex."""
     my_index = pd.MultiIndex(
-        levels=[["name"], ["datetime"], ["obstype"]],
+        levels=[["name"], ["obstype"], ["datetime"]],
         codes=[[], [], []],
-        names=["name", "datetime", "obstype"],
+        names=["name", "obstype", "datetime"],
     )
     return my_index
 
 
+def empty_outliers_df():
+    """Construct an empty outliersdf."""
+    outliersdf = pd.DataFrame(
+        index=init_triple_multiindex(), columns=["value", "label"]
+    )
+    return outliersdf
+
+
 def init_triple_multiindexdf():
-    """Construct a name-datetime-obstype pandas multiindexdataframe."""
+    """Construct a name-obstype-datetime pandas multiindexdataframe."""
     return pd.DataFrame(index=init_triple_multiindex())
 
 
@@ -379,6 +390,38 @@ def conv_applied_qc_to_df(obstypes, ordered_checknames):
 # =============================================================================
 # Records frequencies
 # =============================================================================
+
+
+def _simplify_time(time, max_simplyfi_error):
+    # 1 try simplyfy to round hours
+    hourly_candidate = time.round("h")
+    if abs(time - hourly_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return hourly_candidate
+
+    # 2  half_hourly_candidate
+    halfhourly_candidate = time.round("30min")
+    if abs(time - halfhourly_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return halfhourly_candidate
+
+    # 3. 10min fold
+    tenmin_candidate = time.round("10min")
+    if abs(time - tenmin_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return tenmin_candidate
+
+    # 4. 5min fold
+    fivemin_candidate = time.round("5min")
+    if abs(time - fivemin_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return fivemin_candidate
+
+    # 5. min fold
+    min_candidate = time.round("min")
+    if abs(time - min_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return min_candidate
+
+    # 6. No simplyfication posible
+    return time
+
+
 def get_likely_frequency(
     timestamps, method="highest", simplify=True, max_simplify_error="2min"
 ):
