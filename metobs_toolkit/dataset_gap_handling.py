@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 from metobs_toolkit import Dataset
 
-from metobs_toolkit.missingobs import Missingob_collection
 
 from metobs_toolkit.gap import (
     Gap,

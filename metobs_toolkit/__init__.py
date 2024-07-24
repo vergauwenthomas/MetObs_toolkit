@@ -11,9 +11,7 @@ from pathlib import Path
 # Create the Logger
 loggers = logging.getLogger(__name__)  # logger name is <metobs-toolkit>
 loggers.setLevel(logging.DEBUG)
-
-
-# Adding Handlers
+loggers.handlers.clear()  # clear all handlers
 
 # File handler
 log_path = os.path.join(str(Path(__file__).parent.parent.parent), "logfile.log")
@@ -21,10 +19,19 @@ log_path = os.path.join(str(Path(__file__).parent.parent.parent), "logfile.log")
 file_handler = logging.FileHandler(filename=log_path)
 file_handler.setLevel(logging.DEBUG)
 # # Create a Formatter for formatting the log messages
-logger_formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(logger_formatter)
+file_logger_formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(file_logger_formatter)
 # Add the Handler to the Logger
 loggers.addHandler(file_handler)
+
+# add Streamhandler
+streamhandler = logging.StreamHandler()
+streamhandler.setLevel(logging.DEBUG)
+stream_logger_formatter = logging.Formatter(
+    "LOG:: %(name)s - %(levelname)s - %(message)s"
+)
+streamhandler.setFormatter(stream_logger_formatter)
+loggers.addHandler(streamhandler)
 
 
 loggers.info("Logger initiated")

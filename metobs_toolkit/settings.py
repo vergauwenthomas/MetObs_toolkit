@@ -255,16 +255,7 @@ class Settings:
             if not callable(getattr(Settings, attr)) and not attr.startswith("__")
         ]
 
-        attr_list = [
-            "IO",
-            "time_settings",
-            "app",
-            "qc",
-            "gap",
-            "missing_obs",
-            "templatefile",
-            "gee",
-        ]
+        attr_list = ["IO", "app", "qc", "templatefile", "gee", "label_def"]
 
         # Drop variables starting with _
         class_vars_name = [mem for mem in class_vars_name if not mem.startswith("_")]

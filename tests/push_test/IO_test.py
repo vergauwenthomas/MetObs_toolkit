@@ -20,7 +20,6 @@ import metobs_toolkit
 
 # print(metobs_toolkit.__version__)
 
-# %%
 # %% import data from file (long standard format)
 
 testdatafile = os.path.join(
@@ -59,7 +58,7 @@ dataset.show_settings()
 
 dataset.import_data_from_file()
 
-assert dataset.df.shape == (120957, 4), "Shape of demo data is not correct."
+assert dataset.df.shape == (483840, 1), "Shape of demo data is not correct."
 
 
 # %% Import wide dataset (Multiple stations) + syncronize
@@ -79,23 +78,36 @@ dataset.update_settings(
 )
 
 
-dataset.import_data_from_file()
+dataset.import_data_from_file(
+    freq_estimation_method="median",
+    freq_estimation_simplify_tolerance="2min",
+    origin_simplify_tolerance="5min",
+    timestamp_tolerance="4min",
+)
 
-assert dataset.df.shape == (597, 1), "Shape of unsynced widedata is not correct."
+
+import pandas as pd
+
+assert dataset.metadf["dataset_resolution"].iloc[0] == pd.Timedelta(
+    "4min"
+), "wrong freq estimate for unsynced data"
+assert dataset.df.shape == (4284, 1), "Shape of unsynced widedata is not correct."
 
 
 # %% Test syncronizing wide
 
 # Sycnronize data
-test = dataset.sync_observations(tolerance="5min", verbose=True)
+dataset.sync_records(
+    timestamp_shift_tolerance="5min", freq_shift_tolerance="2min", fixed_freq="1h"
+)
 
 
-assert dataset.df.shape == (182, 1), "Shape after syncronizing widedata is not correct."
+assert dataset.df.shape == (288, 1), "Shape after syncronizing widedata is not correct."
 
-assert dataset.missing_obs.series.shape == (
-    15,
-), "Number of missing obs after sync wide data not correct"
 
+assert (
+    dataset.get_gaps_fill_df().shape[0] == 198
+), "gaps not correct for wide after syncing"
 
 # %% import wide dataset (One station)
 
@@ -122,7 +134,7 @@ dataset_single.update_settings(
 
 dataset_single.import_data_from_file()
 
-assert dataset_single.df.shape == (13, 2), "Shape singlestation dataset is not correct."
+assert dataset_single.df.shape == (26, 1), "Shape singlestation dataset is not correct."
 
 assert (
     dataset_single.df.index.get_level_values("name")[0] == "whats_the_name"
@@ -245,7 +257,7 @@ dataset.template.show()
 
 
 # test if all obstypes are present in the dataset
-assert list(dataset.df.columns) == [
+assert dataset.df.index.get_level_values("obstype").unique().to_list() == [
     "temp",
     "wetbulptemp",
 ], "New obstype not use when importing data"
@@ -261,5 +273,5 @@ assert (
 # Check if unit conversion is done
 
 assert (
-    dataset.df["temp"].mean() > 100.0
+    dataset.df.xs("temp", level="obstype").mean().value > 100.0
 ), "THe units of the temperature observations are not converted to std units"

@@ -11,6 +11,8 @@ import logging
 import numpy as np
 import pandas as pd
 
+import datetime as datetimemodule
+
 
 from metobs_toolkit.df_helpers import (
     # multiindexdf_datetime_subsetting,
@@ -221,6 +223,55 @@ class _DatasetBase(object):
         return new
 
     # =============================================================================
+    #   Argument checkers
+    # =============================================================================
+
+    def _timedelta_arg_check(self, timedeltaarg, none_is_none=True):
+        if (none_is_none) & (timedeltaarg is None):
+            return None
+
+        if isinstance(timedeltaarg, datetimemodule.timedelta):
+            dt = pd.Timedelta(timedeltaarg)
+        elif isinstance(timedeltaarg, str):
+            dt = pd.Timedelta(timedeltaarg)
+        elif isinstance(timedeltaarg, pd.Timedelta):
+            dt = dt
+        else:
+            MetobsDatasetBaseError(
+                f"{timedeltaarg} could not be interpreted as a Timedelta, convert it to a pd.Timedelta()."
+            )
+
+        if dt == pd.Timedelta(0):
+            logger.warning(f"A {dt} is given as an argument for a timedelta.")
+
+        return dt
+
+    def _datetime_arg_check(self, datetimearg, none_is_none=True):
+        """Formats a datetime given by a useser in an argument."""
+
+        if (none_is_none) & (datetimearg is None):
+            return None
+        # check type and cast to pd.Timestamp
+        if isinstance(datetimearg, datetimemodule.datetime):
+            dt = pd.Timestamp(datetimearg)
+        elif isinstance(datetimearg, pd.Timestamp):
+            dt = datetimearg
+        else:
+            raise MetobsDatasetBaseError(
+                f"{datetimearg} is not in a datetime format (datetime.datetime or pandas.Timestamp)."
+            )
+
+        # check timezone and make tz-awer
+        if dt.tz is None:
+            # tz naive timestamp
+            dt = dt.tz_localize(tz=self._get_tz())
+        else:
+            # tz aware timestamp --> convert to tz of records
+            dt = dt.tz_convert(tz=self._get_tz())
+
+        return dt
+
+    # =============================================================================
     #     attribute setters
     # =============================================================================
     def _set_df(
@@ -324,7 +375,7 @@ class _DatasetBase(object):
             - Frequency: the frequency of a station is the highest frequency
             detected for all it's observationtypes. The frequency estimate
             of an obsertype is done by a 'mean' or 'highest' approach on
-            consecutive records. One can specify a tollerance to simplyfy
+            consecutive records. One can specify a tolerance to simplyfy
             the frequency estimates.
 
             - start timestamp: The first timestemp registerd by a station,
@@ -449,7 +500,7 @@ class _DatasetBase(object):
         columns present in the metadf.
 
         The mapping to the target is done by a nearest-merge and respecting a
-        time_mapping_tollerance.
+        time_mapping_tolerance.
 
         The references to the outliers are mapped to the target as well. This is
         to ensure that the outliersdf and df attributes are compatible (= each
@@ -482,9 +533,9 @@ class _DatasetBase(object):
         Note
         -------
         It can happen that the same original timestamp is mapped to multiple
-        target timestamps, if the nearest and tollerance conditions are met! This is
+        target timestamps, if the nearest and tolerance conditions are met! This is
         not perse problematic, but this could affect the performance of repetitions QC checks.
-        By setting the tollerance substantially smaller than the frequency, this
+        By setting the tolerance substantially smaller than the frequency, this
         phenomena can be avoided.
 
         """
@@ -518,7 +569,7 @@ class _DatasetBase(object):
 
         # allert! this merge asof can reduce the data amount, since some timestamps,
         # that are mapped to the same target timestamp are rejected (only the closest
-        # one survives) and if there is no mapping candidate within the tollerance
+        # one survives) and if there is no mapping candidate within the tolerance
         # the timestamp record is not used (and thus removed)
         trg_df["trg_datetime"] = trg_df.index.get_level_values("datetime")
         df = self.df
@@ -549,9 +600,9 @@ class _DatasetBase(object):
         # and it could safely be set as index
 
         # Note2: It can happen that the same original timestamp is mapped to multiple
-        # target timestamps, if the nearest and tollerance conditions are met! This is
+        # target timestamps, if the nearest and tolerance conditions are met! This is
         # not perse problematic, but this could affect the performance of repetitions QC checks.
-        # By setting the tollerance substantially smaller than the frequency, this
+        # By setting the tolerance substantially smaller than the frequency, this
         # phenomena can be avoided.
 
         # set index and sort

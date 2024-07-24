@@ -92,6 +92,7 @@ from metobs_toolkit.df_helpers import (
     value_labeled_doubleidxdf_to_triple_idxdf,
     xs_save,
     concat_save,
+    _simplify_time,
 )
 
 from metobs_toolkit.obstypes import tlk_obstypes
@@ -671,6 +672,10 @@ class Dataset(_DatasetBase):
                                     enddt=tend)
 
         """
+        # format special arguments
+        startdt = self._datetime_arg_check(startdt)
+        enddt = self._datetime_arg_check(enddt)
+
         if modeldata is None:
             Modl = Modeldata(modelname)
 
@@ -977,11 +982,10 @@ class Dataset(_DatasetBase):
     def coarsen_time_resolution(
         self,
         origin=None,
-        origin_tz=None,
         freq="60min",
         direction="nearest",
-        timestamp_mapping_tolerance="4min",
-        limit=1,
+        timestamp_shift_tolerance="4min",
+        # limit=1,
     ):
         """Resample the observations to coarser timeresolution.
 
@@ -1000,22 +1004,17 @@ class Dataset(_DatasetBase):
             is timezone naive, and is assumed to have the same timezone as the
             obervations. If None, the earliest occuring timestamp is used as
             origin. The default is None.
-        origin_tz : str or None, optional
-            Timezone string of the input observations. Element of
-            pytz.all_timezones. If None, the timezone of the records is used. The default is None.
         freq : DateOffset, Timedelta or str, optional
             The offset string or object representing target conversion.
             Ex: '15min' is 15 minutes, '1h', is one hour. The default is '60min'.
         direction : 'backward', 'forward', or 'nearest'
             Whether to search for prior, subsequent, or closest matches for
             mapping to ideal timestamps. The default is 'nearest'.
-        timestamp_mapping_tolerance : Timedelta or str
+        timestamp_shift_tolerance : Timedelta or str
             The tolerance string or object representing the maximum translation
             (in time) to map a timestamp to a target timestamp.
             Ex: '5min' is 5 minutes. The default is '4min'.
-        limit : int, optional
-            Limit of how many values to fill with one original observations.  The default
-            is 1.
+
 
         Returns
         -------
@@ -1052,137 +1051,28 @@ class Dataset(_DatasetBase):
 
         """
 
-        if origin_tz is None:
-            origin_tz = str(self._get_tz())
-
-        #  ------ Define ideal timestamprecords ----------
-
-        # 1. Frequency
-        self.metadf.loc[:, "dataset_resolution"] = pd.Timedelta(freq)
-
-        # 2. Origin
-        if origin is not None:
-            origin_tz_aware = pytz.timezone(origin_tz).localize(origin)
-            tstart = origin_tz_aware.astimezone(
-                pytz.timezone(self.settings.time_settings["timezone"])
-            )
-
-            # update the metadf
-            self.metadf.loc[:, "dt_start"] = tstart
-
-        # TODO: implement limit thing
-
-        # df = self.df.reset_index()
-
-        if origin is None:
-            fixed_origin = False
-        else:
-            origin_tz_aware = pytz.timezone(origin_tz).localize(origin)
-            tstart = origin_tz_aware.astimezone(
-                pytz.timezone(self.settings.time_settings["timezone"])
-            )
-            fixed_origin = True
-
-        # TODO: IDEE: voeg een label column toe, zo kunnen de outliers ook gecoarsened worden
-
-        self.construct_equi_spaced_records(
-            timestamp_mapping_tolerance=timestamp_mapping_tolerance, direction=direction
-        )
-        # stadf_list = []
-        # # Coarsen timeresolution (per station, because of different origins)
-        # for (staname,obsname), groupdf in self.df.reset_index().groupby(['name', 'obstype']):
-        #     #Get the origin for this station
-        #     if fixed_origin:
-        #         sta_origin = tstart
-        #     else:
-        #         #use sta origne from metadf
-        #         sta_origin = self.metadf.loc[staname, 'dt_start']
-
-        #     #Resample
-        #     if method == "nearest":
-        #         stadf = (
-        #             groupdf.set_index("datetime")
-        #             .resample(freq, origin=sta_origin)
-        #             .nearest(limit=limit)
-        #         )
-
-        #     elif method == "bfill":
-        #         stadf = (
-        #             groupdf.set_index("datetime")
-        #             .resample(freq, origin=tstart)
-        #             .bfill(limit=limit)
-        #         )
-        #     else:
-        #         raise MetobsDatasetCoreError(f'{method} is not a valid method for coarsening the time resolution.')
-
-        #     stadf_list.append(stadf)
-
-        #     # #update metadf
-        #     # self.metadf.loc[staname, "dataset_resolution"] = pd.to_timedelta(freq)
-        #     # self.metadf.loc[staname, "dt_start"] = stadf.index.min()
-        #     # self.metadf.loc[staname, "dt_end"] = stadf.index.max()
-
-        # #combine all to one dataframe
-        # df = pd.concat(stadf_list)
-
-        # # A little cleanup
-        # df = (df.reset_index()
-        #       .set_index(['name','obstype','datetime'])
-        #       .sort_index()
-        #       )
-
-        # self._set_df(df)
-
-        # Update the metadf (The records are ideally at this point, so no simplifications)
-        self._get_timestamps_info(
-            freq_estimation_method="highest",
-            freq_simplify_tolerance="0min",  # no simplification
-            origin_simplify_tolerance="0min",  # no simplification
+        # coarsening/resamplin is the same as sync with a fixed frequency.
+        self.sync_records(
+            timestamp_shift_tolerance=timestamp_shift_tolerance,
+            freq_shift_tolerance="0min",
+            fixed_origin=origin,
+            fixed_enddt=None,
+            fixed_freq=freq,  # fixed freq
+            direction=direction,
         )
 
-        # # Convert the records to clean equidistanced records
-        # self.construct_equi_spaced_records(
-        #     timestamp_mapping_tolerance=timestamp_tolerance
-        # )
-
-        # # clear the outliers them again on the new resolution.
-        # if not self.outliersdf.empty:
-        #     logger.warning('Because of the resampling, all outliers are removed. Recomput them again!')
-        #     self._set_outliersdf(empty_outliers_df())
-        # # Remove duplicates (needed in order to convert the units and find gaps)
-        # df, outliersdf = duplicate_timestamp_check(df=self.df,
-        #                                           checks_info = self.settings.qc['qc_checks_info'],
-        #                                           checks_settings=self.settings.qc['qc_check_settings']
-        #                                           )
-        # self._set_df(df=df)
-        # self._set_outliersdf(outliersdf)
-
-        # clear the gaps and compute them again on the new resolution.
-        if bool(self.gaps):
-            logger.warning("Because of the resampling, all gaps are recomputed again!")
-
-        gaps = find_gaps(
-            df=self.df,
-            metadf=self.metadf,
-            outliersdf=self.outliersdf,
-            obstypes=self.obstypes,
-        )
-        self._set_gaps(gaps)
-
-        # # Remove gaps and missing from the observatios
-        # # most gaps and missing are already removed but when increasing timeres,
-        # # some records should be removed as well.
-        # self.df = remove_gaps_from_obs(gaplist=self.gaps, obsdf=self.df)
-        # self.df = self.missing_obs.remove_missing_from_obs(obsdf=self.df)
-
-    def sync_observations(
+    def sync_records(
         self,
-        tolerance,
-        verbose=True,
-        _force_resolution_minutes=None,
-        _drop_target_nan_dt=False,
+        timestamp_shift_tolerance="2min",
+        freq_shift_tolerance="1min",
+        fixed_origin=None,
+        fixed_enddt=None,
+        fixed_freq=None,
+        direction="nearest",
     ):
         """Simplify and syncronize the observation timestamps.
+
+        #TODO: update docstring
 
         To simplify the resolution (per station), a tolerance is use to shift timestamps. The tolerance indicates the
         maximum translation in time that can be applied to an observation.
@@ -1221,172 +1111,90 @@ class Dataset(_DatasetBase):
             A dataframe containing the original observations with original timestamps and the corresponding target timestamps.
 
         """
-        # get columns pressent in metadf, because the input df can have columns
-        # that does not have to be mapped to the toolkit
 
-        assert (
-            not self.input_df.empty
-        ), "To syncronize a dataset, the (pure) input dataframe cannot be empty."
+        # checking arguments
+        timestamp_shift_tolerance = self._timedelta_arg_check(timestamp_shift_tolerance)
+        freq_shift_tolerance = self._timedelta_arg_check(freq_shift_tolerance)
+        fixed_origin = self._datetime_arg_check(fixed_origin)
+        fixed_enddt = self._datetime_arg_check(fixed_enddt)
+        fixed_freq = self._timedelta_arg_check(fixed_freq)
 
-        init_meta_cols = self.metadf.columns.copy()
-        df = self.input_df
+        logger.info(f"Syncronizing records")
+        # 1. find common freqencies
 
-        self.df = init_multiindexdf()
-        self.outliersdf = empty_outliers_df()
-        # self.gapfilldf = init_multiindexdf()
-        # self.missing_obs = None
-        self.gaps = None
+        # TODO: This method is technically not the most suitable method, but it is
+        # straight forward and will work on many cases.
 
-        # find simplified resolution
-        if _force_resolution_minutes is None:
-            simplified_resolution = get_freqency_series(
-                df=df,
-                method="median",
-                simplify=True,
-                max_simplify_error=tolerance,
+        # The ideal method is to create groups base on the dataset resolution (unsimplified),
+        # grouping by target simplified frequencies within the tolerance. It may sound
+        # easy, but it is not straight forward to implement IMO
+        if fixed_freq is not None:
+            simple_freqs = pd.Series(
+                data=pd.Timedelta(fixed_freq), index=self.metadf.index
             )
         else:
-            if isinstance(_force_resolution_minutes, list):
-                # TODO
-                print(
-                    "foce resolution minutes as a list is not implemented yet, sorry."
+            simple_freqs = self.metadf["dataset_resolution"].apply(
+                lambda x: _simplify_time(
+                    time=x,
+                    max_simplyfi_error=freq_shift_tolerance,
+                    zero_protection=True,
                 )
-            else:
-                stations = self.metadf.index
-                freq_series = pd.Series(
-                    index=stations,
-                    data=[timedelta(minutes=float(_force_resolution_minutes))]
-                    * len(stations),
-                )
-                simplified_resolution = freq_series
-
-        logger.debug(f"Syncronizing to these resolutions: {simplified_resolution}")
-
-        occuring_resolutions = simplified_resolution.unique()
-
-        df = df.reset_index()
-
-        def find_simple_origin(tstart, tolerance):
-            if tstart.minute == 0 and tstart.second == 0 and tstart.microsecond == 0:
-                return tstart  # already a round hour
-
-            # try converting to a round hour
-            tstart_round_hour = tstart.round("60min")
-            if abs(tstart - tstart_round_hour) <= pd.to_timedelta(tolerance):
-                return tstart_round_hour
-
-            # try converting to a tenfold in minutes
-            tstart_round_tenfold = tstart.round("10min")
-            if abs(tstart - tstart_round_tenfold) <= pd.to_timedelta(tolerance):
-                return tstart_round_tenfold
-
-            # try converting to a fivefold in minutes
-            tstart_round_fivefold = tstart.round("5min")
-
-            if abs(tstart - tstart_round_fivefold) <= pd.to_timedelta(tolerance):
-                return tstart_round_fivefold
-
-            # no suitable conversion found
-            return tstart
-
-        merged_df = pd.DataFrame()
-        _total_verbose_df = pd.DataFrame()
-        for occur_res in occuring_resolutions:
-            group_stations = simplified_resolution[
-                simplified_resolution == occur_res
-            ].index.to_list()
-            logger.info(
-                f" Grouping stations with simplified resolution of {pd.to_timedelta(occur_res)}: {group_stations}"
             )
-            groupdf = df[df["name"].isin(group_stations)]
 
-            tstart = groupdf["datetime"].min()
-            tend = groupdf["datetime"].max()
-
-            # find a good origin point
-            origin = find_simple_origin(tstart=tstart, tolerance=tolerance)
-
-            # Create records index
-            target_records = pd.date_range(
-                start=origin, end=tend, freq=pd.Timedelta(occur_res)
-            ).to_series()
-
-            target_records.name = "target_datetime"
-            # convert records to new target records, station per station
-
-            for sta in group_stations:
-                stadf = groupdf[groupdf["name"] == sta]
-                # Drop all nan values! these will be added later from the outliersdf
-                stadf = stadf.set_index(["name", "datetime"])
-
-                # drop all records per statiotion for which there are no obsecvations
-                present_obs = list(self.obstypes.keys())
-
-                stadf = stadf.loc[stadf[present_obs].dropna(axis=0, how="all").index]
-
-                stadf = stadf.reset_index()
-
-                mergedstadf = pd.merge_asof(
-                    left=stadf.sort_values("datetime"),
-                    right=target_records.to_frame(),
-                    right_on="target_datetime",
-                    left_on="datetime",
-                    direction="nearest",
-                    tolerance=pd.Timedelta(tolerance),
-                )
-                if _drop_target_nan_dt:
-                    mergedstadf = mergedstadf.dropna(subset="target_datetime")
-                # possibility 1: record is mapped crrectly
-                correct_mapped = mergedstadf[~mergedstadf["target_datetime"].isnull()]
-
-                # possibility2: records that ar not mapped to target
-                # not_mapped_records =mergedstadf[mergedstadf['target_datetime'].isnull()]
-
-                # possibilyt 3 : no suitable candidates found for the target
-                # these will be cached by the missing and gap check
-                # no_record_candidates = target_records[~target_records.isin(mergedstadf['target_datetime'])].values
-
-                merged_df = concat_save([merged_df, correct_mapped])
-
-                if verbose:
-                    _total_verbose_df = concat_save([_total_verbose_df, mergedstadf])
-
-        # overwrite the df with the synced observations
-        merged_df = (
-            merged_df.rename(
-                columns={
-                    "datetime": "original_datetime",
-                    "target_datetime": "datetime",
-                }
+        logger.debug(f"Simplified target resolutions: {simple_freqs}")
+        # 2. find common origins
+        if fixed_origin is not None:
+            simple_origins = pd.Series(
+                data=pd.Timedelta(fixed_origin), index=self.metadf.index
             )
-            .set_index(["name", "datetime"])
-            .drop(["original_datetime"], errors="ignore", axis=1)
-            .sort_index()
+        else:
+            simple_origins = self.metadf["dt_start"].apply(
+                lambda x: _simplify_time(
+                    time=x,
+                    max_simplyfi_error=timestamp_shift_tolerance,
+                )
+            )
+        logger.debug(f"Simplified target origins: {simple_origins}")
+
+        # 3. find common end timestamps
+        if fixed_enddt is not None:
+            simple_ends = pd.Series(
+                data=pd.Timedelta(fixed_enddt), index=self.metadf.index
+            )
+        else:
+            simple_ends = self.metadf["dt_end"].apply(
+                lambda x: _simplify_time(
+                    time=x,
+                    max_simplyfi_error=timestamp_shift_tolerance,
+                )
+            )
+        logger.debug(f"Simplified target end timestamps: {simple_ends}")
+        # 4. Update the metadata, and restructure the records to these targets
+        self.metadf["dataset_resolution"] = simple_freqs
+        self.metadf["dt_start"] = simple_origins
+        self.metadf["dt_end"] = simple_ends
+
+        # Convert the records to clean equidistanced records for both the df and outliersdf
+        # note: The outliers are taken care of as well
+        self.construct_equi_spaced_records(
+            timestamp_mapping_tolerance=timestamp_shift_tolerance, direction=direction
         )
-        # self.df = merged_df
 
-        # Recompute the dataset attributes, apply qc, gap and missing searches, etc.
-        self._construct_dataset(
-            df=merged_df,
-            freq_estimation_method="highest",
-            freq_estimation_simplify=False,
-            freq_estimation_simplify_error=None,
-            fixed_freq_series=simplified_resolution,
-            update_full_metadf=False,
-        )  # Do not overwrite full metadf, only the frequencies
+        # better save than sorry: update metadf automatically
+        self._get_timestamps_info(
+            freq_estimation_method="highest",  # does not matter on perfect frequency
+            freq_simplify_tolerance="0min",  # no simplification
+            origin_simplify_tolerance="0min",  # no simplification
+        )
 
-        self.metadf = self.metadf[
-            [col for col in self.metadf.columns if col in init_meta_cols]
-        ]
-
-        if verbose:
-            _total_verbose_df = _total_verbose_df.rename(
-                columns={
-                    "datetime": "original_datetime",
-                    "target_datetime": "datetime",
-                }
-            ).set_index(["name", "datetime"])
-            return _total_verbose_df
+        # # Find gaps on Import resolution
+        gaps = find_gaps(
+            df=self.df,
+            metadf=self.metadf,
+            outliersdf=self.outliersdf,
+            obstypes=self.obstypes,
+        )
+        self._set_gaps(gaps)
 
     def import_data_from_file(
         self,
@@ -1523,9 +1331,11 @@ class Dataset(_DatasetBase):
         assert self.settings.templatefile is not None, "No templatefile is specified."
 
         # Read template
+        logger.info(f"Reading the templatefile")
         self.template.read_template_from_file(jsonpath=self.settings.templatefile)
 
         # Read observations into pandas dataframe
+        logger.info(f"Reading the observations from file")
         df = import_data_from_csv(
             input_file=self.settings.IO["input_data_file"],
             template=self.template,
@@ -1547,10 +1357,13 @@ class Dataset(_DatasetBase):
                     no metadata attributes can be set!"
             )
 
+            use_metadata = False
+
         else:
             logger.info(
                 f'Importing metadata from file: {self.settings.IO["input_metadata_file"]}'
             )
+            use_metadata = True
             meta_df = import_metadata_from_csv(
                 input_file=self.settings.IO["input_metadata_file"],
                 template=self.template,
@@ -1621,6 +1434,7 @@ class Dataset(_DatasetBase):
             freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
             origin_simplify_tolerance=origin_simplify_tolerance,
             timestamp_tolerance=timestamp_tolerance,
+            use_metadata=use_metadata,
         )
 
     def _construct_dataset(
@@ -1630,6 +1444,7 @@ class Dataset(_DatasetBase):
         freq_estimation_simplify_tolerance,
         origin_simplify_tolerance,
         timestamp_tolerance,
+        use_metadata,
         # fixed_freq_series=None,
         # update_full_metadf=True,
     ):
@@ -1674,8 +1489,9 @@ class Dataset(_DatasetBase):
         """
         # Set the df attribute
         self._construct_df(dataframe=df)
+
         # Set the metadf attribute
-        self._construct_metadf(dataframe=df)
+        self._construct_metadf(dataframe=df, use_metadata=use_metadata)
 
         # Apply QC on Nan and duplicates (needed before unit conversion and gapcreation)
         # Remove nan names
@@ -2140,23 +1956,33 @@ class Dataset(_DatasetBase):
             df=triple_df, apply_dup_checks=False
         )  # duplicate have yet to be removed
 
-    def _construct_metadf(self, dataframe):
+    def _construct_metadf(self, dataframe, use_metadata):
         """fill the metadf attribute
 
         The dataframe is wide with data and metadata combined. This method will
         subset and format the data and set the metadf attribute.
 
+        use_metadata is a bool, if True map the metadata normally. If False,
+        the user has not specialized a metadata file --³ create a minimal
+        metadf. (Because a template can hold mapping of metadata, but
+        if the user does not specify the metadata file --> the template should
+        not be used)
 
         """
+        if use_metadata:
+            meta_cols = list(self.template._get_metadata_column_map().values())
 
-        meta_cols = list(self.template._get_metadata_column_map().values())
-
-        metadf = (
-            dataframe.reset_index()
-            .loc[:, meta_cols]
-            .drop_duplicates()
-            .set_index("name")
-        )
+            metadf = (
+                dataframe.reset_index()
+                .loc[:, meta_cols]
+                .drop_duplicates()
+                .set_index("name")
+            )
+        else:
+            # Construct a minimal metadf, compatible with df
+            metadf = pd.DataFrame(
+                index=dataframe.index.get_level_values("name").unique()
+            )
 
         # Construct columns that are required
         if "lat" not in metadf.columns:

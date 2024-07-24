@@ -472,7 +472,7 @@ class Template:
 
     def read_template_from_file(self, jsonpath):
         """Read the templatefile (json), and update the attributes of this Template."""
-
+        logger.info(f"Reading the template from {jsonpath}")
         if not str(jsonpath).endswith(".json"):
             raise MetobsTemplateError(f"{jsonpath}, is not a json file.")
 

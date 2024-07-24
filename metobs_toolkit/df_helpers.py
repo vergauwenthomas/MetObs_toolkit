@@ -392,33 +392,69 @@ def conv_applied_qc_to_df(obstypes, ordered_checknames):
 # =============================================================================
 
 
-def _simplify_time(time, max_simplyfi_error):
+def _simplify_time(time, max_simplyfi_error, zero_protection=False):
+    """Simplifies a time (or timedelta) to a rounded value, within a tolerance.
+
+    time can be a timestamp of a timedelta.
+
+    zero_protections make shure that the returned simplified time is not zero.
+    This is in practice used when applied to frequencies.
+    """
     # 1 try simplyfy to round hours
     hourly_candidate = time.round("h")
+    if zero_protection:
+        if hourly_candidate == pd.Timedelta(0):
+            hourly_candidate = time.ceil(
+                "h"
+            )  # try the ceil as candidate (is never zero)
+
     if abs(time - hourly_candidate) < pd.to_timedelta(max_simplyfi_error):
         return hourly_candidate
 
     # 2  half_hourly_candidate
     halfhourly_candidate = time.round("30min")
+    if zero_protection:
+        if halfhourly_candidate == pd.Timedelta(0):
+            halfhourly_candidate = time.ceil(
+                "30min"
+            )  # try the ceil as candidate (is never zero)
     if abs(time - halfhourly_candidate) < pd.to_timedelta(max_simplyfi_error):
         return halfhourly_candidate
 
     # 3. 10min fold
     tenmin_candidate = time.round("10min")
+    if zero_protection:
+        if tenmin_candidate == pd.Timedelta(0):
+            tenmin_candidate = time.ceil(
+                "10min"
+            )  # try the ceil as candidate (is never zero)
     if abs(time - tenmin_candidate) < pd.to_timedelta(max_simplyfi_error):
         return tenmin_candidate
 
     # 4. 5min fold
     fivemin_candidate = time.round("5min")
+    if zero_protection:
+        if fivemin_candidate == pd.Timedelta(0):
+            fivemin_candidate = time.ceil(
+                "5min"
+            )  # try the ceil as candidate (is never zero)
     if abs(time - fivemin_candidate) < pd.to_timedelta(max_simplyfi_error):
         return fivemin_candidate
 
     # 5. min fold
     min_candidate = time.round("min")
+    if zero_protection:
+        if min_candidate == pd.Timedelta(0):
+            min_candidate = time.ceil(
+                "1min"
+            )  # try the ceil as candidate (is never zero)
     if abs(time - min_candidate) < pd.to_timedelta(max_simplyfi_error):
         return min_candidate
 
     # 6. No simplyfication posible
+    if zero_protection:
+        if time == pd.Timedelta(0):
+            raise MetobsDfHelpersError()
     return time
 
 
@@ -577,3 +613,11 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
             freqs[prob_station] = assign_med_freq
 
     return pd.Series(data=freqs)
+
+
+class MetobsDfHelpersError(Exception):
+    """Exception raised for errors in the datasetgaphandling."""
+
+    def __init__(self):
+        message = f"This error is likely due to a Bug. Please report this as an issue on the GitHub repository."
+        super().__init__(message)
