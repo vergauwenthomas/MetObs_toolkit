@@ -11,7 +11,7 @@ import numpy as np
 import logging
 import copy
 from scipy.stats import pearsonr
-
+from metobs_toolkit.settings_files.default_formats_settings import gapfill_label_group
 from metobs_toolkit.plotting_functions import (
     cycle_plot,
     heatmap_plot,
@@ -19,71 +19,83 @@ from metobs_toolkit.plotting_functions import (
 )
 
 from metobs_toolkit.df_helpers import (
+    xs_save,
     datetime_subsetting,
     subset_stations,
     fmt_datetime_argument,
+    empty_outliers_df,
 )
 
 logger = logging.getLogger(__name__)
 
+from metobs_toolkit import Dataset
 
-from metobs_toolkit.datasetbase import _DatasetBase
 
-
-class Analysis(_DatasetBase):
+class Analysis(Dataset):
     """The Analysis class contains methods for analysing observations."""
 
-    def __init__(self, obsdf, metadf, settings, obstypes):
-        _DatasetBase.__init__(self)
-
-        self._set_df(df=obsdf)
-        self._set_metadf(metadf)
-        self._set_obstypes(obstypes)
-        self._set_settings(settings)
+    def __init__(self, orig_dataset, use_gapfilled_values=False):
 
         # analysis objects
         self.lc_cor_dict = {}
         self._lc_cor_obstype = None
         self._lc_groupby_labels = None
+        self.use_gapfilled_values = use_gapfilled_values
+
+        # overload attributes
+        self._set_df(orig_dataset.df)
+        self._set_outliersdf(empty_outliers_df())  # NO OUTLIERS
+
+        # becomes a list of gaps required for including gapfilled records
+        self._set_gaps(orig_dataset.gaps)
+
+        # Dataset with metadata (static)
+        self._set_metadf(orig_dataset.metadf)
+        # dictionary storing present observationtypes
+        self._set_obstypes(orig_dataset.obstypes)  # init with all tlk obstypes
+        self._istype = "Analysis"
+
+        self._set_settings(orig_dataset.settings)
 
         # add empty lcz column to metadf if it is not present
         if "lcz" not in self.metadf.columns:
             self.metadf["lcz"] = np.nan
 
-    def __str__(self):
-        """Print a overview of the analysis."""
-        if self.df.empty:
-            return "Empty Analysis instance."
-        add_info = ""
-        n_stations = self.df.index.get_level_values("name").unique().shape[0]
-        n_obs_tot = self.df.shape[0]
+    def get_analysis_records(self):
+        """
+        Get the Analysis records in a DataFrame form.
 
-        startdt = self.df.index.get_level_values("datetime").min()
-        enddt = self.df.index.get_level_values("datetime").max()
+        The Analysis records are the observations that are used by the
+        Analysis methods.
 
-        if (not self.metadf["lat"].isnull().all()) & (
-            not self.metadf["lon"].isnull().all()
-        ):
-            add_info += "     *Coordinates are available for all stations. \n"
+        Returns
+        -------
+        widedf : pandas.DataFrame
+            The observation records presented in a wide-structure where each
+            column represents an observationtype.
 
-        if not self.metadf["lcz"].isnull().all():
-            add_info += "     *LCZ's are available for all stations. \n"
+        """
 
-        if bool(self.lc_cor_dict):
-            add_info += f"     *landcover correlations are computed on group: {self._lc_groupby_labels}  \n"
+        if self.use_gapfilled_values:
+            mergedf = self.get_full_status_df(return_as_wide=False)
 
-        return (
-            f"Analysis instance containing: \n \
-    *{n_stations} stations \n \
-    *{self.df.columns.to_list()} observation types \n \
-    *{n_obs_tot} observation records \n{add_info} \n \
-    *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt})"
-            + add_info
-        )
+            # get all ok and all fill-method labels
+            fill_labels = [
+                self.settings.label_def[method]["label"]
+                for method in gapfill_label_group
+            ]
+            wanted_labels = [self.settings.label_def["goodrecord"]["label"]]
+            wanted_labels.extend(fill_labels)
 
-    def __repr__(self):
-        """Print a overview of the analysis."""
-        return self.__str__()
+            # subset to good and gapfilled labels
+            df = mergedf[mergedf["label"].isin(wanted_labels)]
+
+        else:
+            df = self.df
+
+        # TO WIDE
+        widedf = df.unstack("obstype")["value"]
+        return widedf
 
     # =============================================================================
     #     Setters
@@ -92,7 +104,6 @@ class Analysis(_DatasetBase):
     def subset_period(self, startdt, enddt):
         """Subset the observations of the Analysis to a specific period.
 
-        The same timezone is assumed as the data.
 
         Parameters
         ----------
@@ -103,30 +114,95 @@ class Analysis(_DatasetBase):
 
         Returns
         -------
-        None.
+        Analysis()
+            A new Analysis is returned that is the subseted version of the one
+            the filter is applied on.
 
         Note
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+            dataset.import_data_from_file()
+
+            #Create an Analysis from the Dataset
+            ana = metobs_toolkit.Analysis(orig_dataset=dataset,
+                                          use_gapfilled_values=False)
+
+            #subset the ana
+            import datetime
+
+            subseted_ana = ana.subset_period(
+                                startdt=datetime.datetime(2022, 9, 5),
+                                enddt=None)
+
         """
-        if not isinstance(startdt, type(datetime(2020, 1, 1))):
-            logger.info(f" {startdt} not a datetime type. Ignore subsetting!")
-            return
-        if not isinstance(enddt, type(datetime(2020, 1, 1))):
-            logger.info(f" {enddt} not a datetime type. Ignore subsetting!")
-            return
+        logger.info(f"Subsetting {self.__repr__()} to ({startdt}) -- ({enddt}) period.")
 
-        startdt = fmt_datetime_argument(
-            startdt, self.settings.time_settings["timezone"]
+        # arg format checks
+        startdt = self._datetime_arg_check(startdt)
+        enddt = self._datetime_arg_check(enddt)
+
+        df = datetime_subsetting(self.df, startdt, enddt)
+        if df.empty:
+            logger.warning("The period subset results in an empty Analysis!")
+        # create new analysis
+        Filtered_Dataset = Dataset()
+        Filtered_Dataset._set_df(df)
+        Filtered_Dataset._set_metadf(self.metadf)
+        Filtered_Dataset._set_gaps(self.gaps)
+        Filtered_Dataset._set_settings(self.settings)
+        Filtered_Dataset._set_obstypes(self.obstypes)
+
+        subsetted_an = Analysis(
+            orig_dataset=Filtered_Dataset,
+            use_gapfilled_values=self.use_gapfilled_values,
         )
-        enddt = fmt_datetime_argument(enddt, self.settings.time_settings["timezone"])
-
-        self.df = datetime_subsetting(self.df, startdt, enddt)
+        return subsetted_an
 
     # =============================================================================
     #   Helpers
     # =============================================================================
+
+    def get_possible_filter_keywords(self):
+        """Get all keywords that can be used for filtering.
+
+
+        Returns
+        -------
+        list
+            A list of string keywords that can be used in the
+            `metobs_toolkit.Analysis.apply_filter()` method.
+        """
+        filter_keys = []
+        # all present opbstypes
+        filter_keys.extend(self.df.index.get_level_values("obstype").unique().to_list())
+
+        # add 'name'
+        filter_keys.append("name")
+
+        # all metadata coluns
+        filter_keys.extend(list(self.metadf.columns))
+
+        # all time derivatives
+        dummydf = self.df[:5].reset_index()[["datetime"]]
+        time_agg_cols = _make_time_derivatives(df=dummydf, required=[], get_all=True)
+        filter_keys.extend(time_agg_cols)
+
+        return list(set(filter_keys))
 
     def apply_filter(self, expression):
         """Filter an Analysis by a user definde string expression.
@@ -134,10 +210,14 @@ class Analysis(_DatasetBase):
         This can be used to filter the observation to specific meteorological
         conditions (i.e. low windspeeds, high humidity, cold temperatures, ...)
 
-        The filter expression contains only columns present in the Analysis.df
-        and/or the Analysis.metadf.
+        The filtered expression contains references to present observationtypes,
+        metadata and timestamp aggregates. Use the
+        `metobs_toolkit.Analysis.get_possible_filter_keywords()` method for a
+        list of all possible keywords.
 
-        A New Analysis object is returned.
+        Records that are not compliant with the filter expression are set to Nan,
+        and are thus ignored in all other methods.
+
 
         Parameters
         ----------
@@ -150,31 +230,101 @@ class Analysis(_DatasetBase):
 
         Returns
         -------
-        filtered_analysis : metobs_toolkit.Analysis
-            The filtered Analysis.
+        Analysis()
+            A new Analysis is returned that is the filtered version of the one
+            the filter is applied on.
 
-
-        Note
-        -------
-        All timestamp derivative values are numeric except for 'season',
-        possible values are ['winter', 'spring', 'summer', 'autumn'].
 
         Note
         ------
         Make sure to use \" of \' to indicate string values in the expression if
         needed.
 
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+            dataset.import_data_from_file()
+
+            #Create an Analysis from the Dataset
+            ana = metobs_toolkit.Analysis(orig_dataset=dataset,
+                                          use_gapfilled_values=False)
+
+            #Filter the ana
+            filtered_ana = ana.apply_filter(
+                expression="temp <= 16.3 & wind_direction > 180 & season=='autumn'"
+                )
+
         """
-        child_df, child_metadf = filter_data(
-            df=self.df, metadf=self.metadf, quarry_str=expression
+        logger.info(f"applying filter ({expression}) on {self.__repr__()}")
+        # apply filter on wide df
+        _initial_n_records = self.df["value"].count()  # for logging
+        dfwide = self.get_analysis_records()
+        present_obstypes = list(dfwide.columns)
+        dfwide = dfwide.reset_index()
+
+        # merge metadata
+        dfwide = dfwide.merge(self.metadf, how="left", left_on="name", right_index=True)
+
+        # merge daterelated
+        dfwide = _make_time_derivatives(df=dfwide, required=[], get_all=True)
+
+        # apply querry
+        filtered = dfwide.query(expr=expression)
+
+        # To triple index
+        relev_columns = present_obstypes
+        relev_columns.extend(["name", "datetime"])
+        longfiltered = (
+            filtered[relev_columns]
+            .set_index(["name", "datetime"])
+            .stack(future_stack=True)
+        )
+        longfiltered.index.rename("obstype", level=-1, inplace=True)
+        longfiltered.name = "value"
+        longfiltered = longfiltered.reset_index().set_index(
+            ["name", "obstype", "datetime"]
+        )
+        # longfiltered = longfiltered.to_frame()
+
+        _filtered_n_records = longfiltered["value"].count()  # for logging
+
+        logger.info(
+            f"Filtering resulted in a loss of {(1-(_filtered_n_records/_initial_n_records))*100:.2f}% of data."
+        )
+        if longfiltered.empty:
+            logger.warning(f"No data is left after applying the {expression} filter!")
+
+        # create new analysis
+        Filtered_Dataset = Dataset()
+        Filtered_Dataset._set_df(self.df.copy(deep=True))
+
+        # (do not drop idexes, because then are no ideal timestamps, and the link
+        # to dataset is broken)
+        Filtered_Dataset.df.loc[
+            Filtered_Dataset.df.index.difference(longfiltered.index), :
+        ] = np.nan
+
+        Filtered_Dataset._set_metadf(self.metadf)
+        Filtered_Dataset._set_gaps(self.gaps)
+        Filtered_Dataset._set_settings(self.settings)
+        Filtered_Dataset._set_obstypes(self.obstypes)
+
+        filtered_an = Analysis(
+            orig_dataset=Filtered_Dataset,
+            use_gapfilled_values=self.use_gapfilled_values,
         )
 
-        return Analysis(
-            obsdf=child_df,
-            metadf=child_metadf,
-            settings=self.settings,
-            obstypes=self.obstypes,
-        )
+        return filtered_an
 
     def aggregate_df(self, df=None, agg=["lcz", "hour"], method="mean"):
         """Aggregate observations to a (list of) categories.
@@ -209,7 +359,9 @@ class Analysis(_DatasetBase):
 
         """
         if df is None:
-            df = copy.deepcopy(self.df)
+            # df = copy.deepcopy(self.df)
+            df = self.get_analysis_records()
+
         df = df.reset_index()
 
         time_agg_keys = [
@@ -281,7 +433,6 @@ class Analysis(_DatasetBase):
         plot=True,
         errorbands=False,
         title=None,
-        y_label=None,
         legend=True,
         _return_all_stats=False,
     ):
@@ -314,8 +465,6 @@ class Analysis(_DatasetBase):
              If True, the std is representd in the plot by colored bands. The default is False.
         title : string, optional
              Title of the figure, if None a default title is generated. The default is None.
-        y_label : string, optional
-             y-axes label of the figure, if None a default label is generated. The default is None.
         legend : bool, optional
              I True, a legend is added to the plot. The default is True.
 
@@ -330,22 +479,20 @@ class Analysis(_DatasetBase):
         as if it has the same timezone as the observations.
 
         """
-        # title
+        # arg format checks
+        startdt = self._datetime_arg_check(startdt)
+        enddt = self._datetime_arg_check(enddt)
+
         assert (
-            obstype in self.obstypes
-        ), f"{obstype} is not a known observation type: \n {self.obstypes}"
-        Obstype = self.obstypes[obstype]
+            obstype in self.obstypes.keys()
+        ), f"{obstype} is not a known obstype of the Analysis: {self.obstypes}"
+        # convert obstype (string) to obstype(Obstype)
+        obstype = self.obstypes[obstype]
 
         if title is None:
-            title = f"Anual {Obstype.name} cycle plot per {groupby}."
+            title = f"Anual {obstype.name} ({obstype.get_original_name()}) cycle plot per {groupby}."
         else:
             title = str(title)
-
-        # ylabel
-        if y_label is None:
-            y_label = f"{Obstype.get_plot_y_label()}"
-        else:
-            y_label = str(y_label)
 
         stats = self.get_aggregated_cycle_statistics(
             obstype=obstype,
@@ -357,7 +504,7 @@ class Analysis(_DatasetBase):
             enddt=enddt,
             plot=plot,
             title=title,
-            y_label=y_label,
+            y_label=obstype.get_plot_y_label(),
             legend=legend,
             errorbands=errorbands,
             verbose=_return_all_stats,
@@ -373,7 +520,6 @@ class Analysis(_DatasetBase):
         enddt=None,
         plot=True,
         title=None,
-        y_label=None,
         legend=True,
         errorbands=False,
         _return_all_stats=False,
@@ -400,8 +546,6 @@ class Analysis(_DatasetBase):
             If True, an diurnal plot is made. The default is True.
         title : string, optional
              Title of the figure, if None a default title is generated. The default is None.
-        y_label : string, optional
-             y-axes label of the figure, if None a default label is generated. The default is None.
         legend : bool, optional
              I True, a legend is added to the plot. The default is True.
         errorbands : bool, optional
@@ -418,35 +562,30 @@ class Analysis(_DatasetBase):
         as if it has the same timezone as the observations.
 
         """
-        # title
+        # arg format checks
+        startdt = self._datetime_arg_check(startdt)
+        enddt = self._datetime_arg_check(enddt)
 
         assert (
-            obstype in self.obstypes
-        ), f"{obstype} is not a known observation type: \n {self.obstypes}"
-        Obstype = self.obstypes[obstype]
+            obstype in self.obstypes.keys()
+        ), f"{obstype} is not a known obstype of the Analysis: {self.obstypes}"
+        # convert obstype (string) to obstype(Obstype)
+        obstype = self.obstypes[obstype]
 
         if title is None:
             if startdt is None:
                 if enddt is None:
-                    title = f"Hourly average {Obstype.name} diurnal cycle"
+                    title = f"Hourly average {obstype.name} ({obstype.get_orig_name()} diurnal cycle"
                 else:
-                    title = f"Hourly average {Obstype.name} diurnal cycle until {enddt}"
+                    title = f"Hourly average {obstype.name} ({obstype.get_orig_name()}) diurnal cycle until {enddt}"
             else:
                 if enddt is None:
-                    title = (
-                        f"Hourly average {Obstype.name} diurnal cycle from {startdt}"
-                    )
+                    title = f"Hourly average {obstype.name} ({obstype.get_orig_name()}) diurnal cycle from {startdt}"
                 else:
-                    title = f"Hourly average {Obstype.name} diurnal cycle for period {startdt} - {enddt}"
+                    title = f"Hourly average {obstype.name} ({obstype.get_orig_name()}) diurnal cycle for period {startdt} - {enddt}"
 
         else:
             title = str(title)
-
-        # ylabel
-        if y_label is None:
-            y_label = f"{Obstype.get_plot_y_label()}"
-        else:
-            y_label = str(y_label)
 
         stats = self.get_aggregated_cycle_statistics(
             obstype=obstype,
@@ -458,7 +597,7 @@ class Analysis(_DatasetBase):
             enddt=enddt,
             plot=plot,
             title=title,
-            y_label=y_label,
+            y_label=obstype.get_plot_y_label(),
             legend=legend,
             errorbands=errorbands,
             verbose=_return_all_stats,
@@ -470,13 +609,12 @@ class Analysis(_DatasetBase):
         refstation,
         colorby="name",
         obstype="temp",
-        tolerance="30min",
+        tolerance="30T",
         stations=None,
         startdt=None,
         enddt=None,
         plot=True,
         title=None,
-        y_label=None,
         legend=True,
         errorbands=False,
         show_zero_horizontal=True,
@@ -501,7 +639,7 @@ class Analysis(_DatasetBase):
             Element of the metobs_toolkit.observation_types The default is 'temp'.
         tolerance : Timedelta or str, optional
             The tolerance string or object representing the maximum translation in time to find a reference
-            observation for each observation. Ex: '5min' is 5 minutes, '1h', is one hour. The default is '30min'.
+            observation for each observation. Ex: '5T' is 5 minutes, '1H', is one hour. The default is '30T'.
         stations : list, optional
             List of station names to use. If None, all present stations will be used. The default is None.
         startdt : datetime.datetime, optional
@@ -511,11 +649,9 @@ class Analysis(_DatasetBase):
         plot : bool, optional
             If True, a diurnal plot is made. The default is True.
         title : string, optional
-             Title of the figure, if None a default title is generated. The default is None.
-        y_label : string, optional
-             y-axes label of the figure, if None a default label is generated. The default is None.
+              Title of the figure, if None a default title is generated. The default is None.
         legend : bool, optional
-             I True, a legend is added to the plot. The default is True.
+              I True, a legend is added to the plot. The default is True.
         errorbands : bool, optional
             If True, the std is representd in the plot by colored bands. The upper bound represents +1 x std, the lower bound -1 x std. The default is False.
         show_zero_horizontal : bool, optional
@@ -532,13 +668,18 @@ class Analysis(_DatasetBase):
         as if it has the same timezone as the observations.
 
         """
-        assert (
-            obstype in self.obstypes
-        ), f"{obstype} is not a known observation type: \n {self.obstypes}"
-        Obstype = self.obstypes[obstype]
+        # arg format checks
+        startdt = self._datetime_arg_check(startdt)
+        enddt = self._datetime_arg_check(enddt)
 
-        obsdf = self.df
-        obsdf = obsdf[Obstype.name].reset_index()
+        assert (
+            obstype in self.obstypes.keys()
+        ), f"{obstype} is not a known obstype of the Analysis: {self.obstypes}"
+        # convert obstype (string) to obstype(Obstype)
+        obstype = self.obstypes[obstype]
+
+        # filter df
+        obsdf = xs_save(self.df, obstype.name, "obstype").reset_index()
 
         # extract refernce from observations
         refdf = obsdf[obsdf["name"] == refstation]
@@ -550,52 +691,48 @@ class Analysis(_DatasetBase):
         assert not obsdf.empty, "Error: No observation found (after filtering)"
 
         # Syncronize observations with the reference observations
-        refdf = refdf.rename(
-            columns={Obstype.name: "ref_" + Obstype.name, "datetime": "ref_datetime"}
-        )
+        refdf = refdf.rename(columns={"value": "ref_value", "datetime": "ref_datetime"})
+
         mergedf = pd.merge_asof(
             left=obsdf.sort_values("datetime"),
-            right=refdf[["ref_datetime", "ref_" + Obstype.name]].sort_values(
-                "ref_datetime"
-            ),
+            right=refdf[["ref_datetime", "ref_value"]].sort_values("ref_datetime"),
             right_on="ref_datetime",
             left_on="datetime",
             direction="nearest",
             tolerance=pd.Timedelta(tolerance),
         )
 
-        # Get differnces
-        mergedf["temp"] = mergedf["temp"] - mergedf["ref_temp"]
+        # Get differnces (overwrite the values)
+        mergedf["value"] = mergedf["value"] - mergedf["ref_value"]
 
-        # Subset to relavent columns
+        # Subset to relavent columns and reconstruct triple index
         mergedf = mergedf.reset_index()
-        mergedf = mergedf[["name", "datetime", Obstype.name]]
-        mergedf = mergedf.set_index(["name", "datetime"])
+        mergedf["obstype"] = obstype.name
+        mergedf = mergedf[["name", "obstype", "datetime", "value"]]
+        mergedf = mergedf.set_index(["name", "obstype", "datetime"]).sort_index()
 
         # title
         if title is None:
             if startdt is None:
                 if enddt is None:
-                    title = f"Hourly average {Obstype.name} diurnal cycle, with {refstation} as reference,"
+                    title = f"Hourly average {obstype.name} diurnal cycle, with {refstation} as reference,"
                 else:
-                    title = f"Hourly average {Obstype.name} diurnal cycle, with {refstation} as reference, until {enddt}"
+                    title = f"Hourly average {obstype.name} diurnal cycle, with {refstation} as reference, until {enddt}"
             else:
                 if enddt is None:
-                    title = f"Hourly average {Obstype.name} diurnal cycle, with {refstation} as reference, from {startdt}"
+                    title = f"Hourly average {obstype.name} diurnal cycle, with {refstation} as reference, from {startdt}"
                 else:
-                    title = f"Hourly average {Obstype.name} diurnal cycle, with {refstation} as reference, for period {startdt} - {enddt}"
+                    title = f"Hourly average {obstype.name} diurnal cycle, with {refstation} as reference, for period {startdt} - {enddt}"
 
         else:
             title = str(title)
 
-        # ylabel
-        if y_label is None:
-            y_label = f"{Obstype.get_plot_y_label()}"
-        else:
-            y_label = str(y_label)
+        y_label = (
+            f"{obstype.name} difference to {refstation} ({obstype.get_standard_unit()})"
+        )
 
         stats = self.get_aggregated_cycle_statistics(
-            obstype=Obstype.name,
+            obstype=obstype,
             stations=stations,
             aggregation=[colorby],
             aggregation_method="mean",
@@ -640,8 +777,8 @@ class Analysis(_DatasetBase):
 
         Parameters
         ----------
-        obstype : str, optional
-            Element of the metobs_toolkit.observation_types The default is 'temp'.
+        obstype : str or metobs_toolkit.Obstype, optional
+            The observation type to plot. The default is 'temp'.
         aggregation : list, optional
             List of variables to aggregate to. These variables should either a
             categorical observation type, a categorical column in the metadf or
@@ -683,17 +820,29 @@ class Analysis(_DatasetBase):
         as if it has the same timezone as the observations.
 
         """
-        assert (
-            obstype in self.obstypes
-        ), f"{obstype} is not a known observation type: \n {self.obstypes}"
-        Obstype = self.obstypes[obstype]
+        # arg format checks
+        startdt = self._datetime_arg_check(startdt)
+        enddt = self._datetime_arg_check(enddt)
+
+        # Check if obstype is known
+        if isinstance(obstype, str):
+            if obstype not in self.obstypes.keys():
+                logger.error(
+                    f"{obstype} is not found in the knonw observation types: {list(self.obstypes.keys())}"
+                )
+                return None
+            else:
+                obstype = self.obstypes[obstype]
 
         if _obsdf is None:
-            obsdf = self.df[[obstype]]
+            obsdf = xs_save(self.df, obstype.name, "obstype")
+            # obsdf = self.df[[obstype]]
         else:
-            obsdf = _obsdf
+            obsdf = xs_save(_obsdf, obstype.name, "obstype")
+        assert (
+            not obsdf.empty
+        ), f"Error: No {obstype} observations in the analysis.df: {self.df}"
 
-        assert not obsdf.empty, f"Error: No observations in the analysis.df: {self.df}"
         # Filter stations
         if stations is not None:
             if isinstance(stations, str):
@@ -739,7 +888,6 @@ class Analysis(_DatasetBase):
         aggdf = aggdf.set_index(aggregation)
 
         # sorting cateigories (months and seisons)
-
         seasons = ["winter", "spring", "summer", "autumn"]
         months = [
             "January",
@@ -813,11 +961,11 @@ class Analysis(_DatasetBase):
                 enddtstr = datetime.strftime(
                     enddt, format=self.settings.app["print_fmt_datetime"]
                 )
-                title = f"{aggregation_method} - {horizontal_axis } {Obstype.name} cycle for period {startdtstr} - {enddtstr} grouped by {aggregation}"
+                title = f"{aggregation_method} - {horizontal_axis } {obstype.name} cycle for period {startdtstr} - {enddtstr} grouped by {aggregation}"
 
             # ylabel
             if y_label is None:
-                y_label = f"{Obstype.get_plot_y_label()}"
+                y_label = obstype.get_plot_y_label()
             else:
                 y_label = str(y_label)
 
@@ -834,14 +982,11 @@ class Analysis(_DatasetBase):
                 title=title,
                 plot_settings=self.settings.app["plot_settings"]["diurnal"],
                 aggregation=aggregation,
-                # data_template=self.data_template,
-                obstype=Obstype.name,
                 y_label=y_label,
                 legend=legend,
                 show_zero_horizontal=_show_zero_line,
             )
 
-            ax.set_ylabel(y_label)
             if horizontal_axis == "hour":
                 # extract timezone
                 tzstring = str(self.df.index.get_level_values("datetime").tz)
@@ -900,7 +1045,8 @@ class Analysis(_DatasetBase):
             obstype = [obstype]
 
         # get data
-        df = self.df[obstype].reset_index()
+        df = self.get_analysis_records()
+        df = df[obstype].reset_index()
         df = _make_time_derivatives(df, groupby_labels)
 
         for group_lab in groupby_labels:
@@ -1081,8 +1227,9 @@ class Analysis(_DatasetBase):
 
         Note
         ------
-        If to many possible group values exist, one can use the apply_filter()
-        method to reduce the group values.
+        If to many possible group values exist, one can use the
+        get_full_dataframe(), filter the dataframe and set_data() method to
+        reduce the group values.
         """
         # check if there are correlation matrices
         assert bool(
@@ -1190,67 +1337,3 @@ def get_seasons(
         labels=labels,
         ordered=False,
     )
-
-
-def filter_data(df, metadf, quarry_str):
-    """Filter a dataframe by a user definde string expression.
-
-    This can be used to filter the observation to specific meteorological
-    conditions (i.e. low windspeeds, high humidity, cold temperatures, ...)
-
-    The filter expression contains only columns present in the df and/or the
-    metadf.
-
-    The filtered df and metadf are returned
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The dataframe containing all the observations to be filterd.
-    metadf : pandas.DataFrame
-        The dataframe containig all the metadata per station.
-    quarry_str : str
-        A filter expression using columnnames present in either df or metadf.
-        The following timestamp derivatives can be used as well: [minute, hour,
-        month, year, day_of_year, week_of_year, season]. The quarry_str may
-        contain number and expressions like <, >, ==, >=, \*, +, .... Multiple filters
-        can be combine to one expression by using & (AND) and | (OR).
-
-    Returns
-    -------
-    filter_df : pandas.DataFrame
-        The filtered df.
-    filter_metadf : pandas.DataFrame
-        The filtered metadf.
-
-    """
-    # save index order and names for reconstruction
-    df_init_idx = list(df.index.names)
-    metadf_init_idx = list(metadf.index.names)
-
-    # easyer for sperationg them
-    df = df.reset_index()
-    metadf = metadf.reset_index()
-
-    # save columns orders
-    df_init_cols = df.columns
-    metadf_init_cols = metadf.columns
-
-    # create time derivative columns
-    df = _make_time_derivatives(df, required=" ", get_all=True)
-
-    # merge together on name
-    mergedf = df.merge(metadf, how="left", on="name")
-
-    # apply filter
-    filtered = mergedf.query(expr=quarry_str)
-
-    # split to df and metadf
-    filter_df = filtered[df_init_cols]
-    filter_metadf = filtered[metadf_init_cols]
-
-    # set indexes
-    filter_df = filter_df.set_index(df_init_idx)
-    filter_metadf = filter_metadf.set_index(metadf_init_idx)
-
-    return filter_df, filter_metadf

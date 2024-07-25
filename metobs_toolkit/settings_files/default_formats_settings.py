@@ -153,31 +153,16 @@ label_def = {
     },
 }
 
+# make lists per label-theme, so if a new thematic label is added, functionallity
+# through the full toolkit is done by adding it to the defenition and the labelgroup
 
-# plot_settings["color_mapper"] = {
-#     # QC specific labels
-#     # "duplicated_timestamp": "#a32a1f",
-#     # "invalid_input": "#900357",
-#     # "gross_value": "#f1ff2b",
-#     "persistance": "#f0051c",
-#     "repetitions": "#056ff0",
-#     "step": "#05d4f0",
-#     "window_variation": "#05f0c9",
-#     "buddy_check": "#8300c4",
-#     "titan_buddy_check": "#8300c4",
-#     "titan_sct_resistant_check": "#c17fe1",
-#     # missing and gap
-#     "gap": "#f00592",
-#     # "missing_timestamp": "#f78e0c",
-#     # filling
-#     "linear": "#d406c6",
-#     "model_debias": "#6e1868",
-#     # common
-#     # "ok": "#07f72b",
-#     # "not checked": "#f7cf07",
-#     # Aggregated
-#     "outlier": "#f20000",
-# }
+gapfill_label_group = [
+    "interpolated_gap",
+    "raw_modeldata_fill",
+    "debias_modeldata_fill",
+    "diurnal_debias_modeldata_fill",
+    "weighted_diurnal_debias_modeldata_fill",
+]
 
 
 # =============================================================================

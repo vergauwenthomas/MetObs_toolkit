@@ -30,6 +30,8 @@ from metobs_toolkit.landcover_functions import (
     _validate_metadf,
 )
 
+from metobs_toolkit.settings_files.default_formats_settings import gapfill_label_group
+
 # from metobs_toolkit.plotting_functions import (
 #     geospatial_plot,
 #     timeseries_plot,
@@ -99,7 +101,7 @@ from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype as Obstype_class
 
 
-from metobs_toolkit.analysis import Analysis
+# from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
 from metobs_toolkit.datasetbase import _DatasetBase
 
@@ -743,80 +745,72 @@ class Dataset(_DatasetBase):
         )
         return Modl
 
-    def get_analysis(self, add_gapfilled_values=False):
-        """Create an Analysis instance from the Dataframe.
+    # def get_analysis(self, add_gapfilled_values=False):
+    #     """Create an Analysis instance from the Dataframe.
 
-        Parameters
-        ----------
-        add_gapfilled_values : bool, optional
-            If True, all filled values (from gapfill and missing observation fill),
-            are added to the analysis records aswell. The default is False.
+    #     Parameters
+    #     ----------
+    #     add_gapfilled_values : bool, optional
+    #         If True, all filled values (from gapfill and missing observation fill),
+    #         are added to the analysis records aswell. The default is False.
 
-        Returns
-        -------
-        metobs_toolkit.Analysis
-            The Analysis instance of the Dataset.
+    #     Returns
+    #     -------
+    #     metobs_toolkit.Analysis
+    #         The Analysis instance of the Dataset.
 
-        Examples
-        --------
+    #     Examples
+    #     --------
 
-        .. code-block:: python
+    #     .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Create an Analysis from the dataset
-            >>> analysis = dataset.get_analysis()
-            >>> analysis
-            Analysis instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                 *10080 observation records
-                 *Coordinates are available for all stations.
-            <BLANKLINE>
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)     *Coordinates are available for all stations.
-            <BLANKLINE>
+    #         >>> import metobs_toolkit
+    #         >>>
+    #         >>> # Import data into a Dataset
+    #         >>> dataset = metobs_toolkit.Dataset()
+    #         >>> dataset.update_settings(
+    #         ...                         input_data_file=metobs_toolkit.demo_datafile,
+    #         ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+    #         ...                         template_file=metobs_toolkit.demo_template,
+    #         ...                         )
+    #         >>> dataset.import_data_from_file()
+    #         >>> dataset.coarsen_time_resolution(freq='1h')
+    #         >>>
+    #         >>> # Create an Analysis from the dataset
+    #         >>> analysis = dataset.get_analysis()
+    #         >>> analysis
+    #         Analysis instance containing:
+    #              *28 stations
+    #              *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
+    #              *10080 observation records
+    #              *Coordinates are available for all stations.
+    #         <BLANKLINE>
+    #              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)     *Coordinates are available for all stations.
+    #         <BLANKLINE>
 
-        """
-        # combine all to obsspace and include gapfill
-        if add_gapfilled_values:
-            mergedf = self.get_full_status_df()
+    #     """
+    #     # combine all to obsspace and include gapfill
+    #     if add_gapfilled_values:
+    #         mergedf = self.get_full_status_df(return_as_wide=False)
 
-            # gapsfilled labels
-            gapfill_settings = self.settings.gap["gaps_fill_info"]
-            gapfilllabels = [val for val in gapfill_settings["label"].values()]
+    #         #get all ok and all fill-method labels
+    #         fill_labels = [self.settings.label_def[method]['label'] for method in gapfill_label_group]
+    #         wanted_labels = [self.settings.label_def['goodrecord']['label']]
+    #         wanted_labels.extend(fill_labels)
 
-            # missingfilled labels
-            missingfill_settings = self.settings.missing_obs["missing_obs_fill_info"]
-            missingfilllabels = [val for val in missingfill_settings["label"].values()]
+    #         #subset to good and gapfilled labels
+    #         df = mergedf[mergedf['label'].isin(wanted_labels)]
 
-            # get all labels
-            fill_labels = gapfilllabels.copy()
-            fill_labels.extend(missingfilllabels)
-            fill_labels.append("ok")
+    #         #
+    #     else:
+    #         df = self.df
 
-            df = mergedf[mergedf["label"].isin(fill_labels)]
-            df = df[["value"]]
-            df = df.unstack(level="obstype")
-            df = df.droplevel(level=0, axis=1)
-        else:
-            df = self.df
-
-        return Analysis(
-            obsdf=df,
-            metadf=self.metadf,
-            settings=self.settings,
-            obstypes=self.obstypes,
-        )
+    #     return Analysis(
+    #         obsdf=df[['value']],
+    #         metadf=self.metadf,
+    #         settings=self.settings,
+    #         obstypes=self.obstypes,
+    #     )
 
     def write_to_csv(
         self,

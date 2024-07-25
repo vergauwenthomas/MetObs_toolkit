@@ -81,7 +81,7 @@ class _DatasetBase(object):
 
         add_info = ""
         n_stations = self.df.index.get_level_values("name").unique().shape[0]
-        n_obs_tot = self.df.shape[0]
+        n_obs_tot = self.df["value"].count()
         n_outl = self.outliersdf.shape[0]
         startdt = self.df.index.get_level_values("datetime").min()
         enddt = self.df.index.get_level_values("datetime").max()
@@ -95,7 +95,7 @@ class _DatasetBase(object):
             f"{self._istype} instance containing: \n \
     *{n_stations} stations \n \
     *{self.df.index.get_level_values('obstype').unique().to_list()} observation types present\n \
-    *{n_obs_tot} observation records \n \
+    *{n_obs_tot} observation records (not Nan's) \n \
     *{n_outl} records labeled as outliers \n \
     *{len(self.gaps)} gaps \n \
     *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt}) \n \
@@ -105,7 +105,8 @@ class _DatasetBase(object):
 
     def __repr__(self):
         """Info representation."""
-        return self.__str__()
+        class_name = type(self).__name__
+        return f"Instance of {class_name} at {hex(id(self))}"
 
     def __add__(self, other, gapsize=None):
         """Addition of two Datasets."""
@@ -329,11 +330,11 @@ class _DatasetBase(object):
 
     def _set_obstypes(self, obstypes):
         # TODO: run simple checks
-        self.obstypes = obstypes
+        self.obstypes = obstypes.copy()
 
     def _set_settings(self, settings):
         # TODO: run simple checks
-        self.settings = settings  # deep copy?
+        self.settings = copy.deepcopy(settings)  # deep copy?
 
     def _set_gaps(self, gapslist):
         # TODO: run simple checks
@@ -738,6 +739,8 @@ class _DatasetBase(object):
         # Stack observations and outliers
         # =============================================================================
         df = self.df
+        # note: df is a pointer, and adding these colmns will add them
+        # also in the self.df
         df["label"] = "ok"
         df["toolkit_representation"] = "observation"
 
@@ -779,7 +782,6 @@ class _DatasetBase(object):
         # the records comming from outliersdf (=last)
 
         combdf = combdf[~combdf.index.duplicated(keep="last")]
-        combdf = combdf.sort_index()
         # =============================================================================
         # Formatting the combineddf
         # =============================================================================
@@ -787,11 +789,21 @@ class _DatasetBase(object):
         assert (
             not combdf.index.duplicated().any()
         ), "Duplicates found in the combdf --> report bug."
+
+        # for some reason the dtype of the datetime index-level is 'obstype' and
+        # thus not a datetimeindex. This must be fixed
+        combdf = combdf.reset_index()
+        combdf["datetime"] = pd.to_datetime(combdf["datetime"])
+        combdf = combdf.set_index(["name", "obstype", "datetime"]).sort_index()
+
         if return_as_wide:
             combdf = combdf.unstack(level="obstype").reorder_levels(
                 order=[1, 0], axis=1
             )
 
+        # pointer issue
+        self.df = self.df[["value"]]
+        self.outliersdf = self.outliersdf[["value", "label"]]
         return combdf
 
 

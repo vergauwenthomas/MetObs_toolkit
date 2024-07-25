@@ -12,24 +12,72 @@ import sys, os
 from pathlib import Path
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+print(sys.path)
+import solutions.solutions_creator as solution
+
 import metobs_toolkit
+
 
 lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
-print(str(lib_folder))
+# print(str(lib_folder))
 
-# %%
 
+# %% Create startpoint
 dataset = metobs_toolkit.Dataset()
-dataset = dataset.import_dataset(
-    folder_path=os.path.join(str(lib_folder), "tests", "test_data"),
-    filename="tests_dataset.pkl",
+dataset.update_settings(
+    input_data_file=metobs_toolkit.demo_datafile,
+    input_metadata_file=metobs_toolkit.demo_metadatafile,
+    template_file=metobs_toolkit.demo_template,
+)
+dataset.import_data_from_file()
+
+dataset.coarsen_time_resolution(freq="1H")
+dataset.apply_quality_control()
+# get LCZ
+# dataset.get_lcz()
+# Outliers as gaps
+dataset.convert_outliers_to_gaps()
+
+# interpolate the gaps
+dataset.interpolate_gaps(max_consec_fill=20)
+dataset.metadf = solution.get_all_metadata_solution()
+
+
+# %% Creation Analysis
+
+combinedf = dataset.get_full_status_df(return_as_wide=False)
+
+
+num_of_records = (
+    combinedf["label"].value_counts()["ok"]
+    + combinedf["label"].value_counts()["interpolation"]
 )
 
 
-an = dataset.get_analysis()
+an = metobs_toolkit.Analysis(dataset, use_gapfilled_values=True)
 
 
+an_df_solution = "analysis_solution.pkl"
+
+
+def create_df_attr_solution():
+    print("SOLUTION WILL BE OVERWRITTEN!! ")
+    an.df.to_pickle(os.path.join(solution.solutions_dir, an_df_solution))
+    return None
+
+
+# create_df_attr_solution()
+
+# Test equality
+solution.test_df_are_equal(
+    testdf=an.df,
+    solutiondf=pd.read_pickle(os.path.join(solution.solutions_dir, an_df_solution)),
+)
+
+
+# %%
 # =============================================================================
 # test diurnal methods
 # =============================================================================
@@ -59,83 +107,32 @@ test3 = an.get_aggregated_cycle_statistics(aggregation=["lcz"])
 # test4 = an.get_anual_statistics(groupby=['name'])
 
 
-# Test values
-
-temp_diurnal_test = {
-    "Low plants (LCZ D)": {
-        0: 15.539583333333333,
-        1: 15.297222222222224,
-        2: 15.162500000000001,
-        3: 15.288888888888888,
-        4: 15.211111111111112,
-        5: 14.987499999999999,
-        6: 15.601388888888888,
-        7: 16.759027777777778,
-        8: 17.994444444444444,
-        9: 19.257638888888888,
-        10: 20.078472222222224,
-        11: 20.533333333333335,
-        12: 20.994444444444444,
-        13: 21.1875,
-        14: 20.979166666666668,
-        15: 20.907638888888886,
-        16: 20.69027777777778,
-        17: 20.085416666666667,
-        18: 18.210416666666667,
-        19: 17.056944444444444,
-        20: 16.257638888888888,
-        21: 15.902777777777779,
-        22: 15.697222222222223,
-        23: 15.400694444444444,
-    },
-    "Open midrise": {
-        0: 15.75,
-        1: 15.56076388888889,
-        2: 15.36840277777778,
-        3: 15.242708333333333,
-        4: 15.108333333333333,
-        5: 15.036458333333334,
-        6: 15.344791666666667,
-        7: 16.242708333333333,
-        8: 17.484027777777776,
-        9: 19.08090277777778,
-        10: 19.8375,
-        11: 20.325694444444444,
-        12: 20.853819444444444,
-        13: 21.334375,
-        14: 21.483333333333334,
-        15: 21.468402777777776,
-        16: 21.009722222222223,
-        17: 20.249122807017542,
-        18: 18.803472222222222,
-        19: 17.847569444444446,
-        20: 17.038888888888888,
-        21: 16.404166666666665,
-        22: 15.93263888888889,
-        23: 15.580208333333335,
-    },
-}
+diurnal_solution_df_file = "diurnal_demo_df_solution.pkl"
 
 
-assert (
-    temp_diurnal.eq(pd.DataFrame(temp_diurnal_test)).all().all()
-), f"Maybe something wrong with the verbose output, since it is not equal to hardcoded df."
-# assert stats.eq(pd.DataFrame(stats_test)).all().all(), f'Maybe something wrong with the verbose output, since it is not equal to hardcoded df.'
+def create_diurnal_cycle_solution():
+    print("SOLUTION WILL BE OVERWRITTEN!! ")
+    temp_diurnal.to_pickle(
+        os.path.join(solution.solutions_dir, diurnal_solution_df_file)
+    )
+    return None
 
 
-# =============================================================================
-# Test represetation
-# =============================================================================
+# create_diurnal_cycle_solution() #RUN ONLY IF MANUALLY CHECKED !!!!
 
-print(an)
 
-# =============================================================================
-# Test filter method
-# =============================================================================
+def get_diurnal_cycle_solution():
+    return pd.read_pickle(
+        os.path.join(solution.solutions_dir, diurnal_solution_df_file)
+    )
 
-filter_an = an.apply_filter('temp < 15.5 &  hour <= 19 & lcz == "Open midrise"')
 
-assert filter_an.df.shape == (2481, 4), "filter on analysis problem"
+# Test equality
+solution.test_df_are_equal(testdf=temp_diurnal, solutiondf=get_diurnal_cycle_solution())
+
+
+# %%
+
 
 # =============================================================================
 # aggregate method
@@ -150,62 +147,91 @@ assert agg_df.shape == (216, 4), "aggregate on analysis problem"
 # =============================================================================
 import numpy as np
 
-an.get_lc_correlation_matrices(
+test = an.get_lc_correlation_matrices(
     obstype=["temp", "humidity"], groupby_labels=["lcz", "season"]
 )
+
 
 # plot test
 an.plot_correlation_heatmap(groupby_value=("Open lowrise", "autumn"))
 
-# value test
 
-cor_vals = {
-    "temp": {
-        "temp": 1.0,
-        "humidity": -0.8530694150916298,
-        "water_100m": np.nan,
-        "pervious_100m": -0.16467165943725465,
-        "impervious_100m": 0.16467165943725534,
-    },
-    "humidity": {
-        "temp": -0.8530694150916298,
-        "humidity": 1.0,
-        "water_100m": np.nan,
-        "pervious_100m": 0.20280562151890283,
-        "impervious_100m": -0.2028056215189032,
-    },
-    "water_100m": {
-        "temp": np.nan,
-        "humidity": np.nan,
-        "water_100m": np.nan,
-        "pervious_100m": np.nan,
-        "impervious_100m": np.nan,
-    },
-    "pervious_100m": {
-        "temp": -0.16467165943725465,
-        "humidity": 0.20280562151890283,
-        "water_100m": np.nan,
-        "pervious_100m": 1.0,
-        "impervious_100m": -1.0,
-    },
-    "impervious_100m": {
-        "temp": 0.16467165943725534,
-        "humidity": -0.2028056215189032,
-        "water_100m": np.nan,
-        "pervious_100m": -1.0,
-        "impervious_100m": 1.0,
-    },
-}
+cor_solution_file = "cor_mat_solution.pkl"
 
-assert (
-    an.lc_cor_dict[("Open lowrise", "autumn")]["cor matrix"]
-    .fillna(0)
-    .eq(pd.DataFrame(cor_vals).fillna(0))
-    .all()
-    .all()
-), "Something wrong with the lc correlations matrices"
+
+def _create_cor_mat_solution():
+    print("SOLUTION WILL BE OVERWRITTEN")
+    trg = os.path.join(solution.solutions_dir, cor_solution_file)
+    an.lc_cor_dict[("Open lowrise", "autumn")]["cor matrix"].to_pickle(trg)
+
+
+# _create_cor_mat_solution()
+def get_cor_mat_solution():
+    return pd.read_pickle(os.path.join(solution.solutions_dir, cor_solution_file))
+
+
+# Test equality
+solution.test_df_are_equal(
+    testdf=an.lc_cor_dict[("Open lowrise", "autumn")]["cor matrix"],
+    solutiondf=get_cor_mat_solution(),
+)
 
 
 # scatter plot test
 
 an.plot_correlation_variation()
+
+
+# =============================================================================
+# Test represetation
+# =============================================================================
+print(an)
+
+# =============================================================================
+# Test data acces
+# =============================================================================
+
+alldf = an.get_analysis_records()
+assert alldf.shape == (10080, 4), "returned df not correct"
+
+# =============================================================================
+# datetime subsetting
+# =============================================================================
+tstart = datetime(2022, 9, 5)
+tend = datetime(2022, 9, 6)
+
+an_subset = an.subset_period(startdt=tstart, enddt=tend)
+
+assert an.df["value"].count() == 38644, "number of Nans in df is not correct"
+assert (
+    an_subset.df["value"].count() == 2789
+), "number of Nans in df is not correct after subsetting to period"
+
+
+# =============================================================================
+# Test filter method
+# =============================================================================
+
+query = "temp > 12.2 & wind_direction > 180"
+# alldf = an.get_full_dataframe()
+
+prior_shape = an.df.shape
+assert an.df.shape == (40320, 1), "df shape is not correct"
+assert an.df["value"].count() == 38644, "number of Nans in df is not correct"
+
+an2 = an.apply_filter(query)
+
+assert an2.df.shape == (40320, 1), "df shape of filtered is not the same as initial"
+assert (
+    an2.df["value"].count() == 14295
+), "number of Nans in df is not correct for filtered"
+
+assert an.df.shape == (40320, 1), "df shape is changed after filter"
+assert an.df["value"].count() == 38644, "number of Nans is changed after filter"
+
+
+# =============================================================================
+# timeseries plot
+# =============================================================================
+
+an2.make_plot()

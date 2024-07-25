@@ -35,6 +35,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from metobs_toolkit.landcover_functions import get_ee_obj
 from metobs_toolkit.df_helpers import xs_save
+from metobs_toolkit.settings_files.default_formats_settings import gapfill_label_group
 
 logger = logging.getLogger(__name__)
 
@@ -615,13 +616,7 @@ def timeseries_plot(
     ok_labels = [settings.label_def["goodrecord"]["label"]]
 
     # filled value groups
-    fill_labels = [
-        settings.label_def["interpolated_gap"]["label"],
-        settings.label_def["raw_modeldata_fill"]["label"],
-        settings.label_def["debias_modeldata_fill"]["label"],
-        settings.label_def["diurnal_debias_modeldata_fill"]["label"],
-        settings.label_def["weighted_diurnal_debias_modeldata_fill"]["label"],
-    ]  # add references
+    fill_labels = [settings.label_def[group]["label"] for group in gapfill_label_group]
 
     # qc outlier labels
     outliergroups = [
@@ -1025,7 +1020,6 @@ def cycle_plot(
     title,
     plot_settings,
     aggregation,
-    obstype,
     y_label,
     legend,
     show_zero_horizontal=False,
@@ -1045,8 +1039,6 @@ def cycle_plot(
         The cycle-specific settings.
     aggregation : list
         A list of strings to indicate the group defenition.
-    obstype : str
-        The observation type to plot.
     y_label : str
         The label for the vertical axes.
     legend : bool
@@ -1069,7 +1061,7 @@ def cycle_plot(
     else:
         cmap = plot_settings["cmap_continious"]
 
-    cycledf.plot(ax=ax, title=title, legend=False, cmap=cmap)
+    cycledf.plot(ax=ax, title=title, ylabel=y_label, legend=False, cmap=cmap)
     if legend:
         box = ax.get_position()
         ax.set_position(
