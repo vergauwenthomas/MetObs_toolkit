@@ -89,7 +89,7 @@ from metobs_toolkit.df_helpers import (
     empty_outliers_df,
     # init_triple_multiindexdf,
     metadf_to_gdf,
-    conv_applied_qc_to_df,
+    # conv_applied_qc_to_df,
     get_freqency_series,
     value_labeled_doubleidxdf_to_triple_idxdf,
     xs_save,
@@ -137,9 +137,6 @@ class Dataset(_DatasetBase):
 
         self._istype = "Dataset"
         self._freqs = pd.Series(dtype=object)
-
-        self._applied_qc = pd.DataFrame(columns=["obstype", "checkname"])
-        self._qc_checked_obstypes = []  # list with qc-checked obstypes
 
     def show(self, show_all_settings=False, max_disp_n_gaps=5):
         """Show detailed information of the Dataset.
@@ -583,8 +580,6 @@ class Dataset(_DatasetBase):
             obstypes=self.obstypes,
             template=self.template,
             settings=self.settings,
-            # _qc_checked_obstypes=self._qc_checked_obstypes,
-            # _applied_qc=self._applied_qc,
         )
 
     # =============================================================================
@@ -1493,6 +1488,9 @@ class Dataset(_DatasetBase):
 
         # Convert to numeric --> "invalid check' will be triggered if not possible
         self._to_num_and_invalid_check()
+        self._append_to_applied_qc(
+            obstypename=self._get_present_obstypes(), checkname="invalid_input"
+        )
 
         # Remove duplicates (needed in order to convert the units and find gaps)
         df, outliersdf = duplicate_timestamp_check(
@@ -1502,6 +1500,9 @@ class Dataset(_DatasetBase):
         )
         self._set_df(df=df)
         self._update_outliersdf(outliersdf)
+        self._append_to_applied_qc(
+            obstypename=self._get_present_obstypes(), checkname="duplicated_timestamp"
+        )
 
         # self._covert_timestamps_to_utc()
 
@@ -1532,7 +1533,7 @@ class Dataset(_DatasetBase):
     def _to_num_and_invalid_check(self):
         # 8. map to numeric dtypes
         # When converting to numeric, this overrules the invalid check.
-
+        checkname = "invalid_input"
         df = self.df
 
         # 1 subset to the records with Nan values --> do not check these, just add them back in the end
@@ -1546,7 +1547,7 @@ class Dataset(_DatasetBase):
         # 4 All the Nan's in the to_checkdf are outliers triggerd as 'invalid'
         invalid_records = to_checkdf[~to_checkdf["value"].notnull()]
         # add the label of "invalid check' to it
-        invalid_records["label"] = self.settings.label_def["invalid_input"]["label"]
+        invalid_records["label"] = self.settings.label_def[checkname]["label"]
         # special case: duplicates in the invalid records
         invalid_records = invalid_records[~invalid_records.index.duplicated()]
 

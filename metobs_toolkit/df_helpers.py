@@ -364,27 +364,27 @@ def datetime_subsetting(df, starttime, endtime):
     return subset
 
 
-def conv_applied_qc_to_df(obstypes, ordered_checknames):
-    """Construct dataframe with applied QC info."""
-    if isinstance(obstypes, str):
-        obstypes = [obstypes]
-    if isinstance(ordered_checknames, str):
-        ordered_checknames = [ordered_checknames]
+# def conv_applied_qc_to_df(obstypes, ordered_checknames):
+#     """Construct dataframe with applied QC info."""
+#     if isinstance(obstypes, str):
+#         obstypes = [obstypes]
+#     if isinstance(ordered_checknames, str):
+#         ordered_checknames = [ordered_checknames]
 
-    obslist = list(
-        itertools.chain.from_iterable(
-            itertools.repeat(item, len(ordered_checknames)) for item in obstypes
-        )
-    )
+#     obslist = list(
+#         itertools.chain.from_iterable(
+#             itertools.repeat(item, len(ordered_checknames)) for item in obstypes
+#         )
+#     )
 
-    checknamelist = list(
-        itertools.chain.from_iterable(
-            itertools.repeat(ordered_checknames, len(obstypes))
-        )
-    )
+#     checknamelist = list(
+#         itertools.chain.from_iterable(
+#             itertools.repeat(ordered_checknames, len(obstypes))
+#         )
+#     )
 
-    df = pd.DataFrame({"obstype": obslist, "checkname": checknamelist})
-    return df
+#     df = pd.DataFrame({"obstype": obslist, "checkname": checknamelist})
+#     return df
 
 
 # =============================================================================

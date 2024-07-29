@@ -28,7 +28,6 @@ from metobs_toolkit.df_helpers import (
     init_multiindexdf,
     # init_triple_multiindexdf,
     metadf_to_gdf,
-    conv_applied_qc_to_df,
     get_freqency_series,
     value_labeled_doubleidxdf_to_triple_idxdf,
     xs_save,

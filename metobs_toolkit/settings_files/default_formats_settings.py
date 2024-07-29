@@ -86,6 +86,11 @@ plot_settings["pie_charts"] = {
     "anchor_legend_small": (-3.5, 2.2),
     "radius_big": 2.0,
     "radius_small": 5.0,
+    "effectiveness_colormap": {
+        "ok": "green",
+        "not checked": "orange",
+        "outlier": "red",
+    },
 }
 
 # =============================================================================
@@ -117,7 +122,11 @@ label_def = {
         "color": "#c17fe1",
     },
     # aggregated
-    "outlier": {"label": "QC outlier", "color": "#f20000"},
+    "outlier": {
+        "label": "QC outlier",
+        "color": "#f20000",
+        "agg_def": True,
+    },  # specify it is an aggregated label
     # ----- Gap ----------
     "regular_gap": {"label": "gap", "color": "#f00592"},
     # ----- Interpolation labels -----
@@ -162,6 +171,26 @@ gapfill_label_group = [
     "debias_modeldata_fill",
     "diurnal_debias_modeldata_fill",
     "weighted_diurnal_debias_modeldata_fill",
+]
+failed_gapfill_label_group = [
+    "failed_interpolation_gap",
+    "failed_raw_modeldata_fill",
+    "failed_debias_modeldata_fill",
+    "failed_diurnal_debias_modeldata_fill",
+    "failed_weighted_diurnal_debias_modeldata_fill",
+]
+
+qc_label_group = [
+    "duplicated_timestamp",
+    "invalid_input",
+    "gross_value",
+    "persistance",
+    "repetitions",
+    "step",
+    "window_variation",
+    "buddy_check",
+    "titan_buddy_check",
+    "titan_sct_resistant_check",
 ]
 
 

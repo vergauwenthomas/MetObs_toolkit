@@ -53,6 +53,9 @@ class _DatasetBase(object):
         # these records must be present (with nan values) in the df)
         self.outliersdf = empty_outliers_df()
 
+        # for interpretation of qc effectifness
+        self._applied_qc = pd.DataFrame(columns=["obstype", "checkname"])
+
         # Dataset with metadata (static)
         self.metadf = pd.DataFrame()
 
@@ -172,7 +175,6 @@ class _DatasetBase(object):
         # Applied qc:
         # TODO:  is this oke to do?
         new._applied_qc = pd.DataFrame(columns=["obstype", "checkname"])
-        new._qc_checked_obstypes = []  # list with qc-checked obstypes
 
         # set init_dataframe to empty
         # NOTE: this is not necesarry but users will use this method when they
@@ -339,6 +341,41 @@ class _DatasetBase(object):
     def _set_gaps(self, gapslist):
         # TODO: run simple checks
         self.gaps = gapslist
+
+    def _append_to_applied_qc(self, obstypename, checkname):
+        """Add record to _applied_qc.
+        The applied qc is mainly used to save the order of applied checks,
+        to validate the effectivenes of one check.
+
+        Parameters
+        ----------
+        obstypename : str or list of str
+            The names of the obstypes that are checked.
+        checkname : str
+            The name of the check (must be a key in label_def).
+
+        Returns
+        -------
+        None.
+
+        """
+
+        if checkname not in self.settings.label_def.keys():
+            raise MetobsDatasetBaseError(f"{checkname} is not a known checkname.")
+        # add it to the applied checks
+        if isinstance(obstypename, str):
+            obstypes = [obstypename]
+        else:
+            obstypes = list(obstypename)
+
+        self._applied_qc = pd.concat(
+            [
+                self._applied_qc,
+                pd.DataFrame(
+                    data={"obstype": obstypes, "checkname": [checkname] * len(obstypes)}
+                ),
+            ]
+        )
 
     # =============================================================================
     # Getters

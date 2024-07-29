@@ -45,7 +45,7 @@ class Station(Dataset):
         # self.gapfilldf = gapfilldf
         # self.missing_fill_df = missing_fill_df
         # self.template = template
-        # self._qc_checked_obstypes = _qc_checked_obstypes
+
         # self._applied_qc = _applied_qc
 
         # Station specific
