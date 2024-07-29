@@ -35,7 +35,7 @@ from metobs_toolkit.plotting_functions import qc_stats_pie
 from metobs_toolkit.qc_statistics import get_freq_statistics
 from metobs_toolkit.df_helpers import (
     multiindexdf_datetime_subsetting,
-    fmt_datetime_argument,
+    # fmt_datetime_argument,
     init_multiindex,
     init_multiindexdf,
     # init_triple_multiindexdf,

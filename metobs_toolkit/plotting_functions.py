@@ -346,7 +346,7 @@ def geospatial_plot(
     default_settings = plotsettings["spatial_geo"]
 
     # subset to obstype
-    plotdf = plotdf[[variable, "geometry"]]
+    plotdf = plotdf[["plot_value", "geometry"]]
 
     # Subset to the stations that have coordinates
     ignored_stations = plotdf[plotdf["geometry"].isnull()]
@@ -430,8 +430,8 @@ def _spatial_plot(
     else:
         scheme = None
         if isinstance(vmin, type(None)) | isinstance(vmax, type(None)):
-            vmin = gdf[variable].min()
-            vmax = gdf[variable].max()
+            vmin = gdf["plot_value"].min()
+            vmax = gdf["plot_value"].max()
 
     if is_categorical:
         # categorical legend
@@ -450,7 +450,7 @@ def _spatial_plot(
 
     # add observations as scatters
     gdf.plot(
-        column=variable,
+        column="plot_value",
         scheme=scheme,
         cmap=cmap,
         vmin=vmin,

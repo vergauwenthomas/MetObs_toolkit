@@ -83,7 +83,7 @@ from metobs_toolkit.gap import (
 
 from metobs_toolkit.df_helpers import (
     # multiindexdf_datetime_subsetting,
-    fmt_datetime_argument,
+    # fmt_datetime_argument,
     # init_multiindex,
     init_multiindexdf,
     empty_outliers_df,
@@ -685,16 +685,12 @@ class Dataset(_DatasetBase):
         if startdt is None:
             startdt = self.df.index.get_level_values("datetime").min()
         else:
-            startdt = fmt_datetime_argument(
-                startdt, self.settings.time_settings["timezone"]
-            )
+            startdt = self._datetime_arg_check(startdt)
 
         if enddt is None:
             enddt = self.df.index.get_level_values("datetime").max()
         else:
-            enddt = fmt_datetime_argument(
-                enddt, self.settings.time_settings["timezone"]
-            )
+            enddt = self._datetime_arg_check(enddt)
 
         # make shure bounds include required range
         Model_time_res = Modl.mapinfo[Modl.modelname]["time_res"]

@@ -804,9 +804,11 @@ class _DatasetBase(object):
             self._get_gaps_df_for_stacking()
         )  # get a gapdf in the long (similar as outliersdf) structure
         # map labels to known labels (must have a color def in the settings)
-        gapsdf["label"] = gapsdf["fill_method"].replace(
-            {"not filled": self.settings.label_def["regular_gap"]["label"]}
-        )
+        if not gapsdf.empty:
+            gapsdf["label"] = gapsdf["fill_method"].replace(
+                {"not filled": self.settings.label_def["regular_gap"]["label"]}
+            )
+
         gapsdf = gapsdf[["value", "label"]]
 
         gapsdf["toolkit_representation"] = "gap"
