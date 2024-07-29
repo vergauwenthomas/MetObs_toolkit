@@ -16,6 +16,8 @@ from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+import solutions.solutions_creator as solution
 
 lib_folder = Path(__file__).resolve().parents[2]
 
@@ -27,452 +29,434 @@ import metobs_toolkit
 # %% Import data
 
 testdatafile = os.path.join(
-    str(lib_folder), "tests", "test_data", "testdata_okt_small.csv"
+    str(lib_folder), "tests", "test_data", "testdata_with_gaps.csv"
 )
 
 static_data = os.path.join(str(lib_folder), "static_data", "vlinder_metadata.csv")
 
+templatefile = os.path.join(
+    str(lib_folder), "tests", "test_data", "template_testdata_with_gaps.json"
+)
+
 
 # #% import data
-
-
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(
     input_data_file=testdatafile,
     input_metadata_file=static_data,
-    template_file=metobs_toolkit.demo_template,
-    output_folder="/home/thoverga/Documents/VLINDER_github/metobs_toolkit",
+    template_file=templatefile,
 )
 dataset.import_data_from_file()
 dataset.coarsen_time_resolution()
-# %% Basic tests on the gaps
-gapsdf = dataset.get_gaps_df()
-# check if two gaps are found
-assert (
-    gapsdf.shape[0] == 2
-), f"There are assumed 2 gaps, but the tlkit found {gapsdf.shape[0]}"
-
-assert list(gapsdf.index.unique()) == [
-    "vlinder01"
-], f"Only gaps assumed in vlinder01. Tlkit found gaps for these {list(gapsdf.index.unique())}"
 
 
-# %% Basic tests on missing obs
-missingobs = dataset.missing_obs.series
-# check if two gaps are found
-assert (
-    missingobs.shape[0] == 26
-), f"There are assumed 26 missing obs, but the tlkit found {missingobs.shape[0]}"
-
-assert list(missingobs.index.unique()) == [
-    "vlinder01",
-    "vlinder02",
-    "vlinder03",
-], f"Only missing obs assumed in vl01, vl02, vl03. Tlkit found missing obs for these {list(missingobs.index.unique())}"
-
-# %% Test linear interpolation on missing obs
-dataset.fill_missing_obs_linear()
-
-solution = {
-    "temp": {
-        (
-            "vlinder03",
-            pd.Timestamp("2022-10-07 11:00:00+0000", tz="UTC"),
-        ): 15.333333333333334,
-        (
-            "vlinder03",
-            pd.Timestamp("2022-10-07 12:00:00+0000", tz="UTC"),
-        ): 16.566666666666666,
-    },
-    "temp_final_label": {
-        (
-            "vlinder03",
-            pd.Timestamp("2022-10-07 11:00:00+0000", tz="UTC"),
-        ): "missing_obs_interpolation",
-        (
-            "vlinder03",
-            pd.Timestamp("2022-10-07 12:00:00+0000", tz="UTC"),
-        ): "missing_obs_interpolation",
-    },
-}
+# %% Basic tests on the gaps location and gaps functions
 
 
-assert dataset.missing_fill_df.equals(
-    pd.DataFrame(solution)
-), "something wrong with the missing obs fill!"
+combdf_gaps_file = "gaps_test_combdf.pkl"
+gapsdf_file = "gaps_gapdf.pkl"
 
-# %% Test functions on gaps
-from metobs_toolkit.gap import (
-    get_station_gaps,
-    get_gaps_indx_in_obs_space,
-    remove_gaps_from_obs,
+
+def _create_gap_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.get_full_status_df().to_pickle(
+        os.path.join(solution.solutions_dir, combdf_gaps_file)
+    )
+    dataset.get_gaps_fill_df().to_pickle(
+        os.path.join(solution.solutions_dir, gapsdf_file)
+    )
+
+
+# _create_gap_solutions()
+
+
+def get_unfilled_solutions():
+    sol_combdf = pd.read_pickle(os.path.join(solution.solutions_dir, combdf_gaps_file))
+    sol_gapsdf = pd.read_pickle(os.path.join(solution.solutions_dir, gapsdf_file))
+    return sol_combdf, sol_gapsdf
+
+
+sol_combdf, sol_gapsdf = get_unfilled_solutions()
+# Check if gaps are well found and converted to dataframes
+
+_ = dataset.get_full_status_df()
+
+
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=sol_combdf
 )
+assert diff_df is None
 
-get_station_gaps(dataset.gaps, "vlinder01")
-
-
-dataset.gaps[0].get_info()
-
-remove_gaps_from_obs(dataset.gaps, dataset.df)
-
-get_gaps_indx_in_obs_space(
-    dataset.gaps, dataset.df, dataset.outliersdf, dataset.metadf["dataset_resolution"]
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_gaps_fill_df(), solutiondf=sol_gapsdf
 )
+assert diff_df is None
 
 
-dataset.gaps[0].update_leading_trailing_obs(dataset.df, dataset.outliersdf)
+# %% Test gap relate methods (execution tests)
 
-# %% Test gapfilling
+_ = dataset.get_gaps_fill_df()
 
-# ------------------ linear interpolation ----------------------------
-
-dataset.fill_gaps_linear(obstype="temp")
-
-gapsfilldf = dataset.gapfilldf
-
-gapsfilldf["manual"] = [
-    9.487500,
-    9.875000,
-    10.262500,
-    10.650000,
-    11.037500,
-    11.425000,
-    11.812500,
-    15.833333,
-    14.766667,
-    13.700000,
-    12.633333,
-    11.566667,
-]
-
-gapsfilldf["diff"] = gapsfilldf["temp"] - gapsfilldf["manual"]
-
-
-assert (
-    not gapsfilldf["temp"].isnull().any()
-), f"np.nan value found in tlk interpolation ! \n {gapsfilldf}"
-assert (
-    gapsfilldf["diff"]
-).sum() < 1e-5, f"Tlk interpolation differs from manual: \n {gapsfilldf}"
-
-
-# %% Test if filled values are present in the combined df
-
-comb_df = dataset.get_full_status_df()
-comb_df = comb_df.xs("temp", level="obstype")
-
-
-comb_gaps = comb_df.loc[dataset.gapfilldf.index]
-comb_missing = comb_df.loc[dataset.missing_fill_df.index]
-
-assert (
-    comb_gaps["value"].eq(dataset.gapfilldf["temp"]).all()
-), "Something wrong with the filled gaps in the combined df"
-assert (
-    comb_missing["value"].eq(dataset.missing_fill_df["temp"]).all()
-), "Something wrong with the filled missing in the combined df"
-
-# %% Test the update of outliers to gaps
-nobs_orig = len(dataset.missing_obs.idx)
-ngaps_orig = len(dataset.gaps)
-
-dataset2 = copy.deepcopy(dataset)
-dataset2.apply_quality_control()
-outliersbefore = copy.deepcopy(dataset2.outliersdf.xs("temp", level="obstype"))
-missingbefore = copy.deepcopy(dataset2.missing_obs.series)
-dataset2.update_gaps_and_missing_from_outliers(obstype="temp", n_gapsize=10)
-missingafter = copy.deepcopy(dataset2.missing_obs.series)
-
-nobs = len(dataset2.missing_obs.idx)
-ngaps = len(dataset2.gaps)
-
-assert (nobs == 28) & (
-    nobs_orig == 26
-), "Something wrong with the update gaps and missing from outliers"
-assert (ngaps == 5) & (
-    ngaps_orig == 2
-), "Something wrong with the update gaps and missing from outliers"
-
-
-# check if the mergedf does not contain them as duplicates
-comb2 = dataset2.get_full_status_df()
-
-assert (
-    comb2[comb2.index.duplicated()].shape[0] == 0
-), "duplicated indexes in comb df after the outliers updated to gaps/missing"
+_ = dataset.gaps[1].get_info()
 
 
 # %%
-# ------------------ ERA debias fill
-obstype = "temp"
+# =============================================================================
+# Gaps on station subsetting
+# =============================================================================
 
+station_combdf_gaps_file = "station_gapsdf.pkl"
+
+
+def _create_station_gap_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.get_station("vlinder01").get_gaps_fill_df().to_pickle(
+        os.path.join(solution.solutions_dir, station_combdf_gaps_file)
+    )
+
+
+# _create_station_gap_solutions()
+
+
+def get_unfilled_station_solutions():
+    sol_sta_gapsdf = pd.read_pickle(
+        os.path.join(solution.solutions_dir, station_combdf_gaps_file)
+    )
+    return sol_sta_gapsdf
+
+
+sol_sta_gapsdf = get_unfilled_station_solutions()
+# Check if gaps are well found and converted to dataframes
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_station("vlinder01").get_gaps_fill_df(),
+    solutiondf=sol_sta_gapsdf,
+)
+
+
+# %%
+# =============================================================================
+# Test interpolation
+# =============================================================================
 
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(
     input_data_file=testdatafile,
     input_metadata_file=static_data,
-    template_file=metobs_toolkit.demo_template,
-    output_folder="/home/thoverga/Documents/VLINDER_github/metobs_toolkit",
+    template_file=templatefile,
 )
-
 
 dataset.import_data_from_file()
-dataset.coarsen_time_resolution(freq="30min")
+dataset.coarsen_time_resolution(freq="1H")
+dataset.apply_quality_control()
+dataset.convert_outliers_to_gaps()
 
 
-# offline mode
-era = metobs_toolkit.Modeldata("ERA5_hourly")
-
-era_datafile = os.path.join(str(lib_folder), "tests", "test_data", "era5_data.csv")
+dataset.get_qc_stats()
+combdf_demo_startpoin_file = "gapfill_startpoint_combdf.pkl"
 
 
-era.set_model_from_csv(era_datafile)
+def _create_startpoint_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.get_full_status_df().to_pickle(
+        os.path.join(solution.solutions_dir, combdf_demo_startpoin_file)
+    )
 
-assert era.df.shape[0] == 5348, "Something wrong with importing era data from csv."
 
-# %%
-output = dataset.fill_gaps_automatic(
-    era, max_interpolate_duration_str="5H", overwrite_fill=True
+# _create_startpoint_solutions()
+def get_startpoint_solution():
+    return pd.read_pickle(
+        os.path.join(solution.solutions_dir, combdf_demo_startpoin_file)
+    )
+
+
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=get_startpoint_solution()
+)
+assert diff_df is None
+
+
+inter_sol_df_file = "interp_sol_df_file.pkl"
+station_inter_sol_df = "interp_sol_sta_df_file.pkl"
+
+
+def _create_interpolation_solution():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.interpolate_gaps(
+        obstype="temp",
+        overwrite_fill=True,
+        method="time",
+        max_consec_fill=10,
+        max_lead_to_gap_distance="2H",
+        max_trail_to_gap_distance=None,
+    )
+
+    trg_file = os.path.join(solution.solutions_dir, inter_sol_df_file)
+    dataset.get_full_status_df().to_pickle(trg_file)
+
+    sta = dataset.get_station("vlinder04")
+    sta.interpolate_gaps(
+        obstype="temp",
+        overwrite_fill=True,
+        method="nearest",
+        max_consec_fill=4,
+        max_lead_to_gap_distance="2H",
+        max_trail_to_gap_distance=None,
+    )
+    trg_sta_file = os.path.join(solution.solutions_dir, station_inter_sol_df)
+    sta.get_full_status_df().to_pickle(trg_sta_file)
+
+
+# _create_interpolation_solution()
+
+
+def get_interp_solution():
+    dataset_comb_solution = pd.read_pickle(
+        os.path.join(solution.solutions_dir, inter_sol_df_file)
+    )
+    sta_comb_solution = pd.read_pickle(
+        os.path.join(solution.solutions_dir, station_inter_sol_df)
+    )
+    return dataset_comb_solution, sta_comb_solution
+
+
+dataset_sol, sta_solution = get_interp_solution()
+dataset.make_plot(colorby="label", title="before interpolation")
+# interpolate the gaps
+dataset.interpolate_gaps(
+    obstype="temp",
+    overwrite_fill=True,
+    method="time",
+    max_consec_fill=10,
+    max_lead_to_gap_distance="2H",
+    max_trail_to_gap_distance=None,
+)
+
+dataset.make_plot(colorby="label", title="interpolated ????")
+
+# test interpolation on dataset level
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=dataset_sol
+)
+assert diff_df is None
+
+
+sta = dataset.get_station("vlinder04")
+sta.interpolate_gaps(
+    obstype="temp",
+    overwrite_fill=True,
+    method="linear",
+    max_consec_fill=4,
+    max_lead_to_gap_distance="2H",
+    max_trail_to_gap_distance=None,
+)
+# check if this methods overwrites the linear fille
+sta.interpolate_gaps(
+    obstype="temp",
+    overwrite_fill=True,
+    method="nearest",
+    max_consec_fill=4,
+    max_lead_to_gap_distance="2H",
+    max_trail_to_gap_distance=None,
 )
 
 
-checked = {
-    "temp": {
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 17:00:00+0000", tz="UTC"),
-        ): 15.760000000000002,
-        ("vlinder01", pd.Timestamp("2022-10-06 17:30:00+0000", tz="UTC")): 15.22,
-        ("vlinder01", pd.Timestamp("2022-10-06 18:00:00+0000", tz="UTC")): 14.68,
-        ("vlinder01", pd.Timestamp("2022-10-06 18:30:00+0000", tz="UTC")): 14.14,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 19:00:00+0000", tz="UTC"),
-        ): 13.600000000000001,
-        ("vlinder01", pd.Timestamp("2022-10-06 19:30:00+0000", tz="UTC")): 13.06,
-        ("vlinder01", pd.Timestamp("2022-10-06 20:00:00+0000", tz="UTC")): 12.52,
-        ("vlinder01", pd.Timestamp("2022-10-06 20:30:00+0000", tz="UTC")): 11.98,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 21:00:00+0000", tz="UTC"),
-        ): 11.440000000000001,
-        ("vlinder01", pd.Timestamp("2022-10-04 02:00:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 02:30:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 03:00:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 03:30:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 04:00:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 04:30:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 05:00:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 05:30:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 06:00:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 06:30:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 07:00:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 07:30:00+0000", tz="UTC")): np.nan,
-        ("vlinder01", pd.Timestamp("2022-10-04 08:00:00+0000", tz="UTC")): np.nan,
-    },
-    "temp_final_label": {
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 17:00:00+0000", tz="UTC"),
-        ): "gap_interpolation",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 17:30:00+0000", tz="UTC"),
-        ): "gap_interpolation",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 18:00:00+0000", tz="UTC"),
-        ): "gap_interpolation",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 18:30:00+0000", tz="UTC"),
-        ): "gap_interpolation",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 19:00:00+0000", tz="UTC"),
-        ): "gap_interpolation",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 19:30:00+0000", tz="UTC"),
-        ): "gap_interpolation",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 20:00:00+0000", tz="UTC"),
-        ): "gap_interpolation",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 20:30:00+0000", tz="UTC"),
-        ): "gap_interpolation",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 21:00:00+0000", tz="UTC"),
-        ): "gap_interpolation",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 02:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 02:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 03:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 03:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 04:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 04:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 05:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 05:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 06:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 06:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 07:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 07:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-04 08:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-    },
-}
-
-checkeddf = pd.DataFrame(checked)
+# test interpolation on station level
+diff_df = solution.test_df_are_equal(
+    testdf=sta.get_full_status_df(), solutiondf=sta_solution
+)
+assert diff_df is None
 
 
-assert checkeddf.equals(output), "something wrong with the automatic gapfill"
+sta.make_plot(colorby="label", title="interpolated fill of station vlinder04")
+
+# %% Get modeldata and test model gapfill methods
 
 
-# %%
-# # Fill gaps using era5 data:
-dataset.fill_gaps_era5(
-    modeldata=era, method="debias", obstype="temp", overwrite_fill=True
+modeldatafile = "era_modeldata_for_gapfill_dataset.pkl"
+
+
+def _create_modeldata():
+
+    era = dataset.get_modeldata()
+    era.save_modeldata(outputfolder=solution.solutions_dir, filename=modeldatafile)
+
+
+# _create_modeldata()
+
+
+def get_modeldata():
+    era = metobs_toolkit.Modeldata("ERA5_hourly")
+    era = era.import_modeldata(
+        folder_path=solution.solutions_dir, filename=modeldatafile
+    )
+    return era
+
+
+era = get_modeldata()
+
+
+# %% Test regular model gapfill
+
+
+raw_gapfill_sol_file = "raw_gapfill_solution.pkl"
+
+
+def _create_raw_gapfil_solution():
+    print("SOLUTION WILL BE OVERWRITTEN !!!!!")
+    trg_path = os.path.join(solution.solutions_dir, raw_gapfill_sol_file)
+    dataset.fill_gaps_with_raw_modeldata(
+        Modeldata=era, obstype="temp", overwrite_fill=True
+    )
+    dataset.get_full_status_df().to_pickle(trg_path)
+
+
+# _create_raw_gapfil_solution()
+
+
+def get_raw_gapfill_sol():
+    trg_path = os.path.join(solution.solutions_dir, raw_gapfill_sol_file)
+    return pd.read_pickle(trg_path)
+
+
+dataset.fill_gaps_with_raw_modeldata(Modeldata=era, obstype="temp", overwrite_fill=True)
+# test raw gapfill on dataset
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=get_raw_gapfill_sol()
+)
+assert diff_df is None
+
+
+# %% Test debias gapfill
+
+debias_gapfill_sol_file = "debias_gapfill_solution.pkl"
+
+
+def _create_debias_gapfil_solution():
+    print("SOLUTION WILL BE OVERWRITTEN !!!!!")
+    trg_path = os.path.join(solution.solutions_dir, debias_gapfill_sol_file)
+    dataset.fill_gaps_with_debiased_modeldata(
+        Modeldata=era,
+        obstype="temp",
+        overwrite_fill=True,
+        leading_period_duration="15h",
+        min_leading_records_total=12,
+        trailing_period_duration="3h",
+        min_trailing_records_total=3,
+    )
+    dataset.get_full_status_df().to_pickle(trg_path)
+
+
+# _create_debias_gapfil_solution()
+
+
+def get_debias_gapfill_sol():
+    trg_path = os.path.join(solution.solutions_dir, debias_gapfill_sol_file)
+    return pd.read_pickle(trg_path)
+
+
+dataset.fill_gaps_with_debiased_modeldata(
+    Modeldata=era,
+    obstype="temp",
+    overwrite_fill=True,
+    leading_period_duration="15h",
+    min_leading_records_total=12,
+    trailing_period_duration="3h",
+    min_trailing_records_total=3,
 )
 
 
-# validate
-
-checked = {
-    "temp": {
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 17:00:00+0000", tz="UTC"),
-        ): 14.719558715820341,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 17:30:00+0000", tz="UTC"),
-        ): 14.105651664733898,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 18:00:00+0000", tz="UTC"),
-        ): 13.523644638061523,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 18:30:00+0000", tz="UTC"),
-        ): 13.272471523284917,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 19:00:00+0000", tz="UTC"),
-        ): 12.417074584960952,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 19:30:00+0000", tz="UTC"),
-        ): 12.083017063140879,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 20:00:00+0000", tz="UTC"),
-        ): 12.194173049926757,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 20:30:00+0000", tz="UTC"),
-        ): 11.708401107788086,
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 21:00:00+0000", tz="UTC"),
-        ): 11.562461853027344,
-    },
-    "temp_final_label": {
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 17:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 17:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 18:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 18:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 19:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 19:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 20:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 20:30:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-        (
-            "vlinder01",
-            pd.Timestamp("2022-10-06 21:00:00+0000", tz="UTC"),
-        ): "gap_debiased_era5",
-    },
-}
+# test raw gapfill on dataset
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=get_debias_gapfill_sol()
+)
+assert diff_df is None
 
 
-checkeddf = pd.DataFrame(checked)
-checkeddf = checkeddf.reset_index()
-checkeddf = checkeddf.rename(columns={"level_0": "name", "level_1": "datetime"})
+# %% Test diurnal debias gapfill
 
-# checkeddf["datetime"] = pd.to_datetime(checkeddf["datetime"]).dt.tz_localize(
-#     tz='UTC'
-# )
-
-checkeddf = checkeddf.set_index(["name", "datetime"])
+diur_debias_gapfill_sol_file = "diurnal_debias_gapfill_solution.pkl"
 
 
-test = dataset.gapfilldf[obstype].astype(float).eq(checkeddf[obstype])
-if not test.all():
-    print("Gapfill for era debias not equal to manual labels! Here is the difference")
-    print(f"manual: {checkeddf}, tlk: {dataset.gapfilldf}")
-    print(f"equal at: {test}")
-    sys.exit("Error in debias gapfilling")
+def _create_diur_debias_gapfil_solution():
+    print("SOLUTION WILL BE OVERWRITTEN !!!!!")
+    trg_path = os.path.join(solution.solutions_dir, diur_debias_gapfill_sol_file)
+    dataset.fill_gaps_with_diurnal_debiased_modeldata(
+        Modeldata=era,
+        obstype="temp",
+        overwrite_fill=True,
+        leading_period_duration="48h",
+        min_debias_sample_size=2,
+        trailing_period_duration="12h",
+    )
+    dataset.get_full_status_df().to_pickle(trg_path)
 
-print("Done! ")
+
+# _create_diur_debias_gapfil_solution()
+
+
+def get_diur_debias_gapfill_sol():
+    trg_path = os.path.join(solution.solutions_dir, diur_debias_gapfill_sol_file)
+    return pd.read_pickle(trg_path)
+
+
+dataset.fill_gaps_with_diurnal_debiased_modeldata(
+    Modeldata=era,
+    obstype="temp",
+    overwrite_fill=True,
+    leading_period_duration="48h",
+    min_debias_sample_size=2,
+    trailing_period_duration="12h",
+)
+
+
+# test raw gapfill on dataset
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=get_diur_debias_gapfill_sol()
+)
+assert diff_df is None
+
+# %% Test weighted diurnal debias gapfill
+
+weight_diur_debias_gapfill_sol_file = "weight_diurnal_debias_gapfill_solution.pkl"
+
+
+def _create_weight_diur_debias_gapfil_solution():
+    print("SOLUTION WILL BE OVERWRITTEN !!!!!")
+    trg_path = os.path.join(solution.solutions_dir, weight_diur_debias_gapfill_sol_file)
+    dataset.fill_gaps_with_weighted_diurnal_debias_modeldata(
+        Modeldata=era,
+        obstype="temp",
+        overwrite_fill=True,
+        leading_period_duration="58h",
+        min_lead_debias_sample_size=1,
+        trailing_period_duration="24h",
+        min_trail_debias_sample_size=1,
+    )
+    dataset.get_full_status_df().to_pickle(trg_path)
+
+
+# _create_weight_diur_debias_gapfil_solution()
+
+
+def get_weight_diur_debias_gapfill_sol():
+    trg_path = os.path.join(solution.solutions_dir, weight_diur_debias_gapfill_sol_file)
+    return pd.read_pickle(trg_path)
+
+
+dataset.fill_gaps_with_weighted_diurnal_debias_modeldata(
+    Modeldata=era,
+    obstype="temp",
+    overwrite_fill=True,
+    leading_period_duration="58H",
+    min_lead_debias_sample_size=1,
+    trailing_period_duration="24H",
+    min_trail_debias_sample_size=1,
+)
+
+
+# test raw gapfill on dataset
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(),
+    solutiondf=get_weight_diur_debias_gapfill_sol(),
+)
+assert diff_df is None

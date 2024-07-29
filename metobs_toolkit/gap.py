@@ -498,6 +498,7 @@ class Gap:
             )
 
             gapdf[f"{obsname}_fill"] = np.nan
+            gapdf["fill_method"] = label_def["failed_interpolation_gap"]["label"]
             gapdf["msg"] = f"{lead_msg} and {trail_msg}"
 
             self._set_gapdf(gapdf)
@@ -507,6 +508,7 @@ class Gap:
             print(f"Warning! Cannot fill {self}, because leading record is not valid.")
 
             gapdf[f"{obsname}_fill"] = np.nan
+            gapdf["fill_method"] = label_def["failed_interpolation_gap"]["label"]
             gapdf["msg"] = f"{lead_msg}"
             self._set_gapdf(gapdf)
             return
@@ -515,6 +517,7 @@ class Gap:
             print(f"Warning! Cannot fill {self}, because trailing record is not valid.")
 
             gapdf[f"{obsname}_fill"] = np.nan
+            gapdf["fill_method"] = label_def["failed_interpolation_gap"]["label"]
             gapdf["msg"] = f"{trail_msg}"
             self._set_gapdf(gapdf)
             return

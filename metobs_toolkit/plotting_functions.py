@@ -665,11 +665,15 @@ def timeseries_plot(
         )
 
         # set hight of the vertical lines for no vals
-        vlin_min = mergedf[mergedf["label"] == "ok"]["value"].min()
-        vlin_max = mergedf[mergedf["label"] == "ok"]["value"].max()
+        vlin_min = mergedf[mergedf["label"] == label_def["goodrecord"]["label"]][
+            "value"
+        ].min()
+        vlin_max = mergedf[mergedf["label"] == label_def["goodrecord"]["label"]][
+            "value"
+        ].max()
 
         # line labels
-        line_labels = ["ok"]
+        line_labels = [label_def["goodrecord"]["label"]]
         line_labels.extend(fill_labels)
 
         # ------ missing obs ------ (vertical lines)
@@ -733,7 +737,13 @@ def timeseries_plot(
 
                 if label in ok_labels:
                     custom_handles.append(
-                        Line2D([0], [0], color=outl_color, label="ok", lw=4)
+                        Line2D(
+                            [0],
+                            [0],
+                            color=outl_color,
+                            label=label_def["goodrecord"]["label"],
+                            lw=4,
+                        )
                     )
                     label_vec.append(1)
 
@@ -795,7 +805,7 @@ def timeseries_plot(
 
     elif colorby == "name":
         # subset obs to plot
-        line_labels = ["ok"]
+        line_labels = [label_def["goodrecord"]["label"]]
         if show_outliers:
             line_labels.extend(qc_labels)
         if show_filled:
@@ -1326,7 +1336,7 @@ def _make_pie_from_freqs(
         # add a 100% no occurences to it, so it can be plotted
         no_oc_df = pd.DataFrame(
             index=["No occurences"],
-            data={"freq": [100.0], "color": [plot_settings["color_mapper"]["ok"]]},
+            data={"freq": [100.0], "color": [label_def["goodrecord"]["color"]]},
         )
         stats = pd.concat([stats, no_oc_df])
 
