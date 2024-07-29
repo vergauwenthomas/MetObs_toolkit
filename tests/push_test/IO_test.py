@@ -60,6 +60,10 @@ dataset.import_data_from_file()
 
 assert dataset.df.shape == (483840, 1), "Shape of demo data is not correct."
 
+# %% Test template class methods
+
+dataset.template.get_info()
+
 
 # %% Import wide dataset (Multiple stations) + syncronize
 

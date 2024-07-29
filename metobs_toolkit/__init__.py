@@ -84,4 +84,4 @@ from metobs_toolkit.landcover_functions import connect_to_gee
 
 # DO not change this manually!
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
