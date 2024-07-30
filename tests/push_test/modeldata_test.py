@@ -8,9 +8,12 @@ Created on Tue Jun 20 20:32:45 2023
 
 
 import sys, os
-
+import pandas as pd
 from pathlib import Path
 
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+import solutions.solutions_creator as solution
 
 lib_folder = Path(__file__).resolve().parents[2]
 
@@ -56,7 +59,6 @@ model_data.add_obstype(
     band_units="hpa",
 )
 
-
 model_data.get_info()
 from datetime import datetime
 
@@ -66,29 +68,125 @@ model_data = dataset.get_modeldata(
     modeldata=model_data, obstype="special_pressure", startdt=tstart, enddt=tend
 )
 
-assert (
-    model_data.df.shape[0] == 168
-), "No modeldata extracted from gee for new unit and obstype!"
-assert model_data.df.columns.to_list() == [
-    "special_pressure"
-], "Something is wrong with column names"
+surfpres_sol_file = "surfpress_era5.pkl"
+
+
+def _create_surfpres_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    # % test adding gee information
+    model_data = metobs_toolkit.Modeldata("ERA5_hourly")
+    # Define a regular obstype
+    new_obstype = metobs_toolkit.Obstype(
+        obsname="special_pressure",
+        std_unit="pa",
+        description="just for testing",
+        unit_aliases={
+            "pa": ["Pascal", "Pa", "N/m²"],
+        },
+        unit_conversions={"hpa": ["x * 100"]},
+    )
+
+    # add new obstype to model_data
+    model_data.add_obstype(
+        Obstype=new_obstype,
+        bandname="surface_pressure",
+        band_units="hpa",
+    )
+
+    model_data.get_info()
+    from datetime import datetime
+
+    tstart = datetime(2022, 10, 3, 23)
+    tend = datetime(2022, 10, 4, 4)
+    model_data = dataset.get_modeldata(
+        modeldata=model_data, obstype="special_pressure", startdt=tstart, enddt=tend
+    )
+
+    model_data.df.to_pickle(os.path.join(solution.solutions_dir, surfpres_sol_file))
+
+
+# _create_surfpres_solutions()
+
+
+def get_unfilled_solutions():
+    surf_pres_model = pd.read_pickle(
+        os.path.join(solution.solutions_dir, surfpres_sol_file)
+    )
+    return surf_pres_model
+
+
+diff_df = solution.test_df_are_equal(
+    testdf=model_data.df, solutiondf=get_unfilled_solutions()
+)
+assert diff_df is None
 
 model_data.make_plot(obstype_model="special_pressure")
 # %% Test 2D vector fields
+
+
+d2_sol_model = "d2_sol_model.pkl"
+
+
+def _create_2d_sol(model_data):
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+
+    model_data = dataset.get_modeldata(
+        modeldata=model_data, obstype="wind_speed", startdt=tstart, enddt=tend
+    )
+
+    model_data.df.to_pickle(os.path.join(solution.solutions_dir, d2_sol_model))
+    return
+
+
+# _create_2d_sol(model_data)
+
+
+def get_2d_solutions():
+    d2_model = pd.read_pickle(os.path.join(solution.solutions_dir, d2_sol_model))
+    return d2_model
+
 
 model_data = dataset.get_modeldata(
     modeldata=model_data, obstype="wind_speed", startdt=tstart, enddt=tend
 )
 
-print(model_data)
 
-assert model_data.df.columns.to_list() == [
-    "wind_speed_amplitude",
-    "wind_speed_direction",
-], "Something is wrong with column names"
-
+diff_df = solution.test_df_are_equal(
+    testdf=model_data.df, solutiondf=get_2d_solutions()
+)
+assert diff_df is None
 
 # %% Testing multiple field extraction
+
+
+multifield_modelfile = "multifield_sol_model.pkl"
+
+
+def _create_multifield_sol(model_data):
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+
+    model_data.get_gee_dataset_data(
+        mapname=model_data.modelname,
+        metadf=dataset.metadf,
+        obstypes=["temp", "wind_speed"],
+        startdt_utc=tstart,
+        enddt_utc=tend,
+    )
+
+    model_data.df.to_pickle(os.path.join(solution.solutions_dir, multifield_modelfile))
+    return
+
+
+# _create_multifield_sol(model_data)
+
+
+def get_multifield_solutions():
+    multifield_model = pd.read_pickle(
+        os.path.join(solution.solutions_dir, multifield_modelfile)
+    )
+    return multifield_model
+
+
 model_data.get_gee_dataset_data(
     mapname=model_data.modelname,
     metadf=dataset.metadf,
@@ -97,11 +195,11 @@ model_data.get_gee_dataset_data(
     enddt_utc=tend,
 )
 
-assert model_data.df.columns.to_list() == [
-    "temp",
-    "wind_speed_amplitude",
-    "wind_speed_direction",
-], "Something is wrong with column names"
+
+diff_df = solution.test_df_are_equal(
+    testdf=model_data.df, solutiondf=get_multifield_solutions()
+)
+assert diff_df is None
 
 
 # %% Import modeldata
@@ -139,6 +237,32 @@ if os.path.exists(fullpath):
 
 # %% test interpolation
 
+mod_interp_pkl = "modl_interp_df.pkl"
+
+
+def _create_interp_model_sol():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset = metobs_toolkit.Dataset()
+    dataset.update_settings(
+        input_data_file=metobs_toolkit.demo_datafile,
+        input_metadata_file=metobs_toolkit.demo_metadatafile,
+        template_file=metobs_toolkit.demo_template,
+    )
+
+    dataset.import_data_from_file()
+
+    target = dataset.df.xs("temp", level="obstype").index
+    interpdf = model_data.interpolate_modeldata(target)
+    interpdf.to_pickle(os.path.join(solution.solutions_dir, mod_interp_pkl))
+
+
+# _create_interp_model_sol()
+
+
+def get_interp_mmodel_sol():
+    return pd.read_pickle(os.path.join(solution.solutions_dir, mod_interp_pkl))
+
+
 dataset = metobs_toolkit.Dataset()
 dataset.update_settings(
     input_data_file=metobs_toolkit.demo_datafile,
@@ -148,24 +272,14 @@ dataset.update_settings(
 
 dataset.import_data_from_file()
 
-interpdf = model_data.interpolate_modeldata(dataset.df.index)
+target = dataset.df.xs("temp", level="obstype").index
+interpdf = model_data.interpolate_modeldata(target)
 
 
-# test that there are no nan values
-if not interpdf[interpdf["temp"].isnull()].empty:
-    sys.exit("Error in modeldata interpolation")
-
-
-assert interpdf.shape == (120957, 3), "Error in modeldata interpolation"
-
-# check if other obstypes are interpolated as well
-assert (
-    interpdf["wind_speed_amplitude"].shape[0] == 120957
-), "Error in modeldata interpolation"
-assert (
-    interpdf["wind_speed_amplitude"][interpdf["wind_speed_amplitude"].isnull()].shape[0]
-    == 0
-), "Error in modeldata interpolation"
+diff_df = solution.test_df_are_equal(
+    testdf=interpdf, solutiondf=get_interp_mmodel_sol()
+)
+assert diff_df is None
 
 
 # %% Test plotting
