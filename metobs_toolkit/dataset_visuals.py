@@ -9,7 +9,6 @@ Created on Tue Jul 16 15:13:17 2024
 
 import logging
 import os
-from metobs_toolkit import Dataset
 
 from metobs_toolkit.plotting_functions import (
     geospatial_plot,
@@ -38,7 +37,7 @@ from metobs_toolkit.df_helpers import (
 logger = logging.getLogger(__name__)
 
 
-class Dataset(Dataset):
+class DatasetVisuals:
     """Extension on the metobs_toolkit.Dataset class with visualisation methods"""
 
     def make_plot(

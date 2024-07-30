@@ -103,8 +103,13 @@ from metobs_toolkit.obstypes import Obstype as Obstype_class
 
 # from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import Modeldata
-from metobs_toolkit.datasetbase import _DatasetBase
 
+# dataset extensions
+from metobs_toolkit.datasetbase import DatasetBase
+from metobs_toolkit.dataset_settings_updater import DatasetSettingsCore
+from metobs_toolkit.dataset_visuals import DatasetVisuals
+from metobs_toolkit.dataset_qc_handling import DatasetQCCore
+from metobs_toolkit.dataset_gap_handling import DatasetGapCore
 
 logger = logging.getLogger(__name__)
 
@@ -114,29 +119,181 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class Dataset(_DatasetBase):
+class Dataset(
+    DatasetBase, DatasetSettingsCore, DatasetVisuals, DatasetQCCore, DatasetGapCore
+):
     """Objects holding observations and methods on observations."""
 
     def __init__(self):
         """Construct all the necessary attributes for Dataset object."""
         logger.info("Initialise dataset")
 
-        _DatasetBase.__init__(self)  # holds df, metadf, obstypes and settings
-
-        # Dataset with outlier observations
-        # self.outliersdf = init_triple_multiindexdf()
-
-        # self.missing_obs = None  # becomes a Missingob_collection after import
-        # self.gaps = None  # becomes a list of gaps
-
-        self.gapfilldf = init_multiindexdf()
-        self.missing_fill_df = init_multiindexdf()
-
-        # # Template for mapping data and metadata
-        # self.template = Template()
-
+        DatasetBase.__init__(self)  # holds df, metadf, obstypes and settings
         self._istype = "Dataset"
-        self._freqs = pd.Series(dtype=object)
+
+    def __add__(
+        self, other, timestamp_tolerance="0min", freq_simplify_tolerance="0min"
+    ):
+        """
+        Add another Dataset to self.
+
+        Parameters
+        ----------
+        other : metobs_toolkit.Dataset()
+            The dataset to add.
+        timestamp_tolerance : Timedelta or str, optional
+            The tolerance string or object representing the maximum translation
+            in time to apply on a timestamp for conversion to an ideal set of timestamps.
+            Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
+            simplification) can be set by '0min'. The default is '0min'.
+        freq_estimation_simplify_tolerance : Timedelta or str, optional
+            The tolerance string or object representing the maximum translation
+            in time to form a simplified frequency estimation.
+            Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
+            simplification) can be set by '0min'. The default is '0min' (2 minutes).
+
+        Returns
+        -------
+        new : metobs_toolkit.Dataset()
+            The combine dataset.
+
+        Warning
+        ---------
+        Gaps have to be recomputed, so all gaps (and filling information) will
+        be lost.
+
+        Warning
+        ---------
+        In case of duplicates (in records, outliers, metadate) the reference of
+        self will be used.
+
+        Warning
+        ----------
+        The order of QC applied checks, is dubious when differnet QC methods or
+        orders are used between self and other. The inpact of this is limited
+        to a possible false representation of the individual QC check effectiveness
+        when `Dataset.get_qc_stats()` is called.
+
+
+        """
+        # important !!!!!
+
+        logger.info(f"adding {str(other)} to {str(self)}")
+
+        # the toolkit makes a new dataframe, and assumes the df from self and other
+        # to be the input data.
+        # This means that any progress in gaps is removed an gaps are located
+        # again.
+
+        new = Dataset()
+        # self_obstypes = self.df.columns.to_list().copy()
+
+        #  ---- df ----
+        # combine both long dataframes (without gaps !)
+        newdf = pd.concat(
+            [
+                self.df.drop(self._get_gaps_df_for_stacking().index),
+                other.df.drop(other._get_gaps_df_for_stacking().index),
+            ]
+        )
+
+        if newdf.index.duplicated().any():
+            logger.warning(
+                "Duplicate records are found between self and other. The records of self are used!"
+            )
+            # drop duplicated indeces, keep the records from self
+            newdf = newdf[~newdf.index.duplicated(keep="first")]
+
+        new._set_df(newdf)
+
+        #  ----- outliers df ---------
+
+        newoutliersdf = pd.concat([self.outliersdf, other.outliersdf])
+        if newoutliersdf.index.duplicated().any():
+            logger.warning(
+                "Duplicate outliers are found between self and other. For duplicates, the outliers of self are used!"
+            )
+            # drop duplicated indeces, keep the records from self
+            newoutliersdf = newoutliersdf[~newoutliersdf.index.duplicated(keep="first")]
+
+        new._set_outliersdf(newoutliersdf)
+
+        # ------- meta df ----------
+        newmetadf = pd.concat([self.metadf, other.metadf])
+        if newmetadf.index.duplicated().any():
+            logger.warning(
+                "Duplicate metadata is found between self and other. For duplicates, the outliers of self are used!"
+            )
+            # drop duplicated indeces, keep the records from self
+            newmetadf = newmetadf[~newmetadf.index.duplicated(keep="first")]
+        # newmetadf = metadf_to_gdf(newmetadf)
+        new._set_metadf(newmetadf)
+
+        # ---- template -----
+        # once the mapping is done the template is of no use anymore (obstypes,
+        # are updated with descrptions etc). We use the template of self, for
+        # sake of having a complete Dataset
+        new.template = self.template
+
+        # ----- obstypes ------
+
+        # check if obstypes have the same defenition
+        for obstypename in self._get_present_obstypes():
+            if obstypename in other._get_present_obstypes():
+                if not self.obstypes[obstypename] == other.obstypes[obstypename]:
+                    logger.warning(
+                        f"The obstype {obstypename} is different between self and other, the defenition of self is used"
+                    )
+
+        new_obstypes = other.obstypes.copy()
+        new_obstypes.update(self.obstypes)
+        new._set_obstypes(new_obstypes)
+
+        # ----- Settings -------
+        # overload from self
+        new._set_settings(self.settings)
+
+        # ------ QC order --------
+
+        # The QC order of applied qc is (for now) only used to make an
+        # estimate on how effective a specific check is --> get_qc_stats.
+
+        if not self._applied_qc.reset_index(drop=True).equals(
+            other._applied_qc.reset_index(drop=True)
+        ):
+            logger.warning(
+                "The order and applied QC differs between self and other. QC check effectiveness can not be estimated correctly when calling get_qc_stats()."
+            )
+        new_applied_qc = pd.concat([self._applied_qc, other._applied_qc]).copy()
+        new_applied_qc = new_applied_qc.drop_duplicates(subset=["obstype", "checkname"])
+        new._applied_qc = new_applied_qc
+
+        #  ------- Gaps -------------
+        # Gaps have to be recaluculated using a frequency assumtion from the
+        # combination of self.df and other.df, thus NOT the native frequency if
+        # their is a coarsening allied on either of them.
+        # find the start, end timestamps and frequency for each station + write it to the metadf
+        new._get_timestamps_info(
+            freq_estimation_method="highest",  # does not matter on perfect timeseries
+            freq_simplify_tolerance=freq_simplify_tolerance,  # Do no chain error oropagation by default
+            origin_simplify_tolerance="0T",
+        )
+
+        # Convert the records to clean equidistanced records for both the df and outliersdf
+        new.construct_equi_spaced_records(
+            timestamp_mapping_tolerance=timestamp_tolerance
+        )
+
+        # # Find gaps on Import resolution
+        gaps = find_gaps(
+            df=new.df,
+            metadf=new.metadf,
+            outliersdf=new.outliersdf,
+            obstypes=new.obstypes,
+        )
+        new._set_gaps(gaps)
+
+        return new
 
     def show(self, show_all_settings=False, max_disp_n_gaps=5):
         """Show detailed information of the Dataset.
@@ -557,17 +714,17 @@ class Dataset(_DatasetBase):
 
         sta_gaps = get_station_gaps(self.gaps, stationname)
 
-        try:
-            sta_gapfill = self.gapfilldf.xs(stationname, level="name", drop_level=False)
-        except KeyError:
-            sta_gapfill = init_multiindexdf()
+        # try:
+        #     sta_gapfill = self.gapfilldf.xs(stationname, level="name", drop_level=False)
+        # except KeyError:
+        #     sta_gapfill = init_multiindexdf()
 
-        try:
-            sta_missingfill = self.missing_fill_df.xs(
-                stationname, level="name", drop_level=False
-            )
-        except KeyError:
-            sta_missingfill = init_multiindexdf()
+        # try:
+        #     sta_missingfill = self.missing_fill_df.xs(
+        #         stationname, level="name", drop_level=False
+        #     )
+        # except KeyError:
+        #     sta_missingfill = init_multiindexdf()
 
         return Station(
             name=stationname,
@@ -580,6 +737,7 @@ class Dataset(_DatasetBase):
             obstypes=self.obstypes,
             template=self.template,
             settings=self.settings,
+            _applied_qc=self._applied_qc.copy(),
         )
 
     # =============================================================================
@@ -1303,6 +1461,13 @@ class Dataset(_DatasetBase):
             >>> dataset.import_data_from_file()
 
         """
+        # Special argschecks
+        freq_estimation_simplify_tolerance = self._timedelta_arg_check(
+            freq_estimation_simplify_tolerance
+        )
+        origin_simplify_tolerance = self._timedelta_arg_check(origin_simplify_tolerance)
+        timestamp_tolerance = self._timedelta_arg_check(timestamp_tolerance)
+
         # Update paths to the input files, if given.
         if input_data_file is not None:
             self.update_settings(input_data_file=input_data_file)

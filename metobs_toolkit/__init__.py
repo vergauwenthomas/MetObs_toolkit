@@ -59,10 +59,11 @@ demo_template = os.path.join(
 # import the Dataset core + extensions
 # (Do not change order!!)
 from metobs_toolkit.dataset_core import Dataset
-from metobs_toolkit.dataset_settings_updater import Dataset
-from metobs_toolkit.dataset_visuals import Dataset
-from metobs_toolkit.dataset_gap_handling import Dataset
-from metobs_toolkit.dataset_qc_handling import Dataset
+
+# from metobs_toolkit.dataset_settings_updater import Dataset
+# from metobs_toolkit.dataset_visuals import Dataset
+# from metobs_toolkit.dataset_gap_handling import Dataset
+# from metobs_toolkit.dataset_qc_handling import Dataset
 
 
 # User accesable classes

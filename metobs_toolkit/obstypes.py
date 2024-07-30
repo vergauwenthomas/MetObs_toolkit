@@ -168,6 +168,16 @@ class Obstype:
         """Text representation."""
         return f"Obstype instance of {self.name}"
 
+    def __eq__(self, other):
+        is_eq = (
+            (self.name == other.name)
+            & (self.std_unit == other.std_unit)
+            & (self.description == other.description)
+            & (self.units_aliases == other.units_aliases)
+            & (self.conv_table == other.conv_table)
+        )
+        return is_eq
+
     # -----  Setters -------
 
     def set_description(self, desc):

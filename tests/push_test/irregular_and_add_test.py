@@ -40,7 +40,7 @@ data2 = os.path.join(
     "Outdoor_module_Netatmo_Sara_small.csv",
 )
 template2 = os.path.join(
-    lib_folder, "tests", "test_data", "testdata_testday", "Sara", "template_sara.csv"
+    lib_folder, "tests", "test_data", "testdata_testday", "Sara", "sara_template.json"
 )
 
 irr_combdf_file = "irr_combdf.pkl"
@@ -57,13 +57,13 @@ def _create_irr_solutions():
         template_file=template2,
     )
     dataset2.import_data_from_file(
-        freq_estimation_method="highest",
-        freq_estimation_simplify_tolerance="30S",
+        freq_estimation_method="median",
+        freq_estimation_simplify_tolerance="1min",
         origin_simplify_tolerance="3T",
         timestamp_tolerance="4T",
     )
     trgfile = os.path.join(solution.solutions_dir, irr_combdf_file)
-    dataset2.combine_all_to_obsspace().to_pickle(trgfile)
+    dataset2.get_full_status_df().to_pickle(trgfile)
     dataset2.metadf.to_pickle(os.path.join(solution.solutions_dir, irr_metadf_file))
 
     return
@@ -88,8 +88,8 @@ dataset2.update_settings(
     template_file=template2,
 )
 dataset2.import_data_from_file(
-    freq_estimation_method="highest",
-    freq_estimation_simplify_tolerance="30S",
+    freq_estimation_method="median",
+    freq_estimation_simplify_tolerance="1min",
     origin_simplify_tolerance="3T",
     timestamp_tolerance="4T",
 )
@@ -97,7 +97,7 @@ dataset2.import_data_from_file(
 
 # test the observation records
 diff_df = solution.test_df_are_equal(
-    testdf=dataset2.combine_all_to_obsspace(), solutiondf=irr_sol_combdf
+    testdf=dataset2.get_full_status_df(), solutiondf=irr_sol_combdf
 )
 assert diff_df is None
 
@@ -123,11 +123,11 @@ def _create_add_solutions():
         template_file=metobs_toolkit.demo_template,
     )
     dataset1.import_data_from_file()
-
+    dataset1.apply_quality_control()  # to see if outliers are combined aswell
     comb = dataset1 + dataset2
 
     trgfile = os.path.join(solution.solutions_dir, add_combdf_file)
-    comb.combine_all_to_obsspace().to_pickle(trgfile)
+    comb.get_full_status_df().to_pickle(trgfile)
     comb.metadf.to_pickle(os.path.join(solution.solutions_dir, add_metadf_file))
 
     return
@@ -151,14 +151,13 @@ dataset1.update_settings(
     template_file=metobs_toolkit.demo_template,
 )
 dataset1.import_data_from_file()
-
-
+dataset1.apply_quality_control()  # to see if outliers are combined aswell
 comb = dataset1 + dataset2
 
 
 # test the observation records
 diff_df = solution.test_df_are_equal(
-    testdf=comb.combine_all_to_obsspace(), solutiondf=add_sol_comb
+    testdf=comb.get_full_status_df(), solutiondf=add_sol_comb
 )
 assert diff_df is None
 
@@ -185,7 +184,7 @@ def _create_add_sta_overlap_solutions():
 
     comb = dataset1 + dataset3
     trgfile = os.path.join(solution.solutions_dir, add_sta_overlap_combdf_file)
-    comb.combine_all_to_obsspace().to_pickle(trgfile)
+    comb.get_full_status_df().to_pickle(trgfile)
     comb.metadf.to_pickle(
         os.path.join(solution.solutions_dir, add_sta_overlap_metadf_file)
     )
@@ -218,7 +217,7 @@ comb = dataset1 + dataset3
 
 # test the observation records
 diff_df = solution.test_df_are_equal(
-    testdf=comb.combine_all_to_obsspace(), solutiondf=add_sol_comb
+    testdf=comb.get_full_status_df(), solutiondf=add_sol_comb
 )
 assert diff_df is None
 
@@ -249,7 +248,7 @@ def _create_add_sta_period_overlap_solutions():
 
     comb = dataset3 + dataset4
     trgfile = os.path.join(solution.solutions_dir, add_sta_period_overlap_combdf_file)
-    comb.combine_all_to_obsspace().to_pickle(trgfile)
+    comb.get_full_status_df().to_pickle(trgfile)
     comb.metadf.to_pickle(
         os.path.join(solution.solutions_dir, add_sta_period_overlap_metadf_file)
     )
@@ -284,7 +283,7 @@ comb = dataset3 + dataset4
 
 # test the observation records
 diff_df = solution.test_df_are_equal(
-    testdf=comb.combine_all_to_obsspace(), solutiondf=add_sol_comb
+    testdf=comb.get_full_status_df(), solutiondf=add_sol_comb
 )
 assert diff_df is None
 

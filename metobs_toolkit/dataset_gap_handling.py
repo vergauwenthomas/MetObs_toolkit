@@ -13,9 +13,6 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-from metobs_toolkit import Dataset
-
-
 from metobs_toolkit.gap import (
     Gap,
     # remove_gaps_from_obs,
@@ -48,7 +45,7 @@ from metobs_toolkit.df_helpers import (
 logger = logging.getLogger(__name__)
 
 
-class Dataset(Dataset):
+class DatasetGapCore:
     """Extension on the metobs_toolkit.Dataset class with gap related methods"""
 
     # =============================================================================

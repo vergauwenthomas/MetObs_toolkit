@@ -8,7 +8,6 @@ Created on Tue Jul 16 13:44:49 2024
 
 import logging
 import pandas as pd
-from metobs_toolkit import Dataset
 
 
 logger = logging.getLogger(__name__)
@@ -31,6 +30,8 @@ from metobs_toolkit.qc_checks import (
     titan_sct_resistant_check,
 )
 
+from metobs_toolkit.gap import find_gaps
+
 from metobs_toolkit.plotting_functions import qc_stats_pie
 from metobs_toolkit.qc_statistics import get_freq_statistics
 from metobs_toolkit.df_helpers import (
@@ -48,7 +49,7 @@ from metobs_toolkit.df_helpers import (
 )
 
 
-class Dataset(Dataset):
+class DatasetQCCore:
     """Extension on the metobs_toolkit.Dataset class with QC related methods"""
 
     def _update_outliersdf(self, add_to_outliersdf):
@@ -423,7 +424,7 @@ class Dataset(Dataset):
             checkname = "window_variation"
             apliable = _can_qc_be_applied(self, obstype, checkname)
             if apliable:
-                logger.info("Applying {checkname} check.")
+                logger.info(f"Applying {checkname} check.")
                 obsdf, outl_df = window_variation_check(
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
