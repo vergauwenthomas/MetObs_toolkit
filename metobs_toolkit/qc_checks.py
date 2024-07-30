@@ -972,6 +972,7 @@ def toolkit_buddy_check(
         buddydict=buddies, min_sample_size=min_sample_size
     )
 
+    to_check_obsdf = xs_save(obsdf, obstype, "obstype")
     # Apply buddy check station per station
     for refstation, buddies in buddydict.items():
         if len(buddies) == 0:
@@ -979,7 +980,9 @@ def toolkit_buddy_check(
             continue
 
         # Get observations
-        buddies_obs = obsdf[obsdf.index.get_level_values("name").isin(buddies)][obstype]
+        buddies_obs = to_check_obsdf[
+            to_check_obsdf.index.get_level_values("name").isin(buddies)
+        ]["value"]
         # Unstack
         buddies_obs = buddies_obs.unstack(level="name")
 
@@ -1007,9 +1010,10 @@ def toolkit_buddy_check(
         )
 
         # Get refstation observations and merge
-        ref_obs = obsdf[obsdf.index.get_level_values("name") == refstation][
-            obstype
+        ref_obs = xs_save(to_check_obsdf, refstation, "name", drop_level=False)[
+            "value"
         ].unstack(level="name")
+
         buddies_obs = buddies_obs.merge(
             ref_obs,
             how="left",  # both not needed because if right, than there is no buddy sample per definition.
@@ -1071,7 +1075,7 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
         The collection of datapoints.
 
     """
-    obs = obsdf[[obstype]]
+    obs = xs_save(obsdf, obstype, "obstype")
     obs = obs.reset_index()
 
     # merge metadata
@@ -1087,15 +1091,15 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
     points_dict = {}
     for dt, group in dt_grouper:
 
-        check_group = group[~group[obstype].isnull()]
+        check_group = group[~group["value"].isnull()]
 
         points_dict[dt] = {
-            "values": check_group[obstype].to_numpy(),
+            "values": check_group["value"].to_numpy(),
             "names": check_group["name"].to_numpy(),
             "lats": check_group["lat"].to_numpy(),
             "lons": check_group["lon"].to_numpy(),
             "elev": check_group["altitude"].to_numpy(),
-            "ignore_names": group[group[obstype].isnull()]["name"].to_numpy(),
+            "ignore_names": group[group["value"].isnull()]["name"].to_numpy(),
         }
 
     return points_dict

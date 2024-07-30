@@ -7,6 +7,7 @@ Created on Fri Oct 28 08:29:37 2022
 """
 
 import sys, os
+import pandas as pd
 
 from pathlib import Path
 
@@ -14,7 +15,8 @@ from pathlib import Path
 lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 
-
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+import solutions.solutions_creator as solution
 import metobs_toolkit
 
 # %% IO testdata
@@ -31,15 +33,68 @@ dataset.coarsen_time_resolution()
 
 
 # %% Apply Qc on dataset level
+general_qc_sol = "general_qc.pkl"
+
+
+def _create_general_qc_solution():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.apply_quality_control(obstype="temp")
+
+    dataset.get_full_status_df().to_pickle(
+        os.path.join(solution.solutions_dir, general_qc_sol)
+    )
+
+
+# _create_general_qc_solution()
+
+
+def get_general_qc_sol():
+    return pd.read_pickle(os.path.join(solution.solutions_dir, general_qc_sol))
+
 
 dataset.apply_quality_control(obstype="temp")
 
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=get_general_qc_sol()
+)
+assert diff_df is None
 
-outliersdf = dataset.get_full_status_df()
+
 dataset.get_qc_stats(make_plot=False)
 dataset.get_qc_stats(obstype="humidity", make_plot=False)
 
+
 # %% Apply buddy check
+
+
+buddy_qc_sol = "buddy_qc.pkl"
+
+
+def _create_buddy_qc_solution(dataset):
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.update_qc_settings(
+        buddy_radius=17000,
+        buddy_min_sample_size=3,
+        buddy_max_elev_diff=150,
+        buddy_min_std=1.2,
+        buddy_threshold=2.4,
+        buddy_elev_gradient=None,
+    )
+
+    dataset.apply_buddy_check(use_constant_altitude=True)
+
+    dataset.get_full_status_df().to_pickle(
+        os.path.join(solution.solutions_dir, buddy_qc_sol)
+    )
+
+
+# _create_buddy_qc_solution(dataset)
+
+
+def get_buddy_qc_sol():
+    return pd.read_pickle(os.path.join(solution.solutions_dir, buddy_qc_sol))
+
+
 dataset.update_qc_settings(
     buddy_radius=17000,
     buddy_min_sample_size=3,
@@ -50,15 +105,20 @@ dataset.update_qc_settings(
 )
 
 dataset.apply_buddy_check(use_constant_altitude=True)
-assert (
-    dataset.outliersdf["label"].value_counts()["buddy check outlier"] == 125
-), "The buddy check did not perfom good."
+
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=get_buddy_qc_sol()
+)
+assert diff_df is None
+
 
 # %% Apply Qc on obstype not specified in settings
 
 
 dataset.apply_quality_control(obstype="humidity")
 dataset.get_qc_stats(obstype="humidity", make_plot=False)
+
+
 # %% Apply QC on station level
 
 sta = dataset.get_station("vlinder05")
@@ -69,6 +129,33 @@ test = sta.get_qc_stats(make_plot=True)
 
 
 # %% Apply titan checks
+
+
+titan_buddy_qc_sol = "titan_buddy_qc.pkl"
+
+
+def _create_titan_buddy_qc_solution(dataset):
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.update_titan_qc_settings(
+        obstype="temp",
+        buddy_radius=50000,
+        buddy_num_min=3,
+        buddy_max_elev_diff=200,
+        buddy_threshold=2,
+    )
+
+    dataset.apply_titan_buddy_check(use_constant_altitude=True)
+    dataset.get_full_status_df().to_pickle(
+        os.path.join(solution.solutions_dir, titan_buddy_qc_sol)
+    )
+
+
+# _create_titan_buddy_qc_solution(dataset)
+
+
+def get_titan_buddy_qc_sol():
+    return pd.read_pickle(os.path.join(solution.solutions_dir, titan_buddy_qc_sol))
+
 
 #  ------ Buddy check --------------
 dataset.update_titan_qc_settings(
@@ -81,6 +168,11 @@ dataset.update_titan_qc_settings(
 
 
 dataset.apply_titan_buddy_check(use_constant_altitude=True)
+
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=get_titan_buddy_qc_sol()
+)
+assert diff_df is None
 
 
 # count test
@@ -98,11 +190,10 @@ dataset.update_titan_qc_settings(
 )
 dataset.apply_titan_buddy_check(use_constant_altitude=True)
 
-assert (
-    dataset.outliersdf["label"].value_counts()["titan buddy check outlier"] == 277
-), "The buddy check did overwrite itself!"
-
-
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=get_titan_buddy_qc_sol()
+)
+assert diff_df is None
 # %%
 
 
