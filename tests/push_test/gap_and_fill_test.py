@@ -220,7 +220,7 @@ def get_interp_solution():
 
 
 dataset_sol, sta_solution = get_interp_solution()
-dataset.make_plot(colorby="label", title="before interpolation")
+
 # interpolate the gaps
 dataset.interpolate_gaps(
     obstype="temp",
@@ -231,7 +231,6 @@ dataset.interpolate_gaps(
     max_trail_to_gap_distance=None,
 )
 
-dataset.make_plot(colorby="label", title="interpolated ????")
 
 # test interpolation on dataset level
 diff_df = solution.test_df_are_equal(
@@ -418,6 +417,7 @@ assert diff_df is None
 # %% Test weighted diurnal debias gapfill
 
 weight_diur_debias_gapfill_sol_file = "weight_diurnal_debias_gapfill_solution.pkl"
+weight_diur_debias_gapfilldf_sol = "weight_diurnal_debias_gapfilldf_sol.pkl"
 
 
 def _create_weight_diur_debias_gapfil_solution():
@@ -433,14 +433,22 @@ def _create_weight_diur_debias_gapfil_solution():
         min_trail_debias_sample_size=1,
     )
     dataset.get_full_status_df().to_pickle(trg_path)
+    dataset.get_gaps_fill_df().to_pickle(
+        os.path.join(solution.solutions_dir, weight_diur_debias_gapfilldf_sol)
+    )
 
 
 # _create_weight_diur_debias_gapfil_solution()
 
 
 def get_weight_diur_debias_gapfill_sol():
-    trg_path = os.path.join(solution.solutions_dir, weight_diur_debias_gapfill_sol_file)
-    return pd.read_pickle(trg_path)
+    fulldf = pd.read_pickle(
+        os.path.join(solution.solutions_dir, weight_diur_debias_gapfill_sol_file)
+    )
+    gapfilldf = pd.read_pickle(
+        os.path.join(solution.solutions_dir, weight_diur_debias_gapfilldf_sol)
+    )
+    return fulldf, gapfilldf
 
 
 dataset.fill_gaps_with_weighted_diurnal_debias_modeldata(
@@ -454,9 +462,44 @@ dataset.fill_gaps_with_weighted_diurnal_debias_modeldata(
 )
 
 
+fulldf_sol, gapfilldf_sol = get_weight_diur_debias_gapfill_sol()
+
 # test raw gapfill on dataset
 diff_df = solution.test_df_are_equal(
     testdf=dataset.get_full_status_df(),
-    solutiondf=get_weight_diur_debias_gapfill_sol(),
+    solutiondf=fulldf_sol,
 )
 assert diff_df is None
+
+
+# test raw gapfill on dataset
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_gaps_fill_df(),
+    solutiondf=gapfilldf_sol,
+)
+assert diff_df is None
+
+
+# %% Find gap
+
+import datetime
+
+filledgap = dataset.find_gap(
+    stationname="vlinder01",
+    obstype="temp",
+    in_gap_timestamp=datetime.datetime(2022, 10, 6, 18, 53, 2),
+)
+
+assert filledgap is not None, "find gap does not work accordingly"
+
+filledgap.get_info()
+
+
+nogap = dataset.find_gap(
+    stationname="vlinder01",
+    obstype="temp",
+    in_gap_timestamp=datetime.datetime(2022, 10, 6, 13, 53, 2),
+)
+
+
+assert nogap is None, "find gap does not work accordingly"

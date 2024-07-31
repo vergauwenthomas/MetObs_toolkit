@@ -9,9 +9,6 @@ import sys
 import warnings
 import logging
 import pandas as pd
-
-# import mysql.connector
-# from mysql.connector import errorcode
 from pytz import all_timezones
 from metobs_toolkit.template import _create_datetime_column
 

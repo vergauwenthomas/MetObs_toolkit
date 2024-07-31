@@ -9,7 +9,6 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import logging
-import copy
 from scipy.stats import pearsonr
 from metobs_toolkit.settings_files.default_formats_settings import gapfill_label_group
 from metobs_toolkit.plotting_functions import (
@@ -22,7 +21,6 @@ from metobs_toolkit.df_helpers import (
     xs_save,
     datetime_subsetting,
     subset_stations,
-    # fmt_datetime_argument,
     empty_outliers_df,
 )
 

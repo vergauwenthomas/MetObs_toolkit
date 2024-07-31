@@ -56,15 +56,9 @@ demo_template = os.path.join(
 # Import classes and function to be used by the user
 # =============================================================================
 
-# import the Dataset core + extensions
-# (Do not change order!!)
+# import the Dataset core
+
 from metobs_toolkit.dataset_core import Dataset
-
-# from metobs_toolkit.dataset_settings_updater import Dataset
-# from metobs_toolkit.dataset_visuals import Dataset
-# from metobs_toolkit.dataset_gap_handling import Dataset
-# from metobs_toolkit.dataset_qc_handling import Dataset
-
 
 # User accesable classes
 from metobs_toolkit.station import Station  # after all Dataset extensions !!

@@ -92,6 +92,9 @@ dataset.import_data_from_file(
 
 import pandas as pd
 
+
+assert dataset.df["value"].min() == -268.45, "Unit is not converted properly "
+
 assert dataset.metadf["dataset_resolution"].iloc[0] == pd.Timedelta(
     "4min"
 ), "wrong freq estimate for unsynced data"

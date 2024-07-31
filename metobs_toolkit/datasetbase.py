@@ -13,7 +13,7 @@ import pandas as pd
 
 import datetime as datetimemodule
 
-
+from metobs_toolkit.qc_checks import duplicate_timestamp_check
 from metobs_toolkit.df_helpers import (
     # multiindexdf_datetime_subsetting,
     # fmt_datetime_argument,
@@ -21,7 +21,7 @@ from metobs_toolkit.df_helpers import (
     # init_multiindexdf,
     # init_triple_multiindexdf,
     empty_outliers_df,
-    # metadf_to_gdf,
+    metadf_to_gdf,
     # conv_applied_qc_to_df,
     # get_freqency_series,
     get_likely_frequency,
@@ -33,7 +33,7 @@ from metobs_toolkit.df_helpers import (
 from metobs_toolkit.template import Template
 from metobs_toolkit.settings import Settings
 from metobs_toolkit.obstypes import tlk_obstypes
-
+from metobs_toolkit.gap import find_gaps
 
 logger = logging.getLogger(__name__)
 
@@ -411,6 +411,307 @@ class DatasetBase(object):
                 f"Following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}"
             )
             self.metadf = self.metadf[~self.metadf.index.isna()]
+
+    # =============================================================================
+    # Construction methods for creating a Dataset
+    # =============================================================================
+
+    def _construct_dataset(
+        self,
+        df,
+        freq_estimation_method,
+        freq_estimation_simplify_tolerance,
+        origin_simplify_tolerance,
+        timestamp_tolerance,
+        use_metadata,
+        # fixed_freq_series=None,
+        # update_full_metadf=True,
+    ):
+        """Construct the Dataset class from a IO dataframe.
+
+        1. Set the dataframe and metadataframe attributes
+        2. Drop stations that have Nan as name.
+        2. Find the duplicates (remove them from observations +  add them to outliers)
+        3. Convert the values to standard units + update the observationtypes (some template specific attribute)
+        5. Find gaps in the records (duplicates are excluded from the gaps)
+        6. Get a frequency estimate per station
+        7. Initiate the gaps (find missing records)
+        8. Add the missing records to the dataframe
+
+
+        Parameters
+        ----------
+        df : pandas.dataframe
+            The dataframe containing the input observations and metadata.
+        freq_estimation_method : 'highest' or 'median'
+            Select wich method to use for the frequency estimation. If
+            'highest', the highest apearing frequency is used. If 'median', the
+            median of the apearing frequencies is used.
+        freq_estimation_simplify : bool
+            If True, the likely frequency is converted to round hours, or round minutes.
+            The "freq_estimation_simplify_error' is used as a constrain. If the constrain is not met,
+            the simplification is not performed.
+        freq_estimation_simplify_error : Timedelta or str, optional
+            The tolerance string or object representing the maximum translation in time to form a simplified frequency estimation.
+            Ex: '5min' is 5 minutes, '1H', is one hour.
+        fixed_freq_series : pandas.series or None, optional
+            If you do not want the frequencies to be recalculated, one can pass the
+            frequency series to update the metadf["dataset_resolution"]. If None, the frequencies will be estimated. The default is None.
+        update_full_metadf : bool, optional
+            If True, the full Dataset.metadf will be updated. If False, only the frequency columns in the Dataset.metadf will be updated. The default is True.
+
+
+        Returns
+        -------
+        None.
+
+        """
+        # Set the df attribute
+        self._construct_df(dataframe=df)
+
+        # Set the metadf attribute
+        self._construct_metadf(dataframe=df, use_metadata=use_metadata)
+
+        # Apply QC on Nan and duplicates (needed before unit conversion and gapcreation)
+        # Remove nan names
+        self._remove_nan_names()
+
+        # Convert to numeric --> "invalid check' will be triggered if not possible
+        self._to_num_and_invalid_check()
+        self._append_to_applied_qc(
+            obstypename=self._get_present_obstypes(), checkname="invalid_input"
+        )
+
+        # Remove duplicates (needed in order to convert the units and find gaps)
+        df, outliersdf = duplicate_timestamp_check(
+            df=self.df,
+            outlierlabel=self.settings.label_def["duplicated_timestamp"]["label"],
+            checks_settings=self.settings.qc["qc_check_settings"],
+        )
+        self._set_df(df=df)
+        self._update_outliersdf(outliersdf)
+        self._append_to_applied_qc(
+            obstypename=self._get_present_obstypes(), checkname="duplicated_timestamp"
+        )
+
+        # self._covert_timestamps_to_utc()
+
+        # Check observation types and convert units if needed.
+        self._setup_of_obstypes_and_units()
+
+        # find the start, end timestamps and frequency for each station + write it to the metadf
+        self._get_timestamps_info(
+            freq_estimation_method=freq_estimation_method,
+            freq_simplify_tolerance=freq_estimation_simplify_tolerance,
+            origin_simplify_tolerance=origin_simplify_tolerance,
+        )
+
+        # Convert the records to clean equidistanced records for both the df and outliersdf
+        self.construct_equi_spaced_records(
+            timestamp_mapping_tolerance=timestamp_tolerance
+        )
+
+        # # Find gaps on Import resolution
+        gaps = find_gaps(
+            df=self.df,
+            metadf=self.metadf,
+            outliersdf=self.outliersdf,
+            obstypes=self.obstypes,
+        )
+        self._set_gaps(gaps)
+
+    def _setup_of_obstypes_and_units(self):
+        """Function to setup all attributes related to observation types and
+        convert to standard units."""
+        # Check if all present observation types are known.
+        present_obstypes = self._get_present_obstypes()
+
+        # check if all present obstypes (in the df), are linked to a knonw Obstype
+        self._are_all_present_obstypes_knonw()
+
+        # Found that it is approx 70 times faster convert obstype per obstype,
+        # add them to a list and concat them, than using the .loc method to
+        # assign the converted values directly to the df attribute
+
+        subdf_list = []
+        for present_obs in present_obstypes:
+            # Convert the units to the toolkit standards (if unit is known)
+            input_unit = self.template._get_input_unit_of_tlk_obstype(present_obs)
+
+            # locate the specific obstype records
+            obstype_values = xs_save(self.df, present_obs, "obstype", drop_level=False)[
+                "value"
+            ]
+            # Convert to standard unit and replace them in the df attribute
+            subdf_list.append(
+                self.obstypes[present_obs].convert_to_standard_units(
+                    input_data=obstype_values, input_unit=input_unit
+                )
+            )
+            # Update the description of the obstype
+            self.obstypes[present_obs].set_description(
+                desc=self.template._get_description_of_tlk_obstype(present_obs)
+            )
+
+            # Update the original name of the obstype (used for titles in plots)
+            self.obstypes[present_obs].set_original_name(
+                columnname=self.template._get_original_obstype_columnname(present_obs)
+            )
+
+            # Update the original unit of the obstype (not an application yet)
+            self.obstypes[present_obs].set_original_unit(input_unit)
+
+        df = pd.concat(subdf_list).to_frame().sort_index()
+        self._set_df(df)
+
+    def _to_num_and_invalid_check(self):
+        # 8. map to numeric dtypes
+        # When converting to numeric, this overrules the invalid check.
+        checkname = "invalid_input"
+        df = self.df
+
+        # 1 subset to the records with Nan values --> do not check these, just add them back in the end
+        nandf = df[~df["value"].notnull()]
+        # 2 Get the other subet with values not nan (can be numerics and strings) --> filter out the strings
+        to_checkdf = df[df["value"].notnull()]
+
+        # 3 Convert to numeric
+        to_checkdf["value"] = pd.to_numeric(to_checkdf["value"], errors="coerce")
+
+        # 4 All the Nan's in the to_checkdf are outliers triggerd as 'invalid'
+        invalid_records = to_checkdf[~to_checkdf["value"].notnull()]
+        # add the label of "invalid check' to it
+        invalid_records["label"] = self.settings.label_def[checkname]["label"]
+        # special case: duplicates in the invalid records
+        invalid_records = invalid_records[~invalid_records.index.duplicated()]
+
+        # 5. Combine the df's back to one
+        totaldf = pd.concat([nandf, to_checkdf]).sort_index()
+
+        # Set attributes
+        # Note that at this point, the duplicated check is not performed yet.
+        self._set_df(totaldf, apply_dup_checks=False)
+        self._update_outliersdf(invalid_records)
+        return
+
+    def _construct_df(self, dataframe):
+        """fill the df attribute
+
+        The dataframe is wide with data and metadata combined. This method will
+        subset and format it to a long structured df to be set as the df attribute.
+        """
+
+        # subset to name, datetime and all obstypes
+        df_cols = self.template._get_all_mapped_data_cols_in_tlk_space()
+        # name and datetime are already index of dataframe, so drop them from df_cols
+        df_cols = list(set(df_cols) - set(["name", "datetime"]))
+        # subset the column
+        df = dataframe.loc[:, df_cols]
+
+        # convert the wide df to a long format
+        triple_df = df.stack(future_stack=True)
+        # rename the last level of the index to obstype
+        triple_df.index.rename(names="obstype", level=-1, inplace=True)
+        # rename the series to value
+        triple_df.rename("value", inplace=True)
+        # fix index order
+        triple_df = triple_df.reorder_levels(
+            ["name", "obstype", "datetime"]
+        ).sort_index()
+        # sort by index (by name --> datetime --> obstype)
+        triple_df.sort_index(inplace=True)
+        # convert to frame
+        # TODO is this needed?
+        triple_df = triple_df.to_frame()
+
+        # set the attribute
+        self._set_df(
+            df=triple_df, apply_dup_checks=False
+        )  # duplicate have yet to be removed
+
+    def _construct_metadf(self, dataframe, use_metadata):
+        """fill the metadf attribute
+
+        The dataframe is wide with data and metadata combined. This method will
+        subset and format the data and set the metadf attribute.
+
+        use_metadata is a bool, if True map the metadata normally. If False,
+        the user has not specialized a metadata file --³ create a minimal
+        metadf. (Because a template can hold mapping of metadata, but
+        if the user does not specify the metadata file --> the template should
+        not be used)
+
+        """
+        if use_metadata:
+            meta_cols = list(self.template._get_metadata_column_map().values())
+
+            metadf = (
+                dataframe.reset_index()
+                .loc[:, meta_cols]
+                .drop_duplicates()
+                .set_index("name")
+            )
+        else:
+            # Construct a minimal metadf, compatible with df
+            metadf = pd.DataFrame(
+                index=dataframe.index.get_level_values("name").unique()
+            )
+
+        # Construct columns that are required
+        if "lat" not in metadf.columns:
+            metadf["lat"] = np.nan
+        if "lon" not in metadf.columns:
+            metadf["lon"] = np.nan
+
+        # Convert to geopandas dataframe
+        metadf = metadf_to_gdf(metadf)
+
+        # set the attribute
+        self._set_metadf(metadf=metadf)
+
+    def _setup_of_obstypes_and_units(self):
+        """Function to setup all attributes related to observation types and
+        convert to standard units."""
+        # Check if all present observation types are known.
+        present_obstypes = self._get_present_obstypes()
+
+        # check if all present obstypes (in the df), are linked to a knonw Obstype
+        self._are_all_present_obstypes_knonw()
+
+        # Found that it is approx 70 times faster convert obstype per obstype,
+        # add them to a list and concat them, than using the .loc method to
+        # assign the converted values directly to the df attribute
+
+        subdf_list = []
+        for present_obs in present_obstypes:
+            # Convert the units to the toolkit standards (if unit is known)
+            input_unit = self.template._get_input_unit_of_tlk_obstype(present_obs)
+
+            # locate the specific obstype records
+            obstype_values = xs_save(self.df, present_obs, "obstype", drop_level=False)[
+                "value"
+            ]
+            # Convert to standard unit and replace them in the df attribute
+            subdf_list.append(
+                self.obstypes[present_obs].convert_to_standard_units(
+                    input_data=obstype_values, input_unit=input_unit
+                )
+            )
+            # Update the description of the obstype
+            self.obstypes[present_obs].set_description(
+                desc=self.template._get_description_of_tlk_obstype(present_obs)
+            )
+
+            # Update the original name of the obstype (used for titles in plots)
+            self.obstypes[present_obs].set_original_name(
+                columnname=self.template._get_original_obstype_columnname(present_obs)
+            )
+
+            # Update the original unit of the obstype (not an application yet)
+            self.obstypes[present_obs].set_original_unit(input_unit)
+
+        df = pd.concat(subdf_list).to_frame().sort_index()
+        self._set_df(df)
 
     def construct_equi_spaced_records(
         self, timestamp_mapping_tolerance="4min", direction="nearest"

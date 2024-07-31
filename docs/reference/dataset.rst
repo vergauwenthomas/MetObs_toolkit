@@ -48,6 +48,13 @@ Common methods
    Dataset.apply_titan_buddy_check
    Dataset.apply_titan_sct_resistant_check
 
+Gap related methods
+-----------------------
+
+.. autosummary::
+   :toctree: api/
+
+   Dataset.interpolate_gaps
 
 Extracting data
 ------------------
