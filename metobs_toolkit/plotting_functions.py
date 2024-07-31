@@ -616,10 +616,10 @@ def timeseries_plot(
 
     # define different groups (different plotting styles)
     # ok group
-    ok_labels = [settings.label_def["goodrecord"]["label"]]
+    ok_labels = [label_def["goodrecord"]["label"]]
 
     # filled value groups
-    fill_labels = [settings.label_def[group]["label"] for group in gapfill_label_group]
+    fill_labels = [label_def[group]["label"] for group in gapfill_label_group]
 
     # qc outlier labels
     outliergroups = [
@@ -634,20 +634,20 @@ def timeseries_plot(
         "titan_buddy_check",
         "titan_sct_resistant_check",
     ]
-    qc_labels = [settings.label_def[qc_group]["label"] for qc_group in outliergroups]
+    qc_labels = [label_def[qc_group]["label"] for qc_group in outliergroups]
 
     # no value group
     no_vals_labels = [
-        settings.label_def["regular_gap"]["label"],
+        label_def["regular_gap"]["label"],
         # duplicated timestamp and invalid input outliers do not have a known value, so add them to this group
-        settings.label_def["invalid_input"]["label"],
-        settings.label_def["duplicated_timestamp"]["label"],
+        label_def["invalid_input"]["label"],
+        label_def["duplicated_timestamp"]["label"],
         # all failed gapfill labels
-        settings.label_def["failed_interpolation_gap"]["label"],
-        settings.label_def["failed_raw_modeldata_fill"]["label"],
-        settings.label_def["failed_debias_modeldata_fill"]["label"],
-        settings.label_def["failed_diurnal_debias_modeldata_fill"]["label"],
-        settings.label_def["failed_weighted_diurnal_debias_modeldata_fill"]["label"],
+        label_def["failed_interpolation_gap"]["label"],
+        label_def["failed_raw_modeldata_fill"]["label"],
+        label_def["failed_debias_modeldata_fill"]["label"],
+        label_def["failed_diurnal_debias_modeldata_fill"]["label"],
+        label_def["failed_weighted_diurnal_debias_modeldata_fill"]["label"],
     ]
 
     if colorby == "label":

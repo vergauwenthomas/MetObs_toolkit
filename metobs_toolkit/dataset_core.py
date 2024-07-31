@@ -29,7 +29,10 @@ from metobs_toolkit.landcover_functions import (
     lc_fractions_extractor,
 )
 
-from metobs_toolkit.settings_files.default_formats_settings import gapfill_label_group
+from metobs_toolkit.settings_files.default_formats_settings import (
+    label_def,
+    gapfill_label_group,
+)
 from metobs_toolkit.qc_checks import duplicate_timestamp_check
 
 from metobs_toolkit.writing_files import (
@@ -404,6 +407,154 @@ class Dataset(
         print(f"Dataset saved in {full_path}")
         logger.info(f"Dataset saved in {full_path}")
 
+    def get_full_status_df(self, return_as_wide=True):
+        """Combine all records, outliers and gaps in one Dataframe
+
+        Records, outliers and gaps are seperatly stored in each Dataset. This
+        method will combine them into one pandas.DataFrame.
+
+        The full dataframe displays the obsevation values, a label, and how
+        the records is stored in the Dataset (as a good observation, an outlier or gap).
+
+
+        Parameters
+        ----------
+        return_as_wide : bool, optional
+            If True, the dataset is wide-structured (observationtypes are spread
+            over different columns). If False, all records are stacked in
+            a long-format. The default is True.
+
+         Returns
+         ---------
+         combdf : pandas.DataFrame()
+            A dataframe containing a continious time resolution of records, where each
+            record is labeld.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_settings(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_data_from_file()
+            >>> dataset.coarsen_time_resolution(freq='1h')
+            >>>
+            >>> # Apply quality control on the temperature observations
+            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
+            >>> dataset
+            Dataset instance containing:
+                 *28 stations
+                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
+                 *10080 observation records
+                 *1676 records labeled as outliers
+                 *0 gaps
+                 *3 missing observations
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+            >>>
+            >>> # Combine all records to one dataframe in Observation-resolution
+            >>> overview_df = dataset.get_full_status_df()
+            >>> overview_df.head(12)
+                                                                    value  ... toolkit_representation
+            name      datetime                  obstype                    ...
+            vlinder01 2022-09-01 00:00:00+00:00 humidity        65.000000  ...            observation
+                                                temp            18.800000  ...            observation
+                                                wind_direction  65.000000  ...            observation
+                                                wind_speed       1.555556  ...            observation
+                      2022-09-01 01:00:00+00:00 humidity        65.000000  ...            observation
+                                                temp            18.400000  ...            observation
+                                                wind_direction  55.000000  ...            observation
+                                                wind_speed       1.416667  ...            observation
+                      2022-09-01 02:00:00+00:00 humidity        68.000000  ...            observation
+                                                temp            17.100000  ...            observation
+                                                wind_direction  45.000000  ...            observation
+                                                wind_speed       1.583333  ...            observation
+            <BLANKLINE>
+            [12 rows x 3 columns]
+
+        """
+
+        # =============================================================================
+        # Stack observations and outliers
+        # =============================================================================
+        df = self.df
+        # note: df is a pointer, and adding these colmns will add them
+        # also in the self.df
+        df["label"] = label_def["goodrecord"]["label"]
+        df["toolkit_representation"] = "observation"
+
+        # =============================================================================
+        # Stack outliers
+        # =============================================================================
+
+        outliersdf = self.outliersdf
+        outliersdf["toolkit_representation"] = "outlier"
+
+        combdf = pd.concat([df, outliersdf])  # combine the two
+
+        # Since outliers are present records in the df (as NaN's) we introduce
+        # duplicats in the index of combdf. We drop the duplicates and keep,
+        # the records comming from outliersdf (=last)
+
+        combdf = combdf[~combdf.index.duplicated(keep="last")]
+
+        # =============================================================================
+        # Stack gaps
+        # =============================================================================
+
+        gapsdf = (
+            self._get_gaps_df_for_stacking()
+        )  # get a gapdf in the long (similar as outliersdf) structure
+        # map labels to known labels (must have a color def in the settings)
+        if not gapsdf.empty:
+            gapsdf["label"] = gapsdf["fill_method"].replace(
+                {"not filled": label_def["regular_gap"]["label"]}
+            )
+
+        gapsdf = gapsdf[["value", "label"]]
+
+        gapsdf["toolkit_representation"] = "gap"
+
+        combdf = pd.concat([combdf, gapsdf])  # combine
+
+        # Since gaps are present records in the df (as NaN's, because of the
+        # ideal freq structure in the df) we introduce
+        # duplicats in the index of combdf. We drop the duplicates and keep,
+        # the records comming from outliersdf (=last)
+
+        combdf = combdf[~combdf.index.duplicated(keep="last")]
+        # =============================================================================
+        # Formatting the combineddf
+        # =============================================================================
+
+        assert (
+            not combdf.index.duplicated().any()
+        ), "Duplicates found in the combdf --> report bug."
+
+        # for some reason the dtype of the datetime index-level is 'obstype' and
+        # thus not a datetimeindex. This must be fixed
+        combdf = combdf.reset_index()
+        combdf["datetime"] = pd.to_datetime(combdf["datetime"])
+        combdf = combdf.set_index(["name", "obstype", "datetime"]).sort_index()
+
+        if return_as_wide:
+            combdf = combdf.unstack(level="obstype").reorder_levels(
+                order=[1, 0], axis=1
+            )
+
+        # pointer issue
+        self.df = self.df[["value"]]
+        self.outliersdf = self.outliersdf[["value", "label"]]
+        return combdf
+
     def import_dataset(self, folder_path=None, filename="saved_dataset.pkl"):
         """Import a Dataset instance from a (pickle) file.
 
@@ -668,18 +819,6 @@ class Dataset(
 
         sta_gaps = get_station_gaps(self.gaps, stationname)
 
-        # try:
-        #     sta_gapfill = self.gapfilldf.xs(stationname, level="name", drop_level=False)
-        # except KeyError:
-        #     sta_gapfill = init_multiindexdf()
-
-        # try:
-        #     sta_missingfill = self.missing_fill_df.xs(
-        #         stationname, level="name", drop_level=False
-        #     )
-        # except KeyError:
-        #     sta_missingfill = init_multiindexdf()
-
         return Station(
             name=stationname,
             df=sta_df,
@@ -693,6 +832,152 @@ class Dataset(
             settings=self.settings,
             _applied_qc=self._applied_qc.copy(),
         )
+
+    def get_modeldata(
+        self,
+        modelname="ERA5_hourly",
+        modeldata=None,
+        obstype="temp",
+        stations=None,
+        startdt=None,
+        enddt=None,
+    ):
+        """Make Modeldata for the Dataset.
+
+        Make a metobs_toolkit.Modeldata object with modeldata at the locations
+        of the stations present in the dataset. This Modeldata stores timeseries
+        of model data for each station.
+
+        Parameters
+        ----------
+        modelname : str, optional
+            Which dataset to download timeseries from. This is only used when
+            no modeldata is provided. The default is 'ERA5_hourly'.
+        modeldata : metobs_toolkit.Modeldata, optional
+            Use the modelname attribute and the gee information stored in the
+            modeldata instance to extract timeseries.
+        obstype : String, optional
+            Name of the observationtype you want to apply gap filling on. The
+            modeldata must contain this observation type as well. The
+            default is 'temp'.
+        stations : string or list of strings, optional
+            Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.
+        startdt : datetime.datetime, optional
+            Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.
+        enddt : datetime.datetime, optional
+            End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.
+
+        Returns
+        -------
+        Modl : metobs_toolkit.Modeldata
+            The extracted modeldata for period and a set of stations.
+
+        Note
+        --------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
+
+        Note
+        ------
+        When extracting large amounts of data, the timeseries data will be
+        written to a file and saved on your google drive. In this case, you need
+        to provide the Modeldata with the data using the .set_model_from_csv()
+        method.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import metobs_toolkit
+
+            # Import data into a Dataset
+            dataset = metobs_toolkit.Dataset()
+            dataset.update_settings(
+                        input_data_file=metobs_toolkit.demo_datafile,
+                        input_metadata_file=metobs_toolkit.demo_metadatafile,
+                        template_file=metobs_toolkit.demo_template,
+                        )
+            dataset.import_data_from_file()
+
+            # To limit data transfer, we define a short period
+            import datetime
+
+            tstart = datetime.datetime(2022, 9, 5)
+            tend = datetime.datetime(2022, 9, 6)
+
+
+            # Collect ERA5 2mT timeseries at your stations
+            ERA5_data = dataset.get_modeldata(
+                                    modelname="ERA5_hourly",
+                                    modeldata=None,
+                                    obstype="temp",
+                                    stations=None,
+                                    startdt=tstart,
+                                    enddt=tend)
+
+        """
+        if modeldata is None:
+            Modl = Modeldata(modelname)
+
+        else:
+            Modl = modeldata
+            modelname = Modl.modelname
+
+        # Filters
+
+        if startdt is None:
+            startdt = self.df.index.get_level_values("datetime").min()
+        else:
+            startdt = self._datetime_arg_check(startdt)
+
+        if enddt is None:
+            enddt = self.df.index.get_level_values("datetime").max()
+        else:
+            enddt = self._datetime_arg_check(enddt)
+
+        # make shure bounds include required range
+        Model_time_res = Modl.mapinfo[Modl.modelname]["time_res"]
+        startdt = startdt.floor(Model_time_res)
+        enddt = enddt.ceil(Model_time_res)
+
+        if stations is not None:
+            if isinstance(stations, str):
+                metadf = self.metadf.loc[[stations]]
+            if isinstance(stations, list):
+                metadf = self.metadf.iloc[self.metadf.index.isin(stations)]
+        else:
+            metadf = self.metadf
+
+        # Convert to UTC
+
+        startdt_utc = startdt.astimezone(pytz.utc)
+        enddt_utc = enddt.astimezone(pytz.utc)
+
+        # fill modell with data
+        if modelname == "ERA5_hourly":
+            Modl.get_ERA5_data(
+                metadf=metadf,
+                startdt_utc=startdt_utc,
+                enddt_utc=enddt_utc,
+                obstypes=obstype,
+            )
+
+        else:
+            Modl.get_gee_dataset_data(
+                mapname=modelname,
+                metadf=metadf,
+                startdt_utc=startdt_utc,
+                enddt_utc=enddt_utc,
+                obstypes=obstype,
+            )
+
+        print(
+            f"(When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is {modelname})"
+        )
+        logger.info(
+            f"(When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is {modelname})"
+        )
+        return Modl
 
     def write_to_csv(
         self,

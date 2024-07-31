@@ -30,20 +30,9 @@ from metobs_toolkit.qc_checks import (
     titan_sct_resistant_check,
 )
 
-from metobs_toolkit.gap import find_gaps
-
 from metobs_toolkit.plotting_functions import qc_stats_pie
 from metobs_toolkit.qc_statistics import get_freq_statistics
 from metobs_toolkit.df_helpers import (
-    multiindexdf_datetime_subsetting,
-    # fmt_datetime_argument,
-    init_multiindex,
-    init_multiindexdf,
-    # init_triple_multiindexdf,
-    metadf_to_gdf,
-    # conv_applied_qc_to_df,
-    get_freqency_series,
-    value_labeled_doubleidxdf_to_triple_idxdf,
     xs_save,
     concat_save,
 )
@@ -343,7 +332,6 @@ class DatasetQCCore:
                 obsdf, outl_df = repetitions_check(
                     obsdf=self.df,
                     obstype=obstype,
-                    outlierlabel=self.settings.label_def[checkname]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -365,7 +353,6 @@ class DatasetQCCore:
                 obsdf, outl_df = gross_value_check(
                     obsdf=self.df,
                     obstype=obstype,
-                    outlierlabel=self.settings.label_def[checkname]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -387,7 +374,6 @@ class DatasetQCCore:
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
                     obstype=obstype,
-                    outlierlabel=self.settings.label_def[checkname]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -408,7 +394,6 @@ class DatasetQCCore:
                 obsdf, outl_df = step_check(
                     obsdf=self.df,
                     obstype=obstype,
-                    outlierlabel=self.settings.label_def[checkname]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -429,7 +414,6 @@ class DatasetQCCore:
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
                     obstype=obstype,
-                    outlierlabel=self.settings.label_def[checkname]["label"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -598,7 +582,6 @@ class DatasetQCCore:
                 std_threshold=buddy_set["threshold"],
                 metric_epsg=metric_epsg,
                 lapserate=buddy_set["elev_gradient"],
-                outlierlabel=self.settings.label_def[checkname]["label"],
                 haversine_approx=haversine_approx,
             )
 
@@ -760,7 +743,6 @@ class DatasetQCCore:
                 obsdf=self.df,
                 metadf=self.metadf,
                 obstype=obstype,
-                outlierlabel=self.settings.label_def[checkname]["label"],
                 checks_settings=self.settings.qc["titan_check_settings"][checkname][
                     obstype
                 ],
@@ -910,7 +892,6 @@ class DatasetQCCore:
                 obsdf=self.df,
                 metadf=self.metadf,
                 obstype=obstype,
-                outlierlabel=self.settings.label_def[checkname]["label"],
                 checks_settings=self.settings.qc["titan_check_settings"][checkname][
                     obstype
                 ],

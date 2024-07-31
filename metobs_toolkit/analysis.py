@@ -10,7 +10,10 @@ import pandas as pd
 import numpy as np
 import logging
 from scipy.stats import pearsonr
-from metobs_toolkit.settings_files.default_formats_settings import gapfill_label_group
+from metobs_toolkit.settings_files.default_formats_settings import (
+    gapfill_label_group,
+    label_def,
+)
 from metobs_toolkit.plotting_functions import (
     cycle_plot,
     heatmap_plot,
@@ -78,11 +81,8 @@ class Analysis(Dataset):
             mergedf = self.get_full_status_df(return_as_wide=False)
 
             # get all ok and all fill-method labels
-            fill_labels = [
-                self.settings.label_def[method]["label"]
-                for method in gapfill_label_group
-            ]
-            wanted_labels = [self.settings.label_def["goodrecord"]["label"]]
+            fill_labels = [label_def[method]["label"] for method in gapfill_label_group]
+            wanted_labels = [label_def["goodrecord"]["label"]]
             wanted_labels.extend(fill_labels)
 
             # subset to good and gapfilled labels

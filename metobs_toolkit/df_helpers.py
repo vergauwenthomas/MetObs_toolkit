@@ -70,130 +70,16 @@ def init_multiindexdf():
     return pd.DataFrame(index=init_multiindex())
 
 
-def init_triple_multiindex():
-    """Construct a name-datetime-obstype pandas multiindex."""
+def empty_outliers_df():
+    """Construct an empty outliersdf."""
     my_index = pd.MultiIndex(
         levels=[["name"], ["obstype"], ["datetime"]],
         codes=[[], [], []],
         names=["name", "obstype", "datetime"],
     )
-    return my_index
 
-
-def empty_outliers_df():
-    """Construct an empty outliersdf."""
-    outliersdf = pd.DataFrame(
-        index=init_triple_multiindex(), columns=["value", "label"]
-    )
+    outliersdf = pd.DataFrame(index=my_index, columns=["value", "label"])
     return outliersdf
-
-
-def init_triple_multiindexdf():
-    """Construct a name-obstype-datetime pandas multiindexdataframe."""
-    return pd.DataFrame(index=init_triple_multiindex())
-
-
-def format_outliersdf_to_doubleidx(outliersdf):
-    """Convert outliersdf to multiindex dataframe if needed.
-
-    This is applied when the obstype level in the index is not relevant.
-
-
-    Parameters
-    ----------
-    ouliersdf : Dataset.outliersdf
-        The outliers dataframe to format to name - datetime index.
-
-    Returns
-    -------
-    pandas.DataFrame
-        The outliersdfdataframe where the 'obstype' level is dropped, if it was present.
-
-    """
-    if "obstype" in outliersdf.index.names:
-        return outliersdf.droplevel("obstype")
-    else:
-        return outliersdf
-
-
-def value_labeled_doubleidxdf_to_triple_idxdf(
-    df, known_obstypes, value_col_name="value", label_col_name="label"
-):
-    """Convert double to triple index based on obstype column.
-
-    This function converts a double index dataframe with an 'obstype' column,
-    and a 'obstype_final_label' column to a triple index dataframe where the
-    obstype values are added to the index.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataframe with ['name', 'datetime'] as index and two columns: [obstype, obstype_final_label].
-        Where obstype is an observation type.
-    known_obstypes : list
-        A list of known observation types. These consist of the default
-        obstypes and the ones added by the user.
-    value_col_name : str, optional
-        Name of the column for the values. The default is 'value'.
-    label_col_name : str, optional
-        Name of the column for the labels. The default is 'label'.
-
-    Returns
-    -------
-    values : pd.DataFrame()
-        Dataframe with a ['name', 'datetime', obstype] index and two columnd:
-            [value_col_name, label_col_name]
-
-    """
-    if df.empty:
-        return df
-
-    present_obstypes = [col for col in df.columns if col in known_obstypes]
-
-    # get all values in triple index form
-    values = (
-        df[present_obstypes]
-        .stack(future_stack=True)
-        .reset_index()
-        .rename(columns={"level_2": "obstype", 0: value_col_name})
-        .set_index(["name", "datetime", "obstype"])
-    )
-
-    # make a triple label dataframe
-    labelsdf = pd.DataFrame()
-    for obstype in present_obstypes:
-        subdf = df.loc[:, [obstype + "_final_label"]]
-        subdf["obstype"] = obstype
-        subdf = subdf.reset_index()
-        subdf = subdf.set_index(["name", "datetime", "obstype"])
-        subdf = subdf.rename(columns={obstype + "_final_label": label_col_name})
-
-        labelsdf = concat_save([labelsdf, subdf])
-
-    values[label_col_name] = labelsdf[label_col_name]
-
-    return values
-
-
-def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
-    if where == "before":
-        diff = refdt - (series_of_dt[series_of_dt < refdt])
-    elif where == "after":
-        diff = (series_of_dt[series_of_dt > refdt]) - refdt
-
-    if diff.empty:
-        # no occurences before of after
-
-        return np.nan
-    else:
-        return min(diff).total_seconds()
-
-
-def remove_outliers_from_obs(obsdf, outliersdf):
-    """Remove outlier records from observation records."""
-    # TODO this function can only be used with care!!!
-    # because all timestamps will be removed that have an oulier in one specific obstype !!!!
-    return obsdf.loc[~obsdf.index.isin(outliersdf.index)]
 
 
 def conv_tz_multiidxdf(df, timezone):
@@ -325,29 +211,6 @@ def datetime_subsetting(df, starttime, endtime):
     subset = subset.set_index(idx_names)
     subset = subset.sort_index()
     return subset
-
-
-# def conv_applied_qc_to_df(obstypes, ordered_checknames):
-#     """Construct dataframe with applied QC info."""
-#     if isinstance(obstypes, str):
-#         obstypes = [obstypes]
-#     if isinstance(ordered_checknames, str):
-#         ordered_checknames = [ordered_checknames]
-
-#     obslist = list(
-#         itertools.chain.from_iterable(
-#             itertools.repeat(item, len(ordered_checknames)) for item in obstypes
-#         )
-#     )
-
-#     checknamelist = list(
-#         itertools.chain.from_iterable(
-#             itertools.repeat(ordered_checknames, len(obstypes))
-#         )
-#     )
-
-#     df = pd.DataFrame({"obstype": obslist, "checkname": checknamelist})
-#     return df
 
 
 # =============================================================================

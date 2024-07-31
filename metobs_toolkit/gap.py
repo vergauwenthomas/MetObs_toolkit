@@ -10,21 +10,17 @@ import pandas as pd
 
 import logging
 import datetime
-import math
-
 
 import metobs_toolkit.gap_filling as gap_filling
 
 from metobs_toolkit.df_helpers import (
-    format_outliersdf_to_doubleidx,
     init_multiindexdf,
+    xs_save,
     concat_save,
-    get_likely_frequency,
-    _find_closes_occuring_date,
 )
 
 from metobs_toolkit.obstypes import Obstype as Obstype_class
-from metobs_toolkit.df_helpers import init_multiindex, xs_save
+
 
 from metobs_toolkit.settings_files.default_formats_settings import (
     label_def,
@@ -143,6 +139,50 @@ class Gap:
 
         self._set_gapdf(gapdf)
 
+    # =============================================================================
+    # Getters
+    # =============================================================================
+
+    def _get_gapfill_status(self):
+        # Warning! do not change these labels (or replace all hardcode occurences)
+        # if not self.does_gap_holds_missing_records():
+        #     return "Gap does not exist in observation space"
+        if self.gapdf[f"{self.obstype.name}_fill"].isnull().all():
+            return "Unfilled gap"
+        if self.gapdf[f"{self.obstype.name}_fill"].isnull().any():
+            return "Partially filled gap"
+        else:
+            return "Filled gap"
+
+    def get_info(self):
+        """Print detailed information of a gap."""
+
+        print("---- Gap info -----")
+        print(
+            "(Note: gaps start and end are defined on the frequency estimation of the native dataset.)"
+        )
+        print(f"  * Gap for station: {self.name}")
+        print(f"  * Start gap: {self.startdt}")
+        print(f"  * End gap: {self.enddt}")
+        print(f"  * Duration gap: {self.duration}")
+        print(f"  * For {self.obstype.name}")
+        print(f"  * Gapfill status >>>> {self._get_gapfill_status()}")
+        # if not self.does_gap_holds_missing_records():
+        #     print(
+        #         "The gap is unreal (=no missing records at the current frequency resolution)."
+        #     )
+
+        if not self.anchordf.empty:
+            print("---- Anchor Data Frame ----- ")
+            print(self.anchordf)
+
+        print("---- Gap Data Frame -----")
+        print(self.gapdf)
+
+    # =============================================================================
+    # Setters
+    # =============================================================================
+
     def _set_gapdf(self, gapdf):
         # TODO: checks
         if list(gapdf.index.names) != ["name", "datetime"]:
@@ -192,6 +232,10 @@ class Gap:
 
         self.anchordf = anchordf
 
+    # =============================================================================
+    # Checks
+    # =============================================================================
+
     def _can_be_filled(self, overwrite_fill):
         """Returns True if no fill values are present."""
 
@@ -204,241 +248,6 @@ class Gap:
 
         else:
             return False
-
-    def _get_gapfill_status(self):
-        # Warning! do not change these labels (or replace all hardcode occurences)
-        # if not self.does_gap_holds_missing_records():
-        #     return "Gap does not exist in observation space"
-        if self.gapdf[f"{self.obstype.name}_fill"].isnull().all():
-            return "Unfilled gap"
-        if self.gapdf[f"{self.obstype.name}_fill"].isnull().any():
-            return "Partially filled gap"
-        else:
-            return "Filled gap"
-
-    def get_info(self):
-        """Print detailed information of a gap."""
-
-        print("---- Gap info -----")
-        print(
-            "(Note: gaps start and end are defined on the frequency estimation of the native dataset.)"
-        )
-        print(f"  * Gap for station: {self.name}")
-        print(f"  * Start gap: {self.startdt}")
-        print(f"  * End gap: {self.enddt}")
-        print(f"  * Duration gap: {self.duration}")
-        print(f"  * For {self.obstype.name}")
-        print(f"  * Gapfill status >>>> {self._get_gapfill_status()}")
-        # if not self.does_gap_holds_missing_records():
-        #     print(
-        #         "The gap is unreal (=no missing records at the current frequency resolution)."
-        #     )
-
-        if not self.anchordf.empty:
-            print("---- Anchor Data Frame ----- ")
-            print(self.anchordf)
-
-        print("---- Gap Data Frame -----")
-        print(self.gapdf)
-
-    # def get_info(self):
-    #     """Print detailed information of a gap."""
-    #     print(f"Gap for {self.name} with:")
-    #     print("---- Gap info -----")
-    #     print(
-    #         "(Note: gaps are defined on the frequency estimation of the native dataset.)"
-    #     )
-    #     print(f"  * Start gap: {self.startgap}")
-    #     print(f"  * End gap: {self.endgap}")
-    #     print(f"  * Duration gap: {self.duration}")
-    #     print("---- Gap fill info -----")
-    #     obstypes = self.gapfill_df.columns.to_list()
-    #     obstypes = [obst for obst in obstypes if not obst.endswith("_final_label")]
-    #     if self.gapfill_df.empty:
-    #         print("(No gapfill applied)")
-    #     elif self.gapfill_technique == "gap_interpolation":
-    #         for obstype in obstypes:
-    #             print(f"  * On observation type: {obstype}")
-    #             print(f"  * Technique: {self.gapfill_technique}")
-    #             if bool(self.leading_val):
-    #                 leading_val = self.leading_val[obstype]
-    #             else:
-    #                 leading_val = "No leading observation value"
-    #             print(
-    #                 f"  * Leading timestamp: {self.leading_timestamp} with  {obstype} = {leading_val}"
-    #             )
-    #             if bool(self.trailing_val):
-    #                 trailing_val = self.trailing_val[obstype]
-    #             else:
-    #                 trailing_val = "No trailing observation value"
-    #             print(
-    #                 f"  * Trailing timestamp: {self.trailing_timestamp} with  {obstype} = {trailing_val}"
-    #             )
-    #             print(f"  * Filled values: {self.gapfill_df[obstype]}")
-    #             if obstype in self.gapfill_errormessage:
-    #                 print(f"  * Gapfill message: {self.gapfill_errormessage[obstype]}")
-    #             if self.gapfill_info is not None:
-    #                 print(f"  * Gapfill info: {self.gapfill_info.head()}")
-    #                 print(
-    #                     "    (Extract the gapfill info dataframe by using the .gapfill_info attribute)"
-    #                 )
-
-    #     elif self.gapfill_technique == "gap_debiased_era5":
-    #         for obstype in obstypes:
-    #             print(f"  * On observation type: {obstype}")
-    #             print(f"  * Technique: {self.gapfill_technique}")
-    #             # print(f'  * Leading timestamp: {self.leading_timestamp} with  {obstype} = {self.leading_val[obstype]}\n')
-    #             # print(f'  * Trailing timestamp: {self.trailing_timestamp} with  {obstype} = {self.trailing_val[obstype]}\n')
-    #             print(f"  * Filled values: {self.gapfill_df[obstype]}")
-    #             if obstype in self.gapfill_errormessage:
-    #                 print(f"  * Gapfill message: {self.gapfill_errormessage[obstype]}")
-    #             if self.gapfill_info is not None:
-    #                 print(f"  * Gapfill info: {self.gapfill_info.head()}")
-    #                 print(
-    #                     "    (Extract the gapfill info dataframe by using the .gapfill_info attribute)"
-    #                 )
-
-    #     else:
-    #         print("technique not implemented in yet in show")
-
-    # def to_df(self):
-    #     """Convert a Gap object to a dataframe (with one row).
-
-    #     The station name is the index and two colums ('start_gap', 'end_gap')
-    #     are constructed.
-
-    #     Returns
-    #     -------
-    #     pandas.DataFrame()
-    #         Gap in dataframe format.
-
-    #     """
-    #     returndf = pd.DataFrame(
-    #         index=[self.name],
-    #         data={
-    #             "start_gap": self.startgap,
-    #             "end_gap": self.endgap,
-    #             "duration": self.duration,
-    #         },
-    #     )
-    #     returndf.index.name = "name"
-    #     return returndf
-
-    # def update_leading_trailing_obs(self, obsdf, outliersdf, obs_only=False):
-    #     """Update leading and trailing periods in the attributes.
-
-    #     Add the leading (last obs before gap) and trailing (first obs after gap)
-    #     as extra columns to the self.df.
-
-    #     One can specify to look for leading and trailing in the obsdf or in both
-    #     the obsdf and outliersdf.
-
-    #     The gap leading and trailing timestamps and value attributes are updated.
-
-    #     If no leading/trailing timestamp is found, it is set to the gaps startdt/enddt.
-
-    #     Parameters
-    #     ----------
-    #     obsdf : pandas.DataFrame
-    #         Dataset.df
-    #     outliersdf : pandas.DataFrame
-    #         Dataset.outliersdf
-    #     obs_only: bool, optional
-    #         If True, only the obsdf will be used to search for leading and trailing.
-
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-    #     sta_obs = xs_save(obsdf, self.name, level="name").index
-    #     if obs_only:
-    #         sta_comb = sta_obs
-    #     else:
-
-    #         outliersdf = format_outliersdf_to_doubleidx(outliersdf)
-
-    #         # combine timestamps of observations and outliers
-    #         sta_outl = xs_save(outliersdf, self.name, level="name").index
-    #         if sta_outl.empty:
-    #             sta_comb = sta_obs
-    #         else:
-    #             sta_comb = sta_obs.append(sta_outl)
-
-    #     # find minimium timediff before
-    #     before_diff = _find_closes_occuring_date(
-    #         refdt=self.startgap, series_of_dt=sta_comb, where="before"
-    #     )
-
-    #     # if no timestamps are before gap, assume gap at the start of the observations
-    #     if math.isnan(before_diff):
-    #         before_diff = 0.0
-
-    #     # find minimum timediff after gap
-    #     after_diff = _find_closes_occuring_date(
-    #         refdt=self.endgap, series_of_dt=sta_comb, where="after"
-    #     )
-    #     # if no timestamps are after gap, assume gap at the end of the observations
-    #     if math.isnan(after_diff):
-    #         after_diff = 0.0
-
-    #     # get before and after timestamps
-    #     self.leading_timestamp = self.startgap - datetime.timedelta(seconds=before_diff)
-    #     self.trailing_timestamp = self.endgap + datetime.timedelta(seconds=after_diff)
-
-    #     # get the values
-    #     try:
-    #         self.leading_val = obsdf.loc[(self.name, self.leading_timestamp)].to_dict()
-    #     except KeyError:
-    #         logger.warning("Leading value not found in the observations")
-    #         self.leading_val = {}
-    #     try:
-    #         self.trailing_val = obsdf.loc[
-    #             (self.name, self.trailing_timestamp)
-    #         ].to_dict()
-    #     except KeyError:
-    #         logger.warning("Trailing value not found in the observations")
-    #         self.trailing_val = {}
-
-    # def update_gaps_indx_in_obs_space(self, obsdf, outliersdf, dataset_res):
-    #     """Get the gap records in observation-space.
-
-    #     Explode the gap, to the dataset resolution and format to a multiindex
-    #     with name -- datetime.
-
-    #     In addition the last observation before the gap (leading), and first
-    #     observation (after) the gap are computed and stored in the df attribute.
-    #     (the outliers are used to look for leading and trailing observations.)
-
-    #     Parameters
-    #     ----------
-    #     obsdf : Dataset.df
-    #         The Dataset.df attribute. (Needed to extract trailing/leading
-    #                                    observations.)
-    #     outliersdf : Dataset.outliersdf
-    #         The Dataset.outliersdf attribute.(Needed to extract trailing/leading
-    #                                           observations.))
-    #     resolutionseries : Datetime.timedelta
-    #         Resolution of the station observations in the dataset.
-
-    #     Returns
-    #     -------
-    #     None
-
-    #     """
-    #     outliersdf = format_outliersdf_to_doubleidx(outliersdf)
-    #     self.update_leading_trailing_obs(obsdf, outliersdf)
-
-    #     gaprange = pd.date_range(
-    #         start=self.leading_timestamp,
-    #         end=self.trailing_timestamp,
-    #         freq=dataset_res,
-    #         inclusive="neither",
-    #     )
-
-    #     self.exp_gap_idx = pd.MultiIndex.from_arrays(
-    #         arrays=[[self.name] * len(gaprange), gaprange], names=["name", "datetime"]
-    #     )
 
     # =============================================================================
     #         Gapfill
@@ -844,7 +653,7 @@ class Gap:
         self._set_gapdf(gapdf)
 
     # =============================================================================
-    #  Gapfill anchor methods
+    #  Get Anchor methods
     # =============================================================================
     def get_leading_period(
         self,
@@ -1097,11 +906,6 @@ def get_station_gaps(gapslist, name):
 
 
 # =============================================================================
-# Helpers
-# =============================================================================
-
-
-# =============================================================================
 # Gap finders
 # =============================================================================
 def find_gaps(df, metadf, outliersdf, obstypes):
@@ -1158,8 +962,6 @@ def find_gaps(df, metadf, outliersdf, obstypes):
 # =============================================================================
 # Errors
 # =============================================================================
-
-
 class MetobsGapError(Exception):
     """Exception raised for errors in the Gap() class"""
 

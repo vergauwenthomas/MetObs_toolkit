@@ -13,6 +13,7 @@ import pandas as pd
 
 import datetime as datetimemodule
 
+from metobs_toolkit.settings_files.default_formats_settings import label_def
 from metobs_toolkit.qc_checks import duplicate_timestamp_check
 from metobs_toolkit.df_helpers import (
     # multiindexdf_datetime_subsetting,
@@ -161,7 +162,7 @@ class DatasetBase(object):
         return dt
 
     # =============================================================================
-    #     attribute setters
+    #     Setters
     # =============================================================================
     def _set_df(
         self,
@@ -246,7 +247,7 @@ class DatasetBase(object):
 
         """
 
-        if checkname not in self.settings.label_def.keys():
+        if checkname not in label_def.keys():
             raise MetobsDatasetBaseError(f"{checkname} is not a known checkname.")
         # add it to the applied checks
         if isinstance(obstypename, str):
@@ -393,26 +394,6 @@ class DatasetBase(object):
             )
 
     # =============================================================================
-    # Data attribute updaters
-    # =============================================================================
-
-    def _remove_nan_names(self):
-        """if the name is Nan, remove these records from df, and metadf (before)
-        # they end up in the gaps and missing obs"""
-
-        if np.nan in self.df.index.get_level_values("name"):
-            logger.warning(
-                f'Following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}'
-            )
-            self.df = self.df[~self.df.index.get_level_values("name").isna()]
-
-        if np.nan in self.metadf.index:
-            logger.warning(
-                f"Following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}"
-            )
-            self.metadf = self.metadf[~self.metadf.index.isna()]
-
-    # =============================================================================
     # Construction methods for creating a Dataset
     # =============================================================================
 
@@ -485,7 +466,6 @@ class DatasetBase(object):
         # Remove duplicates (needed in order to convert the units and find gaps)
         df, outliersdf = duplicate_timestamp_check(
             df=self.df,
-            outlierlabel=self.settings.label_def["duplicated_timestamp"]["label"],
             checks_settings=self.settings.qc["qc_check_settings"],
         )
         self._set_df(df=df)
@@ -581,7 +561,7 @@ class DatasetBase(object):
         # 4 All the Nan's in the to_checkdf are outliers triggerd as 'invalid'
         invalid_records = to_checkdf[~to_checkdf["value"].notnull()]
         # add the label of "invalid check' to it
-        invalid_records["label"] = self.settings.label_def[checkname]["label"]
+        invalid_records["label"] = label_def[checkname]["label"]
         # special case: duplicates in the invalid records
         invalid_records = invalid_records[~invalid_records.index.duplicated()]
 
@@ -628,6 +608,22 @@ class DatasetBase(object):
         self._set_df(
             df=triple_df, apply_dup_checks=False
         )  # duplicate have yet to be removed
+
+    def _remove_nan_names(self):
+        """if the name is Nan, remove these records from df, and metadf (before)
+        # they end up in the gaps and missing obs"""
+
+        if np.nan in self.df.index.get_level_values("name"):
+            logger.warning(
+                f'Following observations are not linked to a station name and will be removed: {xs_save(self.df, np.nan, "name")}'
+            )
+            self.df = self.df[~self.df.index.get_level_values("name").isna()]
+
+        if np.nan in self.metadf.index:
+            logger.warning(
+                f"Following station will be removed from the Dataset {self.metadf[self.metadf.index.isna()]}"
+            )
+            self.metadf = self.metadf[~self.metadf.index.isna()]
 
     def _construct_metadf(self, dataframe, use_metadata):
         """fill the metadf attribute
@@ -863,174 +859,6 @@ class DatasetBase(object):
             outliersdf
         )  # do not use the append_to_outliers, but overwrite them.
         return
-
-    # =============================================================================
-    # Base fuctions
-    # =============================================================================
-
-    def get_full_status_df(
-        self,
-        return_as_wide=True,
-    ):
-        """
-        TODO: docstring
-
-        Make one dataframe with all observations and their labels.
-
-        Combine all observations, outliers, missing observations and gaps into
-        one Dataframe. All observation types are combined an a label is added
-        in a serperate column.
-
-        When gaps and missing records are updated from outliers one has to choice
-        to represent these records as outliers or gaps. There can not be duplicates
-        in the return dataframe.
-
-        By default the observation values of the outliers are saved, one can
-        choice to use these values or NaN's.
-        following checks!
-
-        Parameters
-        ----------
-        repr_outl_as_nan : bool, optional
-            If True, Nan's are use for the values of the outliers. The
-            default is False.
-        overwrite_outliers_by_gaps_and_missing : Bool, optional
-            If True, records that are labeld as gap/missing and outlier are
-            labeled as gaps/missing. This has only effect when the gaps/missing
-            observations are updated from the outliers. The default is True.
-
-         Returns
-         ---------
-         combdf : pandas.DataFrame()
-            A dataframe containing a continious time resolution of records, where each
-            record is labeld.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                 *10080 observation records
-                 *1676 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-            >>>
-            >>> # Combine all records to one dataframe in Observation-resolution
-            >>> overview_df = dataset.get_full_status_df()
-            >>> overview_df.head(12)
-                                                                    value  ... toolkit_representation
-            name      datetime                  obstype                    ...
-            vlinder01 2022-09-01 00:00:00+00:00 humidity        65.000000  ...            observation
-                                                temp            18.800000  ...            observation
-                                                wind_direction  65.000000  ...            observation
-                                                wind_speed       1.555556  ...            observation
-                      2022-09-01 01:00:00+00:00 humidity        65.000000  ...            observation
-                                                temp            18.400000  ...            observation
-                                                wind_direction  55.000000  ...            observation
-                                                wind_speed       1.416667  ...            observation
-                      2022-09-01 02:00:00+00:00 humidity        68.000000  ...            observation
-                                                temp            17.100000  ...            observation
-                                                wind_direction  45.000000  ...            observation
-                                                wind_speed       1.583333  ...            observation
-            <BLANKLINE>
-            [12 rows x 3 columns]
-
-        """
-        # TODO: label values from settings not hardcoding
-
-        # TODO: use the repr_outl_as_nan argumenten here
-        # =============================================================================
-        # Stack observations and outliers
-        # =============================================================================
-        df = self.df
-        # note: df is a pointer, and adding these colmns will add them
-        # also in the self.df
-        df["label"] = "ok"
-        df["toolkit_representation"] = "observation"
-
-        # =============================================================================
-        # Stack outliers
-        # =============================================================================
-
-        outliersdf = self.outliersdf
-        outliersdf["toolkit_representation"] = "outlier"
-
-        combdf = pd.concat([df, outliersdf])  # combine the two
-
-        # Since outliers are present records in the df (as NaN's) we introduce
-        # duplicats in the index of combdf. We drop the duplicates and keep,
-        # the records comming from outliersdf (=last)
-
-        combdf = combdf[~combdf.index.duplicated(keep="last")]
-
-        # =============================================================================
-        # Stack gaps
-        # =============================================================================
-
-        gapsdf = (
-            self._get_gaps_df_for_stacking()
-        )  # get a gapdf in the long (similar as outliersdf) structure
-        # map labels to known labels (must have a color def in the settings)
-        if not gapsdf.empty:
-            gapsdf["label"] = gapsdf["fill_method"].replace(
-                {"not filled": self.settings.label_def["regular_gap"]["label"]}
-            )
-
-        gapsdf = gapsdf[["value", "label"]]
-
-        gapsdf["toolkit_representation"] = "gap"
-
-        combdf = pd.concat([combdf, gapsdf])  # combine
-
-        # Since gaps are present records in the df (as NaN's, because of the
-        # ideal freq structure in the df) we introduce
-        # duplicats in the index of combdf. We drop the duplicates and keep,
-        # the records comming from outliersdf (=last)
-
-        combdf = combdf[~combdf.index.duplicated(keep="last")]
-        # =============================================================================
-        # Formatting the combineddf
-        # =============================================================================
-
-        assert (
-            not combdf.index.duplicated().any()
-        ), "Duplicates found in the combdf --> report bug."
-
-        # for some reason the dtype of the datetime index-level is 'obstype' and
-        # thus not a datetimeindex. This must be fixed
-        combdf = combdf.reset_index()
-        combdf["datetime"] = pd.to_datetime(combdf["datetime"])
-        combdf = combdf.set_index(["name", "obstype", "datetime"]).sort_index()
-
-        if return_as_wide:
-            combdf = combdf.unstack(level="obstype").reorder_levels(
-                order=[1, 0], axis=1
-            )
-
-        # pointer issue
-        self.df = self.df[["value"]]
-        self.outliersdf = self.outliersdf[["value", "label"]]
-        return combdf
 
 
 # =============================================================================

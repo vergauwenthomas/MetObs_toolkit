@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import logging
 
-
+from metobs_toolkit.settings_files.default_formats_settings import label_def
 from metobs_toolkit.df_helpers import init_multiindex, init_multiindexdf, xs_save
 
 
@@ -185,7 +185,7 @@ def make_outlier_df_for_check(
 #     return df, outl_df
 
 
-def duplicate_timestamp_check(df, outlierlabel, checks_settings):
+def duplicate_timestamp_check(df, checks_settings):
     """Test for duplicate timestamps in the observations.
 
     Looking for duplcate timestaps per station. Duplicated records are removed by the method specified in the qc_settings.
@@ -194,8 +194,6 @@ def duplicate_timestamp_check(df, outlierlabel, checks_settings):
     ------------
     df : pandas.DataFrame
         The observations dataframe of the dataset object (Dataset.df)
-    outlierlabel: str
-        The label to use for flagged records.
     checks_settings : dict
         The dictionary containing the settings for the quality control checks.
 
@@ -224,7 +222,7 @@ def duplicate_timestamp_check(df, outlierlabel, checks_settings):
     # convert values to nan in obsdf
     df.loc[duplicates] = np.nan
     # add label column
-    outliersdf["label"] = outlierlabel
+    outliersdf["label"] = label_def[checkname]["label"]
 
     # drop duplicates in the obsdf, because this gives a lot of troubles
     # The method does not really mater because the values are set to nan in the observations
@@ -238,7 +236,7 @@ def duplicate_timestamp_check(df, outlierlabel, checks_settings):
 # =============================================================================
 
 
-def gross_value_check(obsdf, obstype, outlierlabel, checks_settings):
+def gross_value_check(obsdf, obstype, checks_settings):
     """Filter out gross outliers from the observations.
 
     Looking for values of an observation type that are not physical. These
@@ -256,8 +254,6 @@ def gross_value_check(obsdf, obstype, outlierlabel, checks_settings):
         index (name, obstype, datetime).
     obstype : str
         The observation type to check for outliers.
-    outlierlabel: str
-        The label to use for flagged records.
     checks_settings : dict
         The dictionary containing the settings for the quality control checks.
 
@@ -298,15 +294,13 @@ def gross_value_check(obsdf, obstype, outlierlabel, checks_settings):
         station_dt_list=outl_obs,
         obsdf=obsdf,
         obstype=obstype,
-        flag=outlierlabel,
+        flag=label_def[checkname]["label"],
     )
 
     return obsdf, outlier_df
 
 
-def persistance_check(
-    station_frequencies, obsdf, obstype, outlierlabel, checks_settings
-):
+def persistance_check(station_frequencies, obsdf, obstype, checks_settings):
     """Test observations to change over a specific period.
 
     Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
@@ -335,8 +329,6 @@ def persistance_check(
         index (name, obstype, datetime).
     obstype : str
         The observation type to check for outliers.
-    outlierlabel: str
-        The label to use for flagged records.
     checks_settings : dict
         The dictionary containing the settings for the quality control checks.
 
@@ -434,7 +426,7 @@ def persistance_check(
             station_dt_list=list_of_outliers,
             obsdf=subset_used,
             obstype=obstype,
-            flag=outlierlabel,
+            flag=label_def[checkname]["label"],
         )
 
         obsdf = pd.concat([subset_used, subset_not_used]).sort_index()
@@ -447,7 +439,7 @@ def persistance_check(
         return obsdf, init_multiindexdf()
 
 
-def repetitions_check(obsdf, obstype, outlierlabel, checks_settings):
+def repetitions_check(obsdf, obstype, checks_settings):
     """Test if observation change after a number of records.
 
     Looking for values of an observation type that are repeated at least with
@@ -468,8 +460,6 @@ def repetitions_check(obsdf, obstype, outlierlabel, checks_settings):
         index (name, obstype, datetime).
     obstype : str
         The observation type to check for outliers.
-    outlierlabel: str
-        The label to use for flagged records.
     checks_settings : dict
         The dictionary containing the settings for the quality control checks.
 
@@ -534,13 +524,13 @@ def repetitions_check(obsdf, obstype, outlierlabel, checks_settings):
         station_dt_list=outl_obs,
         obsdf=obsdf,
         obstype=obstype,
-        flag=outlierlabel,
+        flag=label_def[checkname]["label"],
     )
 
     return obsdf, outlier_df
 
 
-def step_check(obsdf, obstype, outlierlabel, checks_settings):
+def step_check(obsdf, obstype, checks_settings):
     """Test if observations do not produces spikes in timeseries.
 
     Looking for jumps of the values of an observation type that are larger than
@@ -640,15 +630,13 @@ def step_check(obsdf, obstype, outlierlabel, checks_settings):
         station_dt_list=list_of_outliers,
         obsdf=obsdf,
         obstype=obstype,
-        flag=outlierlabel,
+        flag=label_def[checkname]["label"],
     )
 
     return obsdf, outlier_df
 
 
-def window_variation_check(
-    station_frequencies, obsdf, obstype, outlierlabel, checks_settings
-):
+def window_variation_check(station_frequencies, obsdf, obstype, checks_settings):
     """Test if the variation exeeds threshold in moving time windows.
 
     Looking for jumps of the values of an observation type that are larger than
@@ -687,8 +675,6 @@ def window_variation_check(
         index (name, obstype, datetime).
     obstype : str
         The observation type to check for outliers.
-    outlierlabel: str
-        The label to use for flagged records.
     checks_settings : dict
         The dictionary containing the settings for the quality control checks.
 
@@ -794,7 +780,7 @@ def window_variation_check(
             station_dt_list=list_of_outliers,
             obsdf=subset_used,
             obstype=obstype,
-            flag=outlierlabel,
+            flag=label_def[checkname]["label"],
         )
 
         obsdf = pd.concat([subset_used, subset_not_used])
@@ -888,7 +874,6 @@ def toolkit_buddy_check(
     max_alt_diff,
     min_std,
     std_threshold,
-    outlierlabel,
     haversine_approx=True,
     metric_epsg="31370",
     lapserate=-0.0065,
@@ -932,8 +917,6 @@ def toolkit_buddy_check(
         represent the accuracty of the observations.
     std_threshold : numeric
         The threshold (std units) for flaggging observations as outliers.
-    outlierlabel: str
-        The label to use for flagged records.
     haversine_approx : bool, optional
         Use the haversine approximation (earth is a sphere) to calculate
         distances between stations. The default is True.
@@ -1043,7 +1026,7 @@ def toolkit_buddy_check(
         station_dt_list=outliers_idx,
         obsdf=obsdf,
         obstype=obstype,
-        flag=outlierlabel,
+        flag=label_def["buddy_check"]["label"],
     )
 
     return obsdf, outlier_df
@@ -1105,9 +1088,7 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
     return points_dict
 
 
-def titan_buddy_check(
-    obsdf, metadf, obstype, outlierlabel, checks_settings, titan_specific_labeler
-):
+def titan_buddy_check(obsdf, metadf, obstype, checks_settings, titan_specific_labeler):
     """Apply the Titanlib buddy check.
 
     The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
@@ -1124,8 +1105,6 @@ def titan_buddy_check(
         The dataframe containing the metadata (e.g. latitude, longitude...)
     obstype: String, optional
         The observation type that has to be checked. The default is 'temp'
-    outlierlabel: str
-        The label to use for flagged records.
     checks_settings: Dictionary
         Dictionary with the settings for each check
     titan_specific_labeler: Dictionary
@@ -1189,14 +1168,14 @@ def titan_buddy_check(
         station_dt_list=outliersdf.index,
         obsdf=obsdf,
         obstype=obstype,
-        flag=outlierlabel,
+        flag=label_def["titan_buddy_check"]["label"],
     )
 
     return obsdf, outliersdf
 
 
 def titan_sct_resistant_check(
-    obsdf, metadf, obstype, outlierlabel, checks_settings, titan_specific_labeler
+    obsdf, metadf, obstype, checks_settings, titan_specific_labeler
 ):
     """Apply the Titanlib (robust) Spatial-Consistency-Test (SCT).
 
@@ -1212,9 +1191,7 @@ def titan_sct_resistant_check(
     metadf: Pandas.DataFrame
         The dataframe containing the metadata (e.g. latitude, longitude...)
     obstype: String, optional
-        The observation type that has to be checked. The default is 'temp'
-    outlierlabel: str
-        The label to use for flagged records.
+        The observation type that has to be checked. The default is 'temp'.
     checks_settings: Dictionary
         Dictionary with the settings for each check
     titan_specific_labeler: Dictionary
@@ -1308,7 +1285,7 @@ def titan_sct_resistant_check(
         station_dt_list=outliersdf.index,
         obsdf=obsdf,
         obstype=obstype,
-        flag=outlierlabel,
+        flag=label_def["titan_sct_resistant_check"]["label"],
     )
 
     return obsdf, outliersdf

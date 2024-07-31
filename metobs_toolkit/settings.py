@@ -27,8 +27,6 @@ class Settings:
         logger.info("Initialising settings")
 
         # define thematics in settings. Corresponds to settings files.
-        # self.time_settings = {}
-        self.label_def = {}  # all used labels
         self.app = {}
         self.qc = {}
         # self.gap = {}
@@ -42,10 +40,9 @@ class Settings:
         }
 
         # Update (instance and class variables) what can be updated by setingsfiles
-        # self._update_time_res_settings()
+
         self._update_app_settings()
         self._update_qc_settings()
-        # self._update_gap_settings()
         self._update_gee_settings()
 
     # =============================================================================
@@ -92,8 +89,6 @@ class Settings:
         # 5. default name (when station name is not present in dataset)
         self.app["default_name"] = default_name
 
-        self.label_def = label_def
-
     def _update_qc_settings(self):
         """
         Update quality control settings of self using the default settings templates.
@@ -115,32 +110,6 @@ class Settings:
         self.qc["titan_check_settings"] = titan_check_settings
         self.qc["titan_specific_labeler"] = titan_specific_labeler
 
-    # def _update_gap_settings(self):
-    #     """
-    #     Update gap defenition and fill settings of self using the default settings templates.
-
-    #     Returns
-    #     -------
-    #     None.
-    #     """
-    #     logger.debug("Updating gap settings.")
-    #     from .settings_files.gaps_and_missing_settings import (
-    #         gaps_settings,
-    #         gaps_info,
-    #         gaps_fill_settings,
-    #         gaps_fill_info,
-    #         # missing_obs_fill_settings,
-    #         # missing_obs_fill_info,
-    #     )
-
-    #     self.gap["gaps_settings"] = gaps_settings
-    #     self.gap["gaps_info"] = gaps_info
-    #     self.gap["gaps_fill_settings"] = gaps_fill_settings
-    #     self.gap["gaps_fill_info"] = gaps_fill_info
-
-    # self.missing_obs["missing_obs_fill_settings"] = missing_obs_fill_settings
-    # self.missing_obs["missing_obs_fill_info"] = missing_obs_fill_info
-
     def _update_gee_settings(self):
         """
         Update the google earth enginge settings using the default settings templates.
@@ -153,31 +122,6 @@ class Settings:
         from .settings_files.gee_settings import gee_datasets
 
         self.gee["gee_dataset_info"] = gee_datasets
-
-    # def update_timezone(self, timezonestr):
-    #     """
-    #     Change the timezone of the input data.
-
-    #     Parameters
-    #     ------------
-    #     timezonestr : str
-    #         Timezone string of the input observations.
-
-    #     Returns
-    #     -------
-    #     None.
-    #     """
-    #     if timezonestr not in all_timezones:
-    #         print(
-    #             f"timezone: {timezonestr}, is not a valid timezone. Select one of the following:"
-    #         )
-    #         print(f"{common_timezones}")
-    #         return
-    #     else:
-    #         logger.info(
-    #             f'Update timezone: {self.time_settings["timezone"]} --> {timezonestr}'
-    #         )
-    #         self.time_settings["timezone"] = timezonestr
 
     def update_IO(
         self,
@@ -255,7 +199,7 @@ class Settings:
             if not callable(getattr(Settings, attr)) and not attr.startswith("__")
         ]
 
-        attr_list = ["IO", "app", "qc", "templatefile", "gee", "label_def"]
+        attr_list = ["IO", "app", "qc", "templatefile", "gee"]
 
         # Drop variables starting with _
         class_vars_name = [mem for mem in class_vars_name if not mem.startswith("_")]
