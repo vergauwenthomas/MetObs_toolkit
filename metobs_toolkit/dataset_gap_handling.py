@@ -137,6 +137,8 @@ class DatasetGapCore:
         overwrite_fill=False,
         method="time",
         max_consec_fill=10,
+        n_leading_anchors=1,
+        n_trailing_anchors=1,
         max_lead_to_gap_distance=None,
         max_trail_to_gap_distance=None,
         method_kwargs={},
@@ -155,9 +157,19 @@ class DatasetGapCore:
             values will be overwitten. The default is False.
         method : str, optional
             Intepolation technique to use. See pandas.DataFrame.interpolate
-            'method' argument for possible values. The default is "time".
+            'method' argument for possible values. Make shure that
+            `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
+            set accordingly to the method. The default is "time".
         max_consec_fill : int, optional
             The maximum number of consecutive missing records to fill. The default is 10.
+        n_leading_anchor : int, optional
+            The number of leading anchors to use for the interpolation. Higher
+            order polynomial interpolation techniques require multiple leading
+            anchors. The default is 1.
+        n_trailing_anchor : int, optional
+            The number of trailing anchors to use for the interpolation. Higher
+            order polynomial interpolation techniques require multiple trailing
+            anchors. The default is 1.
         max_lead_to_gap_distance : str or pandas.Timedelta, optional
             The maximum time difference between the start of the gap and a
             suitable lead (= the good record to start the interpolation from).
@@ -279,6 +291,8 @@ class DatasetGapCore:
         of your records.
 
         """
+        max_lead_to_gap_distance = self._timedelta_arg_check(max_lead_to_gap_distance)
+        max_trail_to_gap_distance = self._timedelta_arg_check(max_trail_to_gap_distance)
 
         # TODO logging
         for gap in self.gaps:
@@ -293,9 +307,11 @@ class DatasetGapCore:
                 else:
                     logger.debug(f"filling {gap} with {method} interpolation.")
                     gap.interpolate_gap(
-                        records=self.df,
+                        Dataset=self,
                         method=method,
                         max_consec_fill=max_consec_fill,
+                        n_leading_anchors=n_leading_anchors,
+                        n_trailing_anchors=n_trailing_anchors,
                         max_lead_to_gap_distance=max_lead_to_gap_distance,
                         max_trail_to_gap_distance=max_trail_to_gap_distance,
                         method_kwargs=method_kwargs,

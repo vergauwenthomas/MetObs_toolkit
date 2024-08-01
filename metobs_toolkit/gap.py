@@ -255,47 +255,32 @@ class Gap:
 
     def interpolate_gap(
         self,
-        records,
+        Dataset,
         method="time",
         max_consec_fill=10,
+        n_leading_anchors=1,
+        n_trailing_anchors=1,
         max_lead_to_gap_distance=None,
         max_trail_to_gap_distance=None,
         method_kwargs={},
     ):
         gapdf = self.gapdf
-
         obsname = self.obstype.name
-        sta_obs_series = xs_save(records, self.name, "name", drop_level=True)
-        sta_obs_series = xs_save(sta_obs_series, obsname, "obstype", drop_level=True)
-        sta_obs_series = sta_obs_series["value"]
 
-        # 1. Get leading and trailing info
-        # get leading record, check validity and add to the gapfilldf
-        (_, lead_dt, lead_val, lead_msg) = self.get_leading_record(
-            observations_series=sta_obs_series,
-            max_lead_to_gap_distance=max_lead_to_gap_distance,
-        )
-        (_, trail_dt, trail_val, trail_msg) = self.get_trailing_record(
-            observations_series=sta_obs_series,
-            max_trail_to_gap_distance=max_trail_to_gap_distance,
-        )
-
-        # 2. Update the anchordf
-        idx = pd.MultiIndex.from_arrays(
-            arrays=[[self.name, self.name], [lead_dt, trail_dt]],
-            names=["name", "datetime"],
-        )
-
-        anchor_df = pd.DataFrame(
-            data={
-                obsname: [lead_val, trail_val],
-                "fill_method": ["leading", "trailing"],
-                "msg": [lead_msg, trail_msg],
-            },
-            index=idx,
+        # 1. Get leading and trailing
+        # Create anchor periods
+        anchordf, lead_msg, trail_msg = (
+            gap_filling._create_anchor_df_for_leading_trailing_periods_by_size(
+                Gap=self,
+                Dataset=Dataset,
+                n_lead_records=n_leading_anchors,
+                n_trail_records=n_trailing_anchors,
+                max_lead_duration=max_lead_to_gap_distance,
+                max_trail_duration=max_trail_to_gap_distance,
+            )
         )
         # Update attributes
-        self._set_anchordf(anchor_df)
+        self._set_anchordf(anchordf)
 
         gapdf["fill_method"] = label_def["interpolated_gap"]["label"]
 
@@ -361,7 +346,10 @@ class Gap:
             if np.isnan(row[obstypename]):
                 return "Permitted_by_max_consecutive_fill"
             else:
-                return "ok"
+                if bool(method_kwargs):
+                    return f"ok (method: {method}, with {method_kwargs})"
+                else:
+                    return f"ok (method: {method})"
 
         if (lead_msg == "ok") & (
             trail_msg == "ok"
@@ -775,114 +763,6 @@ class Gap:
                     # "ok",
                 ]
             )
-
-    def get_leading_record(self, observations_series, max_lead_to_gap_distance=None):
-        """Find the leading observation (last ok-record before the gap).
-
-        Get the last observation before the gap, for which an observation exists.
-
-        It is also possible to use the max_lead_to_gap_distance to specify the
-        maximum distantance (in time) between the start of the gap and the leading
-        record.
-
-        Parameters
-        ----------
-        observation_series : pandas.Series
-            The observation values for the specific station and obstype. This
-            is thus a pandas.Series with datetime as index. Outliers can be
-            represented by nan's.
-        max_lead_to_gap_distance : Timedelta or str, optional
-            The max distance, in time, between the gap start and leading record.
-
-        Returns
-        -------
-        tuple : (name, timestamp, obs-value, status-message)
-            All information on the leading record stored in a tuple.
-
-        """
-        # sta_obs = xs_save(Dataset.df, self.name, level="name")
-        # sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
-        sta_obs = observations_series.dropna()  # remove the Nans (from qc)
-        sta_obs_records = sta_obs.index
-        leading_timestamp = sta_obs_records[sta_obs_records < self.startdt].max()
-        if pd.isnull(leading_timestamp):
-            return tuple(
-                [
-                    self.name,
-                    pd.Timestamp("NaT").to_pydatetime(),
-                    np.nan,
-                    "no leading record candidate could be found.",
-                ]
-            )
-
-        if max_lead_to_gap_distance is not None:
-            delta_t = pd.Timedelta(max_lead_to_gap_distance)
-            if self.startdt - leading_timestamp > delta_t:
-                return tuple(
-                    [
-                        self.name,
-                        pd.Timestamp("NaT").to_pydatetime(),
-                        np.nan,
-                        "leading record distance to gap is to large.",
-                    ]
-                )
-
-        leading_value = sta_obs.loc[leading_timestamp]
-        return tuple([self.name, leading_timestamp, leading_value, "ok"])
-
-    def get_trailing_record(self, observations_series, max_trail_to_gap_distance=None):
-        """Find the trailing observation (first ok-record after gap).
-
-        Get the first observation after the gap, for which an observation exists.
-
-        It is also possible to use the max_trail_to_gap_distance to specify the
-        maximum distantance (in time) between the end of the gap and the trailing
-        record.
-
-        Parameters
-        ----------
-        observation_series : pandas.Series
-            The observation values for the specific station and obstype. This
-            is thus a pandas.Series with datetime as index. Outliers can be
-            represented by nan's.
-        max_trail_to_gap_distance : Timedelta or str, optional
-            The max distance, in time, between the gap end and trailing record.
-
-        Returns
-        -------
-        tuple : (name, timestamp, obs-value, status-message)
-            All information on the trailing record stored in a tuple.
-
-        """
-        # sta_obs = xs_save(Dataset.df, self.name, level="name")
-        # sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
-        sta_obs = observations_series.dropna()  # remove the Nans (from qc)
-        sta_obs_records = sta_obs.index
-        trailing_timestamp = sta_obs_records[sta_obs_records > self.enddt].min()
-        if pd.isnull(trailing_timestamp):
-            return tuple(
-                [
-                    self.name,
-                    pd.Timestamp("NaT").to_pydatetime(),
-                    np.nan,
-                    "no trailing record candidate could be found.",
-                ]
-            )
-
-        if max_trail_to_gap_distance is not None:
-            delta_t = pd.Timedelta(max_trail_to_gap_distance)
-            if trailing_timestamp - self.enddt > delta_t:
-                return tuple(
-                    [
-                        self.name,
-                        pd.Timestamp("NaT").to_pydatetime(),
-                        np.nan,
-                        "trailing record distance to gap is to large.",
-                    ]
-                )
-
-        trailing_value = sta_obs.loc[trailing_timestamp]
-        return tuple([self.name, trailing_timestamp, trailing_value, "ok"])
 
 
 # =============================================================================

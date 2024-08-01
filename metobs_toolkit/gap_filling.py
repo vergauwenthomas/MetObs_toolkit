@@ -35,6 +35,114 @@ def _add_diurnal_timestamps(df):
     return df
 
 
+def _create_anchor_df_for_leading_trailing_periods_by_size(
+    Gap, Dataset, n_lead_records, n_trail_records, max_lead_duration, max_trail_duration
+):
+    """Helper for constructing an anchorsdf (used by interpolation)
+
+    The anchordf is constructed per gap, and is done by locating non-nan N records (record space),
+    adjacent to the gap. Where N is speciefied for the leading and trailing period.
+
+    An extra filter to maximum lead/trail duration is applied to limit the
+    duration (time space) of the learning periods.
+
+    This method is similar to _create_anchor_df_for_leading_trailing_periods(),
+    and the record-space arguments are converted to time-space arguments so that
+    this function can be maximally reused.
+
+
+    Parameters
+    ----------
+    Gap : metobs_toolkit.Gap
+        The gap to construct the anchorsdf for.
+    Dataset : metobs_toolkit.Dataset
+        The Dataset where the Gap is located in.
+    n_lead_records : int
+        The number of required leading records.
+    n_trail_records : int
+        The number of required trailing records.
+    max_lead_duration : Timedelta or None
+        The maximum timedifference between the leading and gap.startdt timestamps.
+    max_trail_duration : TYPE
+        The maximum timedifference between the trailing and gap.enddt timestamps.
+
+    Returns
+    -------
+    anchor_df : pandas.Dataframe
+        The anchorddf dataframe
+    lead_msg : str
+        Status message of the leading period.
+    trail_msg : str
+        Status message of the trailing period.
+
+    """
+
+    obsname = Gap.obstype.name
+    sta_obs_series = xs_save(Dataset.df, Gap.name, "name", drop_level=True)
+    sta_obs_series = xs_save(sta_obs_series, obsname, "obstype", drop_level=True)
+    sta_obs_series = sta_obs_series["value"]
+
+    # Reuse the _create_anchor_df_leading_trailing_periods method as much as possible,
+    # therefore, convert the n_.. to timedelta
+
+    # covert nlead_records to leading_period duration
+    lead_period = (
+        sta_obs_series[sta_obs_series.index < Gap.startdt].dropna().sort_index()
+    )
+    if max_lead_duration is not None:
+        lead_period = lead_period[
+            lead_period.index >= (Gap.startdt - max_lead_duration)
+        ]
+
+    lead_period_startdt = lead_period[-n_lead_records:].index.min()
+    lead_duration = Gap.startdt - lead_period_startdt
+
+    # covert ntrail_records to trailing_period duration
+    trail_period = (
+        sta_obs_series[sta_obs_series.index > Gap.enddt].dropna().sort_index()
+    )
+    if max_trail_duration is not None:
+        trail_period = trail_period[
+            trail_period.index <= (Gap.enddt + max_trail_duration)
+        ]
+
+    trail_period_enddt = trail_period[:n_trail_records].index.max()
+    trail_duration = trail_period_enddt - Gap.enddt
+
+    anchor_df = _create_anchor_df_for_leading_trailing_periods(
+        Gap=Gap,
+        Dataset=Dataset,
+        leading_period_duration=lead_duration,
+        trailing_period_duration=trail_duration,
+    )
+
+    # subset to max lead and trail durations
+    if max_lead_duration is not None:
+        anchor_df = anchor_df
+
+    # create msg's
+    if (
+        anchor_df[anchor_df["fill_method"] == "leading period"].shape[0]
+        < n_lead_records
+    ):
+        lead_msg = f"to few leading records ({anchor_df[anchor_df['fill_method'] == 'leading period'].shape[0]} found but {n_lead_records} needed)."
+    else:
+        lead_msg = "ok"
+
+    if (
+        anchor_df[anchor_df["fill_method"] == "trailing period"].shape[0]
+        < n_trail_records
+    ):
+        trail_msg = f"to few trailing records ({anchor_df[anchor_df['fill_method'] == 'trailing period'].shape[0]} found but {n_lead_records} needed)."
+    else:
+        trail_msg = "ok"
+
+    # write msg column in anchordf
+    anchor_df.loc[anchor_df["fill_method"] == "leading period", "msg"] = lead_msg
+    anchor_df.loc[anchor_df["fill_method"] == "trailing period", "msg"] = trail_msg
+    return anchor_df, lead_msg, trail_msg
+
+
 def _create_anchor_df_for_leading_trailing_periods(
     Gap, Dataset, leading_period_duration, trailing_period_duration
 ):

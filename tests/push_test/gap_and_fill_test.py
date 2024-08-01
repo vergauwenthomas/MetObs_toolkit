@@ -265,8 +265,66 @@ diff_df = solution.test_df_are_equal(
 )
 assert diff_df is None
 
+# %% Test higher order interpolation
 
-sta.make_plot(colorby="label", title="interpolated fill of station vlinder04")
+
+highorder_inter_sol_df_file = "highorderinterp_sol_df_file.pkl"
+
+
+def _create_polynom_interpolation_solution():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+
+    sta = dataset.get_station("vlinder04")
+    sta.interpolate_gaps(
+        obstype="temp",
+        overwrite_fill=True,
+        method="polynomial",
+        max_consec_fill=5,
+        n_trailing_anchors=4,
+        n_leading_anchors=3,
+        max_lead_to_gap_distance="4h",
+        max_trail_to_gap_distance=None,
+        method_kwargs={"order": 3},
+    )
+
+    trg_sta_file = os.path.join(solution.solutions_dir, highorder_inter_sol_df_file)
+    sta.get_gaps_fill_df().to_pickle(trg_sta_file)
+
+
+# _create_polynom_interpolation_solution()
+
+
+def get_polynom_interp_solution():
+    sol = pd.read_pickle(
+        os.path.join(solution.solutions_dir, highorder_inter_sol_df_file)
+    )
+
+    return sol
+
+
+sta = dataset.get_station("vlinder04")
+sta.interpolate_gaps(
+    obstype="temp",
+    overwrite_fill=True,
+    method="polynomial",
+    max_consec_fill=5,
+    n_trailing_anchors=4,
+    n_leading_anchors=3,
+    max_lead_to_gap_distance="4h",
+    max_trail_to_gap_distance=None,
+    method_kwargs={"order": 3},
+)
+
+
+# test interpolation on station level
+diff_df = solution.test_df_are_equal(
+    testdf=sta.get_gaps_fill_df(), solutiondf=get_polynom_interp_solution()
+)
+assert diff_df is None
+
+
+sta.make_plot(colorby="label")
+
 
 # %% Get modeldata and test model gapfill methods
 
