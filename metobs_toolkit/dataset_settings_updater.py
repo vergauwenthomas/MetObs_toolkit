@@ -73,7 +73,6 @@ class DatasetSettingsCore:
     def update_qc_settings(
         self,
         obstype="temp",
-        gapsize_in_records=None,
         dupl_timestamp_keep=None,
         persis_time_win_to_check=None,
         persis_min_num_obs=None,
@@ -102,9 +101,6 @@ class DatasetSettingsCore:
         obstype : str, optional
             The observation type to update the quality control settings for.
             The default is 'temp'.
-        gapsize_in_records : int (> 0), optional
-            A gap is defined as a sequence of missing observations with a length
-            greater or equal to this number, on the input frequencies. The default is None.
         dupl_timestamp_keep : bool, optional
             Setting that determines to keep, or remove duplicated timestamps. The default is None.
         persis_time_win_to_check : Timedelta or str, optional
@@ -151,10 +147,6 @@ class DatasetSettingsCore:
         -------
         None.
 
-        Note
-        -------
-        The gap defenition is independend of the observation type, and is thus set for
-        all the observation types.
 
         """
         assert (
@@ -173,16 +165,6 @@ class DatasetSettingsCore:
 
             dictionary[obstype][argname] = value
             return dictionary, printstr
-
-        # Gap defenition
-        if gapsize_in_records is not None:
-            logger.info(
-                f' The defenition of a gap (=gapsize) is updated: \
-        {self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]} --> {abs(int(gapsize_in_records))}'
-            )
-            self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"] = abs(
-                int(gapsize_in_records)
-            )
 
         # Gross value check
         if gross_value_max_value is not None:

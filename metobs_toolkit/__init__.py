@@ -8,34 +8,25 @@ import logging
 from pathlib import Path
 
 
-# Create the Logger
-loggers = logging.getLogger(__name__)  # logger name is <metobs-toolkit>
-loggers.setLevel(logging.DEBUG)
-loggers.handlers.clear()  # clear all handlers
+# =============================================================================
+# Setup logs
+# =============================================================================
+# Create the Root logger
+rootlog = logging.getLogger(__name__)  # logger name is <metobs-toolkit>
+rootlog.setLevel(logging.DEBUG)  # set rootlogger on debug
+rootlog.handlers.clear()  # clear all handlers
 
-# File handler
-log_path = os.path.join(str(Path(__file__).parent.parent.parent), "logfile.log")
-# # Create the Handler for logging data to a file - will be hereted for children
-file_handler = logging.FileHandler(filename=log_path)
-file_handler.setLevel(logging.DEBUG)
-# # Create a Formatter for formatting the log messages
-file_logger_formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_logger_formatter)
-# Add the Handler to the Logger
-loggers.addHandler(file_handler)
+from metobs_toolkit.logging import add_FileHandler, add_StreamHandler
 
-# add Streamhandler
-streamhandler = logging.StreamHandler()
-streamhandler.setLevel(logging.DEBUG)
-stream_logger_formatter = logging.Formatter(
-    "LOG:: %(name)s - %(levelname)s - %(message)s"
+add_FileHandler(
+    trglogfile=os.path.join(str(Path(__file__).parent.parent.parent), "logfile.log")
 )
-streamhandler.setFormatter(stream_logger_formatter)
-loggers.addHandler(streamhandler)
+rootlog.info("Logger initiated")
 
 
-loggers.info("Logger initiated")
-
+# =============================================================================
+# Specify demo data paths
+# =============================================================================
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_PATH)

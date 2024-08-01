@@ -79,9 +79,19 @@ class DatasetGapCore:
         return pd.concat(gapdflist)
 
     def get_gaps_fill_df(self):
+        """Construct a Dataframe with all gap-records and info
+
+        This method constructs a dataframe that contains all the present gaps,
+        exploited in records, and info. When the gaps are filled, the filled value
+
+
+        Returns
+        -------
+        gapsdf : TYPE
+            DESCRIPTION.
+
         """
-        Create a dataframe with information on how all gaps are filled.
-        """
+
         # TODO: docstring
         gapsdf = self._get_gaps_df_for_stacking()
         gapsdf = gapsdf.sort_index()
@@ -95,11 +105,11 @@ class DatasetGapCore:
         # TODO : docstrinc + alles van de update gaps ... vervangend door deze methode
 
         if self.outliersdf.empty:
-            print("Warning! No outliers are found to convert!")
+            logger.warning("No outliers are found to convert!")
             return
 
         if bool(self.gaps):
-            print("Warning! The current gaps will be removed and new gaps are formed!")
+            logger.warning("The current gaps will be removed and new gaps are formed!")
 
         outliersdf = empty_outliers_df()
 
@@ -129,6 +139,7 @@ class DatasetGapCore:
         max_consec_fill=10,
         max_lead_to_gap_distance=None,
         max_trail_to_gap_distance=None,
+        method_kwargs={},
     ):
         """Fill all the gaps using interpolation.
 
@@ -157,6 +168,10 @@ class DatasetGapCore:
             suitable trail (= the good record to end the interpolation on).
             If None, the first occuring good records after the gap
             is used. The default is None.
+        method_kwargs: dict, optional
+            A dictionary of kwargs passed to pandas.Dataframe.interpolate(). In
+            pracktice, extra arguments for specific interpolation methods are
+            put in method_kwargs. The default is {}.
 
         Returns
         -------
@@ -283,6 +298,7 @@ class DatasetGapCore:
                         max_consec_fill=max_consec_fill,
                         max_lead_to_gap_distance=max_lead_to_gap_distance,
                         max_trail_to_gap_distance=max_trail_to_gap_distance,
+                        method_kwargs=method_kwargs,
                     )
 
     def fill_gaps_with_raw_modeldata(

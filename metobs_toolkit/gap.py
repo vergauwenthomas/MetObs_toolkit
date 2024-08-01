@@ -252,6 +252,7 @@ class Gap:
     # =============================================================================
     #         Gapfill
     # =============================================================================
+
     def interpolate_gap(
         self,
         records,
@@ -259,6 +260,7 @@ class Gap:
         max_consec_fill=10,
         max_lead_to_gap_distance=None,
         max_trail_to_gap_distance=None,
+        method_kwargs={},
     ):
         gapdf = self.gapdf
 
@@ -314,7 +316,7 @@ class Gap:
             return
         elif (lead_msg != "ok") & (trail_msg == "ok"):
             logger.warning(f"Cannot fill {self}, because leading record is not valid.")
-            print(f"Warning! Cannot fill {self}, because leading record is not valid.")
+            # print(f"Warning! Cannot fill {self}, because leading record is not valid.")
 
             gapdf[f"{obsname}_fill"] = np.nan
             gapdf["fill_method"] = label_def["failed_interpolation_gap"]["label"]
@@ -323,7 +325,7 @@ class Gap:
             return
         elif (lead_msg == "ok") & (trail_msg != "ok"):
             logger.warning(f"Cannot fill {self}, because trailing record is not valid.")
-            print(f"Warning! Cannot fill {self}, because trailing record is not valid.")
+            # print(f"Warning! Cannot fill {self}, because trailing record is not valid.")
 
             gapdf[f"{obsname}_fill"] = np.nan
             gapdf["fill_method"] = label_def["failed_interpolation_gap"]["label"]
@@ -345,6 +347,7 @@ class Gap:
             method=method,
             limit=max_consec_fill,  # Maximum number of consecutive NaNs to fill. Must be greater than 0.
             limit_area="inside",
+            **method_kwargs,
         )
         # revert to multiindex
         tofilldf = tofilldf.reset_index().set_index(["name", "datetime"]).sort_index()
@@ -502,7 +505,7 @@ class Gap:
         gapdf = self.gapdf
         if err:
             logger.warning(logmsg)
-            print("Warning! ", logmsg)
+            # print("Warning! ", logmsg)
             gapdf[f"{obsname}_fill"] = np.nan
             gapdf["msg"] = gapmsg
             gapdf["fill_method"] = label_def["failed_debias_modeldata_fill"]["label"]

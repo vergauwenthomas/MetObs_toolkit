@@ -16,7 +16,7 @@ import pandas as pd
 from pytz import all_timezones
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__file__)
 
 
 # blacklists are created for column names, which are also used as a specific
