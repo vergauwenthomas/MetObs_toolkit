@@ -558,16 +558,6 @@ def build_template_prompt():
             output_folder = input(" Give the path of your output direcory : ")
             output_update = True
 
-        gaps_change = yes_no_ques("Do you want to use the default gaps defenition?")
-        gaps_update = False
-        if gaps_change is False:
-            gapsize = int(
-                input(
-                    " What is the minimum number of consecutive missing records to define as a gap? (default=40) : "
-                )
-            )
-            gaps_update = True
-
         print("\n\n ========= RUN THIS CODE ========= \n\n")
 
         print("\n#1. Define the paths to your files: \n")
@@ -589,13 +579,6 @@ def build_template_prompt():
         if output_update:
             print(f'    output_folder = "{output_folder}",')
         print("    )")
-
-        # extra case specific options
-        if gaps_update:
-            print("\n#3B. Update specific settings (optional): \n")
-
-        if gaps_update:
-            print(f"your_dataset.update_qc_settings(gapsize_in_records = {gapsize})")
 
         # add new obstypes if needed
         to_add_obstypes = [
