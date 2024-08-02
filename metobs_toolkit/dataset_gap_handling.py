@@ -17,17 +17,8 @@ from metobs_toolkit.gap import (
     find_gaps,
 )
 
-
 from metobs_toolkit.df_helpers import (
-    # multiindexdf_datetime_subsetting,
-    # fmt_datetime_argument,
-    # init_multiindex,
-    # init_multiindexdf,
     empty_outliers_df,
-    # init_triple_multiindexdf,
-    # metadf_to_gdf,
-    # get_freqency_series,
-    # value_labeled_doubleidxdf_to_triple_idxdf,
     xs_save,
     concat_save,
 )

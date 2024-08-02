@@ -135,7 +135,7 @@ class Dataset(
         --------
         Combining two ``Datasets`` together:
 
-        >>> Combined = dataset_A + dataset_B
+        >>> Combined = dataset_A + dataset_B # doctest: +SKIP
 
         """
 
@@ -280,26 +280,24 @@ class Dataset(
 
         Examples
         --------
-        .. code-block:: python
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-            >>> import metobs_toolkit
-            >>>
-            >>> #Create your Dataset
-            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
-            >>>
-            >>> #Add observations to the Dataset
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Print out details
-            >>> dataset.show()
-            --------  General ---------
-            ...
+        Apply `show` on your Dataset
+
+        >>> # Print out details
+        >>> dataset.show()
+        --------  General ---------
+        ...
 
         """
         logger.info("Show basic info of dataset.")
@@ -328,26 +326,24 @@ class Dataset(
 
         Examples
         --------
-        .. code-block:: python
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-            >>> import metobs_toolkit
-            >>>
-            >>> #Create your Dataset
-            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
-            >>>
-            >>> #Add observations to the Dataset
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Print out details
-            >>> dataset.get_info()
-            --------  General ---------
-            ...
+        Apply `show` on your Dataset
+
+        >>> # Print out details
+        >>> dataset.get_info()
+        --------  General ---------
+        ...
 
         """
         self.show(show_all_settings, max_disp_n_gaps)
@@ -378,19 +374,17 @@ class Dataset(
 
         Examples
         --------
-        Create a ``Dataset``
+        Create a ``Dataset`` and fill it with data (and metadata).
 
         >>> import metobs_toolkit
-        >>> import os
         >>>
-        >>> # Import data into a Dataset
-        >>> dataset = metobs_toolkit.Dataset()
-        >>> dataset.update_settings(
-        ...            input_data_file=metobs_toolkit.demo_datafile,
-        ...            input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...            template_file=metobs_toolkit.demo_template)
-        >>>
-        >>> dataset.import_data_from_file()
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
         Save it as a pickle file. As a demo, the pickle will be saved in the
         current working directory (`os.getcwd()`)
@@ -452,54 +446,45 @@ class Dataset(
 
         Examples
         --------
-        .. code-block:: python
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                 *10080 observation records
-                 *1676 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-            >>>
-            >>> # Combine all records to one dataframe in Observation-resolution
-            >>> overview_df = dataset.get_full_status_df()
-            >>> overview_df.head(12)
-                                                                    value  ... toolkit_representation
-            name      datetime                  obstype                    ...
-            vlinder01 2022-09-01 00:00:00+00:00 humidity        65.000000  ...            observation
-                                                temp            18.800000  ...            observation
-                                                wind_direction  65.000000  ...            observation
-                                                wind_speed       1.555556  ...            observation
-                      2022-09-01 01:00:00+00:00 humidity        65.000000  ...            observation
-                                                temp            18.400000  ...            observation
-                                                wind_direction  55.000000  ...            observation
-                                                wind_speed       1.416667  ...            observation
-                      2022-09-01 02:00:00+00:00 humidity        68.000000  ...            observation
-                                                temp            17.100000  ...            observation
-                                                wind_direction  45.000000  ...            observation
-                                                wind_speed       1.583333  ...            observation
-            <BLANKLINE>
-            [12 rows x 3 columns]
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
+        To get a dataframe with all records, outliers and gaps, use the
+        `get_full_status_df()` method.
+
+        >>> # Combine all into one Dataframe
+        >>> combined_df = dataset.get_full_status_df()
+        >>> combined_df.head()
+        obstype                             humidity  ...             wind_speed
+                                               value  ... toolkit_representation
+        name      datetime                            ...
+        vlinder01 2022-09-01 00:00:00+00:00     65.0  ...            observation
+                  2022-09-01 00:05:00+00:00     65.0  ...            observation
+                  2022-09-01 00:10:00+00:00     65.0  ...            observation
+                  2022-09-01 00:15:00+00:00     65.0  ...            observation
+                  2022-09-01 00:20:00+00:00     65.0  ...            observation
+        <BLANKLINE>
+        [5 rows x 12 columns]
+
+        If you want it in a long structure:
+        >>> combined_df = dataset.get_full_status_df(return_as_wide=False)
+        >>> combined_df.head()
+                                              value label toolkit_representation
+        name      obstype  datetime
+        vlinder01 humidity 2022-09-01 00:00:00+00:00   65.0    ok            observation
+                           2022-09-01 00:05:00+00:00   65.0    ok            observation
+                           2022-09-01 00:10:00+00:00   65.0    ok            observation
+                           2022-09-01 00:15:00+00:00   65.0    ok            observation
+                           2022-09-01 00:20:00+00:00   65.0    ok            observation
         """
 
         # =============================================================================
@@ -591,18 +576,24 @@ class Dataset(
         metobs_toolkit.Dataset
             The Dataset instance.
 
+        See Also
+        --------
+        save_dataset: Save a Dataset as a pickle file.
+
         Examples
         --------
-        .. code-block:: python
 
-            import metobs_toolkit
-            import os
+        Start by creating an empty Dataset
 
-            # Initialize an empty Dataset
-            empty_dataset = metobs_toolkit.Dataset()
+        >>> import metobs_toolkit
+        >>> empty_dataset = metobs_toolkit.Dataset()
 
-            # Import the dataset
-            dataset=empty_dataset.import_dataset(folder_path=os.getcwd(),
+        Now, use the `import_dataset()` on the empty Dataset. Specify a target
+        pickle file, that is a dataset.
+
+        >>> import os
+        >>> # Import the dataset
+        >>> dataset=empty_dataset.import_dataset(folder_path=os.getcwd(),
                                                  filename='your_saved_dataset.pkl')
 
         """
@@ -637,30 +628,53 @@ class Dataset(
 
         Parameters
         ----------
-
+        Obstype: metobs_toolkit.Obstype
             The new Obstype to add.
+
         Returns
         -------
         None.
 
+        See Also
+        --------
+        Obstype: The Obstype class.
+        add_new_unit : Add a new unit to a knonw obstype.
+
         Examples
         --------
-        .. code-block:: python
+        Start by creating a new ``Obstype``
 
-            >>> import metobs_toolkit
-            >>> co2_concentration = metobs_toolkit.Obstype(obsname='co2',
-            ...                                            std_unit='ppm')
-            >>> #add other units to it (if needed)
-            >>> co2_concentration.add_unit(unit_name='ppb',
-            ...                            conversion=['x / 1000'], #1 ppb = 0.001 ppm
-            ...                           )
-            >>> #Set a description
-            >>> co2_concentration.set_description(desc='The CO2 concentration measured at 2m above surface')
-            >>> #Add it to a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.add_new_observationtype(co2_concentration)
-            >>> dataset.obstypes
-            {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind_speed, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction, 'co2': Obstype instance of co2}
+        >>> import metobs_toolkit
+        >>> co2_concentration = metobs_toolkit.Obstype(obsname='co2',
+        ...                                            std_unit='ppm')
+        >>> #add other units to it (if needed)
+        >>> co2_concentration.add_unit(unit_name='ppb',
+        ...                            conversion=['x / 1000'], #1 ppb = 0.001 ppm
+        ...                           )
+        >>> #Set a description
+        >>> co2_concentration.set_description(desc='The CO2 concentration measured at 2m above surface')
+
+        Create a ``Dataset`` and fill it with data (and metadata).
+
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+
+        Now add the newly created Obtype to the Dataset.
+
+        >>> #Add it to a Dataset
+        >>> dataset = metobs_toolkit.Dataset()
+        >>> dataset.add_new_observationtype(co2_concentration)
+
+        By inspecting the `Dataset.obstypes` we can see that the CO2 concentration
+        is added.
+
+        >>> dataset.obstypes
+        {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind_speed, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction, 'co2': Obstype instance of co2}
         """
         # Test if the obstype is of the correct class.
         if not isinstance(Obstype, Obstype_class):
@@ -704,28 +718,54 @@ class Dataset(
         -------
         None.
 
+        See Also
+        --------
+        Obstype: The Obstype class.
+        add_new_observationtype : Add a new observationtype to the Dataset.
+
         Examples
         --------
-        .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> #Create your Dataset
-            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-            >>>
-            >>> #Add new unit to a known obstype
-            >>> dataset.add_new_unit(obstype = 'temp',
-            ...                           new_unit= 'your_new_unit',
-            ...                           conversion_expression = ['x+3', 'x * 2'])
-            >>> # The conversion means: 1 [your_new_unit] = (1 + 3) * 2 [°C]
-            >>> dataset.obstypes['temp'].get_info()
-            temp observation with:
-                 * standard unit: Celsius
-                 * data column as None in None
-                 * known units and aliases: {'Celsius': ['celsius', '°C', '°c', 'celcius', 'Celcius'], 'Kelvin': ['K', 'kelvin'], 'Farenheit': ['farenheit'], 'your_new_unit': []}
-                 * description: 2m - temperature
-                 * conversions to known units: {'Kelvin': ['x - 273.15'], 'Farenheit': ['x-32.0', 'x/1.8'], 'your_new_unit': ['x+3', 'x * 2']}
-                 * originates from data column: None with None as native unit.
+        Create an empty ``Dataset``.
+
+        >>> import metobs_toolkit
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+
+        There are default Observationtypes present in all Datasets.
+
+        >>> dataset.obstypes
+        {'temp': Obstype instance of temp,
+         'humidity': Obstype instance of humidity,
+         'radiation_temp': Obstype instance of radiation_temp,
+         'pressure': Obstype instance of pressure,
+         'pressure_at_sea_level': Obstype instance of pressure_at_sea_level,
+         'precip': Obstype instance of precip,
+         'precip_sum': Obstype instance of precip_sum,
+         'wind_speed': Obstype instance of wind_speed,
+         'wind_gust': Obstype instance of wind_gust,
+         'wind_direction': Obstype instance of wind_direction}
+
+        We can add a new unit to an existing obstype by using ``add_new_unit()``
+        and specifying how it relates to the standard unit.
+
+        You can get the standard unit of an Obsytype by calling the ``get_standard_unit()`` on it.
+
+        >>> dataset.obstypes['temp'].get_standard_unit()
+        'Celsius'
+
+        To see all knonw units for an Obstype, use the `get_all_units()` on it.
+
+        >>> dataset.obstypes['temp'].get_all_units()
+        ['Farenheit', 'Celsius', 'Kelvin']
+
+        Now we add a new unit
+
+        >>> dataset.add_new_unit(obstype = 'temp',
+        ...                      new_unit= 'your_new_unit',
+        ...                      conversion_expression = ['x+3', 'x * 2'])
+        >>> # The conversion means: 1 [your_new_unit] = (1 + 3) * 2 [°C]
+        >>> dataset.obstypes['temp'].get_info()
+
         """
         # test if observation is present
         if not obstype in self.obstypes.keys():
@@ -753,18 +793,24 @@ class Dataset(
         -------
         None.
 
+        See Also
+        --------
+        get_info: Print out basic info of the Dataset.
+        Settings: Settings class
+        Datset.settings: The attribute holding the `Settings`
+
         Examples
         --------
-        .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> #Create your Dataset
-            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-            >>>
-            >>> #Show default settings
-            >>> dataset.show_settings()
-            All settings:...
+        Create an empty ``Dataset``.
+
+        >>> import metobs_toolkit
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+
+        Print out all the current (in this case the default) settings.
+
+        >>> dataset.show_settings()
+        All settings:...
 
         """
         self.settings.show()
@@ -776,7 +822,7 @@ class Dataset(
 
         Parameters
         ----------
-        stationname : string
+        stationname : str
             The name of the station.
 
         Returns
@@ -784,35 +830,60 @@ class Dataset(
         metobs_toolkit.Station
             The station object.
 
+        See Also
+        --------
+        Station: The Station class
+
         Examples
         --------
-        .. code-block:: python
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-            >>> import metobs_toolkit
-            >>>
-            >>> #Create your Dataset
-            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
-            >>>
-            >>> #Add observations to the Dataset
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> dataset.get_station('vlinder12')
-            Station instance containing:
-                 *1 stations
-                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                 *4320 observation records
-                 *0 records labeled as outliers
-                 *0 gaps
-                 *0 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
+        To see which stations are present in your `Dataset`, you can use the
+        metadata or by using the 'name' index of the records:
+
+        >>> #Using the metadata (index):
+        >>> dataset.metadf.index
+        Index(['vlinder01', 'vlinder02', 'vlinder03', 'vlinder04', 'vlinder05',
+               'vlinder06', 'vlinder07', 'vlinder08', 'vlinder09', 'vlinder10',
+               'vlinder11', 'vlinder12', 'vlinder13', 'vlinder14', 'vlinder15',
+               'vlinder16', 'vlinder17', 'vlinder18', 'vlinder19', 'vlinder20',
+               'vlinder21', 'vlinder22', 'vlinder23', 'vlinder24', 'vlinder25',
+               'vlinder26', 'vlinder27', 'vlinder28'],
+              dtype='object', name='name')
+
+        >>> #Using the records
+        >>> dataset.df.index.get_level_values('name').unique()
+        Index(['vlinder01', 'vlinder02', 'vlinder03', 'vlinder04', 'vlinder05',
+               'vlinder06', 'vlinder07', 'vlinder08', 'vlinder09', 'vlinder10',
+               'vlinder11', 'vlinder12', 'vlinder13', 'vlinder14', 'vlinder15',
+               'vlinder16', 'vlinder17', 'vlinder18', 'vlinder19', 'vlinder20',
+               'vlinder21', 'vlinder22', 'vlinder23', 'vlinder24', 'vlinder25',
+               'vlinder26', 'vlinder27', 'vlinder28'],
+              dtype='object', name='name')
+
+        Now we can select a station by name
+
+        >>> favorite_station = dataset.get_station('vlinder05')
+        >>> print(fovorite_station)
+        Station instance containing:
+             *1 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *17280 observation records (not Nan's)
+             *0 records labeled as outliers
+             *0 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Coordinates are available for all stations.
 
         """
         from metobs_toolkit.station import Station
