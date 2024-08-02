@@ -795,9 +795,18 @@ class DatasetBase(object):
         trg_df["trg_datetime"] = trg_df.index.get_level_values("datetime")
         df = self.df
 
+        df["label"] = "ok"
+
+        # remove gaps from the df! because:
+        # there records are Nan, and so a lot of Nan records are mapped to
+        # the ideal timestamps
+
+        # AND, after this method is applied, gaps are always recalculated
+
+        df = df.dropna(subset=["value"])
+
         # Add a label column and concat the outliers to the df. In that way,
         # we can reconstruct the outliersdf again within the same clean resolutionspace
-        df["label"] = "ok"
         df = pd.concat([df, self.outliersdf])
         df = df[
             ~df.index.duplicated(keep="last")

@@ -1305,9 +1305,7 @@ class Dataset(
         logger.debug(f"Simplified target resolutions: {simple_freqs}")
         # 2. find common origins
         if fixed_origin is not None:
-            simple_origins = pd.Series(
-                data=pd.Timedelta(fixed_origin), index=self.metadf.index
-            )
+            simple_origins = pd.Series(data=fixed_origin, index=self.metadf.index)
         else:
             simple_origins = self.metadf["dt_start"].apply(
                 lambda x: _simplify_time(
@@ -1368,6 +1366,7 @@ class Dataset(
         timestamp_tolerance="4min",
         kwargs_data_read={},
         kwargs_metadata_read={},
+        templatefile_is_url=False,
     ):
         """Read observations from a csv file.
 
@@ -1441,6 +1440,10 @@ class Dataset(
         kwargs_metadata_read : dict, optional
             Keyword arguments collected in a dictionary to pass to the
             pandas.read_csv() function on the metadata file. The default is {}.
+        templatefile_is_url : bool, optional
+            If the path to the template file, is a url to an online template file,
+            set templatefile_is_url to True. If False, the template_file is
+            interpreted as a path
 
         Note
         --------
@@ -1500,7 +1503,9 @@ class Dataset(
 
         # Read template
         logger.info(f"Reading the templatefile")
-        self.template.read_template_from_file(jsonpath=self.settings.templatefile)
+        self.template.read_template_from_file(
+            jsonpath=self.settings.templatefile, templatefile_is_url=templatefile_is_url
+        )
 
         # Read observations into pandas dataframe
         logger.info(f"Reading the observations from file")

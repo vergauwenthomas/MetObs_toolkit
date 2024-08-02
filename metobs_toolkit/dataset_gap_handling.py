@@ -102,8 +102,20 @@ class DatasetGapCore:
     # =============================================================================
 
     def convert_outliers_to_gaps(self):
-        # TODO : docstrinc + alles van de update gaps ... vervangend door deze methode
+        """Convert all outliers to gaps.
 
+        This method will convert all outliers to gaps, so that they can be filled.
+
+
+        Returns
+        -------
+        None.
+
+        Warning
+        ------
+        Information of the value and QC flag of the outliers will be lost.
+
+        """
         if self.outliersdf.empty:
             logger.warning("No outliers are found to convert!")
             return

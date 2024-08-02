@@ -10,7 +10,7 @@ import os
 import sys
 import logging
 import json
-
+import urllib.request
 
 import pandas as pd
 from pytz import all_timezones
@@ -470,14 +470,21 @@ class Template:
     # Other methods
     # =============================================================================
 
-    def read_template_from_file(self, jsonpath):
+    def read_template_from_file(self, jsonpath, templatefile_is_url=False):
         """Read the templatefile (json), and update the attributes of this Template."""
-        logger.info(f"Reading the template from {jsonpath}")
-        if not str(jsonpath).endswith(".json"):
-            raise MetobsTemplateError(f"{jsonpath}, is not a json file.")
 
-        with open(jsonpath, "r") as f:
-            tml_dict = json.load(f)
+        if templatefile_is_url:
+            logger.info(f"Reading the URL-template from {jsonpath}")
+            with urllib.request.urlopen(jsonpath) as url:
+                tml_dict = json.load(url)
+
+        else:
+            logger.info(f"Reading the template from {jsonpath}")
+            if not str(jsonpath).endswith(".json"):
+                raise MetobsTemplateError(f"{jsonpath}, is not a json file.")
+
+            with open(jsonpath, "r") as f:
+                tml_dict = json.load(f)
 
         # set attributes
         self.data_namemap = {"name": tml_dict["data_related"]["name_column"]}
