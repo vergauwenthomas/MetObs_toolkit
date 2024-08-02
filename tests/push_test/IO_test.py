@@ -14,6 +14,9 @@ import sys, os
 from pathlib import Path
 
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+import solutions.solutions_creator as solution
+
 lib_folder = Path(__file__).resolve().parents[2]
 
 import metobs_toolkit
@@ -32,15 +35,20 @@ dataset.update_settings(
     input_data_file=testdatafile, template_file=metobs_toolkit.demo_template
 )
 dataset.show_settings()
-
 dataset.import_data_from_file()
-
 dataset.show()
-
 dataset.template.show()
-
-
 station = dataset.get_station("vlinder02")
+
+# %% Import dataset from online location
+dataloc = "https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/master/tests/test_data/vlinderdata_small.csv"
+template_loc = "https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/master/metobs_toolkit/datafiles/demo_template.json"
+
+
+dataset = metobs_toolkit.Dataset()
+dataset.update_settings(input_data_file=dataloc, template_file=template_loc)
+dataset.import_data_from_file(templatefile_is_url=True)
+assert not dataset.df.empty, "something wrong with importing from onlin locations"
 
 
 # %% import default dataset.
@@ -103,18 +111,39 @@ assert dataset.df.shape == (4284, 1), "Shape of unsynced widedata is not correct
 
 # %% Test syncronizing wide
 
+
+syncedwidedf_file = "synced_wide_test_combdf.pkl"
+
+
+def _create_widesync_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    # Sycnronize data
+    dataset.sync_records(
+        timestamp_shift_tolerance="5min", freq_shift_tolerance="2min", fixed_freq="1h"
+    )
+    dataset.get_full_status_df().to_pickle(
+        os.path.join(solution.solutions_dir, syncedwidedf_file)
+    )
+
+
+_create_widesync_solutions()
+
+
+def get_synced_solutions():
+    sol_combdf = pd.read_pickle(os.path.join(solution.solutions_dir, syncedwidedf_file))
+    return sol_combdf
+
+
 # Sycnronize data
 dataset.sync_records(
     timestamp_shift_tolerance="5min", freq_shift_tolerance="2min", fixed_freq="1h"
 )
 
 
-assert dataset.df.shape == (288, 1), "Shape after syncronizing widedata is not correct."
-
-
-assert (
-    dataset.get_gaps_fill_df().shape[0] == 198
-), "gaps not correct for wide after syncing"
+diff_df = solution.test_df_are_equal(
+    testdf=dataset.get_full_status_df(), solutiondf=get_synced_solutions()
+)
+assert diff_df is None
 
 # %% import wide dataset (One station)
 

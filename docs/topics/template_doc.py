@@ -9,7 +9,7 @@
 # To specify how the mapping must be done a **template** is used. This template contains
 # all the information on how to convert your tabular data to the toolkit standards.
 # Since the structure of data files differs for different networks, this template is
-# unique for each data file. A template is saved as a tabular .json file to reuse and share them.
+# unique for each data file. A template is saved as a tabular .csv file to reuse and share them.
 #
 # On this page, you can find information on how to construct a template.
 
@@ -17,7 +17,7 @@
 #
 # The toolkit has standard names for observation types and metadata. Here these standards are presented and described.
 
-# In[9]:
+# In[5]:
 
 
 # This codeblock is for illustration, it has no practical use.
@@ -41,7 +41,7 @@ _tlk_print_standard_obstypes()
 # | 2022-06-07 13:30:00  | 18.6 |  71.9 | Station_B |
 #
 
-# ### Single-station-format
+# ### Single-statio-format
 # The same as a long format but without a column indicating the station names. Be aware that the toolkit interprets it as observations coming from one station.
 
 # | Timestamp   | 2m Temperature | 2m Humidity |
@@ -80,16 +80,11 @@ _tlk_print_standard_obstypes()
 # <b>Note:</b> When the prompt asks if you need further help, and you type yes, some more questions are prompted. Once all information is given to the prompt, it will print out a piece of code that you have to run to load your data into the toolkit.
 # </div>
 
-# <div class="alert alert-block alert-warning">
-# <b>Warning:</b> All CSV data files must be in UTF-8 encoding. For most CSV files, this condition is already met. To make sure, in Microsoft Excel (or similar), you can specify to export as `CSV UTF-8`.
-#    If you encounter an error, mentioning a `"/ueff..."` tag in a CSV file, it is solved by converting the CSV to UTF-8.
-# </div>
-
 # This function will prompt questions and build a template that matches your data file (and metadata) file. The *template.json* file will be stored at a location of your choice.
 #
-# To use this template, add its file path to the arguments of the `update_settings()` method.
+# To use this template, feed the path to the *template.json* file to the data_template_file (and metadata_template_file) arguments of the `update_settings()` method.
 
-# In[10]:
+# In[6]:
 
 
 import metobs_toolkit
@@ -104,7 +99,7 @@ your_dataset.update_settings(
 
 # The template (file) is read when calling the `Dataset.import_data_from_file()` method, and converted to a `metobs_toolkit.Template` which is accesible for each dataset.
 
-# In[11]:
+# In[7]:
 
 
 your_dataset.import_data_from_file()  # will read the data, metadata and template.
@@ -114,7 +109,7 @@ your_dataset.template
 
 # An overview of the template can be printed using the `show()` on the `Template` instance:
 
-# In[12]:
+# In[8]:
 
 
 your_dataset.template.show()
