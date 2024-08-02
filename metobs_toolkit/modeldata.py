@@ -301,7 +301,7 @@ class Modeldata:
         self.df = df
         self.df_tz = tzstr
 
-    def convert_units_to_tlk(self, obstype):
+    def _convert_units_to_tlk(self, obstype):
         """Convert the model data of one observation to the standard units.
 
         The data attributes will be updated.
@@ -371,7 +371,7 @@ class Modeldata:
             f"{obstype} are converted from {cur_unit} --> {self.obstypes[obstype].get_standard_unit()}."
         )
 
-    def exploid_2d_vector_field(self, obstype):
+    def _exploid_2d_vector_field(self, obstype):
         """Compute amplitude and direction of 2D vector field components.
 
         The amplitude and directions are added to the data attribute, and their
@@ -545,9 +545,9 @@ class Modeldata:
             for obstype in obstypes:
                 # Set the current unit (at this point, it is the unit as define in the band)
                 self.obstypes[obstype].setup_current_data_unit(mapname=mapname)
-                self.convert_units_to_tlk(obstype)
+                self._convert_units_to_tlk(obstype)
                 if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
-                    self.exploid_2d_vector_field(obstype)
+                    self._exploid_2d_vector_field(obstype)
         else:
             self._data_stored_at_drive = True
 
@@ -764,11 +764,11 @@ class Modeldata:
 
         # 5. Convert units
         for obstype in data_present_obstypes:
-            self.convert_units_to_tlk(obstype)
+            self._convert_units_to_tlk(obstype)
             if isinstance(self.obstypes[obstype], ModelObstype_Vectorfield):
-                self.exploid_2d_vector_field(obstype)
+                self._exploid_2d_vector_field(obstype)
 
-    def interpolate_modeldata(self, to_multiidx):
+    def _interpolate_modeldata(self, to_multiidx):
         """Interpolate modeldata in time.
 
         Interpolate the modeldata timeseries, to a given name-datetime

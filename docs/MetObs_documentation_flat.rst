@@ -15,6 +15,7 @@ the MetObs toolkit to be used by a user and developer.
   Analysis <reference/analysis>
   Modeldata <reference/modeldata>
   Template <reference/template>
+  Special functions <reference/special_functions>
 
 ********************************************
 Modules for MetObs toolkit Developers

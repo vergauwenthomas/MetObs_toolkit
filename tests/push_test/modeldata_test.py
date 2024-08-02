@@ -252,7 +252,7 @@ def _create_interp_model_sol():
     dataset.import_data_from_file()
 
     target = dataset.df.xs("temp", level="obstype").index
-    interpdf = model_data.interpolate_modeldata(target)
+    interpdf = model_data._interpolate_modeldata(target)
     interpdf.to_pickle(os.path.join(solution.solutions_dir, mod_interp_pkl))
 
 
@@ -273,7 +273,7 @@ dataset.update_settings(
 dataset.import_data_from_file()
 
 target = dataset.df.xs("temp", level="obstype").index
-interpdf = model_data.interpolate_modeldata(target)
+interpdf = model_data._interpolate_modeldata(target)
 
 
 diff_df = solution.test_df_are_equal(

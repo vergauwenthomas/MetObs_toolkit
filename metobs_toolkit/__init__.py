@@ -5,23 +5,8 @@
 import os
 import sys
 import logging
+from datetime import datetime
 from pathlib import Path
-
-
-# =============================================================================
-# Setup logs
-# =============================================================================
-# Create the Root logger
-rootlog = logging.getLogger(__name__)  # logger name is <metobs-toolkit>
-rootlog.setLevel(logging.DEBUG)  # set rootlogger on debug
-rootlog.handlers.clear()  # clear all handlers
-
-from metobs_toolkit.logging import add_FileHandler, add_StreamHandler
-
-add_FileHandler(
-    trglogfile=os.path.join(str(Path(__file__).parent.parent.parent), "logfile.log")
-)
-rootlog.info("Logger initiated")
 
 
 # =============================================================================
@@ -71,3 +56,21 @@ from metobs_toolkit.landcover_functions import connect_to_gee
 # DO not change this manually!
 
 __version__ = "0.2.3"
+
+
+# =============================================================================
+# Setup logs
+# =============================================================================
+
+
+# Create the Root logger
+rootlog = logging.getLogger(__name__)  # logger name is <metobs-toolkit>
+rootlog.setLevel(logging.DEBUG)  # set rootlogger on debug
+rootlog.handlers.clear()  # clear all handlers
+
+from metobs_toolkit.loggingmodule import add_FileHandler, add_StreamHandler
+
+add_FileHandler(
+    trglogfile=os.path.join(str(Path(__file__).parent.parent.parent), "logfile.log")
+)
+rootlog.info("Logger initiated")

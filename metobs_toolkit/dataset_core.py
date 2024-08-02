@@ -103,11 +103,11 @@ class Dataset(
             in time to apply on a timestamp for conversion to an ideal set of timestamps.
             Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
             simplification) can be set by '0min'. The default is '0min'.
-        freq_estimation_simplify_tolerance : Timedelta or str, optional
+        freq_simplify_tolerance : Timedelta or str, optional
             The tolerance string or object representing the maximum translation
             in time to form a simplified frequency estimation.
             Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
-            simplification) can be set by '0min'. The default is '0min' (2 minutes).
+            simplification) can be set by '0min'. The default is '0min'.
 
         Returns
         -------
@@ -131,11 +131,18 @@ class Dataset(
         to a possible false representation of the individual QC check effectiveness
         when `Dataset.get_qc_stats()` is called.
 
+        Examples
+        --------
+        Combining two ``Datasets`` together:
+
+        >>> Combined = dataset_A + dataset_B
 
         """
-        # important !!!!!
 
         logger.info(f"adding {str(other)} to {str(self)}")
+
+        timestamp_tolerance = self._timedelta_arg_check(timestamp_tolerance)
+        freq_simplify_tolerance = self._timedelta_arg_check(freq_simplify_tolerance)
 
         # the toolkit makes a new dataframe, and assumes the df from self and other
         # to be the input data.
@@ -143,7 +150,6 @@ class Dataset(
         # again.
 
         new = Dataset()
-        # self_obstypes = self.df.columns.to_list().copy()
 
         #  ---- df ----
         # combine both long dataframes (without gaps !)
@@ -263,9 +269,14 @@ class Dataset(
             If True all the settings are printed out. The default is False.
         max_disp_n_gaps: int, optional
             The maximum number of gaps to display detailed information of.
+
         Returns
         -------
         None.
+
+        See Also
+        --------
+        get_info: Alias of show()
 
         Examples
         --------
@@ -310,6 +321,10 @@ class Dataset(
         Returns
         -------
         None.
+
+        See Also
+        --------
+        show:  The same method.
 
         Examples
         --------
@@ -357,27 +372,33 @@ class Dataset(
         -------
         None.
 
+        See Also
+        --------
+        import_dataset: Import a dataset from a pickle file.
+
         Examples
         --------
-        .. code-block:: python
+        Create a ``Dataset``
 
-            >>> import metobs_toolkit
-            >>> import os
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...            input_data_file=metobs_toolkit.demo_datafile,
-            ...            input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...            template_file=metobs_toolkit.demo_template)
-            >>>
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Save dataset to a .pkl file
-            >>> dataset.save_dataset(outputfolder=os.getcwd(),
-            ...                     filename='your_saved_dataset.pkl',
-            ...                     overwrite=True)
-            Dataset saved in ...
+        >>> import metobs_toolkit
+        >>> import os
+        >>>
+        >>> # Import data into a Dataset
+        >>> dataset = metobs_toolkit.Dataset()
+        >>> dataset.update_settings(
+        ...            input_data_file=metobs_toolkit.demo_datafile,
+        ...            input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...            template_file=metobs_toolkit.demo_template)
+        >>>
+        >>> dataset.import_data_from_file()
+
+        Save it as a pickle file. As a demo, the pickle will be saved in the
+        current working directory (`os.getcwd()`)
+
+        >>> # Save dataset to a .pkl file
+        >>> dataset.save_dataset(outputfolder=os.getcwd(),
+        ...                     filename='your_saved_dataset.pkl',
+        ...                     overwrite=True)
 
         """
         # check if outputfolder is known and exists
@@ -415,7 +436,6 @@ class Dataset(
 
         The full dataframe displays the obsevation values, a label, and how
         the records is stored in the Dataset (as a good observation, an outlier or gap).
-
 
         Parameters
         ----------

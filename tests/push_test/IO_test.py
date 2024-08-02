@@ -126,7 +126,7 @@ def _create_widesync_solutions():
     )
 
 
-_create_widesync_solutions()
+# _create_widesync_solutions()
 
 
 def get_synced_solutions():

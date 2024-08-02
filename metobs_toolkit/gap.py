@@ -401,7 +401,7 @@ class Gap:
         fail_label = label_def["failed_raw_modeldata_fill"]["label"]
 
         # add the gap period
-        filldf = Modeldata.interpolate_modeldata(self.gapdf.index)
+        filldf = Modeldata._interpolate_modeldata(self.gapdf.index)
         filldf = filldf[[obsname]]  # get only relevant obstype
         filldf = filldf.rename(columns={obsname: "modelvalues"})
 

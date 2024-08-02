@@ -16,33 +16,40 @@ Constructor
 .. autosummary::
    :toctree: api/
 
-   analysis.Analysis
+   Analysis
 
-.. note::
-   It is most common to construct the Analysis directly from a Dataset using `metobs_toolkit.Dataset.get_analysis()` method.
 
-General methods and attributes
-------------------------------
+Data and filtering methods
+----------------------------
 
 .. autosummary::
    :toctree: api/
 
-   analysis.Analysis.subset_period
-   analysis.Analysis.apply_filter
-   analysis.Analysis.aggregate_df
-   analysis.Analysis.get_anual_statistics
-   analysis.Analysis.get_diurnal_statistics
-   analysis.Analysis.get_diurnal_statistics_with_reference
-   analysis.Analysis.get_aggregated_cycle_statistics
-   analysis.Analysis.get_lc_correlation_matrices
 
+   Analysis.subset_period
+   Analysis.get_possible_filter_keywords
+   Analysis.apply_filter
 
-
-Plotting methods
-------------------------------
+Aggregation methods
+---------------------
 
 .. autosummary::
    :toctree: api/
 
-   analysis.Analysis.plot_correlation_heatmap
-   analysis.Analysis.plot_correlation_variation
+   Analysis.get_analysis_records
+   Analysis.aggregate_df
+   Analysis.get_anual_statistics
+   Analysis.get_diurnal_statistics
+   Analysis.get_diurnal_statistics_with_reference
+   Analysis.get_aggregated_cycle_statistics
+
+
+Other methods
+---------------
+
+.. autosummary::
+   :toctree: api/
+
+   Analysis.get_lc_correlation_matrices
+   Analysis.plot_correlation_heatmap
+   Analysis.plot_correlation_variation

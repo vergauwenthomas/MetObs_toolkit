@@ -248,7 +248,7 @@ def _combine_learning_and_gap_to_one_df(Modeldata, anchordf, gapdf, obsname):
     # anchordf = Gap.anchordf
     # obsname = Gap.obstype.name
 
-    debiasdf = Modeldata.interpolate_modeldata(anchordf.index)
+    debiasdf = Modeldata._interpolate_modeldata(anchordf.index)
     assert (
         obsname in debiasdf.columns
     ), f"{obsname} not present in the modeldata: {Modeldata}"
@@ -258,7 +258,7 @@ def _combine_learning_and_gap_to_one_df(Modeldata, anchordf, gapdf, obsname):
     debiasdf["fill_method"] = anchordf["fill_method"]
 
     # add the gap period
-    gapdf = Modeldata.interpolate_modeldata(gapdf.index)
+    gapdf = Modeldata._interpolate_modeldata(gapdf.index)
     gapdf = gapdf[[obsname]]
     gapdf = gapdf.rename(columns={obsname: "modelvalues"})
     gapdf["obsvalues"] = np.nan
