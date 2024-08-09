@@ -371,6 +371,7 @@ class Dataset(
         See Also
         --------
         import_dataset: Import a dataset from a pickle file.
+        write_to_csv: Write data to a csv file.
 
         Examples
         --------
@@ -393,6 +394,7 @@ class Dataset(
         >>> dataset.save_dataset(outputfolder=os.getcwd(),
         ...                     filename='your_saved_dataset.pkl',
         ...                     overwrite=True)
+        Dataset saved in ...
 
         """
         # check if outputfolder is known and exists
@@ -463,17 +465,16 @@ class Dataset(
 
         >>> # Combine all into one Dataframe
         >>> combined_df = dataset.get_full_status_df()
-        >>> combined_df.head()
-        obstype                             humidity  ...             wind_speed
-                                               value  ... toolkit_representation
-        name      datetime                            ...
-        vlinder01 2022-09-01 00:00:00+00:00     65.0  ...            observation
-                  2022-09-01 00:05:00+00:00     65.0  ...            observation
-                  2022-09-01 00:10:00+00:00     65.0  ...            observation
-                  2022-09-01 00:15:00+00:00     65.0  ...            observation
-                  2022-09-01 00:20:00+00:00     65.0  ...            observation
-        <BLANKLINE>
-        [5 rows x 12 columns]
+        >>> combined_df[['temp', 'humidity']].head() #select only temperature and humidity
+        obstype                              temp                              humidity
+                                            value label toolkit_representation    value label toolkit_representation
+        name      datetime
+        vlinder01 2022-09-01 00:00:00+00:00  18.8    ok            observation     65.0    ok            observation
+                  2022-09-01 00:05:00+00:00  18.8    ok            observation     65.0    ok            observation
+                  2022-09-01 00:10:00+00:00  18.8    ok            observation     65.0    ok            observation
+                  2022-09-01 00:15:00+00:00  18.7    ok            observation     65.0    ok            observation
+                  2022-09-01 00:20:00+00:00  18.7    ok            observation     65.0    ok            observation
+
 
         If you want it in a long structure:
         >>> combined_df = dataset.get_full_status_df(return_as_wide=False)
@@ -594,7 +595,7 @@ class Dataset(
         >>> import os
         >>> # Import the dataset
         >>> dataset=empty_dataset.import_dataset(folder_path=os.getcwd(),
-                                                 filename='your_saved_dataset.pkl')
+        ...                                      filename='your_saved_dataset.pkl')
 
         """
         # check if folder_path is known and exists
@@ -756,7 +757,7 @@ class Dataset(
         To see all knonw units for an Obstype, use the `get_all_units()` on it.
 
         >>> dataset.obstypes['temp'].get_all_units()
-        ['Farenheit', 'Celsius', 'Kelvin']
+        ['Celsius', 'Farenheit', 'Kelvin']
 
         Now we add a new unit
 
@@ -765,7 +766,13 @@ class Dataset(
         ...                      conversion_expression = ['x+3', 'x * 2'])
         >>> # The conversion means: 1 [your_new_unit] = (1 + 3) * 2 [°C]
         >>> dataset.obstypes['temp'].get_info()
-
+        temp observation with:
+         * standard unit: Celsius
+         * data column as Temperatuur in Celsius
+         * known units and aliases: {'Celsius': ['celsius', '°C', '°c', 'celcius', 'Celcius'], 'Kelvin': ['K', 'kelvin'], 'Farenheit': ['farenheit'], 'your_new_unit': []}
+         * description: 2mT passive
+         * conversions to known units: {'Kelvin': ['x - 273.15'], 'Farenheit': ['x-32.0', 'x/1.8'], 'your_new_unit': ['x+3', 'x * 2']}
+         * originates from data column: Temperatuur with Celsius as native unit.
         """
         # test if observation is present
         if not obstype in self.obstypes.keys():
@@ -874,7 +881,7 @@ class Dataset(
         Now we can select a station by name
 
         >>> favorite_station = dataset.get_station('vlinder05')
-        >>> print(fovorite_station)
+        >>> print(favorite_station)
         Station instance containing:
              *1 stations
              *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
@@ -975,36 +982,72 @@ class Dataset(
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
 
+        See Also
+        --------
+
+        Modeldata: Modeldata class.
+        Modeldata.add_obstype: add a new obstype and band to the Modeldata.
+        Modeldata.add_gee_dataset: add a new Google earth engine Modeldata dataset.
+        Modeldata.set_model_from_csv: Read GEE modeldata from a csv file.
+        fill_gaps_with_raw_modeldata: Raw modeldata gapfill method.
+
+
         Examples
         --------
-        .. code-block:: python
 
-            import metobs_toolkit
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-            # Import data into a Dataset
-            dataset = metobs_toolkit.Dataset()
-            dataset.update_settings(
-                        input_data_file=metobs_toolkit.demo_datafile,
-                        input_metadata_file=metobs_toolkit.demo_metadatafile,
-                        template_file=metobs_toolkit.demo_template,
-                        )
-            dataset.import_data_from_file()
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
-            # To limit data transfer, we define a short period
-            import datetime
+        We will now extract modeldata, directly trough the use of the GEE (
+        google earht engine) API. The Modeldata will extract timeseries,
+        of the stations present in the Dataset.
 
-            tstart = datetime.datetime(2022, 9, 5)
-            tend = datetime.datetime(2022, 9, 6)
+        If the data transfer is to big, a file .csv file is writen in your
+        google Drive. You must download that file, and import it using the
+        ``Modeldata.set_model_from_csv()`. To limit the transfer of data,
+        we will dowload timeseries for a single station, and a specific timeperiod.
 
+        >>> import datetime
+        >>>
+        >>> tstart = datetime.datetime(2022, 9, 5)
+        >>> tend = datetime.datetime(2022, 9, 6)
+        >>>
+        >>> sta = dataset.get_station('vlinder02')
 
-            # Collect ERA5 2mT timeseries at your stations
-            ERA5_data = dataset.get_modeldata(
-                                    modelname="ERA5_hourly",
-                                    modeldata=None,
-                                    obstype="temp",
-                                    stations=None,
-                                    startdt=tstart,
-                                    enddt=tend)
+        Now we download temperature timeseries of ERA5 data at the location
+        of "vlinder02" for the period of interest.
+
+        >>> # Collect ERA5 2mT timeseries at your station
+        >>> ERA5_data = sta.get_modeldata(
+        ...                     modelname="ERA5_hourly",
+        ...                     modeldata=None,
+        ...                     obstype="temp",
+        ...                     stations=None,
+        ...                     startdt=tstart,
+        ...                     enddt=tend)
+        (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
+
+        ERA5_data contains 1 timeseries of temperature data, automatically
+        converted to the toolkit standard unit (Celcius).
+
+        >>> print(ERA5_data)
+        Modeldata instance containing:
+            * Modelname: ERA5_hourly
+            * 1 timeseries
+            * The following obstypes are available: ['temp']
+            * Data has these units: ['Celsius']
+            * From 2022-09-05 00:00:00+00:00 --> 2022-09-06 00:00:00+00:00 (with tz=UTC)
+        <BLANKLINE>
+        (Data is stored in the .df attribute)
 
         """
         if modeldata is None:
@@ -1111,28 +1154,37 @@ class Dataset(
         -------
         None.
 
+        See Also
+        --------
+        save_dataset: Save a dataset as a pickle file.
+
+
         Examples
         --------
-        .. code-block:: python
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-            >>> import metobs_toolkit
-            >>> import os
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...            input_data_file=metobs_toolkit.demo_datafile,
-            ...            input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...            template_file=metobs_toolkit.demo_template)
-            >>>
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Save dataset to a .csv file
-            >>> dataset.update_settings(output_folder = os.getcwd())
-            >>> dataset.write_to_csv(filename='your_saved_table.csv')
-            write metadata to file: ...
-            write dataset to file: ...
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
+        Now we will create a file (.csv) with all records and a file with the metadata.
+
+        >>> # create paths to target files
+        >>> import os
+        >>> target_data_file = os.path.join(os.getcwd(), 'your_data.csv')
+        >>> target_metadatafile = os.path.join(os.getcwd(), 'your_metadata.csv')
+        >>>
+        >>> dataset.write_to_csv(data_file=target_data_file,
+        ...                      metadata_file=target_metadatafile,
+        ...                      overwrite=True)
+        write to file: /home/.../your_data.csv
+        write to file: /home/.../your_metadata.csv
         """
 
         logger.info("Writing the dataset to a csv file")
@@ -1257,7 +1309,7 @@ class Dataset(
             obervations. If None, the earliest occuring timestamp is used as
             origin. The default is None.
         freq : DateOffset, Timedelta or str, optional
-            The offset string or object representing target conversion.
+            The target frequency to coarsen all records to.
             Ex: '15min' is 15 minutes, '1h', is one hour. The default is '60min'.
         direction : 'backward', 'forward', or 'nearest'
             Whether to search for prior, subsequent, or closest matches for
@@ -1272,34 +1324,111 @@ class Dataset(
         -------
         None.
 
+        Note
+        ------
+        This method is actually a call to `Dataset.sync_records()` with a fixed
+        frequency and a zero-tolerance on frequency shift.
+
         Warning
         ---------
         Since the gaps depend on the records frequency and origin, all gaps are
         removed and re-located. All progress in gap(filling) will be lost.
 
+        Note
+        -------
+        It is technically possible to increase the time resolution. This will
+        will hower does not result in an information increase, more gaps are
+        created instead.
+
+        See Also
+        --------
+        sync_records: Syncronize records in time.
+
         Examples
         --------
-        .. code-block:: python
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='15min') #to 15 minutes resolution
-            >>> dataset.df[['temp', 'humidity']].head()
-                                                 temp  humidity
-            name      datetime
-            vlinder01 2022-09-01 00:00:00+00:00  18.8      65
-                      2022-09-01 00:15:00+00:00  18.7      65
-                      2022-09-01 00:30:00+00:00  18.7      65
-                      2022-09-01 00:45:00+00:00  18.6      65
-                      2022-09-01 01:00:00+00:00  18.4      65
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+
+        When importing a data from file, a frequency assumtion is made for
+        each station (seperatly) in the Dataset. This is stored in the `metadf`
+
+        >>> dataset.metadf['dataset_resolution']
+        name
+        vlinder01   0 days 00:05:00
+        vlinder02   0 days 00:05:00
+        vlinder03   0 days 00:05:00
+        vlinder04   0 days 00:05:00
+        vlinder05   0 days 00:05:00
+        vlinder06   0 days 00:05:00
+        vlinder07   0 days 00:05:00
+        vlinder08   0 days 00:05:00
+        vlinder09   0 days 00:05:00
+        vlinder10   0 days 00:05:00
+        vlinder11   0 days 00:05:00
+        vlinder12   0 days 00:05:00
+        vlinder13   0 days 00:05:00
+        vlinder14   0 days 00:05:00
+        vlinder15   0 days 00:05:00
+        vlinder16   0 days 00:05:00
+        vlinder17   0 days 00:05:00
+        vlinder18   0 days 00:05:00
+        vlinder19   0 days 00:05:00
+        vlinder20   0 days 00:05:00
+        vlinder21   0 days 00:05:00
+        vlinder22   0 days 00:05:00
+        vlinder23   0 days 00:05:00
+        vlinder24   0 days 00:05:00
+        vlinder25   0 days 00:05:00
+        vlinder26   0 days 00:05:00
+        vlinder27   0 days 00:05:00
+        vlinder28   0 days 00:05:00
+        Name: dataset_resolution, dtype: timedelta64[ns]
+
+        We can coarsen the time resolution to 15 minutes with a maximum
+        allowd timestamp shift of 4 minutes.
+
+        >>> dataset.coarsen_time_resolution(freq='15min',
+        ...                                 timestamp_shift_tolerance='4min')
+        >>> dataset.metadf['dataset_resolution']
+        name
+        vlinder01   0 days 00:15:00
+        vlinder02   0 days 00:15:00
+        vlinder03   0 days 00:15:00
+        vlinder04   0 days 00:15:00
+        vlinder05   0 days 00:15:00
+        vlinder06   0 days 00:15:00
+        vlinder07   0 days 00:15:00
+        vlinder08   0 days 00:15:00
+        vlinder09   0 days 00:15:00
+        vlinder10   0 days 00:15:00
+        vlinder11   0 days 00:15:00
+        vlinder12   0 days 00:15:00
+        vlinder13   0 days 00:15:00
+        vlinder14   0 days 00:15:00
+        vlinder15   0 days 00:15:00
+        vlinder16   0 days 00:15:00
+        vlinder17   0 days 00:15:00
+        vlinder18   0 days 00:15:00
+        vlinder19   0 days 00:15:00
+        vlinder20   0 days 00:15:00
+        vlinder21   0 days 00:15:00
+        vlinder22   0 days 00:15:00
+        vlinder23   0 days 00:15:00
+        vlinder24   0 days 00:15:00
+        vlinder25   0 days 00:15:00
+        vlinder26   0 days 00:15:00
+        vlinder27   0 days 00:15:00
+        vlinder28   0 days 00:15:00
+        Name: dataset_resolution, dtype: timedelta64[ns]
 
         """
 
@@ -1322,45 +1451,93 @@ class Dataset(
         fixed_freq=None,
         direction="nearest",
     ):
-        """Simplify and syncronize the observation timestamps.
+        """Synchronize observation records in time.
 
-        #TODO: update docstring
+        Synchronisation is shifting timestamps by litle, so that the same
+        timestamps are found accros mulitple stations. The maximum allowd shift
+        of a timestamp is set by timestamp_shift_tolerance.
 
-        To simplify the resolution (per station), a tolerance is use to shift timestamps. The tolerance indicates the
-        maximum translation in time that can be applied to an observation.
+        Syncronized observations must have the same frequency. This method will
+        therefore try to alter the frequency a bit, so is in sync with other
+        observations (from other stations).
 
-        The sycronisation tries to group stations that have an equal simplified resolution, and syncronize them. The origin
-        of the sycronized timestamps will be set to round hours, round 10-minutes or round-5 minutes if possible given the tolerance.
+        The timestamp related columns in the Dataset.metadf are updated, and
+        gaps are reconstructed! All current info stored in the gaps will be lost.
 
-        The observations present in the input file are used.
-
-        After syncronization, the IO outliers, missing observations and gaps are recomputed.
+        In pracktice, the syncronisation is applied at the start your workflow
+        on datasets with irregular or unsynchronized timestamps.
 
         Parameters
         ----------
-        tolerance :  Timedelta or str
-            The tolerance string or object representing the maximum translation in time.
-            Ex: '5min' is 5 minutes, '1h', is one hour.
-        verbose : bool, optional
-            If True, a dataframe illustrating the mapping from original datetimes to simplified and syncronized is returned. The default is True.
-        _drop_target_nan_dt : bool, optional
-            If record has no target datetime, the datetimes will be listed as Nat. To remove them,
-            set this to True. Default is False.
-        _force_resolution_minutes : bool, optional
-            force the resolution estimate to this frequency in minutes. If None, the frequency is estimated. The default is None.
-        Note
-        --------
-        Keep in mind that this method will overwrite the df, outliersdf, missing timestamps and gaps.
-
-        Note
-        --------
-        Because the used observations are from the input file, previously coarsend timeresolutions are ignored.
+        timestamp_shift_tolerance : str or Timedelta, optional
+            The tolerance string or object representing the maximum translation
+            in time for a timestamp. The default is "2min".
+        freq_shift_tolerance : str or Timedelta, optional,
+            The tolerance string or object representing the maximum translation
+            in time for a frequency. The default is "1min".
+        fixed_origin : datetime.datetime, optional
+            Define the origin (first timestamp) for the obervations. This is
+            applied on all the stations. If the origin is timezone naive, it is
+            assumed to have the same timezone as the obervations. If None, the
+            (shifted) earliest occuring timestamp is used as origin with. The
+            default is None.
+        fixed_enddt : datetime.datetime, optional
+            Define the latest timestamp for the obervations. This is
+            applied on all the stations. If the fixed_enddt is timezone naive,
+            it is assumed to have the same timezone as the obervations. If
+            None, the (shifted) latest occuring timestamp is used as enddt
+            The default is None.
+        fixed_freq : str or Timedelta, optional,
+            The target frequency which is applied on all records. If None,
+            (a simplyfied version of the) present frequency is used. The default is None.
+        direction : 'backward', 'forward', or 'nearest'
+            Whether to search for prior, subsequent, or closest matches for
+            mapping to ideal timestamps. The default is 'nearest'.
 
 
         Returns
         -------
-        pandas.DataFrame (if verbose is True)
-            A dataframe containing the original observations with original timestamps and the corresponding target timestamps.
+        None.
+
+        Note
+        --------
+        Keep in mind that this method will overwrite the df, outliersdf and gaps.
+
+        See Also
+        --------
+        coarsen_time_resolution: To coarsen the time resolution to a fixed freq.
+
+        Examples
+        --------
+        Create a ``Dataset`` and fill it with data (and metadata).
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+
+        When importing a data from file, a frequency, origin and enddt assumtion
+        is made for each station (seperatly) in the Dataset. This is stored in the `metadf`.
+
+        >>> dataset.metadf[['dataset_resolution', 'dt_start', 'dt_end']].head()
+                  dataset_resolution                  dt_start                    dt_end
+        name
+        vlinder01    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+
+        When you have irregular/unsynchronized timestamp, you can sync them
+
+        >>> dataset.sync_records(
+        ...     timestamp_shift_tolerance="7min",
+        ...     freq_shift_tolerance="4min")
 
         """
 
@@ -1459,29 +1636,28 @@ class Dataset(
         kwargs_metadata_read={},
         templatefile_is_url=False,
     ):
-        """Read observations from a csv file.
+        """Read observations from a csv file and fill the Dataset.
 
-        The paths (data, metadata and template) are stored in the settings if
-        Dataset.update_settings() is called on this object. These paths can be
-        updated by adding them as argument to this method.
 
         The input data (and metadata) are interpreted by using a template
         (json file).
 
         In order to locate gaps, an ideal set of timestamps is exptected. This
         set of timestamps is computed for each station seperatly by:
-            * Assuming a constant frequency. This frequency is estimated by using
-            a freq_estimation_method. If multiple observationtypes are present,
-            the assumed frequency is the highest of estimated frequency among
-            the differnt observationtypes. To simplify the estimated frequency a
-            freq_estimation_simplify_error can be specified.
-            * A start timestamp (origin) is found for each station. If multiple observationtypes are present,
-            the start timestamp is the first timestamp among
-            the different observationtypes. The start
-            timestamp can be simplified by specifying a origin_simplify_tolerance.
-            * The last timestamp is found for each station by taking the timestamp
-            which is closest and smaller then the latest timestamp found of a station,
-            and is an element of the ideal set of timestamps.
+
+         * Assuming a constant frequency. This frequency is estimated by using
+           a freq_estimation_method. If multiple observationtypes are present,
+           the assumed frequency is the highest of estimated frequency among
+           the differnt observationtypes. To simplify the estimated frequency a
+           freq_estimation_simplify_error can be specified.
+         * A start timestamp (origin) is found for each station. If multiple
+           observationtypes are present,
+           the start timestamp is the first timestamp among
+           the different observationtypes. The start
+           timestamp can be simplified by specifying a origin_simplify_tolerance.
+         * The last timestamp is found for each station by taking the timestamp
+           which is closest and smaller then the latest timestamp found of a station,
+           and is an element of the ideal set of timestamps.
 
         Each present observation record is linked to a timestamp of this ideal set,
         by using a 'nearest' merge. If the timediffernce is smaller than the
@@ -1557,20 +1733,24 @@ class Dataset(
         -------
         None.
 
+        See Also
+        --------
+        update_settings: Update the (file paths) settings of a Dataset.
+
+
         Examples
         --------
-        .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
+        >>> import metobs_toolkit
+        >>>
+        >>> # Import data into a Dataset
+        >>> dataset = metobs_toolkit.Dataset()
+        >>> dataset.update_settings(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> dataset.import_data_from_file()
 
         """
         # Special argschecks
@@ -1717,28 +1897,89 @@ class Dataset(
         lcz_series : pandas.Series()
             A series with the stationnames as index and the LCZ as values.
 
+        Warning
+        ---------
+        This methods makes use of GEE API. Make sure that you have acces and
+        user rights to use the GEE API.
+
+        See Also
+        --------
+        connect_to_gee: Setup a new connection/credentials to the GEE service.
+        get_altitude: Extract altitudes for all stations
+        get_landcover: Extract landcoverfractions for all stations
+
+
         Examples
         --------
-        .. code-block:: python
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-             import metobs_toolkit
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
-             # Import data into a Dataset
-             dataset = metobs_toolkit.Dataset()
-             dataset.update_settings(
-                                     input_data_file=metobs_toolkit.demo_datafile,
-                                     input_metadata_file=metobs_toolkit.demo_metadatafile,
-                                     template_file=metobs_toolkit.demo_template,
-                                     )
-             dataset.import_data_from_file()
+        At this point there is no LCZ information present in the metadata
 
-             # Get the local climate zones for all stations
-             lcz_series = dataset.get_lcz()
+        >>> dataset.metadf.head()
+                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+        name
+        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
 
-             # in addition to the returned series, the metadf attribute is updated aswell
-             print(dataset.metadf)
+        We use the GEE API to extract the LCZ for all the stations present in
+        the metadf (if coordinates are present).
 
+        >>> lcz_series = dataset.get_lcz()
+        >>> lcz_series.head()
+            name
+        vlinder01    Low plants (LCZ D)
+        vlinder02         Large lowrise
+        vlinder03          Open midrise
+        vlinder04        Sparsely built
+        vlinder05         Water (LCZ G)
+        Name: lcz, dtype: object
 
+        The LCZ are automatically added to the metadf as 'lcz' column.
+
+        >>> dataset.metadf['lcz']
+            name
+        vlinder01         Low plants (LCZ D)
+        vlinder02              Large lowrise
+        vlinder03               Open midrise
+        vlinder04             Sparsely built
+        vlinder05              Water (LCZ G)
+        vlinder06    Scattered Trees (LCZ B)
+        vlinder07            Compact midrise
+        vlinder08            Compact midrise
+        vlinder09    Scattered Trees (LCZ B)
+        vlinder10            Compact midrise
+        vlinder11               Open lowrise
+        vlinder12              Open highrise
+        vlinder13            Compact midrise
+        vlinder14         Low plants (LCZ D)
+        vlinder15         Low plants (LCZ D)
+        vlinder16              Water (LCZ G)
+        vlinder17    Scattered Trees (LCZ B)
+        vlinder18         Low plants (LCZ D)
+        vlinder19            Compact midrise
+        vlinder20            Compact midrise
+        vlinder21             Sparsely built
+        vlinder22         Low plants (LCZ D)
+        vlinder23         Low plants (LCZ D)
+        vlinder24        Dense Trees (LCZ A)
+        vlinder25              Water (LCZ G)
+        vlinder26               Open midrise
+        vlinder27            Compact midrise
+        vlinder28               Open lowrise
+        Name: lcz, dtype: object
         """
         # connect to gee
         connect_to_gee()
@@ -1775,26 +2016,88 @@ class Dataset(
         altitude_series : pandas.Series()
             A series with the stationnames as index and the altitudes as values.
 
-         Examples
-         --------
-         .. code-block:: python
+        Warning
+        ---------
+        This methods makes use of GEE API. Make sure that you have acces and
+        user rights to use the GEE API.
 
-              import metobs_toolkit
+        See Also
+        --------
+        connect_to_gee: Setup a new connection/credentials to the GEE service.
+        get_lcz: Extract LCZ for all stations
+        get_landcover: Extract landcoverfractions for all stations
 
-              # Import data into a Dataset
-              dataset = metobs_toolkit.Dataset()
-              dataset.update_settings(
-                                      input_data_file=metobs_toolkit.demo_datafile,
-                                      input_metadata_file=metobs_toolkit.demo_metadatafile,
-                                      template_file=metobs_toolkit.demo_template,
-                                      )
-              dataset.import_data_from_file()
+        Examples
+        --------
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-              # Get the altitude for all stations
-              alt_series = dataset.get_altitude()
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
-              # in addition to the returned series, the metadf attribute is updated aswell
-              print(dataset.metadf)
+        At this point there is no altitude information present in the metadata
+
+        >>> dataset.metadf.head()
+                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+        name
+        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+
+        We use the GEE API to extract the LCZ for all the stations present in
+        the metadf (if coordinates are present).
+
+        >>> alt_series = dataset.get_altitude()
+        >>> alt_series.head()
+        name
+        vlinder01    12
+        vlinder02     7
+        vlinder03    30
+        vlinder04    25
+        vlinder05     0
+        Name: altitude, dtype: int64
+
+        The altitudes are automatically added to the metadf as 'altitude' column.
+
+        >>> dataset.metadf['altitude']
+        name
+        vlinder01    12
+        vlinder02     7
+        vlinder03    30
+        vlinder04    25
+        vlinder05     0
+        vlinder06     0
+        vlinder07     7
+        vlinder08     7
+        vlinder09    19
+        vlinder10    14
+        vlinder11     6
+        vlinder12     9
+        vlinder13    10
+        vlinder14     4
+        vlinder15    41
+        vlinder16     4
+        vlinder17    83
+        vlinder18    35
+        vlinder19    75
+        vlinder20    44
+        vlinder21    19
+        vlinder22     3
+        vlinder23     1
+        vlinder24    12
+        vlinder25    12
+        vlinder26    24
+        vlinder27    12
+        vlinder28     7
+        Name: altitude, dtype: int64
 
         """
         # connect to gee
@@ -1836,10 +2139,9 @@ class Dataset(
         is True. Presented as seperate columns where each column represent the
         landcovertype and corresponding buffer.
 
-
         Parameters
         ----------
-        buffers : num, optional
+        buffers : list of numerics, optional
             The list of buffer radia in dataset units (meters for ESA worldcover) . The default is 100.
         aggregate : bool, optional
             If True, the classes will be aggregated with the corresponding
@@ -1858,29 +2160,92 @@ class Dataset(
             A Dataframe with index: name, buffer_radius and the columns are the
             fractions.
 
+        Warning
+        ---------
+        This methods makes use of GEE API. Make sure that you have acces and
+        user rights to use the GEE API.
+
+        Warning
+        ---------
+        It can happen that for stations located on small islands, or close to
+        the coast, the sea-mask is not used as a landcover fraction.
+
+        See Also
+        --------
+        connect_to_gee: Setup a new connection/credentials to the GEE service.
+        get_altitude: Extract altitudes for all stations
+        get_lcz: Extract lcz for all stations
+        make_gee_plot: Make an interactive plot of a GEE dataset
+
         Examples
         --------
-        .. code-block:: python
+        Create a ``Dataset`` and fill it with data (and metadata).
 
-             import metobs_toolkit
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
 
-             # Import data into a Dataset
-             dataset = metobs_toolkit.Dataset()
-             dataset.update_settings(
-                                     input_data_file=metobs_toolkit.demo_datafile,
-                                     input_metadata_file=metobs_toolkit.demo_metadatafile,
-                                     template_file=metobs_toolkit.demo_template,
-                                     )
-             dataset.import_data_from_file()
+        At this point there is no landcover information present in the metadata.
 
-             # Get the landcover fractions for multiple buffers, for all stations
-             lc_frac_series = dataset.get_landcover(buffers=[50, 100, 250, 500],
-                                                    aggregate=False)
+        >>> dataset.metadf.head()
+                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+        name
+        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
 
-             # in addition to the returned dataframe, the metadf attribute is updated aswell
-             print(dataset.metadf)
+        We use the GEE API to extract the landcover fractions for all the
+        stations present in the metadf (if coordinates are present).
+
+        >>> frac_df = dataset.get_landcover(buffers=[50, 100, 250, 500],
+        ...                                 aggregate=False)
+        >>> frac_df
+                                   Grassland  Cropland  Tree cover  Built-up  Permanent water bodies  Herbaceous wetland  Bare / sparse vegetation  Shrubland
+        name      buffer_radius
+        vlinder01 50              0.545691  0.454309    0.000000  0.000000                0.000000                 0.0                       NaN        NaN
+                  100             0.345583  0.636198    0.000000  0.018219                0.000000                 0.0                       NaN        NaN
+                  250             0.318707  0.640718    0.004210  0.036365                0.000000                 0.0                  0.000000        NaN
+                  500             0.390234  0.466117    0.049143  0.094263                0.000243                 0.0                  0.000000        0.0
+        vlinder02 50              0.629257  0.000000    0.014283  0.356460                0.000000                 0.0                       NaN        NaN
+        ...                            ...       ...         ...       ...                     ...                 ...                       ...        ...
+        vlinder27 500             0.004314  0.000000    0.061079  0.923446                0.010837                 0.0                  0.000323        0.0
+        vlinder28 50              0.049876  0.000000    0.159655  0.790469                0.000000                 0.0                       NaN        NaN
+                  100             0.187910  0.000000    0.302041  0.510049                0.000000                 0.0                       NaN        NaN
+                  250             0.128338  0.000000    0.593612  0.278050                0.000000                 0.0                  0.000000        NaN
+                  500             0.115984  0.000162    0.548787  0.335067                0.000000                 0.0                  0.000000        0.0
+        <BLANKLINE>
+        [112 rows x 8 columns]
+
+
+        The landcover fractions are automatically added to the metadf.
+
+
+        >>> dataset.metadf.columns
+        Index(['lat', 'lon', 'school', 'geometry', 'dataset_resolution', 'dt_start',
+           'dt_end', 'Grassland_50m', 'Cropland_50m', 'Tree cover_50m',
+           'Built-up_50m', 'Permanent water bodies_50m', 'Herbaceous wetland_50m',
+           'Bare / sparse vegetation_50m', 'Shrubland_50m', 'Grassland_100m',
+           'Cropland_100m', 'Tree cover_100m', 'Built-up_100m',
+           'Permanent water bodies_100m', 'Herbaceous wetland_100m',
+           'Bare / sparse vegetation_100m', 'Shrubland_100m', 'Grassland_250m',
+           'Cropland_250m', 'Tree cover_250m', 'Built-up_250m',
+           'Permanent water bodies_250m', 'Herbaceous wetland_250m',
+           'Bare / sparse vegetation_250m', 'Shrubland_250m', 'Grassland_500m',
+           'Cropland_500m', 'Tree cover_500m', 'Built-up_500m',
+           'Permanent water bodies_500m', 'Herbaceous wetland_500m',
+           'Bare / sparse vegetation_500m', 'Shrubland_500m'],
+          dtype='object')
 
         """
+
         # connect to gee
         connect_to_gee()
 

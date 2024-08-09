@@ -226,7 +226,9 @@ class Obstype:
         """Return a list with all the known unit (in standard naming)."""
         units = list(self.units_aliases.keys())
         units.append(self.get_standard_unit())
-        return list(set(units))
+        units = list(set(units))
+        units.sort()
+        return units
 
     def get_standard_unit(self):
         """Return the standard unit of the observation type."""

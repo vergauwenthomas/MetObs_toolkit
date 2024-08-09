@@ -807,7 +807,9 @@ class DatasetBase(object):
 
         # Add a label column and concat the outliers to the df. In that way,
         # we can reconstruct the outliersdf again within the same clean resolutionspace
-        df = pd.concat([df, self.outliersdf])
+        if not self.outliersdf.empty:
+            df = pd.concat([df, self.outliersdf])
+
         df = df[
             ~df.index.duplicated(keep="last")
         ]  # remove duplicated records, to keep the outliers
