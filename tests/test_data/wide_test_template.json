@@ -15,7 +15,7 @@
             {
                 "tlk_obstype": "temp",
                 "columnname": null,
-                "unit": "Celsius",
+                "unit": "Kelvin",
                 "description": "2mT"
             }
         ]

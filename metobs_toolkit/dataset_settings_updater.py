@@ -7,12 +7,11 @@ Extension of the Dataset class (methods for updating settings).
 """
 import logging
 import pandas as pd
-from metobs_toolkit import Dataset
 
 logger = logging.getLogger(__name__)
 
 
-class Dataset(Dataset):
+class DatasetSettingsCore:
     """Extension on the metobs_toolkit.Dataset class with updaters."""
 
     def update_settings(
@@ -52,24 +51,6 @@ class Dataset(Dataset):
             template_file=template_file,
         )
 
-    def update_timezone(self, timezonestr):
-        """Change the timezone of the input data.
-
-        By default UTC is assumed.
-        A valid timezonestring is an element of the pytz.all_timezones.
-
-        Parameters
-        ----------
-        timezonestr : string
-            Timezone string of the input observations. Element of pytz.all_timezones.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.settings.update_timezone(timezonestr)
-
     def update_default_name(self, default_name):
         """Update the default name (the name of the station).
 
@@ -89,138 +70,9 @@ class Dataset(Dataset):
         """
         self.settings.app["default_name"] = str(default_name)
 
-    def update_gap_and_missing_fill_settings(
-        self,
-        gap_interpolation_method=None,
-        gap_interpolation_max_consec_fill=None,
-        gap_debias_prefered_leading_period_hours=None,
-        gap_debias_prefered_trailing_period_hours=None,
-        gap_debias_minimum_leading_period_hours=None,
-        gap_debias_minimum_trailing_period_hours=None,
-        automatic_max_interpolation_duration_str=None,
-        missing_obs_interpolation_method=None,
-    ):
-        """Update fill settings for gaps and missing observations.
-
-        If None, the current setting is not updated.
-
-        Parameters
-        ----------
-        gap_interpolation_method : str, optional
-            The interpolation method to pass to numpy.interpolate. The default is None.
-        gap_interpolation_max_consec_fill : int, optional
-            Maximum number of lacking observations to interpolate. This is
-            passed to the limit argument of Numpy.interpolate. The default is
-            None.
-        gap_debias_prefered_leading_period_hours : int, optional
-            The preferd size of the leading period for calculating hourly
-            biasses wrt the model. The default is None.
-        gap_debias_prefered_trailing_period_hours : int, optional
-            The preferd size of the trailing period for calculating hourly
-            biasses wrt the model. The default is None.
-        gap_debias_minimum_leading_period_hours : int, optional
-            The minimum size of the leading period for calculating hourly
-            biasses wrt the model. The default is None.
-        gap_debias_minimum_trailing_period_hours : int, optional
-            The minimum size of the trailing period for calculating hourly
-            biasses wrt the model. The default is None.
-        automatic_max_interpolation_duration_str : Timedelta or str, optional
-            Maximum duration to apply interpolation for gapfill when using the
-            automatic gapfill method. Gaps with longer durations will be filled
-            using debiased modeldata. The default is None.
-        missing_obs_interpolation_method : str, optional
-            The interpolation method to pass to numpy.interpolate. The default is None.
-
-        Returns
-        -------
-        None.
-
-        """
-        # Gap linear interpolation
-        if gap_interpolation_method is not None:
-            logger.info(
-                f' The gap interpolation method is updated: \
-        {self.settings.gap["gaps_fill_settings"]["linear"]["method"]} --> {str(gap_interpolation_method)}'
-            )
-            self.settings.gap["gaps_fill_settings"]["linear"]["method"] = str(
-                gap_interpolation_method
-            )
-
-        if gap_interpolation_max_consec_fill is not None:
-            logger.info(
-                f' The gap max number of consecutive interpolations is updated: \
-        {self.settings.gap["gaps_fill_settings"]["linear"]["max_consec_fill"]} --> {abs(int(gap_interpolation_max_consec_fill))}'
-            )
-            self.settings.gap["gaps_fill_settings"]["linear"]["max_consec_fill"] = abs(
-                int(gap_interpolation_max_consec_fill)
-            )
-
-        # Gap debias fill
-        if gap_debias_prefered_leading_period_hours is not None:
-            logger.info(
-                f' The size of the prefered leading period for debias gapfill is updated: \
-        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_leading_sample_duration_hours"]} --> {abs(int(gap_debias_prefered_leading_period_hours))}'
-            )
-            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"][
-                "prefered_leading_sample_duration_hours"
-            ] = abs(int(gap_debias_prefered_leading_period_hours))
-
-        if gap_debias_prefered_trailing_period_hours is not None:
-            logger.info(
-                f' The size of the prefered trailing period for debias gapfill is updated: \
-        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["prefered_trailing_sample_duration_hours"]} --> {abs(int(gap_debias_prefered_trailing_period_hours))}'
-            )
-            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"][
-                "prefered_trailing_sample_duration_hours"
-            ] = abs(int(gap_debias_prefered_trailing_period_hours))
-
-        if gap_debias_minimum_leading_period_hours is not None:
-            logger.info(
-                f' The minimum size of the leading period for debias gapfill is updated: \
-        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_leading_sample_duration_hours"]} --> {abs(int(gap_debias_minimum_leading_period_hours))}'
-            )
-            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"][
-                "minimum_leading_sample_duration_hours"
-            ] = abs(int(gap_debias_minimum_leading_period_hours))
-
-        if gap_debias_minimum_trailing_period_hours is not None:
-            logger.info(
-                f' The minimum size of the trailing period for debias gapfill is updated: \
-        {self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"]["minimum_trailing_sample_duration_hours"]} --> {abs(int(gap_debias_minimum_trailing_period_hours))}'
-            )
-            self.settings.gap["gaps_fill_settings"]["model_debias"]["debias_period"][
-                "minimum_trailing_sample_duration_hours"
-            ] = abs(int(gap_debias_minimum_trailing_period_hours))
-
-        # Gapfill automatic
-        if automatic_max_interpolation_duration_str is not None:
-            if is_timedelta(str(automatic_max_interpolation_duration_str)):
-                logger.info(
-                    f' The maximum interpolation duration for automatic gapfill is updated: \
-            {self.settings.gap["gaps_fill_settings"]["automatic"]["max_interpolation_duration_str"]} --> {str(automatic_max_interpolation_duration_str)}'
-                )
-                self.settings.gap["gaps_fill_settings"]["automatic"][
-                    "max_interpolation_duration_str"
-                ] = str(automatic_max_interpolation_duration_str)
-            else:
-                logger.warning(
-                    f" {str(automatic_max_interpolation_duration_str)} is not a valid timedelta string. No update on this setting."
-                )
-
-        # Missing obs interpolation
-        if missing_obs_interpolation_method is not None:
-            logger.info(
-                f' The missing observations interpolation method is updated: \
-        {self.settings.missing_obs["missing_obs_fill_settings"]["linear"]["method"]} --> {str(missing_obs_interpolation_method)}'
-            )
-            self.settings.missing_obs["missing_obs_fill_settings"]["linear"][
-                "method"
-            ] = str(missing_obs_interpolation_method)
-
     def update_qc_settings(
         self,
         obstype="temp",
-        gapsize_in_records=None,
         dupl_timestamp_keep=None,
         persis_time_win_to_check=None,
         persis_min_num_obs=None,
@@ -249,9 +101,6 @@ class Dataset(Dataset):
         obstype : str, optional
             The observation type to update the quality control settings for.
             The default is 'temp'.
-        gapsize_in_records : int (> 0), optional
-            A gap is defined as a sequence of missing observations with a length
-            greater or equal to this number, on the input frequencies. The default is None.
         dupl_timestamp_keep : bool, optional
             Setting that determines to keep, or remove duplicated timestamps. The default is None.
         persis_time_win_to_check : Timedelta or str, optional
@@ -298,10 +147,6 @@ class Dataset(Dataset):
         -------
         None.
 
-        Note
-        -------
-        The gap defenition is independend of the observation type, and is thus set for
-        all the observation types.
 
         """
         assert (
@@ -320,16 +165,6 @@ class Dataset(Dataset):
 
             dictionary[obstype][argname] = value
             return dictionary, printstr
-
-        # Gap defenition
-        if gapsize_in_records is not None:
-            logger.info(
-                f' The defenition of a gap (=gapsize) is updated: \
-        {self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]} --> {abs(int(gapsize_in_records))}'
-            )
-            self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"] = abs(
-                int(gapsize_in_records)
-            )
 
         # Gross value check
         if gross_value_max_value is not None:

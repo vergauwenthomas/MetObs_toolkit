@@ -7,10 +7,15 @@ Created on Tue Jul 16 13:44:49 2024
 """
 
 import logging
-from metobs_toolkit import Dataset
+import pandas as pd
 
 
 logger = logging.getLogger(__name__)
+
+from metobs_toolkit.settings_files.default_formats_settings import (
+    label_def,
+    qc_label_group,
+)
 
 from metobs_toolkit.qc_checks import (
     gross_value_check,
@@ -28,22 +33,22 @@ from metobs_toolkit.qc_checks import (
 from metobs_toolkit.plotting_functions import qc_stats_pie
 from metobs_toolkit.qc_statistics import get_freq_statistics
 from metobs_toolkit.df_helpers import (
-    multiindexdf_datetime_subsetting,
-    fmt_datetime_argument,
-    init_multiindex,
-    init_multiindexdf,
-    init_triple_multiindexdf,
-    metadf_to_gdf,
-    conv_applied_qc_to_df,
-    get_freqency_series,
-    value_labeled_doubleidxdf_to_triple_idxdf,
     xs_save,
     concat_save,
 )
 
 
-class Dataset(Dataset):
+class DatasetQCCore:
     """Extension on the metobs_toolkit.Dataset class with QC related methods"""
+
+    def _update_outliersdf(self, add_to_outliersdf):
+        """Update the outliersdf attribute."""
+
+        # Keep_all_nan_cols is True, because else the 'value' column is not
+        # concated if all values are Nan (the case when invalidcheck is applied)
+        self._set_outliersdf(
+            concat_save([self.outliersdf, add_to_outliersdf], keep_all_nan_cols=True)
+        )
 
     def get_qc_stats(self, obstype="temp", stationname=None, make_plot=True):
         """Get quality control statistics.
@@ -111,9 +116,9 @@ class Dataset(Dataset):
 
         """
         # cobmine all and get final label
-        comb_df = self.combine_all_to_obsspace()
+        comb_df = self.get_full_status_df(return_as_wide=False)
 
-        # subset to relevant columnt
+        # subset to relevant columns
         comb_df = xs_save(comb_df, obstype, level="obstype")[["label"]]
 
         # subset to stationnames
@@ -128,8 +133,6 @@ class Dataset(Dataset):
         final_freq, outl_freq, specific_freq = get_freq_statistics(
             comb_df=comb_df,
             obstype=obstype,
-            checks_info=self.settings.qc["qc_checks_info"],
-            gaps_info=self.settings.gap["gaps_info"],
             applied_qc_order=self._applied_qc,
         )
 
@@ -151,7 +154,7 @@ class Dataset(Dataset):
                 outlier_stats=outl_freq,
                 specific_stats=specific_freq,
                 plot_settings=self.settings.app["plot_settings"],
-                qc_check_info=self.settings.qc["qc_checks_info"],
+                # qc_check_info=self.settings.qc["qc_checks_info"],
                 title=title,
             )
 
@@ -321,14 +324,14 @@ class Dataset(Dataset):
 
         """
         if repetitions:
-            apliable = _can_qc_be_applied(self, obstype, "repetitions")
+            checkname = "repetitions"
+            apliable = _can_qc_be_applied(self, obstype, checkname)
             if apliable:
-                logger.info("Applying repetitions check.")
+                logger.info(f"Applying {checkname} check.")
 
                 obsdf, outl_df = repetitions_check(
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -338,26 +341,18 @@ class Dataset(Dataset):
                     self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype, ordered_checknames="repetitions"
-                        ),
-                    ],
-                    ignore_index=True,
-                )
+                self._append_to_applied_qc(obstype, checkname)
 
         if gross_value:
-            apliable = _can_qc_be_applied(self, obstype, "gross_value")
+            checkname = "gross_value"
+            apliable = _can_qc_be_applied(self, obstype, checkname)
 
             if apliable:
-                logger.info("Applying gross value check.")
+                logger.info(f"Applying {checkname} check.")
 
                 obsdf, outl_df = gross_value_check(
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -367,26 +362,18 @@ class Dataset(Dataset):
                     self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype, ordered_checknames="gross_value"
-                        ),
-                    ],
-                    ignore_index=True,
-                )
+                self._append_to_applied_qc(obstype, checkname)
 
         if persistance:
-            apliable = _can_qc_be_applied(self, obstype, "persistance")
+            checkname = "persistance"
+            apliable = _can_qc_be_applied(self, obstype, checkname)
 
             if apliable:
-                logger.info("Applying persistance check.")
+                logger.info(f"Applying {checkname} check.")
                 obsdf, outl_df = persistance_check(
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -396,25 +383,17 @@ class Dataset(Dataset):
                     self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype, ordered_checknames="persistance"
-                        ),
-                    ],
-                    ignore_index=True,
-                )
+                self._append_to_applied_qc(obstype, checkname)
 
         if step:
-            apliable = _can_qc_be_applied(self, obstype, "step")
+            checkname = "step"
+            apliable = _can_qc_be_applied(self, obstype, checkname)
 
             if apliable:
-                logger.info("Applying step-check.")
+                logger.info(f"Applying {checkname} check.")
                 obsdf, outl_df = step_check(
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -424,25 +403,17 @@ class Dataset(Dataset):
                     self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype, ordered_checknames="step"
-                        ),
-                    ],
-                    ignore_index=True,
-                )
+                self._append_to_applied_qc(obstype, checkname)
 
         if window_variation:
-            apliable = _can_qc_be_applied(self, obstype, "window_variation")
+            checkname = "window_variation"
+            apliable = _can_qc_be_applied(self, obstype, checkname)
             if apliable:
-                logger.info("Applying window variation-check.")
+                logger.info(f"Applying {checkname} check.")
                 obsdf, outl_df = window_variation_check(
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
                     obstype=obstype,
-                    checks_info=self.settings.qc["qc_checks_info"],
                     checks_settings=self.settings.qc["qc_check_settings"],
                 )
 
@@ -452,19 +423,8 @@ class Dataset(Dataset):
                     self.outliersdf = concat_save([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
-                self._applied_qc = concat_save(
-                    [
-                        self._applied_qc,
-                        conv_applied_qc_to_df(
-                            obstypes=obstype,
-                            ordered_checknames="window_variation",
-                        ),
-                    ],
-                    ignore_index=True,
-                )
+                self._append_to_applied_qc(obstype, checkname)
 
-        self._qc_checked_obstypes.append(obstype)
-        self._qc_checked_obstypes = list(set(self._qc_checked_obstypes))
         self.outliersdf = self.outliersdf.sort_index()
 
     def apply_buddy_check(
@@ -611,7 +571,6 @@ class Dataset(Dataset):
         apliable = _can_qc_be_applied(self, obstype, checkname)
         if apliable:
             buddy_set = self.settings.qc["qc_check_settings"][checkname][obstype]
-            outl_flag = self.settings.qc["qc_checks_info"][checkname]["outlier_flag"]
             obsdf, outliersdf = toolkit_buddy_check(
                 obsdf=self.df,
                 metadf=self.metadf,
@@ -623,7 +582,6 @@ class Dataset(Dataset):
                 std_threshold=buddy_set["threshold"],
                 metric_epsg=metric_epsg,
                 lapserate=buddy_set["elev_gradient"],
-                outl_flag=outl_flag,
                 haversine_approx=haversine_approx,
             )
 
@@ -633,15 +591,7 @@ class Dataset(Dataset):
                 self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
-            self._applied_qc = concat_save(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames=checkname
-                    ),
-                ],
-                ignore_index=True,
-            )
+            self._append_to_applied_qc(obstype, checkname)
 
         else:
             logger.warning(
@@ -793,7 +743,6 @@ class Dataset(Dataset):
                 obsdf=self.df,
                 metadf=self.metadf,
                 obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
                 checks_settings=self.settings.qc["titan_check_settings"][checkname][
                     obstype
                 ],
@@ -808,15 +757,7 @@ class Dataset(Dataset):
                 self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
-            self._applied_qc = concat_save(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames=checkname
-                    ),
-                ],
-                ignore_index=True,
-            )
+            self._append_to_applied_qc(obstype, checkname)
 
         else:
             logger.warning(
@@ -951,7 +892,6 @@ class Dataset(Dataset):
                 obsdf=self.df,
                 metadf=self.metadf,
                 obstype=obstype,
-                checks_info=self.settings.qc["qc_checks_info"],
                 checks_settings=self.settings.qc["titan_check_settings"][checkname][
                     obstype
                 ],
@@ -966,15 +906,7 @@ class Dataset(Dataset):
                 self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
-            self._applied_qc = concat_save(
-                [
-                    self._applied_qc,
-                    conv_applied_qc_to_df(
-                        obstypes=obstype, ordered_checknames=checkname
-                    ),
-                ],
-                ignore_index=True,
-            )
+            self._append_to_applied_qc(obstype, checkname)
 
         else:
             logger.warning(
@@ -989,6 +921,12 @@ class Dataset(Dataset):
 
 def _can_qc_be_applied(dataset, obstype, checkname):
     """Test if a qc check can be applied."""
+    # test if checkname is known with standard labels
+    if checkname not in label_def.keys():
+        raise MetobsDatasetQCError(f"{checkname} is not a known QC method.")
+    if checkname not in qc_label_group:
+        raise MetobsDatasetQCError(f"{checkname} is not added in the qc_label_group.")
+
     # test if check is already applied on the obstype
     applied_df = dataset._applied_qc
     can_be_applied = (
@@ -1041,3 +979,9 @@ def _can_qc_be_applied(dataset, obstype, checkname):
             return False
 
     return True
+
+
+class MetobsDatasetQCError(Exception):
+    """Exception raised for errors in the template."""
+
+    pass

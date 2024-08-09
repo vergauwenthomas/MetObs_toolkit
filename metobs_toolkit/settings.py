@@ -27,11 +27,10 @@ class Settings:
         logger.info("Initialising settings")
 
         # define thematics in settings. Corresponds to settings files.
-        self.time_settings = {}
         self.app = {}
         self.qc = {}
-        self.gap = {}
-        self.missing_obs = {}
+        # self.gap = {}
+        # self.missing_obs = {}
         self.templatefile = None  # filepath
         self.gee = {}
         self.IO = {
@@ -41,48 +40,14 @@ class Settings:
         }
 
         # Update (instance and class variables) what can be updated by setingsfiles
-        self._update_time_res_settings()
+
         self._update_app_settings()
         self._update_qc_settings()
-        self._update_gap_settings()
         self._update_gee_settings()
 
     # =============================================================================
     #     Update settings from files in initialisation
     # =============================================================================
-
-    def _update_time_res_settings(self):
-        """
-        Update settings on time resolutions of self using the default settings templates.
-
-        Returns
-        -------
-        None.
-        """
-        logger.debug("Updating time resolution settings.")
-        f = open(
-            os.path.join(
-                Settings._settings_files_path, "dataset_resolution_settings.json"
-            )
-        )
-        res_settings = json.load(f)
-        f.close()
-
-        self.time_settings["target_time_res"] = res_settings["target_time_resolution"]
-        self.time_settings["resample_method"] = res_settings["method"]
-        self.time_settings["resample_limit"] = res_settings["limit"]
-        self.time_settings["timezone"] = res_settings["timezone"]
-
-        # Freq estimation
-        self.time_settings["freq_estimation_method"] = res_settings[
-            "freq_estimation_method"
-        ]
-        self.time_settings["freq_estimation_simplify"] = bool(
-            res_settings["freq_estimation_simplify"]
-        )
-        self.time_settings["freq_estimation_simplify_error"] = res_settings[
-            "freq_estimation_simplify_error"
-        ]
 
     def _update_app_settings(self):
         """
@@ -98,6 +63,7 @@ class Settings:
             print_settings,
             vars_display,
             default_name,
+            label_def,
         )
         from .settings_files.default_formats_settings import (
             static_fields,
@@ -134,41 +100,15 @@ class Settings:
         logger.debug("Updating QC settings.")
         from .settings_files.qc_settings import (
             check_settings,
-            checks_info,
+            # checks_info,
             titan_check_settings,
             titan_specific_labeler,
         )
 
         self.qc["qc_check_settings"] = check_settings
-        self.qc["qc_checks_info"] = checks_info
+        # self.qc["qc_checks_info"] = checks_info
         self.qc["titan_check_settings"] = titan_check_settings
         self.qc["titan_specific_labeler"] = titan_specific_labeler
-
-    def _update_gap_settings(self):
-        """
-        Update gap defenition and fill settings of self using the default settings templates.
-
-        Returns
-        -------
-        None.
-        """
-        logger.debug("Updating gap settings.")
-        from .settings_files.gaps_and_missing_settings import (
-            gaps_settings,
-            gaps_info,
-            gaps_fill_settings,
-            gaps_fill_info,
-            missing_obs_fill_settings,
-            missing_obs_fill_info,
-        )
-
-        self.gap["gaps_settings"] = gaps_settings
-        self.gap["gaps_info"] = gaps_info
-        self.gap["gaps_fill_settings"] = gaps_fill_settings
-        self.gap["gaps_fill_info"] = gaps_fill_info
-
-        self.missing_obs["missing_obs_fill_settings"] = missing_obs_fill_settings
-        self.missing_obs["missing_obs_fill_info"] = missing_obs_fill_info
 
     def _update_gee_settings(self):
         """
@@ -182,31 +122,6 @@ class Settings:
         from .settings_files.gee_settings import gee_datasets
 
         self.gee["gee_dataset_info"] = gee_datasets
-
-    def update_timezone(self, timezonestr):
-        """
-        Change the timezone of the input data.
-
-        Parameters
-        ------------
-        timezonestr : str
-            Timezone string of the input observations.
-
-        Returns
-        -------
-        None.
-        """
-        if timezonestr not in all_timezones:
-            print(
-                f"timezone: {timezonestr}, is not a valid timezone. Select one of the following:"
-            )
-            print(f"{common_timezones}")
-            return
-        else:
-            logger.info(
-                f'Update timezone: {self.time_settings["timezone"]} --> {timezonestr}'
-            )
-            self.time_settings["timezone"] = timezonestr
 
     def update_IO(
         self,
@@ -284,16 +199,7 @@ class Settings:
             if not callable(getattr(Settings, attr)) and not attr.startswith("__")
         ]
 
-        attr_list = [
-            "IO",
-            "time_settings",
-            "app",
-            "qc",
-            "gap",
-            "missing_obs",
-            "templatefile",
-            "gee",
-        ]
+        attr_list = ["IO", "app", "qc", "templatefile", "gee"]
 
         # Drop variables starting with _
         class_vars_name = [mem for mem in class_vars_name if not mem.startswith("_")]

@@ -9,7 +9,7 @@ Google earth engine dataset settings
 
 gee_datasets = {
     "global_lcz_map": {
-        "location": "RUB/RUBCLIM/LCZ/global_lcz_map/v1",  # GEE location
+        "location": "RUB/RUBCLIM/LCZ/global_lcz_map/latest",  # GEE location
         "usage": "LCZ",  # Human readable application domain
         "band_of_use": "LCZ_Filter",  # band to use for imagecollections (or None if no band available)
         "value_type": "categorical",  # categorical or numeric

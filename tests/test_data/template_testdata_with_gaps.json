@@ -1,0 +1,38 @@
+{
+    "data_related": {
+        "structure": "long",
+        "timestamp": {
+            "datetime_column": null,
+            "datetime_fmt": null,
+            "date_column": "Datum",
+            "date_fmt": "%Y-%m-%d",
+            "time_column": "Tijd (UTC)",
+            "time_fmt": "%H:%M:%S",
+            "timezone": "UTC"
+        },
+        "name_column": "Vlinder",
+        "obstype_mapping": [
+            {
+                "tlk_obstype": "temp",
+                "columnname": "Temperatuur",
+                "unit": "Celsius",
+                "description": "2mT passive"
+            },
+            {
+                "tlk_obstype": "humidity",
+                "columnname": "Vochtigheid",
+                "unit": "%",
+                "description": "2m relative humidity passive"
+            }
+        ]
+    },
+    "metadata_related": {
+        "name_column": "Vlinder",
+        "lat_column": "lat",
+        "lon_column": "lon",
+        "columns_to_include": [
+            "school"
+        ]
+    },
+    "single_station_name": "dummy_station_name"
+}

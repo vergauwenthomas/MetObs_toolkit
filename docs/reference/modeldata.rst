@@ -33,6 +33,7 @@ Common methods
 .. autosummary::
    :toctree: api/
 
+   Modeldata.get_info
    Modeldata.add_obstype
    Modeldata.save_modeldata
    Modeldata.import_modeldata
@@ -41,6 +42,7 @@ Common methods
 
 GEE interactions
 ------------------
+
 .. autosummary::
    :toctree: api/
 

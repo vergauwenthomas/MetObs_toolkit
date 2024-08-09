@@ -9,9 +9,6 @@ import sys
 import warnings
 import logging
 import pandas as pd
-
-# import mysql.connector
-# from mysql.connector import errorcode
 from pytz import all_timezones
 from metobs_toolkit.template import _create_datetime_column
 
@@ -194,6 +191,9 @@ def import_data_from_csv(
     """
 
     # 1. Read data into df
+    logger.debug(
+        f"Reading the data records from {input_file}, with kwargs: {kwargs_data_read}"
+    )
     df = _read_csv_to_df(filepath=input_file, kwargsdict=kwargs_data_read)
 
     # Test blacklist columns and apply compatibility check of template and data
@@ -236,11 +236,9 @@ def import_data_from_csv(
     # 6.. Set index
     df.set_index("datetime", inplace=True)
 
-    # 8. map to numeric dtypes
-    for col in df.columns:
-        if col != "name":  # all other columns are observations
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-
+    # 7. create timezone-aware datetime index
+    df.index = df.index.tz_localize(tz=template._get_tz())
+    logger.debug(f"df head: \n {df.head()}")
     return df
 
 

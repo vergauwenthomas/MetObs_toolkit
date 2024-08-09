@@ -10,6 +10,7 @@ import logging
 from collections.abc import Iterable
 
 import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -167,6 +168,16 @@ class Obstype:
         """Text representation."""
         return f"Obstype instance of {self.name}"
 
+    def __eq__(self, other):
+        is_eq = (
+            (self.name == other.name)
+            & (self.std_unit == other.std_unit)
+            & (self.description == other.description)
+            & (self.units_aliases == other.units_aliases)
+            & (self.conv_table == other.conv_table)
+        )
+        return is_eq
+
     # -----  Setters -------
 
     def set_description(self, desc):
@@ -215,7 +226,9 @@ class Obstype:
         """Return a list with all the known unit (in standard naming)."""
         units = list(self.units_aliases.keys())
         units.append(self.get_standard_unit())
-        return list(set(units))
+        units = list(set(units))
+        units.sort()
+        return units
 
     def get_standard_unit(self):
         """Return the standard unit of the observation type."""
@@ -275,7 +288,7 @@ class Obstype:
 
         Returns
         -------
-        data  numeric/numpy.array
+        data  numeric/numpy.array/
             The data in standard units.
 
         """
@@ -301,7 +314,24 @@ class Obstype:
         for conv in conv_expr_list:
             data = expression_calculator(conv, data)
 
-        return data
+        # convert output to same type as input
+        if (isinstance(input_data, int)) | (isinstance(input_data, float)):
+            return float(
+                data
+            )  # always float because int can be converted to fload due to conversiontable
+
+        elif isinstance(input_data, pd.core.series.Series):
+            data = pd.Series(index=input_data.index, data=data, name=input_data.name)
+            return data
+
+        elif isinstance(input_data, np.ndarray):
+            return np.asarray(data)
+
+        else:
+            logger.warning(
+                f"The dtype ({type(input_data)}), of input data for unit conversion is not a default."
+            )
+            return data
 
     # ------------- Helpers ----------------------------------
 

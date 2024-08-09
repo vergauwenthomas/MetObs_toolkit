@@ -9,7 +9,6 @@ Created on Tue Jul 16 15:13:17 2024
 
 import logging
 import os
-from metobs_toolkit import Dataset
 
 from metobs_toolkit.plotting_functions import (
     geospatial_plot,
@@ -23,14 +22,7 @@ from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
 
 from metobs_toolkit.df_helpers import (
     multiindexdf_datetime_subsetting,
-    fmt_datetime_argument,
-    init_multiindex,
-    init_multiindexdf,
-    init_triple_multiindexdf,
     metadf_to_gdf,
-    conv_applied_qc_to_df,
-    get_freqency_series,
-    value_labeled_doubleidxdf_to_triple_idxdf,
     xs_save,
     concat_save,
 )
@@ -39,7 +31,7 @@ from metobs_toolkit.df_helpers import (
 logger = logging.getLogger(__name__)
 
 
-class Dataset(Dataset):
+class DatasetVisuals:
     """Extension on the metobs_toolkit.Dataset class with visualisation methods"""
 
     def make_plot(
@@ -131,7 +123,7 @@ class Dataset(Dataset):
             logger.info(f"Make {obstype}-timeseries plot for {stationnames}")
 
         # combine all dataframes
-        mergedf = self.combine_all_to_obsspace()
+        mergedf = self.get_full_status_df(return_as_wide=False)
 
         # subset to obstype
         mergedf = xs_save(mergedf, obstype, level="obstype")
@@ -141,12 +133,9 @@ class Dataset(Dataset):
             mergedf = mergedf[mergedf.index.get_level_values("name").isin(stationnames)]
 
         # Subset on start and endtime
-        starttime = fmt_datetime_argument(
-            starttime, self.settings.time_settings["timezone"]
-        )
-        endtime = fmt_datetime_argument(
-            endtime, self.settings.time_settings["timezone"]
-        )
+
+        starttime = self._datetime_arg_check(starttime)
+        endtime = self._datetime_arg_check(endtime)
 
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
@@ -327,7 +316,7 @@ class Dataset(Dataset):
             return None
 
         # Construct dataframe
-        combdf = self.combine_all_to_obsspace()
+        combdf = self.get_full_status_df()
         combdf = xs_save(combdf, obstype.name, level="obstype")
         # Merge geospatial info
         combgdf = combdf.merge(
@@ -335,12 +324,9 @@ class Dataset(Dataset):
         )
 
         # Subset on start and endtime
-        starttime = fmt_datetime_argument(
-            starttime, self.settings.time_settings["timezone"]
-        )
-        endtime = fmt_datetime_argument(
-            endtime, self.settings.time_settings["timezone"]
-        )
+        starttime = self._datetime_arg_check(starttime)
+        endtime = self._datetime_arg_check(endtime)
+
         combgdf = multiindexdf_datetime_subsetting(combgdf, starttime, endtime)
         combgdf = combgdf.reset_index()
 
@@ -423,7 +409,8 @@ class Dataset(Dataset):
         title : string, optional
             Title of the figure, if None a default title is generated. The default is None.
         timeinstance : datetime.datetime, optional
-            Datetime moment of the geospatial plot. If None, the first occuring (not Nan) record is used. The default is None.
+            Datetime moment of the geospatial plot. If None, the first occuring
+            timestamp for wich most stations have a record of, is used. The default is None.
         legend : bool, optional
             I True, a legend is added to the plot. The default is True.
         vmin : numeric, optional
@@ -469,24 +456,25 @@ class Dataset(Dataset):
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
 
-        # get first (Not Nan) timeinstance of the dataset if not given
-        timeinstance = fmt_datetime_argument(
-            timeinstance, self.settings.time_settings["timezone"]
-        )
+        # Get timeinstance to present data of
+        timeinstance = self._datetime_arg_check(timeinstance)
         if timeinstance is None:
-            timeinstance = self.df.dropna(subset=["temp"]).index[0][1]
+            # If not specified, use the earlyest timestamp, for which most stations
+            # are assumed to have a record of
+            timeinstance = (
+                self.df.dropna()
+                .index.get_level_values(level="datetime")
+                .value_counts()
+                .idxmax()
+            )
 
         logger.info(f"Make {variable}-geo plot at {timeinstance}")
 
         # check coordinates if available
-        if self.metadf["lat"].isnull().any():
-            _sta = self.metadf[self.metadf["lat"].isnull()]["lat"]
-            logger.error(f"Stations without coordinates detected: {_sta}")
-            return None
-        if self.metadf["lon"].isnull().any():
-            _sta = self.metadf[self.metadf["lon"].isnull()]["lon"]
-            logger.error(f"Stations without coordinates detected: {_sta}")
-            return None
+        if not _validate_metadf(self.metadf):
+            raise MetobsDatasetVisualisationError(
+                "The coordinates of all stations could not be found in the meta data."
+            )
 
         if bool(boundbox):
             if len(boundbox) != 4:
@@ -494,34 +482,36 @@ class Dataset(Dataset):
                     f"The boundbox ({boundbox}) does not contain 4 elements! The default boundbox is used!"
                 )
                 boundbox = []
+        # create a plotdf with 'names' as index, 'plot_value' and 'geometry' as columns
 
-        # Check if LCZ if available
-        if variable == "lcz":
-            if self.metadf["lcz"].isnull().any():
-                _sta = self.metadf[self.metadf["lcz"].isnull()]["lcz"]
-                logger.warning(f"Stations without lcz detected: {_sta}")
-                return None
-            title = f"Local climate zones at {timeinstance}."
-            legend_title = ""
-
-        # subset to timeinstance
-        plotdf = xs_save(self.df, timeinstance, level="datetime")
-
-        # merge metadata
-        plotdf = plotdf.merge(
-            self.metadf, how="left", left_index=True, right_index=True
-        )
-
-        # titles
-        if title is None:
-            try:
+        # situation 1: variable is an observationtype
+        if variable in self._get_present_obstypes():
+            plotdf = xs_save(self.df, variable, "obstype")
+            plotdf = xs_save(plotdf, timeinstance, "datetime")
+            plotdf = plotdf.merge(
+                self.metadf[["geometry"]], how="left", left_index=True, right_index=True
+            )
+            plotdf = plotdf.rename(columns={"value": "plot_value"})
+            if title is None:
                 title = f"{self.obstypes[variable].get_orig_name()} at {timeinstance}."
-            except KeyError:
-                title = f"{variable} at {timeinstance}."
-
-        if legend:
-            if legend_title is None:
+            if (legend) & (legend_title is None):
                 legend_title = f"{self.obstypes[variable].get_standard_unit()}"
+
+        # situation 2: variable is an observationtype
+        elif variable in self.metadf.columns:
+            if self.metadf[variable].isna().all():
+                raise MetobsDatasetVisualisationError(
+                    f"There is no data availabel for {variable} in the metadf: \n {self.metadf[variable]}"
+                )
+            plotdf = self.metadf[[variable, "geometry"]]
+            plotdf = plotdf.rename(columns={variable: "plot_value"})
+            if title is None:
+                title = f"{variable}"
+                legend_title = ""
+        else:
+            raise MetobsDatasetVisualisationError(
+                f"{variable} is not a found in the records an not found in the meta data."
+            )
 
         axis = geospatial_plot(
             plotdf=plotdf,
@@ -642,3 +632,9 @@ class Dataset(Dataset):
             Map.save(filepath)
 
         return Map
+
+
+class MetobsDatasetVisualisationError(Exception):
+    """Exception raised for errors in the template."""
+
+    pass
