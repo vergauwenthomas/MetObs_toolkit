@@ -59,8 +59,8 @@ def _create_irr_solutions():
     dataset2.import_data_from_file(
         freq_estimation_method="median",
         freq_estimation_simplify_tolerance="1min",
-        origin_simplify_tolerance="3T",
-        timestamp_tolerance="4T",
+        origin_simplify_tolerance="3min",
+        timestamp_tolerance="4min",
     )
     trgfile = os.path.join(solution.solutions_dir, irr_combdf_file)
     dataset2.get_full_status_df().to_pickle(trgfile)
@@ -90,8 +90,8 @@ dataset2.update_settings(
 dataset2.import_data_from_file(
     freq_estimation_method="median",
     freq_estimation_simplify_tolerance="1min",
-    origin_simplify_tolerance="3T",
-    timestamp_tolerance="4T",
+    origin_simplify_tolerance="3min",
+    timestamp_tolerance="4min",
 )
 
 

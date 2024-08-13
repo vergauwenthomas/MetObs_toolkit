@@ -286,8 +286,8 @@ class DatasetBase(object):
     def _get_timestamps_info(
         self,
         freq_estimation_method="median",
-        freq_simplify_tolerance="2T",
-        origin_simplify_tolerance="5T",
+        freq_simplify_tolerance="2min",
+        origin_simplify_tolerance="5min",
     ):
         """Get details of the time resolution for each station.
 

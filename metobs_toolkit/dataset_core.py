@@ -239,7 +239,7 @@ class Dataset(
         new._get_timestamps_info(
             freq_estimation_method="highest",  # does not matter on perfect timeseries
             freq_simplify_tolerance=freq_simplify_tolerance,  # Do no chain error oropagation by default
-            origin_simplify_tolerance="0T",
+            origin_simplify_tolerance="0min",
         )
 
         # Convert the records to clean equidistanced records for both the df and outliersdf

@@ -1266,7 +1266,7 @@ def correlation_scatter(
         to_scatter = to_scatter.reset_index()
 
         # plot per scatter group
-        scatter_groups = to_scatter.groupby("markers")
+        scatter_groups = to_scatter.groupby("markers", observed=True)
         for marker, markergroup in scatter_groups:
             markergroup.plot(
                 x="group",

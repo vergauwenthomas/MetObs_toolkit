@@ -82,7 +82,7 @@ dataset.update_qc_settings(
     step_max_decrease_per_sec=max_decrease_per_second_step,
 )
 
-dataset.import_data_from_file(origin_simplify_tolerance="1T")
+dataset.import_data_from_file(origin_simplify_tolerance="1min")
 dataset.apply_quality_control()
 
 
