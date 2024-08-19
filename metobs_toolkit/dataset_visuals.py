@@ -18,6 +18,13 @@ from metobs_toolkit.plotting_functions import (
     make_folium_html_plot,
 )
 
+from metobs_toolkit.settings_files.default_formats_settings import (
+    gapfill_label_group,
+    failed_gapfill_label_group,
+    qc_label_group,
+    label_def,
+)
+
 from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
 
 from metobs_toolkit.df_helpers import (
@@ -96,24 +103,43 @@ class DatasetVisuals:
 
         Examples
         --------
-        .. code-block:: python
+        We start by creating a Dataset, and importing data.
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Make plot
-            >>> dataset.make_plot(stationnames=['vlinder02', 'vlinder16'],
-            ...                   obstype='temp',
-            ...                   colorby='label')
-            <Axes: ...
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *483828 observation records (not Nan's)
+         *0 records labeled as outliers
+         *8 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Coordinates are available for all stations.
+
+        We can now make a timeseries plot of the full dataset. By specifying
+        `colorby='name'`, the colors indicate the stations.
+
+        >>> dataset.make_plot(obstype='temp', colorby='name')
+        <Axes: title={'center': 'Temperatuur for all stations. '}, ylabel='temp (Celsius)'>
+
+        By specifying `colorby='label'` the colors indicate the different labels.
+        Labels are assigned by quality control and the status of gaps. As an
+        example, we apply default quality control to create some labels.
+
+        We then plot the timeseries of a single station.
+
+        >>> dataset.apply_quality_control(obstype='temp')
+        >>> dataset.get_station('vlinder05').make_plot(colorby='label')
+        <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
 
         """
 
@@ -254,40 +280,63 @@ class DatasetVisuals:
 
         Examples
         --------
-        .. code-block:: python
+        We start by creating a Dataset, and importing data.
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Make default interactive geospatial plot
-            >>> dataset.make_interactive_plot()
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *483828 observation records (not Nan's)
+         *0 records labeled as outliers
+         *8 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Coordinates are available for all stations.
+
+        We apply (default) quality control.
+
+        >>> dataset.apply_quality_control(obstype='temp')
+
+        To create an interactive plot, we use the `Dataset.make_interactive_plot()`
+        method. We must specify a target path for the html file, as an example
+        we save it to the current working directory (`os.getcwd()`).
+
+        >>> import os
+        >>> target_file = os.path.join(os.getcwd(), 'interactive_temp_plot.html')
+        >>> dataset.make_interactive_plot(obstype="temp",
+        ...                              save=True,
+        ...                              outputfile=target_file,
+        ...                              starttime=None,
+        ...                              endtime=None)
+        <folium.folium.Map object at ...
+
+        (You can open an html file with a browser.)
 
         """
         # Check if obstype is known
         if isinstance(obstype, str):
             if obstype not in self.obstypes.keys():
-                logger.error(
-                    f"{obstype} is not found in the knonw observation types: {list(self.obstypes.keys())}"
+                raise MetobsDatasetVisualisationError(
+                    f"{obstype} is not found in the known observation types: {list(self.obstypes.keys())}"
                 )
-                return None
             else:
                 obstype = self.obstypes[obstype]
 
         if save:
             if outputfile is None:
                 if self.settings.IO["output_folder"] is None:
-                    logger.error(
+                    raise MetobsDatasetVisualisationError(
                         "No outputfile is given, and there is no default outputfolder specified."
                     )
-                    return None
                 else:
                     outputfile = os.path.join(
                         self.output_folder, "interactive_figure.html"
@@ -301,32 +350,36 @@ class DatasetVisuals:
                     )
 
         # Check if the obstype is present in the data
-        if obstype.name not in self.df.columns:
-            logger.error(f"{obstype.name} is not found in your the Dataset.")
-            return None
+        if obstype.name not in self._get_present_obstypes():
+            raise MetobsDatasetVisualisationError(
+                f"{obstype.name} is not found in your the Dataset."
+            )
 
         # Check if geospatial data is available
         if self.metadf["lat"].isnull().any():
             _sta = self.metadf[self.metadf["lat"].isnull()]["lat"]
-            logger.error(f"Stations without coordinates detected: {_sta}")
-            return None
+            raise MetobsDatasetVisualisationError(
+                f"Stations without coordinates detected: {_sta}"
+            )
+
         if self.metadf["lon"].isnull().any():
             _sta = self.metadf[self.metadf["lon"].isnull()]["lon"]
-            logger.error(f"Stations without coordinates detected: {_sta}")
-            return None
+            raise MetobsDatasetVisualisationError(
+                f"Stations without coordinates detected: {_sta}"
+            )
+
+        starttime = self._datetime_arg_check(starttime)
+        endtime = self._datetime_arg_check(endtime)
 
         # Construct dataframe
-        combdf = self.get_full_status_df()
-        combdf = xs_save(combdf, obstype.name, level="obstype")
+        combdf = self.get_full_status_df()[obstype.name].reset_index()
         # Merge geospatial info
+        # TODO: Are all columns of metadf usable?? if not, do not merge them
         combgdf = combdf.merge(
             self.metadf, how="left", left_on="name", right_index=True
         )
 
         # Subset on start and endtime
-        starttime = self._datetime_arg_check(starttime)
-        endtime = self._datetime_arg_check(endtime)
-
         combgdf = multiindexdf_datetime_subsetting(combgdf, starttime, endtime)
         combgdf = combgdf.reset_index()
 
@@ -336,20 +389,22 @@ class DatasetVisuals:
         # Make label color mapper
         label_col_map = {}
         # Ok label
-        label_col_map["ok"] = ok_col
-        # outlier labels
-        for val in self.settings.qc["qc_checks_info"].values():
-            label_col_map[val["outlier_flag"]] = outlier_col
+        label_col_map[label_def["goodrecord"]["label"]] = ok_col
 
-        # missing labels (gaps and missing values)
-        for val in self.settings.gap["gaps_info"].values():
-            label_col_map[val["outlier_flag"]] = gap_col
+        # outlier labels
+        for qclab in [label_def[check]["label"] for check in qc_label_group]:
+            label_col_map[qclab] = outlier_col
+
+        # gaps and failed gapfill
+        label_col_map[label_def["regular_gap"]["label"]] = gap_col
+        for gaplab in [
+            label_def[check]["label"] for check in failed_gapfill_label_group
+        ]:
+            label_col_map[gaplab] = gap_col
 
         # fill labels
-        for val in self.settings.missing_obs["missing_obs_fill_info"]["label"].values():
-            label_col_map[val] = fill_col
-        for val in self.settings.gap["gaps_fill_info"]["label"].values():
-            label_col_map[val] = fill_col
+        for gaplab in [label_def[check]["label"] for check in gapfill_label_group]:
+            label_col_map[gaplab] = fill_col
 
         # make time estimation
         est_seconds = combgdf.shape[0] / 2411.5  # normal laptop
@@ -423,6 +478,7 @@ class DatasetVisuals:
             The boundbox to indicate the domain to plot. The elemenst are numeric.
             If the list is empty, a boundbox is created automatically. The default
             is [].
+
         Returns
         -------
         axis : matplotlib.pyplot.geoaxes
@@ -435,23 +491,49 @@ class DatasetVisuals:
 
         Examples
         --------
-        .. code-block:: python
+        We start by creating a Dataset, and importing data.
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Make default geospatial plot
-            >>> dataset.make_geo_plot()
-            <GeoAxes:...
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *483828 observation records (not Nan's)
+         *0 records labeled as outliers
+         *8 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Coordinates are available for all stations.
 
+
+        To create a spatial plot, we use the `Dataset.make_geo_plot()`
+        method.
+
+        >>> dataset.make_geo_plot(variable="temp")
+        <GeoAxes: title={'center': 'Temperatuur at 2022-09-01 00:00:00+00:00.'}>
+
+        If you want a different extend, timeinstance of colorscale, you can do
+        that like so
+
+        >>> import datetime
+        >>> dataset.make_geo_plot(variable="temp",
+        ...                       title=None,
+        ...                       timeinstance=datetime.datetime(2022,9,4,16),
+        ...                       legend=True,
+        ...                       vmin=18,
+        ...                       vmax=32,
+        ...                       legend_title=None,
+        ...                       boundbox=[2.17, 50.67,
+        ...                                5.89, 51.42])
+        <GeoAxes: title={'center': 'Temperatuur at 2022-09-04 16:00:00+00:00.'}>
         """
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
@@ -531,7 +613,9 @@ class DatasetVisuals:
 
         return axis
 
-    def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
+    def make_gee_plot(
+        self, gee_map="worldcover", show_stations=True, save=False, outputfile=None
+    ):
         """Make an interactive plot of a google earth dataset.
 
         The location of the stations can be plotted on top of it.
@@ -564,6 +648,50 @@ class DatasetVisuals:
         To display the interactive map a graphical backend is required, which
         is often missing on (free) cloud platforms. Therefore it is better to
         set save=True, and open the .html in your browser
+
+        Examples
+        --------
+        We start by creating a Dataset, and importing data.
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *483828 observation records (not Nan's)
+         *0 records labeled as outliers
+         *8 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Coordinates are available for all stations.
+
+
+        To create an interactive Google earth engine plot, we use the `Dataset.make_gee_plot()`
+        method.
+
+        >>> dataset.make_gee_plot(gee_map='worldcover')
+        <geemap.foliumap.Map object at ...
+
+        Depending on your python environment, it can happen that it does not
+        support displaying the gee map. In that case, you can save it as an
+        html file. (You can open an html file with a browser.)
+        We must specify a target path for the html file, as an example
+        we save it to the current working directory (`os.getcwd()`).
+
+        >>> import os
+        >>> target_file = os.path.join(os.getcwd(), 'interactive_worldcover_plot.html')
+        >>> dataset.make_gee_plot(gee_map='worldcover',
+        ...                       save=True,
+        ...                       outputfile=target_file)
+        Gee Map will be save at ...
 
         """
         # Connect to GEE

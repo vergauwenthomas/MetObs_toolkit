@@ -64,7 +64,7 @@ Quality control related methods
    Dataset.apply_quality_control
    Dataset.apply_buddy_check
    Dataset.apply_titan_buddy_check
-   Dataset.apply_titan_sct_resistant_check
+
 
 
 Visualisations

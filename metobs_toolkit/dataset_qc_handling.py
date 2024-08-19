@@ -51,7 +51,7 @@ class DatasetQCCore:
         )
 
     def get_qc_stats(self, obstype="temp", stationname=None, make_plot=True):
-        """Get quality control statistics.
+        """Get quality control effectiveness statistics.
 
         Compute frequency statistics on the qc labels for an observationtype.
         The output is a dataframe containing the frequency statistics presented
@@ -60,7 +60,7 @@ class DatasetQCCore:
         These frequencies can also be presented as a collection of piecharts
         per check.
 
-        With stationnames you can subset the data to one ore multiple stations.
+        With stationnames you can subset the data to one or multiple stations.
 
         Parameters
         -----------
@@ -75,45 +75,74 @@ class DatasetQCCore:
 
         Returns
         ---------
-        dataset_qc_stats : pandas.DataFrame
-            A table containing the label frequencies per check presented
-            as percentages.
+        tuple : (final_stats, outlier_freq, qc_effectivenes)
+            A tuple containing three dictionaries with occurence frequencies,
+            for aggregated qc-labels, for specific qc-labels and one for the
+            effectiviness.
+
+        Note
+        -----
+        For the effectiveness estimation of a specific quality control check,
+        the cumulated sum of outliers detected in advance of a specific check
+        is taken into account. (The order of applied check is used.)
+
+        See Also
+        ----------
+        apply_quality_control: Apply quality control methods to the dataset.
+        apply_buddy_check: Apply spatial buddy check.
+        apply_titan_buddy_check: Apply spatial buddy check (TITAN version).
+
 
         Examples
         --------
-        .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                 *10080 observation records
-                 *1676 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
-            >>>
-            >>> #Get quality control statistics
-            >>> stats = dataset.get_qc_stats(make_plot=False)
-            >>> stats
-            ({'ok': 83.37301587301587, 'QC outliers': 16.6269841269...
+        We start by creating a Dataset, and importing data.
 
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *483828 observation records (not Nan's)
+         *0 records labeled as outliers
+         *8 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Coordinates are available for all stations.
+
+
+        For this example we reduce the data by coarsening the time resolution
+        to hourly. After the resampling, we apply quality control.
+
+        >>> dataset.coarsen_time_resolution(freq='1h')
+        >>> dataset.apply_quality_control(obstype='temp')
+
+        To inspect the effectivenes of the qualit control, we can plot the dataset
+        timeseries with `colorby='label'`.
+
+        >>> dataset.make_plot(obstype='temp', colorby='label')
+        <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        Often it is clearer to plot the timeseries of a single station.
+
+        >>> dataset.get_station('vlinder05').make_plot(obstype='temp', colorby='label')
+        <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        If you want more details on the effectivenes of the applied quality
+        control, then we use the `Dataset.get_qc_stats()` method, to compute
+        effectiveness statistis and to plot them as a collection of pie-charts.
+
+        >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
+        >>> final_stats
+        {'ok': 83.37301587301587, 'QC outliers': 16.626984126984127, 'gaps (filled/unfilled)': 0.0}
         """
         # cobmine all and get final label
         comb_df = self.get_full_status_df(return_as_wide=False)
@@ -171,8 +200,8 @@ class DatasetQCCore:
     ):
         """Apply quality control methods to the dataset.
 
-        The default settings are used, and can be changed in the
-        settings_files/qc_settings.py
+        The default settings are used, and can be changed in the `Dataset.update_qc_settings()`
+        method.
 
         The checks are performed in a sequence: gross_vallue -->
         persistance --> ..., Outliers by a previous check are ignored in the
@@ -203,6 +232,13 @@ class DatasetQCCore:
         Returns
         ---------
         None.
+
+        See Also
+        ----------
+        update_qc_settings: Update the standard QC settings.
+        get_qc_stats: Get quality control effectiveness statistics.
+        apply_buddy_check: Apply spatial buddy check.
+        apply_titan_buddy_check: Apply spatial buddy check (TITAN version).
 
         Notes
         -----
@@ -288,39 +324,83 @@ class DatasetQCCore:
 
         Examples
         --------
-        .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> #Update some temperature QC settings
-            >>> dataset.update_qc_settings(obstype='temp',
-            ...                            gross_value_max_value=42.,
-            ...                            persis_time_win_to_check='4h',
-            ...                            buddy_min_std = 1.5)
+        We start by creating a Dataset, and importing data.
 
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                 *10080 observation records
-                 *1676 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *483828 observation records (not Nan's)
+         *0 records labeled as outliers
+         *8 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Coordinates are available for all stations.
+
+
+        For this example we reduce the data by coarsening the time resolution
+        to hourly. It is important to resample the time resolution in advance of
+        applying quality control since some checks depend on the records frequency!
+
+        >>> dataset.coarsen_time_resolution(freq='1h')
+
+        There are default settings for quality control (for temperature). These
+        are stored in the `Dataset.settings` attribute. We can inspect them directly,
+        or by using the `Datatest.show_settings()` method.
+
+        >>> dataset.settings.qc['qc_check_settings']
+        {'duplicated_timestamp': {'keep': False}, 'persistance': {'temp': {'time_window_to_check': '1h', 'min_num_obs': 5}}, 'repetitions': {'temp': {'max_valid_repetitions': 5}}, 'gross_value': {'temp': {'min_value': -15.0, 'max_value': 39.0}}, 'window_variation': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': 0.002777777777777778, 'time_window_to_check': '1h', 'min_window_members': 3}}, 'step': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': -0.002777777777777778}}, 'buddy_check': {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}}
+        >>> dataset.show_settings()
+        All settings: ...
+
+
+        We can change the (default) settings for QC using the `Dataset.update_qc_settings()`
+        method. These settings are observationtype dependant!
+
+        >>> dataset.update_qc_settings(
+        ...                obstype='temp',
+        ...                gross_value_max_value=26.0,
+        ...                step_max_increase_per_sec=6.5/3600,
+        ...                rep_max_valid_repetitions=4) #depends highly on records frequency!
+
+        >>> dataset.update_qc_settings(
+        ...                obstype='humidity',
+        ...                gross_value_min_value = 0.,
+        ...                gross_value_max_value=100.0)
+
+
+        Now that the QC settings are adjusted, we can apply standard QC checks.
+
+        >>> dataset.apply_quality_control(obstype='temp')
+        >>> dataset.apply_quality_control(obstype='humidity')
+
+
+        To inspect the effectivenes of the qualit control, we can plot the dataset
+        timeseries with `colorby='label'`.
+
+        >>> dataset.make_plot(obstype='temp', colorby='label')
+        <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        Often it is clearer to plot the timeseries of a single station.
+
+        >>> dataset.get_station('vlinder05').make_plot(obstype='temp', colorby='label')
+        <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        If you want more details on the effectivenes of the applied quality
+        control, then we use the `Dataset.get_qc_stats()` method, to compute
+        effectiveness statistis and to plot them as a collection of pie-charts.
+
+        >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
 
         """
         if repetitions:
@@ -434,7 +514,7 @@ class DatasetQCCore:
         haversine_approx=True,
         metric_epsg="31370",
     ):
-        """Apply the buddy check on the observations.
+        """Apply spatial buddy check.
 
         The buddy check compares an observation against its neighbours (i.e.
         buddies). The check looks for buddies in a neighbourhood specified by
@@ -470,6 +550,14 @@ class DatasetQCCore:
         -------
         None.
 
+        See Also
+        ----------
+        update_qc_settings: Update the standard QC settings.
+        get_qc_stats: Get quality control effectiveness statistics.
+        get_altitude: Method for extracting altitude from GEE.
+        apply_quality_control: Apply quality control methods to the dataset.
+        apply_titan_buddy_check: Apply spatial buddy check (TITAN version).
+
         Notes
         -----
         A schematic step-by-step description of the buddy check:
@@ -486,41 +574,102 @@ class DatasetQCCore:
            * Chi values are calculated for all reference records.
            * If the Chi value is larger than the std_threshold, the record is accepted, otherwise it is marked as an outlier.
 
+        Note
+        -------
+        This check will not have any effect when applied on a Station, since
+        there are no buddies.
+
         Examples
         --------
-        .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> #Update some temperature QC settings
-            >>> dataset.update_qc_settings(obstype='temp',
-            ...                            buddy_min_std=1.5,
-            ...                            buddy_threshold=3.2)
+        We start by creating a Dataset, and importing data.
 
-            >>> # Apply buddy check on the temperature observations
-            >>> dataset.apply_buddy_check(obstype='temp',
-            ...                           use_constant_altitude=True)
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                 *10080 observation records
-                 *69 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *483828 observation records (not Nan's)
+         *0 records labeled as outliers
+         *8 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Coordinates are available for all stations.
+
+
+        For this example we reduce the data by coarsening the time resolution
+        to hourly.
+
+        >>> dataset.coarsen_time_resolution(freq='1h')
+
+        There are default buddy check settings (for temperature). These
+        are stored in the `Dataset.settings` attribute. We can inspect them directly,
+        or by using the `Datatest.show_settings()` method.
+
+        >>> dataset.settings.qc['qc_check_settings']['buddy_check']
+        {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}
+
+
+        We can change the (default) settings using the `Dataset.update_qc_settings()`
+        method. These settings are observationtype dependant!
+
+        >>> # The following settings are illustrative, do not copy blindly
+        >>> dataset.update_qc_settings(
+        ...                obstype='temp',
+        ...                buddy_radius=20000,
+        ...                buddy_min_sample_size=4,
+        ...                buddy_threshold=2.5,
+        ...                buddy_min_std=1.)
+
+        If you want to correct your observations for altitude (recomanded for
+        temperature observations in orographic environments), you must
+        specify the "altitude" column in the metadata. The altitude can be
+        extracted directly from the Google earth engine (and the metadata
+        will be updated aswell).
+
+        >>> altitudes = dataset.get_altitude()
+        >>> dataset.metadf['altitude'].head()
+        name
+        vlinder01    12
+        vlinder02     7
+        vlinder03    30
+        vlinder04    25
+        vlinder05     0
+        Name: altitude, dtype: int64
+
+        The buddy check will compute interdistances between stations. To compute
+        the distances the haversine approximation (spherical earth), is often
+        sufficient. (However, if you want to compute distances very accuratly,
+        you can specify a metric coordinate refernce system (CRS) by passing
+        the EPSG code.)
+
+
+        >>> dataset.apply_buddy_check(
+        ...            obstype="temp",
+        ...            use_constant_altitude=False, #because we have the altitudes
+        ...            haversine_approx=True)
+
+        To inspect the effectivenes of the qualit control, we can plot the dataset
+        timeseries with `colorby='label'`.
+
+        >>> dataset.make_plot(obstype='temp', colorby='label')
+        <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        If you want more details on the effectivenes of the applied quality
+        control, then we use the `Dataset.get_qc_stats()` method, to compute
+        effectiveness statistis and to plot them as a collection of pie-charts.
+
+        >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
+
+
         """
 
         logger.info("Applying the toolkit buddy check")
@@ -632,6 +781,13 @@ class DatasetQCCore:
         -------
         None.
 
+        See Also
+        ----------
+        update_titan_qc_settings: Update the standard QC settings for TITAN checks.
+        get_qc_stats: Get quality control effectiveness statistics.
+        apply_quality_control: Apply quality control methods to the dataset.
+        apply_buddy_check: Apply spatial buddy check.
+
         Note
         -------
         To update the check settings, use the update_titan_qc_settings method
@@ -644,42 +800,90 @@ class DatasetQCCore:
 
         Examples
         --------
-        .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> #Update some temperature QC settings
-            >>> dataset.update_titan_qc_settings(obstype='temp',
-            ...                                  buddy_min_std=1.5,
-            ...                                  buddy_threshold=3.2,
-            ...                                  buddy_num_min=5)
-            buddy num min for the TITAN buddy check updated:  2--> 5
-            buddy threshold for the TITAN buddy check updated:  1.5--> 3.2
-            buddy min std for the TITAN buddy check updated:  1.0--> 1.5
-            >>> # Apply buddy check on the temperature observations
-            >>> dataset.apply_titan_buddy_check(obstype='temp',
-            ...                                 use_constant_altitude=True)
-            >>> dataset
-            Dataset instance containing:
-                 *28 stations
-                 *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                 *10080 observation records
-                 *35 records labeled as outliers
-                 *0 gaps
-                 *3 missing observations
-                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                 *time zone of the records: UTC
-                 *Coordinates are available for all stations.
+        We start by creating a Dataset, and importing data.
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *483828 observation records (not Nan's)
+         *0 records labeled as outliers
+         *8 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Coordinates are available for all stations.
+
+
+        For this example we reduce the data by coarsening the time resolution
+        to hourly.
+
+        >>> dataset.coarsen_time_resolution(freq='1h')
+
+        There are default TITAN buddy check settings (for temperature). These
+        are stored in the `Dataset.settings` attribute. We can inspect them directly,
+        or by using the `Datatest.show_settings()` method.
+
+        >>> dataset.settings.qc['titan_check_settings']['titan_buddy_check']
+        {'temp': {'radius': 50000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0, 'num_iterations': 1}}
+
+        We can change the (default) settings using the `Dataset.update_titan_qc_settings()`
+        method. These settings are observationtype dependant!
+
+        >>> # The following settings are illustrative, do not copy blindly
+        >>> dataset.update_titan_qc_settings(
+        ...                obstype='temp',
+        ...                buddy_radius=20000,
+        ...                buddy_num_min=4,
+        ...                buddy_threshold=2.5,
+        ...                buddy_min_std=1.)
+        buddy radius for the TITAN buddy check updated:  50000--> 20000.0
+        buddy num min for the TITAN buddy check updated:  2--> 4
+        buddy threshold for the TITAN buddy check updated:  1.5--> 2.5
+        buddy min std for the TITAN buddy check updated:  1.0--> 1.0
+
+        If you want to correct your observations for altitude (recomanded for
+        temperature observations in orographic environments), you must
+        specify the "altitude" column in the metadata. The altitude can be
+        extracted directly from the Google earth engine (and the metadata
+        will be updated aswell).
+
+        >>> altitudes = dataset.get_altitude()
+        >>> dataset.metadf['altitude'].head()
+        name
+        vlinder01    12
+        vlinder02     7
+        vlinder03    30
+        vlinder04    25
+        vlinder05     0
+        Name: altitude, dtype: int64
+
+        Now we apply the TITAN buddy check.
+
+        >>> dataset.apply_titan_buddy_check(obstype="temp",
+        ...                                 use_constant_altitude=False)
+
+        To inspect the effectivenes of the qualit control, we can plot the dataset
+        timeseries with `colorby='label'`.
+
+        >>> dataset.make_plot(obstype='temp', colorby='label')
+        <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        If you want more details on the effectivenes of the applied quality
+        control, then we use the `Dataset.get_qc_stats()` method, to compute
+        effectiveness statistis and to plot them as a collection of pie-charts.
+
+        >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
+
 
         """
         logger.info("Applying the titan buddy check")
@@ -773,145 +977,151 @@ class DatasetQCCore:
             # when no alitude was available apriori, remove the fake constant altitude column
             self.metadf = self.metadf.drop(columns=["altitude"])
 
-    def apply_titan_sct_resistant_check(self, obstype="temp"):
-        """Apply the TITAN spatial consistency test (resistant).
+    # def apply_titan_sct_resistant_check(self, obstype="temp"):
+    #     """Apply the TITAN spatial consistency test (resistant).
 
-        The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
-        nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation
-        (OI) to compute an expected value for each observation. The background for the OI is computed from
-        a general vertical profile of observations in the area.
+    #     The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
+    #     nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation
+    #     (OI) to compute an expected value for each observation. The background for the OI is computed from
+    #     a general vertical profile of observations in the area.
 
-        See the `titanlib documentation on the sct check <https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant>`_
-        for futher details.
+    #     See the `titanlib documentation on the sct check <https://github.com/metno/titanlib/wiki/Spatial-consistency-test-resistant>`_
+    #     for futher details.
 
-        The observation and outliers attributes will be updated accordingly.
+    #     The observation and outliers attributes will be updated accordingly.
 
+    #     Parameters
+    #     ----------
+    #     obstype : String, optional
+    #         Name of the observationtype you want to apply the checks on. The
+    #         default is 'temp'.
 
-        Parameters
-        ----------
-        obstype : String, optional
-            Name of the observationtype you want to apply the checks on. The
-            default is 'temp'.
+    #     Returns
+    #     -------
+    #     None.
 
-        Returns
-        -------
-        None.
+    #     See Also
+    #     ----------
+    #     update_titan_qc_settings: Update the standard QC settings for TITAN checks.
+    #     get_qc_stats: Get quality control effectiveness statistics.
+    #     apply_quality_control: Apply quality control methods to the dataset.
+    #     apply_buddy_check: Apply spatial buddy check.
+    #     apply_titan_buddy_check: Apply spatial buddy check (TITAN version).
 
-        Note
-        -------
-        To update the check settings, use the update_titan_qc_settings method
-        of the Dataset class.
+    #     Note
+    #     -------
+    #     To update the check settings, use the update_titan_qc_settings method
+    #     of the Dataset class.
 
-        Warning
-        --------
-        To use this method, you must install titanlib. Windows users must have
-        a c++ compiler installed. See the titanlib documentation: https://github.com/metno/titanlib/wiki/Installation.
+    #     Warning
+    #     --------
+    #     To use this method, you must install titanlib. Windows users must have
+    #     a c++ compiler installed. See the titanlib documentation: https://github.com/metno/titanlib/wiki/Installation.
 
-        Warning
-        -------
-        This method is a python wrapper on titanlib c++ scripts, and it is prone
-        to segmentation faults. The perfomance of this check is thus not
-        guaranteed!
+    #     Warning
+    #     -------
+    #     This method is a python wrapper on titanlib c++ scripts, and it is prone
+    #     to segmentation faults. The perfomance of this check is thus not
+    #     guaranteed!
 
-        Examples
-        --------
-        .. code-block:: python
+    #     # Examples
+    #     # --------
+    #     # .. code-block:: python
 
-             import metobs_toolkit
+    #     #      import metobs_toolkit
 
-             # Import data into a Dataset
-             dataset = metobs_toolkit.Dataset()
-             dataset.update_settings(
-                                     input_data_file=metobs_toolkit.demo_datafile,
-                                     input_metadata_file=metobs_toolkit.demo_metadatafile,
-                                     template_file=metobs_toolkit.demo_template,
-                                     )
-             dataset.import_data_from_file()
-             dataset.coarsen_time_resolution(freq='1h')
+    #     #      # Import data into a Dataset
+    #     #      dataset = metobs_toolkit.Dataset()
+    #     #      dataset.update_settings(
+    #     #                              input_data_file=metobs_toolkit.demo_datafile,
+    #     #                              input_metadata_file=metobs_toolkit.demo_metadatafile,
+    #     #                              template_file=metobs_toolkit.demo_template,
+    #     #                              )
+    #     #      dataset.import_data_from_file()
+    #     #      dataset.coarsen_time_resolution(freq='1h')
 
-             #Get altitude of all stations
-             dataset.get_altitude()
+    #     #      #Get altitude of all stations
+    #     #      dataset.get_altitude()
 
-             #Update some temperature QC settings
-             dataset.update_titan_qc_settings(obstype='temp',
-                                              sct_outer_radius=25000)
+    #     #      #Update some temperature QC settings
+    #     #      dataset.update_titan_qc_settings(obstype='temp',
+    #     #                                       sct_outer_radius=25000)
 
+    #     #      # Apply buddy check on the temperature observations
+    #     #      dataset.apply_titan_sct_resistant_check(obstype='temp')
 
-             # Apply buddy check on the temperature observations
-             dataset.apply_titan_sct_resistant_check(obstype='temp')
+    #     """
+    #     logger.info("Applying the titan SCT check")
 
-        """
-        logger.info("Applying the titan SCT check")
+    #     try:
+    #         import titanlib
 
-        try:
-            import titanlib
+    #         # Add version restrictions??
+    #     except ModuleNotFoundError:
+    #         logger.warning(
+    #             "Titanlib is not installed, install it manually if you want to use this functionallity."
+    #         )
+    #         return
 
-            # Add version restrictions??
-        except ModuleNotFoundError:
-            logger.warning(
-                "Titanlib is not installed, install it manually if you want to use this functionallity."
-            )
-            return
+    #     checkname = "titan_sct_resistant_check"
+    #     # check if required metadata is available:
 
-        checkname = "titan_sct_resistant_check"
-        # check if required metadata is available:
+    #     # 1. coordinates are available?
+    #     if self.metadf["lat"].isnull().any():
+    #         logger.warning(
+    #             f"Not all coordinates are available, the {checkname} cannot be executed!"
+    #         )
+    #         return
+    #     if self.metadf["lon"].isnull().any():
+    #         logger.warning(
+    #             f"Not all coordinates are available, the {checkname} cannot be executed!"
+    #         )
+    #         return
 
-        # 1. coordinates are available?
-        if self.metadf["lat"].isnull().any():
-            logger.warning(
-                f"Not all coordinates are available, the {checkname} cannot be executed!"
-            )
-            return
-        if self.metadf["lon"].isnull().any():
-            logger.warning(
-                f"Not all coordinates are available, the {checkname} cannot be executed!"
-            )
-            return
+    #     # 2. altitude available?
+    #     if "altitude" not in self.metadf.columns:
+    #         logger.warning(
+    #             f"The altitude is not known for all stations. The {checkname} cannot be executed!"
+    #         )
+    #         logger.info(
+    #             '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.'
+    #         )
+    #         return
+    #     if self.metadf["altitude"].isnull().any():
+    #         logger.warning(
+    #             f"The altitude is not known for all stations. The {checkname} cannot be executed!"
+    #         )
+    #         logger.info(
+    #             '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)'
+    #         )
+    #         return
 
-        # 2. altitude available?
-        if "altitude" not in self.metadf.columns:
-            logger.warning(
-                f"The altitude is not known for all stations. The {checkname} cannot be executed!"
-            )
-            logger.info(
-                '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n update the "altitude" column in the metadf attribute of your Dataset.'
-            )
-            return
-        if self.metadf["altitude"].isnull().any():
-            logger.warning(
-                f"The altitude is not known for all stations. The {checkname} cannot be executed!"
-            )
-            logger.info(
-                '(To resolve this error you can: \n *Use the Dataset.get_altitude() method \n *Set use_constant_altitude to True \n *Update the "altitude" column in the metadf attribute of your Dataset.)'
-            )
-            return
+    #     apliable = _can_qc_be_applied(self, obstype, checkname)
+    #     if apliable:
+    #         obsdf, outliersdf = titan_sct_resistant_check(
+    #             obsdf=self.df,
+    #             metadf=self.metadf,
+    #             obstype=obstype,
+    #             checks_settings=self.settings.qc["titan_check_settings"][checkname][
+    #                 obstype
+    #             ],
+    #             titan_specific_labeler=self.settings.qc["titan_specific_labeler"][
+    #                 checkname
+    #             ],
+    #         )
 
-        apliable = _can_qc_be_applied(self, obstype, checkname)
-        if apliable:
-            obsdf, outliersdf = titan_sct_resistant_check(
-                obsdf=self.df,
-                metadf=self.metadf,
-                obstype=obstype,
-                checks_settings=self.settings.qc["titan_check_settings"][checkname][
-                    obstype
-                ],
-                titan_specific_labeler=self.settings.qc["titan_specific_labeler"][
-                    checkname
-                ],
-            )
+    #         # update the dataset and outliers
+    #         self.df = obsdf
+    #         if not outliersdf.empty:
+    #             self.outliersdf = concat_save([self.outliersdf, outliersdf])
 
-            # update the dataset and outliers
-            self.df = obsdf
-            if not outliersdf.empty:
-                self.outliersdf = concat_save([self.outliersdf, outliersdf])
+    #         # add this check to the applied checks
+    #         self._append_to_applied_qc(obstype, checkname)
 
-            # add this check to the applied checks
-            self._append_to_applied_qc(obstype, checkname)
-
-        else:
-            logger.warning(
-                f"The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!"
-            )
+    #     else:
+    #         logger.warning(
+    #             f"The {checkname} can NOT be applied on {obstype} because it was already applied on this observation type!"
+    #         )
 
 
 # =============================================================================
