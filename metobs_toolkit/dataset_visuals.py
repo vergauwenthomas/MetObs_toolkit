@@ -96,6 +96,12 @@ class DatasetVisuals:
         axis : matplotlib.pyplot.axes
              The timeseries axes of the plot is returned.
 
+        See Also
+        -----------
+        Dataset.make_geo_plot: geospatial plot.
+        Dataset.make_gee_plot: geospatial plot of a GEE dataset.
+        Dataset.make_interactive_plot: Interactive geospatial plot.
+
         Note
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
@@ -271,6 +277,12 @@ class DatasetVisuals:
         -------
         m : folium.folium.map
             The interactive folium map.
+
+        See Also
+        -----------
+        Dataset.make_plot: plot timeseries.
+        Dataset.make_geo_plot: geospatial plot.
+        Dataset.make_gee_plot: geospatial plot of a GEE dataset.
 
         Note
         -------
@@ -484,6 +496,12 @@ class DatasetVisuals:
         axis : matplotlib.pyplot.geoaxes
             The geoaxes of the plot is returned.
 
+        See Also
+        -----------
+        Dataset.make_plot: plot timeseries.
+        Dataset.make_gee_plot: geospatial plot of a GEE dataset.
+        Dataset.make_interactive_plot: Interactive geospatial plot.
+
         Note
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
@@ -641,6 +659,12 @@ class DatasetVisuals:
         -------
         Map : geemap.foliumap.Map
             The folium Map instance.
+
+        See Also
+        -----------
+        Dataset.make_plot: plot timeseries.
+        Dataset.make_geo_plot: geospatial plot.
+        Dataset.make_interactive_plot: Interactive geospatial plot.
 
 
         Warning
