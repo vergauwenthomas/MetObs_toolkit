@@ -34,6 +34,7 @@ from metobs_toolkit.df_helpers import (
 from metobs_toolkit.template import Template
 from metobs_toolkit.settings import Settings
 from metobs_toolkit.obstypes import tlk_obstypes
+from metobs_toolkit.modeldata import default_datasets
 from metobs_toolkit.gap import find_gaps
 
 logger = logging.getLogger(__name__)
@@ -69,6 +70,9 @@ class DatasetBase(object):
 
         # Template
         self.template = Template()
+
+        # GEE datasets defenitions
+        self.gee_datasets = copy.deepcopy(default_datasets)
 
     # =============================================================================
     # Specials

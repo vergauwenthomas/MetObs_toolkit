@@ -1192,6 +1192,6 @@ def _can_qc_be_applied(dataset, obstype, checkname):
 
 
 class MetobsDatasetQCError(Exception):
-    """Exception raised for errors in the template."""
+    """Exception raised for errors in QC reltated methods."""
 
     pass

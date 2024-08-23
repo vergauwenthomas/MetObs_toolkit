@@ -22,67 +22,67 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 
-def connect_to_gee(**kwargs):
-    """
-    Setup authentication for the use of the GEE Python API.
+# def connect_to_gee(**kwargs):
+#     """
+#     Setup authentication for the use of the GEE Python API.
 
-    For a fresh kernel, without stored credentials, a prompt/browser window
-    will appear with further instructions for the authentication.
+#     For a fresh kernel, without stored credentials, a prompt/browser window
+#     will appear with further instructions for the authentication.
 
 
-    Parameters
-    ----------
-    **kwargs : Kwargs passed to ee.Authenticate()
-        Kwargs are only used by the user, for resetting the gee connection. See
-        the Note below.
+#     Parameters
+#     ----------
+#     **kwargs : Kwargs passed to ee.Authenticate()
+#         Kwargs are only used by the user, for resetting the gee connection. See
+#         the Note below.
 
-    Returns
-    -------
-    None.
+#     Returns
+#     -------
+#     None.
 
-    Note
-    ------
-    Upon calling, this function assumes you have a Google developers account,
-    and a project with the Google Earth Engine API enabled.
-    See the * Using Google Earth Engine * page for more info.
+#     Note
+#     ------
+#     Upon calling, this function assumes you have a Google developers account,
+#     and a project with the Google Earth Engine API enabled.
+#     See the * Using Google Earth Engine * page for more info.
 
-    Note
-    ------
-    During the Authentication, you will be asked if you want a read-only scope.
-    A read-only scope is sufficient when the data is transferred directly to your
-    machine (small data transfers), but will not be sufficient when extracting
-    large amounts of data (typical for extracting Modeldata). This is because
-    modeldata is written directly to your Google Drive, and therefore
-    the read-only scope is insufficient.
+#     Note
+#     ------
+#     During the Authentication, you will be asked if you want a read-only scope.
+#     A read-only scope is sufficient when the data is transferred directly to your
+#     machine (small data transfers), but will not be sufficient when extracting
+#     large amounts of data (typical for extracting Modeldata). This is because
+#     modeldata is written directly to your Google Drive, and therefore
+#     the read-only scope is insufficient.
 
-    Note
-    ------
-    Due to several reasons, an EEExeption may be thrown. This is
-    likely because of an invalid credential file. To fix this, you
-    can update your credential file, and specify a specific authentication method.
-    We found that the "notebook" authentication method works best for most users.
+#     Note
+#     ------
+#     Due to several reasons, an EEExeption may be thrown. This is
+#     likely because of an invalid credential file. To fix this, you
+#     can update your credential file, and specify a specific authentication method.
+#     We found that the "notebook" authentication method works best for most users.
 
-    Here is an example on how to update the credentials:
+#     Here is an example on how to update the credentials:
 
-    .. code-block:: python
+#     .. code-block:: python
 
-        import metobs_toolkit
+#         import metobs_toolkit
 
-        metobs_toolkit.connect_to_gee(force=True, #create new credentials
-                                      auth_mode='notebook', # 'notebook', 'localhost', 'gcloud' (requires gcloud installed) or 'colab' (works only in colab)
-                                      )
+#         metobs_toolkit.connect_to_gee(force=True, #create new credentials
+#                                       auth_mode='notebook', # 'notebook', 'localhost', 'gcloud' (requires gcloud installed) or 'colab' (works only in colab)
+#                                       )
 
-    """
+#     """
 
-    if bool(kwargs):  # kwargs are always passed by user, so reinitialize
-        ee.Authenticate(**kwargs)
-        ee.Initialize()
-        return
+#     if bool(kwargs):  # kwargs are always passed by user, so reinitialize
+#         ee.Authenticate(**kwargs)
+#         ee.Initialize()
+#         return
 
-    if not ee.data._credentials:  # check if ee connection is initialized
-        ee.Authenticate()
-        ee.Initialize()
-    return
+#     if not ee.data._credentials:  # check if ee connection is initialized
+#         ee.Authenticate()
+#         ee.Initialize()
+#     return
 
 
 # =============================================================================
@@ -90,25 +90,25 @@ def connect_to_gee(**kwargs):
 # =============================================================================
 
 
-def lcz_extractor(metadf, mapinfo):
-    """Extract LCZ for all stations in the metadf."""
-    # make return in case something went wrong
-    default_return = pd.Series(
-        index=metadf.index, data="Location_unknown", name="lcz", dtype=object
-    )
-    # test if metadata is suitable
-    if not _validate_metadf(metadf):
-        logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
-        return default_return
+# def lcz_extractor(metadf, mapinfo):
+#     """Extract LCZ for all stations in the metadf."""
+#     # make return in case something went wrong
+#     default_return = pd.Series(
+#         index=metadf.index, data="Location_unknown", name="lcz", dtype=object
+#     )
+#     # test if metadata is suitable
+#     if not _validate_metadf(metadf):
+#         logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
+#         return default_return
 
-    relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
+#     relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
 
-    lcz_df = extract_pointvalues(
-        metadf=relevant_metadf, mapinfo=mapinfo, output_column_name="lcz"
-    )
-    if lcz_df.empty:
-        return pd.Series(dtype=object)
-    return lcz_df["lcz"]  # return series
+#     lcz_df = extract_pointvalues(
+#         metadf=relevant_metadf, mapinfo=mapinfo, output_column_name="lcz"
+#     )
+#     if lcz_df.empty:
+#         return pd.Series(dtype=object)
+#     return lcz_df["lcz"]  # return series
 
 
 def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
@@ -149,24 +149,24 @@ def lc_fractions_extractor(metadf, mapinfo, buffer, agg):
         return freqs_df, buffer
 
 
-def height_extractor(metadf, mapinfo):
-    """Get altitude for all stations from GEE."""
-    # make return in case something went wrong
-    default_return = pd.Series(
-        index=metadf.index, data="Location_unknown", name="altitude", dtype=object
-    )
+# def height_extractor(metadf, mapinfo):
+#     """Get altitude for all stations from GEE."""
+#     # make return in case something went wrong
+#     default_return = pd.Series(
+#         index=metadf.index, data="Location_unknown", name="altitude", dtype=object
+#     )
 
-    # test if metadata is suitable
-    if not _validate_metadf(metadf):
-        logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
-        return default_return
+#     # test if metadata is suitable
+#     if not _validate_metadf(metadf):
+#         logger.warning(f"Metadf is not suitable for GEE extractiond: {metadf}")
+#         return default_return
 
-    relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
+#     relevant_metadf = metadf.reset_index()[["name", "lat", "lon"]]
 
-    altitude_df = extract_pointvalues(
-        metadf=relevant_metadf, mapinfo=mapinfo, output_column_name="altitude"
-    )
-    return altitude_df["altitude"]  # return series
+#     altitude_df = extract_pointvalues(
+#         metadf=relevant_metadf, mapinfo=mapinfo, output_column_name="altitude"
+#     )
+#     return altitude_df["altitude"]  # return series
 
 
 # =============================================================================
@@ -175,25 +175,42 @@ def height_extractor(metadf, mapinfo):
 
 
 def _datetime_to_gee_datetime(datetime):
-    # covert to UTC!
-    utcdt = datetime.astimezone(pytz.utc)
-    logger.debug(utcdt.replace(tzinfo=None))
-    return ee.Date(utcdt.replace(tzinfo=None))
+    # ASSUME DATETIME IN UTC!!!
+    # utcdt = datetime.astimezone(pytz.utc)#This will c
+    logger.debug(datetime.replace(tzinfo=None))
+    return ee.Date(datetime.replace(tzinfo=None))
 
 
-def get_ee_obj(mapinfo, band=None):
+def get_ee_obj(model, target_bands=[]):
     """Get an image from a GEE object."""
-    if mapinfo["is_image"]:
-        obj = ee.Image(mapinfo["location"])
-    elif mapinfo["is_imagecollection"]:
-        if isinstance(band, type(None)):
-            obj = ee.ImageCollection(mapinfo["location"])
-        else:
-            obj = ee.ImageCollection(mapinfo["location"]).select(band)
 
+    if model.is_image:
+        obj = ee.Image(model.location).select(model.band_of_use)
     else:
-        sys.exit("Map type is not an Image or Imagecollection.")
+        obj = ee.ImageCollection(model.location)
+        if model._is_mosaic:
+            obj = obj.mosaic()
+        if bool(target_bands):
+            obj.select(target_bands)
+        else:
+            obj = obj.select(model.band_of_use)
+
     return obj
+
+
+# def get_ee_obj(mapinfo, band=None):
+#     """Get an image from a GEE object."""
+#     if mapinfo["is_image"]:
+#         obj = ee.Image(mapinfo["location"])
+#     elif mapinfo["is_imagecollection"]:
+#         if isinstance(band, type(None)):
+#             obj = ee.ImageCollection(mapinfo["location"])
+#         else:
+#             obj = ee.ImageCollection(mapinfo["location"]).select(band)
+
+#     else:
+#         sys.exit("Map type is not an Image or Imagecollection.")
+#     return obj
 
 
 def coords_to_geometry(lat=[], lon=[], proj="EPSG:4326"):

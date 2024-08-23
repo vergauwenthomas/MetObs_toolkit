@@ -13,7 +13,7 @@ import os
 from metobs_toolkit.plotting_functions import (
     geospatial_plot,
     timeseries_plot,
-    folium_plot,
+    # folium_map,
     add_stations_to_folium_map,
     make_folium_html_plot,
 )
@@ -25,7 +25,7 @@ from metobs_toolkit.settings_files.default_formats_settings import (
     label_def,
 )
 
-from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
+# from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
 
 from metobs_toolkit.df_helpers import (
     multiindexdf_datetime_subsetting,
@@ -631,159 +631,157 @@ class DatasetVisuals:
 
         return axis
 
-    def make_gee_plot(
-        self, gee_map="worldcover", show_stations=True, save=False, outputfile=None
-    ):
-        """Make an interactive plot of a google earth dataset.
+    # def make_gee_plot(
+    #     self, gee_map="worldcover", show_stations=True, save=False, outputfile=None
+    # ):
+    #     """Make an interactive plot of a google earth dataset.
 
-        The location of the stations can be plotted on top of it.
+    #     The location of the stations can be plotted on top of it.
 
-        Parameters
-        ----------
-        gee_map : str, optional
-            The name of the dataset to use. This name should be present in the
-            settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
-            scheme should included as well. The default is 'worldcover'
-        show_stations : bool, optional
-            If True, the stations will be plotted as markers. The default is True.
-        save : bool, optional
-            If True, the map will be saved as an html file in the output_folder
-            as defined in the settings if the outputfile is not set. The
-            default is False.
-        outputfile : str, optional
-            Specify the path of the html file if save is True. If None, and save
-            is true, the html file will be saved in the output_folder. The
-            default is None.
+    #     Parameters
+    #     ----------
+    #     gee_map : str, optional
+    #         The name of the dataset to use. This name should be present in the
+    #         settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
+    #         scheme should included as well. The default is 'worldcover'
+    #     show_stations : bool, optional
+    #         If True, the stations will be plotted as markers. The default is True.
+    #     save : bool, optional
+    #         If True, the map will be saved as an html file in the output_folder
+    #         as defined in the settings if the outputfile is not set. The
+    #         default is False.
+    #     outputfile : str, optional
+    #         Specify the path of the html file if save is True. If None, and save
+    #         is true, the html file will be saved in the output_folder. The
+    #         default is None.
 
-        Returns
-        -------
-        Map : geemap.foliumap.Map
-            The folium Map instance.
+    #     Returns
+    #     -------
+    #     Map : geemap.foliumap.Map
+    #         The folium Map instance.
 
-        See Also
-        -----------
-        Dataset.make_plot: plot timeseries.
-        Dataset.make_geo_plot: geospatial plot.
-        Dataset.make_interactive_plot: Interactive geospatial plot.
+    #     See Also
+    #     -----------
+    #     Dataset.make_plot: plot timeseries.
+    #     Dataset.make_geo_plot: geospatial plot.
+    #     Dataset.make_interactive_plot: Interactive geospatial plot.
 
+    #     Warning
+    #     ---------
+    #     To display the interactive map a graphical backend is required, which
+    #     is often missing on (free) cloud platforms. Therefore it is better to
+    #     set save=True, and open the .html in your browser
 
-        Warning
-        ---------
-        To display the interactive map a graphical backend is required, which
-        is often missing on (free) cloud platforms. Therefore it is better to
-        set save=True, and open the .html in your browser
+    #     Examples
+    #     --------
+    #     We start by creating a Dataset, and importing data.
 
-        Examples
-        --------
-        We start by creating a Dataset, and importing data.
+    #     >>> import metobs_toolkit
+    #     >>>
+    #     >>> #Create your Dataset
+    #     >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+    #     >>> dataset.import_data_from_file(
+    #     ...                         input_data_file=metobs_toolkit.demo_datafile,
+    #     ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+    #     ...                         template_file=metobs_toolkit.demo_template,
+    #     ...                         )
+    #     >>> print(dataset)
+    #     Dataset instance containing:
+    #      *28 stations
+    #      *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+    #      *483828 observation records (not Nan's)
+    #      *0 records labeled as outliers
+    #      *8 gaps
+    #      *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+    #      *time zone of the records: UTC
+    #      *Coordinates are available for all stations.
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> print(dataset)
-        Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *483828 observation records (not Nan's)
-         *0 records labeled as outliers
-         *8 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
+    #     To create an interactive Google earth engine plot, we use the `Dataset.make_gee_plot()`
+    #     method.
 
+    #     >>> dataset.make_gee_plot(gee_map='worldcover')
+    #     <geemap.foliumap.Map object at ...
 
-        To create an interactive Google earth engine plot, we use the `Dataset.make_gee_plot()`
-        method.
+    #     Depending on your python environment, it can happen that it does not
+    #     support displaying the gee map. In that case, you can save it as an
+    #     html file. (You can open an html file with a browser.)
+    #     We must specify a target path for the html file, as an example
+    #     we save it to the current working directory (`os.getcwd()`).
 
-        >>> dataset.make_gee_plot(gee_map='worldcover')
-        <geemap.foliumap.Map object at ...
+    #     >>> import os
+    #     >>> target_file = os.path.join(os.getcwd(), 'interactive_worldcover_plot.html')
+    #     >>> dataset.make_gee_plot(gee_map='worldcover',
+    #     ...                       save=True,
+    #     ...                       outputfile=target_file)
+    #     Gee Map will be save at ...
 
-        Depending on your python environment, it can happen that it does not
-        support displaying the gee map. In that case, you can save it as an
-        html file. (You can open an html file with a browser.)
-        We must specify a target path for the html file, as an example
-        we save it to the current working directory (`os.getcwd()`).
+    #     """
+    #     # Connect to GEE
+    #     connect_to_gee()
 
-        >>> import os
-        >>> target_file = os.path.join(os.getcwd(), 'interactive_worldcover_plot.html')
-        >>> dataset.make_gee_plot(gee_map='worldcover',
-        ...                       save=True,
-        ...                       outputfile=target_file)
-        Gee Map will be save at ...
+    #     # get the mapinfo
+    #     mapinfo = self.settings.gee["gee_dataset_info"][gee_map]
 
-        """
-        # Connect to GEE
-        connect_to_gee()
+    #     # Read in covers, numbers and labels
+    #     covernum = list(mapinfo["colorscheme"].keys())
+    #     colors = list(mapinfo["colorscheme"].values())
+    #     covername = [mapinfo["categorical_mapper"][covnum] for covnum in covernum]
 
-        # get the mapinfo
-        mapinfo = self.settings.gee["gee_dataset_info"][gee_map]
+    #     # create visparams
+    #     vis_params = {
+    #         "min": min(covernum),
+    #         "max": max(covernum),
+    #         "palette": colors,  # hex colors!
+    #     }
 
-        # Read in covers, numbers and labels
-        covernum = list(mapinfo["colorscheme"].keys())
-        colors = list(mapinfo["colorscheme"].values())
-        covername = [mapinfo["categorical_mapper"][covnum] for covnum in covernum]
+    #     if "band_of_use" in mapinfo:
+    #         band = mapinfo["band_of_use"]
+    #     else:
+    #         band = None
 
-        # create visparams
-        vis_params = {
-            "min": min(covernum),
-            "max": max(covernum),
-            "palette": colors,  # hex colors!
-        }
+    #     Map = folium_plot(
+    #         mapinfo=mapinfo,
+    #         band=band,
+    #         vis_params=vis_params,
+    #         labelnames=covername,
+    #         layername=gee_map,
+    #         legendname=f"{gee_map} covers",
+    #         # showmap = show,
+    #     )
 
-        if "band_of_use" in mapinfo:
-            band = mapinfo["band_of_use"]
-        else:
-            band = None
+    #     if show_stations:
+    #         if not _validate_metadf(self.metadf):
+    #             logger.warning(
+    #                 "Not enough coordinates information is provided to plot the stations."
+    #             )
+    #         else:
+    #             Map = add_stations_to_folium_map(Map=Map, metadf=self.metadf)
 
-        Map = folium_plot(
-            mapinfo=mapinfo,
-            band=band,
-            vis_params=vis_params,
-            labelnames=covername,
-            layername=gee_map,
-            legendname=f"{gee_map} covers",
-            # showmap = show,
-        )
+    #     # Save if needed
+    #     if save:
+    #         if outputfile is None:
+    #             # Try to save in the output folder
+    #             if self.settings.IO["output_folder"] is None:
+    #                 logger.warning(
+    #                     "The outputfolder is not set up, use the update_settings to specify the output_folder."
+    #                 )
 
-        if show_stations:
-            if not _validate_metadf(self.metadf):
-                logger.warning(
-                    "Not enough coordinates information is provided to plot the stations."
-                )
-            else:
-                Map = add_stations_to_folium_map(Map=Map, metadf=self.metadf)
+    #             else:
+    #                 filename = f"gee_{gee_map}_figure.html"
+    #                 filepath = os.path.join(self.settings.IO["output_folder"], filename)
+    #         else:
+    #             # outputfile is specified
+    #             # 1. check extension
+    #             if not outputfile.endswith(".html"):
+    #                 outputfile = outputfile + ".html"
 
-        # Save if needed
-        if save:
-            if outputfile is None:
-                # Try to save in the output folder
-                if self.settings.IO["output_folder"] is None:
-                    logger.warning(
-                        "The outputfolder is not set up, use the update_settings to specify the output_folder."
-                    )
+    #             filepath = outputfile
 
-                else:
-                    filename = f"gee_{gee_map}_figure.html"
-                    filepath = os.path.join(self.settings.IO["output_folder"], filename)
-            else:
-                # outputfile is specified
-                # 1. check extension
-                if not outputfile.endswith(".html"):
-                    outputfile = outputfile + ".html"
+    #         print(f"Gee Map will be save at {filepath}")
+    #         logger.info(f"Gee Map will be save at {filepath}")
+    #         Map.save(filepath)
 
-                filepath = outputfile
-
-            print(f"Gee Map will be save at {filepath}")
-            logger.info(f"Gee Map will be save at {filepath}")
-            Map.save(filepath)
-
-        return Map
+    #     return Map
 
 
 class MetobsDatasetVisualisationError(Exception):
