@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class GeeModelData:
+class _GeeModelData:
     """Parent class for working with a GEE modeldataset."""
 
     def __init__(
@@ -65,6 +65,36 @@ class GeeModelData:
         credentials,
         is_mosaic=False,
     ):
+        """
+        Create a GeeModelData abstract instance.
+
+        Parameters
+        ----------
+        name : str
+            The user-defined name for refering to this GEE dataset.
+        location : str
+            The location of the dataset on GEE. Navigate the GEE datasets online,
+            to get the location of a GEE dataset.
+        value_type : "numeric" or "categorical"
+            Specify how to interpret the values of the GEE dataset.
+        scale : int
+            The Scale (See GEE doc) of the dataset to extract values of.
+        is_static : bool
+            If True, the GEE dataset is static and has no time-evolution component.
+            Else the GEE dataset has a time component.
+        is_image : bool
+            If True, the GEE dataset is opened as ee.Image(), else ee.ImageCollection().
+        credentials : str
+            Credentials of the GEE dataset.
+        is_mosaic : bool, optional
+            If True, ee.mosaic() is appied on the GEE dataset. The default is False.
+
+
+        Returns
+        -------
+        None.
+
+        """
 
         self.metadf = pd.DataFrame()  # will hold static data
 
@@ -91,6 +121,20 @@ class GeeModelData:
     # Checks
     # =============================================================================
     def _check_metadf_validity(self, metadf):
+        """
+        Check if a metadf is valid (coordinates and structure wise). If
+        it is not valid, an error is raised.
+
+        Parameters
+        ----------
+        metadf : pandas.DataFrame()
+            The metadata as a (geo)pandas dataframe.
+
+        Returns
+        -------
+        None.
+
+        """
         if metadf.empty:
             raise MetobsModelDataError(f"There is no metadata provided for {self}.")
         if metadf.index.name != "name":
@@ -115,6 +159,7 @@ class GeeModelData:
     # =============================================================================
 
     def set_metadf(self, metadf):
+        """Setter for the metadf."""
         self._check_metadf_validity(metadf)
         self.metadf = metadf[["lon", "lat", "geometry"]]
 
@@ -122,12 +167,14 @@ class GeeModelData:
     # Getters
     # =============================================================================
     def _get_all_gee_bandnames(self):
+        """Return a list of all the bandnames of the GEE dataset."""
         if self.is_image:
             return list(ee.Image(self.location).bandNames().getInfo())
         else:
             return list(ee.ImageCollection(self.location).first().bandNames().getInfo())
 
     def _get_base_details(self):
+        """Print out basis details of the GEE dataset."""
         print(f"------ Details --------- \n")
         print(f" * name: {self.name}")
         print(f" * location: {self.location}")
@@ -138,15 +185,10 @@ class GeeModelData:
         print(f" * is_image: {self.is_image}")
         print(f" * is_mosaic: {self._is_mosaic}")
         print(f" * credentials: {self.credentials}")
-
         return
 
-    # =============================================================================
-    # User methods
-    # =============================================================================
 
-
-class GeeStaticModelData(GeeModelData):
+class GeeStaticModelData(_GeeModelData):
     """Class for working with static GEE modeldatasets."""
 
     def __init__(
@@ -163,6 +205,57 @@ class GeeStaticModelData(GeeModelData):
         agg_scheme={},
         col_scheme={},
     ):
+        """
+        Create a GeeStaticModelData instance representing a GEE dataset without
+        a time dimensions.
+
+        Parameters
+        ----------
+        name : str
+            The user-defined name for refering to this GEE dataset.
+        location : str
+            The location of the dataset on GEE. Navigate the GEE datasets online,
+            to get the location of a GEE dataset.
+        band_of_use : str
+            The name of the band to use. Navigate the GEE datasets online, and
+            click on bands to get a table and description of them.
+        value_type : "numeric" or "categorical"
+            Specify how to interpret the values of the GEE dataset.
+        scale : int
+            The Scale (See GEE doc) of the dataset to extract values of. This
+            can be found on the GEE dataset information page.
+        is_image : bool
+            If True, the GEE dataset is opened as ee.Image(), else
+            ee.ImageCollection(). This can be found on the GEE dataset
+            information page.
+        is_mosaic : bool, optional
+            If True, ee.mosaic() is appied on the GEE dataset. The default is False.
+        credentials : str, optional
+            Credentials of the GEE dataset. The default is "".
+        class_map : dict, optional
+            If value_type is categorical, than the class_map defines how the
+            numeric values are mapped to 'human-categories'. The keys are the
+            numeric values, the values are the human-labels. The default is {}.
+        agg_scheme : dict, optional
+            If value_types is categorical, than the agg scheme defines custom-
+            made classes, which are aggregates of the present classes. The
+            keys are the names of the custom-classes, the values are lists, with
+            the corresponing numeric values. The default is {}.
+        col_scheme : dict, optional
+            if value_types is categorical, the col_sheme defines the colors used
+            for each class. The keys are the numeric values, the values are
+            the colors (in hex form). The default is {}.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -------
+        On general, specifying a scale smaller than the true scale of the GEE
+        dataset has no impact on the results (but can effect the computation time).
+
+        """
         super().__init__(
             name=name,
             location=location,
@@ -182,6 +275,9 @@ class GeeStaticModelData(GeeModelData):
 
         self.__name__ = "GeeStaticModelData"
 
+    # ========================================================================
+    # Special methods
+    # ========================================================================
     def __str__(self):
         if self.metadf.empty:
             return f"Empty {self.__name__} instance of {self.name} "
@@ -192,7 +288,22 @@ class GeeStaticModelData(GeeModelData):
         """Print overview information of the modeldata."""
         return self.__str__()
 
+    # =========================================================================
+    # Setters
+    # =========================================================================
+
+    # =========================================================================
+    # Getters
+    # =========================================================================
     def get_info(self):
+        """
+        Prints out detailed information of the GeeStaticModelData.
+
+        Returns
+        -------
+        None.
+
+        """
         print(str(self))
         self._get_base_details()
         print(f" -- Band -- \n {self.band_of_use} \n")
@@ -202,7 +313,32 @@ class GeeStaticModelData(GeeModelData):
 
         return
 
+    # =========================================================================
+    # Functionality
+    # =========================================================================
+
     def extract_static_point_data(self):
+        """
+        Extract point values at the locations in the metadata.
+
+        First a connection with the gee server is made. Then the coordinates
+        of the metadata and the details of the GEE dataset are send to the
+        gee server. There the point values are extracted and are send back.
+
+
+        Returns
+        -------
+        df : pandas.DataFrame
+            A dataframe with the stationnames as index, and one column with
+            values (mapped to human-labels if the datataset is categorical and
+            a cat_map is defined).
+
+        Note
+        -------
+        Make sure that the metadata is set. Use the
+        `GeeStaticModelData.set_metadata()` for this.
+
+        """
         if self.metadf.empty:
             raise MetobsModelDataError(
                 f"No metadata is present for the GeeStaticModelData. No extraction possible."
