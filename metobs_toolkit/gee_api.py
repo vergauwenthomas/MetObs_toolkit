@@ -181,19 +181,30 @@ def _datetime_to_gee_datetime(datetime):
     return ee.Date(datetime.replace(tzinfo=None))
 
 
-def get_ee_obj(model, target_bands=[]):
+def get_ee_obj(model, target_bands=[], force_mosaic=None):
     """Get an image from a GEE object."""
 
+    # get the dataset
     if model.is_image:
         obj = ee.Image(model.location).select(model.band_of_use)
     else:
         obj = ee.ImageCollection(model.location)
-        if model._is_mosaic:
-            obj = obj.mosaic()
+
+        # filter the bands
         if bool(target_bands):
             obj.select(target_bands)
         else:
             obj = obj.select(model.band_of_use)
+
+        # mosaic over the collectiontion (== convert imagecollection to image)
+        if force_mosaic is None:
+            # use attribute of the model
+            if model._is_mosaic:
+                obj = obj.mosaic()
+        elif force_mosaic:
+            obj = obj.mosaic()
+        else:
+            obj = obj
 
     return obj
 
@@ -224,6 +235,14 @@ def coords_to_geometry(lat=[], lon=[], proj="EPSG:4326"):
 # =============================================================================
 # Helpers
 # =============================================================================
+
+
+def _is_image(geeobj):
+    return isinstance(geeobj, ee.image.Image)
+
+
+def _is_imagecollection(geeobj):
+    return isinstance(geeobj, ee.imagecollection.ImageCollection)
 
 
 def _validate_metadf(metadf):
