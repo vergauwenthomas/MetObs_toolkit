@@ -758,6 +758,63 @@ class GeeDynamicModelData(_GeeModelData):
         agg_scheme={},
         col_scheme={},
     ):
+        """
+        Create a GeeDynamicModelData instance representing a GEE dataset with
+        a time dimensions.
+
+        Parameters
+        ----------
+        name : str
+            The user-defined name for refering to this GEE dataset.
+        location : str
+            The location of the dataset on GEE. Navigate the GEE datasets online,
+            to get the location of a GEE dataset.
+        value_type : "numeric" or "categorical"
+            Specify how to interpret the values of the GEE dataset.
+        scale : int
+            The Scale (See GEE doc) of the dataset to extract values of. This
+            can be found on the GEE dataset information page.
+        time_res : str
+            The time resolution of the dataset represented as a timedelta string.
+            Common resolutions are '1h' or '3h'. This can be found on the GEE
+            dataset information page.
+        modelobstypes : dict
+            The ModelObstype's defined for this GEE dataset. These ModelObstype
+            define how Obstypes are linked to bands of the GEE dataset. They are
+            presented in dictionary with the corresponding names as keys and the
+            values are the ModelObstypes.
+        is_image : bool
+            If True, the GEE dataset is opened as ee.Image(), else
+            ee.ImageCollection(). This can be found on the GEE dataset
+            information page.
+        is_mosaic : bool, optional
+            If True, ee.mosaic() is appied on the GEE dataset. The default is False.
+        credentials : str, optional
+            Credentials of the GEE dataset. The default is "".
+        class_map : dict, optional
+            If value_type is categorical, than the class_map defines how the
+            numeric values are mapped to 'human-categories'. The keys are the
+            numeric values, the values are the human-labels. The default is {}.
+        agg_scheme : dict, optional
+            If value_types is categorical, than the agg scheme defines custom-
+            made classes, which are aggregates of the present classes. The
+            keys are the names of the custom-classes, the values are lists, with
+            the corresponing numeric values. The default is {}.
+        col_scheme : dict, optional
+            if value_types is categorical, the col_sheme defines the colors used
+            for each class. The keys are the numeric values, the values are
+            the colors (in hex form). The default is {}.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -------
+        On general, specifying a scale smaller than the true scale of the GEE
+        dataset has no impact on the results (but can effect the computation time).
+
+        """
         super().__init__(
             name=name,
             location=location,
@@ -787,6 +844,7 @@ class GeeDynamicModelData(_GeeModelData):
     # =============================================================================
 
     def _set_modeldf(self, modeldf):
+        """Set the modeldf attribute"""
 
         if not list(modeldf.index.names) == ["name", "datetime"]:
             raise MetobsModelDataError()(
@@ -795,7 +853,19 @@ class GeeDynamicModelData(_GeeModelData):
         self.modeldf = modeldf
 
     def add_modelobstype(self, modelobstype):
-        # TODO checks
+        """Add a new ModelObstype to the GeeDynamicModelData.
+
+
+        Parameters
+        ----------
+        modelobstype : ModelObstype or ModelObstype_Vectorfield
+            The new modelobstype to add.
+
+        Returns
+        -------
+        None.
+
+        """
         if not (
             (isinstance(modelobstype, ModelObstype))
             | (isinstance(modelobstype, ModelObstype_Vectorfield))
@@ -803,12 +873,21 @@ class GeeDynamicModelData(_GeeModelData):
             raise MetobsModelDataError(
                 f"{modelobstype} is not a ModelObstype of ModelObstype_Vectorfield"
             )
+        if modelobstype.name in self.modelobstypes.keys():
+            raise MetobsModelDataError(
+                f"There is already a known ModelObstype with {modelobstype.name} as a name: {self.modelobstypes[modelobstype.name]}"
+            )
+
         self.modelobstypes[modelobstype.name] = modelobstype
 
     # =============================================================================
     # Convertors/formatters
     # =============================================================================
     def _convert_units(self):
+        """Convert the units of the modeldf attr to toolkit space, and set the
+        modeldf again.
+
+        """
 
         modeldf = self.modeldf
         for obs in self.modelobstypes.values():
@@ -820,6 +899,11 @@ class GeeDynamicModelData(_GeeModelData):
         return
 
     def _format_gee_df_structure(self, geedf):
+        """Format a dataframe (constructed directly from gee), to a modeldf (
+        name, datetime index and modelobstypenames as columns). Then set the
+        modeldf attribute.
+        """
+
         # format datetime
         geedf["datetime"] = pd.to_datetime(geedf["datetime"], format="%Y%m%d%H%M%S")
         # (assume all gee dataset are in UTC)
@@ -862,6 +946,7 @@ class GeeDynamicModelData(_GeeModelData):
         self._set_modeldf(modeldf)
 
     def _subset_to_obstypes(self, trg_obstypes):
+        """Subset the modeldf (atttr) to list of target obstypes."""
         keep_columns = []
 
         for obs in trg_obstypes:
@@ -881,6 +966,8 @@ class GeeDynamicModelData(_GeeModelData):
     # =============================================================================
 
     def _get_bandnames(self, trg_obstypes):
+        """Get a list of all known target bandnames."""
+
         trg_bands = []
         for obs in trg_obstypes:
             if isinstance(obs, ModelObstype):
@@ -898,9 +985,17 @@ class GeeDynamicModelData(_GeeModelData):
         return str(self.time_res)
 
     def _get_unknonw_modelcolumns(self):
+        """Get a list of all columns in the modeldf, that are unknown obstypes."""
         return list(set(self.modeldf.columns) - set(self.modelobstypes.keys()))
 
     def get_info(self):
+        """Print out detailed information of the GeeDynamicModelData.
+
+        Returns
+        -------
+        None.
+
+        """
         print(str(self))
         self._get_base_details()
         print(f" * time res: {self.time_res}")
@@ -944,6 +1039,69 @@ class GeeDynamicModelData(_GeeModelData):
         vmax=None,
         overwrite=False,
     ):
+        """Make an interactive spatial plot of the GEE dataset and the stations.
+
+        This method will create an interactive plot of the GEE dataset at an
+        instance in time. If metadata is present, it will be diplayed as
+        markers on the map.
+
+        The interactive map can be saved as an html file, by specifying the
+        target path.
+
+
+        Parameters
+        ----------
+        timeinstance : datetime.datetime or pandas.Timestamp
+            The timeinstance to plot the GEE dataset of. This timestamp is
+            rounded down with the time resolution (.time_res). The timeinstance,
+            is interpreted as UTC.
+        modelobstype : str, optional
+            The name of the ModelObstype to plot. The modelobstype name must be
+            known. The default is "temp".
+        outputfolder : str or None, optional
+            Path to the folder to save the html file. If None, the map will
+            not be saved as an html file. The default is None.
+        filename : str or None, optional
+            The filename for the html file. If a filename is given, if it does
+            not end with ".html", the prefix is added. If None, the map will not
+            be saved as an html file. The default is None.
+        vmin : num or None, optional
+            vmin is the minimum value assigned to the colormap. If None, and
+            metadata is set, vmin is computed by computing the minimum
+            modelvalue in a boundbox defined by the locations of the stations.
+            If no metadata is available, and vmin is None then vmin is set to
+            0. The default is None.
+        vmax : num or None, optional
+            vmax is the minimum value assigned to the colormap. If None, and
+            metadata is set, vmax is computed by computing the minimum
+            modelvalue in a boundbox defined by the locations of the stations.
+            If no metadata is available, and vmax is None then vmax is set to
+            1. The default is None.
+        overwrite : bool, optional
+            If True, and if the target file exists, then it will be overwritten.
+            Else, an error will be raised when the target file already exists.
+            The default is False.
+
+        Returns
+        -------
+        MAP : geemap.foliummap.Map
+            The interactive map of the GeeStaticModelData.
+
+        Warning
+        ---------
+        To display the interactive map a graphical interactive backend is
+        required, which could be missing. You can recognice this when no
+        map is displayed, but the python console prints out a message similar
+        to `<geemap.foliumap.Map at 0x7ff7586b8d90>`.
+
+        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a html file, and
+        open in with a browser.
+
+        Note
+        ------
+        Be aware that it is not possible to plot a ModelObstype_Vectorfield.
+
+        """
 
         # Format datetime
         if isinstance(timeinstance, datetimemodule.datetime):
@@ -1014,7 +1172,8 @@ class GeeDynamicModelData(_GeeModelData):
 
         # show stations
         if self.metadf.empty:
-            pass
+            vmin = 0.0
+            vmax = 1.0
 
         else:
             _add_stations_to_folium_map(
@@ -1031,17 +1190,17 @@ class GeeDynamicModelData(_GeeModelData):
 
             roi = ee.Geometry.BBox(west=xmin, south=ymin, east=xmax, north=ymax)
 
-        roi_max = im.reduceRegion(ee.Reducer.max(), roi).getInfo()[
-            modelobstype.get_modelband()
-        ]
-        roi_min = im.reduceRegion(ee.Reducer.min(), roi).getInfo()[
-            modelobstype.get_modelband()
-        ]
+            roi_max = im.reduceRegion(ee.Reducer.max(), roi).getInfo()[
+                modelobstype.get_modelband()
+            ]
+            roi_min = im.reduceRegion(ee.Reducer.min(), roi).getInfo()[
+                modelobstype.get_modelband()
+            ]
 
-        if vmin == None:
-            vmin = roi_min - ((roi_max - roi_min) * 0.15)
-        if vmax == None:
-            vmax = roi_max + ((roi_max - roi_min) * 0.15)
+            if vmin == None:
+                vmin = roi_min - ((roi_max - roi_min) * 0.15)
+            if vmax == None:
+                vmax = roi_max + ((roi_max - roi_min) * 0.15)
 
         var_visualization = {
             "bands": [modelobstype.get_modelband()],
@@ -1125,7 +1284,7 @@ class GeeDynamicModelData(_GeeModelData):
         Parameters
         ----------
         obstype_model : string, optional
-             Fieldname of the Modeldata to visualise. The default is 'temp'.
+            The name of the ModelObstype to plot. The default is 'temp'.
         Dataset : metobs_toolkit.Dataset, optional
             A Dataset instance with observations plotted in the same figure.
             Observations are represented by solid line and modeldata by dashed
@@ -1280,33 +1439,55 @@ class GeeDynamicModelData(_GeeModelData):
         drive_filename=None,
         drive_folder="gee_timeseries_data",
     ):
-        """Extract timeseries of a gee dataset.
+        """Extract timeseries data and set the modeldf.
 
-        The extraction can only be done if the gee dataset bandname (and units)
-        corresponding to the obstype is known.
+        The timeseries is extracted at the location of the stations. Nan's are
+        used when there is no data at that location (out of data-mask).
 
-        The units are converted to the toolkit standard units!!
+        There are two possibilities for extracting the timeseries:
+            * If the datarequest is not to big, then the timeseries are
+              direct imported. No additional steps are required. The Modeldata
+              is converted to Metobs-toolkit standards (name and units), and
+              amplitude/direction fields are computed for requested vectorfields.
+
+            * If the datarequest is to big, GEE services will write a datafile
+              (csv) directly to your Google Drive. Wait until the file appears
+              on your Drive, then download it. You can import the data by using
+              the `GeeDynamicModelData.set_modeldata_from_csv()` method.
 
         Parameters
         ----------
-        mapname : str
-            Mapname of choice of the GEE dataset to extract data from.
-        metadf : pandas.DataFrame
-            A dataframe with a 'name' index and  'lat', 'lon' columns.
-            Timeseries are extracted for these locations.
         startdt_utc : datetime.datetime
             Start datetime of the timeseries in UTC.
         enddt_utc : datetime.datetime
             Last datetime of the timeseries in UTC.
-        obstypes : str or list of strings, optional
-            Toolkit observation type to extract data from. There should be a
-            bandname mapped to this obstype for the gee map. Multiple obstypes
-            can be given in a list. The default is 'temp'.
-
+        obstypes : list of strings, optional
+            A list of ModelObstype names to extract modeldata for. These obstypes
+            must be knonw. The default is ['temp']
+        get_all_bands : bool, optional
+            If True, all values (over all bands) are extracted. If the band is
+            linked to a ModelObstye, than the name of the modelObstype is used
+            instead of the bandname. If True, the obstypes argument is ignored.
+            The default is False.
+        drive_filename : str or None, optional
+            If given, the data will be saved as this filename on your Google Drive.
+            This argument will only take effect when the data is writen to
+            Google Drive. If None, a custom filename is created. The default is
+            None.
+        drive_folder: str
+            The name of the folder on your Google Drive to save the drive_filename
+            in. If the folder, does not exists it will be created instead. This
+            argument will only take effect when the data is writen to Google
+            Drive.
 
         Returns
         -------
         None.
+
+        Note
+        -------
+        Make sure that the metadata is set. Use the
+        `GeeDynamicModelData.set_metadata()` for this.
 
         Note
         ------
@@ -1471,6 +1652,7 @@ class GeeDynamicModelData(_GeeModelData):
             return
 
     def _modeldf_to_long(self):
+        """Convert the modeldf attribute to a long format (name, datetime, obstype) index."""
         longdf = self.modeldf.stack(future_stack=True)
         longdf = (
             longdf.reset_index()
@@ -1617,12 +1799,15 @@ class GeeDynamicModelData(_GeeModelData):
 
 
         The timeseries will be formatted and converted to standard toolkit
-        units.
+        units. If bandnames of known ModelObstype_Vectorfields are detecte,
+        the corresponding amplitude and direction fields are computed aswell.
 
         Parameters
         ----------
         csvpath : str
-            Path of the csv file containing the modeldata timeseries.
+            Path of the csv file containing the modeldata timeseries. (This is
+            the path to the file that you have downloaded from your Google
+            Drive.)
 
         Returns
         -------
@@ -1639,18 +1824,19 @@ class GeeDynamicModelData(_GeeModelData):
 
 
 def import_modeldata_from_pkl(folder_path, filename="saved_modeldata.pkl"):
-    """Import a modeldata instance from a (pickle) file.
+    """Import a GeeDynamicModelData instance from a (pickle) file.
 
     Parameters
     ----------
     folder_path : str
-        The path to the folder where the Modeldata pickle file is located.
+        The path to the folder where the GeeDynamicModelData pickle file is
+        located.
     filename : str, optional
         The name of the output file. The default is 'saved_modeldata.pkl'.
 
     Returns
     -------
-    metobs_toolkit.Modeldata
+    metobs_toolkit.GeeDynamicModelData
         The modeldata instance.
 
     """
