@@ -192,7 +192,7 @@ def get_ee_obj(model, target_bands=[], force_mosaic=None):
 
         # filter the bands
         if bool(target_bands):
-            obj.select(target_bands)
+            obj = obj.select(ee.List(target_bands))
         else:
             obj = obj.select(model.band_of_use)
 

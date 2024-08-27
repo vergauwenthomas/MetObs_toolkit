@@ -41,6 +41,12 @@ class ModelObstype(Obstype):
                 f"{self.model_unit} is not a known unit of {self}."
             )
 
+    def __str__(self):
+        return f"{type(self).__name__} isntance of {self.name} (linked to band: {self.model_band})"
+
+    def __repr__(self):
+        return str(self)
+
     # =============================================================================
     # Getters
     # =============================================================================
@@ -93,6 +99,12 @@ class ModelObstype_Vectorfield(Obstype):
             raise MetobsModelObstypeHandlingError(
                 f"{self.model_unit} is not a known unit of {self}."
             )
+
+    def __str__(self):
+        return f"{type(self).__name__} isntance of {self.name} (linked to bands: {self.get_modelband_u()} and {self.get_modelband_v()})"
+
+    def __repr__(self):
+        return str(self)
 
     def get_modelunit(self):
         return self.model_unit
@@ -175,7 +187,7 @@ class ModelObstype_Vectorfield(Obstype):
         direction_modelobstype = ModelObstype(
             obstype=direction_obstype,
             model_unit="° from north (CW)",  # indep of units
-            model_band=None,
+            model_band=self._dir_obs_name,  # NOTE: this band does not exist, but column is created with this name by the toolkit
         )
 
         return data, direction_modelobstype
@@ -218,8 +230,10 @@ class ModelObstype_Vectorfield(Obstype):
 
         # convert to model obstype
         amplitude_modelobstype = ModelObstype(
-            obstype=amplitude_obstype, model_unit=self.get_modelunit(), model_band=None
-        )
+            obstype=amplitude_obstype,
+            model_unit=self.get_modelunit(),
+            model_band=self._amp_obs_name,
+        )  # NOTE: this band does not exist, but column is created with this name by the toolkit
 
         return data, amplitude_modelobstype
 

@@ -1267,6 +1267,57 @@ class GeeDynamicModelData(_GeeModelData):
         metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to band).
         metobs_toolkit.ModelObstype_Vectorfield: A Vectorfield version of ModelObstype.
 
+        Examples
+        --------
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        present in a `metobs_toolkit.Dataset()`
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> era5 = dataset.gee_datasets['ERA5-land']
+        >>> era5
+        Empty GeeDynamicModelData instance of ERA5-land
+
+        The ERA5 GeeDyanmicModelData is equipped with a few Modelobstypes.
+        >>> era5.modelobstypes
+        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+        Now we create a ModelObstype, which is a regular Obstype, but with
+        extra information how this is linked to a band in the Gee dataset. So
+        we start by looking op the gee dataset online, and instpect the present
+        bands: https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY#bands
+
+        As example we add the 'surface_solar_radiation_downwards' band. Therefore
+        we need to create an Obstype representing solar radiation (downward) first.
+
+        >>> solar_rad = metobs_toolkit.Obstype(obsname='solar_radiation',
+        ...                                    std_unit='J/m²',
+        ...                                    description= 'Downward solar flux (perpendicular to earth surface)',
+        ...                                    unit_aliases={},
+        ...                                    unit_conversions={})
+        >>> solar_rad
+        Obstype instance of solar_radiation
+
+        Now we make a ModelObstype from it. We known that the values of solar_rad
+        are scalar, so we create a `ModelObstype` instance (for vectorfields,
+        use the `ModelObstype_Vectorfield` class.)
+
+        >>> solar_rad_in_era5 = metobs_toolkit.ModelObstype(obstype=solar_rad,
+        ...                                                 model_unit='J/m²',
+        ...                                                 model_band='surface_solar_radiation_downwards')
+        >>> solar_rad_in_era5
+        ModelObstype isntance of solar_radiation (linked to band: surface_solar_radiation_downwards)
+
+        At last, we can add the solar radiation to the Geedataset by using
+        the `GeeDynamicModelData.add_modelobstype()` method.
+
+        >>> era5.add_modelobstype(modelobstype=solar_rad_in_era5)
+
+        >>> era5.modelobstypes
+        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'solar_radiation': ModelObstype isntance of solar_radiation (linked to band: surface_solar_radiation_downwards)}
+
         """
         if not (
             (isinstance(modelobstype, ModelObstype))
@@ -1356,6 +1407,7 @@ class GeeDynamicModelData(_GeeModelData):
                 keep_columns.append(obs.name)
             elif isinstance(obs, ModelObstype_Vectorfield):
                 keep_columns.append(obs._amp_obs_name)
+                keep_columns.append(obs._dir_obs_name)
             else:
                 raise MetobsModelDataError(
                     f"{obs} is not a ModelObstype or ModelObstype_Vectorfield."
@@ -1402,6 +1454,56 @@ class GeeDynamicModelData(_GeeModelData):
         GeeDynamicModelData.set_metadf: Set metadata (station locations).
         GeeDynamicModelData.add_modelobstype: Add a new ModelObstype.
         GeeDynamicModelData.extract_timeseries_data: Extract data from GEE.
+
+        Examples
+        --------
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        present in a `metobs_toolkit.Dataset()`
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> era5 = dataset.gee_datasets['ERA5-land']
+        >>> era5
+        Empty GeeDynamicModelData instance of ERA5-land
+
+        To get a detailed overview, use the `GeeDynamicModelData.get_info()`
+        method, to print out the info.
+
+        >>> era5.get_info()
+        Empty GeeDynamicModelData instance of ERA5-land
+        ------ Details ---------
+        <BLANKLINE>
+         * name: ERA5-land
+         * location: ECMWF/ERA5_LAND/HOURLY
+         * value_type: numeric
+         * scale: 2500
+         * is_static: False
+         * is_image: False
+         * is_mosaic: False
+         * credentials:
+         * time res: 1h
+        <BLANKLINE>
+         -- Known Modelobstypes --
+        <BLANKLINE>
+         * temp : ModelObstype isntance of temp (linked to band: temperature_2m)
+            (conversion: Kelvin --> Celsius)
+         * pressure : ModelObstype isntance of pressure (linked to band: surface_pressure)
+            (conversion: pa --> pa)
+         * wind : ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+            vectorfield that will be converted to:
+              * wind_speed
+              * wind_direction
+            (conversion: m/s --> m/s)
+        <BLANKLINE>
+         -- Metadata --
+        <BLANKLINE>
+        No metadf is set.
+        <BLANKLINE>
+         -- Modeldata --
+        <BLANKLINE>
+        No model data is set.
 
         """
         print(str(self))
@@ -1515,6 +1617,57 @@ class GeeDynamicModelData(_GeeModelData):
         ------
         Be aware that it is not possible to plot a ModelObstype_Vectorfield.
 
+        Examples
+        --------
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        present in a `metobs_toolkit.Dataset()` and we will plot the 2m-temperature field.
+
+        >>> import metobs_toolkit
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> era5 = dataset.gee_datasets['ERA5-land']
+        >>> era5
+        Empty GeeDynamicModelData instance of ERA5-land
+
+        For illustration we will add metadata (station locations) to the era5
+        Modeldata, so that the locations appear on the map. We use the demo
+        dataset's metadata for this.
+
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+        >>> era5.set_metadf(dataset.metadf)
+
+        We can no use the `GeeDynamicModelData.make_gee_plot()` method to make
+        an interactive spatial plot of the era5 Modeldata (and since we added
+        metadata, the locations of the stations are added as an extra layer).
+
+        We will save the output as a (html) file and store it in the
+        current working directory (`os.getcwd`) as illustration.
+
+        We specify a timeinstance which is present in the dataset (see gee
+        dataset info online). The timeinstance is rounded-down towards, respecting
+        the time resolution.
+
+        >>> import os
+        >>> import datetime
+        >>> dt = datetime.datetime(2006,11,18, 20, 15)
+        >>> str(dt)
+        '2006-11-18 20:15:00'
+
+        >>> era5.make_gee_plot(
+        ...     timeinstance=dt, #will be rounded down to 18/11/2006 20:00:00
+        ...     modelobstype="temp", #which modelobstype to plot
+        ...     outputfolder=os.getcwd(),
+        ...     filename=f'era5_temp_at_{dt}.html',
+        ...     vmin=None, #because metadata is present, a vmin will be computed
+        ...     vmax=None, #because metadata is present, a vmax will be computed
+        ...     overwrite=True,)
+        <geemap.foliumap.Map object at ...
+
+
+
         """
 
         # Format datetime
@@ -1574,7 +1727,7 @@ class GeeDynamicModelData(_GeeModelData):
         connect_to_gee()
 
         # Get image
-        im = gee_api.get_ee_obj(self, target_bands=modelobstype.get_modelband())
+        im = gee_api.get_ee_obj(self, target_bands=[modelobstype.get_modelband()])
         # filter to timestamp
         im = im.filterDate(
             start=dt.isoformat(), end=(dt + pd.Timedelta(self.time_res)).isoformat()
@@ -1743,6 +1896,66 @@ class GeeDynamicModelData(_GeeModelData):
         GeeDynamicModelData.get_info: Print out detailed info method.
         GeeDynamicModelData.make_gee_plot: Make interactive spatial GEE plot.
 
+        Examples
+        --------
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
+        extract era5 timeseries data for the stations in the demo dataset, and
+        plot the temperature.
+
+        >>> import metobs_toolkit
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+        >>> era5 = dataset.gee_datasets['ERA5-land']
+        >>> era5.set_metadf(dataset.metadf)
+        >>> era5
+        Empty GeeDynamicModelData instance of ERA5-land
+
+        Now we will extract temperature timeseries from ERA5. We already have
+        a ModelObstype representing the temperature present in the GeeDynamicModelData:
+
+        >>> era5.modelobstypes
+        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+        We define a (short) period, and extract ERA5 timeseries.
+
+        >>> import datetime
+        >>> tstart = datetime.datetime(2022,9,4)
+        >>> tend = datetime.datetime(2022,9,5)
+        >>> era5.extract_timeseries_data(
+        ...                            startdt_utc=tstart,
+        ...                            enddt_utc=tend,
+        ...                            obstypes=['temp'])
+
+        If the datarequest is small, the timeseries are present. (If the
+        datarequest is larger, a csv file is writen to your google drive.
+        Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+        method.)
+
+        >>> era5.modeldf.head()
+                                                  temp
+        name      datetime
+        vlinder01 2022-09-04 00:00:00+00:00  17.710428
+                  2022-09-04 01:00:00+00:00  17.558817
+                  2022-09-04 02:00:00+00:00  17.237772
+                  2022-09-04 03:00:00+00:00  16.746164
+                  2022-09-04 04:00:00+00:00  16.334497
+
+        (As you can see, the timeseries are automatically converted to the
+         toolkit standards of the Obstype: °C)
+
+        Now we can plot the timeseries. We can plot the observations in the
+        same figure aswell.
+
+        >>> era5.make_plot(
+        ...     obstype_model="temp", #plot temperature timeseries of the model (=era5)
+        ...     Dataset=dataset,
+        ...     obstype_dataset='temp') #plot temperature observations
+        <Axes: title={'center': 'ERA5-land and temp observations.'}, ylabel='temp ...
         """
         logger.info(f"Make {obstype_model}-timeseries plot of model data")
 
@@ -1923,6 +2136,76 @@ class GeeDynamicModelData(_GeeModelData):
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
 
+        Examples
+        --------
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        present in a `metobs_toolkit.Dataset()`. We will extract era5 timeseries
+        data for the stations in the demo dataset.
+
+        >>> import metobs_toolkit
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+        >>> era5 = dataset.gee_datasets['ERA5-land']
+        >>> era5.set_metadf(dataset.metadf)
+        >>> era5
+        Empty GeeDynamicModelData instance of ERA5-land
+
+        Now we will extract temperature and wind timeseries from ERA5. We already have
+        a ModelObstype representing the temperature present in the GeeDynamicModelData:
+
+        >>> era5.modelobstypes
+        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+        Note that the "wind" Modelobstype is a ModelObstype_Vectorfield!
+
+        >>> era5.modelobstypes['wind']
+        ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+
+        When "wind" is requested for ERA5, the toolkit will request the u and v
+        components of the wind, donwload them, convert the units and compute
+        the amplitude and direction (scalar) values. At last, two new ModelObstypes
+        are (automatically) created for the amplitude and direction values.
+
+
+        We define a (short) period, and extract ERA5 timeseries.
+
+        >>> import datetime
+        >>> tstart = datetime.datetime(2022,9,4)
+        >>> tend = datetime.datetime(2022,9,5)
+        >>> era5.extract_timeseries_data(
+        ...                            startdt_utc=tstart,
+        ...                            enddt_utc=tend,
+        ...                            obstypes=['temp', 'wind'])
+
+        If the datarequest is small, the timeseries are present. (If the
+        datarequest is larger, a csv file is writen to your google drive.
+        Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+        method.)
+
+        >>> era5.modeldf.head()
+                                                  temp  wind_speed  wind_direction
+        name      datetime
+        vlinder01 2022-09-04 00:00:00+00:00  17.710428    2.442604      359.391519
+                  2022-09-04 01:00:00+00:00  17.558817    2.466115       11.905949
+                  2022-09-04 02:00:00+00:00  17.237772    2.282244       19.146343
+                  2022-09-04 03:00:00+00:00  16.746164    2.215615       22.711748
+                  2022-09-04 04:00:00+00:00  16.334497    2.224102       22.718248
+
+
+        As you can see, the timeseries are automatically converted to the
+        toolkit standards of the Obstype.
+
+        We can also see that the amplitude and direction of the windfield,
+        are added as ModelObstypes.
+
+        >>> era5.modelobstypes
+        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'wind_speed': ModelObstype isntance of wind_speed (linked to band: wind_speed), 'wind_direction': ModelObstype isntance of wind_direction (linked to band: wind_direction)}
+
+
         """
         # ====================================================================
         # Test input
@@ -1965,7 +2248,7 @@ class GeeDynamicModelData(_GeeModelData):
             n_bands=len(bandnames),
         )
 
-        if _est_data_size > 4000:
+        if _est_data_size > 4900:
             print(
                 "THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!"
             )
@@ -2198,6 +2481,141 @@ class GeeDynamicModelData(_GeeModelData):
         -------
         None.
 
+        Examples
+        --------
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
+        extract era5 timeseries data for the stations in the demo dataset, and
+        save the GeeDynamicModelData.
+
+        >>> import metobs_toolkit
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+        >>> era5 = dataset.gee_datasets['ERA5-land']
+        >>> era5.set_metadf(dataset.metadf)
+        >>> era5
+        Empty GeeDynamicModelData instance of ERA5-land
+
+        Now we will extract temperature timeseries from ERA5. We already have
+        a ModelObstype representing the temperature present in the GeeDynamicModelData:
+
+        >>> era5.modelobstypes
+        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+        We define a (short) period, and extract ERA5 timeseries.
+
+        >>> import datetime
+        >>> tstart = datetime.datetime(2022,9,4)
+        >>> tend = datetime.datetime(2022,9,5)
+        >>> era5.extract_timeseries_data(
+        ...                            startdt_utc=tstart,
+        ...                            enddt_utc=tend,
+        ...                            obstypes=['temp'])
+
+        If the datarequest is small, the timeseries are present. (If the
+        datarequest is larger, a csv file is writen to your google drive.
+        Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+        method.)
+
+        >>> era5.get_info()
+        GeeDynamicModelData instance of ERA5-land with modeldata
+        ------ Details ---------
+        <BLANKLINE>
+         * name: ERA5-land
+         * location: ECMWF/ERA5_LAND/HOURLY
+         * value_type: numeric
+         * scale: 2500
+         * is_static: False
+         * is_image: False
+         * is_mosaic: False
+         * credentials:
+         * time res: 1h
+        <BLANKLINE>
+         -- Known Modelobstypes --
+        <BLANKLINE>
+         * temp : ModelObstype isntance of temp (linked to band: temperature_2m)
+            (conversion: Kelvin --> Celsius)
+         * pressure : ModelObstype isntance of pressure (linked to band: surface_pressure)
+            (conversion: pa --> pa)
+         * wind : ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+            vectorfield that will be converted to:
+              * wind_speed
+              * wind_direction
+            (conversion: m/s --> m/s)
+        <BLANKLINE>
+         -- Metadata --
+        <BLANKLINE>
+                        lon        lat                  geometry
+        name
+        vlinder01  3.815763  50.980438  POINT (3.81576 50.98044)
+        vlinder02  3.709695  51.022379   POINT (3.7097 51.02238)
+        vlinder03  4.952109  51.324583  POINT (4.95211 51.32458)
+        vlinder04  4.934732  51.335522  POINT (4.93473 51.33552)
+        vlinder05  3.675183  51.052655  POINT (3.67518 51.05266)
+        vlinder06  4.516300  51.027100    POINT (4.5163 51.0271)
+        vlinder07  4.478445  51.030889  POINT (4.47844 51.03089)
+        vlinder08  4.477398  51.028130   POINT (4.4774 51.02813)
+        vlinder09  4.075722  50.927167  POINT (4.07572 50.92717)
+        vlinder10  4.041389  50.935556  POINT (4.04139 50.93556)
+        vlinder11  4.381726  51.222422  POINT (4.38173 51.22242)
+        vlinder12  4.423440  51.216477  POINT (4.42344 51.21648)
+        vlinder13  4.398065  51.212211  POINT (4.39806 51.21221)
+        vlinder14  4.315013  51.350618  POINT (4.31501 51.35062)
+        vlinder15  4.192600  50.935300    POINT (4.1926 50.9353)
+        vlinder16  4.293436  51.266850  POINT (4.29344 51.26685)
+        vlinder17  5.613458  51.065269  POINT (5.61346 51.06527)
+        vlinder18  5.656769  51.136244  POINT (5.65677 51.13624)
+        vlinder19  4.363672  50.841455  POINT (4.36367 50.84146)
+        vlinder20  4.357971  50.847025  POINT (4.35797 50.84702)
+        vlinder21  2.991917  51.260389  POINT (2.99192 51.26039)
+        vlinder22  2.856220  50.989501   POINT (2.85622 50.9895)
+        vlinder23  3.580151  51.260578  POINT (3.58015 51.26058)
+        vlinder24  3.572062  51.167015  POINT (3.57206 51.16702)
+        vlinder25  3.708611  51.154720  POINT (3.70861 51.15472)
+        vlinder26  4.997653  51.161760  POINT (4.99765 51.16176)
+        vlinder27  3.728067  51.058099   POINT (3.72807 51.0581)
+        vlinder28  3.769741  51.035293  POINT (3.76974 51.03529)
+        <BLANKLINE>
+         -- Modeldata --
+        <BLANKLINE>
+                                                  temp
+        name      datetime
+        vlinder01 2022-09-04 00:00:00+00:00  17.710428
+                  2022-09-04 01:00:00+00:00  17.558817
+                  2022-09-04 02:00:00+00:00  17.237772
+                  2022-09-04 03:00:00+00:00  16.746164
+                  2022-09-04 04:00:00+00:00  16.334497
+        ...                                        ...
+        vlinder28 2022-09-04 20:00:00+00:00  21.398523
+                  2022-09-04 21:00:00+00:00  20.909616
+                  2022-09-04 22:00:00+00:00  20.512659
+                  2022-09-04 23:00:00+00:00  20.277475
+                  2022-09-05 00:00:00+00:00  20.133218
+        <BLANKLINE>
+        [700 rows x 1 columns]
+
+
+        We will save the era5 GeeDynamicModelData now as a (pkl) file. As an
+        example we will store it in the current working directory (`os.getcwd()`)
+
+        >>> import os
+        >>> era5.save_modeldata(
+        ...                outputfolder=os.getcwd(),
+        ...                filename="era5_modeldata.pkl",
+        ...                overwrite=True)
+        Modeldata saved in ...
+
+        If we later want to open the saved era5 Modeldata, we use the
+        `GeeDynamicModelData.import_modeldata_from_pkl()` method.
+
+        >>> your_era5 = metobs_toolkit.import_modeldata_from_pkl(
+        ...                     folder_path=os.getcwd(),
+        ...                     filename="era5_modeldata.pkl")
+
         """
         # check if outputfolder exists
         if not os.path.isdir(outputfolder):
@@ -2250,6 +2668,53 @@ class GeeDynamicModelData(_GeeModelData):
         GeeDynamicModelData.save_modeldata: Save modeldata as a pkl file.
         metobs_toolkit.import_modeldata_from_pkl: Import modeldata from a pkl file.
 
+        Examples
+        --------
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
+        extract era5 timeseries data for the stations in the demo dataset.
+
+        >>> import metobs_toolkit
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+        >>> era5 = dataset.gee_datasets['ERA5-land']
+        >>> era5.set_metadf(dataset.metadf)
+        >>> era5
+        Empty GeeDynamicModelData instance of ERA5-land
+
+        Now we will extract temperature timeseries from ERA5. We already have
+        a ModelObstype representing the temperature present in the GeeDynamicModelData:
+
+        >>> era5.modelobstypes
+        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+        We define a period, and extract ERA5 timeseries.
+
+        >>> import datetime
+        >>> tstart = datetime.datetime(2022,9,4)
+        >>> tend = datetime.datetime(2022,9,14)
+        >>> era5.extract_timeseries_data(
+        ...                            startdt_utc=tstart,
+        ...                            enddt_utc=tend,
+        ...                            obstypes=['temp'],
+        ...                            drive_filename="your_era5_temperature_data.csv",
+        ...                             drive_folder="gee_timeseries_data")
+        THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, ...
+
+        If the datarequest is small, the timeseries are present. If the
+        datarequest is larger, a csv file is writen to your google drive.
+        Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+        method.
+
+        Let's assume that you donwloaded the csv file ("your_era5_temperature_data.csv")
+        and saved it locally on your computer.
+
+        >>> era5.set_modeldata_from_csv(csvpath="<Path to the donwloaded csv file>") # doctest: +SKIP
+
         """
 
         # 1. Read csv and set timezone
@@ -2281,6 +2746,62 @@ def import_modeldata_from_pkl(folder_path, filename="saved_modeldata.pkl"):
     GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
     GeeDynamicModelData.save_modeldata: Save modeldata as a pkl file.
     GeeDynamicModelData.set_modeldata_from_csv: Set modeldata from a csv datafile.
+
+    Examples
+    --------
+    As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+    present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
+    extract era5 timeseries data for the stations in the demo dataset, and
+    save the GeeDynamicModelData. Then we wil import the data from a pkl file.
+
+    >>> import metobs_toolkit
+    >>> #Create your Dataset
+    >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+    >>> dataset.import_data_from_file(
+    ...                input_data_file=metobs_toolkit.demo_datafile,
+    ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+    ...                template_file=metobs_toolkit.demo_template)
+    >>> era5 = dataset.gee_datasets['ERA5-land']
+    >>> era5.set_metadf(dataset.metadf)
+
+    Now we will extract temperature timeseries from ERA5. We already have
+    a ModelObstype representing the temperature present in the GeeDynamicModelData:
+
+    >>> era5.modelobstypes
+    {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+    We define a (short) period, and extract ERA5 timeseries.
+
+    >>> import datetime
+    >>> tstart = datetime.datetime(2022,9,4)
+    >>> tend = datetime.datetime(2022,9,5)
+    >>> era5.extract_timeseries_data(
+    ...                            startdt_utc=tstart,
+    ...                            enddt_utc=tend,
+    ...                            obstypes=['temp'])
+
+    If the datarequest is small, the timeseries are present. (If the
+    datarequest is larger, a csv file is writen to your google drive.
+    Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+    method.)
+
+
+    We will save the era5 GeeDynamicModelData now as a (pkl) file. As an
+    example we will store it in the current working directory (`os.getcwd()`)
+
+    >>> import os
+    >>> era5.save_modeldata(
+    ...                outputfolder=os.getcwd(),
+    ...                filename="era5_modeldata.pkl",
+    ...                overwrite=True)
+    Modeldata saved in ...
+
+    If we later want to open the saved era5 Modeldata, we use the
+    `GeeDynamicModelData.import_modeldata_from_pkl()` method.
+
+    >>> your_era5 = metobs_toolkit.import_modeldata_from_pkl(
+    ...                     folder_path=os.getcwd(),
+    ...                     filename="era5_modeldata.pkl")
 
     """
     # check if folder_path is known and exists

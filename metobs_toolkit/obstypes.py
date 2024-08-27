@@ -162,11 +162,11 @@ class Obstype:
 
     def __repr__(self):
         """Instance representation."""
-        return f"Obstype instance of {self.name}"
+        return f"{type(self).__name__} instance of {self.name}"
 
     def __str__(self):
         """Text representation."""
-        return f"Obstype instance of {self.name}"
+        return f"{type(self).__name__} instance of {self.name}"
 
     def __eq__(self, other):
         is_eq = (
