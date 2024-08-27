@@ -250,11 +250,148 @@ class GeeStaticModelData(_GeeModelData):
         -------
         None.
 
+        See Also
+        -----------
+        GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
+        GeeStaticModelData.set_metadf: Set metadata (station locations).
+        GeeStaticModelData.get_info: Print out detailed info method.
+        GeeStaticModelData.extract_static_point_data: Extract point values.
+        GeeStaticModelData.extract_static_buffer_frac_data: Extract buffer fractions.
+        GeeStaticModelData.make_gee_plot: Make a interactive spatial gee plot.
+
         Note
         -------
         On general, specifying a scale smaller than the true scale of the GEE
         dataset has no impact on the results (but can effect the computation time).
 
+        Examples
+        --------
+        As an example we will create a GeeStaticModelData instance representing
+        representing the Copernicus Corine landcover dataset. This Dataset is
+        available as a GEE dataset: https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_CORINE_V20_100m#bands.
+
+        >>> import metobs_toolkit
+        >>> corine = metobs_toolkit.GeeStaticModelData(
+        ...             name="corine",
+        ...             location="COPERNICUS/CORINE/V20/100m", #See GEE
+        ...             band_of_use="landcover", #See GEE
+        ...             value_type="categorical",
+        ...             scale=100,
+        ...             is_image=False,
+        ...             is_mosaic=True,  # test this
+        ...             credentials="Copernicus team:  https://land.copernicus.eu/pan-european/corine-land-cover/clc2018?tab=metadata.",
+        ...             # Class defenitions: this is given for categorical maps, see GEE.
+        ...             class_map={
+        ...                 111: "Artificial surfaces > Urban fabric > Continuous urban fabric",
+        ...                 112: "Artificial surfaces > Urban fabric > Discontinuous urban fabric",
+        ...                 121: "Artificial surfaces > Industrial, commercial, and transport units > Industrial or commercial units",
+        ...                 122: "Artificial surfaces > Industrial, commercial, and transport units > Road and rail networks and associated land",
+        ...                 123: "Artificial surfaces > Industrial, commercial, and transport units > Port areas",
+        ...                 124: "Artificial surfaces > Industrial, commercial, and transport units > Airports",
+        ...                 131: "Artificial surfaces > Mine, dump, and construction sites > Mineral extraction sites",
+        ...                 132: "Artificial surfaces > Mine, dump, and construction sites > Dump sites",
+        ...                 133: "Artificial surfaces > Mine, dump, and construction sites > Construction sites",
+        ...                 141: "Artificial surfaces > Artificial, non-Agricultural vegetated areas > Green urban areas",
+        ...                 142: "Artificial surfaces > Artificial, non-Agricultural vegetated areas > Sport and leisure facilities",
+        ...                 211: "Agricultural areas > Arable land > Non-irrigated arable land",
+        ...                 212: "Agricultural areas > Arable land > Permanently irrigated land",
+        ...                 213: "Agricultural areas > Arable land > Rice fields",
+        ...                 221: "Agricultural areas > Permanent crops > Vineyards",
+        ...                 222: "Agricultural areas > Permanent crops > Fruit trees and berry plantations",
+        ...                 223: "Agricultural areas > Permanent crops > Olive groves",
+        ...                 231: "Agricultural areas > Pastures > Pastures",
+        ...                 241: "Agricultural areas > Heterogeneous Agricultural areas > Annual crops associated with permanent crops",
+        ...                 242: "Agricultural areas > Heterogeneous Agricultural areas > Complex cultivation patterns",
+        ...                 243: "Agricultural areas > Heterogeneous Agricultural areas > Land principally occupied by Agriculture, with significant areas of natural vegetation",
+        ...                 244: "Agricultural areas > Heterogeneous Agricultural areas > Agro-forestry areas",
+        ...                 311: "Forest and semi natural areas > Forests > Broad-leaved Forest",
+        ...                 312: "Forest and semi natural areas > Forests > Coniferous Forest",
+        ...                 313: "Forest and semi natural areas > Forests > Mixed Forest",
+        ...                 321: "Forest and semi natural areas > Scrub and/or herbaceous vegetation associations > Natural grasslands",
+        ...                 322: "Forest and semi natural areas > Scrub and/or herbaceous vegetation associations > Moors and heathland",
+        ...                 323: "Forest and semi natural areas > Scrub and/or herbaceous vegetation associations > Sclerophyllous vegetation",
+        ...                 324: "Forest and semi natural areas > Scrub and/or herbaceous vegetation associations > Transitional woodland-shrub",
+        ...                 331: "Forest and semi natural areas > Open spaces with little or no vegetation > Beaches, dunes, sands",
+        ...                 332: "Forest and semi natural areas > Open spaces with little or no vegetation > Bare rocks",
+        ...                 333: "Forest and semi natural areas > Open spaces with little or no vegetation > Sparsely vegetated areas",
+        ...                 334: "Forest and semi natural areas > Open spaces with little or no vegetation > Burnt areas",
+        ...                 335: "Forest and semi natural areas > Open spaces with little or no vegetation > Glaciers and perpetual snow",
+        ...                 411: "Wetlands > Inland wetlands > Inland marshes",
+        ...                 412: "Wetlands > Inland wetlands > Peat bogs",
+        ...                 421: "Wetlands > Maritime wetlands > Salt marshes",
+        ...                 422: "Wetlands > Maritime wetlands > Salines",
+        ...                 423: "Wetlands > Maritime wetlands > Intertidal flats",
+        ...                 511: "Water bodies > Inland waters > Water courses",
+        ...                 512: "Water bodies > Inland waters > Water bodies",
+        ...                 521: "Water bodies > Marine waters > Coastal lagoons",
+        ...                 522: "Water bodies > Marine waters > Estuaries",
+        ...                 523: "Water bodies > Marine waters > Sea and ocean",
+        ...             },
+        ...             # Aggregation scheme: leave blank, or create your own aggregation scheme.
+        ...             agg_scheme={
+        ...                 "Artificial_surface": [111,112,121,122,123,124,131,132,133,141,142],
+        ...                 "Agricultural_surface": [211,212,213,221,222,223,231,241,242,243,244],
+        ...                 "Forest_and_natural": [311,312,313,321,322,323,324,331,332,333,334,335],
+        ...                 "Wetlands": [411,412,421,422,423],
+        ...                 "Water": [511,512,521,522,523],
+        ...             },
+        ...             # color scheme: often an example is given, see GEE
+        ...             col_scheme={
+        ...                 111: "#e6004d",
+        ...                 112: "#ff0000",
+        ...                 121: "#cc4df2",
+        ...                 122: "#cc0000",
+        ...                 123: "#e6cccc",
+        ...                 124: "#e6cce6",
+        ...                 131: "#a600cc",
+        ...                 132: "#a64dcc",
+        ...                 133: "#ff4dff",
+        ...                 141: "#ffa6ff",
+        ...                 142: "#ffe6ff",
+        ...                 211: "#ffffa8",
+        ...                 212: "#ffff00",
+        ...                 213: "#e6e600",
+        ...                 221: "#e68000",
+        ...                 222: "#f2a64d",
+        ...                 223: "#e6a600",
+        ...                 231: "#e6e64d",
+        ...                 241: "#ffe6a6",
+        ...                 242: "#ffe64d",
+        ...                 243: "#e6cc4d",
+        ...                 244: "#f2cca6",
+        ...                 311: "#80ff00",
+        ...                 312: "#00a600",
+        ...                 313: "#4dff00",
+        ...                 321: "#ccf24d",
+        ...                 322: "#a6ff80",
+        ...                 323: "#a6e64d",
+        ...                 324: "#a6f200",
+        ...                 331: "#e6e6e6",
+        ...                 332: "#cccccc",
+        ...                 333: "#ccffcc",
+        ...                 334: "#000000",
+        ...                 335: "#a6e6cc",
+        ...                 411: "#a6a6ff",
+        ...                 412: "#4d4dff",
+        ...                 421: "#ccccff",
+        ...                 422: "#e6e6ff",
+        ...                 423: "#a6a6e6",
+        ...                 511: "#00ccf2",
+        ...                 512: "#80f2e6",
+        ...                 521: "#00ffa6",
+        ...                 522: "#a6ffe6",
+        ...                 523: "#e6f2ff"}
+        ...             )
+        >>> corine
+        GeeStaticModelData instance of corine  (no metadata has been set)
+
+        If you want to use this map with your `Dataset`, add them to the known
+        Modeldatasets.
+
+        >>> dataset = metobs_toolkit.Dataset()
+        >>> dataset.add_new_geemodeldata(Modeldata=corine)
+        >>> dataset.gee_datasets
+        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land , 'corine': GeeStaticModelData instance of corine  (no metadata has been set) }
         """
         super().__init__(
             name=name,
@@ -306,6 +443,51 @@ class GeeStaticModelData(_GeeModelData):
         -------
         None.
 
+        Examples
+        --------
+        As an example we will use the LCZ map, which is a default `GeeStaticModelData`
+        present in a `metobs_toolkit.Dataset()`
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.gee_datasets
+        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
+
+        These are the defaults. We select the lcz one:
+
+        >>> lcz_model = dataset.gee_datasets['lcz']
+        >>> lcz_model
+        GeeStaticModelData instance of lcz  (no metadata has been set)
+
+        To print out detailed informatio use the `GeeStaticModelData.get_info()`
+        method.
+
+        >>> lcz_model.get_info()
+        GeeStaticModelData instance of lcz  (no metadata has been set)
+        ------ Details ---------
+        <BLANKLINE>
+         * name: lcz
+         * location: RUB/RUBCLIM/LCZ/global_lcz_map/latest
+         * value_type: categorical
+         * scale: 100
+         * is_static: True
+         * is_image: False
+         * is_mosaic: True
+         * credentials: Demuzere M.; Kittner J.; Martilli A.; Mills, G.; Moede, C.; Stewart, I.D.; van Vliet, J.; Bechtel, B. A global map of local climate zones to support earth system modelling and urban-scale environmental science. Earth System Science Data 2022, 14 Volume 8: 3835-3873. doi:10.5194/essd-14-3835-2022
+         -- Band --
+         LCZ_Filter
+        <BLANKLINE>
+         -- classification --
+         {1: 'Compact highrise', 2: 'Compact midrise', 3: 'Compact lowrise', 4: 'Open highrise', 5: 'Open midrise', 6: 'Open lowrise', 7: 'Lightweight lowrise', 8: 'Large lowrise', 9: 'Sparsely built', 10: 'Heavy industry', 11: 'Dense Trees (LCZ A)', 12: 'Scattered Trees (LCZ B)', 13: 'Bush, scrub (LCZ C)', 14: 'Low plants (LCZ D)', 15: 'Bare rock or paved (LCZ E)', 16: 'Bare soil or sand (LCZ F)', 17: 'Water (LCZ G)'}
+        <BLANKLINE>
+         -- aggregation --
+         {}
+        <BLANKLINE>
+         -- colors --
+         {1: '#8c0000', 2: '#d10000', 3: '#ff0000', 4: '#bf4d00', 5: '#ff6600', 6: '#ff9955', 7: '#faee05', 8: '#bcbcbc', 9: '#ffccaa', 10: '#555555', 11: '#006a00', 12: '#00aa00', 13: '#648525', 14: '#b9db79', 15: '#000000', 16: '#fbf7ae', 17: '#6a6aff'}
+        <BLANKLINE>
         """
         print(str(self))
         self._get_base_details()
@@ -336,6 +518,13 @@ class GeeStaticModelData(_GeeModelData):
             values (mapped to human-labels if the datataset is categorical and
             a cat_map is defined).
 
+        See Also
+        -----------
+        GeeStaticModelData.set_metadf: Set metadata (station locations).
+        GeeStaticModelData.get_info: Print out detailed info method.
+        GeeStaticModelData.extract_static_buffer_frac_data: Extract buffer fractions.
+
+
         Note
         -------
         Make sure that the metadata is set. Use the
@@ -347,6 +536,56 @@ class GeeStaticModelData(_GeeModelData):
         Run `metobs_toolkit.connect_to_gee()`, to do this. See the Documentation
         for more details.
 
+        Examples
+        --------
+        As an example we will use the LCZ map, which is a default `GeeStaticModelData`
+        present in a `metobs_toolkit.Dataset()`
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+
+        In order to extract point data, we need metadata (i.g. coordinates
+        of stations). Therefore we will import the demo dataset, so that we
+        can use the metadata to extract values.
+
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+        >>> dataset.metadf.head()
+                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+        name
+        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+
+        Now we add the metadata to the Modeldataset.
+
+        >>> lcz_model = dataset.gee_datasets['lcz']
+        >>> lcz_model
+        GeeStaticModelData instance of lcz  (no metadata has been set)
+        >>> lcz_model.set_metadf(dataset.metadf) #overload the metadf
+        >>> lcz_model
+        GeeStaticModelData instance of lcz  (known metadata)
+
+        To extract pointvalues, use the
+        `GeeStaticModelData.extract_static_point_data()` method. First, make
+        sure you are authenticated with the GEE services.
+
+        >>> metobs_toolkit.connect_to_gee() #only required once per session
+        >>> lcz_df = lcz_model.extract_static_point_data()
+        >>> lcz_df.head()
+                                  lcz
+        name
+        vlinder01  Low plants (LCZ D)
+        vlinder02       Large lowrise
+        vlinder03        Open midrise
+        vlinder04      Sparsely built
+        vlinder05       Water (LCZ G)
         """
         if self.metadf.empty:
             raise MetobsModelDataError(
@@ -433,6 +672,12 @@ class GeeStaticModelData(_GeeModelData):
             columns are the class names. An additional "buffer_radius" column
             is added with the numeric value of the radius.
 
+        See Also
+        -----------
+        GeeStaticModelData.set_metadf: Set metadata (station locations).
+        GeeStaticModelData.get_info: Print out detailed info method.
+        GeeStaticModelData.extract_static_point_data: Extract point values.
+
         Note
         -------
         Make sure that the metadata is set. Use the
@@ -444,6 +689,103 @@ class GeeStaticModelData(_GeeModelData):
         Run `metobs_toolkit.connect_to_gee()`, to do this. See the Documentation
         for more details.
 
+        Examples
+        --------
+        As an example we will use the ESA worldcovermap, which is a default `GeeStaticModelData`
+        present in a `metobs_toolkit.Dataset()`
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+
+        In order to extract point data, we need metadata (i.g. coordinates
+        of stations). Therefore we will import the demo dataset, so that we
+        can use the metadata to extract values.
+
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+        >>> dataset.metadf.head()
+                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+        name
+        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+
+        Now we add the metadata to the Modeldataset.
+
+        >>> worldcover_model = dataset.gee_datasets['worldcover']
+        >>> worldcover_model
+        GeeStaticModelData instance of worldcover  (no metadata has been set)
+        >>> worldcover_model.set_metadf(dataset.metadf) #overload the metadf
+        >>> worldcover_model
+        GeeStaticModelData instance of worldcover  (known metadata)
+
+        For more details on the Modeldataset you can use the
+        `GeeStaticModelData.get_info()` method.
+
+        >>> worldcover_model.get_info()
+        GeeStaticModelData instance of worldcover  (known metadata)
+        ------ Details ---------
+        <BLANKLINE>
+         * name: worldcover
+         * location: ESA/WorldCover/v200
+         * value_type: categorical
+         * scale: 10
+         * is_static: True
+         * is_image: False
+         * is_mosaic: True
+         * credentials: https://spdx.org/licenses/CC-BY-4.0.html
+         -- Band --
+         Map
+        <BLANKLINE>
+         -- classification --
+         {10: 'Tree cover', 20: 'Shrubland', 30: 'Grassland', 40: 'Cropland', 50: 'Built-up', 60: 'Bare / sparse vegetation', 70: 'Snow and ice', 80: 'Permanent water bodies', 90: 'Herbaceous wetland', 95: 'Mangroves', 100: 'Moss and lichen'}
+        <BLANKLINE>
+         -- aggregation --
+         {'water': [70, 80, 90, 95], 'pervious': [10, 20, 30, 40, 60, 100], 'impervious': [50]}
+        <BLANKLINE>
+         -- colors --
+         {10: '006400', 20: 'ffbb22', 30: 'ffff4c', 40: 'f096ff', 50: 'fa0000', 60: 'b4b4b4', 70: 'f0f0f0', 80: '0064c8', 90: '0096a0', 95: '00cf75', 100: 'fae6a0'}
+        <BLANKLINE>
+
+        To extract buffer frequencies, use the
+        `GeeStaticModelData.extract_static_buffer_frac_data()` method. First, make
+        sure you are authenticated with the GEE services.
+
+        >>> metobs_toolkit.connect_to_gee() #only required once per session
+
+        You can choose a buffer radius (in meter) to compute cover fractions in.
+
+        >>> cover_frac = worldcover_model.extract_static_buffer_frac_data(
+        ...                             bufferradius=150)
+        >>> cover_frac.head()
+                                 Grassland  Cropland  Built-up  Tree cover  Permanent water bodies  Bare / sparse vegetation  Herbaceous wetland
+        name      buffer_radius
+        vlinder01 150             0.294100  0.697804  0.008096    0.000000                0.000000                       0.0                 0.0
+        vlinder02 150             0.121288  0.000000  0.528853    0.349858                0.000000                       0.0                 0.0
+        vlinder03 150             0.049795  0.000000  0.757480    0.192725                0.000000                       0.0                 0.0
+        vlinder04 150             0.767982  0.076148  0.108080    0.047790                0.000000                       0.0                 0.0
+        vlinder05 150             0.146961  0.000000  0.306193    0.151902                0.394944                       0.0                 0.0
+
+        As could be seen in the output of `get_info()`, there is a aggregation
+        scheme present. We can apply that scheme to get aggrgated fractions.
+
+        >>> cover_frac = worldcover_model.extract_static_buffer_frac_data(
+        ...                             bufferradius=150,
+        ...                             agg_bool=True)
+        >>> cover_frac.head()
+                                    water  pervious  impervious
+        name      buffer_radius
+        vlinder01 150            0.000000  0.991904    0.008096
+        vlinder02 150            0.000000  0.471147    0.528853
+        vlinder03 150            0.000000  0.242520    0.757480
+        vlinder04 150            0.000000  0.891920    0.108080
+        vlinder05 150            0.394944  0.298863    0.306193
         """
 
         if self.metadf.empty:
@@ -563,6 +905,11 @@ class GeeStaticModelData(_GeeModelData):
         MAP : geemap.foliummap.Map
             The interactive map of the GeeStaticModelData.
 
+        See Also
+        -----------
+        GeeStaticModelData.set_metadf: Set metadata (station locations).
+        GeeStaticModelData.get_info: Print out detailed info method.
+
         Warning
         ---------
         To display the interactive map a graphical interactive backend is
@@ -572,6 +919,40 @@ class GeeStaticModelData(_GeeModelData):
 
         In that case, you can specify a `outputfolder` and `outputfile`, save the map as a html file, and
         open in with a browser.
+
+        Examples
+        --------
+        As an example we will make a plot of the LCZ map, which is a default `GeeStaticModelData`
+        present in a `metobs_toolkit.Dataset()`
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> lcz_model = dataset.gee_datasets['lcz']
+
+        If you want your stations present in the map, then you must add the
+        metadf to the Modeldata. This step is not required.
+
+        >>> #we will use the demo metadata
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+
+        >>> lcz_model.set_metadf(dataset.metadf) #overload the metadf
+        >>> lcz_model
+        GeeStaticModelData instance of lcz  (known metadata)
+
+        We will save the map as a (html) file. You can specify where so save it,
+        for this example we will store it in the current working direcotry
+        (`os.getcwd()`)
+
+        >>> import os
+        >>> map = lcz_model.make_gee_plot(
+        ...                  outputfolder = os.getcwd(),
+        ...                  filename = 'LCZ_map.html',
+        ...                  overwrite=True)
 
 
         """
@@ -809,6 +1190,18 @@ class GeeDynamicModelData(_GeeModelData):
         -------
         None.
 
+        See Also
+        -----------
+        GeeStaticModelData : Gee Modeldata dataset without time dimension.
+        metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to band).
+        metobs_toolkit.ModelObstype_Vectorfield: A Vectorfield version of ModelObstype.
+        GeeDynamicModelData.set_metadf: Set metadata (station locations).
+        GeeDynamicModelData.get_info: Print out detailed info method.
+        GeeDynamicModelData.extract_timeseries_data: Extract data from GEE.
+        GeeDynamicModelData.save_modeldata: Save Modeldata as pickle.
+        metobs_toolkit.import_modeldata_from_pkl: Import Modeldata from pickle.
+
+
         Note
         -------
         On general, specifying a scale smaller than the true scale of the GEE
@@ -839,6 +1232,10 @@ class GeeDynamicModelData(_GeeModelData):
         else:
             return f"{self.__name__} instance of {self.name} with modeldata "
 
+    def __repr__(self):
+        """Print overview information of the modeldata."""
+        return self.__str__()
+
     # =============================================================================
     # Setters
     # =============================================================================
@@ -864,6 +1261,11 @@ class GeeDynamicModelData(_GeeModelData):
         Returns
         -------
         None.
+
+        See Also
+        -----------
+        metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to band).
+        metobs_toolkit.ModelObstype_Vectorfield: A Vectorfield version of ModelObstype.
 
         """
         if not (
@@ -995,6 +1397,12 @@ class GeeDynamicModelData(_GeeModelData):
         -------
         None.
 
+        See Also
+        -----------
+        GeeDynamicModelData.set_metadf: Set metadata (station locations).
+        GeeDynamicModelData.add_modelobstype: Add a new ModelObstype.
+        GeeDynamicModelData.extract_timeseries_data: Extract data from GEE.
+
         """
         print(str(self))
         self._get_base_details()
@@ -1086,6 +1494,12 @@ class GeeDynamicModelData(_GeeModelData):
         -------
         MAP : geemap.foliummap.Map
             The interactive map of the GeeStaticModelData.
+
+        See Also
+        -----------
+        GeeDynamicModelData.set_metadf: Set metadata (station locations).
+        GeeDynamicModelData.get_info: Print out detailed info method.
+        GeeDynamicModelData.make_plot: Make a timeseries plot.
 
         Warning
         ---------
@@ -1322,6 +1736,13 @@ class GeeDynamicModelData(_GeeModelData):
         axis : matplotlib.pyplot.axes
              The timeseries axes of the plot is returned.
 
+        See Also
+        -----------
+        GeeDynamicModelData.set_metadf: Set metadata (station locations).
+        GeeDynamicModelData.extract_timeseries_data: Extract data from GEE.
+        GeeDynamicModelData.get_info: Print out detailed info method.
+        GeeDynamicModelData.make_gee_plot: Make interactive spatial GEE plot.
+
         """
         logger.info(f"Make {obstype_model}-timeseries plot of model data")
 
@@ -1483,6 +1904,12 @@ class GeeDynamicModelData(_GeeModelData):
         Returns
         -------
         None.
+
+        See Also
+        -----------
+        GeeDynamicModelData.set_metadf: Set metadata (station locations).
+        GeeDynamicModelData.get_info: Print out detailed info method.
+        GeeDynamicModelData.make_plot: Make a timeseries plot.
 
         Note
         -------
@@ -1762,6 +2189,11 @@ class GeeDynamicModelData(_GeeModelData):
             If True, the target file will be overwritten if it should exist.
             The default is False.
 
+        See Also
+        -----------
+        GeeDynamicModelData.set_modeldata_from_csv: Set modeldata from a csv datafile.
+        metobs_toolkit.import_modeldata_from_pkl: Import modeldata from a pkl file.
+
         Returns
         -------
         None.
@@ -1813,6 +2245,11 @@ class GeeDynamicModelData(_GeeModelData):
         -------
         None.
 
+        See Also
+        -----------
+        GeeDynamicModelData.save_modeldata: Save modeldata as a pkl file.
+        metobs_toolkit.import_modeldata_from_pkl: Import modeldata from a pkl file.
+
         """
 
         # 1. Read csv and set timezone
@@ -1838,6 +2275,12 @@ def import_modeldata_from_pkl(folder_path, filename="saved_modeldata.pkl"):
     -------
     metobs_toolkit.GeeDynamicModelData
         The modeldata instance.
+
+    See Also
+    -----------
+    GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
+    GeeDynamicModelData.save_modeldata: Save modeldata as a pkl file.
+    GeeDynamicModelData.set_modeldata_from_csv: Set modeldata from a csv datafile.
 
     """
     # check if folder_path is known and exists

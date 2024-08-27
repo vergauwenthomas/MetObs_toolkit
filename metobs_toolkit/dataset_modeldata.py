@@ -641,6 +641,26 @@ class DatasetModelData:
 
         return lcdf
 
+    def add_new_geemodeldata(self, Modeldata, overwrite=False):
+        # Check instance
+        if not (
+            (isinstance(Modeldata, GeeStaticModelData))
+            | (isinstance(Modeldata, GeeDynamicModelData))
+        ):
+            raise MetobsDatasetGeeModelDataHandlingError(
+                f"{Modeldata} is not an instance of GeeStaticModelData or GeeDynamicModelData."
+            )
+        # Check name is unique
+        if Modeldata.name in self.gee_datasets.keys():
+            if overwrite:
+                logger.info(f"Overwriting the {Modeldata.name} known Modeldata.")
+            else:
+                raise MetobsDatasetGeeModelDataHandlingError(
+                    f"{Modeldata.name} is already a known name of a Modeldata."
+                )
+
+        self.gee_datasets[Modeldata.name] = Modeldata
+
 
 class MetobsDatasetGeeModelDataHandlingError(Exception):
     """Exception raised for errors in the Dataset - GEE modeldata interactions."""
