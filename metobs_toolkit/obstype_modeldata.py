@@ -35,6 +35,25 @@ class ModelObstype(Obstype):
         self.set_original_name(model_band)
         self.set_original_unit(model_unit)
 
+        # link with vectorfield
+        # The amplitude and direction fields, created by a vectorfield, are
+        # Modelobstpes. But the model_band does not realy exist, so special
+        # care is needed for them
+        self._originates_from_vectorfield = False  #
+
+    def __eq__(self, other):
+        is_eq = (
+            (self.name == other.name)
+            & (self.std_unit == other.std_unit)
+            & (self.description == other.description)
+            & (self.units_aliases == other.units_aliases)
+            & (self.conv_table == other.conv_table)
+            & (self.model_unit == other.model_unit)
+            & (self.model_band == other.model_band)
+            & (self._originates_from_vectorfield == other._originates_from_vectorfield)
+        )
+        return is_eq
+
     def _check_validity(self):
         if not self.test_if_unit_is_known(unit_name=self.model_unit):
             raise MetobsModelObstypeHandlingError(
@@ -191,6 +210,7 @@ class ModelObstype_Vectorfield(Obstype):
             model_unit="° from north (CW)",  # indep of units
             model_band=self._dir_obs_name,  # NOTE: this band does not exist, but column is created with this name by the toolkit
         )
+        direction_modelobstype._originates_from_vectorfield = True
 
         return data, direction_modelobstype
 
@@ -236,6 +256,7 @@ class ModelObstype_Vectorfield(Obstype):
             model_unit=self.get_modelunit(),
             model_band=self._amp_obs_name,
         )  # NOTE: this band does not exist, but column is created with this name by the toolkit
+        amplitude_modelobstype._originates_from_vectorfield = True
 
         return data, amplitude_modelobstype
 

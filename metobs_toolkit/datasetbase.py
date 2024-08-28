@@ -80,12 +80,14 @@ class DatasetBase(object):
     def __str__(self):
         """Represent as text."""
         if self.df.empty:
-            if self._istype == "Dataset":
+            if type(self).__name__ == "Dataset":
                 return "Empty instance of a Dataset."
-            elif self._istype == "Station":
+            elif type(self).__name__ == "Station":
                 return "Empty instance of a Station."
-            else:
+            elif type(self).__name__ == "Analysis":
                 return "Empty instance of a Analysis."
+            else:
+                raise MetobsDatasetBaseError(f"unknown type of {self}")
 
         add_info = ""
         n_stations = self.df.index.get_level_values("name").unique().shape[0]
@@ -93,6 +95,11 @@ class DatasetBase(object):
         n_outl = self.outliersdf.shape[0]
         startdt = self.df.index.get_level_values("datetime").min()
         enddt = self.df.index.get_level_values("datetime").max()
+
+        if (type(self).__name__ == "Dataset") | (type(self).__name__ == "Station"):
+            add_info += (
+                f"     *Known GEE datasets for:  {list(self.gee_datasets.keys())} \n "
+            )
 
         if (not self.metadf["lat"].isnull().all()) & (
             not self.metadf["lon"].isnull().all()
@@ -107,7 +114,7 @@ class DatasetBase(object):
     *{n_outl} records labeled as outliers \n \
     *{len(self.gaps)} gaps \n \
     *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt}) \n \
-    *time zone of the records: {str(self._get_tz())} \n "
+    *time zone of the records: {str(self._get_tz())} \n"
             + add_info
         )
 

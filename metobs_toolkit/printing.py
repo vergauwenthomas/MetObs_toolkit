@@ -76,3 +76,14 @@ def print_dataset_info(dataset, show_all_settings=False, max_disp_n_gaps=5):
             print(
                 f"The info on {len(dataset.gaps)} is to long to print. Use the .get_gaps_fill_df() to get an overview DataFrame.."
             )
+
+    print("\n", "--------  Known GEE Modeldata---------", "\n")
+    if not bool(dataset.gee_datasets):
+        print("No known GEE Modeldata.")
+    else:
+        for geemoddat in dataset.gee_datasets.values():
+            print(f" * {geemoddat}")
+
+        print(
+            f'(For more details, use the .get_info method. Ex: dataset.gee_datasets["{next(iter(dataset.gee_datasets))}"].get_info() )'
+        )

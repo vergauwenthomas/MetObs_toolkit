@@ -45,7 +45,6 @@ class DatasetModelData:
         force_direct_transfer=False,
         force_to_drive=False,
     ):
-        # TODO: update docstring
         """Extract Timeseries data from a Gee dataset at your stations.
 
         The link with a Gee dataset is done by specifying a GeeDyanmicModelData.
@@ -240,7 +239,7 @@ class DatasetModelData:
         for obstype in obstypes:
             if obstype not in Model.modelobstypes.keys():
                 raise MetobsDatasetGeeModelDataHandlingError(
-                    f"{obstype} is not a knonw Modelobstype of {Model}."
+                    f"{obstype} is not a known Modelobstype of {Model}."
                 )
 
         # Filters

@@ -1325,11 +1325,15 @@ class GeeDynamicModelData(_GeeModelData):
                 f"{modelobstype} is not a ModelObstype of ModelObstype_Vectorfield"
             )
         if modelobstype.name in self.modelobstypes.keys():
-            raise MetobsModelDataError(
-                f"There is already a known ModelObstype with {modelobstype.name} as a name: {self.modelobstypes[modelobstype.name]}"
-            )
-
-        self.modelobstypes[modelobstype.name] = modelobstype
+            # Check equlity
+            if modelobstype == self.modelobstypes[modelobstype.name]:
+                return  # modelobstye is already present
+            else:
+                raise MetobsModelDataError(
+                    f"There is already a known ModelObstype with {modelobstype.name} as a name: {self.modelobstypes[modelobstype.name]}"
+                )
+        else:
+            self.modelobstypes[modelobstype.name] = modelobstype
 
     # =============================================================================
     # Convertors/formatters
@@ -1645,8 +1649,8 @@ class GeeDynamicModelData(_GeeModelData):
         current working directory (`os.getcwd`) as illustration.
 
         We specify a timeinstance which is present in the dataset (see gee
-        dataset info online). The timeinstance is rounded-down towards, respecting
-        the time resolution.
+        dataset info online). The timeinstance is rounded-down, respecting
+        the time resolution of the GEE dataset.
 
         >>> import os
         >>> import datetime
@@ -1761,8 +1765,6 @@ class GeeDynamicModelData(_GeeModelData):
                 roi_max = im.reduceRegion(
                     ee.Reducer.max(), roi, scale=self.scale
                 ).getInfo()[modelobstype.get_modelband()]
-
-                print(f"roi min: {roi_min}, roi_max: {roi_max}")
             if vmin is None:
                 vmin = roi_min - ((roi_max - roi_min) * 0.15)
                 if vmin == vmax:
@@ -1964,10 +1966,10 @@ class GeeDynamicModelData(_GeeModelData):
 
         # Basic test
         if obstype_model not in self.modeldf.columns:
-            logger.warning(
+            raise MetobsModelDataError(
                 f"{obstype_model} is not foud in the modeldata df (columns = {self.modeldf.columns})."
             )
-            return
+
         if self.modeldf.empty:
             logger.warning("The modeldata is empty.")
             return

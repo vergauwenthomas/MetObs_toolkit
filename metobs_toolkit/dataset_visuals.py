@@ -25,8 +25,10 @@ from metobs_toolkit.settings_files.default_formats_settings import (
     label_def,
 )
 
-# from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
+from metobs_toolkit.gee_api import _validate_metadf
 
+# from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
+from metobs_toolkit.modeldata import GeeStaticModelData, GeeDynamicModelData
 from metobs_toolkit.df_helpers import (
     multiindexdf_datetime_subsetting,
     metadf_to_gdf,
@@ -122,14 +124,15 @@ class DatasetVisuals:
         ...                         )
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *483828 observation records (not Nan's)
-         *0 records labeled as outliers
-         *8 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
 
         We can now make a timeseries plot of the full dataset. By specifying
         `colorby='name'`, the colors indicate the stations.
@@ -305,14 +308,15 @@ class DatasetVisuals:
         ...                         )
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *483828 observation records (not Nan's)
-         *0 records labeled as outliers
-         *8 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
 
         We apply (default) quality control.
 
@@ -522,15 +526,15 @@ class DatasetVisuals:
         ...                         )
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *483828 observation records (not Nan's)
-         *0 records labeled as outliers
-         *8 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
-
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
 
         To create a spatial plot, we use the `Dataset.make_geo_plot()`
         method.
@@ -630,6 +634,320 @@ class DatasetVisuals:
         )
 
         return axis
+
+    def make_gee_static_spatialplot(
+        self,
+        Model="lcz",
+        outputfolder=None,
+        filename=None,
+        vmin=None,
+        vmax=None,
+        overwrite=False,
+    ):
+        """Make an interactive spatial plot of the GEE dataset and the stations.
+
+        This method will create an interactive plot of the GEE dataset. If
+        metadata is present, it will be diplayed as markers on the map.
+
+        The interactive map can be saved as an html file, by specifying the
+        target path.
+
+
+        Parameters
+        ----------
+        Model : str or metobs_toolkit.GeeStaticModelData, optional
+            The GeeStaticModelData to plot. If a string is given, it is assumed
+            to be the name of a known GeeStaticModelData. The default is 'lcz'.
+        outputfolder : str or None, optional
+            Path to the folder to save the html file. If None, the map will
+            not be saved as an html file. The default is None.
+        filename : str or None, optional
+            The filename for the html file. If a filename is given, if it does
+            not end with ".html", the prefix is added. If None, the map will not
+            be saved as an html file. The default is None.
+        vmin : num or None, optional
+            If the dataset is not categorical, vmin is the minimum values
+            assigned to the colormap. If None, vmin is computed by extracting
+            the values at the locations of the stations. If no metadata is
+            available, and vmin is None then vmin is set to 0. The default is None.
+        vmax : num or None, optional
+            If the dataset is not categorical, vmax is the minimum values
+            assigned to the colormap. If None, vmax is computed by extracting
+            the values at the locations of the stations. If no metadata is
+            available, and vmax is None then vmax is set to 1. The default is None.
+        overwrite : bool, optional
+            If True, and if the target file exists, then it will be overwritten.
+            Else, an error will be raised when the target file already exists.
+            The default is False.
+
+         Returns
+         -------
+         MAP : geemap.foliummap.Map
+             The interactive map of the GeeStaticModelData.
+
+        See Also
+        -----------
+        GeeStaticModelData : Gee Modeldata dataset without time dimension.
+        Dataset.make_gee_dynamic_spatialplot: Gee interactive spatial plot of GeeDynamicModelData.
+
+        Warning
+        ---------
+        To display the interactive map a graphical interactive backend is
+        required, which could be missing. You can recognice this when no
+        map is displayed, but the python console prints out a message similar
+        to `<geemap.foliumap.Map at 0x7ff7586b8d90>`.
+
+        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a html file, and
+        open in with a browser.
+
+        Examples
+        -----------
+        As an example we will make a plot of the LCZ map, which is a default `GeeStaticModelData`
+        present in a `metobs_toolkit.Dataset()`
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> lcz_model = dataset.gee_datasets['lcz']
+
+        If you want your stations present in the map, then you must add the
+        metadf to the Modeldata. This step is not required.
+
+        >>> #we will use the demo metadata
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+
+        We will save the map as a (html) file. You can specify where so save it,
+        for this example we will store it in the current working direcotry
+        (`os.getcwd()`)
+
+        >>> import os
+        >>> map = dataset.make_gee_static_spatialplot(
+        ...                   Model=lcz_model,
+        ...                  outputfolder = os.getcwd(),
+        ...                  filename = 'LCZ_map.html',
+        ...                  overwrite=True)
+
+
+        """
+
+        if isinstance(Model, str):
+            if Model in self.gee_datasets.keys():
+                Model = self.gee_datasets[Model]
+            else:
+                raise MetobsDatasetVisualisationError(
+                    f"{Model} is not a known Model (name), these are the knonw Gee Modeldata: {self.gee_datasets}."
+                )
+
+        if isinstance(Model, GeeStaticModelData):
+            pass
+        else:
+            raise MetobsDatasetVisualisationError(
+                f"{Model} is not a GeeStaticModelData, but a {type(Model)}."
+            )
+
+        # Set metadata
+        Model.set_metadf(self.metadf)
+
+        return Model.make_gee_plot(
+            outputfolder=outputfolder,
+            filename=filename,
+            vmin=vmin,
+            vmax=vmax,
+            overwrite=overwrite,
+        )
+
+    def make_gee_dynamic_spatialplot(
+        self,
+        timeinstance,
+        Model="ERA5-land",
+        modelobstype="temp",
+        outputfolder=None,
+        filename=None,
+        vmin=None,
+        vmax=None,
+        overwrite=False,
+    ):
+        """Make an interactive spatial plot of the GEE dataset and the stations.
+
+        This method will create an interactive plot of the GEE dataset at an
+        instance in time. If metadata is present, it will be diplayed as
+        markers on the map.
+
+        The interactive map can be saved as an html file, by specifying the
+        target path.
+
+
+        Parameters
+        ----------
+        timeinstance : datetime.datetime or pandas.Timestamp
+            The timeinstance to plot the GEE dataset of. If a timezone naive
+            timeinstance is given, it is asumed to be in UTC. This timestamp is
+            rounded down with the time resolution (.time_res). The timeinstance,
+            is interpreted as UTC.
+        Model : str of GeeDynamicModelData, optional
+            The GeeDynamicModelData to plot. If a string is given, it is assumed
+            to be the name of a known GeeDynamicModelData. The default is 'ERA5-land'.
+        modelobstype : str, optional
+            The name of the ModelObstype to plot. The modelobstype name must be
+            known (--> not the same as an Obstype!). The default is "temp".
+        outputfolder : str or None, optional
+            Path to the folder to save the html file. If None, the map will
+            not be saved as an html file. The default is None.
+        filename : str or None, optional
+            The filename for the html file. If a filename is given, if it does
+            not end with ".html", the prefix is added. If None, the map will not
+            be saved as an html file. The default is None.
+        vmin : num or None, optional
+            vmin is the minimum value assigned to the colormap. If None, and
+            metadata is set, vmin is computed by computing the minimum
+            modelvalue in a boundbox defined by the locations of the stations.
+            If no metadata is available, and vmin is None then vmin is set to
+            0. The default is None.
+        vmax : num or None, optional
+            vmax is the minimum value assigned to the colormap. If None, and
+            metadata is set, vmax is computed by computing the minimum
+            modelvalue in a boundbox defined by the locations of the stations.
+            If no metadata is available, and vmax is None then vmax is set to
+            1. The default is None.
+        overwrite : bool, optional
+            If True, and if the target file exists, then it will be overwritten.
+            Else, an error will be raised when the target file already exists.
+            The default is False.
+
+        Returns
+        -------
+        MAP : geemap.foliummap.Map
+            The interactive map of the GeeStaticModelData.
+
+        See Also
+        -----------
+        GeeDynamicModelData : Gee Modeldata dataset with a time dimension.
+        Dataset.make_gee_static_spatialplot: Gee interactive spatial plot of GeeStaticModelData.
+
+        Warning
+        ---------
+        To display the interactive map a graphical interactive backend is
+        required, which could be missing. You can recognice this when no
+        map is displayed, but the python console prints out a message similar
+        to `<geemap.foliumap.Map at 0x7ff7586b8d90>`.
+
+        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a html file, and
+        open in with a browser.
+
+        Examples
+        -----------
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        present in a `metobs_toolkit.Dataset()` and we will plot the 2m-temperature field.
+
+        >>> import metobs_toolkit
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> era5 = dataset.gee_datasets['ERA5-land']
+        >>> era5
+        Empty GeeDynamicModelData instance of ERA5-land
+
+        For more details (i.g. see which modelobstypes are knonw), use the
+        `GeeDynamicModelData.get_info()` method.
+        >>> era5.get_info()
+        Empty GeeDynamicModelData instance of ERA5-land
+        ------ Details ---------
+        <BLANKLINE>
+         * name: ERA5-land
+         * location: ECMWF/ERA5_LAND/HOURLY
+         * value_type: numeric
+         * scale: 2500
+         * is_static: False
+         * is_image: False
+         * is_mosaic: False
+         * credentials:
+         * time res: 1h
+        <BLANKLINE>
+         -- Known Modelobstypes --
+        <BLANKLINE>
+         * temp : ModelObstype isntance of temp (linked to band: temperature_2m)
+            (conversion: Kelvin --> Celsius)
+         * pressure : ModelObstype isntance of pressure (linked to band: surface_pressure)
+            (conversion: pa --> pa)
+         * wind : ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+            vectorfield that will be converted to:
+              * wind_speed
+              * wind_direction
+            (conversion: m/s --> m/s)
+        <BLANKLINE>
+         -- Metadata --
+        <BLANKLINE>
+        No metadf is set.
+        <BLANKLINE>
+         -- Modeldata --
+        <BLANKLINE>
+        No model data is set.
+
+
+        We will add metadata (station locations) in the Dataset, so that the locations appear on the map. We use the demo
+        dataset's metadata for this.
+
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+
+        We can no use the `Dataset.make_gee_dynamic_spatialplot()` method to make
+        an interactive spatial plot of the era5 Modeldata.
+
+        We will save the output as a (html) file and store it in the
+        current working directory (`os.getcwd`) as illustration.
+
+        We specify a timeinstance, which is rounded-down, respecting
+        the time resolution of the Gee dataset.
+
+        >>> import os
+        >>> import datetime
+        >>> dt = datetime.datetime(2006,11,18, 20, 15)
+        >>> str(dt)
+        '2006-11-18 20:15:00'
+
+        >>> dataset.make_gee_dynamic_spatialplot(
+        ...     timeinstance=dt, #will be rounded down to 18/11/2006 20:00:00
+        ...     Model=era5,
+        ...     modelobstype="temp", #which modelobstype to plot
+        ...     outputfolder=os.getcwd(),
+        ...     filename=f'era5_temp_at_{dt}.html',
+        ...     overwrite=True)
+        <geemap.foliumap.Map object at ...
+        """
+        dt = self._datetime_arg_check(timeinstance)
+
+        if isinstance(Model, str):
+            if Model in self.gee_datasets.keys():
+                Model = self.gee_datasets[Model]
+            else:
+                raise MetobsDatasetVisualisationError(
+                    f"{Model} is not a known Model (name), these are the knonw Gee Modeldata: {self.gee_datasets}."
+                )
+
+        if isinstance(Model, GeeDynamicModelData):
+            pass
+        else:
+            raise MetobsDatasetVisualisationError(
+                f"{Model} is not a GeeDynamicModelData, but a {type(Model)}."
+            )
+
+        # Set metadata
+        Model.set_metadf(self.metadf)
+
+        return Model.make_gee_plot(
+            timeinstance=dt,
+            modelobstype=modelobstype,
+            outputfolder=outputfolder,
+            filename=filename,
+            vmin=vmin,
+            vmax=vmax,
+            overwrite=overwrite,
+        )
 
     # def make_gee_plot(
     #     self, gee_map="worldcover", show_stations=True, save=False, outputfile=None
