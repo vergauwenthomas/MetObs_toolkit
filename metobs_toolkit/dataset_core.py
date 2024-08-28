@@ -898,6 +898,11 @@ class Dataset(
 
         logger.info(f"Extract {stationname} from dataset.")
 
+        if self.df.empty:
+            raise MetobsDatasetError(
+                f"Cannot get station {stationname} from an empty Dataset."
+            )
+
         # important: make sure all station attributes are of the same time as dataset.
         # so that all methods can be inherited.
 
@@ -923,8 +928,7 @@ class Dataset(
             df=sta_df,
             outliersdf=sta_outliers,
             gaps=sta_gaps,
-            # gapfilldf=sta_gapfill,
-            # missing_fill_df=sta_missingfill,
+            gee_datasets=list(self.gee_datasets.values()),
             metadf=sta_metadf,
             obstypes=self.obstypes,
             template=self.template,

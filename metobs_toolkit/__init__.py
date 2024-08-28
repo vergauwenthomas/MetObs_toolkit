@@ -48,8 +48,8 @@ from metobs_toolkit.modeldata import GeeStaticModelData, GeeDynamicModelData
 
 # Special functions that can be directly called by te user
 from metobs_toolkit.template_build_prompt import build_template_prompt
-from metobs_toolkit.modeldata import connect_to_gee, import_modeldata_from_pkl
-
+from metobs_toolkit.modeldata import import_modeldata_from_pkl
+from metobs_toolkit.gee_api import connect_to_gee
 
 # =============================================================================
 # Version

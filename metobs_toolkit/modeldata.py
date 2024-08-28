@@ -32,17 +32,14 @@ from metobs_toolkit.plotting_functions import (
     folium_map,
     add_title_to_folium_map,
 )
+from metobs_toolkit.gee_api import connect_to_gee
 
 # from metobs_toolkit.obstypes import tlk_obstypes
-from metobs_toolkit.obstypes import Obstype as Obstype_class
 from metobs_toolkit.obstype_modeldata import (
     # model_obstypes,
     ModelObstype,
     ModelObstype_Vectorfield,
 )
-
-# from metobs_toolkit.obstype_modeldata import compute_amplitude, compute_angle
-from metobs_toolkit.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +183,9 @@ class _GeeModelData:
         print(f" * is_mosaic: {self._is_mosaic}")
         print(f" * credentials: {self.credentials}")
         return
+
+    def _clear_metadata(self):
+        self.metadf = pd.DataFrame()  # will hold static data
 
 
 class GeeStaticModelData(_GeeModelData):
@@ -427,6 +427,10 @@ class GeeStaticModelData(_GeeModelData):
     def __repr__(self):
         """Print overview information of the modeldata."""
         return self.__str__()
+
+    def _clear_data(self):
+        """Clear all attributes that holds meta and extracted data."""
+        self._clear_metadata()
 
     # =========================================================================
     # Setters
@@ -1102,25 +1106,6 @@ class GeeStaticModelData(_GeeModelData):
         return MAP
 
 
-def _add_stations_to_folium_map(Map, metadf, display_cols=["name"]):
-    """Add stations as markers to the folium map."""
-
-    import folium
-
-    metadf = metadf.reset_index()
-    metadf["geometry"] = metadf["geometry"].to_crs("epsg:4326")
-    for _, row in metadf.iterrows():
-        point = row["geometry"]
-        popuptext = ""
-        for disp in display_cols:
-            popuptext = f"{popuptext}{row[disp]}\n"
-        folium.Marker(
-            location=[point.y, point.x], fill_color="#43d9de", popup=popuptext, radius=8
-        ).add_to(Map)
-
-    return Map
-
-
 class GeeDynamicModelData(_GeeModelData):
     """Class for working with Dynamic GEE modeldatasets."""
 
@@ -1159,11 +1144,9 @@ class GeeDynamicModelData(_GeeModelData):
             The time resolution of the dataset represented as a timedelta string.
             Common resolutions are '1h' or '3h'. This can be found on the GEE
             dataset information page.
-        modelobstypes : dict
-            The ModelObstype's defined for this GEE dataset. These ModelObstype
-            define how Obstypes are linked to bands of the GEE dataset. They are
-            presented in dictionary with the corresponding names as keys and the
-            values are the ModelObstypes.
+        modelobstypes : list of ModelObstype and ModelObstype_Vectorfield
+            The ModelObstype's (scalar and vector) defined for this GEE dataset. These ModelObstype
+            define how Obstypes are linked to bands of the GEE dataset.
         is_image : bool
             If True, the GEE dataset is opened as ee.Image(), else
             ee.ImageCollection(). This can be found on the GEE dataset
@@ -1221,7 +1204,17 @@ class GeeDynamicModelData(_GeeModelData):
         # name - datetime index, and (tlk-renamed) bandnames as columns (=wide since perfect freq assumed)
         self.modeldf = pd.DataFrame()  # will hold time-related records (timeseries)
 
-        self.modelobstypes = modelobstypes
+        self.modelobstypes = {}
+        for obs in modelobstypes:
+            if not (
+                (isinstance(obs, ModelObstype))
+                | (isinstance(obs, ModelObstype_Vectorfield))
+            ):
+                raise MetobsModelDataError(
+                    f"{obs} is not an instance of ModelObstype or ModelObstype_Vectorfield but of type {type(obs)}."
+                )
+            self.modelobstypes[obs.name] = obs
+
         self.time_res = str(time_res)
 
         self.__name__ = "GeeDynamicModelData"
@@ -1235,6 +1228,11 @@ class GeeDynamicModelData(_GeeModelData):
     def __repr__(self):
         """Print overview information of the modeldata."""
         return self.__str__()
+
+    def _clear_data(self):
+        """Clear all attributes that holds meta and extracted data."""
+        self._clear_metadata()
+        self.modeldf = pd.DataFrame()
 
     # =============================================================================
     # Setters
@@ -1755,19 +1753,24 @@ class GeeDynamicModelData(_GeeModelData):
             metadf = self.metadf.to_crs("epsg:4326")
             (xmin, ymin, xmax, ymax) = metadf.total_bounds
 
-            roi = ee.Geometry.BBox(west=xmin, south=ymin, east=xmax, north=ymax)
+            if (vmin is None) | (vmax is None):
+                roi = ee.Geometry.BBox(west=xmin, south=ymin, east=xmax, north=ymax)
+                roi_min = im.reduceRegion(
+                    ee.Reducer.min(), roi, scale=self.scale
+                ).getInfo()[modelobstype.get_modelband()]
+                roi_max = im.reduceRegion(
+                    ee.Reducer.max(), roi, scale=self.scale
+                ).getInfo()[modelobstype.get_modelband()]
 
-            roi_max = im.reduceRegion(ee.Reducer.max(), roi).getInfo()[
-                modelobstype.get_modelband()
-            ]
-            roi_min = im.reduceRegion(ee.Reducer.min(), roi).getInfo()[
-                modelobstype.get_modelband()
-            ]
-
-            if vmin == None:
+                print(f"roi min: {roi_min}, roi_max: {roi_max}")
+            if vmin is None:
                 vmin = roi_min - ((roi_max - roi_min) * 0.15)
-            if vmax == None:
+                if vmin == vmax:
+                    vmin = vmax - 1.0
+            if vmax is None:
                 vmax = roi_max + ((roi_max - roi_min) * 0.15)
+                if vmax == vmin:
+                    vmax = vmin + 1.0
 
         var_visualization = {
             "bands": [modelobstype.get_modelband()],
@@ -2072,6 +2075,8 @@ class GeeDynamicModelData(_GeeModelData):
         get_all_bands=False,
         drive_filename=None,
         drive_folder="gee_timeseries_data",
+        force_direct_transfer=False,
+        force_to_drive=False,
     ):
         """Extract timeseries data and set the modeldf.
 
@@ -2113,6 +2118,13 @@ class GeeDynamicModelData(_GeeModelData):
             in. If the folder, does not exists it will be created instead. This
             argument will only take effect when the data is writen to Google
             Drive.
+        force_direct_transfer: bool, optional
+            If True, the data is demanded as a direct transfer (no file writen
+            to google drive). If the request is to large, an GEE error is raised.
+            The default is False.
+        force_to_drive: bool, optional
+            If True, The gee data is writen to a file on your drive. Direct
+            transfer of data is prohibited. The default is False.
 
         Returns
         -------
@@ -2212,6 +2224,10 @@ class GeeDynamicModelData(_GeeModelData):
         # ====================================================================
         self._check_metadf_validity(self.metadf)
 
+        if (force_direct_transfer) & (force_to_drive):
+            raise MetobsModelDataError(
+                "Both force_direct_transfer and force_to_drive could not be True at the same time."
+            )
         # Check obstypes
         if isinstance(obstypes, str):
             obstypes = [obstypes]  # convert to list
@@ -2248,7 +2264,12 @@ class GeeDynamicModelData(_GeeModelData):
             n_bands=len(bandnames),
         )
 
-        if _est_data_size > 4900:
+        if force_direct_transfer:
+            use_drive = False
+        elif force_to_drive:
+            use_drive = True
+
+        elif _est_data_size > 4900:
             print(
                 "THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!"
             )
@@ -2820,72 +2841,23 @@ def import_modeldata_from_pkl(folder_path, filename="saved_modeldata.pkl"):
     return modeldata
 
 
-# =============================================================================
-# GEE api
-# =============================================================================
+def _add_stations_to_folium_map(Map, metadf, display_cols=["name"]):
+    """Add stations as markers to the folium map."""
 
+    import folium
 
-def connect_to_gee(**kwargs):
-    """
-    Setup authentication for the use of the GEE Python API.
+    metadf = metadf.reset_index()
+    metadf["geometry"] = metadf["geometry"].to_crs("epsg:4326")
+    for _, row in metadf.iterrows():
+        point = row["geometry"]
+        popuptext = ""
+        for disp in display_cols:
+            popuptext = f"{popuptext}{row[disp]}\n"
+        folium.Marker(
+            location=[point.y, point.x], fill_color="#43d9de", popup=popuptext, radius=8
+        ).add_to(Map)
 
-    For a fresh kernel, without stored credentials, a prompt/browser window
-    will appear with further instructions for the authentication.
-
-
-    Parameters
-    ----------
-    **kwargs : Kwargs passed to ee.Authenticate()
-        Kwargs are only used by the user, for resetting the gee connection. See
-        the Note below.
-
-    Returns
-    -------
-    None.
-
-    Note
-    ------
-    Upon calling, this function assumes you have a Google developers account,
-    and a project with the Google Earth Engine API enabled.
-    See the * Using Google Earth Engine * page for more info.
-
-    Note
-    ------
-    During the Authentication, you will be asked if you want a read-only scope.
-    A read-only scope is sufficient when the data is transferred directly to your
-    machine (small data transfers), but will not be sufficient when extracting
-    large amounts of data (typical for extracting Modeldata). This is because
-    modeldata is written directly to your Google Drive, and therefore
-    the read-only scope is insufficient.
-
-    Note
-    ------
-    Due to several reasons, an EEExeption may be thrown. This is
-    likely because of an invalid credential file. To fix this, you
-    can update your credential file, and specify a specific authentication method.
-    We found that the "notebook" authentication method works best for most users.
-
-    Here is an example on how to update the credentials:
-
-    .. code-block:: python
-
-        import metobs_toolkit
-
-        metobs_toolkit.connect_to_gee(force=True, #create new credentials
-                                      auth_mode='notebook', # 'notebook', 'localhost', 'gcloud' (requires gcloud installed) or 'colab' (works only in colab)
-                                      )
-
-    """
-
-    if bool(kwargs):  # kwargs are always passed by user, so reinitialize
-        ee.Authenticate(**kwargs)
-        ee.Initialize()
-        return
-
-    if not ee.data._credentials:  # check if ee connection is initialized
-        ee.Authenticate()
-        ee.Initialize()
-    return
+    return Map
 
 
 # =============================================================================

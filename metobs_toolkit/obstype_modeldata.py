@@ -36,10 +36,12 @@ class ModelObstype(Obstype):
         self.set_original_unit(model_unit)
 
     def _check_validity(self):
-        if self.model_unit not in self.get_all_units():
+        if not self.test_if_unit_is_known(unit_name=self.model_unit):
             raise MetobsModelObstypeHandlingError(
                 f"{self.model_unit} is not a known unit of {self}."
             )
+        # convert to standard -naming
+        self.model_unit = self._get_std_unit_name(self.model_unit)
 
     def __str__(self):
         return f"{type(self).__name__} isntance of {self.name} (linked to band: {self.model_band})"
@@ -280,11 +282,7 @@ wind_era5.set_description(
 )
 
 
-default_era5_obstypes = {
-    temp_era5.name: temp_era5,
-    pressure_era5.name: pressure_era5,
-    wind_era5.name: wind_era5,
-}
+default_era5_obstypes = [temp_era5, pressure_era5, wind_era5]
 
 
 class MetobsModelObstypeHandlingError(Exception):

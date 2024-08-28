@@ -21,8 +21,9 @@ import pytz
 from metobs_toolkit.modeldata import (
     GeeStaticModelData,
     GeeDynamicModelData,
-    connect_to_gee,
 )
+
+from metobs_toolkit.gee_api import connect_to_gee
 
 
 logger = logging.getLogger(__name__)
@@ -34,44 +35,67 @@ class DatasetModelData:
     def get_modeldata(
         self,
         Model,
-        obstypes="temp",
+        obstypes=["temp"],
         stations=None,
         startdt=None,
         enddt=None,
         get_all_bands=False,
         drive_filename=None,
         drive_folder="gee_timeseries_data",
+        force_direct_transfer=False,
+        force_to_drive=False,
     ):
         # TODO: update docstring
-        """Make Modeldata for the Dataset.
+        """Extract Timeseries data from a Gee dataset at your stations.
 
-        Make a metobs_toolkit.Modeldata object with modeldata at the locations
-        of the stations present in the dataset. This Modeldata stores timeseries
-        of model data for each station.
+        The link with a Gee dataset is done by specifying a GeeDyanmicModelData.
+        The extracted data is return in the form of a DataFrame and is stored
+        in the Model.
+
 
         Parameters
         ----------
-        modelname : str, optional
-            Which dataset to download timeseries from. This is only used when
-            no modeldata is provided. The default is 'ERA5_hourly'.
-        modeldata : metobs_toolkit.Modeldata, optional
-            Use the modelname attribute and the gee information stored in the
-            modeldata instance to extract timeseries.
-        obstype : String, optional
-            Name of the observationtype you want to apply gap filling on. The
-            modeldata must contain this observation type as well. The
-            default is 'temp'.
+        Model : str or GeeDynamicModelData
+            The Gee dataset to download timeseries from. If Model is a str, it
+            is looked for by name in the `Dataset.gee_dataset.keys()`.
+        obstypes : str or list of strings, optional
+            The name of the ModelObstypes (or ModelObstype_Vectorfield) to extract timeseries for. The requested
+            ModelObstypes must be known by the Model. The default is ['temp'].
         stations : string or list of strings, optional
             Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.
         startdt : datetime.datetime, optional
             Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.
         enddt : datetime.datetime, optional
             End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.
+        get_all_bands : bool, optional
+            If True, all values (over all bands) are extracted. If the band is
+            linked to a ModelObstye, than the name of the modelObstype is used
+            instead of the bandname. If True, the obstypes argument is ignored.
+            The default is False.
+        drive_filename : str or None, optional
+            If given, the data will be saved as this filename on your Google Drive.
+            This argument will only take effect when the data is writen to
+            Google Drive. If None, a custom filename is created. The default is
+            None.
+        drive_folder: str
+            The name of the folder on your Google Drive to save the drive_filename
+            in. If the folder, does not exists it will be created instead. This
+            argument will only take effect when the data is writen to Google
+            Drive.
+        force_direct_transfer: bool, optional
+            If True, the data is demanded as a direct transfer (no file writen
+            to google drive). If the request is to large, an GEE error is raised.
+            The default is False.
+        force_to_drive: bool, optional
+            If True, The gee data is writen to a file on your drive. Direct
+            transfer of data is prohibited. The default is False.
+
 
         Returns
         -------
-        Modl : metobs_toolkit.Modeldata
-            The extracted modeldata for period and a set of stations.
+        Model : metobs_toolkit.GeeDynamicModelData
+            The Gee Modeldata with the extracted timeseries stored in. The
+            timeseries are stored in the `Model.modeldf`.
 
         Note
         --------
@@ -85,15 +109,13 @@ class DatasetModelData:
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
 
+
         See Also
-        --------
-
-        Modeldata: Modeldata class.
-        Modeldata.add_obstype: add a new obstype and band to the Modeldata.
-        Modeldata.add_gee_dataset: add a new Google earth engine Modeldata dataset.
-        Modeldata.set_model_from_csv: Read GEE modeldata from a csv file.
-        fill_gaps_with_raw_modeldata: Raw modeldata gapfill method.
-
+        -----------
+        GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
+        metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to band).
+        metobs_toolkit.ModelObstype_Vectorfield: A Vectorfield version of ModelObstype.
+        Dataset.add_new_geemodeldata(): Add a new Gee Modeldata to your dataset.
 
         Examples
         --------
@@ -114,6 +136,15 @@ class DatasetModelData:
         google earht engine) API. The Modeldata will extract timeseries,
         of the stations present in the Dataset.
 
+        By default, each `Dataset` is equiped with Gee dataset.
+        >>> dataset.gee_datasets
+        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
+
+
+        As you can see, is "ERA5-land" a default GeeDynamicModelData. We will
+        use it for this example.
+
+
         If the data transfer is to big, a file .csv file is writen in your
         google Drive. You must download that file, and import it using the
         ``Modeldata.set_model_from_csv()`. To limit the transfer of data,
@@ -126,31 +157,67 @@ class DatasetModelData:
         >>>
         >>> sta = dataset.get_station('vlinder02')
 
+        We specify the Gee dataset to use
+        >>> ERA5_model = sta.gee_datasets['ERA5-land']
+        >>> ERA5_model.get_info()
+        Empty GeeDynamicModelData instance of ERA5-land
+        ------ Details ---------
+        <BLANKLINE>
+         * name: ERA5-land
+         * location: ECMWF/ERA5_LAND/HOURLY
+         * value_type: numeric
+         * scale: 2500
+         * is_static: False
+         * is_image: False
+         * is_mosaic: False
+         * credentials:
+         * time res: 1h
+        <BLANKLINE>
+         -- Known Modelobstypes --
+        <BLANKLINE>
+         * temp : ModelObstype isntance of temp (linked to band: temperature_2m)
+            (conversion: Kelvin --> Celsius)
+         * pressure : ModelObstype isntance of pressure (linked to band: surface_pressure)
+            (conversion: pa --> pa)
+         * wind : ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+            vectorfield that will be converted to:
+              * wind_speed
+              * wind_direction
+            (conversion: m/s --> m/s)
+        <BLANKLINE>
+         -- Metadata --
+        <BLANKLINE>
+        No metadf is set.
+        <BLANKLINE>
+         -- Modeldata --
+        <BLANKLINE>
+        No model data is set.
+
         Now we download temperature timeseries of ERA5 data at the location
         of "vlinder02" for the period of interest.
 
         >>> # Collect ERA5 2mT timeseries at your station
-        >>> ERA5_data = sta.get_modeldata(
-        ...                     modelname="ERA5_hourly",
-        ...                     modeldata=None,
-        ...                     obstype="temp",
-        ...                     stations=None,
+        >>> sta.get_modeldata(
+        ...                     Model= ERA5_model,
+        ...                     obstypes=["temp"],
         ...                     startdt=tstart,
-        ...                     enddt=tend)
-        (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
+        ...                     enddt=tend,
+        ...                     force_direct_transfer=True)
+        GeeDynamicModelData instance of ERA5-land with modeldata
+
+        The timeseries are stored in the Model itself.
+
+        >>> ERA5_model.modeldf.head()
+                                                  temp
+        name      datetime
+        vlinder02 2022-09-05 00:00:00+00:00  20.266031
+                  2022-09-05 01:00:00+00:00  20.106348
+                  2022-09-05 02:00:00+00:00  19.744928
+                  2022-09-05 03:00:00+00:00  19.543542
+                  2022-09-05 04:00:00+00:00  19.004984
 
         ERA5_data contains 1 timeseries of temperature data, automatically
         converted to the toolkit standard unit (Celcius).
-
-        >>> print(ERA5_data)
-        Modeldata instance containing:
-            * Modelname: ERA5_hourly
-            * 1 timeseries
-            * The following obstypes are available: ['temp']
-            * Data has these units: ['Celsius']
-            * From 2022-09-05 00:00:00+00:00 --> 2022-09-06 00:00:00+00:00 (with tz=UTC)
-        <BLANKLINE>
-        (Data is stored in the .df attribute)
 
         """
         # Model conversion and check
@@ -160,7 +227,7 @@ class DatasetModelData:
                     f"{Model} is not a known GeeDynamicModelData of {self}."
                 )
             Model = self.gee_datasets[str(Model)]
-        elif isinstance(Model, type(GeeDynamicModelData)):
+        elif isinstance(Model, GeeDynamicModelData):
             pass
         else:
             raise MetobsDatasetGeeModelDataHandlingError(
@@ -207,7 +274,9 @@ class DatasetModelData:
             obstypes=obstypes,
             get_all_bands=get_all_bands,
             drive_filename=drive_filename,
-            drive_folder="gee_timeseries_data",
+            drive_folder=drive_folder,
+            force_direct_transfer=force_direct_transfer,
+            force_to_drive=force_to_drive,
         )
 
         return Model
@@ -267,13 +336,13 @@ class DatasetModelData:
 
         >>> lcz_series = dataset.get_lcz()
         >>> lcz_series.head()
-            name
-        vlinder01    Low plants (LCZ D)
-        vlinder02         Large lowrise
-        vlinder03          Open midrise
-        vlinder04        Sparsely built
-        vlinder05         Water (LCZ G)
-        Name: lcz, dtype: object
+                                  lcz
+        name
+        vlinder01  Low plants (LCZ D)
+        vlinder02       Large lowrise
+        vlinder03        Open midrise
+        vlinder04      Sparsely built
+        vlinder05       Water (LCZ G)
 
         The LCZ are automatically added to the metadf as 'lcz' column.
 
@@ -393,13 +462,13 @@ class DatasetModelData:
 
         >>> alt_series = dataset.get_altitude()
         >>> alt_series.head()
+                   altitude
         name
-        vlinder01    12
-        vlinder02     7
-        vlinder03    30
-        vlinder04    25
-        vlinder05     0
-        Name: altitude, dtype: int64
+        vlinder01        12
+        vlinder02         7
+        vlinder03        30
+        vlinder04        25
+        vlinder05         0
 
         The altitudes are automatically added to the metadf as 'altitude' column.
 
@@ -551,18 +620,18 @@ class DatasetModelData:
         >>> frac_df = dataset.get_landcover(buffers=[50, 100, 250, 500],
         ...                                 aggregate=False)
         >>> frac_df
-                                   Grassland  Cropland  Tree cover  Built-up  Permanent water bodies  Herbaceous wetland  Bare / sparse vegetation  Shrubland
+                                 Grassland  Cropland  Tree cover  Built-up  Permanent water bodies  Herbaceous wetland  Bare / sparse vegetation  Shrubland
         name      buffer_radius
-        vlinder01 50              0.545691  0.454309    0.000000  0.000000                0.000000                 0.0                       NaN        NaN
-                  100             0.345583  0.636198    0.000000  0.018219                0.000000                 0.0                       NaN        NaN
-                  250             0.318707  0.640718    0.004210  0.036365                0.000000                 0.0                  0.000000        NaN
+        vlinder01 50              0.545691  0.454309    0.000000  0.000000                0.000000                 0.0                  0.000000        0.0
+                  100             0.345583  0.636198    0.000000  0.018219                0.000000                 0.0                  0.000000        0.0
+                  250             0.318707  0.640718    0.004210  0.036365                0.000000                 0.0                  0.000000        0.0
                   500             0.390234  0.466117    0.049143  0.094263                0.000243                 0.0                  0.000000        0.0
-        vlinder02 50              0.629257  0.000000    0.014283  0.356460                0.000000                 0.0                       NaN        NaN
+        vlinder02 50              0.629257  0.000000    0.014283  0.356460                0.000000                 0.0                  0.000000        0.0
         ...                            ...       ...         ...       ...                     ...                 ...                       ...        ...
         vlinder27 500             0.004314  0.000000    0.061079  0.923446                0.010837                 0.0                  0.000323        0.0
-        vlinder28 50              0.049876  0.000000    0.159655  0.790469                0.000000                 0.0                       NaN        NaN
-                  100             0.187910  0.000000    0.302041  0.510049                0.000000                 0.0                       NaN        NaN
-                  250             0.128338  0.000000    0.593612  0.278050                0.000000                 0.0                  0.000000        NaN
+        vlinder28 50              0.049876  0.000000    0.159655  0.790469                0.000000                 0.0                  0.000000        0.0
+                  100             0.187910  0.000000    0.302041  0.510049                0.000000                 0.0                  0.000000        0.0
+                  250             0.128338  0.000000    0.593612  0.278050                0.000000                 0.0                  0.000000        0.0
                   500             0.115984  0.000162    0.548787  0.335067                0.000000                 0.0                  0.000000        0.0
         <BLANKLINE>
         [112 rows x 8 columns]
@@ -573,19 +642,20 @@ class DatasetModelData:
 
         >>> dataset.metadf.columns
         Index(['lat', 'lon', 'school', 'geometry', 'dataset_resolution', 'dt_start',
-           'dt_end', 'Grassland_50m', 'Cropland_50m', 'Tree cover_50m',
-           'Built-up_50m', 'Permanent water bodies_50m', 'Herbaceous wetland_50m',
-           'Bare / sparse vegetation_50m', 'Shrubland_50m', 'Grassland_100m',
-           'Cropland_100m', 'Tree cover_100m', 'Built-up_100m',
-           'Permanent water bodies_100m', 'Herbaceous wetland_100m',
-           'Bare / sparse vegetation_100m', 'Shrubland_100m', 'Grassland_250m',
-           'Cropland_250m', 'Tree cover_250m', 'Built-up_250m',
-           'Permanent water bodies_250m', 'Herbaceous wetland_250m',
-           'Bare / sparse vegetation_250m', 'Shrubland_250m', 'Grassland_500m',
-           'Cropland_500m', 'Tree cover_500m', 'Built-up_500m',
-           'Permanent water bodies_500m', 'Herbaceous wetland_500m',
-           'Bare / sparse vegetation_500m', 'Shrubland_500m'],
+           'dt_end', 'Grassland_100m', 'Grassland_250m', 'Grassland_50m',
+           'Grassland_500m', 'Cropland_100m', 'Cropland_250m', 'Cropland_50m',
+           'Cropland_500m', 'Tree cover_100m', 'Tree cover_250m', 'Tree cover_50m',
+           'Tree cover_500m', 'Built-up_100m', 'Built-up_250m', 'Built-up_50m',
+           'Built-up_500m', 'Permanent water bodies_100m',
+           'Permanent water bodies_250m', 'Permanent water bodies_50m',
+           'Permanent water bodies_500m', 'Herbaceous wetland_100m',
+           'Herbaceous wetland_250m', 'Herbaceous wetland_50m',
+           'Herbaceous wetland_500m', 'Bare / sparse vegetation_100m',
+           'Bare / sparse vegetation_250m', 'Bare / sparse vegetation_50m',
+           'Bare / sparse vegetation_500m', 'Shrubland_100m', 'Shrubland_250m',
+           'Shrubland_50m', 'Shrubland_500m'],
           dtype='object')
+
 
         """
 
@@ -642,6 +712,124 @@ class DatasetModelData:
         return lcdf
 
     def add_new_geemodeldata(self, Modeldata, overwrite=False):
+        """Add a new GeeModeldata to the Dataset.
+
+        The GeeModelData is in the form of a GeeStaticModelData or GeeDynamicModelData.
+
+
+        Parameters
+        ----------
+        Modeldata : GeeStaticModelData or GeeDynamicModelData
+            The GeeModeldata to add.
+        overwrite : bool, optional
+            If there is already a GeeModelData with the same name present
+            in the Dataset, and if overwrite is True, then it will be
+            overwritten. The default is False.
+
+        Returns
+        -------
+        None.
+
+        See Also
+        -----------
+        GeeStaticModelData: Gee Modeldata dataset without time dimension.
+        GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
+
+        Examples
+        ----------
+        As an example we will add a new Gee Modeldata (precipitation satelite
+        product), to the Dataset.
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.gee_datasets
+        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
+
+        As we can see, there are default GeeModelData's present in the Dataset.
+
+        Now we will create a new GeeDynamicModelData linking to this GEE dataset:
+        https://developers.google.com/earth-engine/datasets/catalog/JAXA_GPM_L3_GSMaP_v8_operational.
+
+        To do this, must make a ModelObstype reflecting the precipitation, and
+        linking it with the corresponding band of the GEE dataset.
+
+        >>> dataset.obstypes #See which obstypes are already present
+        {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind_speed, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction}
+
+        >>> hourly_precip = dataset.obstypes['precip']
+
+        Now we have a regular obstype for precipitation. To use in a Gee Modeldata,
+        we must make a ModelObstype from it (=add the link with the band).
+
+        >>> hourly_precip_Geedataset = metobs_toolkit.ModelObstype(
+        ...               obstype=hourly_precip,
+        ...               model_unit='mm', #See GEE
+        ...               model_band="hourlyPrecipRateGC")
+
+        (Add a new unit to the regular Obstype if the model_unit is not knonw.)
+
+        Now we can create the Gee Modeldata.
+
+        >>> precip_satelite = metobs_toolkit.GeeDynamicModelData(
+        ...        name='precip_GSMaP',
+        ...        location="JAXA/GPM_L3/GSMaP/v8/operational", #See GEE
+        ...        value_type='numeric', #See GEE
+        ...        scale=50, #See GEE
+        ...        time_res='1h', #See GEE
+        ...        modelobstypes=[hourly_precip_Geedataset],
+        ...        is_image=False, #See GEE
+        ...        is_mosaic=False)
+
+        Now we can add it to the Dataset.
+
+        >>> dataset.add_new_geemodeldata(Modeldata=precip_satelite)
+        >>> dataset.gee_datasets
+        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land , 'precip_GSMaP': Empty GeeDynamicModelData instance of precip_GSMaP }
+
+        Now we can use the Gee Modeldata with our dataset (gapfilling, plotting,
+        extracting timeseries, ...). As an exmple we will download the timeseries
+        of precipitation (form the satelite product) at the locations of the stations.
+
+        First we need to import the metadata.
+        >>> dataset.import_data_from_file(
+        ...         input_data_file=metobs_toolkit.demo_datafile,
+        ...         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...         template_file=metobs_toolkit.demo_template)
+        >>> dataset.metadf.head()
+                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+        name
+        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+
+        Now we can extract timeseries at the location of the stations.
+
+        >>> import datetime
+        >>> tstart = datetime.datetime(2022,9,4)
+        >>> tend = datetime.datetime(2022,9,5)
+
+        >>> dataset.get_modeldata(
+        ...                  Model='precip_GSMaP',
+        ...                  obstypes=['precip'],
+        ...                  startdt=tstart,
+        ...                  enddt=tend)
+        GeeDynamicModelData instance of precip_GSMaP with modeldata
+
+        >>> dataset.gee_datasets['precip_GSMaP'].modeldf.head()
+                                                 precip
+        name      datetime
+        vlinder01 2022-09-04 00:00:00+00:00       0
+                  2022-09-04 01:00:00+00:00       0
+                  2022-09-04 02:00:00+00:00       0
+                  2022-09-04 03:00:00+00:00       0
+                  2022-09-04 04:00:00+00:00       0
+
+        """
+
         # Check instance
         if not (
             (isinstance(Modeldata, GeeStaticModelData))

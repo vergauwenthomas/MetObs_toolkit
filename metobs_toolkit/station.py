@@ -20,6 +20,7 @@ class Station(Dataset):
         outliersdf,
         gaps,
         metadf,
+        gee_datasets,
         obstypes,
         template,
         settings,
@@ -34,6 +35,7 @@ class Station(Dataset):
         self._set_obstypes(obstypes)
         self._set_settings(settings)
         self._set_gaps(gaps)
+        self._set_gee_dataset(gee_datasets)
 
         self._applied_qc = _applied_qc
 

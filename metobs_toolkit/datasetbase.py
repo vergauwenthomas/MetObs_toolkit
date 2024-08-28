@@ -233,6 +233,15 @@ class DatasetBase(object):
         # TODO: run simple checks
         self.gaps = gapslist
 
+    def _set_gee_dataset(self, geedatasetlist):
+        # clear all metadata and extracted timeseries form the geedatasets
+        gee_dataset_dict = {}
+        for gee_dataset in geedatasetlist:
+            gee_dataset._clear_data()
+            gee_dataset_dict[gee_dataset.name] = gee_dataset
+
+        self.gee_datasets = gee_dataset_dict
+
     def _append_to_applied_qc(self, obstypename, checkname):
         """Add record to _applied_qc.
         The applied qc is mainly used to save the order of applied checks,
@@ -272,7 +281,11 @@ class DatasetBase(object):
     # Getters
     # =============================================================================
     def _get_tz(self):
-        return self.df.index.get_level_values("datetime").tz
+        # IF no data --> tz is UTC (to work without data for gee fun)
+        if self.df.empty:
+            return "UTC"
+        else:
+            return self.df.index.get_level_values("datetime").tz
 
     def _get_present_obstypes(self):
         """Get all present obstypenames in the df.

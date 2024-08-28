@@ -32,7 +32,6 @@ class Settings:
         # self.gap = {}
         # self.missing_obs = {}
         self.templatefile = None  # filepath
-        self.gee = {}
         self.IO = {
             "output_folder": None,
             "input_data_file": None,
@@ -43,7 +42,6 @@ class Settings:
 
         self._update_app_settings()
         self._update_qc_settings()
-        self._update_gee_settings()
 
     # =============================================================================
     #     Update settings from files in initialisation
@@ -109,19 +107,6 @@ class Settings:
         # self.qc["qc_checks_info"] = checks_info
         self.qc["titan_check_settings"] = titan_check_settings
         self.qc["titan_specific_labeler"] = titan_specific_labeler
-
-    def _update_gee_settings(self):
-        """
-        Update the google earth enginge settings using the default settings templates.
-
-        Returns
-        -------
-        None.
-        """
-        logger.debug("Updating gee settings.")
-        from .settings_files.gee_settings import gee_datasets
-
-        self.gee["gee_dataset_info"] = gee_datasets
 
     def update_IO(
         self,
@@ -199,7 +184,7 @@ class Settings:
             if not callable(getattr(Settings, attr)) and not attr.startswith("__")
         ]
 
-        attr_list = ["IO", "app", "qc", "templatefile", "gee"]
+        attr_list = ["IO", "app", "qc", "templatefile"]
 
         # Drop variables starting with _
         class_vars_name = [mem for mem in class_vars_name if not mem.startswith("_")]
