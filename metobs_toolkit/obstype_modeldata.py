@@ -18,6 +18,76 @@ logger = logging.getLogger(__name__)
 
 class ModelObstype(Obstype):
     def __init__(self, obstype, model_unit, model_band):
+        """Initiate an observation type, to link with a GEE dataset band.
+
+        A ModelObstype is specific to a GEE Dataset, and is therefore added
+        to a `GeeDynamicModelData` (that facilitates the link with a GEE dataset).
+
+        All methods and attributes are inherited of the `Obstype` class.
+
+        Parameters
+        ----------
+        obstype : metobs_toolkit.Obstype
+            The Obstype that represents the band in the GEE dataset.
+        model_unit : str
+            The units of the GEE band. This can be found in the details of
+            the corresponding GEE dataset. This unit must be known by the obstype (
+            add it if it is not known).
+        model_band : str
+            The name of the band representing the obstype. This can be found in
+            the details of the GEE dataset.
+
+        Returns
+        -------
+        None
+
+        See also
+        ----------
+        Obstype: A regular observation type
+        ModelObstype_Vectorfield: A vector representation of a ModelObstype.
+
+        Examples
+        ---------
+        As example we create a `ModelObstype` for downward solar radiation at the
+        surface, to be used with the ERA5-land GEE dataset.
+
+        >>> import metobs_toolkit
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.gee_datasets['ERA5-land'].modelobstypes
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+        There is no default solar radiation modeldata `ModelObstype` present for the
+        ERA5 `GeeDynamicModelData`. Thus we must create one.
+
+        >>> dataset.obstypes
+        {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind_speed, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction}
+
+        We see that there is no default `Obstype` that we can use for the
+        solar radiation. Therefore we must create a new `Obstype`.
+
+        >>> sol_rad_down_surf = metobs_toolkit.Obstype(
+        ...                         obsname="solar_rad_down_at_surface",
+        ...                         std_unit='J/m²')
+
+        By looking up the details of ERA5-land (https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY),
+        we find that the corresponding band is *surface_solar_radiation_downwards* and
+        the units are in "J/m²" (no coinsidence).
+
+        >>> sol_rad_down_for_ERA5 = metobs_toolkit.ModelObstype(
+        ...                            obstype=sol_rad_down_surf,
+        ...                            model_unit="J/m²",
+        ...                            model_band="surface_solar_radiation_downwards")
+        >>> sol_rad_down_for_ERA5
+        ModelObstype instance of solar_rad_down_at_surface (linked to band: surface_solar_radiation_downwards)
+
+        In pracktice we add it to the knonw ModelObstypes of the ERA5 `GeeDynamicModelData`.
+
+        >>> era5_mod = dataset.gee_datasets['ERA5-land']
+        >>> era5_mod.add_modelobstype(sol_rad_down_for_ERA5)
+        >>> era5_mod.modelobstypes
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'solar_rad_down_at_surface': ModelObstype instance of solar_rad_down_at_surface (linked to band: surface_solar_radiation_downwards)}
+
+        """
         super().__init__(
             obsname=obstype.name,
             std_unit=obstype.std_unit,
@@ -63,7 +133,7 @@ class ModelObstype(Obstype):
         self.model_unit = self._get_std_unit_name(self.model_unit)
 
     def __str__(self):
-        return f"{type(self).__name__} isntance of {self.name} (linked to band: {self.model_band})"
+        return f"{type(self).__name__} instance of {self.name} (linked to band: {self.model_band})"
 
     def __repr__(self):
         return str(self)
@@ -122,7 +192,7 @@ class ModelObstype_Vectorfield(Obstype):
             )
 
     def __str__(self):
-        return f"{type(self).__name__} isntance of {self.name} (linked to bands: {self.get_modelband_u()} and {self.get_modelband_v()})"
+        return f"{type(self).__name__} instance of {self.name} (linked to bands: {self.get_modelband_u()} and {self.get_modelband_v()})"
 
     def __repr__(self):
         return str(self)

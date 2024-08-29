@@ -524,6 +524,7 @@ class GeeStaticModelData(_GeeModelData):
 
         See Also
         -----------
+        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
         GeeStaticModelData.set_metadf: Set metadata (station locations).
         GeeStaticModelData.get_info: Print out detailed info method.
         GeeStaticModelData.extract_static_buffer_frac_data: Extract buffer fractions.
@@ -678,6 +679,7 @@ class GeeStaticModelData(_GeeModelData):
 
         See Also
         -----------
+        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
         GeeStaticModelData.set_metadf: Set metadata (station locations).
         GeeStaticModelData.get_info: Print out detailed info method.
         GeeStaticModelData.extract_static_point_data: Extract point values.
@@ -911,6 +913,7 @@ class GeeStaticModelData(_GeeModelData):
 
         See Also
         -----------
+        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
         GeeStaticModelData.set_metadf: Set metadata (station locations).
         GeeStaticModelData.get_info: Print out detailed info method.
 
@@ -1601,6 +1604,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         See Also
         -----------
+        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
         GeeDynamicModelData.set_metadf: Set metadata (station locations).
         GeeDynamicModelData.get_info: Print out detailed info method.
         GeeDynamicModelData.make_plot: Make a timeseries plot.
@@ -1896,6 +1900,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         See Also
         -----------
+        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
         GeeDynamicModelData.set_metadf: Set metadata (station locations).
         GeeDynamicModelData.extract_timeseries_data: Extract data from GEE.
         GeeDynamicModelData.get_info: Print out detailed info method.
@@ -2134,6 +2139,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         See Also
         -----------
+        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
         GeeDynamicModelData.set_metadf: Set metadata (station locations).
         GeeDynamicModelData.get_info: Print out detailed info method.
         GeeDynamicModelData.make_plot: Make a timeseries plot.

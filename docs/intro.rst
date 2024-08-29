@@ -123,19 +123,28 @@ The Analysis methods are based on aggregating the observations to get insight in
 
 
 
-Modeldata()
--------------
-The :ref:`Modeldata <Modeldata api>` holds time-series of data from a source other than observations (i.g. a model). The time-series are taken at the same coordinates as the stations and the
-names of the stations are used as well.
+GEE Modeldata classes
+----------------------
 
-This class is used for comparing other sources to observations and for filling in missing observations and gaps in the observations.
+Two classes are designed to interact with a GEE (Google Earth Engine) dataset:
+
+* `GeeStaticModelData`: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers arround them).
+* `GeeDynamicModelData`: This class handles GEE Dataset that have a time dimension. This class is used to extract timeseries of GEE dataset values at the stations locations.
+
+Both classes can hold metadata (=Coordinates of the stations), and the ´GeeDynamicModelData` class can hold timeseries data.
+These classes are used for extracting extra metadata (landcover, altitude, soil properties, ...) and for comparing
+observations with modelled data (plotting, filling gaps, ...).
+
+There are default modeldata classes prepared, and they are stored in the `Dataset.gee_datasets`.
 
 
 .. code-block:: python
 
-   ERA5_timeseries = your_dataset.get_modeldata(modelname='ERA5_hourly',
-                                                obstype='temp')
+   ERA5_timeseries = your_dataset.get_modeldata(
+                                       Model=your_datast.gee_datasets['ERA5-land'],
+                                        obstype='temp')
 
+See the API documentiontion :ref:`Geemodeldata <Geemodeldata api>` for more details.
 
 The toolkit makes use of the Google Earth Engine (GEE), to extract these time-series. To use the GEE API, follow these steps on :ref:`Using Google Earth Engine<Using_gee>`.
 
