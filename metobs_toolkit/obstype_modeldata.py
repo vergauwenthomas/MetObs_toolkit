@@ -148,7 +148,7 @@ class ModelObstype(Obstype):
     def get_modelband(self):
         return self.model_band
 
-    def get_plot_y_label(self):
+    def _get_plot_y_label(self):
         """Return a string to represent the vertical axes of a plot."""
         return f"{self.name} ({self.std_unit})\n originates from {self.original_name}"
 
@@ -206,11 +206,11 @@ class ModelObstype_Vectorfield(Obstype):
     def get_modelband_v(self):
         return self.model_band_v
 
-    def get_plot_y_label(self):
+    def _get_plot_y_label(self):
         """Return a string to represent the vertical axes of a plot."""
         return f"{self.name} ({self.std_unit})\n originates from {self.original_name}"
 
-    def compute_angle(self, df):
+    def _compute_angle(self, df):
         """Compute vector direction of 2D vectorfield components.
 
         The direction column is added to the dataframe and a new ModelObstype,

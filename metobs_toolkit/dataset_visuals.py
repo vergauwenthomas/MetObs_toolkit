@@ -192,7 +192,7 @@ class DatasetVisuals:
                 )
         # create y label
         if y_label is None:
-            y_label = self.obstypes[obstype].get_plot_y_label()
+            y_label = self.obstypes[obstype]._get_plot_y_label()
         # Make plot
         ax, _colmap = timeseries_plot(
             mergedf=mergedf,

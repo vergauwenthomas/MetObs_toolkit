@@ -2020,7 +2020,7 @@ class GeeDynamicModelData(_GeeModelData):
             mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
         # Generate ylabel
-        y_label = self.modelobstypes[obstype_model].get_plot_y_label()
+        y_label = self.modelobstypes[obstype_model]._get_plot_y_label()
 
         # Generate title
         title = f"{self.name}"

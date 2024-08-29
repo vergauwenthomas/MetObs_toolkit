@@ -234,7 +234,7 @@ class Obstype:
         """Return the standard unit of the observation type."""
         return self.std_unit
 
-    def get_plot_y_label(self, mapname=None):
+    def _get_plot_y_label(self, mapname=None):
         """Return a string to represent the vertical axes of a plot."""
         return f"{self.name} ({self.std_unit})"
 

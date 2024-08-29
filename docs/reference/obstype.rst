@@ -40,7 +40,6 @@ Developers methods and attributes for Obstype
 .. autosummary::
    :toctree: api/
 
-   Obstype.get_plot_y_label
    Obstype.convert_to_standard_units
    Obstype.test_if_unit_is_known
 
@@ -82,5 +81,3 @@ All methods of `Obstype` are inhereted.
    ModelObstype_Vectorfield.get_modelunit
    ModelObstype_Vectorfield.get_modelband_u
    ModelObstype_Vectorfield.get_modelband_v
-   ModelObstype_Vectorfield.compute_angle
-   ModelObstype_Vectorfield.compute_amplitude
