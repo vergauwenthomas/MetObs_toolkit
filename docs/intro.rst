@@ -78,15 +78,10 @@ Dataset.outliersdf
     When applying quality control, some observations may be labeled as outliers. When an observation is labeled as an outlier, it is added to the *outliersdf-container*.
     The records labeled as outliers are still kept inside the df-container but the observation value is removed (set to Nan).
 
-Dataset.missing_obs
-    When importing a datafile, an observation frequency is estimated for each station. A missing observation is a record that is not in the observations but is assumed by the station frequency.
-    A missing observation is thus a record, without an observation value. These records are stored in the *missing_obs-container*.
-
 Dataset.gaps
-    When a sequence of (repeating) missing observations is found, a test is performed to check if the length(*) of the series is larger than a threshold (i.e. the gap definition).
-    If the series is larger than the threshold, we interpret it as a *gap* and it is removed from the missing_obs-container.
-
-    (*): Note that the definition of a gap is based on a number of consecutive repeating missing records! The minimal gap size is therefore dependent on the observational frequency of each station.
+    When the data is imported, the toolkit will look for missing gaps in your data. This is done by
+    assuming a perfect time frequency of your data. A `Gap` is created if data is missing. All the gaps are combined
+    in a list and stored at `Dataset.gaps`.
 
 Dataset.metadf
     When metadata is provided, it will be stored in the Dataset.metadf. The metadf is stored as tabular data where each row represents a station. When variables are computed that depend only
@@ -131,7 +126,7 @@ Two classes are designed to interact with a GEE (Google Earth Engine) dataset:
 * `GeeStaticModelData`: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers arround them).
 * `GeeDynamicModelData`: This class handles GEE Dataset that have a time dimension. This class is used to extract timeseries of GEE dataset values at the stations locations.
 
-Both classes can hold metadata (=Coordinates of the stations), and the ´GeeDynamicModelData` class can hold timeseries data.
+Both classes can hold metadata (=Coordinates of the stations), and the `GeeDynamicModelData` class can hold timeseries data.
 These classes are used for extracting extra metadata (landcover, altitude, soil properties, ...) and for comparing
 observations with modelled data (plotting, filling gaps, ...).
 

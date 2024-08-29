@@ -1386,7 +1386,7 @@ class GeeDynamicModelData(_GeeModelData):
                     new_obs.append(amp_obstype)
 
                     # 2. add direction column + obstype
-                    dir_series, dir_obstype = obs.compute_angle(df=geedf)
+                    dir_series, dir_obstype = obs._compute_angle(df=geedf)
                     geedf[dir_obstype.name] = dir_series
                     new_obs.append(dir_obstype)
 

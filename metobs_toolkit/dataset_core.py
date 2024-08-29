@@ -17,18 +17,14 @@ import pandas as pd
 import numpy as np
 import pickle
 
-from metobs_toolkit.settings import Settings
-from metobs_toolkit.data_import import import_data_from_csv, import_metadata_from_csv
-from metobs_toolkit.template import Template
 
+from metobs_toolkit.data_import import import_data_from_csv, import_metadata_from_csv
 from metobs_toolkit.printing import print_dataset_info
 
 
 from metobs_toolkit.settings_files.default_formats_settings import (
     label_def,
-    gapfill_label_group,
 )
-from metobs_toolkit.qc_checks import duplicate_timestamp_check
 
 from metobs_toolkit.writing_files import (
     write_df_to_csv,
@@ -46,15 +42,13 @@ from metobs_toolkit.gap import (
 from metobs_toolkit.df_helpers import (
     empty_outliers_df,
     metadf_to_gdf,
-    xs_save,
-    concat_save,
+    # xs_save,
+    # concat_save,
     _simplify_time,
 )
 
 from metobs_toolkit.obstypes import Obstype as Obstype_class
 
-
-# from metobs_toolkit.modeldata import Modeldata
 
 # dataset extensions
 from metobs_toolkit.datasetbase import DatasetBase

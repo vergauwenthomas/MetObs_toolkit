@@ -46,35 +46,6 @@ from metobs_toolkit.settings_files.default_formats_settings import (
 logger = logging.getLogger(__name__)
 
 
-# def folium_plot(
-#     mapinfo,
-#     band,
-#     vis_params,
-#     labelnames,
-#     layername,
-#     basemap="SATELLITE",
-#     legendname=None,
-#     legendpos="bottomleft",
-# ):
-#     """Make an interactive folium plot of an Image."""
-#     # get the ee.Image
-#     im = get_ee_obj(mapinfo, band)
-
-#     # make plot
-#     MAP = foliumap.Map()
-#     if basemap:
-#         MAP.add_basemap(basemap)
-#     MAP.add_layer(im, vis_params, layername)
-#     if legendname:
-#         MAP.add_legend(
-#             title=legendname,
-#             labels=labelnames,
-#             colors=vis_params.get("palette"),
-#             position=legendpos,
-#         )
-
-
-#     return MAP
 def folium_map():
     Map = geemap.foliumap.Map(add_google_map=False)
     return Map
