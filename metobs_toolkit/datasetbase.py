@@ -34,6 +34,7 @@ from metobs_toolkit.df_helpers import (
 from metobs_toolkit.template import Template
 from metobs_toolkit.settings import Settings
 from metobs_toolkit.obstypes import tlk_obstypes
+from metobs_toolkit.modeldata import default_datasets
 from metobs_toolkit.gap import find_gaps
 
 logger = logging.getLogger(__name__)
@@ -70,18 +71,23 @@ class DatasetBase(object):
         # Template
         self.template = Template()
 
+        # GEE datasets defenitions
+        self.gee_datasets = copy.deepcopy(default_datasets)
+
     # =============================================================================
     # Specials
     # =============================================================================
     def __str__(self):
         """Represent as text."""
         if self.df.empty:
-            if self._istype == "Dataset":
+            if type(self).__name__ == "Dataset":
                 return "Empty instance of a Dataset."
-            elif self._istype == "Station":
+            elif type(self).__name__ == "Station":
                 return "Empty instance of a Station."
-            else:
+            elif type(self).__name__ == "Analysis":
                 return "Empty instance of a Analysis."
+            else:
+                raise MetobsDatasetBaseError(f"unknown type of {self}")
 
         add_info = ""
         n_stations = self.df.index.get_level_values("name").unique().shape[0]
@@ -89,6 +95,11 @@ class DatasetBase(object):
         n_outl = self.outliersdf.shape[0]
         startdt = self.df.index.get_level_values("datetime").min()
         enddt = self.df.index.get_level_values("datetime").max()
+
+        if (type(self).__name__ == "Dataset") | (type(self).__name__ == "Station"):
+            add_info += (
+                f"     *Known GEE datasets for:  {list(self.gee_datasets.keys())} \n "
+            )
 
         if (not self.metadf["lat"].isnull().all()) & (
             not self.metadf["lon"].isnull().all()
@@ -103,7 +114,7 @@ class DatasetBase(object):
     *{n_outl} records labeled as outliers \n \
     *{len(self.gaps)} gaps \n \
     *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt}) \n \
-    *time zone of the records: {str(self._get_tz())} \n "
+    *time zone of the records: {str(self._get_tz())} \n"
             + add_info
         )
 
@@ -229,6 +240,15 @@ class DatasetBase(object):
         # TODO: run simple checks
         self.gaps = gapslist
 
+    def _set_gee_dataset(self, geedatasetlist):
+        # clear all metadata and extracted timeseries form the geedatasets
+        gee_dataset_dict = {}
+        for gee_dataset in geedatasetlist:
+            gee_dataset._clear_data()
+            gee_dataset_dict[gee_dataset.name] = gee_dataset
+
+        self.gee_datasets = gee_dataset_dict
+
     def _append_to_applied_qc(self, obstypename, checkname):
         """Add record to _applied_qc.
         The applied qc is mainly used to save the order of applied checks,
@@ -268,7 +288,11 @@ class DatasetBase(object):
     # Getters
     # =============================================================================
     def _get_tz(self):
-        return self.df.index.get_level_values("datetime").tz
+        # IF no data --> tz is UTC (to work without data for gee fun)
+        if self.df.empty:
+            return "UTC"
+        else:
+            return self.df.index.get_level_values("datetime").tz
 
     def _get_present_obstypes(self):
         """Get all present obstypenames in the df.

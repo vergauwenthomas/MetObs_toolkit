@@ -13,7 +13,7 @@ the MetObs toolkit to be used by a user and developer.
   Station <reference/station>
   Obstype <reference/obstype>
   Analysis <reference/analysis>
-  Modeldata <reference/modeldata>
+  Gee modeldata <reference/geemodeldata>
   Template <reference/template>
   Special functions <reference/special_functions>
 

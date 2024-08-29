@@ -63,10 +63,42 @@ dataset.make_geo_plot(
 dataset.make_geo_plot(variable="temp", timeinstance=datetime(2022, 9, 5, 12, 0))
 
 # %% Interactive spatial plot
+outfolder = os.path.join(str(lib_folder), "development")
+outfile = "deletame"
 
-outfile = os.path.join(str(lib_folder), "development", "delete_me")
 
-
+outfile = os.path.join(outfolder, outfile)
 dataset.make_interactive_plot(outputfile=outfile, obstype="humidity", radius=11)
 
 assert os.path.exists(outfile + ".html"), "interactive html is not saved!"
+os.remove(outfile + ".html")
+
+# %% GEE plots
+
+
+# interactive gee static model data
+
+lcz_map = dataset.gee_datasets["lcz"]
+lcz_map.set_metadf(dataset.metadf)
+
+
+dataset.make_gee_static_spatialplot(
+    Model="lcz", outputfolder=outfolder, filename=outfile, overwrite=True
+)
+
+trgpath = os.path.join(outfolder, outfile + ".html")
+
+assert os.path.exists(trgpath), "interactive static geeplot is not saved!"
+# os.remove(trgpath)
+
+# interactive geedynamic model data
+
+# plot ERA5 'temperature' on a specific date
+
+import datetime
+
+inst = datetime.datetime(2004, 9, 16, 22, 18)
+
+dataset.make_gee_dynamic_spatialplot(
+    timeinstance=inst, outputfolder=outfolder, filename=outfile, overwrite=True
+)

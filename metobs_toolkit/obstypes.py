@@ -162,11 +162,11 @@ class Obstype:
 
     def __repr__(self):
         """Instance representation."""
-        return f"Obstype instance of {self.name}"
+        return f"{type(self).__name__} instance of {self.name}"
 
     def __str__(self):
         """Text representation."""
-        return f"Obstype instance of {self.name}"
+        return f"{type(self).__name__} instance of {self.name}"
 
     def __eq__(self, other):
         is_eq = (
@@ -234,7 +234,7 @@ class Obstype:
         """Return the standard unit of the observation type."""
         return self.std_unit
 
-    def get_plot_y_label(self, mapname=None):
+    def _get_plot_y_label(self, mapname=None):
         """Return a string to represent the vertical axes of a plot."""
         return f"{self.name} ({self.std_unit})"
 

@@ -20,12 +20,15 @@ from matplotlib.lines import Line2D
 import matplotlib.dates as mdates
 from matplotlib.collections import LineCollection
 
+
 import branca
 import branca.colormap as brcm
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
+
+import geemap
 import geemap.foliumap as foliumap
 import folium
 from folium import plugins as folium_plugins
@@ -33,7 +36,7 @@ from folium import plugins as folium_plugins
 from metobs_toolkit.geometry_functions import find_plot_extent
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from metobs_toolkit.landcover_functions import get_ee_obj
+# from metobs_toolkit.landcover_functions import get_ee_obj
 from metobs_toolkit.df_helpers import xs_save
 from metobs_toolkit.settings_files.default_formats_settings import (
     label_def,
@@ -43,34 +46,21 @@ from metobs_toolkit.settings_files.default_formats_settings import (
 logger = logging.getLogger(__name__)
 
 
-def folium_plot(
-    mapinfo,
-    band,
-    vis_params,
-    labelnames,
-    layername,
-    basemap="SATELLITE",
-    legendname=None,
-    legendpos="bottomleft",
-):
-    """Make an interactive folium plot of an Image."""
-    # get the ee.Image
-    im = get_ee_obj(mapinfo, band)
+def folium_map():
+    Map = geemap.foliumap.Map(add_google_map=False)
+    return Map
 
-    # make plot
-    MAP = foliumap.Map()
-    if basemap:
-        MAP.add_basemap(basemap)
-    MAP.add_layer(im, vis_params, layername)
-    if legendname:
-        MAP.add_legend(
-            title=legendname,
-            labels=labelnames,
-            colors=vis_params.get("palette"),
-            position=legendpos,
-        )
 
-    return MAP
+def add_title_to_folium_map(title, Map):
+    loc = "Corpus Christi"
+    title_html = """
+                 <h3 align="center" style="font-size:20px"><b>{}</b></h3>
+                 """.format(
+        title
+    )
+
+    Map.get_root().html.add_child(folium.Element(title_html))
+    return Map
 
 
 def add_stations_to_folium_map(Map, metadf):
@@ -514,7 +504,8 @@ def _create_linecollection(
     linedf,
     colormapper,
     linestylemapper,
-    plotsettings,
+    linewidth=2,
+    linezorder=1,
     const_color=None,
     value_col_name="value",
     label_col_name="label",
@@ -537,8 +528,8 @@ def _create_linecollection(
         color = linedf[label_col_name].map(colormapper).to_list()
     else:
         color = [const_color] * linedf.shape[0]
-    linewidth = [plotsettings["time_series"]["linewidth"]] * linedf.shape[0]
-    zorder = plotsettings["time_series"]["linezorder"]
+    linewidth = [linewidth] * linedf.shape[0]
+    zorder = linezorder
     linestyle = linedf[label_col_name].map(linestylemapper).fillna("-").to_list()
 
     # 4. Make line collection
@@ -723,7 +714,7 @@ def timeseries_plot(
                 linedf=stadf,
                 colormapper=col_mapper,
                 linestylemapper=line_mapper,
-                plotsettings=plot_settings,
+                # plotsettings=plot_settings,
             )
             ax.add_collection(sta_line_lc)
 
@@ -840,7 +831,7 @@ def timeseries_plot(
                 colormapper=None,
                 const_color=col_mapper[sta],
                 linestylemapper=line_style_mapper,
-                plotsettings=plot_settings,
+                # plotsettings=plot_settings,
             )
             ax.add_collection(sta_line_lc)
 
@@ -890,11 +881,16 @@ def model_timeseries_plot(
     obstype,
     title,
     ylabel,
-    settings,
+    # settings,
     show_primary_legend,
     add_second_legend=True,
     _ax=None,  # needed for GUI, not recommended use
     colorby_name_colordict=None,
+    figsize=(15, 5),
+    colormap="tab20",
+    legend_n_columns=5,
+    linewidth=2,
+    linezorder=1,
 ):
     """Make a timeseries plot for modeldata.
 
@@ -910,8 +906,6 @@ def model_timeseries_plot(
         Title of the figure.
     ylabel : str
         The label for the vertical axes.
-    settings : dict, optional
-        The default plotting settings.
     show_primary_legend : bool
         If True, all stationnames with corresponding color are presented in a
         legend.
@@ -924,6 +918,21 @@ def model_timeseries_plot(
     colorby_name_colorscheme : dict
         A colormapper for the station names. If None, a new colormapper will
         be created. The default is None.
+    figsize: tuple, optional
+        Passed to matplotlib.pyplot.subplots method when _ax is None. The
+        default is (15,5).
+    colormap : str, optional
+        The name of the colormap to use when colorby_name_colorscheme is None.
+        The default is "tab20".
+    legend_n_columns: int, optional
+        The number of columns in the legend if show_primary_legend is True. The
+        default is 5.
+    linewidth: int, optional.
+        The widht of the plotted lines. The default is 2.
+    linezorder: int, optional.
+        The zorder of the lines in the plot. The default is 1.
+
+
 
     Returns
     -------
@@ -932,11 +941,11 @@ def model_timeseries_plot(
     colormapper : dict
         The use colormap.
     """
-    plot_settings = settings.app["plot_settings"]
+    # plot_settings = settings.app["plot_settings"]
 
     if isinstance(_ax, type(None)):
         # init figure
-        fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
+        fig, ax = plt.subplots(figsize=figsize)
     else:
         ax = _ax
 
@@ -954,7 +963,7 @@ def model_timeseries_plot(
     if colorby_name_colordict is None:
         col_mapper = make_cat_colormapper(
             df.index.get_level_values("name").unique(),
-            plot_settings["time_series"]["colormap"],
+            colormap,
         )
     else:
         col_mapper = colorby_name_colordict
@@ -969,7 +978,8 @@ def model_timeseries_plot(
             colormapper=None,
             const_color=col_mapper[sta],
             linestylemapper=line_style_mapper,
-            plotsettings=plot_settings,
+            linewidth=linewidth,
+            linezorder=linezorder,
         )
         ax.add_collection(sta_line_lc)
 
@@ -996,7 +1006,7 @@ def model_timeseries_plot(
             bbox_to_anchor=(0.5, -0.2),
             fancybox=True,
             shadow=True,
-            ncol=plot_settings["time_series"]["legend_n_columns"],
+            ncol=legend_n_columns,
         )
         ax.add_artist(primary_legend)
 

@@ -756,7 +756,7 @@ class Analysis(Dataset):
             enddt=enddt,
             plot=plot,
             title=title,
-            y_label=obstype.get_plot_y_label(),
+            y_label=obstype._get_plot_y_label(),
             legend=legend,
             errorbands=errorbands,
             verbose=_return_all_stats,
@@ -914,7 +914,7 @@ class Analysis(Dataset):
             enddt=enddt,
             plot=plot,
             title=title,
-            y_label=obstype.get_plot_y_label(),
+            y_label=obstype._get_plot_y_label(),
             legend=legend,
             errorbands=errorbands,
             verbose=_return_all_stats,
@@ -1395,7 +1395,7 @@ class Analysis(Dataset):
 
             # ylabel
             if y_label is None:
-                y_label = obstype.get_plot_y_label()
+                y_label = obstype._get_plot_y_label()
             else:
                 y_label = str(y_label)
 

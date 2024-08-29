@@ -585,7 +585,7 @@ class DatasetGapCore:
         """
 
         # check if modeldata has the obstype
-        if obstype not in Modeldata.df.columns:
+        if obstype not in Modeldata.modeldf.columns:
             raise MetobsDatasetGapHandlingError(
                 f"{obstype} is not a present observationtype in {Modeldata}."
             )
@@ -775,7 +775,7 @@ class DatasetGapCore:
         """
 
         # check if modeldata has the obstype
-        if obstype not in Modeldata.df.columns:
+        if obstype not in Modeldata.modeldf.columns:
             raise MetobsDatasetGapHandlingError(
                 f"{obstype} is not a present observationtype in {Modeldata}."
             )
@@ -954,7 +954,7 @@ class DatasetGapCore:
         """
 
         # check if modeldata has the obstype
-        if obstype not in Modeldata.df.columns:
+        if obstype not in Modeldata.modeldf.columns:
             raise MetobsDatasetGapHandlingError(
                 f"{obstype} is not a present observationtype in {Modeldata}."
             )
@@ -1143,7 +1143,7 @@ class DatasetGapCore:
         # TODO docstring
 
         # check if modeldata has the obstype
-        if obstype not in Modeldata.df.columns:
+        if obstype not in Modeldata.modeldf.columns:
             raise MetobsDatasetGapHandlingError(
                 f"{obstype} is not a present observationtype in {Modeldata}."
             )

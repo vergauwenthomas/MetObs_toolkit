@@ -46,7 +46,7 @@ plot_settings["time_series"] = {
     "linewidth": 2,  #
     "linestyle_ok": "-",  # solid line
     "linestyle_fill": "--",  # dashedline
-    "linezorder": 1,  # for ok obs
+    # "linezorder": 1,  # for ok obs
     "scattersize": 4,  # for outliers
     "scatterzorder": 3,  # for outliers
     "dashedzorder": 2,  # for gapfills

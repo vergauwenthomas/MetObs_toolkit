@@ -334,16 +334,23 @@ modeldatafile = "era_modeldata_for_gapfill_dataset.pkl"
 
 def _create_modeldata():
 
-    era = dataset.get_modeldata()
-    era.save_modeldata(outputfolder=solution.solutions_dir, filename=modeldatafile)
+    # era = dataset.get_modeldata(Model='ERA5-land', get_all_bands=True)
+
+    # download from google drive
+    era = dataset.gee_datasets["ERA5-land"]
+    USER = os.getenv("USER")
+    path_to_modeldata_csv = f"/home/{USER}/Downloads/ERA5-land_timeseries_data.csv"
+    era.set_modeldata_from_csv(path_to_modeldata_csv)
+    era.save_modeldata(
+        outputfolder=solution.solutions_dir, filename=modeldatafile, overwrite=True
+    )
 
 
 # _create_modeldata()
 
 
 def get_modeldata():
-    era = metobs_toolkit.Modeldata("ERA5_hourly")
-    era = era.import_modeldata(
+    era = metobs_toolkit.import_modeldata_from_pkl(
         folder_path=solution.solutions_dir, filename=modeldatafile
     )
     return era

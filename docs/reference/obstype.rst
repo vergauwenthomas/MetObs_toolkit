@@ -40,93 +40,44 @@ Developers methods and attributes for Obstype
 .. autosummary::
    :toctree: api/
 
-   Obstype.get_plot_y_label
    Obstype.convert_to_standard_units
    Obstype.test_if_unit_is_known
 
 .. _ModelObstype api:
 
-==============
+==============================
+Obstypes used for GEE datasets
+===============================
+
+A child of :ref:`Obstype api` that adds info on how this observationtype is represented in a GEE dataset.
+
+There are two classes:
+ * `ModelObstype` : Represent a scalar Obstype for which there exists a band in a GEE dataset.
+ * `ModelObstype_Vectorfield` : Represent a vectorfield, for which the *u* and *v* components exists in bands of a GEE dataset.
+
+
 ModelObstype
-==============
-
-A child of :ref:`Obstype api` that adds info on how this observationtype is represented in modeloutput.
-All methods of Obstype() are inhereted.
-
-Constructor for ModelObstype
 -----------------------------
+
+All methods of `Obstype` are inhereted.
 
 .. autosummary::
    :toctree: api/
 
    ModelObstype
-
-General methods and attributes for ModelObstype
-------------------------------------------------
-
-.. autosummary::
-   :toctree: api/
-
-   ModelObstype.get_mapped_datasets
-   ModelObstype.get_bandname
    ModelObstype.get_modelunit
-   ModelObstype.add_new_band
-
-Developers methods and attributes for ModelObstype
----------------------------------------------------
-
-.. autosummary::
-   :toctree: api/
-
-   ModelObstype.get_bandname_mapper
-   ModelObstype.has_mapped_band
+   ModelObstype.get_modelband
 
 
-.. _ModelObstype_Vectorfield api:
-
-==========================
 ModelObstype_Vectorfield
-==========================
+-----------------------------
 
-A child of :ref:`Obstype api`, similar to :ref:`ModelObstype api`, that adds info on how this handle 2D vectorfields in the modeloutput.
-A vectorfield in the modeloutput is defined by its components.
-
-All methods of Obstype() are inhereted.
-
-Constructor for ModelObstype_Vectorfield
------------------------------------------
+All methods of `Obstype` are inhereted.
 
 .. autosummary::
    :toctree: api/
 
    ModelObstype_Vectorfield
-
-General methods and attributes for ModelObstype_Vectorfield
--------------------------------------------------------------
-
-.. autosummary::
-   :toctree: api/
-
-   ModelObstype_Vectorfield.get_mapped_datasets
    ModelObstype_Vectorfield.get_modelunit
-   ModelObstype_Vectorfield.add_new_band
-
-Developers methods and attributes
-------------------------------------
-
-.. autosummary::
-   :toctree: api/
-
-   ModelObstype_Vectorfield.get_bandname_mapper
-   ModelObstype_Vectorfield.has_mapped_band
-
-
-Developers vectorfield conversion functions
----------------------------------------------
-These functions are used by the :ref:`ModelObstype_Vectorfield api` to convert components to amplitudes and angles.
-
-.. autosummary::
-   :toctree: api/
-
-   obstype_modeldata.compute_amplitude
-   obstype_modeldata.compute_angle
+   ModelObstype_Vectorfield.get_modelband_u
+   ModelObstype_Vectorfield.get_modelband_v

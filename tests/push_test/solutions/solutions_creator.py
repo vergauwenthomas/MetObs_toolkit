@@ -17,6 +17,7 @@ Created on Thu Mar 14 16:55:54 2024
 import sys, os
 from pathlib import Path
 import pandas as pd
+import numpy as np
 
 solutions_dir = Path(__file__).resolve().parents[0]
 
@@ -85,6 +86,12 @@ def test_df_are_equal(testdf, solutiondf):
 
     are_equal = testdf.equals(solutiondf)
     if not are_equal:
+        # apply a floating point mapping
+        # for col in testdf.columns:
+        #     if np.issubdtype(testdf[col].dtype, np.number):
+        #         testdf[col] = testdf[col].astype('float16')
+        #         solutiondf[col] = solutiondf[col].astype('float16')
+
         diffdf = testdf.compare(
             solutiondf, keep_shape=False, result_names=("TEST", "SOLUTION")
         )
