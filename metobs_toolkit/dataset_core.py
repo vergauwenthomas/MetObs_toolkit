@@ -430,14 +430,15 @@ class Dataset(
 
         Parameters
         ----------
+
         return_as_wide : bool, optional
             If True, the dataset is wide-structured (observationtypes are spread
             over different columns). If False, all records are stacked in
             a long-format. The default is True.
 
-         Returns
-         ---------
-         combdf : pandas.DataFrame()
+        Returns
+        ---------
+        combdf : pandas.DataFrame()
             A dataframe containing a continious time resolution of records, where each
             record is labeld.
 
@@ -829,7 +830,7 @@ class Dataset(
 
         Returns
         -------
-        metobs_toolkit.Station
+        station: metobs_toolkit.Station
             The station object.
 
         See Also

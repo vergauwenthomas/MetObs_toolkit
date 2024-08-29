@@ -1768,39 +1768,39 @@ class Analysis(Dataset):
         get_full_dataframe(), filter the dataframe and set_data() method to
         reduce the group values.
 
-         Examples
-         --------
+        Examples
+        --------
 
-         An Analysis is always created from a Dataset, so we start by creating
-         a Dataset and importing data into it.
+        An Analysis is always created from a Dataset, so we start by creating
+        a Dataset and importing data into it.
 
-         >>> import metobs_toolkit
-         >>>
-         >>> #Create your Dataset
-         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-         >>> dataset.import_data_from_file(
-         ...                         input_data_file=metobs_toolkit.demo_datafile,
-         ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-         ...                         template_file=metobs_toolkit.demo_template,
-         ...                         )
-         >>> # Get landcover fraction (to calculate correlations for)
-         >>> landcover_df = dataset.get_landcover(buffers=[250, 500], aggregate=True)
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> # Get landcover fraction (to calculate correlations for)
+        >>> landcover_df = dataset.get_landcover(buffers=[250, 500], aggregate=True)
 
-         Now we have a dataset containing records. We now create a Analysis from it.
+        Now we have a dataset containing records. We now create a Analysis from it.
 
-         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-         >>> ana
-         Instance of Analysis at ...
+        >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+        >>> ana
+        Instance of Analysis at ...
 
-         As a demo, we calculate landcover correlations with temperature, and we
-         do this for each hour (thus aggregated to the hour --> diurnal caracteristics).
+        As a demo, we calculate landcover correlations with temperature, and we
+        do this for each hour (thus aggregated to the hour --> diurnal caracteristics).
 
-         >>> cordict = ana.get_lc_correlation_matrices(obstype=["temp"], groupby_labels=["hour"])
+        >>> cordict = ana.get_lc_correlation_matrices(obstype=["temp"], groupby_labels=["hour"])
 
-         Now we can make an avolution plot of the landcover correlations.
+        Now we can make an avolution plot of the landcover correlations.
 
-         >>> ana.plot_correlation_variation()
-         <Axes: title={'center': "Correlation scatter for group: ['hour']"}, xlabel="Groups of ['hour']", ylabel='Pearson correlation'>
+        >>> ana.plot_correlation_variation()
+        <Axes: title={'center': "Correlation scatter for group: ['hour']"}, xlabel="Groups of ['hour']", ylabel='Pearson correlation'>
 
         """
         # check if there are correlation matrices

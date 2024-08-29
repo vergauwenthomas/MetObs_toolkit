@@ -24,6 +24,7 @@ General methods and attributes
 
    Dataset.show
    Dataset.get_info
+   Dataset.import_data_from_file
    Dataset.save_dataset
    Dataset.get_full_status_df
    Dataset.import_dataset
@@ -34,7 +35,7 @@ General methods and attributes
    Dataset.write_to_csv
    Dataset.coarsen_time_resolution
    Dataset.sync_records
-   Dataset.import_data_from_file
+
 
 
 Gaps related methods
@@ -75,8 +76,9 @@ Visualisations
 
    Dataset.make_plot
    Dataset.make_geo_plot
-   Dataset.make_gee_plot
    Dataset.make_interactive_plot
+   Dataset.make_gee_static_spatialplot
+   Dataset.make_gee_dynamic_spatialplot
 
 Extracting data
 ------------------
@@ -85,6 +87,7 @@ Extracting data
    :toctree: api/
 
    Dataset.get_modeldata
+   Dataset.add_new_geemodeldata
    Dataset.get_lcz
    Dataset.get_altitude
    Dataset.get_landcover

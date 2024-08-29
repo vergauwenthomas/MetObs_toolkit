@@ -57,7 +57,8 @@ class DatasetVisuals:
         show_filled=True,
         _ax=None,  # needed for GUI, not recommended use
     ):
-        """
+        """Make a timeseries plot.
+
         This function creates a timeseries plot for the dataset. The variable observation type
         is plotted for all stationnames from a starttime to an endtime.
 

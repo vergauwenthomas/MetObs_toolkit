@@ -154,9 +154,6 @@ There are methods to change some of the default settings (like quality control s
    #Create a Dataset, the default settings are attached to it
    your_dataset = metobs_toolkit.Dataset()
 
-   #Update the timezone from 'UTC' (default) to Brussels local time
-   your_dataset.update_timezone(timezonestr='Europe/Brussels')
-
    #create a Station instance from your dataset
    your_station = your_dataset.get_station(stationname = 'station_A')
 
@@ -165,11 +162,3 @@ There are methods to change some of the default settings (like quality control s
    # print out all settings
    your_dataset.settings.show()
    your_station.settings.show()
-
-
-Schematic overview
-====================
-
-.. image:: figures/schematic_overview.png
-  :width: 700
-  :alt: Alternative text
