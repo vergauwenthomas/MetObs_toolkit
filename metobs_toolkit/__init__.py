@@ -44,6 +44,9 @@ from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfield
 from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import GeeStaticModelData, GeeDynamicModelData
+from metobs_toolkit.gap import (
+    Gap,
+)  # No direct usecase, but needed for creation of artificial gaps (+ doc api)
 
 
 # Special functions that can be directly called by te user

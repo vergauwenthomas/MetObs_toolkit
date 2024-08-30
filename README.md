@@ -59,12 +59,19 @@ metobs_toolkit.__version__
 ## Exercises and demos
 In the context of a [FAIRNESS (COST action)](https://www.fairness-ca20108.eu/) summer school, a set of well-documented exercises and demos are made.
 
+*NOTE: * these excercises are build on an early version of the toolkit! We recommand to use the
+examples in the [documentation](https://metobs-toolkit.readthedocs.io/en/latest/index.html).
+
 | Notebook  | Description  |       |
 |:----------|:-------------|------:|
 | [Introduction](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Introduction_01.ipynb) | Introduction to the toolkit | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Introduction_01.ipynb) |
 | [Quality control](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Quality_control_excercise_02.ipynb) | Introduction to quality control methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Quality_control_excercise_02.ipynb)|
 | [Filling gaps](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Gap_filling_excercise_03.ipynb) | Introduction to gap filling methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Gap_filling_excercise_03.ipynb)|
 | [Analysis](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Urban_analysis_excercise_04.ipynb) | Introduction analysis methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Urban_analysis_excercise_04.ipynb)|
+
+*NOTE: * these excercises are build on an early version of the toolkit! We recommand to use the
+examples in the [documentation](https://metobs-toolkit.readthedocs.io/en/latest/index.html).
+
 
 
 ## Related

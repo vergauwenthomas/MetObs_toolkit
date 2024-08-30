@@ -294,19 +294,24 @@ class DatasetGapCore:
 
         Notes
         -----
-        A schematic description of the linear gap fill:
+        A schematic description:
 
         1. Iterate over all gaps.
         2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
         3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
         4. Check if the leading and trailing records fulfill the critea of maximum timediffernece.
-        4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
-        5. The gap is updated with the interpolated values
+        5. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
+        6. The gap is updated with the interpolated values
 
         Note
         -------
         The inpact of `max_consec_fill` is highly depending on the resolution
         of your records.
+
+        Note
+        ------
+        If you want to use a higher-order method of interpolation, make sure to
+        increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
 
 
         Examples
@@ -430,7 +435,7 @@ class DatasetGapCore:
                     continue
                 else:
                     logger.debug(f"filling {gap} with {method} interpolation.")
-                    gap.interpolate_gap(
+                    gap.interpolate(
                         Dataset=self,
                         method=method,
                         max_consec_fill=max_consec_fill,
@@ -441,9 +446,7 @@ class DatasetGapCore:
                         method_kwargs=method_kwargs,
                     )
 
-    def fill_gaps_with_raw_modeldata(
-        self, Modeldata, obstype="temp", overwrite_fill=False
-    ):
+    def fill_gaps_with_raw_modeldata(self, Model, obstype="temp", overwrite_fill=False):
         """Fill all the gaps using raw modeldata.
 
         The gaps of the Datasetinstance will be updated with fill values by
@@ -452,10 +455,10 @@ class DatasetGapCore:
 
         Parameters
         ----------
-        Modeldata : metobs_toolkit.Modeldata
-            The modeldata that is used to fill the gaps records. The modeldata
-            must be compatibel with the Dataset to fill the gaps (names,
-            obstypes, period)
+        Model : metobs_toolkit.GeeDynamicModelData
+            The model that is used to fill the gaps records. The modeldata
+            must be compatibel (same metadata and `ModelObstype` equivalent
+            of obstype) to fill the gaps.
         obstype : str, optional
             The observationtype to fill the gaps of. The default is "temp".
         overwrite_fill : bool, optional
@@ -470,7 +473,7 @@ class DatasetGapCore:
         See Also
         --------
         get_gaps_fill_df: Get an overview dataframe of gapfilled records and info.
-        metobs_toolkit.Modeldata: Modeldata class.
+        metobs_toolkit.GeeDynamicModelData: The Gee Model data (timeseries).
         get_modeldata: Method for creating a modeldata from a dataset.
         interpolate_gaps: Fill gaps by interpolation.
         fill_gaps_with_debiased_modeldata: Debiased modeldata gapfill method.
@@ -560,7 +563,7 @@ class DatasetGapCore:
         Now we are going to fill the gaps with this raw modeldata.
 
         >>> sta.fill_gaps_with_raw_modeldata(
-        ...                    Modeldata=era5_data,
+        ...                    Model=era5_data,
         ...                    obstype="temp")
 
         We can inspect the filled gaps by plotting or by using `get_gaps_fill_df()` method.
@@ -583,12 +586,8 @@ class DatasetGapCore:
                           2022-09-01 23:00:00+00:00  18.230508  raw modeldata fill  Modelvalue: 18.23, without correction.
 
         """
-
-        # check if modeldata has the obstype
-        if obstype not in Modeldata.modeldf.columns:
-            raise MetobsDatasetGapHandlingError(
-                f"{obstype} is not a present observationtype in {Modeldata}."
-            )
+        # Check if the Model has the compatible data
+        _check_if_model_can_be_used(trg_obstypename=obstype, Model=Model)
 
         # TODO logging
         for gap in self.gaps:
@@ -602,11 +601,11 @@ class DatasetGapCore:
                     continue
                 else:
                     logger.debug(f"filling {gap} with Raw modeldata")
-                    gap.raw_model_gapfill(Dataset=self, Modeldata=Modeldata)
+                    gap.raw_model_gapfill(Dataset=self, Model=Model)
 
     def fill_gaps_with_debiased_modeldata(
         self,
-        Modeldata,
+        Model,
         obstype="temp",
         overwrite_fill=False,
         leading_period_duration="24h",
@@ -624,10 +623,10 @@ class DatasetGapCore:
 
         Parameters
         ----------
-        Modeldata : metobs_toolkit.Modeldata
-            The modeldata that is used to fill the gaps records. The modeldata
-            must be compatibel with the Dataset to fill the gaps (names,
-            obstypes, period)
+        Model : metobs_toolkit.GeeDynamicModelData
+            The model that is used to fill the gaps records. The modeldata
+            must be compatibel (same metadata and `ModelObstype` equivalent
+            of obstype) to fill the gaps.
         obstype : str, optional
             The observationtype to fill the gaps of. The default is "temp".
         overwrite_fill : bool, optional
@@ -746,7 +745,7 @@ class DatasetGapCore:
         number of records), and using the `Dataset.fill_gaps_with_debiased_modeldata()` method.
 
         >>> sta.fill_gaps_with_debiased_modeldata(
-        ...                Modeldata=era5_data,
+        ...                Model=era5_data,
         ...                obstype="temp",
         ...                overwrite_fill=False,
         ...                leading_period_duration="24h",
@@ -774,11 +773,8 @@ class DatasetGapCore:
                           2022-09-01 23:00:00+00:00  17.626462         debiased modeldata fill     Modelvalue: 18.23 corrected with a 0.60 bias.
         """
 
-        # check if modeldata has the obstype
-        if obstype not in Modeldata.modeldf.columns:
-            raise MetobsDatasetGapHandlingError(
-                f"{obstype} is not a present observationtype in {Modeldata}."
-            )
+        # Check if the Model has the compatible data
+        _check_if_model_can_be_used(trg_obstypename=obstype, Model=Model)
 
         # TODO logging
         for gap in self.gaps:
@@ -794,7 +790,7 @@ class DatasetGapCore:
                     logger.debug(f"filling {gap} with Debiased modeldata")
                     gap.debias_model_gapfill(
                         Dataset=self,
-                        Modeldata=Modeldata,
+                        Model=Model,
                         leading_period_duration=leading_period_duration,
                         min_leading_records_total=min_leading_records_total,
                         trailing_period_duration=trailing_period_duration,
@@ -803,7 +799,7 @@ class DatasetGapCore:
 
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
-        Modeldata,
+        Model,
         obstype="temp",
         overwrite_fill=False,
         leading_period_duration="24h",
@@ -813,7 +809,7 @@ class DatasetGapCore:
         """Fill all the gaps using diurnal debiased modeldata.
 
 
-        The gaps of the Datasetinstance will be updated with fill values using
+        The gaps in the Dataset will be updated with fill values using
         Modeldata. The Modeldata is interpolated (in time) to the missing records,
         and corrected with a bias-correction. Multiple biasses are computed, one
         for each timestamp present in the missing records, by using a leading
@@ -823,10 +819,10 @@ class DatasetGapCore:
 
         Parameters
         ----------
-        Modeldata : metobs_toolkit.Modeldata
-            The modeldata that is used to fill the gaps records. The modeldata
-            must be compatibel with the Dataset to fill the gaps (names,
-            obstypes, period)
+        Model : metobs_toolkit.GeeDynamicModelData
+            The model that is used to fill the gaps records. The modeldata
+            must be compatibel (same metadata and `ModelObstype` equivalent
+            of obstype) to fill the gaps.
         obstype : str, optional
             The observationtype to fill the gaps of. The default is "temp".
         overwrite_fill : bool, optional
@@ -936,7 +932,7 @@ class DatasetGapCore:
         `Dataset.fill_gaps_with_diurnal_debiased_modeldata()` method.
 
         >>> sta.fill_gaps_with_diurnal_debiased_modeldata(
-        ...                Modeldata=era5_data,
+        ...                Model=era5_data,
         ...                obstype="temp",
         ...                overwrite_fill=False,
         ...                leading_period_duration="24h",
@@ -953,11 +949,8 @@ class DatasetGapCore:
 
         """
 
-        # check if modeldata has the obstype
-        if obstype not in Modeldata.modeldf.columns:
-            raise MetobsDatasetGapHandlingError(
-                f"{obstype} is not a present observationtype in {Modeldata}."
-            )
+        # Check if the Model has the compatible data
+        _check_if_model_can_be_used(trg_obstypename=obstype, Model=Model)
 
         # TODO logging
         for gap in self.gaps:
@@ -973,7 +966,7 @@ class DatasetGapCore:
                     logger.debug(f"filling {gap} with Diurnal debiased modeldata")
                     gap.diurnal_debias_model_gapfill(
                         Dataset=self,
-                        Modeldata=Modeldata,
+                        Model=Model,
                         leading_period_duration=leading_period_duration,
                         min_debias_sample_size=min_debias_sample_size,
                         trailing_period_duration=trailing_period_duration,
@@ -981,7 +974,7 @@ class DatasetGapCore:
 
     def fill_gaps_with_weighted_diurnal_debias_modeldata(
         self,
-        Modeldata,
+        Model,
         obstype="temp",
         overwrite_fill=False,
         leading_period_duration="48h",
@@ -1007,10 +1000,10 @@ class DatasetGapCore:
 
         Parameters
         ----------
-        Modeldata : metobs_toolkit.Modeldata
-            The modeldata that is used to fill the gaps records. The modeldata
-            must be compatibel with the Dataset to fill the gaps (names,
-            obstypes, period)
+        Model : metobs_toolkit.GeeDynamicModelData
+            The model that is used to fill the gaps records. The modeldata
+            must be compatibel (same metadata and `ModelObstype` equivalent
+            of obstype) to fill the gaps.
         obstype : str, optional
             The observationtype to fill the gaps of. The default is "temp".
         overwrite_fill : bool, optional
@@ -1053,9 +1046,9 @@ class DatasetGapCore:
         3. The good obervations of the leading and trailing period are selected and grouped per timestamp.
         4. Each group (coresponding to a timestamp) is checked if they fulfill the conditions.
         5. The modeldata is interpolated (in time) to the missing records, the leading, and trailing period.
-        5. A bias for each group is computed for the leading and trailing groups seperatly.
-        6. Two weights are assigned to each missing record, that is the normalized distance to the leading an trailing period respectively.
-        7. The gap is updated with the interpolated modeldata, corrected by the weighted sum of calculated bias corresponding to the specific timestamp.
+        6. A bias for each group is computed for the leading and trailing groups seperatly.
+        7. Two weights are assigned to each missing record, that is the normalized distance to the leading an trailing period respectively.
+        8. The gap is updated with the interpolated modeldata, corrected by the weighted sum of calculated bias corresponding to the specific timestamp.
 
         Notes
         -------
@@ -1124,7 +1117,7 @@ class DatasetGapCore:
         `Dataset.fill_gaps_with_diurnal_debiased_modeldata()` method.
 
         >>> sta.fill_gaps_with_weighted_diurnal_debias_modeldata(
-        ...                    Modeldata=era5_data,
+        ...                    Model=era5_data,
         ...                    obstype="temp",
         ...                    overwrite_fill=False,
         ...                    leading_period_duration="48h",
@@ -1140,13 +1133,8 @@ class DatasetGapCore:
         >>> comb_gap_df.head(10)
         """
 
-        # TODO docstring
-
-        # check if modeldata has the obstype
-        if obstype not in Modeldata.modeldf.columns:
-            raise MetobsDatasetGapHandlingError(
-                f"{obstype} is not a present observationtype in {Modeldata}."
-            )
+        # Check if the Model has the compatible data
+        _check_if_model_can_be_used(trg_obstypename=obstype, Model=Model)
 
         # TODO logging
         for gap in self.gaps:
@@ -1164,7 +1152,7 @@ class DatasetGapCore:
                     )
                     gap.weighted_diurnal_debias_model_gapfill(
                         Dataset=self,
-                        Modeldata=Modeldata,
+                        Model=Model,
                         leading_period_duration=leading_period_duration,
                         min_lead_debias_sample_size=min_lead_debias_sample_size,
                         trailing_period_duration=trailing_period_duration,
@@ -1310,6 +1298,24 @@ class DatasetGapCore:
             f"No gap is found with: ({stationname}) - ({obstype}) - ({in_gap_timestamp})"
         )
         return None
+
+
+def _check_if_model_can_be_used(trg_obstypename, Model):
+    """Raise error if Model cannot be used to fill for target obstype."""
+    # check if modeldata has the obstype
+    if trg_obstypename not in Model.modelobstypes.keys():
+        raise MetobsDatasetGapHandlingError(
+            f"{Model} does not have a known ModelObstype equivalent of {trg_obstypename}."
+        )
+    # Check if modeldata has timeseries
+    if Model.modeldf.empty:
+        raise MetobsDatasetGapHandlingError(f"{Model} does not have any modeldata.")
+    # Check if obstype is present in the modeldata
+    if trg_obstypename not in Model.modeldf.columns:
+        raise MetobsDatasetGapHandlingError(
+            f"{Model} does not have modeldata for {trg_obstypename}"
+        )
+    return
 
 
 class MetobsDatasetGapHandlingError(Exception):

@@ -40,6 +40,7 @@ General methods and attributes
 
 Gaps related methods
 ------------------------------
+.. _Dataset_gaps api:
 
 .. autosummary::
    :toctree: api/

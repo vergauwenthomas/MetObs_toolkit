@@ -15,6 +15,7 @@ the MetObs toolkit to be used by a user and developer.
   Analysis <reference/analysis>
   Gee modeldata <reference/geemodeldata>
   Template <reference/template>
+  Gap <reference/gap>
   Special functions <reference/special_functions>
 
 ********************************************
