@@ -431,9 +431,9 @@ class Gap:
         self,
         Dataset,
         Modeldata,
-        leading_period_duration="24H",
+        leading_period_duration="24h",
         min_leading_records_total=60,
-        trailing_period_duration="24H",
+        trailing_period_duration="24h",
         min_trailing_records_total=60,
     ):
 
@@ -525,9 +525,9 @@ class Gap:
         self,
         Dataset,
         Modeldata,
-        leading_period_duration="24H",
+        leading_period_duration="24h",
         min_debias_sample_size=6,
-        trailing_period_duration="24H",
+        trailing_period_duration="24h",
     ):
         # 1. Get leading and trailing info
 
@@ -649,7 +649,7 @@ class Gap:
     def get_leading_period(
         self,
         observations_series,
-        leading_period_duration="24H",
+        leading_period_duration="24h",
     ):
         """TODO update docstring
 
@@ -707,7 +707,7 @@ class Gap:
                 ]
             )
 
-    def get_trailing_period(self, observations_series, trailing_period_duration="24H"):
+    def get_trailing_period(self, observations_series, trailing_period_duration="24h"):
         """TODO update docstring
 
 

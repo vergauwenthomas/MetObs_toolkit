@@ -13,6 +13,8 @@ LOGDIR=${DEPLOY_DIR}/logs
 DOCEXAMPLEDIR=${WORKDIR}/docs/examples
 OTHER_NOTEBOOKS=${WORKDIR}/docs/notebook_references
 TOPIC_NOTEBOOKS=${WORKDIR}/docs/topics
+PAPER_NOTEBOOKS=${WORKDIR}/docs/paper
+
 
 
 #make logfile for each test and stream  prompt output for the test
@@ -41,6 +43,9 @@ jupyter nbconvert --to python *.ipynb
 
 cd ${TOPIC_NOTEBOOKS}
 jupyter nbconvert --to python *.ipynb
+
+cd ${PAPER_NOTEBOOKS}
+jupyter nbconvert --to python *.ipynb´
 
 #3. Run examples
 cd ${DOCEXAMPLEDIR}
@@ -79,6 +84,23 @@ cd ${TOPIC_NOTEBOOKS}
 filenames=`ls ./*.py`
 for t in $filenames; do
         example_file=${TOPIC_NOTEBOOKS}/${t}
+        logfile="$(make_test_log ${t})"
+        echo Running ${t} as a test
+        poetry run python ${example_file} >> ${logfile} 2>&1
+        if [ $? -eq 0 ]; then
+                echo "succeeded !!"
+        else
+                echo "FAIL!!"
+        fi
+
+done
+
+
+#Run the paper notebook (for figures creation) again with new version
+cd ${PAPER_NOTEBOOKS}
+filenames=`ls ./*.py`
+for t in $filenames; do
+        example_file=${PAPER_NOTEBOOKS}/${t}
         logfile="$(make_test_log ${t})"
         echo Running ${t} as a test
         poetry run python ${example_file} >> ${logfile} 2>&1

@@ -20,7 +20,7 @@ the MetObs toolkit to be used by a user and developer.
 ********************************************
 Modules for MetObs toolkit Developers
 ********************************************
-A lot of the funtions and methods of the MetObs toolkit are not meant to be called
-by the users. For developers these functions and methods are important building blocks.
+A lot of the functions and methods of the MetObs toolkit are not meant to be called
+by the users, typically they start with _ (underscore). For developers these functions and methods are important building blocks.
 
 The :ref:`modindex` contains all functions and methods present in the MetObs toolkit.
