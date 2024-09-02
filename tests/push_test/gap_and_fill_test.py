@@ -146,7 +146,7 @@ dataset.update_settings(
 )
 
 dataset.import_data_from_file()
-dataset.coarsen_time_resolution(freq="1H")
+dataset.coarsen_time_resolution(freq="1h")
 dataset.apply_quality_control()
 dataset.convert_outliers_to_gaps()
 
@@ -186,7 +186,7 @@ def _create_interpolation_solution():
         overwrite_fill=True,
         method="time",
         max_consec_fill=10,
-        max_lead_to_gap_distance="2H",
+        max_lead_to_gap_distance="2h",
         max_trail_to_gap_distance=None,
     )
 
@@ -199,7 +199,7 @@ def _create_interpolation_solution():
         overwrite_fill=True,
         method="nearest",
         max_consec_fill=4,
-        max_lead_to_gap_distance="2H",
+        max_lead_to_gap_distance="2h",
         max_trail_to_gap_distance=None,
     )
     trg_sta_file = os.path.join(solution.solutions_dir, station_inter_sol_df)
@@ -227,7 +227,7 @@ dataset.interpolate_gaps(
     overwrite_fill=True,
     method="time",
     max_consec_fill=10,
-    max_lead_to_gap_distance="2H",
+    max_lead_to_gap_distance="2h",
     max_trail_to_gap_distance=None,
 )
 
@@ -245,7 +245,7 @@ sta.interpolate_gaps(
     overwrite_fill=True,
     method="linear",
     max_consec_fill=4,
-    max_lead_to_gap_distance="2H",
+    max_lead_to_gap_distance="2h",
     max_trail_to_gap_distance=None,
 )
 # check if this methods overwrites the linear fille
@@ -254,7 +254,7 @@ sta.interpolate_gaps(
     overwrite_fill=True,
     method="nearest",
     max_consec_fill=4,
-    max_lead_to_gap_distance="2H",
+    max_lead_to_gap_distance="2h",
     max_trail_to_gap_distance=None,
 )
 
@@ -368,9 +368,7 @@ raw_gapfill_sol_file = "raw_gapfill_solution.pkl"
 def _create_raw_gapfil_solution():
     print("SOLUTION WILL BE OVERWRITTEN !!!!!")
     trg_path = os.path.join(solution.solutions_dir, raw_gapfill_sol_file)
-    dataset.fill_gaps_with_raw_modeldata(
-        Modeldata=era, obstype="temp", overwrite_fill=True
-    )
+    dataset.fill_gaps_with_raw_modeldata(Model=era, obstype="temp", overwrite_fill=True)
     dataset.get_full_status_df().to_pickle(trg_path)
 
 
@@ -382,7 +380,7 @@ def get_raw_gapfill_sol():
     return pd.read_pickle(trg_path)
 
 
-dataset.fill_gaps_with_raw_modeldata(Modeldata=era, obstype="temp", overwrite_fill=True)
+dataset.fill_gaps_with_raw_modeldata(Model=era, obstype="temp", overwrite_fill=True)
 # test raw gapfill on dataset
 diff_df = solution.test_df_are_equal(
     testdf=dataset.get_full_status_df(), solutiondf=get_raw_gapfill_sol()
@@ -399,7 +397,7 @@ def _create_debias_gapfil_solution():
     print("SOLUTION WILL BE OVERWRITTEN !!!!!")
     trg_path = os.path.join(solution.solutions_dir, debias_gapfill_sol_file)
     dataset.fill_gaps_with_debiased_modeldata(
-        Modeldata=era,
+        Model=era,
         obstype="temp",
         overwrite_fill=True,
         leading_period_duration="15h",
@@ -419,7 +417,7 @@ def get_debias_gapfill_sol():
 
 
 dataset.fill_gaps_with_debiased_modeldata(
-    Modeldata=era,
+    Model=era,
     obstype="temp",
     overwrite_fill=True,
     leading_period_duration="15h",
@@ -445,7 +443,7 @@ def _create_diur_debias_gapfil_solution():
     print("SOLUTION WILL BE OVERWRITTEN !!!!!")
     trg_path = os.path.join(solution.solutions_dir, diur_debias_gapfill_sol_file)
     dataset.fill_gaps_with_diurnal_debiased_modeldata(
-        Modeldata=era,
+        Model=era,
         obstype="temp",
         overwrite_fill=True,
         leading_period_duration="48h",
@@ -464,7 +462,7 @@ def get_diur_debias_gapfill_sol():
 
 
 dataset.fill_gaps_with_diurnal_debiased_modeldata(
-    Modeldata=era,
+    Model=era,
     obstype="temp",
     overwrite_fill=True,
     leading_period_duration="48h",
@@ -489,7 +487,7 @@ def _create_weight_diur_debias_gapfil_solution():
     print("SOLUTION WILL BE OVERWRITTEN !!!!!")
     trg_path = os.path.join(solution.solutions_dir, weight_diur_debias_gapfill_sol_file)
     dataset.fill_gaps_with_weighted_diurnal_debias_modeldata(
-        Modeldata=era,
+        Model=era,
         obstype="temp",
         overwrite_fill=True,
         leading_period_duration="58h",
@@ -517,12 +515,12 @@ def get_weight_diur_debias_gapfill_sol():
 
 
 dataset.fill_gaps_with_weighted_diurnal_debias_modeldata(
-    Modeldata=era,
+    Model=era,
     obstype="temp",
     overwrite_fill=True,
-    leading_period_duration="58H",
+    leading_period_duration="58h",
     min_lead_debias_sample_size=1,
-    trailing_period_duration="24H",
+    trailing_period_duration="24h",
     min_trail_debias_sample_size=1,
 )
 
