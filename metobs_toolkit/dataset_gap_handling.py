@@ -1200,7 +1200,7 @@ class DatasetGapCore:
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
                  *time zone of the records: UTC
                  *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-                 *Coordinates are available for all stations
+                 *Coordinates are available for all stations.
 
             As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
             often handy to combine all present gaps into one pandas Dataframe, for
