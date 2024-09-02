@@ -34,5 +34,8 @@ done
 
 rm ${WORKDIR}/*.pkl #created by doctest
 rm ${WORKDIR}/*.csv #created by docstest
+rm ${WORKDIR}/*.html #created by doctest
+
+
 
 cd ${DEPLOY_DIR}

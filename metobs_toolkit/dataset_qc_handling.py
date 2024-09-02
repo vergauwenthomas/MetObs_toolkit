@@ -604,92 +604,98 @@ class DatasetQCCore:
         Examples
         --------
 
-        We start by creating a Dataset, and importing data.
+        .. plot::
+            :context: close-figs
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> print(dataset)
-        Dataset instance containing:
-             *28 stations
-             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-             *483828 observation records (not Nan's)
-             *0 records labeled as outliers
-             *8 gaps
-             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-             *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-             *Coordinates are available for all stations.
+            We start by creating a Dataset, and importing data.
 
-        For this example we reduce the data by coarsening the time resolution
-        to hourly.
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *483828 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *8 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
 
-        >>> dataset.coarsen_time_resolution(freq='1h')
+            For this example we reduce the data by coarsening the time resolution
+            to hourly.
 
-        There are default buddy check settings (for temperature). These
-        are stored in the `Dataset.settings` attribute. We can inspect them directly,
-        or by using the `Datatest.show_settings()` method.
+            >>> dataset.coarsen_time_resolution(freq='1h')
 
-        >>> dataset.settings.qc['qc_check_settings']['buddy_check']
-        {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}
+            There are default buddy check settings (for temperature). These
+            are stored in the `Dataset.settings` attribute. We can inspect them directly,
+            or by using the `Datatest.show_settings()` method.
 
-
-        We can change the (default) settings using the `Dataset.update_qc_settings()`
-        method. These settings are observationtype dependant!
-
-        >>> # The following settings are illustrative, do not copy blindly
-        >>> dataset.update_qc_settings(
-        ...                obstype='temp',
-        ...                buddy_radius=20000,
-        ...                buddy_min_sample_size=4,
-        ...                buddy_threshold=2.5,
-        ...                buddy_min_std=1.)
-
-        If you want to correct your observations for altitude (recomanded for
-        temperature observations in orographic environments), you must
-        specify the "altitude" column in the metadata. The altitude can be
-        extracted directly from the Google earth engine (and the metadata
-        will be updated aswell).
-
-        >>> altitudes = dataset.get_altitude()
-        >>> dataset.metadf['altitude'].head()
-        name
-        vlinder01    12
-        vlinder02     7
-        vlinder03    30
-        vlinder04    25
-        vlinder05     0
-        Name: altitude, dtype: int64
-
-        The buddy check will compute interdistances between stations. To compute
-        the distances the haversine approximation (spherical earth), is often
-        sufficient. (However, if you want to compute distances very accuratly,
-        you can specify a metric coordinate refernce system (CRS) by passing
-        the EPSG code.)
+            >>> dataset.settings.qc['qc_check_settings']['buddy_check']
+            {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}
 
 
-        >>> dataset.apply_buddy_check(
-        ...            obstype="temp",
-        ...            use_constant_altitude=False, #because we have the altitudes
-        ...            haversine_approx=True)
+            We can change the (default) settings using the `Dataset.update_qc_settings()`
+            method. These settings are observationtype dependant!
 
-        To inspect the effectivenes of the qualit control, we can plot the dataset
-        timeseries with `colorby='label'`.
+            >>> # The following settings are illustrative, do not copy blindly
+            >>> dataset.update_qc_settings(
+            ...                obstype='temp',
+            ...                buddy_radius=20000,
+            ...                buddy_min_sample_size=4,
+            ...                buddy_threshold=2.5,
+            ...                buddy_min_std=1.)
 
-        >>> dataset.make_plot(obstype='temp', colorby='label')
-        <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+            If you want to correct your observations for altitude (recomanded for
+            temperature observations in orographic environments), you must
+            specify the "altitude" column in the metadata. The altitude can be
+            extracted directly from the Google earth engine (and the metadata
+            will be updated aswell).
 
-        If you want more details on the effectivenes of the applied quality
-        control, then we use the `Dataset.get_qc_stats()` method, to compute
-        effectiveness statistis and to plot them as a collection of pie-charts.
+            >>> altitudes = dataset.get_altitude()
+            >>> dataset.metadf['altitude'].head()
+            name
+            vlinder01    12
+            vlinder02     7
+            vlinder03    30
+            vlinder04    25
+            vlinder05     0
+            Name: altitude, dtype: int64
 
-        >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
+            The buddy check will compute interdistances between stations. To compute
+            the distances the haversine approximation (spherical earth), is often
+            sufficient. (However, if you want to compute distances very accuratly,
+            you can specify a metric coordinate refernce system (CRS) by passing
+            the EPSG code.)
+
+
+            >>> dataset.apply_buddy_check(
+            ...            obstype="temp",
+            ...            use_constant_altitude=False, #because we have the altitudes
+            ...            haversine_approx=True)
+
+            To inspect the effectivenes of the qualit control, we can plot the dataset
+            timeseries with `colorby='label'`.
+
+            >>> dataset.make_plot(obstype='temp', colorby='label')
+            <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            If you want more details on the effectivenes of the applied quality
+            control, then we use the `Dataset.get_qc_stats()` method, to compute
+            effectiveness statistis and to plot them as a collection of pie-charts.
+
+            >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
 
 
         """
@@ -823,88 +829,94 @@ class DatasetQCCore:
         Examples
         --------
 
-        We start by creating a Dataset, and importing data.
+        .. plot::
+            :context: close-figs
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> print(dataset)
-        Dataset instance containing:
-             *28 stations
-             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-             *483828 observation records (not Nan's)
-             *0 records labeled as outliers
-             *8 gaps
-             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-             *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-             *Coordinates are available for all stations.
+            We start by creating a Dataset, and importing data.
 
-        For this example we reduce the data by coarsening the time resolution
-        to hourly.
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *483828 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *8 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
 
-        >>> dataset.coarsen_time_resolution(freq='1h')
+            For this example we reduce the data by coarsening the time resolution
+            to hourly.
 
-        There are default TITAN buddy check settings (for temperature). These
-        are stored in the `Dataset.settings` attribute. We can inspect them directly,
-        or by using the `Datatest.show_settings()` method.
+            >>> dataset.coarsen_time_resolution(freq='1h')
 
-        >>> dataset.settings.qc['titan_check_settings']['titan_buddy_check']
-        {'temp': {'radius': 50000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0, 'num_iterations': 1}}
+            There are default TITAN buddy check settings (for temperature). These
+            are stored in the `Dataset.settings` attribute. We can inspect them directly,
+            or by using the `Datatest.show_settings()` method.
 
-        We can change the (default) settings using the `Dataset.update_titan_qc_settings()`
-        method. These settings are observationtype dependant!
+            >>> dataset.settings.qc['titan_check_settings']['titan_buddy_check']
+            {'temp': {'radius': 50000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0, 'num_iterations': 1}}
 
-        >>> # The following settings are illustrative, do not copy blindly
-        >>> dataset.update_titan_qc_settings(
-        ...                obstype='temp',
-        ...                buddy_radius=20000,
-        ...                buddy_num_min=4,
-        ...                buddy_threshold=2.5,
-        ...                buddy_min_std=1.)
-        buddy radius for the TITAN buddy check updated:  50000--> 20000.0
-        buddy num min for the TITAN buddy check updated:  2--> 4
-        buddy threshold for the TITAN buddy check updated:  1.5--> 2.5
-        buddy min std for the TITAN buddy check updated:  1.0--> 1.0
+            We can change the (default) settings using the `Dataset.update_titan_qc_settings()`
+            method. These settings are observationtype dependant!
 
-        If you want to correct your observations for altitude (recomanded for
-        temperature observations in orographic environments), you must
-        specify the "altitude" column in the metadata. The altitude can be
-        extracted directly from the Google earth engine (and the metadata
-        will be updated aswell).
+            >>> # The following settings are illustrative, do not copy blindly
+            >>> dataset.update_titan_qc_settings(
+            ...                obstype='temp',
+            ...                buddy_radius=20000,
+            ...                buddy_num_min=4,
+            ...                buddy_threshold=2.5,
+            ...                buddy_min_std=1.)
+            buddy radius for the TITAN buddy check updated:  50000--> 20000.0
+            buddy num min for the TITAN buddy check updated:  2--> 4
+            buddy threshold for the TITAN buddy check updated:  1.5--> 2.5
+            buddy min std for the TITAN buddy check updated:  1.0--> 1.0
 
-        >>> altitudes = dataset.get_altitude()
-        >>> dataset.metadf['altitude'].head()
-        name
-        vlinder01    12
-        vlinder02     7
-        vlinder03    30
-        vlinder04    25
-        vlinder05     0
-        Name: altitude, dtype: int64
+            If you want to correct your observations for altitude (recomanded for
+            temperature observations in orographic environments), you must
+            specify the "altitude" column in the metadata. The altitude can be
+            extracted directly from the Google earth engine (and the metadata
+            will be updated aswell).
 
-        Now we apply the TITAN buddy check.
+            >>> altitudes = dataset.get_altitude()
+            >>> dataset.metadf['altitude'].head()
+            name
+            vlinder01    12
+            vlinder02     7
+            vlinder03    30
+            vlinder04    25
+            vlinder05     0
+            Name: altitude, dtype: int64
 
-        >>> dataset.apply_titan_buddy_check(obstype="temp",
-        ...                                 use_constant_altitude=False)
+            Now we apply the TITAN buddy check.
 
-        To inspect the effectivenes of the qualit control, we can plot the dataset
-        timeseries with `colorby='label'`.
+            >>> dataset.apply_titan_buddy_check(obstype="temp",
+            ...                                 use_constant_altitude=False)
 
-        >>> dataset.make_plot(obstype='temp', colorby='label')
-        <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+            To inspect the effectivenes of the qualit control, we can plot the dataset
+            timeseries with `colorby='label'`.
 
-        If you want more details on the effectivenes of the applied quality
-        control, then we use the `Dataset.get_qc_stats()` method, to compute
-        effectiveness statistis and to plot them as a collection of pie-charts.
+            >>> dataset.make_plot(obstype='temp', colorby='label')
+            <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
 
-        >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
+        .. plot::
+            :context: close-figs
+
+            If you want more details on the effectivenes of the applied quality
+            control, then we use the `Dataset.get_qc_stats()` method, to compute
+            effectiveness statistis and to plot them as a collection of pie-charts.
+
+            >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
 
 
         """
