@@ -65,6 +65,7 @@ extensions = [
     "myst_parser",  # for including md files (readme)
     "sphinx.ext.autosectionlabel",  # for cross linking
     "nbsphinx",  # to render the notebook examples in the doc
+    "matplotlib.sphinxext.plot_directive",  # embedding figures in the docstrings examples
 ]
 
 # -- General configuration ------------------------------------------------------------
@@ -217,3 +218,14 @@ html_theme_options = {
 # html_css_files = [
 #     "custom.css",
 # ]
+# =============================================================================
+# Matplotlib include settings
+# =============================================================================
+
+# See: https://matplotlib.org/stable/api/sphinxext_plot_directive_api.html
+
+plot_include_source = True
+plot_html_show_source_link = False
+plot_formats = ["png"]  # no need for highres and pdf versions
+
+plot_pre_code = "import numpy as np \nfrom matplotlib import pyplot as plt\nplt.rcParams['figure.autolayout'] = True"

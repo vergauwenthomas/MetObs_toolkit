@@ -113,44 +113,54 @@ class DatasetVisuals:
         Examples
         --------
 
-        We start by creating a Dataset, and importing data.
+        .. plot::
+            :context: close-figs
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> print(dataset)
-        Dataset instance containing:
-             *28 stations
-             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-             *483828 observation records (not Nan's)
-             *0 records labeled as outliers
-             *8 gaps
-             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-             *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-             *Coordinates are available for all stations.
+            We start by creating a Dataset, and importing data.
 
-        We can now make a timeseries plot of the full dataset. By specifying
-        `colorby='name'`, the colors indicate the stations.
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.coarsen_time_resolution(freq='15min')
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *161272 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *8 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:45:00+00:00 (total duration:  14 days 23:45:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
 
-        >>> dataset.make_plot(obstype='temp', colorby='name')
-        <Axes: title={'center': 'Temperatuur for all stations. '}, ylabel='temp (Celsius)'>
 
-        By specifying `colorby='label'` the colors indicate the different labels.
-        Labels are assigned by quality control and the status of gaps. As an
-        example, we apply default quality control to create some labels.
 
-        We then plot the timeseries of a single station.
+            We can now make a timeseries plot of the full dataset. By specifying
+            `colorby='name'`, the colors indicate the stations.
 
-        >>> dataset.apply_quality_control(obstype='temp')
-        >>> dataset.get_station('vlinder05').make_plot(colorby='label')
-        <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
+            >>> dataset.make_plot(obstype='temp', colorby='name')
+            <Axes: title={'center': 'Temperatuur for all stations. '}, ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            By specifying `colorby='label'` the colors indicate the different labels.
+            Labels are assigned by quality control and the status of gaps. As an
+            example, we apply default quality control to create some labels.
+
+            We then plot the timeseries of a single station.
+
+            >>> dataset.apply_quality_control(obstype='temp')
+            >>> dataset.get_station('vlinder05').make_plot(colorby='label')
+            <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
 
         """
 
@@ -515,49 +525,60 @@ class DatasetVisuals:
 
         Examples
         --------
-        We start by creating a Dataset, and importing data.
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> print(dataset)
-        Dataset instance containing:
-             *28 stations
-             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-             *483828 observation records (not Nan's)
-             *0 records labeled as outliers
-             *8 gaps
-             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-             *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-             *Coordinates are available for all stations.
+        .. plot::
+            :context: close-figs
 
-        To create a spatial plot, we use the `Dataset.make_geo_plot()`
-        method.
+            We start by creating a Dataset, and importing data.
 
-        >>> dataset.make_geo_plot(variable="temp")
-        <GeoAxes: title={'center': 'Temperatuur at 2022-09-01 00:00:00+00:00.'}>
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *483828 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *8 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
 
-        If you want a different extend, timeinstance of colorscale, you can do
-        that like so
+            To create a spatial plot, we use the `Dataset.make_geo_plot()`
+            method.
 
-        >>> import datetime
-        >>> dataset.make_geo_plot(variable="temp",
-        ...                       title=None,
-        ...                       timeinstance=datetime.datetime(2022,9,4,16),
-        ...                       legend=True,
-        ...                       vmin=18,
-        ...                       vmax=32,
-        ...                       legend_title=None,
-        ...                       boundbox=[2.17, 50.67,
-        ...                                5.89, 51.42])
-        <GeoAxes: title={'center': 'Temperatuur at 2022-09-04 16:00:00+00:00.'}>
+            >>> dataset.make_geo_plot(variable="temp")
+            <GeoAxes: title={'center': 'Temperatuur at 2022-09-01 00:00:00+00:00.'}>
+
+        .. plot::
+            :context: close-figs
+
+            If you want a different extend, timeinstance of colorscale, you can do
+            that like so
+
+            >>> import datetime
+            >>> dataset.make_geo_plot(variable="temp",
+            ...                       title=None,
+            ...                       timeinstance=datetime.datetime(2022,9,4,16),
+            ...                       legend=True,
+            ...                       vmin=18,
+            ...                       vmax=32,
+            ...                       legend_title=None,
+            ...                       boundbox=[2.17, 50.67,
+            ...                                5.89, 51.42])
+            <GeoAxes: title={'center': 'Temperatuur at 2022-09-04 16:00:00+00:00.'}>
+
+        .. plot::
+            :context: close-figs
+
         """
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
@@ -733,7 +754,6 @@ class DatasetVisuals:
         ...                  filename = 'LCZ_map.html',
         ...                  overwrite=True)
 
-
         """
 
         if isinstance(Model, str):
@@ -854,6 +874,7 @@ class DatasetVisuals:
 
         For more details (i.g. see which modelobstypes are knonw), use the
         `GeeDynamicModelData.get_info()` method.
+
         >>> era5.get_info()
         Empty GeeDynamicModelData instance of ERA5-land
         ------ Details ---------

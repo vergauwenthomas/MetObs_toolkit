@@ -53,6 +53,6 @@ GeeDynamicModelData
    GeeDynamicModelData.extract_timeseries_data
    GeeDynamicModelData.save_modeldata
    GeeDynamicModelData.set_modeldata_from_csv
-   GeeDynamicModelData.import_modeldata_from_pkl
+   import_modeldata_from_pkl
    GeeDynamicModelData.make_plot
    GeeDynamicModelData.make_gee_plot

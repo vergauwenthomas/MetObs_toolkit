@@ -1951,73 +1951,77 @@ class GeeDynamicModelData(_GeeModelData):
 
         Examples
         --------
-        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
-        present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
-        extract era5 timeseries data for the stations in the demo dataset, and
-        plot the temperature.
 
-        >>> import metobs_toolkit
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                input_data_file=metobs_toolkit.demo_datafile,
-        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                template_file=metobs_toolkit.demo_template)
-        >>> era5 = dataset.gee_datasets['ERA5-land']
-        >>> era5.set_metadf(dataset.metadf)
-        >>> era5
-        Empty GeeDynamicModelData instance of ERA5-land
+         .. plot::
+             :context: close-figs
 
-        Now we will extract temperature timeseries from ERA5. We already have
-        a ModelObstype representing the temperature present in the GeeDynamicModelData:
+            As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+            present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
+            extract era5 timeseries data for the stations in the demo dataset, and
+            plot the temperature.
 
-        >>> era5.modelobstypes
-        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+            >>> import metobs_toolkit
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                input_data_file=metobs_toolkit.demo_datafile,
+            ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                template_file=metobs_toolkit.demo_template)
+            >>> era5 = dataset.gee_datasets['ERA5-land']
+            >>> era5.set_metadf(dataset.metadf)
+            >>> era5
+            Empty GeeDynamicModelData instance of ERA5-land
 
-        We define a (short) period, and extract ERA5 timeseries.
+            Now we will extract temperature timeseries from ERA5. We already have
+            a ModelObstype representing the temperature present in the GeeDynamicModelData:
 
-        >>> import datetime
-        >>> tstart = datetime.datetime(2022,9,4)
-        >>> tend = datetime.datetime(2022,9,5)
-        >>> era5.extract_timeseries_data(
-        ...                            startdt_utc=tstart,
-        ...                            enddt_utc=tend,
-        ...                            obstypes=['temp'])
+            >>> era5.modelobstypes
+            {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
 
-        If the datarequest is small, the timeseries are present. (If the
-        datarequest is larger, a csv file is writen to your google drive.
-        Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
-        method.)
+            We define a (short) period, and extract ERA5 timeseries.
 
-        >>> era5.modeldf
-                                              temp
-        name      datetime
-        vlinder01 2022-09-04 00:00:00+00:00  17.71
-                  2022-09-04 01:00:00+00:00  17.56
-                  2022-09-04 02:00:00+00:00  17.24
-                  2022-09-04 03:00:00+00:00  16.75
-                  2022-09-04 04:00:00+00:00  16.33
-        ...                                    ...
-        vlinder28 2022-09-04 20:00:00+00:00  21.40
-                  2022-09-04 21:00:00+00:00  20.91
-                  2022-09-04 22:00:00+00:00  20.51
-                  2022-09-04 23:00:00+00:00  20.28
-                  2022-09-05 00:00:00+00:00  20.13
-        <BLANKLINE>
-        [700 rows x 1 columns]
+            >>> import datetime
+            >>> tstart = datetime.datetime(2022,9,4)
+            >>> tend = datetime.datetime(2022,9,5)
+            >>> era5.extract_timeseries_data(
+            ...                            startdt_utc=tstart,
+            ...                            enddt_utc=tend,
+            ...                            obstypes=['temp'])
+
+            If the datarequest is small, the timeseries are present. (If the
+            datarequest is larger, a csv file is writen to your google drive.
+            Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+            method.)
+
+            >>> era5.modeldf
+                                                  temp
+            name      datetime
+            vlinder01 2022-09-04 00:00:00+00:00  17.71
+                      2022-09-04 01:00:00+00:00  17.56
+                      2022-09-04 02:00:00+00:00  17.24
+                      2022-09-04 03:00:00+00:00  16.75
+                      2022-09-04 04:00:00+00:00  16.33
+            ...                                    ...
+            vlinder28 2022-09-04 20:00:00+00:00  21.40
+                      2022-09-04 21:00:00+00:00  20.91
+                      2022-09-04 22:00:00+00:00  20.51
+                      2022-09-04 23:00:00+00:00  20.28
+                      2022-09-05 00:00:00+00:00  20.13
+            <BLANKLINE>
+            [700 rows x 1 columns]
 
 
-        (As you can see, the timeseries are automatically converted to the
-         toolkit standards of the Obstype: °C)
+            (As you can see, the timeseries are automatically converted to the
+             toolkit standards of the Obstype: °C)
 
-        Now we can plot the timeseries. We can plot the observations in the
-        same figure aswell.
+            Now we can plot the timeseries. We can plot the observations in the
+            same figure aswell.
 
-        >>> era5.make_plot(
-        ...     obstype_model="temp", #plot temperature timeseries of the model (=era5)
-        ...     Dataset=dataset,
-        ...     obstype_dataset='temp') #plot temperature observations
-        <Axes: title={'center': 'ERA5-land and temp observations.'}, ylabel='temp ...
+            >>> era5.make_plot(
+            ...     obstype_model="temp", #plot temperature timeseries of the model (=era5)
+            ...     Dataset=dataset,
+            ...     obstype_dataset='temp') #plot temperature observations
+            <Axes: title={'center': 'ERA5-land and temp observations.'}, ylabel='temp ...
         """
         logger.info(f"Make {obstype_model}-timeseries plot of model data")
 

@@ -96,55 +96,66 @@ class DatasetQCCore:
         Examples
         --------
 
-        We start by creating a Dataset, and importing data.
-
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> print(dataset)
-        Dataset instance containing:
-             *28 stations
-             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-             *483828 observation records (not Nan's)
-             *0 records labeled as outliers
-             *8 gaps
-             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-             *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-             *Coordinates are available for all stations.
+        .. plot::
+            :context: close-figs
 
 
+            We start by creating a Dataset, and importing data.
 
-        For this example we reduce the data by coarsening the time resolution
-        to hourly. After the resampling, we apply quality control.
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *483828 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *8 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
 
-        >>> dataset.coarsen_time_resolution(freq='1h')
-        >>> dataset.apply_quality_control(obstype='temp')
 
-        To inspect the effectivenes of the qualit control, we can plot the dataset
-        timeseries with `colorby='label'`.
 
-        >>> dataset.make_plot(obstype='temp', colorby='label')
-        <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+            For this example we reduce the data by coarsening the time resolution
+            to hourly. After the resampling, we apply quality control.
 
-        Often it is clearer to plot the timeseries of a single station.
+            >>> dataset.coarsen_time_resolution(freq='1h')
+            >>> dataset.apply_quality_control(obstype='temp')
 
-        >>> dataset.get_station('vlinder05').make_plot(obstype='temp', colorby='label')
-        <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
+            To inspect the effectivenes of the qualit control, we can plot the dataset
+            timeseries with `colorby='label'`.
 
-        If you want more details on the effectivenes of the applied quality
-        control, then we use the `Dataset.get_qc_stats()` method, to compute
-        effectiveness statistis and to plot them as a collection of pie-charts.
+            >>> dataset.make_plot(obstype='temp', colorby='label')
+            <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
 
-        >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
-        >>> final_stats
-        {'ok': 83.37301587301587, 'QC outliers': 16.626984126984127, 'gaps (filled/unfilled)': 0.0}
+        .. plot::
+            :context: close-figs
+
+            Often it is clearer to plot the timeseries of a single station.
+
+            >>> dataset.get_station('vlinder05').make_plot(obstype='temp', colorby='label')
+            <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            If you want more details on the effectivenes of the applied quality
+            control, then we use the `Dataset.get_qc_stats()` method, to compute
+            effectiveness statistis and to plot them as a collection of pie-charts.
+
+            >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
+            >>> final_stats
+            {'ok': 83.37301587301587, 'QC outliers': 16.626984126984127, 'gaps (filled/unfilled)': 0.0}
+
         """
         # cobmine all and get final label
         comb_df = self.get_full_status_df(return_as_wide=False)
@@ -326,84 +337,92 @@ class DatasetQCCore:
 
         Examples
         --------
+        .. plot::
+            :context: close-figs
 
-        We start by creating a Dataset, and importing data.
+            We start by creating a Dataset, and importing data.
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> print(dataset)
-        Dataset instance containing:
-             *28 stations
-             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-             *483828 observation records (not Nan's)
-             *0 records labeled as outliers
-             *8 gaps
-             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-             *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-             *Coordinates are available for all stations.
-
-
-        For this example we reduce the data by coarsening the time resolution
-        to hourly. It is important to resample the time resolution in advance of
-        applying quality control since some checks depend on the records frequency!
-
-        >>> dataset.coarsen_time_resolution(freq='1h')
-
-        There are default settings for quality control (for temperature). These
-        are stored in the `Dataset.settings` attribute. We can inspect them directly,
-        or by using the `Datatest.show_settings()` method.
-
-        >>> dataset.settings.qc['qc_check_settings']
-        {'duplicated_timestamp': {'keep': False}, 'persistance': {'temp': {'time_window_to_check': '1h', 'min_num_obs': 5}}, 'repetitions': {'temp': {'max_valid_repetitions': 5}}, 'gross_value': {'temp': {'min_value': -15.0, 'max_value': 39.0}}, 'window_variation': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': 0.002777777777777778, 'time_window_to_check': '1h', 'min_window_members': 3}}, 'step': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': -0.002777777777777778}}, 'buddy_check': {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}}
-        >>> dataset.show_settings()
-        All settings: ...
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *483828 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *8 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
 
 
-        We can change the (default) settings for QC using the `Dataset.update_qc_settings()`
-        method. These settings are observationtype dependant!
+            For this example we reduce the data by coarsening the time resolution
+            to hourly. It is important to resample the time resolution in advance of
+            applying quality control since some checks depend on the records frequency!
 
-        >>> dataset.update_qc_settings(
-        ...                obstype='temp',
-        ...                gross_value_max_value=26.0,
-        ...                step_max_increase_per_sec=6.5/3600,
-        ...                rep_max_valid_repetitions=4) #depends highly on records frequency!
+            >>> dataset.coarsen_time_resolution(freq='1h')
 
-        >>> dataset.update_qc_settings(
-        ...                obstype='humidity',
-        ...                gross_value_min_value = 0.,
-        ...                gross_value_max_value=100.0)
+            There are default settings for quality control (for temperature). These
+            are stored in the `Dataset.settings` attribute. We can inspect them directly,
+            or by using the `Datatest.show_settings()` method.
 
-
-        Now that the QC settings are adjusted, we can apply standard QC checks.
-
-        >>> dataset.apply_quality_control(obstype='temp')
-        >>> dataset.apply_quality_control(obstype='humidity')
+            >>> dataset.settings.qc['qc_check_settings']
+            {'duplicated_timestamp': {'keep': False}, 'persistance': {'temp': {'time_window_to_check': '1h', 'min_num_obs': 5}}, 'repetitions': {'temp': {'max_valid_repetitions': 5}}, 'gross_value': {'temp': {'min_value': -15.0, 'max_value': 39.0}}, 'window_variation': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': 0.002777777777777778, 'time_window_to_check': '1h', 'min_window_members': 3}}, 'step': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': -0.002777777777777778}}, 'buddy_check': {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}}
+            >>> dataset.show_settings()
+            All settings: ...
 
 
-        To inspect the effectivenes of the qualit control, we can plot the dataset
-        timeseries with `colorby='label'`.
+            We can change the (default) settings for QC using the `Dataset.update_qc_settings()`
+            method. These settings are observationtype dependant!
 
-        >>> dataset.make_plot(obstype='temp', colorby='label')
-        <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+            >>> dataset.update_qc_settings(
+            ...                obstype='temp',
+            ...                gross_value_max_value=26.0,
+            ...                step_max_increase_per_sec=6.5/3600,
+            ...                rep_max_valid_repetitions=4) #depends highly on records frequency!
 
-        Often it is clearer to plot the timeseries of a single station.
+            >>> dataset.update_qc_settings(
+            ...                obstype='humidity',
+            ...                gross_value_min_value = 0.,
+            ...                gross_value_max_value=100.0)
 
-        >>> dataset.get_station('vlinder05').make_plot(obstype='temp', colorby='label')
-        <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
 
-        If you want more details on the effectivenes of the applied quality
-        control, then we use the `Dataset.get_qc_stats()` method, to compute
-        effectiveness statistis and to plot them as a collection of pie-charts.
+            Now that the QC settings are adjusted, we can apply standard QC checks.
 
-        >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
+            >>> dataset.apply_quality_control(obstype='temp')
+            >>> dataset.apply_quality_control(obstype='humidity')
+
+
+            To inspect the effectivenes of the qualit control, we can plot the dataset
+            timeseries with `colorby='label'`.
+
+            >>> dataset.make_plot(obstype='temp', colorby='label')
+            <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            Often it is clearer to plot the timeseries of a single station.
+
+            >>> dataset.get_station('vlinder05').make_plot(obstype='temp', colorby='label')
+            <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            If you want more details on the effectivenes of the applied quality
+            control, then we use the `Dataset.get_qc_stats()` method, to compute
+            effectiveness statistis and to plot them as a collection of pie-charts.
+
+            >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
 
         """
         if repetitions:

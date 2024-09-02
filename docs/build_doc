@@ -6,12 +6,11 @@ rm -r _build/*
 rm -r _autosummary/*
 
 
-#sphinx-autogen index.rst
 
 
 
 cd ..
 
 sphinx-build -a -E -v docs/ docs/_build/
-
+#sphinx-build -v docs/ docs/_build/
 cd docs

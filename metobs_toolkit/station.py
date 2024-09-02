@@ -36,6 +36,7 @@ class Station(Dataset):
         self._set_settings(settings)
         self._set_gaps(gaps)
         self._set_gee_dataset(gee_datasets)
+        self._set_outliersdf(outliersdf)
 
         self._applied_qc = _applied_qc
 

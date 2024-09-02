@@ -45,7 +45,7 @@ Developers methods and attributes for Obstype
 
 .. _ModelObstype api:
 
-==============================
+===============================
 Obstypes used for GEE datasets
 ===============================
 

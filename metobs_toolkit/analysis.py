@@ -374,77 +374,81 @@ class Analysis(Dataset):
 
         Examples
         --------
-        An Analysis is always created from a Dataset, so we start by creating
-        a Dataset and importing data into it.
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
+        .. plot::
+            :context: close-figs
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+            An Analysis is always created from a Dataset, so we start by creating
+            a Dataset and importing data into it.
 
-        >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana # doctest: +ELLIPSIS
-        Instance of Analysis at ...
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
 
-        To get all possible filter keywords we use the `get_possible_filter_keywords()`
-        method. We can also inspect the records in a pandas.DataFrame format
-        to look for thresholds for the filter.
+            Now we have a dataset containing records. We now create a Analysis from it.
 
-        >>> ana.get_possible_filter_keywords()
-        ['dataset_resolution', 'datetime', 'day_of_year', 'dt_end', 'dt_start', 'geometry', 'hour', 'humidity', 'lat', 'lon', 'minute', 'month', 'name', 'school', 'season', 'temp', 'week_of_year', 'wind_direction', 'wind_speed', 'year']
+            >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+            >>> ana # doctest: +ELLIPSIS
+            Instance of Analysis at ...
 
-        >>> df = ana.get_analysis_records()
-        >>> df
-        obstype                              humidity  temp  wind_direction  wind_speed
-        name      datetime
-        vlinder01 2022-09-01 00:00:00+00:00      65.0  18.8            65.0        1.56
-                  2022-09-01 00:05:00+00:00      65.0  18.8            75.0        1.53
-                  2022-09-01 00:10:00+00:00      65.0  18.8            75.0        1.42
-                  2022-09-01 00:15:00+00:00      65.0  18.7            85.0        1.67
-                  2022-09-01 00:20:00+00:00      65.0  18.7            65.0        1.39
-        ...                                       ...   ...             ...         ...
-        vlinder28 2022-09-15 23:35:00+00:00      77.0  13.4           275.0        0.00
-                  2022-09-15 23:40:00+00:00      77.0  13.3           275.0        0.00
-                  2022-09-15 23:45:00+00:00      77.0  13.2           275.0        0.00
-                  2022-09-15 23:50:00+00:00      77.0  13.2           275.0        0.00
-                  2022-09-15 23:55:00+00:00      77.0  13.0           285.0        0.00
-        <BLANKLINE>
-        [120960 rows x 4 columns]
+            To get all possible filter keywords we use the `get_possible_filter_keywords()`
+            method. We can also inspect the records in a pandas.DataFrame format
+            to look for thresholds for the filter.
 
-        We create a filter and apply it
+            >>> ana.get_possible_filter_keywords()
+            ['dataset_resolution', 'datetime', 'day_of_year', 'dt_end', 'dt_start', 'geometry', 'hour', 'humidity', 'lat', 'lon', 'minute', 'month', 'name', 'school', 'season', 'temp', 'week_of_year', 'wind_direction', 'wind_speed', 'year']
 
-        >>> filtered_ana = ana.apply_filter(
-        ... expression="temp <= 16.3 & wind_direction > 180 & season=='autumn'")
-        >>>
-        >>> filtered_ana.get_analysis_records()
-        obstype                              humidity  temp  wind_direction  wind_speed
-        name      datetime
-        vlinder01 2022-09-01 00:00:00+00:00       NaN   NaN             NaN         NaN
-                  2022-09-01 00:05:00+00:00       NaN   NaN             NaN         NaN
-                  2022-09-01 00:10:00+00:00       NaN   NaN             NaN         NaN
-                  2022-09-01 00:15:00+00:00       NaN   NaN             NaN         NaN
-                  2022-09-01 00:20:00+00:00       NaN   NaN             NaN         NaN
-        ...                                       ...   ...             ...         ...
-        vlinder28 2022-09-15 23:35:00+00:00      77.0  13.4           275.0         0.0
-                  2022-09-15 23:40:00+00:00      77.0  13.3           275.0         0.0
-                  2022-09-15 23:45:00+00:00      77.0  13.2           275.0         0.0
-                  2022-09-15 23:50:00+00:00      77.0  13.2           275.0         0.0
-                  2022-09-15 23:55:00+00:00      77.0  13.0           285.0         0.0
-        <BLANKLINE>
-        [120960 rows x 4 columns]
+            >>> df = ana.get_analysis_records()
+            >>> df
+            obstype                              humidity  temp  wind_direction  wind_speed
+            name      datetime
+            vlinder01 2022-09-01 00:00:00+00:00      65.0  18.8            65.0        1.56
+                      2022-09-01 00:05:00+00:00      65.0  18.8            75.0        1.53
+                      2022-09-01 00:10:00+00:00      65.0  18.8            75.0        1.42
+                      2022-09-01 00:15:00+00:00      65.0  18.7            85.0        1.67
+                      2022-09-01 00:20:00+00:00      65.0  18.7            65.0        1.39
+            ...                                       ...   ...             ...         ...
+            vlinder28 2022-09-15 23:35:00+00:00      77.0  13.4           275.0        0.00
+                      2022-09-15 23:40:00+00:00      77.0  13.3           275.0        0.00
+                      2022-09-15 23:45:00+00:00      77.0  13.2           275.0        0.00
+                      2022-09-15 23:50:00+00:00      77.0  13.2           275.0        0.00
+                      2022-09-15 23:55:00+00:00      77.0  13.0           285.0        0.00
+            <BLANKLINE>
+            [120960 rows x 4 columns]
 
-        All records that do not meet the filter are converted to NaN. These values
-        will be ignored in all methods of the `Analysis` class.
+            We create a filter and apply it
 
-        >>> filtered_ana.make_plot(obstype='temp')
-        <Axes: ylabel='temp (Celsius)'>
+            >>> filtered_ana = ana.apply_filter(
+            ... expression="temp <= 16.3 & wind_direction > 180 & season=='autumn'")
+            >>>
+            >>> filtered_ana.get_analysis_records()
+            obstype                              humidity  temp  wind_direction  wind_speed
+            name      datetime
+            vlinder01 2022-09-01 00:00:00+00:00       NaN   NaN             NaN         NaN
+                      2022-09-01 00:05:00+00:00       NaN   NaN             NaN         NaN
+                      2022-09-01 00:10:00+00:00       NaN   NaN             NaN         NaN
+                      2022-09-01 00:15:00+00:00       NaN   NaN             NaN         NaN
+                      2022-09-01 00:20:00+00:00       NaN   NaN             NaN         NaN
+            ...                                       ...   ...             ...         ...
+            vlinder28 2022-09-15 23:35:00+00:00      77.0  13.4           275.0         0.0
+                      2022-09-15 23:40:00+00:00      77.0  13.3           275.0         0.0
+                      2022-09-15 23:45:00+00:00      77.0  13.2           275.0         0.0
+                      2022-09-15 23:50:00+00:00      77.0  13.2           275.0         0.0
+                      2022-09-15 23:55:00+00:00      77.0  13.0           285.0         0.0
+            <BLANKLINE>
+            [120960 rows x 4 columns]
+
+            All records that do not meet the filter are converted to NaN. These values
+            will be ignored in all methods of the `Analysis` class.
+
+            >>> filtered_ana.make_plot(obstype='temp')
+            <Axes: ylabel='temp (Celsius)'>
 
         """
         logger.info(f"applying filter ({expression}) on {self.__repr__()}")
@@ -723,45 +727,49 @@ class Analysis(Dataset):
         Examples
         --------
 
-        An Analysis is always created from a Dataset, so we start by creating
-        a Dataset and importing data into it.
+        .. plot::
+            :context: close-figs
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> # Get LCZ (so we can aggregate per LCZ)
-        >>> lcz_series = dataset.get_lcz()
+            An Analysis is always created from a Dataset, so we start by creating
+            a Dataset and importing data into it.
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> # Get LCZ (so we can aggregate per LCZ)
+            >>> lcz_series = dataset.get_lcz()
 
-        >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana # doctest: +ELLIPSIS
-        Instance of Analysis at ...
+            Now we have a dataset containing records. We now create a Analysis from it.
 
-        We can create a anual cycle, and aggregate to the LCZ.
+            >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+            >>> ana # doctest: +ELLIPSIS
+            Instance of Analysis at ...
 
-        >>> anual_aggdf = ana.get_anual_statistics(
-        ...                     groupby=["lcz"],
-        ...                     obstype="temp",
-        ...                     agg_method="mean",
-        ...                     plot=True,
-        ...                     errorbands=False)
-        >>> anual_aggdf[7:]
-        lcz        Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  ...  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)
-        month                                                                               ...
-        August                 NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
-        September            19.32                17.52          18.76               18.21  ...         18.63                    17.99           18.21           19.1
-        October                NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
-        November               NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
-        December               NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
-        <BLANKLINE>
-        [5 rows x 10 columns]
+            We can create a anual cycle, and aggregate to the LCZ.
+
+            >>> anual_aggdf = ana.get_anual_statistics(
+            ...                     groupby=["lcz"],
+            ...                     obstype="temp",
+            ...                     agg_method="mean",
+            ...                     plot=True,
+            ...                     errorbands=False)
+            >>> anual_aggdf[7:]
+            lcz        Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  ...  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)
+            month                                                                               ...
+            August                 NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
+            September            19.32                17.52          18.76               18.21  ...         18.63                    17.99           18.21           19.1
+            October                NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
+            November               NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
+            December               NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
+            <BLANKLINE>
+            [5 rows x 10 columns]
+
         """
         # arg format checks
         startdt = self._datetime_arg_check(startdt)
@@ -809,120 +817,129 @@ class Analysis(Dataset):
         _return_all_stats=False,
     ):
         """
-        Create an average diurnal cycle for the observations.
+            Create an average diurnal cycle for the observations.
 
-        (In the plot, each station is represed by a line.)
+            (In the plot, each station is represed by a line.)
 
 
-        Parameters
-        ----------
-        colorby : 'name' or 'lcz', optional
-            If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
-        obstype : str, optional
-            Element of the metobs_toolkit.observation_types The default is 'temp'.
-        stations : list, optional
-            List of station names to use. If None, all present stations will be used. The default is None.
-        startdt : datetime.datetime, optional
-            The start datetime of the observations to use. If None, all timestamps will be used. The default is None.
-        enddt : datetime.datetime, optional
-            The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
-        plot : bool, optional
-            If True, an diurnal plot is made. The default is True.
-        title : string, optional
-             Title of the figure, if None a default title is generated. The default is None.
-        legend : bool, optional
-             I True, a legend is added to the plot. The default is True.
-        errorbands : bool, optional
-            If True, the std is representd in the plot by colored bands. The default is False.
+            Parameters
+            ----------
+            colorby : 'name' or 'lcz', optional
+                If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
+            obstype : str, optional
+                Element of the metobs_toolkit.observation_types The default is 'temp'.
+            stations : list, optional
+                List of station names to use. If None, all present stations will be used. The default is None.
+            startdt : datetime.datetime, optional
+                The start datetime of the observations to use. If None, all timestamps will be used. The default is None.
+            enddt : datetime.datetime, optional
+                The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
+            plot : bool, optional
+                If True, an diurnal plot is made. The default is True.
+            title : string, optional
+                 Title of the figure, if None a default title is generated. The default is None.
+            legend : bool, optional
+                 I True, a legend is added to the plot. The default is True.
+            errorbands : bool, optional
+                If True, the std is representd in the plot by colored bands. The default is False.
 
-        Returns
-        -------
-        df : pandas.DataFrame()
-            The dataframe containing the aggregated values.
+            Returns
+            -------
+            df : pandas.DataFrame()
+                The dataframe containing the aggregated values.
 
-        See Also
-        --------
+            See Also
+            --------
 
-        Analysis: The Analysis class
-        Analysis.aggregate_df: Data method for aggregating Analysis data.
-        Analysis.get_diurnal_statistics_with_reference: Diurnal difference to reference cycle.
-        Analysis.get_anual_statistics: Aggregate to anual cycle.
+            Analysis: The Analysis class
+            Analysis.aggregate_df: Data method for aggregating Analysis data.
+            Analysis.get_diurnal_statistics_with_reference: Diurnal difference to reference cycle.
+            Analysis.get_anual_statistics: Aggregate to anual cycle.
 
-        Note
-        --------
-        If a timezone unaware datetime is given as an argument, it is interpreted
-        as if it has the same timezone as the observations.
+            Note
+            --------
+            If a timezone unaware datetime is given as an argument, it is interpreted
+            as if it has the same timezone as the observations.
 
-        Examples
-        --------
+            Examples
+            --------
 
-        An Analysis is always created from a Dataset, so we start by creating
-        a Dataset and importing data into it.
+            .. plot::
+                :context: close-figs
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> # Get LCZ (so we can aggregate per LCZ)
-        >>> lcz_series = dataset.get_lcz()
+                An Analysis is always created from a Dataset, so we start by creating
+                a Dataset and importing data into it.
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+                >>> import metobs_toolkit
+                >>>
+                >>> #Create your Dataset
+                >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+                >>> dataset.import_data_from_file(
+                ...                         input_data_file=metobs_toolkit.demo_datafile,
+                ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+                ...                         template_file=metobs_toolkit.demo_template,
+                ...                         )
+                >>> # Get LCZ (so we can aggregate per LCZ)
+                >>> lcz_series = dataset.get_lcz()
 
-        >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
-        Instance of Analysis at ...
+                Now we have a dataset containing records. We now create a Analysis from it.
 
-        We can create a diurnal cycle for each station
+                >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+                >>> ana
+                Instance of Analysis at ...
 
-        >>> diurnal_aggdf = ana.get_diurnal_statistics(
-        ...                      colorby="name",
-        ...                      obstype="temp",
-        ...                      plot=False)
+                We can create a diurnal cycle for each station
 
-        >>> diurnal_aggdf
-        name  vlinder01  vlinder02  vlinder03  vlinder04  ...  vlinder25  vlinder26  vlinder27  vlinder28
-        hour                                              ...
-        0         16.19      16.95      16.35      14.81  ...      17.61      16.84      17.84      15.22
-        1         15.59      16.45      15.76      14.34  ...      17.14      16.26      17.28      14.74
-        2         15.09      15.90      15.13      13.47  ...      16.62      15.61      16.76      14.08
-        3         15.21      15.80      14.87      13.32  ...      16.38      15.42      16.57      13.87
-        4         15.24      15.64      14.72      13.28  ...      16.09      15.22      16.34      13.81
-        ...         ...        ...        ...        ...  ...        ...        ...        ...        ...
-        19        17.90      18.77      19.02      17.44  ...      19.05      19.56      19.69      17.55
-        20        17.08      18.07      18.23      16.55  ...      18.53      18.65      19.01      16.61
-        21        16.65      17.55      17.55      15.95  ...      18.18      18.04      18.52      16.00
-        22        16.39      17.11      16.96      15.30  ...      17.80      17.51      18.12      15.56
-        23        15.99      16.83      16.42      14.77  ...      17.51      16.95      17.81      15.22
-        <BLANKLINE>
-        [24 rows x 28 columns]
+                >>> diurnal_aggdf = ana.get_diurnal_statistics(
+                ...                      colorby="name",
+                ...                      obstype="temp",
+                ...                      plot=True)
 
-        We can also aggregate them in groups. As an example, we group them by LCZ.
-        >>> diurnal_lcz_aggdf = ana.get_diurnal_statistics(
-        ...                      colorby="lcz",
-        ...                      obstype="temp",
-        ...                      plot=True)
+        .. plot::
+            :context: close-figs
 
-        >>> diurnal_lcz_aggdf
-        lcz   Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  ...  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)
-        hour                                                                           ...
-        0               17.74                16.14          16.95               15.97  ...         16.60                    15.58           16.23          18.22
-        1               17.23                15.57          16.45               15.54  ...         16.01                    15.11           15.81          17.88
-        2               16.66                15.09          15.90               14.93  ...         15.37                    14.30           15.20          17.57
-        3               16.42                14.91          15.80               14.82  ...         15.14                    14.16           15.00          17.39
-        4               16.21                14.77          15.64               14.66  ...         14.97                    13.97           14.87          17.21
-        ...               ...                  ...            ...                 ...  ...           ...                      ...             ...            ...
-        19              19.69                17.29          18.77               17.80  ...         19.29                    17.63           18.02          19.38
-        20              19.10                16.74          18.07               17.06  ...         18.44                    17.04           17.37          18.93
-        21              18.54                16.46          17.55               16.60  ...         17.79                    16.52           16.97          18.55
-        22              18.03                16.15          17.11               16.27  ...         17.24                    15.96           16.52          18.32
-        23              17.70                15.89          16.83               15.88  ...         16.68                    15.54           16.16          18.13
-        <BLANKLINE>
-        [24 rows x 10 columns]
+            >>> diurnal_aggdf
+            name  vlinder01  vlinder02  vlinder03  vlinder04  ...  vlinder25  vlinder26  vlinder27  vlinder28
+            hour                                              ...
+            0         16.19      16.95      16.35      14.81  ...      17.61      16.84      17.84      15.22
+            1         15.59      16.45      15.76      14.34  ...      17.14      16.26      17.28      14.74
+            2         15.09      15.90      15.13      13.47  ...      16.62      15.61      16.76      14.08
+            3         15.21      15.80      14.87      13.32  ...      16.38      15.42      16.57      13.87
+            4         15.24      15.64      14.72      13.28  ...      16.09      15.22      16.34      13.81
+            ...         ...        ...        ...        ...  ...        ...        ...        ...        ...
+            19        17.90      18.77      19.02      17.44  ...      19.05      19.56      19.69      17.55
+            20        17.08      18.07      18.23      16.55  ...      18.53      18.65      19.01      16.61
+            21        16.65      17.55      17.55      15.95  ...      18.18      18.04      18.52      16.00
+            22        16.39      17.11      16.96      15.30  ...      17.80      17.51      18.12      15.56
+            23        15.99      16.83      16.42      14.77  ...      17.51      16.95      17.81      15.22
+            <BLANKLINE>
+            [24 rows x 28 columns]
+
+            We can also aggregate them in groups. As an example, we group them by LCZ.
+            >>> diurnal_lcz_aggdf = ana.get_diurnal_statistics(
+            ...                      colorby="lcz",
+            ...                      obstype="temp",
+            ...                      plot=True)
+
+        .. plot::
+            :context: close-figs
+
+            >>> diurnal_lcz_aggdf
+            lcz   Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  ...  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)
+            hour                                                                           ...
+            0               17.74                16.14          16.95               15.97  ...         16.60                    15.58           16.23          18.22
+            1               17.23                15.57          16.45               15.54  ...         16.01                    15.11           15.81          17.88
+            2               16.66                15.09          15.90               14.93  ...         15.37                    14.30           15.20          17.57
+            3               16.42                14.91          15.80               14.82  ...         15.14                    14.16           15.00          17.39
+            4               16.21                14.77          15.64               14.66  ...         14.97                    13.97           14.87          17.21
+            ...               ...                  ...            ...                 ...  ...           ...                      ...             ...            ...
+            19              19.69                17.29          18.77               17.80  ...         19.29                    17.63           18.02          19.38
+            20              19.10                16.74          18.07               17.06  ...         18.44                    17.04           17.37          18.93
+            21              18.54                16.46          17.55               16.60  ...         17.79                    16.52           16.97          18.55
+            22              18.03                16.15          17.11               16.27  ...         17.24                    15.96           16.52          18.32
+            23              17.70                15.89          16.83               15.88  ...         16.68                    15.54           16.16          18.13
+            <BLANKLINE>
+            [24 rows x 10 columns]
         """
         # arg format checks
         startdt = self._datetime_arg_check(startdt)
@@ -1040,53 +1057,56 @@ class Analysis(Dataset):
         Examples
         --------
 
-        An Analysis is always created from a Dataset, so we start by creating
-        a Dataset and importing data into it.
+        .. plot::
+            :context: close-figs
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
+            An Analysis is always created from a Dataset, so we start by creating
+            a Dataset and importing data into it.
 
-        Now we have a dataset containing records. We now create an Analysis from it.
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
 
-        >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
-        Instance of Analysis at ...
+            Now we have a dataset containing records. We now create an Analysis from it.
 
-        We can create a diurnal cycle for each station but rather than displaying
-        the average observation value, we present the instantanious difference
-        with a reference station. By doing so, we can subtract 'the weather' from
-        'the climate'.
+            >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+            >>> ana
+            Instance of Analysis at ...
 
-        >>> diurnal_diff_aggdf = ana.get_diurnal_statistics_with_reference(
-        ...                      refstation ="vlinder02",
-        ...                      colorby="name",
-        ...                      obstype="temp",
-        ...                      tolerance="20min",
-        ...                      plot=False)
+            We can create a diurnal cycle for each station but rather than displaying
+            the average observation value, we present the instantanious difference
+            with a reference station. By doing so, we can subtract 'the weather' from
+            'the climate'.
 
-        >>> diurnal_diff_aggdf
-        name  vlinder01  vlinder03  vlinder04  vlinder05  ...  vlinder25  vlinder26  vlinder27  vlinder28
-        hour                                              ...
-        0         -0.76  -5.97e-01      -2.14       1.70  ...       0.66      -0.11       0.89      -1.73
-        1         -0.87  -6.89e-01      -2.12       2.20  ...       0.69      -0.19       0.83      -1.71
-        2         -0.81  -7.71e-01      -2.43       2.75  ...       0.72      -0.29       0.86      -1.82
-        3         -0.59  -9.28e-01      -2.47       2.85  ...       0.58      -0.38       0.77      -1.92
-        4         -0.40  -9.16e-01      -2.36       3.01  ...       0.45      -0.42       0.70      -1.83
-        ...         ...        ...        ...        ...  ...        ...        ...        ...        ...
-        19        -0.87   2.56e-01      -1.33       0.12  ...       0.28       0.79       0.93      -1.22
-        20        -0.99   1.67e-01      -1.52       0.55  ...       0.46       0.59       0.94      -1.46
-        21        -0.90   3.89e-03      -1.60       0.86  ...       0.63       0.49       0.97      -1.54
-        22        -0.72  -1.52e-01      -1.81       1.29  ...       0.68       0.40       1.01      -1.56
-        23        -0.84  -4.12e-01      -2.06       1.58  ...       0.68       0.12       0.98      -1.61
-        <BLANKLINE>
-        [24 rows x 27 columns]
+            >>> diurnal_diff_aggdf = ana.get_diurnal_statistics_with_reference(
+            ...                      refstation ="vlinder02",
+            ...                      colorby="name",
+            ...                      obstype="temp",
+            ...                      tolerance="20min",
+            ...                      plot=True)
+
+            >>> diurnal_diff_aggdf
+            name  vlinder01  vlinder03  vlinder04  vlinder05  ...  vlinder25  vlinder26  vlinder27  vlinder28
+            hour                                              ...
+            0         -0.76  -5.97e-01      -2.14       1.70  ...       0.66      -0.11       0.89      -1.73
+            1         -0.87  -6.89e-01      -2.12       2.20  ...       0.69      -0.19       0.83      -1.71
+            2         -0.81  -7.71e-01      -2.43       2.75  ...       0.72      -0.29       0.86      -1.82
+            3         -0.59  -9.28e-01      -2.47       2.85  ...       0.58      -0.38       0.77      -1.92
+            4         -0.40  -9.16e-01      -2.36       3.01  ...       0.45      -0.42       0.70      -1.83
+            ...         ...        ...        ...        ...  ...        ...        ...        ...        ...
+            19        -0.87   2.56e-01      -1.33       0.12  ...       0.28       0.79       0.93      -1.22
+            20        -0.99   1.67e-01      -1.52       0.55  ...       0.46       0.59       0.94      -1.46
+            21        -0.90   3.89e-03      -1.60       0.86  ...       0.63       0.49       0.97      -1.54
+            22        -0.72  -1.52e-01      -1.81       1.29  ...       0.68       0.40       1.01      -1.56
+            23        -0.84  -4.12e-01      -2.06       1.58  ...       0.68       0.12       0.98      -1.61
+            <BLANKLINE>
+            [24 rows x 27 columns]
 
         """
         # arg format checks
@@ -1252,59 +1272,62 @@ class Analysis(Dataset):
         Examples
         --------
 
-        An Analysis is always created from a Dataset, so we start by creating
-        a Dataset and importing data into it.
+        .. plot::
+            :context: close-figs
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> # Get LCZ (so we can aggregate per LCZ)
-        >>> lcz_series = dataset.get_lcz()
+            An Analysis is always created from a Dataset, so we start by creating
+            a Dataset and importing data into it.
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> # Get LCZ (so we can aggregate per LCZ)
+            >>> lcz_series = dataset.get_lcz()
 
-        >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
-        Instance of Analysis at ...
+            Now we have a dataset containing records. We now create a Analysis from it.
 
-        If your are intereseted in the diurnal cycles of your stations grouped
-        per LCZ and compare them per season, we can do so by:
+            >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+            >>> ana
+            Instance of Analysis at ...
 
-        >>> custom_aggdf = ana.get_aggregated_cycle_statistics(
-        ...     obstype="temp",
-        ...     aggregation=["lcz", "season"],
-        ...     aggregation_method="mean",
-        ...     horizontal_axis="hour",
-        ...     stations=None,
-        ...     startdt=None,
-        ...     enddt=None,
-        ...     plot=True,
-        ...     title=None,
-        ...     y_label=None,
-        ...     legend=True)
+            If your are intereseted in the diurnal cycles of your stations grouped
+            per LCZ and compare them per season, we can do so by:
 
-        >>> custom_aggdf
-              Compact midrise ,autumn  Dense Trees (LCZ A) ,autumn  Large lowrise ,autumn  Low plants (LCZ D) ,autumn  ...  Open midrise ,autumn  Scattered Trees (LCZ B) ,autumn  Sparsely built ,autumn  Water (LCZ G) ,autumn
-        hour                                                                                                           ...
-        0                       17.74                     16.14                     16.95                     15.97    ...                 16.60                     15.58                          16.23                  18.22
-        1                       17.23                     15.57                     16.45                     15.54    ...                 16.01                     15.11                          15.81                  17.88
-        2                       16.66                     15.09                     15.90                     14.93    ...                 15.37                     14.30                          15.20                  17.57
-        3                       16.42                     14.91                     15.80                     14.82    ...                 15.14                     14.16                          15.00                  17.39
-        4                       16.21                     14.77                     15.64                     14.66    ...                 14.97                     13.97                          14.87                  17.21
-        ...                       ...                       ...                       ...                       ...    ...                   ...                       ...                            ...                    ...
-        19                      19.69                     17.29                     18.77                     17.80    ...                 19.29                     17.63                          18.02                  19.38
-        20                      19.10                     16.74                     18.07                     17.06    ...                 18.44                     17.04                          17.37                  18.93
-        21                      18.54                     16.46                     17.55                     16.60    ...                 17.79                     16.52                          16.97                  18.55
-        22                      18.03                     16.15                     17.11                     16.27    ...                 17.24                     15.96                          16.52                  18.32
-        23                      17.70                     15.89                     16.83                     15.88    ...                 16.68                     15.54                          16.16                  18.13
-        <BLANKLINE>
-        [24 rows x 10 columns]
+            >>> custom_aggdf = ana.get_aggregated_cycle_statistics(
+            ...     obstype="temp",
+            ...     aggregation=["lcz", "season"],
+            ...     aggregation_method="mean",
+            ...     horizontal_axis="hour",
+            ...     stations=None,
+            ...     startdt=None,
+            ...     enddt=None,
+            ...     plot=True,
+            ...     title=None,
+            ...     y_label=None,
+            ...     legend=True)
+
+            >>> custom_aggdf
+                  Compact midrise ,autumn  Dense Trees (LCZ A) ,autumn  Large lowrise ,autumn  Low plants (LCZ D) ,autumn  ...  Open midrise ,autumn  Scattered Trees (LCZ B) ,autumn  Sparsely built ,autumn  Water (LCZ G) ,autumn
+            hour                                                                                                           ...
+            0                       17.74                     16.14                     16.95                     15.97    ...                 16.60                     15.58                          16.23                  18.22
+            1                       17.23                     15.57                     16.45                     15.54    ...                 16.01                     15.11                          15.81                  17.88
+            2                       16.66                     15.09                     15.90                     14.93    ...                 15.37                     14.30                          15.20                  17.57
+            3                       16.42                     14.91                     15.80                     14.82    ...                 15.14                     14.16                          15.00                  17.39
+            4                       16.21                     14.77                     15.64                     14.66    ...                 14.97                     13.97                          14.87                  17.21
+            ...                       ...                       ...                       ...                       ...    ...                   ...                       ...                            ...                    ...
+            19                      19.69                     17.29                     18.77                     17.80    ...                 19.29                     17.63                          18.02                  19.38
+            20                      19.10                     16.74                     18.07                     17.06    ...                 18.44                     17.04                          17.37                  18.93
+            21                      18.54                     16.46                     17.55                     16.60    ...                 17.79                     16.52                          16.97                  18.55
+            22                      18.03                     16.15                     17.11                     16.27    ...                 17.24                     15.96                          16.52                  18.32
+            23                      17.70                     15.89                     16.83                     15.88    ...                 16.68                     15.54                          16.16                  18.13
+            <BLANKLINE>
+            [24 rows x 10 columns]
         """
         # arg format checks
         startdt = self._datetime_arg_check(startdt)
@@ -1725,35 +1748,38 @@ class Analysis(Dataset):
         Examples
         --------
 
-        An Analysis is always created from a Dataset, so we start by creating
-        a Dataset and importing data into it.
+        .. plot::
+            :context: close-figs
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> # Get landcover fraction (to calculate correlations for)
-        >>> landcover_df = dataset.get_landcover(buffers=[250, 500], aggregate=True)
+            An Analysis is always created from a Dataset, so we start by creating
+            a Dataset and importing data into it.
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> # Get landcover fraction (to calculate correlations for)
+            >>> landcover_df = dataset.get_landcover(buffers=[250, 500], aggregate=True)
 
-        >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
-        Instance of Analysis at ...
+            Now we have a dataset containing records. We now create a Analysis from it.
 
-        As a demo, we calculate landcover correlations with temperature, and we
-        do this for each hour (thus aggregated to the hour --> diurnal caracteristics).
+            >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+            >>> ana
+            Instance of Analysis at ...
 
-        >>> cordict = ana.get_lc_correlation_matrices(obstype=["temp"], groupby_labels=["hour"])
+            As a demo, we calculate landcover correlations with temperature, and we
+            do this for each hour (thus aggregated to the hour --> diurnal caracteristics).
 
-        Now we can make a heatmap plot of the correlations at an hour of choice.
+            >>> cordict = ana.get_lc_correlation_matrices(obstype=["temp"], groupby_labels=["hour"])
 
-        >>> ana.plot_correlation_heatmap(groupby_value=5) #cor plot at 5 UTC
+            Now we can make a heatmap plot of the correlations at an hour of choice.
+
+            >>> ana.plot_correlation_heatmap(groupby_value=5) #cor plot at 5 UTC
 
 
         """
@@ -1827,36 +1853,39 @@ class Analysis(Dataset):
         Examples
         --------
 
-        An Analysis is always created from a Dataset, so we start by creating
-        a Dataset and importing data into it.
+        .. plot::
+            :context: close-figs
 
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> # Get landcover fraction (to calculate correlations for)
-        >>> landcover_df = dataset.get_landcover(buffers=[250, 500], aggregate=True)
+            An Analysis is always created from a Dataset, so we start by creating
+            a Dataset and importing data into it.
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> # Get landcover fraction (to calculate correlations for)
+            >>> landcover_df = dataset.get_landcover(buffers=[250, 500], aggregate=True)
 
-        >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
-        Instance of Analysis at ...
+            Now we have a dataset containing records. We now create a Analysis from it.
 
-        As a demo, we calculate landcover correlations with temperature, and we
-        do this for each hour (thus aggregated to the hour --> diurnal caracteristics).
+            >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+            >>> ana
+            Instance of Analysis at ...
 
-        >>> cordict = ana.get_lc_correlation_matrices(obstype=["temp"], groupby_labels=["hour"])
+            As a demo, we calculate landcover correlations with temperature, and we
+            do this for each hour (thus aggregated to the hour --> diurnal caracteristics).
 
-        Now we can make an avolution plot of the landcover correlations.
+            >>> cordict = ana.get_lc_correlation_matrices(obstype=["temp"], groupby_labels=["hour"])
 
-        >>> ana.plot_correlation_variation()
-        <Axes: title={'center': "Correlation scatter for group: ['hour']"}, xlabel="Groups of ['hour']", ylabel='Pearson correlation'>
+            Now we can make an avolution plot of the landcover correlations.
+
+            >>> ana.plot_correlation_variation()
+            <Axes: title={'center': "Correlation scatter for group: ['hour']"}, xlabel="Groups of ['hour']", ylabel='Pearson correlation'>
 
         """
         # check if there are correlation matrices

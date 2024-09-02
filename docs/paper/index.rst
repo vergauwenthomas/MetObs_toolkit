@@ -5,19 +5,8 @@ Referencing
 
 The Metobs-toolkit is published under the MIT licence, so you can use the software freely.
 
-The Metobs-toolkit (v0.2.0) was published in JOSS: <https://joss.theoj.org/papers/10.21105/joss.05916#>.
+The Metobs-toolkit (v0.2.0) was published in JOSS: [publication](https://joss.theoj.org/papers/10.21105/joss.05916#).
 
-
-
-About JOSS
------------
-The `Journal of Open Source Software <https://joss.theoj.org/>`_ is a developer friendly, open access journal for research software packages.
-
-
-JOSS paper
-------------
-A `MetObs-toolkit publication <https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d>`_ has been submitted and is currently under `review <https://github.com/openjournals/joss-reviews/issues/5916>`_. A draft version of the paper can be found in `here <https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/docs/paper/paper.pdf>`_.
-Additionally, we add the script for creating the figures that are used in the publication: <https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/docs/paper/paper_figures.ipynb>
 
 
 Citing
@@ -43,3 +32,15 @@ or using BiBTeX:
          }
 
 ```
+
+When refering to the MetObs-Toolkit software, please mention the used version.
+
+.. code-block:: python
+
+   import metobs_toolkit
+
+   print(metobs_toolkit.__version__)
+
+About JOSS
+-----------
+The `Journal of Open Source Software <https://joss.theoj.org/>`_ is a developer friendly, open access journal for research software packages.
