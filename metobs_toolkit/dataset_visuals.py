@@ -112,6 +112,7 @@ class DatasetVisuals:
 
         Examples
         --------
+
         We start by creating a Dataset, and importing data.
 
         >>> import metobs_toolkit
@@ -869,11 +870,11 @@ class DatasetVisuals:
         <BLANKLINE>
          -- Known Modelobstypes --
         <BLANKLINE>
-         * temp : ModelObstype isntance of temp (linked to band: temperature_2m)
+         * temp : ModelObstype instance of temp (linked to band: temperature_2m)
             (conversion: Kelvin --> Celsius)
-         * pressure : ModelObstype isntance of pressure (linked to band: surface_pressure)
+         * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
             (conversion: pa --> pa)
-         * wind : ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+         * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
             vectorfield that will be converted to:
               * wind_speed
               * wind_direction
@@ -951,7 +952,19 @@ class DatasetVisuals:
         )
 
 
+# =============================================================================
+# Errors
+# =============================================================================
 class MetobsDatasetVisualisationError(Exception):
     """Exception raised for errors in the template."""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

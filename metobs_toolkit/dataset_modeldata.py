@@ -174,11 +174,11 @@ class DatasetModelData:
         <BLANKLINE>
          -- Known Modelobstypes --
         <BLANKLINE>
-         * temp : ModelObstype isntance of temp (linked to band: temperature_2m)
+         * temp : ModelObstype instance of temp (linked to band: temperature_2m)
             (conversion: Kelvin --> Celsius)
-         * pressure : ModelObstype isntance of pressure (linked to band: surface_pressure)
+         * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
             (conversion: pa --> pa)
-         * wind : ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+         * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
             vectorfield that will be converted to:
               * wind_speed
               * wind_direction
@@ -207,13 +207,13 @@ class DatasetModelData:
         The timeseries are stored in the Model itself.
 
         >>> ERA5_model.modeldf.head()
-                                                  temp
+                                              temp
         name      datetime
-        vlinder02 2022-09-05 00:00:00+00:00  20.266031
-                  2022-09-05 01:00:00+00:00  20.106348
-                  2022-09-05 02:00:00+00:00  19.744928
-                  2022-09-05 03:00:00+00:00  19.543542
-                  2022-09-05 04:00:00+00:00  19.004984
+        vlinder02 2022-09-05 00:00:00+00:00  20.27
+                  2022-09-05 01:00:00+00:00  20.11
+                  2022-09-05 02:00:00+00:00  19.74
+                  2022-09-05 03:00:00+00:00  19.54
+                  2022-09-05 04:00:00+00:00  19.00
 
         ERA5_data contains 1 timeseries of temperature data, automatically
         converted to the toolkit standard unit (Celcius).
@@ -322,13 +322,13 @@ class DatasetModelData:
         At this point there is no LCZ information present in the metadata
 
         >>> dataset.metadf.head()
-                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+                     lat   lon        school                  geometry dataset_resolution                  dt_start                    dt_end
         name
-        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder01  50.98  3.82         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.02  3.71         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.32  4.95   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.34  4.93   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.05  3.68  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
 
         We use the GEE API to extract the LCZ for all the stations present in
         the metadf (if coordinates are present).
@@ -346,36 +346,20 @@ class DatasetModelData:
         The LCZ are automatically added to the metadf as 'lcz' column.
 
         >>> dataset.metadf['lcz']
-            name
-        vlinder01         Low plants (LCZ D)
-        vlinder02              Large lowrise
-        vlinder03               Open midrise
-        vlinder04             Sparsely built
-        vlinder05              Water (LCZ G)
-        vlinder06    Scattered Trees (LCZ B)
-        vlinder07            Compact midrise
-        vlinder08            Compact midrise
-        vlinder09    Scattered Trees (LCZ B)
-        vlinder10            Compact midrise
-        vlinder11               Open lowrise
-        vlinder12              Open highrise
-        vlinder13            Compact midrise
-        vlinder14         Low plants (LCZ D)
-        vlinder15         Low plants (LCZ D)
-        vlinder16              Water (LCZ G)
-        vlinder17    Scattered Trees (LCZ B)
-        vlinder18         Low plants (LCZ D)
-        vlinder19            Compact midrise
-        vlinder20            Compact midrise
-        vlinder21             Sparsely built
-        vlinder22         Low plants (LCZ D)
-        vlinder23         Low plants (LCZ D)
-        vlinder24        Dense Trees (LCZ A)
-        vlinder25              Water (LCZ G)
-        vlinder26               Open midrise
-        vlinder27            Compact midrise
-        vlinder28               Open lowrise
-        Name: lcz, dtype: object
+         name
+        vlinder01     Low plants (LCZ D)
+        vlinder02          Large lowrise
+        vlinder03           Open midrise
+        vlinder04         Sparsely built
+        vlinder05          Water (LCZ G)
+                            ...
+        vlinder24    Dense Trees (LCZ A)
+        vlinder25          Water (LCZ G)
+        vlinder26           Open midrise
+        vlinder27        Compact midrise
+        vlinder28           Open lowrise
+        Name: lcz, Length: 28, dtype: object
+
         """
 
         # Get lcz modeldata class
@@ -448,13 +432,13 @@ class DatasetModelData:
         At this point there is no altitude information present in the metadata
 
         >>> dataset.metadf.head()
-                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+                     lat   lon        school                  geometry dataset_resolution                  dt_start                    dt_end
         name
-        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder01  50.98  3.82         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.02  3.71         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.32  4.95   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.34  4.93   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.05  3.68  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
 
         We use the GEE API to extract the LCZ for all the stations present in
         the metadf (if coordinates are present).
@@ -478,30 +462,13 @@ class DatasetModelData:
         vlinder03    30
         vlinder04    25
         vlinder05     0
-        vlinder06     0
-        vlinder07     7
-        vlinder08     7
-        vlinder09    19
-        vlinder10    14
-        vlinder11     6
-        vlinder12     9
-        vlinder13    10
-        vlinder14     4
-        vlinder15    41
-        vlinder16     4
-        vlinder17    83
-        vlinder18    35
-        vlinder19    75
-        vlinder20    44
-        vlinder21    19
-        vlinder22     3
-        vlinder23     1
+                     ..
         vlinder24    12
         vlinder25    12
         vlinder26    24
         vlinder27    12
         vlinder28     7
-        Name: altitude, dtype: int64
+        Name: altitude, Length: 28, dtype: int64
 
         """
         # Get lcz modeldata class
@@ -605,13 +572,13 @@ class DatasetModelData:
         At this point there is no landcover information present in the metadata.
 
         >>> dataset.metadf.head()
-                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+                     lat   lon        school                  geometry dataset_resolution                  dt_start                    dt_end
         name
-        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder01  50.98  3.82         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.02  3.71         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.32  4.95   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.34  4.93   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.05  3.68  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
 
         We use the GEE API to extract the landcover fractions for all the
         stations present in the metadf (if coordinates are present).
@@ -621,17 +588,17 @@ class DatasetModelData:
         >>> frac_df
                                  Grassland  Cropland  Tree cover  Built-up  Permanent water bodies  Herbaceous wetland  Bare / sparse vegetation  Shrubland
         name      buffer_radius
-        vlinder01 50              0.545691  0.454309    0.000000  0.000000                0.000000                 0.0                  0.000000        0.0
-                  100             0.345583  0.636198    0.000000  0.018219                0.000000                 0.0                  0.000000        0.0
-                  250             0.318707  0.640718    0.004210  0.036365                0.000000                 0.0                  0.000000        0.0
-                  500             0.390234  0.466117    0.049143  0.094263                0.000243                 0.0                  0.000000        0.0
-        vlinder02 50              0.629257  0.000000    0.014283  0.356460                0.000000                 0.0                  0.000000        0.0
+        vlinder01 50              5.46e-01  4.54e-01    0.00e+00      0.00                0.00e+00                 0.0                  0.00e+00        0.0
+                  100             3.46e-01  6.36e-01    0.00e+00      0.02                0.00e+00                 0.0                  0.00e+00        0.0
+                  250             3.19e-01  6.41e-01    4.21e-03      0.04                0.00e+00                 0.0                  0.00e+00        0.0
+                  500             3.90e-01  4.66e-01    4.91e-02      0.09                2.43e-04                 0.0                  0.00e+00        0.0
+        vlinder02 50              6.29e-01  0.00e+00    1.43e-02      0.36                0.00e+00                 0.0                  0.00e+00        0.0
         ...                            ...       ...         ...       ...                     ...                 ...                       ...        ...
-        vlinder27 500             0.004314  0.000000    0.061079  0.923446                0.010837                 0.0                  0.000323        0.0
-        vlinder28 50              0.049876  0.000000    0.159655  0.790469                0.000000                 0.0                  0.000000        0.0
-                  100             0.187910  0.000000    0.302041  0.510049                0.000000                 0.0                  0.000000        0.0
-                  250             0.128338  0.000000    0.593612  0.278050                0.000000                 0.0                  0.000000        0.0
-                  500             0.115984  0.000162    0.548787  0.335067                0.000000                 0.0                  0.000000        0.0
+        vlinder27 500             4.31e-03  0.00e+00    6.11e-02      0.92                1.08e-02                 0.0                  3.23e-04        0.0
+        vlinder28 50              4.99e-02  0.00e+00    1.60e-01      0.79                0.00e+00                 0.0                  0.00e+00        0.0
+                  100             1.88e-01  0.00e+00    3.02e-01      0.51                0.00e+00                 0.0                  0.00e+00        0.0
+                  250             1.28e-01  0.00e+00    5.94e-01      0.28                0.00e+00                 0.0                  0.00e+00        0.0
+                  500             1.16e-01  1.62e-04    5.49e-01      0.34                0.00e+00                 0.0                  0.00e+00        0.0
         <BLANKLINE>
         [112 rows x 8 columns]
 
@@ -797,13 +764,13 @@ class DatasetModelData:
         ...         input_metadata_file=metobs_toolkit.demo_metadatafile,
         ...         template_file=metobs_toolkit.demo_template)
         >>> dataset.metadf.head()
-                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+                     lat   lon        school                  geometry dataset_resolution                  dt_start                    dt_end
         name
-        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder01  50.98  3.82         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.02  3.71         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.32  4.95   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.34  4.93   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.05  3.68  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
 
         Now we can extract timeseries at the location of the stations.
 
@@ -849,7 +816,21 @@ class DatasetModelData:
         self.gee_datasets[Modeldata.name] = Modeldata
 
 
+# =============================================================================
+# Errors
+# =============================================================================
+
+
 class MetobsDatasetGeeModelDataHandlingError(Exception):
     """Exception raised for errors in the Dataset - GEE modeldata interactions."""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

@@ -109,14 +109,16 @@ class DatasetQCCore:
         ...                         )
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *483828 observation records (not Nan's)
-         *0 records labeled as outliers
-         *8 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
 
 
         For this example we reduce the data by coarsening the time resolution
@@ -338,14 +340,15 @@ class DatasetQCCore:
         ...                         )
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *483828 observation records (not Nan's)
-         *0 records labeled as outliers
-         *8 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
 
 
         For this example we reduce the data by coarsening the time resolution
@@ -595,15 +598,15 @@ class DatasetQCCore:
         ...                         )
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *483828 observation records (not Nan's)
-         *0 records labeled as outliers
-         *8 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
-
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
 
         For this example we reduce the data by coarsening the time resolution
         to hourly.
@@ -814,15 +817,15 @@ class DatasetQCCore:
         ...                         )
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *483828 observation records (not Nan's)
-         *0 records labeled as outliers
-         *8 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
-
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
 
         For this example we reduce the data by coarsening the time resolution
         to hourly.
@@ -1191,7 +1194,21 @@ def _can_qc_be_applied(dataset, obstype, checkname):
     return True
 
 
+# =============================================================================
+# Errors
+# =============================================================================
+
+
 class MetobsDatasetQCError(Exception):
     """Exception raised for errors in QC reltated methods."""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

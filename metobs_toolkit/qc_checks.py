@@ -1334,3 +1334,12 @@ def get_outliers_in_daterange(input_data, date, name, time_window, station_freq)
     intersection = outlier_sub_df.index.intersection(input_data.dropna().index).values
 
     return intersection
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

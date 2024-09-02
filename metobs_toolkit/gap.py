@@ -64,7 +64,7 @@ class Gap:
         Note
         ------
         Gaps are automatically located in your Dataset. In common pracktices,
-        a use does not have to initiate a Gap.
+        a user does not have to initiate a Gap.
 
         """
         # Set key attributes
@@ -974,21 +974,14 @@ class Gap:
     # =============================================================================
     #  Get Anchor methods
     # =============================================================================
-    def get_leading_period(
+    def _get_leading_period(
         self,
         observations_series,
         leading_period_duration="24h",
     ):
-        """TODO update docstring
+        """Get the leading period of a Gap
 
-
-        Find the leading observation (last ok-record before the gap).
-
-        Get the last observation before the gap, for which an observation exists.
-
-        It is also possible to use the max_lead_to_gap_distance to specify the
-        maximum distantance (in time) between the start of the gap and the leading
-        record.
+        The leading period are the (good) records in advance of a gap.
 
         Parameters
         ----------
@@ -996,12 +989,12 @@ class Gap:
             The observation values for the specific station and obstype. This
             is thus a pandas.Series with datetime as index. Outliers can be
             represented by nan's.
-        max_lead_to_gap_distance : Timedelta or str, optional
-            The max distance, in time, between the gap start and leading record.
-
+        leading_period_duration : str, optional
+            A timedelta string, representing the maximum duration of the
+            leading period.
         Returns
         -------
-        tuple : (name, timestamp, obs-value)
+        tuple : (name, timestamps, obs-value)
             All information on the leading record stored in a tuple.
 
         """
@@ -1021,7 +1014,6 @@ class Gap:
                     self.name,
                     pd.DatetimeIndex([]),
                     np.nan,
-                    # "no leading record candidates could be found.",
                 ]
             )
 
@@ -1031,21 +1023,13 @@ class Gap:
                     self.name,
                     leading_period,
                     sta_obs.loc[leading_period].to_list(),
-                    # "ok",
                 ]
             )
 
-    def get_trailing_period(self, observations_series, trailing_period_duration="24h"):
-        """TODO update docstring
+    def _get_trailing_period(self, observations_series, trailing_period_duration="24h"):
+        """Get the trailing period of a Gap
 
-
-        Find the leading observation (last ok-record before the gap).
-
-        Get the last observation before the gap, for which an observation exists.
-
-        It is also possible to use the max_lead_to_gap_distance to specify the
-        maximum distantance (in time) between the start of the gap and the leading
-        record.
+        The trailing period are the (good) records just after a gap.
 
         Parameters
         ----------
@@ -1053,14 +1037,13 @@ class Gap:
             The observation values for the specific station and obstype. This
             is thus a pandas.Series with datetime as index. Outliers can be
             represented by nan's.
-        max_lead_to_gap_distance : Timedelta or str, optional
-            The max distance, in time, between the gap start and leading record.
-
+        trailing_period_duration : str, optional
+            A timedelta string, representing the maximum duration of the
+            trailing period.
         Returns
         -------
-        tuple : (name, timestamp, obs-value)
-            All information on the leading record stored in a tuple.
-
+        tuple : (name, timestamps, obs-value)
+            All information on the trailing record stored in a tuple.
         """
         # sta_obs = xs_save(Dataset.df, self.name, level="name")
         # sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable
@@ -1078,7 +1061,6 @@ class Gap:
                     self.name,
                     pd.DatetimeIndex([]),
                     [],
-                    # "no trailing record candidates could be found.",
                 ]
             )
 
@@ -1088,7 +1070,6 @@ class Gap:
                     self.name,
                     trailing_period,
                     sta_obs.loc[trailing_period].to_list(),
-                    # "ok",
                 ]
             )
 
@@ -1097,20 +1078,19 @@ class Gap:
 # Find gaps and missing values
 # =============================================================================
 def get_station_gaps(gapslist, name):
-    """Extract a Gap_collection specific to one station.
-
-    If no gaps are found for the station, an empty Gap_collection is
-    returned.
+    """Subset to gaps of a single station by name.
 
     Parameters
     ----------
+    gapslist : list of gaps
+        The list of gaps to subset.
     name : String
         Name of the station to extract a Gaps_collection from.
 
     Returns
     -------
-    Gap_collection
-        A Gap collection specific of the specified station.
+    list
+        All gaps of the specified station.
 
     """
     return [gap for gap in gapslist if gap.name == name]
@@ -1120,6 +1100,34 @@ def get_station_gaps(gapslist, name):
 # Gap finders
 # =============================================================================
 def find_gaps(df, metadf, outliersdf, obstypes):
+    """Find missing records and create Gaps of them.
+
+    Gaps are scanned for per station. The records (of a station) are assumed
+    to have a perfect frequency, which is defined in the metadf 'dataset_resolution'.
+    Each record is tested if it occures exactly as expected after the previous
+    record. If that is not the case, then a gap located inbetween these records.
+
+    Outliers temporary added to the records, to scan for gaps.
+
+
+    Parameters
+    ----------
+    df : pandas.DataFrame()
+        The df-attribute of Dataset holding the good records.
+    metadf : pandas.DataFrame()
+        The metadf-attribute of the Dataset holding the 'dataset_resolution' column.
+    outliersdf : pandas.DataFrame()
+        The outliersdf-attribute of the Dataset holding the outliers. This is
+        needed because an outlier does not count (by default) as a gap.
+    obstypes : dict of metobs_toolkit.Obstype's
+        The obstypes-attribute of a Dataset.
+
+    Returns
+    -------
+    gap_list : list
+        A list Gap's .
+
+    """
 
     gap_list = []
     # Replace the nans in the df, which are assigned as outliers, to a default value
@@ -1177,3 +1185,12 @@ class MetobsGapError(Exception):
     """Exception raised for errors in the Gap() class"""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

@@ -153,3 +153,12 @@ def get_freq_statistics(comb_df, obstype, applied_qc_order):
     specific_counts["Gap finder"] = gap_specific_counts
 
     return (agg_dict, outl_dict, specific_counts)
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

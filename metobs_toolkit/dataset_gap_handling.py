@@ -103,27 +103,37 @@ class DatasetGapCore:
         ...                         )
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *483828 observation records (not Nan's)
-         *0 records labeled as outliers
-         *8 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
 
 
         We can combine all the gaps in one dataframe:
 
         >>> gapdf = dataset.get_gaps_fill_df()
-        >>> gapdf.head()
-                                                      value fill_method   msg
-        name      obstype  datetime
-        vlinder02 humidity 2022-09-10 17:10:00+00:00    NaN  not filled  None
-                           2022-09-10 17:15:00+00:00    NaN  not filled  None
-                           2022-09-10 17:45:00+00:00    NaN  not filled  None
-                  temp     2022-09-10 17:10:00+00:00    NaN  not filled  None
-                           2022-09-10 17:15:00+00:00    NaN  not filled  None
+        >>> gapdf
+                                                            value fill_method   msg
+        name      obstype        datetime
+        vlinder02 humidity       2022-09-10 17:10:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:15:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:45:00+00:00    NaN  not filled  None
+                  temp           2022-09-10 17:10:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:15:00+00:00    NaN  not filled  None
+        ...                                                   ...         ...   ...
+                  wind_direction 2022-09-10 17:15:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:45:00+00:00    NaN  not filled  None
+                  wind_speed     2022-09-10 17:10:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:15:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:45:00+00:00    NaN  not filled  None
+        <BLANKLINE>
+        [12 rows x 3 columns]
 
         """
 
@@ -175,28 +185,32 @@ class DatasetGapCore:
         >>> dataset.apply_quality_control('temp')
         >>> print(dataset)
         Dataset instance containing:
-            *28 stations
-            *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-            *447513 observation records (not Nan's)
-            *36315 records labeled as outliers
-            *8 gaps
-            *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-            *time zone of the records: UTC
-            *Coordinates are available for all stations.
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *447513 observation records (not Nan's)
+             *36315 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
 
         Now we convert the outliers to gaps, so that they can be filled.
 
         >>> dataset.convert_outliers_to_gaps()
         >>> print(dataset)
         Dataset instance containing:
-            *28 stations
-            *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-            *447513 observation records (not Nan's)
-            *0 records labeled as outliers
-            *1697 gaps
-            *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-            *time zone of the records: UTC
-            *Coordinates are available for all stations.
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *447513 observation records (not Nan's)
+         *0 records labeled as outliers
+         *1697 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+         *Coordinates are available for all stations.
+
 
         """
         if self.outliersdf.empty:
@@ -340,22 +354,22 @@ class DatasetGapCore:
         >>> dataset.convert_outliers_to_gaps()
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *38644 observation records (not Nan's)
-         *0 records labeled as outliers
-         *89 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
-
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *38644 observation records (not Nan's)
+             *0 records labeled as outliers
+             *89 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
 
         As we can see, we now have a dataset with gaps (for temperature). It is
         often handy to combine all present gaps into one pandas Dataframe, for
         inspection.
 
         >>> comb_gap_df = dataset.get_gaps_fill_df()
-        >>> comb_gap_df.head()
+        >>> comb_gap_df
                                                      value fill_method   msg
         name      obstype datetime
         vlinder01 temp    2022-09-02 16:00:00+00:00    NaN  not filled  None
@@ -363,6 +377,14 @@ class DatasetGapCore:
                           2022-09-02 18:00:00+00:00    NaN  not filled  None
                           2022-09-02 19:00:00+00:00    NaN  not filled  None
                           2022-09-02 20:00:00+00:00    NaN  not filled  None
+        ...                                            ...         ...   ...
+        vlinder28 temp    2022-09-15 04:00:00+00:00    NaN  not filled  None
+                          2022-09-15 05:00:00+00:00    NaN  not filled  None
+                          2022-09-15 06:00:00+00:00    NaN  not filled  None
+                          2022-09-15 07:00:00+00:00    NaN  not filled  None
+                          2022-09-15 08:00:00+00:00    NaN  not filled  None
+        <BLANKLINE>
+        [1676 rows x 3 columns]
 
 
         Now we are going to fill the gaps using interpolation.
@@ -378,19 +400,24 @@ class DatasetGapCore:
         >>> dataset.make_plot(obstype='temp', colorby='label', title='After interpolation of the gaps')
         <Axes: title={'center': 'After interpolation of the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
         >>> comb_gap_df = dataset.get_gaps_fill_df()
-        >>> comb_gap_df.head(10)
-                                                        value           fill_method                                msg
+        >>> comb_gap_df
+                                                     value           fill_method                       msg
         name      obstype datetime
-        vlinder01 temp    2022-09-02 16:00:00+00:00  25.918182         interpolation                  ok (method: time)
-                          2022-09-02 17:00:00+00:00  25.036364         interpolation                  ok (method: time)
-                          2022-09-02 18:00:00+00:00  24.154545         interpolation                  ok (method: time)
-                          2022-09-02 19:00:00+00:00  23.272727         interpolation                  ok (method: time)
-                          2022-09-02 20:00:00+00:00  22.390909         interpolation                  ok (method: time)
-                          2022-09-02 21:00:00+00:00        NaN  failed interpolation  Permitted_by_max_consecutive_fill
-                          2022-09-02 22:00:00+00:00        NaN  failed interpolation  Permitted_by_max_consecutive_fill
-                          2022-09-02 23:00:00+00:00        NaN  failed interpolation  Permitted_by_max_consecutive_fill
-                          2022-09-03 00:00:00+00:00        NaN  failed interpolation  Permitted_by_max_consecutive_fill
-                          2022-09-03 01:00:00+00:00        NaN  failed interpolation  Permitted_by_max_consecutive_fill
+        vlinder01 temp    2022-09-02 16:00:00+00:00  25.92         interpolation         ok (method: time)
+                          2022-09-02 17:00:00+00:00  25.04         interpolation         ok (method: time)
+                          2022-09-02 18:00:00+00:00  24.15         interpolation         ok (method: time)
+                          2022-09-02 19:00:00+00:00  23.27         interpolation         ok (method: time)
+                          2022-09-02 20:00:00+00:00  22.39         interpolation         ok (method: time)
+        ...                                            ...                   ...                       ...
+        vlinder28 temp    2022-09-15 04:00:00+00:00  12.98         interpolation         ok (method: time)
+                          2022-09-15 05:00:00+00:00  13.80         interpolation         ok (method: time)
+                          2022-09-15 06:00:00+00:00  14.62         interpolation         ok (method: time)
+                          2022-09-15 07:00:00+00:00    NaN  failed interpolation  Permitted_by_max_cons...
+                          2022-09-15 08:00:00+00:00    NaN  failed interpolation  Permitted_by_max_cons...
+        <BLANKLINE>
+        [1676 rows x 3 columns]
+
+
 
         More advanced interpolation methods can be used. As an example we use
         spline interpolation on the gaps of a single station.
@@ -405,19 +432,23 @@ class DatasetGapCore:
         ...             max_lead_to_gap_distance='4h',
         ...             max_trail_to_gap_distance='4h',
         ...             method_kwargs={'bc_type':'not-a-knot'})
-        >>> dataset.get_station('vlinder02').get_gaps_fill_df().head(10)
-                                                         value           fill_method                                                msg
+        >>> dataset.get_station('vlinder02').get_gaps_fill_df()
+                                                     value           fill_method                       msg
         name      obstype datetime
-        vlinder02 temp    2022-09-02 16:00:00+00:00  27.764926         interpolation  ok (method: cubicspline, with {'bc_type': 'not...
-                          2022-09-02 17:00:00+00:00  27.667000         interpolation  ok (method: cubicspline, with {'bc_type': 'not...
-                          2022-09-02 18:00:00+00:00  27.105269         interpolation  ok (method: cubicspline, with {'bc_type': 'not...
-                          2022-09-02 19:00:00+00:00  26.178779         interpolation  ok (method: cubicspline, with {'bc_type': 'not...
-                          2022-09-02 20:00:00+00:00  24.986577         interpolation  ok (method: cubicspline, with {'bc_type': 'not...
-                          2022-09-02 21:00:00+00:00  23.627709         interpolation  ok (method: cubicspline, with {'bc_type': 'not...
-                          2022-09-02 22:00:00+00:00  22.201221         interpolation  ok (method: cubicspline, with {'bc_type': 'not...
-                          2022-09-02 23:00:00+00:00        NaN  failed interpolation                  Permitted_by_max_consecutive_fill
-                          2022-09-03 00:00:00+00:00        NaN  failed interpolation                  Permitted_by_max_consecutive_fill
-                          2022-09-03 01:00:00+00:00        NaN  failed interpolation                  Permitted_by_max_consecutive_fill
+        vlinder02 temp    2022-09-02 16:00:00+00:00  27.76         interpolation  ok (method: cubicspli...
+                          2022-09-02 17:00:00+00:00  27.67         interpolation  ok (method: cubicspli...
+                          2022-09-02 18:00:00+00:00  27.11         interpolation  ok (method: cubicspli...
+                          2022-09-02 19:00:00+00:00  26.18         interpolation  ok (method: cubicspli...
+                          2022-09-02 20:00:00+00:00  24.99         interpolation  ok (method: cubicspli...
+        ...                                            ...                   ...                       ...
+                          2022-09-09 05:00:00+00:00  14.79         interpolation  ok (method: cubicspli...
+                          2022-09-09 06:00:00+00:00  15.11         interpolation  ok (method: cubicspli...
+                          2022-09-09 07:00:00+00:00  15.47         interpolation  ok (method: cubicspli...
+                          2022-09-09 08:00:00+00:00    NaN  failed interpolation  Permitted_by_max_cons...
+                          2022-09-09 09:00:00+00:00    NaN  failed interpolation  Permitted_by_max_cons...
+        <BLANKLINE>
+        [51 rows x 3 columns]
+
 
         """
         max_lead_to_gap_distance = self._timedelta_arg_check(max_lead_to_gap_distance)
@@ -525,6 +556,7 @@ class DatasetGapCore:
          *7 gaps
          *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
          *time zone of the records: UTC
+         *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
          *Coordinates are available for all stations.
 
         As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
@@ -532,7 +564,7 @@ class DatasetGapCore:
         inspection.
 
         >>> comb_gap_df = sta.get_gaps_fill_df()
-        >>> comb_gap_df.head()
+        >>> comb_gap_df
                                                      value fill_method   msg
         name      obstype datetime
         vlinder05 temp    2022-09-01 00:00:00+00:00    NaN  not filled  None
@@ -540,25 +572,26 @@ class DatasetGapCore:
                           2022-09-01 02:00:00+00:00    NaN  not filled  None
                           2022-09-01 03:00:00+00:00    NaN  not filled  None
                           2022-09-01 04:00:00+00:00    NaN  not filled  None
+        ...                                            ...         ...   ...
+                          2022-09-15 19:00:00+00:00    NaN  not filled  None
+                          2022-09-15 20:00:00+00:00    NaN  not filled  None
+                          2022-09-15 21:00:00+00:00    NaN  not filled  None
+                          2022-09-15 22:00:00+00:00    NaN  not filled  None
+                          2022-09-15 23:00:00+00:00    NaN  not filled  None
+        <BLANKLINE>
+        [280 rows x 3 columns]
 
         Since we will use Modeldata for filling the gap, we first need to import
         modeldata. We can do this by importing ERA5 (Land) data directly from
         the Google Earth Engine by using the `Dataset.get_modeldata()` method.
 
-        >>> era5_data = sta.get_modeldata(modelname='ERA5_hourly',
-        ...                               obstype='temp')
+        >>> era5_data = sta.get_modeldata(Model=sta.gee_datasets['ERA5-land'],
+        ...                               obstypes=['temp'])
+
         (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
         >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
         >>> print(era5_data)
-        Modeldata instance containing:
-             * Modelname: ERA5_hourly
-             * 1 timeseries
-             * The following obstypes are available: ['temp']
-             * Data has these units: ['Celsius']
-             * From 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (with tz=UTC)
-        <BLANKLINE>
-         (Data is stored in the .df attribute)
-
+        GeeDynamicModelData instance of ERA5-land with modeldata
 
         Now we are going to fill the gaps with this raw modeldata.
 
@@ -571,19 +604,22 @@ class DatasetGapCore:
         >>> sta.make_plot(obstype='temp', colorby='label', title='After filling the gaps')
         <Axes: title={'center': 'After filling the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
         >>> comb_gap_df = sta.get_gaps_fill_df()
-        >>> comb_gap_df.head(10)
-                                                         value         fill_method                                     msg
+        >>> comb_gap_df
+                                                     value         fill_method                       msg
         name      obstype datetime
-        vlinder05 temp    2022-09-01 00:00:00+00:00  18.222650  raw modeldata fill  Modelvalue: 18.22, without correction.
-                          2022-09-01 01:00:00+00:00  17.680612  raw modeldata fill  Modelvalue: 17.68, without correction.
-                          2022-09-01 02:00:00+00:00  17.305978  raw modeldata fill  Modelvalue: 17.31, without correction.
-                          2022-09-01 03:00:00+00:00  16.744562  raw modeldata fill  Modelvalue: 16.74, without correction.
-                          2022-09-01 04:00:00+00:00  16.422937  raw modeldata fill  Modelvalue: 16.42, without correction.
-                          2022-09-01 05:00:00+00:00  16.185297  raw modeldata fill  Modelvalue: 16.19, without correction.
-                          2022-09-01 20:00:00+00:00  20.200433  raw modeldata fill  Modelvalue: 20.20, without correction.
-                          2022-09-01 21:00:00+00:00  19.472665  raw modeldata fill  Modelvalue: 19.47, without correction.
-                          2022-09-01 22:00:00+00:00  18.775934  raw modeldata fill  Modelvalue: 18.78, without correction.
-                          2022-09-01 23:00:00+00:00  18.230508  raw modeldata fill  Modelvalue: 18.23, without correction.
+        vlinder05 temp    2022-09-01 00:00:00+00:00  18.22  raw modeldata fill  Modelvalue: 18.22, wi...
+                          2022-09-01 01:00:00+00:00  17.68  raw modeldata fill  Modelvalue: 17.68, wi...
+                          2022-09-01 02:00:00+00:00  17.31  raw modeldata fill  Modelvalue: 17.31, wi...
+                          2022-09-01 03:00:00+00:00  16.74  raw modeldata fill  Modelvalue: 16.74, wi...
+                          2022-09-01 04:00:00+00:00  16.42  raw modeldata fill  Modelvalue: 16.42, wi...
+        ...                                            ...                 ...                       ...
+                          2022-09-15 19:00:00+00:00  15.20  raw modeldata fill  Modelvalue: 15.20, wi...
+                          2022-09-15 20:00:00+00:00  14.58  raw modeldata fill  Modelvalue: 14.58, wi...
+                          2022-09-15 21:00:00+00:00  14.02  raw modeldata fill  Modelvalue: 14.02, wi...
+                          2022-09-15 22:00:00+00:00  13.48  raw modeldata fill  Modelvalue: 13.48, wi...
+                          2022-09-15 23:00:00+00:00  13.26  raw modeldata fill  Modelvalue: 13.26, wi...
+        <BLANKLINE>
+        [280 rows x 3 columns]
 
         """
         # Check if the Model has the compatible data
@@ -698,21 +734,22 @@ class DatasetGapCore:
         >>> sta.convert_outliers_to_gaps()
         >>> print(sta)
         Station instance containing:
-         *1 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *1160 observation records (not Nan's)
-         *0 records labeled as outliers
-         *7 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-         *time zone of the records: UTC
-         *Coordinates are available for all stations.
+             *1 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *1160 observation records (not Nan's)
+             *0 records labeled as outliers
+             *7 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
 
         As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
         often handy to combine all present gaps into one pandas Dataframe, for
         inspection.
 
         >>> comb_gap_df = sta.get_gaps_fill_df()
-        >>> comb_gap_df.head()
+        >>> comb_gap_df
                                                      value fill_method   msg
         name      obstype datetime
         vlinder05 temp    2022-09-01 00:00:00+00:00    NaN  not filled  None
@@ -720,25 +757,26 @@ class DatasetGapCore:
                           2022-09-01 02:00:00+00:00    NaN  not filled  None
                           2022-09-01 03:00:00+00:00    NaN  not filled  None
                           2022-09-01 04:00:00+00:00    NaN  not filled  None
+        ...                                            ...         ...   ...
+                          2022-09-15 19:00:00+00:00    NaN  not filled  None
+                          2022-09-15 20:00:00+00:00    NaN  not filled  None
+                          2022-09-15 21:00:00+00:00    NaN  not filled  None
+                          2022-09-15 22:00:00+00:00    NaN  not filled  None
+                          2022-09-15 23:00:00+00:00    NaN  not filled  None
+        <BLANKLINE>
+        [280 rows x 3 columns]
 
         Since we will use Modeldata for filling the gap, we first need to import
         modeldata. We can do this by importing ERA5 (Land) data directly from
         the Google Earth Engine by using the `Dataset.get_modeldata()` method.
 
-        >>> era5_data = sta.get_modeldata(modelname='ERA5_hourly',
-        ...                               obstype='temp')
+        >>> era5_data = sta.get_modeldata(Model=sta.gee_datasets['ERA5-land'],
+        ...                               obstypes=['temp'])
+
         (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
         >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
         >>> print(era5_data)
-        Modeldata instance containing:
-             * Modelname: ERA5_hourly
-             * 1 timeseries
-             * The following obstypes are available: ['temp']
-             * Data has these units: ['Celsius']
-             * From 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (with tz=UTC)
-        <BLANKLINE>
-         (Data is stored in the .df attribute)
-
+        GeeDynamicModelData instance of ERA5-land with modeldata
 
         Now we are going to fill the gaps with this debiased modeldata. Do this
         by specifying a leading and trailing period (by duration and the minimum
@@ -758,19 +796,19 @@ class DatasetGapCore:
         >>> sta.make_plot(obstype='temp', colorby='label', title='After filling the gaps')
         <Axes: title={'center': 'After filling the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
         >>> comb_gap_df = sta.get_gaps_fill_df()
-        >>> comb_gap_df.head(10)
-                                                         value                     fill_method                                               msg
+        >>> comb_gap_df[:10]
+                                                         value               fill_method                       msg
         name      obstype datetime
-        vlinder05 temp    2022-09-01 00:00:00+00:00        NaN  failed debiased modeldata fill  minimum records (10) for leading period not met.
-                          2022-09-01 01:00:00+00:00        NaN  failed debiased modeldata fill  minimum records (10) for leading period not met.
-                          2022-09-01 02:00:00+00:00        NaN  failed debiased modeldata fill  minimum records (10) for leading period not met.
-                          2022-09-01 03:00:00+00:00        NaN  failed debiased modeldata fill  minimum records (10) for leading period not met.
-                          2022-09-01 04:00:00+00:00        NaN  failed debiased modeldata fill  minimum records (10) for leading period not met.
-                          2022-09-01 05:00:00+00:00        NaN  failed debiased modeldata fill  minimum records (10) for leading period not met.
-                          2022-09-01 20:00:00+00:00  19.596387         debiased modeldata fill     Modelvalue: 20.20 corrected with a 0.60 bias.
-                          2022-09-01 21:00:00+00:00  18.868619         debiased modeldata fill     Modelvalue: 19.47 corrected with a 0.60 bias.
-                          2022-09-01 22:00:00+00:00  18.171888         debiased modeldata fill     Modelvalue: 18.78 corrected with a 0.60 bias.
-                          2022-09-01 23:00:00+00:00  17.626462         debiased modeldata fill     Modelvalue: 18.23 corrected with a 0.60 bias.
+        vlinder05 temp    2022-09-01 00:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                          2022-09-01 01:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                          2022-09-01 02:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                          2022-09-01 03:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                          2022-09-01 04:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                          2022-09-01 05:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                          2022-09-01 20:00:00+00:00  19.60   debiased modeldata fill  Modelvalue: 20.20 cor...
+                          2022-09-01 21:00:00+00:00  18.87   debiased modeldata fill  Modelvalue: 19.47 cor...
+                          2022-09-01 22:00:00+00:00  18.17   debiased modeldata fill  Modelvalue: 18.78 cor...
+                          2022-09-01 23:00:00+00:00  17.63   debiased modeldata fill  Modelvalue: 18.23 cor...
         """
 
         # Check if the Model has the compatible data
@@ -897,6 +935,17 @@ class DatasetGapCore:
         >>> sta.apply_quality_control('temp')
         >>> sta.convert_outliers_to_gaps()
         >>> print(sta)
+        Station instance containing:
+         *1 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *1389 observation records (not Nan's)
+         *0 records labeled as outliers
+         *3 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+         *time zone of the records: UTC
+         *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+         *Coordinates are available for all stations.
+
 
 
         As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
@@ -904,27 +953,36 @@ class DatasetGapCore:
         inspection.
 
         >>> comb_gap_df = sta.get_gaps_fill_df()
-        >>> comb_gap_df.head()
+        >>> comb_gap_df
+                                                     value fill_method   msg
+        name      obstype datetime
+        vlinder02 temp    2022-09-02 16:00:00+00:00    NaN  not filled  None
+                          2022-09-02 17:00:00+00:00    NaN  not filled  None
+                          2022-09-02 18:00:00+00:00    NaN  not filled  None
+                          2022-09-02 19:00:00+00:00    NaN  not filled  None
+                          2022-09-02 20:00:00+00:00    NaN  not filled  None
+        ...                                            ...         ...   ...
+                          2022-09-09 05:00:00+00:00    NaN  not filled  None
+                          2022-09-09 06:00:00+00:00    NaN  not filled  None
+                          2022-09-09 07:00:00+00:00    NaN  not filled  None
+                          2022-09-09 08:00:00+00:00    NaN  not filled  None
+                          2022-09-09 09:00:00+00:00    NaN  not filled  None
+        <BLANKLINE>
+        [51 rows x 3 columns]
+
 
 
         Since we will use Modeldata for filling the gap, we first need to import
         modeldata. We can do this by importing ERA5 (Land) data directly from
         the Google Earth Engine by using the `Dataset.get_modeldata()` method.
 
-        >>> era5_data = sta.get_modeldata(modelname='ERA5_hourly',
-        ...                               obstype='temp')
+        >>> era5_data = sta.get_modeldata(Model=sta.gee_datasets['ERA5-land'],
+        ...                               obstypes=['temp'])
+
         (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
         >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
         >>> print(era5_data)
-        Modeldata instance containing:
-             * Modelname: ERA5_hourly
-             * 1 timeseries
-             * The following obstypes are available: ['temp']
-             * Data has these units: ['Celsius']
-             * From 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (with tz=UTC)
-        <BLANKLINE>
-         (Data is stored in the .df attribute)
-
+        GeeDynamicModelData instance of ERA5-land with modeldata
 
         Now we are going to fill the gaps with this diurnal debiased modeldata.
         Do this by specifying a leading and trailing period (by duration and
@@ -944,8 +1002,22 @@ class DatasetGapCore:
         >>> sta.make_plot(obstype='temp', colorby='label', title='After filling the gaps')
         <Axes: title={'center': 'After filling the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
         >>> comb_gap_df = sta.get_gaps_fill_df()
-        >>> comb_gap_df.head(10)
-
+        >>> comb_gap_df
+                                                     value               fill_method                       msg
+        name      obstype datetime
+        vlinder02 temp    2022-09-02 16:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 25.65 can...
+                          2022-09-02 17:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 25.17 can...
+                          2022-09-02 18:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 23.93 can...
+                          2022-09-02 19:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 21.87 can...
+                          2022-09-02 20:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 21.23 can...
+        ...                                            ...                       ...                       ...
+                          2022-09-09 05:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 15.52 can...
+                          2022-09-09 06:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 15.73 can...
+                          2022-09-09 07:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 15.74 can...
+                          2022-09-09 08:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 16.12 can...
+                          2022-09-09 09:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 16.84 can...
+        <BLANKLINE>
+        [51 rows x 3 columns]
 
         """
 
@@ -1089,26 +1161,37 @@ class DatasetGapCore:
         inspection.
 
         >>> comb_gap_df = sta.get_gaps_fill_df()
-        >>> comb_gap_df.head()
+        >>> comb_gap_df
+                                                     value fill_method   msg
+        name      obstype datetime
+        vlinder02 temp    2022-09-02 16:00:00+00:00    NaN  not filled  None
+                          2022-09-02 17:00:00+00:00    NaN  not filled  None
+                          2022-09-02 18:00:00+00:00    NaN  not filled  None
+                          2022-09-02 19:00:00+00:00    NaN  not filled  None
+                          2022-09-02 20:00:00+00:00    NaN  not filled  None
+        ...                                            ...         ...   ...
+                          2022-09-09 05:00:00+00:00    NaN  not filled  None
+                          2022-09-09 06:00:00+00:00    NaN  not filled  None
+                          2022-09-09 07:00:00+00:00    NaN  not filled  None
+                          2022-09-09 08:00:00+00:00    NaN  not filled  None
+                          2022-09-09 09:00:00+00:00    NaN  not filled  None
+        <BLANKLINE>
+        [51 rows x 3 columns]
+
 
 
         Since we will use Modeldata for filling the gap, we first need to import
         modeldata. We can do this by importing ERA5 (Land) data directly from
         the Google Earth Engine by using the `Dataset.get_modeldata()` method.
 
-        >>> era5_data = sta.get_modeldata(modelname='ERA5_hourly',
-        ...                               obstype='temp')
+        >>> era5_data = sta.get_modeldata(Model=sta.gee_datasets['ERA5-land'],
+        ...                               obstypes=['temp'])
+
+
         (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
         >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
         >>> print(era5_data)
-        Modeldata instance containing:
-             * Modelname: ERA5_hourly
-             * 1 timeseries
-             * The following obstypes are available: ['temp']
-             * Data has these units: ['Celsius']
-             * From 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (with tz=UTC)
-        <BLANKLINE>
-         (Data is stored in the .df attribute)
+        GeeDynamicModelData instance of ERA5-land with modeldata
 
 
         Now we are going to fill the gaps with weighted diurnal debiased modeldata.
@@ -1130,7 +1213,23 @@ class DatasetGapCore:
         >>> sta.make_plot(obstype='temp', colorby='label', title='After filling the gaps')
         <Axes: title={'center': 'After filling the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
         >>> comb_gap_df = sta.get_gaps_fill_df()
-        >>> comb_gap_df.head(10)
+        >>> comb_gap_df
+                                                    value               fill_method                       msg
+        name      obstype datetime
+        vlinder02 temp    2022-09-02 16:00:00+00:00  25.92  Weighted diurnal debi...  Modelvalue: 25.65 cor...
+                          2022-09-02 17:00:00+00:00  25.13  Weighted diurnal debi...  Modelvalue: 25.17 cor...
+                          2022-09-02 18:00:00+00:00  24.10  Weighted diurnal debi...  Modelvalue: 23.93 cor...
+                          2022-09-02 19:00:00+00:00  21.69  Weighted diurnal debi...  Modelvalue: 21.87 cor...
+                          2022-09-02 20:00:00+00:00  21.32  Weighted diurnal debi...  Modelvalue: 21.23 cor...
+        ...                                            ...                       ...                       ...
+                          2022-09-09 05:00:00+00:00  16.04  Weighted diurnal debi...  Modelvalue: 15.52 cor...
+                          2022-09-09 06:00:00+00:00  15.85  Weighted diurnal debi...  Modelvalue: 15.73 cor...
+                          2022-09-09 07:00:00+00:00    NaN  failed Weighted diurn...  Modelvalue: 15.74 can...
+                          2022-09-09 08:00:00+00:00    NaN  failed Weighted diurn...  Modelvalue: 16.12 can...
+                          2022-09-09 09:00:00+00:00    NaN  failed Weighted diurn...  Modelvalue: 16.84 can...
+        <BLANKLINE>
+        [51 rows x 3 columns]
+
         """
 
         # Check if the Model has the compatible data
@@ -1214,25 +1313,37 @@ class DatasetGapCore:
              *89 gaps
              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
              *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
              *Coordinates are available for all stations.
+
 
         As we can see, we now have a Dataset with gaps (for temperature). The
         gaps are stored as a list of Gap's
 
         >>> dataset.gaps[:5] # print only the first 5 gaps
+        [temp-gap of vlinder01 for 2022-09-02 16:00:00+00:00 --> 2022-09-03 01:00:00+00:00, duration: 0 days 09:00:00 or 10 records., temp-gap of vlinder01 for 2022-09-07 07:00:00+00:00 --> 2022-09-08 14:00:00+00:00, duration: 1 days 07:00:00 or 32 records., temp-gap of vlinder01 for 2022-09-09 01:00:00+00:00 --> 2022-09-09 09:00:00+00:00, duration: 0 days 08:00:00 or 9 records., temp-gap of vlinder02 for 2022-09-02 16:00:00+00:00 --> 2022-09-03 01:00:00+00:00, duration: 0 days 09:00:00 or 10 records., temp-gap of vlinder02 for 2022-09-07 07:00:00+00:00 --> 2022-09-08 14:00:00+00:00, duration: 1 days 07:00:00 or 32 records.]
 
         It is often handy to combine all present gaps into one pandas Dataframe, for
         inspection.
 
         >>> comb_gap_df = dataset.get_gaps_fill_df()
-        >>> comb_gap_df.head()
-                                                     value fill_method   msg
+        >>> comb_gap_df
+                                                      value fill_method   msg
         name      obstype datetime
-        vlinder05 temp    2022-09-01 00:00:00+00:00    NaN  not filled  None
-                          2022-09-01 01:00:00+00:00    NaN  not filled  None
-                          2022-09-01 02:00:00+00:00    NaN  not filled  None
-                          2022-09-01 03:00:00+00:00    NaN  not filled  None
-                          2022-09-01 04:00:00+00:00    NaN  not filled  None
+        vlinder01 temp    2022-09-02 16:00:00+00:00    NaN  not filled  None
+                          2022-09-02 17:00:00+00:00    NaN  not filled  None
+                          2022-09-02 18:00:00+00:00    NaN  not filled  None
+                          2022-09-02 19:00:00+00:00    NaN  not filled  None
+                          2022-09-02 20:00:00+00:00    NaN  not filled  None
+        ...                                            ...         ...   ...
+        vlinder28 temp    2022-09-15 04:00:00+00:00    NaN  not filled  None
+                          2022-09-15 05:00:00+00:00    NaN  not filled  None
+                          2022-09-15 06:00:00+00:00    NaN  not filled  None
+                          2022-09-15 07:00:00+00:00    NaN  not filled  None
+                          2022-09-15 08:00:00+00:00    NaN  not filled  None
+        <BLANKLINE>
+        [1676 rows x 3 columns]
+
 
         If you want all details, or need to interact directly with a specific
         Gap, you can find the Gap (from the .gaps attribute) by using the
@@ -1318,7 +1429,21 @@ def _check_if_model_can_be_used(trg_obstypename, Model):
     return
 
 
+# =============================================================================
+# Errors
+# =============================================================================
+
+
 class MetobsDatasetGapHandlingError(Exception):
     """Exception raised for errors in the datasetgaphandling."""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

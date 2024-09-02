@@ -174,12 +174,12 @@ def _create_anchor_df_for_leading_trailing_periods(
 
     # 1. Get leading and trailing info
     # get leading record, check validity and add to the gapfilldf
-    (_, lead_period, lead_vals) = Gap.get_leading_period(
+    (_, lead_period, lead_vals) = Gap._get_leading_period(
         observations_series=sta_obs_series,
         leading_period_duration=leading_period_duration,
     )
 
-    (_, trail_period, trail_vals) = Gap.get_trailing_period(
+    (_, trail_period, trail_vals) = Gap._get_trailing_period(
         observations_series=sta_obs_series,
         trailing_period_duration=trailing_period_duration,
     )
@@ -547,3 +547,12 @@ def _weighted_diurnal_debias_modeldata(filldf):
     # )
 
     return fillvalues, msg
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

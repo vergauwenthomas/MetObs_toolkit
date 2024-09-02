@@ -214,3 +214,12 @@ def _estimate_data_size(metadf, startdt, enddt, time_res, n_bands=1):
     datatimerange = pd.date_range(start=startdt, end=enddt, freq=time_res)
 
     return metadf.shape[0] * len(datatimerange) * n_bands
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

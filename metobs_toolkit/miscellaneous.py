@@ -25,3 +25,12 @@ def _tlk_print_standard_obstypes():
         print(
             f"{std_obs.name.ljust(ncol)} | {std_obs.get_description().ljust(ncol)} | {std_obs.get_standard_unit().ljust(ncol)} "
         )
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

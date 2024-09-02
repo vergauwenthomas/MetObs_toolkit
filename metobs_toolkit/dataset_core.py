@@ -591,7 +591,7 @@ class Dataset(
         >>> import os
         >>> # Import the dataset
         >>> dataset=empty_dataset.import_dataset(folder_path=os.getcwd(),
-        ...                                      filename='your_saved_dataset.pkl')
+        ...                                      filename='your_saved_dataset.pkl')  # doctest: +SKIP
 
         """
         # check if folder_path is known and exists
@@ -886,6 +886,7 @@ class Dataset(
              *0 gaps
              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
              *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
              *Coordinates are available for all stations.
 
         """
@@ -1186,30 +1187,13 @@ class Dataset(
         vlinder03   0 days 00:05:00
         vlinder04   0 days 00:05:00
         vlinder05   0 days 00:05:00
-        vlinder06   0 days 00:05:00
-        vlinder07   0 days 00:05:00
-        vlinder08   0 days 00:05:00
-        vlinder09   0 days 00:05:00
-        vlinder10   0 days 00:05:00
-        vlinder11   0 days 00:05:00
-        vlinder12   0 days 00:05:00
-        vlinder13   0 days 00:05:00
-        vlinder14   0 days 00:05:00
-        vlinder15   0 days 00:05:00
-        vlinder16   0 days 00:05:00
-        vlinder17   0 days 00:05:00
-        vlinder18   0 days 00:05:00
-        vlinder19   0 days 00:05:00
-        vlinder20   0 days 00:05:00
-        vlinder21   0 days 00:05:00
-        vlinder22   0 days 00:05:00
-        vlinder23   0 days 00:05:00
+                          ...
         vlinder24   0 days 00:05:00
         vlinder25   0 days 00:05:00
         vlinder26   0 days 00:05:00
         vlinder27   0 days 00:05:00
         vlinder28   0 days 00:05:00
-        Name: dataset_resolution, dtype: timedelta64[ns]
+        Name: dataset_resolution, Length: 28, dtype: timedelta64[ns]
 
         We can coarsen the time resolution to 15 minutes with a maximum
         allowd timestamp shift of 4 minutes.
@@ -1223,30 +1207,13 @@ class Dataset(
         vlinder03   0 days 00:15:00
         vlinder04   0 days 00:15:00
         vlinder05   0 days 00:15:00
-        vlinder06   0 days 00:15:00
-        vlinder07   0 days 00:15:00
-        vlinder08   0 days 00:15:00
-        vlinder09   0 days 00:15:00
-        vlinder10   0 days 00:15:00
-        vlinder11   0 days 00:15:00
-        vlinder12   0 days 00:15:00
-        vlinder13   0 days 00:15:00
-        vlinder14   0 days 00:15:00
-        vlinder15   0 days 00:15:00
-        vlinder16   0 days 00:15:00
-        vlinder17   0 days 00:15:00
-        vlinder18   0 days 00:15:00
-        vlinder19   0 days 00:15:00
-        vlinder20   0 days 00:15:00
-        vlinder21   0 days 00:15:00
-        vlinder22   0 days 00:15:00
-        vlinder23   0 days 00:15:00
+                          ...
         vlinder24   0 days 00:15:00
         vlinder25   0 days 00:15:00
         vlinder26   0 days 00:15:00
         vlinder27   0 days 00:15:00
         vlinder28   0 days 00:15:00
-        Name: dataset_resolution, dtype: timedelta64[ns]
+        Name: dataset_resolution, Length: 28, dtype: timedelta64[ns]
 
         """
 
@@ -1709,3 +1676,12 @@ class MetobsDatasetError(Exception):
     """Exception raised for errors in the template."""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

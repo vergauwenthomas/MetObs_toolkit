@@ -505,3 +505,12 @@ tlk_obstypes = {
     "wind_gust": windgust,
     "wind_direction": wind_direction,
 }
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

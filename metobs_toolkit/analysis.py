@@ -93,20 +93,28 @@ class Analysis(Dataset):
         Now we have a dataset containing records. We now create a Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
+        >>> ana # doctest: +ELLIPSIS
         Instance of Analysis at ...
 
         To get all the records in the Analysis in the form of a pandas.DataFrame,
         we use `get_analysis_records()`.
         >>> df = ana.get_analysis_records()
-        >>> df.head()
+        >>> df
         obstype                              humidity  temp  wind_direction  wind_speed
         name      datetime
-        vlinder01 2022-09-01 00:00:00+00:00      65.0  18.8            65.0    1.555556
-                  2022-09-01 00:05:00+00:00      65.0  18.8            75.0    1.527778
-                  2022-09-01 00:10:00+00:00      65.0  18.8            75.0    1.416667
-                  2022-09-01 00:15:00+00:00      65.0  18.7            85.0    1.666667
-                  2022-09-01 00:20:00+00:00      65.0  18.7            65.0    1.388889
+        vlinder01 2022-09-01 00:00:00+00:00      65.0  18.8            65.0        1.56
+                  2022-09-01 00:05:00+00:00      65.0  18.8            75.0        1.53
+                  2022-09-01 00:10:00+00:00      65.0  18.8            75.0        1.42
+                  2022-09-01 00:15:00+00:00      65.0  18.7            85.0        1.67
+                  2022-09-01 00:20:00+00:00      65.0  18.7            65.0        1.39
+        ...                                       ...   ...             ...         ...
+        vlinder28 2022-09-15 23:35:00+00:00      77.0  13.4           275.0        0.00
+                  2022-09-15 23:40:00+00:00      77.0  13.3           275.0        0.00
+                  2022-09-15 23:45:00+00:00      77.0  13.2           275.0        0.00
+                  2022-09-15 23:50:00+00:00      77.0  13.2           275.0        0.00
+                  2022-09-15 23:55:00+00:00      77.0  13.0           285.0        0.00
+        <BLANKLINE>
+        [120960 rows x 4 columns]
         """
 
         if self.use_gapfilled_values:
@@ -178,7 +186,7 @@ class Analysis(Dataset):
         Now we have a dataset containing records. We now create a Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
+        >>> ana # doctest: +ELLIPSIS
         Instance of Analysis at ...
 
         To subset the Analysis in time we use the `subset_period()` method.
@@ -188,19 +196,19 @@ class Analysis(Dataset):
         >>> small_ana = ana.subset_period(startdt = datetime.datetime(2022,9,5),
         ...                               enddt = datetime.datetime(2022,9,7))
         >>> small_ana.df
-                                                            value
+                                                        value
         name      obstype    datetime
-        vlinder01 humidity   2022-09-05 00:00:00+00:00  80.000000
-                             2022-09-05 00:05:00+00:00  78.000000
-                             2022-09-05 00:10:00+00:00  77.000000
-                             2022-09-05 00:15:00+00:00  76.000000
-                             2022-09-05 00:20:00+00:00  75.000000
-                                                          ...
-        vlinder28 wind_speed 2022-09-06 23:40:00+00:00   0.000000
-                             2022-09-06 23:45:00+00:00   0.000000
-                             2022-09-06 23:50:00+00:00   0.083333
-                             2022-09-06 23:55:00+00:00   1.000000
-                             2022-09-07 00:00:00+00:00   1.000000
+        vlinder01 humidity   2022-09-05 00:00:00+00:00  80.00
+                             2022-09-05 00:05:00+00:00  78.00
+                             2022-09-05 00:10:00+00:00  77.00
+                             2022-09-05 00:15:00+00:00  76.00
+                             2022-09-05 00:20:00+00:00  75.00
+        ...                                               ...
+        vlinder28 wind_speed 2022-09-06 23:40:00+00:00   0.00
+                             2022-09-06 23:45:00+00:00   0.00
+                             2022-09-06 23:50:00+00:00   0.08
+                             2022-09-06 23:55:00+00:00   1.00
+                             2022-09-07 00:00:00+00:00   1.00
         <BLANKLINE>
         [64624 rows x 1 columns]
 
@@ -381,7 +389,7 @@ class Analysis(Dataset):
         Now we have a dataset containing records. We now create a Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
+        >>> ana # doctest: +ELLIPSIS
         Instance of Analysis at ...
 
         To get all possible filter keywords we use the `get_possible_filter_keywords()`
@@ -392,28 +400,44 @@ class Analysis(Dataset):
         ['dataset_resolution', 'datetime', 'day_of_year', 'dt_end', 'dt_start', 'geometry', 'hour', 'humidity', 'lat', 'lon', 'minute', 'month', 'name', 'school', 'season', 'temp', 'week_of_year', 'wind_direction', 'wind_speed', 'year']
 
         >>> df = ana.get_analysis_records()
-        >>> df.head()
+        >>> df
         obstype                              humidity  temp  wind_direction  wind_speed
         name      datetime
-        vlinder01 2022-09-01 00:00:00+00:00      65.0  18.8            65.0    1.555556
-                  2022-09-01 00:05:00+00:00      65.0  18.8            75.0    1.527778
-                  2022-09-01 00:10:00+00:00      65.0  18.8            75.0    1.416667
-                  2022-09-01 00:15:00+00:00      65.0  18.7            85.0    1.666667
-                  2022-09-01 00:20:00+00:00      65.0  18.7            65.0    1.388889
+        vlinder01 2022-09-01 00:00:00+00:00      65.0  18.8            65.0        1.56
+                  2022-09-01 00:05:00+00:00      65.0  18.8            75.0        1.53
+                  2022-09-01 00:10:00+00:00      65.0  18.8            75.0        1.42
+                  2022-09-01 00:15:00+00:00      65.0  18.7            85.0        1.67
+                  2022-09-01 00:20:00+00:00      65.0  18.7            65.0        1.39
+        ...                                       ...   ...             ...         ...
+        vlinder28 2022-09-15 23:35:00+00:00      77.0  13.4           275.0        0.00
+                  2022-09-15 23:40:00+00:00      77.0  13.3           275.0        0.00
+                  2022-09-15 23:45:00+00:00      77.0  13.2           275.0        0.00
+                  2022-09-15 23:50:00+00:00      77.0  13.2           275.0        0.00
+                  2022-09-15 23:55:00+00:00      77.0  13.0           285.0        0.00
+        <BLANKLINE>
+        [120960 rows x 4 columns]
 
         We create a filter and apply it
 
         >>> filtered_ana = ana.apply_filter(
         ... expression="temp <= 16.3 & wind_direction > 180 & season=='autumn'")
         >>>
-        >>> filtered_ana.get_analysis_records().head()
-            obstype                              humidity  temp  wind_direction  wind_speed
-            name      datetime
-            vlinder01 2022-09-01 00:00:00+00:00       NaN   NaN             NaN         NaN
-                      2022-09-01 00:05:00+00:00       NaN   NaN             NaN         NaN
-                      2022-09-01 00:10:00+00:00       NaN   NaN             NaN         NaN
-                      2022-09-01 00:15:00+00:00       NaN   NaN             NaN         NaN
-                      2022-09-01 00:20:00+00:00       NaN   NaN             NaN         NaN
+        >>> filtered_ana.get_analysis_records()
+        obstype                              humidity  temp  wind_direction  wind_speed
+        name      datetime
+        vlinder01 2022-09-01 00:00:00+00:00       NaN   NaN             NaN         NaN
+                  2022-09-01 00:05:00+00:00       NaN   NaN             NaN         NaN
+                  2022-09-01 00:10:00+00:00       NaN   NaN             NaN         NaN
+                  2022-09-01 00:15:00+00:00       NaN   NaN             NaN         NaN
+                  2022-09-01 00:20:00+00:00       NaN   NaN             NaN         NaN
+        ...                                       ...   ...             ...         ...
+        vlinder28 2022-09-15 23:35:00+00:00      77.0  13.4           275.0         0.0
+                  2022-09-15 23:40:00+00:00      77.0  13.3           275.0         0.0
+                  2022-09-15 23:45:00+00:00      77.0  13.2           275.0         0.0
+                  2022-09-15 23:50:00+00:00      77.0  13.2           275.0         0.0
+                  2022-09-15 23:55:00+00:00      77.0  13.0           285.0         0.0
+        <BLANKLINE>
+        [120960 rows x 4 columns]
 
         All records that do not meet the filter are converted to NaN. These values
         will be ignored in all methods of the `Analysis` class.
@@ -540,23 +564,29 @@ class Analysis(Dataset):
         Now we have a dataset containing records. We now create a Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
+        >>> ana # doctest: +ELLIPSIS
         Instance of Analysis at ...
 
         As an example we aggregate to LCZ and the day of the year.
 
         >>> aggdf = ana.aggregate_df(agg=['lcz', 'day_of_year'],
         ...                          method='median')
-        >>> aggdf.head()
-                                    humidity   temp  wind_direction  wind_speed
+        >>> aggdf
+                                     humidity   temp  wind_direction  wind_speed
         lcz             day_of_year
-        Compact midrise 244              51.0  21.05            85.0    0.305556
-                        245              43.0  26.50            85.0    0.305556
-                        246              66.0  21.70            55.0    0.083333
-                        247              58.0  22.25            45.0    0.111111
-                        248              63.0  20.60            75.0    0.277778
-
-
+        Compact midrise 244              51.0  21.05            85.0        0.31
+                        245              43.0  26.50            85.0        0.31
+                        246              66.0  21.70            55.0        0.08
+                        247              58.0  22.25            45.0        0.11
+                        248              63.0  20.60            75.0        0.28
+        ...                               ...    ...             ...         ...
+        Water (LCZ G)   254              92.0  16.80           175.0        0.17
+                        255              87.0  16.80           175.0        0.24
+                        256              84.0  19.50            65.0        0.35
+                        257              92.0  14.70            65.0        0.75
+                        258              89.0  16.70           265.0        1.50
+        <BLANKLINE>
+        [150 rows x 4 columns]
         """
         if df is None:
             # df = copy.deepcopy(self.df)
@@ -710,7 +740,7 @@ class Analysis(Dataset):
         Now we have a dataset containing records. We now create a Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-        >>> ana
+        >>> ana # doctest: +ELLIPSIS
         Instance of Analysis at ...
 
         We can create a anual cycle, and aggregate to the LCZ.
@@ -722,14 +752,15 @@ class Analysis(Dataset):
         ...                     plot=True,
         ...                     errorbands=False)
         >>> anual_aggdf[7:]
-        lcz        Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  Open highrise  Open lowrise  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)
-        month
-        August                 NaN                  NaN            NaN                 NaN            NaN           NaN           NaN                      NaN             NaN            NaN
-        September        19.318386            17.520532      18.762729           18.208048      18.789537     18.531227     18.631956                17.991937        18.20522      19.103225
-        October                NaN                  NaN            NaN                 NaN            NaN           NaN           NaN                      NaN             NaN            NaN
-        November               NaN                  NaN            NaN                 NaN            NaN           NaN           NaN                      NaN             NaN            NaN
-        December               NaN                  NaN            NaN                 NaN            NaN           NaN           NaN                      NaN             NaN            NaN
-
+        lcz        Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  ...  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)
+        month                                                                               ...
+        August                 NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
+        September            19.32                17.52          18.76               18.21  ...         18.63                    17.99           18.21           19.1
+        October                NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
+        November               NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
+        December               NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
+        <BLANKLINE>
+        [5 rows x 10 columns]
         """
         # arg format checks
         startdt = self._datetime_arg_check(startdt)
@@ -852,16 +883,22 @@ class Analysis(Dataset):
         ...                      obstype="temp",
         ...                      plot=False)
 
-        >>> diurnal_aggdf.head()
-        name  vlinder01  vlinder02  vlinder03  vlinder04  vlinder05  vlinder06  vlinder07  vlinder08  vlinder09  ...  vlinder20  vlinder21  vlinder22  vlinder23  vlinder24  vlinder25  vlinder26  vlinder27  vlinder28
-        hour                                                                                                     ...
-        0     16.188333  16.951667  16.354444  14.808889  18.653333  15.631111  16.616111  17.991667  15.711111  ...  18.265000  17.648333  16.175556  16.602222  16.136667  17.613333  16.837778  17.838889  15.221111
-        1     15.587778  16.453889  15.764444  14.338889  18.653333  15.080000  16.057778  17.373333  15.245556  ...  17.847222  17.284444  15.829444  16.113889  15.572778  17.141111  16.262778  17.282222  14.742222
-        2     15.091111  15.898889  15.127778  13.467778  18.653333  14.110000  15.265556  16.738889  14.507778  ...  17.400556  16.941111  15.640000  15.549444  15.087222  16.619444  15.612778  16.761667  14.076667
-        3     15.207222  15.798889  14.870556  13.325000  18.653333  13.878333  14.978889  16.418889  14.473889  ...  17.225556  16.672222  15.400000  15.382778  14.911111  16.375556  15.417778  16.573333  13.874444
-        4     15.243333  15.640000  14.723889  13.282778  18.653333  13.641111  14.810556  16.242778  14.357778  ...  17.052778  16.456667  15.096111  15.166111  14.768889  16.088333  15.220556  16.337778  13.810000
+        >>> diurnal_aggdf
+        name  vlinder01  vlinder02  vlinder03  vlinder04  ...  vlinder25  vlinder26  vlinder27  vlinder28
+        hour                                              ...
+        0         16.19      16.95      16.35      14.81  ...      17.61      16.84      17.84      15.22
+        1         15.59      16.45      15.76      14.34  ...      17.14      16.26      17.28      14.74
+        2         15.09      15.90      15.13      13.47  ...      16.62      15.61      16.76      14.08
+        3         15.21      15.80      14.87      13.32  ...      16.38      15.42      16.57      13.87
+        4         15.24      15.64      14.72      13.28  ...      16.09      15.22      16.34      13.81
+        ...         ...        ...        ...        ...  ...        ...        ...        ...        ...
+        19        17.90      18.77      19.02      17.44  ...      19.05      19.56      19.69      17.55
+        20        17.08      18.07      18.23      16.55  ...      18.53      18.65      19.01      16.61
+        21        16.65      17.55      17.55      15.95  ...      18.18      18.04      18.52      16.00
+        22        16.39      17.11      16.96      15.30  ...      17.80      17.51      18.12      15.56
+        23        15.99      16.83      16.42      14.77  ...      17.51      16.95      17.81      15.22
         <BLANKLINE>
-        [5 rows x 28 columns]
+        [24 rows x 28 columns]
 
         We can also aggregate them in groups. As an example, we group them by LCZ.
         >>> diurnal_lcz_aggdf = ana.get_diurnal_statistics(
@@ -869,15 +906,22 @@ class Analysis(Dataset):
         ...                      obstype="temp",
         ...                      plot=True)
 
-        >>> diurnal_lcz_aggdf.head()
-        lcz   Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  Open highrise  Open lowrise  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)
-        hour
-        0           17.739286            16.136667      16.951667           15.966759      17.235000     16.422778     16.596111                15.583333       16.228611      18.215926
-        1           17.230397            15.572778      16.453889           15.535741      16.758889     15.897778     16.013611                15.107407       15.811667      17.881667
-        2           16.657460            15.087222      15.898889           14.931389      16.135000     15.318056     15.370278                14.302222       15.204444      17.572037
-        3           16.421508            14.911111      15.798889           14.820556      15.891111     15.116667     15.144167                14.155370       14.998611      17.393519
-        4           16.209683            14.768889      15.640000           14.655648      15.731667     14.966944     14.972222                13.975000       14.869722      17.213148
-
+        >>> diurnal_lcz_aggdf
+        lcz   Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  ...  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)
+        hour                                                                           ...
+        0               17.74                16.14          16.95               15.97  ...         16.60                    15.58           16.23          18.22
+        1               17.23                15.57          16.45               15.54  ...         16.01                    15.11           15.81          17.88
+        2               16.66                15.09          15.90               14.93  ...         15.37                    14.30           15.20          17.57
+        3               16.42                14.91          15.80               14.82  ...         15.14                    14.16           15.00          17.39
+        4               16.21                14.77          15.64               14.66  ...         14.97                    13.97           14.87          17.21
+        ...               ...                  ...            ...                 ...  ...           ...                      ...             ...            ...
+        19              19.69                17.29          18.77               17.80  ...         19.29                    17.63           18.02          19.38
+        20              19.10                16.74          18.07               17.06  ...         18.44                    17.04           17.37          18.93
+        21              18.54                16.46          17.55               16.60  ...         17.79                    16.52           16.97          18.55
+        22              18.03                16.15          17.11               16.27  ...         17.24                    15.96           16.52          18.32
+        23              17.70                15.89          16.83               15.88  ...         16.68                    15.54           16.16          18.13
+        <BLANKLINE>
+        [24 rows x 10 columns]
         """
         # arg format checks
         startdt = self._datetime_arg_check(startdt)
@@ -1026,16 +1070,22 @@ class Analysis(Dataset):
         ...                      tolerance="20min",
         ...                      plot=False)
 
-        >>> diurnal_diff_aggdf.head()
-        name  vlinder01  vlinder03  vlinder04  vlinder05  vlinder06  vlinder07  vlinder08  vlinder09  vlinder10  ...  vlinder20  vlinder21  vlinder22  vlinder23  vlinder24  vlinder25  vlinder26  vlinder27  vlinder28
-        hour                                                                                                     ...
-        0     -0.763333  -0.597222  -2.142778   1.701667  -1.320556  -0.335556   1.040000  -1.240556   0.794444  ...   1.313333   0.696667  -0.776111  -0.349444  -0.815000   0.661667  -0.113889   0.887222  -1.730556
-        1     -0.866111  -0.689444  -2.115000   2.199444  -1.373889  -0.396111   0.919444  -1.208333   0.715556  ...   1.393333   0.830556  -0.624444  -0.340000  -0.881111   0.687222  -0.191111   0.828333  -1.711667
-        2     -0.807778  -0.771111  -2.431111   2.754444  -1.788889  -0.633333   0.840000  -1.391111   0.725556  ...   1.501667   1.042222  -0.258889  -0.349444  -0.811667   0.720556  -0.286111   0.862778  -1.822222
-        3     -0.591667  -0.928333  -2.473889   2.854444  -1.920556  -0.820000   0.620000  -1.325000   0.647778  ...   1.426667   0.873333  -0.398889  -0.416111  -0.887778   0.576667  -0.381111   0.774444  -1.924444
-        4     -0.396667  -0.916111  -2.357222   3.013333  -1.998889  -0.829444   0.602778  -1.282222   0.517222  ...   1.412778   0.816667  -0.543889  -0.473889  -0.871111   0.448333  -0.419444   0.697778  -1.830000
+        >>> diurnal_diff_aggdf
+        name  vlinder01  vlinder03  vlinder04  vlinder05  ...  vlinder25  vlinder26  vlinder27  vlinder28
+        hour                                              ...
+        0         -0.76  -5.97e-01      -2.14       1.70  ...       0.66      -0.11       0.89      -1.73
+        1         -0.87  -6.89e-01      -2.12       2.20  ...       0.69      -0.19       0.83      -1.71
+        2         -0.81  -7.71e-01      -2.43       2.75  ...       0.72      -0.29       0.86      -1.82
+        3         -0.59  -9.28e-01      -2.47       2.85  ...       0.58      -0.38       0.77      -1.92
+        4         -0.40  -9.16e-01      -2.36       3.01  ...       0.45      -0.42       0.70      -1.83
+        ...         ...        ...        ...        ...  ...        ...        ...        ...        ...
+        19        -0.87   2.56e-01      -1.33       0.12  ...       0.28       0.79       0.93      -1.22
+        20        -0.99   1.67e-01      -1.52       0.55  ...       0.46       0.59       0.94      -1.46
+        21        -0.90   3.89e-03      -1.60       0.86  ...       0.63       0.49       0.97      -1.54
+        22        -0.72  -1.52e-01      -1.81       1.29  ...       0.68       0.40       1.01      -1.56
+        23        -0.84  -4.12e-01      -2.06       1.58  ...       0.68       0.12       0.98      -1.61
         <BLANKLINE>
-        [5 rows x 27 columns]
+        [24 rows x 27 columns]
 
         """
         # arg format checks
@@ -1238,17 +1288,22 @@ class Analysis(Dataset):
         ...     y_label=None,
         ...     legend=True)
 
-        >>> custom_aggdf.head()
-              Compact midrise ,autumn  Dense Trees (LCZ A) ,autumn  Large lowrise ,autumn  ...  Scattered Trees (LCZ B) ,autumn  Sparsely built ,autumn  Water (LCZ G) ,autumn
-        hour                                                                               ...
-        0                   17.739286                    16.136667              16.951667  ...                        15.583333               16.228611              18.215926
-        1                   17.230397                    15.572778              16.453889  ...                        15.107407               15.811667              17.881667
-        2                   16.657460                    15.087222              15.898889  ...                        14.302222               15.204444              17.572037
-        3                   16.421508                    14.911111              15.798889  ...                        14.155370               14.998611              17.393519
-        4                   16.209683                    14.768889              15.640000  ...                        13.975000               14.869722              17.213148
+        >>> custom_aggdf
+              Compact midrise ,autumn  Dense Trees (LCZ A) ,autumn  Large lowrise ,autumn  Low plants (LCZ D) ,autumn  ...  Open midrise ,autumn  Scattered Trees (LCZ B) ,autumn  Sparsely built ,autumn  Water (LCZ G) ,autumn
+        hour                                                                                                           ...
+        0                       17.74                     16.14                     16.95                     15.97    ...                 16.60                     15.58                          16.23                  18.22
+        1                       17.23                     15.57                     16.45                     15.54    ...                 16.01                     15.11                          15.81                  17.88
+        2                       16.66                     15.09                     15.90                     14.93    ...                 15.37                     14.30                          15.20                  17.57
+        3                       16.42                     14.91                     15.80                     14.82    ...                 15.14                     14.16                          15.00                  17.39
+        4                       16.21                     14.77                     15.64                     14.66    ...                 14.97                     13.97                          14.87                  17.21
+        ...                       ...                       ...                       ...                       ...    ...                   ...                       ...                            ...                    ...
+        19                      19.69                     17.29                     18.77                     17.80    ...                 19.29                     17.63                          18.02                  19.38
+        20                      19.10                     16.74                     18.07                     17.06    ...                 18.44                     17.04                          17.37                  18.93
+        21                      18.54                     16.46                     17.55                     16.60    ...                 17.79                     16.52                          16.97                  18.55
+        22                      18.03                     16.15                     17.11                     16.27    ...                 17.24                     15.96                          16.52                  18.32
+        23                      17.70                     15.89                     16.83                     15.88    ...                 16.68                     15.54                          16.16                  18.13
         <BLANKLINE>
-        [5 rows x 10 columns]
-
+        [24 rows x 10 columns]
         """
         # arg format checks
         startdt = self._datetime_arg_check(startdt)
@@ -1510,27 +1565,27 @@ class Analysis(Dataset):
 
         >>> # The tempeature correlation matrix at 4 UTC
         >>> cordict[4]['cor matrix']
-                            temp  water_250m  ...  pervious_500m  impervious_500m
-        temp             1.000000    0.122494  ...      -0.318219         0.230883
-        water_250m       0.122494    1.000000  ...      -0.182928        -0.350637
-        pervious_250m   -0.330758   -0.315331  ...       0.954735        -0.757809
-        impervious_250m  0.250634   -0.327978  ...      -0.832994         0.979446
-        water_500m       0.133748    0.966949  ...      -0.197543        -0.354645
-        pervious_500m   -0.318219   -0.182928  ...       1.000000        -0.846518
-        impervious_500m  0.230883   -0.350637  ...      -0.846518         1.000000
+                         temp  water_250m  water_500m  pervious_250m  pervious_500m  impervious_250m  impervious_500m
+        temp             1.00        0.12        0.13          -0.33          -0.32             0.25             0.23
+        water_250m       0.12        1.00        0.97          -0.32          -0.18            -0.33            -0.35
+        water_500m       0.13        0.97        1.00          -0.28          -0.20            -0.34            -0.35
+        pervious_250m   -0.33       -0.32       -0.28           1.00           0.95            -0.79            -0.76
+        pervious_500m   -0.32       -0.18       -0.20           0.95           1.00            -0.83            -0.85
+        impervious_250m  0.25       -0.33       -0.34          -0.79          -0.83             1.00             0.98
+        impervious_500m  0.23       -0.35       -0.35          -0.76          -0.85             0.98             1.00
 
         There is also a matrix combining the correlations and the significance,
         using a star-presentation.
 
         >>> cordict[4]['combined matrix']
-                              temp water_250m  ... pervious_500m impervious_500m
-        temp              1.00 ***   0.12 ***  ...     -0.32 ***        0.23 ***
-        water_250m        0.12 ***   1.00 ***  ...     -0.18 ***       -0.35 ***
-        pervious_250m    -0.33 ***  -0.32 ***  ...      0.95 ***       -0.76 ***
-        impervious_250m   0.25 ***  -0.33 ***  ...     -0.83 ***        0.98 ***
-        water_500m        0.13 ***   0.97 ***  ...     -0.20 ***       -0.35 ***
-        pervious_500m    -0.32 ***  -0.18 ***  ...      1.00 ***       -0.85 ***
-        impervious_500m   0.23 ***  -0.35 ***  ...     -0.85 ***        1.00 ***
+                              temp water_250m water_500m pervious_250m pervious_500m impervious_250m impervious_500m
+        temp              1.00 ***   0.12 ***   0.13 ***     -0.33 ***     -0.32 ***        0.25 ***        0.23 ***
+        water_250m        0.12 ***   1.00 ***   0.97 ***     -0.32 ***     -0.18 ***       -0.33 ***       -0.35 ***
+        water_500m        0.13 ***   0.97 ***   1.00 ***     -0.28 ***     -0.20 ***       -0.34 ***       -0.35 ***
+        pervious_250m    -0.33 ***  -0.32 ***  -0.28 ***      1.00 ***      0.95 ***       -0.79 ***       -0.76 ***
+        pervious_500m    -0.32 ***  -0.18 ***  -0.20 ***      0.95 ***      1.00 ***       -0.83 ***       -0.85 ***
+        impervious_250m   0.25 ***  -0.33 ***  -0.34 ***     -0.79 ***     -0.83 ***        1.00 ***        0.98 ***
+        impervious_500m   0.23 ***  -0.35 ***  -0.35 ***     -0.76 ***     -0.85 ***        0.98 ***        1.00 ***
         """
         if not isinstance(obstype, list):
             obstype = [obstype]
@@ -1909,3 +1964,12 @@ def get_seasons(
         labels=labels,
         ordered=False,
     )
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

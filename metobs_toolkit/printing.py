@@ -87,3 +87,12 @@ def print_dataset_info(dataset, show_all_settings=False, max_disp_n_gaps=5):
         print(
             f'(For more details, use the .get_info method. Ex: dataset.gee_datasets["{next(iter(dataset.gee_datasets))}"].get_info() )'
         )
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

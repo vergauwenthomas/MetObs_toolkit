@@ -559,14 +559,22 @@ class GeeStaticModelData(_GeeModelData):
         ...                input_data_file=metobs_toolkit.demo_datafile,
         ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
         ...                template_file=metobs_toolkit.demo_template)
-        >>> dataset.metadf.head()
-                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+        >>> dataset.metadf
+                     lat   lon               school                  geometry dataset_resolution                  dt_start                    dt_end
         name
-        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder01  50.98  3.82                UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.02  3.71                UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.32  4.95          Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.34  4.93          Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.05  3.68         Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        ...          ...   ...                  ...                       ...                ...                       ...                       ...
+        vlinder24  51.17  3.57        OLV ten Doorn  POINT (3.57206 51.16702)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder25  51.15  3.71    Einstein Atheneum  POINT (3.70861 51.15472)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder26  51.16  5.00          Sint Dimpna  POINT (4.99765 51.16176)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder27  51.06  3.73  Sec. Kunstinstituut   POINT (3.72807 51.0581)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder28  51.04  3.77             GO! Ath.  POINT (3.76974 51.03529)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        <BLANKLINE>
+        [28 rows x 7 columns]
 
         Now we add the metadata to the Modeldataset.
 
@@ -583,14 +591,23 @@ class GeeStaticModelData(_GeeModelData):
 
         >>> metobs_toolkit.connect_to_gee() #only required once per session
         >>> lcz_df = lcz_model.extract_static_point_data()
-        >>> lcz_df.head()
-                                  lcz
+        >>> lcz_df
+                                   lcz
         name
-        vlinder01  Low plants (LCZ D)
-        vlinder02       Large lowrise
-        vlinder03        Open midrise
-        vlinder04      Sparsely built
-        vlinder05       Water (LCZ G)
+        vlinder01   Low plants (LCZ D)
+        vlinder02        Large lowrise
+        vlinder03         Open midrise
+        vlinder04       Sparsely built
+        vlinder05        Water (LCZ G)
+        ...                        ...
+        vlinder24  Dense Trees (LCZ A)
+        vlinder25        Water (LCZ G)
+        vlinder26         Open midrise
+        vlinder27      Compact midrise
+        vlinder28         Open lowrise
+        <BLANKLINE>
+        [28 rows x 1 columns]
+
         """
         if self.metadf.empty:
             raise MetobsModelDataError(
@@ -713,14 +730,22 @@ class GeeStaticModelData(_GeeModelData):
         ...                input_data_file=metobs_toolkit.demo_datafile,
         ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
         ...                template_file=metobs_toolkit.demo_template)
-        >>> dataset.metadf.head()
-                         lat       lon        school                  geometry dataset_resolution                  dt_start                    dt_end
+        >>> dataset.metadf
+                     lat   lon               school                  geometry dataset_resolution                  dt_start                    dt_end
         name
-        vlinder01  50.980438  3.815763         UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder02  51.022379  3.709695         UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder03  51.324583  4.952109   Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder04  51.335522  4.934732   Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder05  51.052655  3.675183  Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder01  50.98  3.82                UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder02  51.02  3.71                UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder03  51.32  4.95          Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder04  51.34  4.93          Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder05  51.05  3.68         Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        ...          ...   ...                  ...                       ...                ...                       ...                       ...
+        vlinder24  51.17  3.57        OLV ten Doorn  POINT (3.57206 51.16702)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder25  51.15  3.71    Einstein Atheneum  POINT (3.70861 51.15472)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder26  51.16  5.00          Sint Dimpna  POINT (4.99765 51.16176)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder27  51.06  3.73  Sec. Kunstinstituut   POINT (3.72807 51.0581)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        vlinder28  51.04  3.77             GO! Ath.  POINT (3.76974 51.03529)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
+        <BLANKLINE>
+        [28 rows x 7 columns]
 
         Now we add the metadata to the Modeldataset.
 
@@ -769,14 +794,23 @@ class GeeStaticModelData(_GeeModelData):
 
         >>> cover_frac = worldcover_model.extract_static_buffer_frac_data(
         ...                             bufferradius=150)
-        >>> cover_frac.head()
-                                 Grassland  Cropland  Built-up  Tree cover  Permanent water bodies  Bare / sparse vegetation  Herbaceous wetland
+        >>> cover_frac
+                                  Grassland  Cropland  Built-up  Tree cover  Permanent water bodies  Bare / sparse vegetation  Herbaceous wetland
         name      buffer_radius
-        vlinder01 150             0.294100  0.697804  0.008096    0.000000                0.000000                       0.0                 0.0
-        vlinder02 150             0.121288  0.000000  0.528853    0.349858                0.000000                       0.0                 0.0
-        vlinder03 150             0.049795  0.000000  0.757480    0.192725                0.000000                       0.0                 0.0
-        vlinder04 150             0.767982  0.076148  0.108080    0.047790                0.000000                       0.0                 0.0
-        vlinder05 150             0.146961  0.000000  0.306193    0.151902                0.394944                       0.0                 0.0
+        vlinder01 150                 0.29      0.70  8.10e-03        0.00                    0.00                       0.0                 0.0
+        vlinder02 150                 0.12      0.00  5.29e-01        0.35                    0.00                       0.0                 0.0
+        vlinder03 150                 0.05      0.00  7.57e-01        0.19                    0.00                       0.0                 0.0
+        vlinder04 150                 0.77      0.08  1.08e-01        0.05                    0.00                       0.0                 0.0
+        vlinder05 150                 0.15      0.00  3.06e-01        0.15                    0.39                       0.0                 0.0
+        ...                            ...       ...       ...         ...                     ...                       ...                 ...
+        vlinder24 150                 0.03      0.00  8.73e-02        0.88                    0.00                       0.0                 0.0
+        vlinder25 150                 0.07      0.01  5.24e-02        0.02                    0.84                       0.0                 0.0
+        vlinder26 150                 0.03      0.00  7.84e-01        0.19                    0.00                       0.0                 0.0
+        vlinder27 150                 0.01      0.00  9.39e-01        0.05                    0.00                       0.0                 0.0
+        vlinder28 150                 0.15      0.00  3.88e-01        0.47                    0.00                       0.0                 0.0
+        <BLANKLINE>
+        [28 rows x 7 columns]
+
 
         As could be seen in the output of `get_info()`, there is a aggregation
         scheme present. We can apply that scheme to get aggrgated fractions.
@@ -784,14 +818,23 @@ class GeeStaticModelData(_GeeModelData):
         >>> cover_frac = worldcover_model.extract_static_buffer_frac_data(
         ...                             bufferradius=150,
         ...                             agg_bool=True)
-        >>> cover_frac.head()
-                                    water  pervious  impervious
+        >>> cover_frac
+                                 water  pervious  impervious
         name      buffer_radius
-        vlinder01 150            0.000000  0.991904    0.008096
-        vlinder02 150            0.000000  0.471147    0.528853
-        vlinder03 150            0.000000  0.242520    0.757480
-        vlinder04 150            0.000000  0.891920    0.108080
-        vlinder05 150            0.394944  0.298863    0.306193
+        vlinder01 150             0.00      0.99    8.10e-03
+        vlinder02 150             0.00      0.47    5.29e-01
+        vlinder03 150             0.00      0.24    7.57e-01
+        vlinder04 150             0.00      0.89    1.08e-01
+        vlinder05 150             0.39      0.30    3.06e-01
+        ...                        ...       ...         ...
+        vlinder24 150             0.00      0.91    8.73e-02
+        vlinder25 150             0.84      0.11    5.24e-02
+        vlinder26 150             0.00      0.22    7.84e-01
+        vlinder27 150             0.00      0.06    9.39e-01
+        vlinder28 150             0.00      0.61    3.88e-01
+        <BLANKLINE>
+        [28 rows x 3 columns]
+
         """
 
         if self.metadf.empty:
@@ -1283,7 +1326,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         The ERA5 GeeDyanmicModelData is equipped with a few Modelobstypes.
         >>> era5.modelobstypes
-        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
 
         Now we create a ModelObstype, which is a regular Obstype, but with
         extra information how this is linked to a band in the Gee dataset. So
@@ -1309,7 +1352,7 @@ class GeeDynamicModelData(_GeeModelData):
         ...                                                 model_unit='J/m²',
         ...                                                 model_band='surface_solar_radiation_downwards')
         >>> solar_rad_in_era5
-        ModelObstype isntance of solar_radiation (linked to band: surface_solar_radiation_downwards)
+        ModelObstype instance of solar_radiation (linked to band: surface_solar_radiation_downwards)
 
         At last, we can add the solar radiation to the Geedataset by using
         the `GeeDynamicModelData.add_modelobstype()` method.
@@ -1317,7 +1360,7 @@ class GeeDynamicModelData(_GeeModelData):
         >>> era5.add_modelobstype(modelobstype=solar_rad_in_era5)
 
         >>> era5.modelobstypes
-        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'solar_radiation': ModelObstype isntance of solar_radiation (linked to band: surface_solar_radiation_downwards)}
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'solar_radiation': ModelObstype instance of solar_radiation (linked to band: surface_solar_radiation_downwards)}
 
         """
         if not (
@@ -1492,11 +1535,11 @@ class GeeDynamicModelData(_GeeModelData):
         <BLANKLINE>
          -- Known Modelobstypes --
         <BLANKLINE>
-         * temp : ModelObstype isntance of temp (linked to band: temperature_2m)
+         * temp : ModelObstype instance of temp (linked to band: temperature_2m)
             (conversion: Kelvin --> Celsius)
-         * pressure : ModelObstype isntance of pressure (linked to band: surface_pressure)
+         * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
             (conversion: pa --> pa)
-         * wind : ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+         * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
             vectorfield that will be converted to:
               * wind_speed
               * wind_direction
@@ -1929,7 +1972,7 @@ class GeeDynamicModelData(_GeeModelData):
         a ModelObstype representing the temperature present in the GeeDynamicModelData:
 
         >>> era5.modelobstypes
-        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
 
         We define a (short) period, and extract ERA5 timeseries.
 
@@ -1946,14 +1989,23 @@ class GeeDynamicModelData(_GeeModelData):
         Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
         method.)
 
-        >>> era5.modeldf.head()
-                                                  temp
+        >>> era5.modeldf
+                                              temp
         name      datetime
-        vlinder01 2022-09-04 00:00:00+00:00  17.710428
-                  2022-09-04 01:00:00+00:00  17.558817
-                  2022-09-04 02:00:00+00:00  17.237772
-                  2022-09-04 03:00:00+00:00  16.746164
-                  2022-09-04 04:00:00+00:00  16.334497
+        vlinder01 2022-09-04 00:00:00+00:00  17.71
+                  2022-09-04 01:00:00+00:00  17.56
+                  2022-09-04 02:00:00+00:00  17.24
+                  2022-09-04 03:00:00+00:00  16.75
+                  2022-09-04 04:00:00+00:00  16.33
+        ...                                    ...
+        vlinder28 2022-09-04 20:00:00+00:00  21.40
+                  2022-09-04 21:00:00+00:00  20.91
+                  2022-09-04 22:00:00+00:00  20.51
+                  2022-09-04 23:00:00+00:00  20.28
+                  2022-09-05 00:00:00+00:00  20.13
+        <BLANKLINE>
+        [700 rows x 1 columns]
+
 
         (As you can see, the timeseries are automatically converted to the
          toolkit standards of the Obstype: °C)
@@ -2178,12 +2230,12 @@ class GeeDynamicModelData(_GeeModelData):
         a ModelObstype representing the temperature present in the GeeDynamicModelData:
 
         >>> era5.modelobstypes
-        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
 
         Note that the "wind" Modelobstype is a ModelObstype_Vectorfield!
 
         >>> era5.modelobstypes['wind']
-        ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+        ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
 
         When "wind" is requested for ERA5, the toolkit will request the u and v
         components of the wind, donwload them, convert the units and compute
@@ -2206,14 +2258,23 @@ class GeeDynamicModelData(_GeeModelData):
         Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
         method.)
 
-        >>> era5.modeldf.head()
-                                                  temp  wind_speed  wind_direction
+        >>> era5.modeldf
+                                              temp  wind_speed  wind_direction
         name      datetime
-        vlinder01 2022-09-04 00:00:00+00:00  17.710428    2.442604      359.391519
-                  2022-09-04 01:00:00+00:00  17.558817    2.466115       11.905949
-                  2022-09-04 02:00:00+00:00  17.237772    2.282244       19.146343
-                  2022-09-04 03:00:00+00:00  16.746164    2.215615       22.711748
-                  2022-09-04 04:00:00+00:00  16.334497    2.224102       22.718248
+        vlinder01 2022-09-04 00:00:00+00:00  17.71        2.44          359.39
+                  2022-09-04 01:00:00+00:00  17.56        2.47           11.91
+                  2022-09-04 02:00:00+00:00  17.24        2.28           19.15
+                  2022-09-04 03:00:00+00:00  16.75        2.22           22.71
+                  2022-09-04 04:00:00+00:00  16.33        2.22           22.72
+        ...                                    ...         ...             ...
+        vlinder28 2022-09-04 20:00:00+00:00  21.40        2.37          251.99
+                  2022-09-04 21:00:00+00:00  20.91        2.47          270.47
+                  2022-09-04 22:00:00+00:00  20.51        2.50          298.30
+                  2022-09-04 23:00:00+00:00  20.28        2.76          322.41
+                  2022-09-05 00:00:00+00:00  20.13        2.97          331.08
+        <BLANKLINE>
+        [700 rows x 3 columns]
+
 
 
         As you can see, the timeseries are automatically converted to the
@@ -2223,7 +2284,7 @@ class GeeDynamicModelData(_GeeModelData):
         are added as ModelObstypes.
 
         >>> era5.modelobstypes
-        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'wind_speed': ModelObstype isntance of wind_speed (linked to band: wind_speed), 'wind_direction': ModelObstype isntance of wind_direction (linked to band: wind_direction)}
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'wind_speed': ModelObstype instance of wind_speed (linked to band: wind_speed), 'wind_direction': ModelObstype instance of wind_direction (linked to band: wind_direction)}
 
 
         """
@@ -2533,7 +2594,7 @@ class GeeDynamicModelData(_GeeModelData):
         a ModelObstype representing the temperature present in the GeeDynamicModelData:
 
         >>> era5.modelobstypes
-        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
 
         We define a (short) period, and extract ERA5 timeseries.
 
@@ -2566,11 +2627,11 @@ class GeeDynamicModelData(_GeeModelData):
         <BLANKLINE>
          -- Known Modelobstypes --
         <BLANKLINE>
-         * temp : ModelObstype isntance of temp (linked to band: temperature_2m)
+         * temp : ModelObstype instance of temp (linked to band: temperature_2m)
             (conversion: Kelvin --> Celsius)
-         * pressure : ModelObstype isntance of pressure (linked to band: surface_pressure)
+         * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
             (conversion: pa --> pa)
-         * wind : ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+         * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
             vectorfield that will be converted to:
               * wind_speed
               * wind_direction
@@ -2578,55 +2639,39 @@ class GeeDynamicModelData(_GeeModelData):
         <BLANKLINE>
          -- Metadata --
         <BLANKLINE>
-                        lon        lat                  geometry
+                    lon    lat                  geometry
         name
-        vlinder01  3.815763  50.980438  POINT (3.81576 50.98044)
-        vlinder02  3.709695  51.022379   POINT (3.7097 51.02238)
-        vlinder03  4.952109  51.324583  POINT (4.95211 51.32458)
-        vlinder04  4.934732  51.335522  POINT (4.93473 51.33552)
-        vlinder05  3.675183  51.052655  POINT (3.67518 51.05266)
-        vlinder06  4.516300  51.027100    POINT (4.5163 51.0271)
-        vlinder07  4.478445  51.030889  POINT (4.47844 51.03089)
-        vlinder08  4.477398  51.028130   POINT (4.4774 51.02813)
-        vlinder09  4.075722  50.927167  POINT (4.07572 50.92717)
-        vlinder10  4.041389  50.935556  POINT (4.04139 50.93556)
-        vlinder11  4.381726  51.222422  POINT (4.38173 51.22242)
-        vlinder12  4.423440  51.216477  POINT (4.42344 51.21648)
-        vlinder13  4.398065  51.212211  POINT (4.39806 51.21221)
-        vlinder14  4.315013  51.350618  POINT (4.31501 51.35062)
-        vlinder15  4.192600  50.935300    POINT (4.1926 50.9353)
-        vlinder16  4.293436  51.266850  POINT (4.29344 51.26685)
-        vlinder17  5.613458  51.065269  POINT (5.61346 51.06527)
-        vlinder18  5.656769  51.136244  POINT (5.65677 51.13624)
-        vlinder19  4.363672  50.841455  POINT (4.36367 50.84146)
-        vlinder20  4.357971  50.847025  POINT (4.35797 50.84702)
-        vlinder21  2.991917  51.260389  POINT (2.99192 51.26039)
-        vlinder22  2.856220  50.989501   POINT (2.85622 50.9895)
-        vlinder23  3.580151  51.260578  POINT (3.58015 51.26058)
-        vlinder24  3.572062  51.167015  POINT (3.57206 51.16702)
-        vlinder25  3.708611  51.154720  POINT (3.70861 51.15472)
-        vlinder26  4.997653  51.161760  POINT (4.99765 51.16176)
-        vlinder27  3.728067  51.058099   POINT (3.72807 51.0581)
-        vlinder28  3.769741  51.035293  POINT (3.76974 51.03529)
+        vlinder01  3.82  50.98  POINT (3.81576 50.98044)
+        vlinder02  3.71  51.02   POINT (3.7097 51.02238)
+        vlinder03  4.95  51.32  POINT (4.95211 51.32458)
+        vlinder04  4.93  51.34  POINT (4.93473 51.33552)
+        vlinder05  3.68  51.05  POINT (3.67518 51.05266)
+        ...         ...    ...                       ...
+        vlinder24  3.57  51.17  POINT (3.57206 51.16702)
+        vlinder25  3.71  51.15  POINT (3.70861 51.15472)
+        vlinder26  5.00  51.16  POINT (4.99765 51.16176)
+        vlinder27  3.73  51.06   POINT (3.72807 51.0581)
+        vlinder28  3.77  51.04  POINT (3.76974 51.03529)
+        <BLANKLINE>
+        [28 rows x 3 columns]
         <BLANKLINE>
          -- Modeldata --
         <BLANKLINE>
-                                                  temp
+                                              temp
         name      datetime
-        vlinder01 2022-09-04 00:00:00+00:00  17.710428
-                  2022-09-04 01:00:00+00:00  17.558817
-                  2022-09-04 02:00:00+00:00  17.237772
-                  2022-09-04 03:00:00+00:00  16.746164
-                  2022-09-04 04:00:00+00:00  16.334497
-        ...                                        ...
-        vlinder28 2022-09-04 20:00:00+00:00  21.398523
-                  2022-09-04 21:00:00+00:00  20.909616
-                  2022-09-04 22:00:00+00:00  20.512659
-                  2022-09-04 23:00:00+00:00  20.277475
-                  2022-09-05 00:00:00+00:00  20.133218
+        vlinder01 2022-09-04 00:00:00+00:00  17.71
+                  2022-09-04 01:00:00+00:00  17.56
+                  2022-09-04 02:00:00+00:00  17.24
+                  2022-09-04 03:00:00+00:00  16.75
+                  2022-09-04 04:00:00+00:00  16.33
+        ...                                    ...
+        vlinder28 2022-09-04 20:00:00+00:00  21.40
+                  2022-09-04 21:00:00+00:00  20.91
+                  2022-09-04 22:00:00+00:00  20.51
+                  2022-09-04 23:00:00+00:00  20.28
+                  2022-09-05 00:00:00+00:00  20.13
         <BLANKLINE>
         [700 rows x 1 columns]
-
 
         We will save the era5 GeeDynamicModelData now as a (pkl) file. As an
         example we will store it in the current working directory (`os.getcwd()`)
@@ -2719,7 +2764,7 @@ class GeeDynamicModelData(_GeeModelData):
         a ModelObstype representing the temperature present in the GeeDynamicModelData:
 
         >>> era5.modelobstypes
-        {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
 
         We define a period, and extract ERA5 timeseries.
 
@@ -2797,7 +2842,7 @@ def import_modeldata_from_pkl(folder_path, filename="saved_modeldata.pkl"):
     a ModelObstype representing the temperature present in the GeeDynamicModelData:
 
     >>> era5.modelobstypes
-    {'temp': ModelObstype isntance of temp (linked to band: temperature_2m), 'pressure': ModelObstype isntance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield isntance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+    {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
 
     We define a (short) period, and extract ERA5 timeseries.
 
@@ -3006,3 +3051,11 @@ default_datasets = {  # Static datasets
     # Dynamic datasets
     era5_land.name: era5_land,
 }
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

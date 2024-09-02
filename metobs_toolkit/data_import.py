@@ -251,3 +251,12 @@ class MetobsDataImportError(Exception):
     """Exception raised for errors on importing Data."""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

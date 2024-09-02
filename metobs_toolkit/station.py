@@ -58,3 +58,12 @@ class Station(Dataset):
         for col in timedelta_columns:
             if col in self.metadf.columns:
                 self.metadf[col] = pd.to_timedelta(self.metadf[col])
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()
