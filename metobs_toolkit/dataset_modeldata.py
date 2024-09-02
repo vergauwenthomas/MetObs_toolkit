@@ -136,9 +136,9 @@ class DatasetModelData:
         of the stations present in the Dataset.
 
         By default, each `Dataset` is equiped with Gee dataset.
+
         >>> dataset.gee_datasets
         {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
-
 
         As you can see, is "ERA5-land" a default GeeDynamicModelData. We will
         use it for this example.
@@ -157,6 +157,7 @@ class DatasetModelData:
         >>> sta = dataset.get_station('vlinder02')
 
         We specify the Gee dataset to use
+
         >>> ERA5_model = sta.gee_datasets['ERA5-land']
         >>> ERA5_model.get_info()
         Empty GeeDynamicModelData instance of ERA5-land
@@ -759,6 +760,7 @@ class DatasetModelData:
         of precipitation (form the satelite product) at the locations of the stations.
 
         First we need to import the metadata.
+
         >>> dataset.import_data_from_file(
         ...         input_data_file=metobs_toolkit.demo_datafile,
         ...         input_metadata_file=metobs_toolkit.demo_metadatafile,
@@ -777,7 +779,6 @@ class DatasetModelData:
         >>> import datetime
         >>> tstart = datetime.datetime(2022,9,4)
         >>> tend = datetime.datetime(2022,9,5)
-
         >>> dataset.get_modeldata(
         ...                  Model='precip_GSMaP',
         ...                  obstypes=['precip'],

@@ -98,6 +98,7 @@ class Analysis(Dataset):
 
         To get all the records in the Analysis in the form of a pandas.DataFrame,
         we use `get_analysis_records()`.
+
         >>> df = ana.get_analysis_records()
         >>> df
         obstype                              humidity  temp  wind_direction  wind_speed

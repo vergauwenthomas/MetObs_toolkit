@@ -471,8 +471,8 @@ class Dataset(
                   2022-09-01 00:15:00+00:00  18.7    ok            observation     65.0    ok            observation
                   2022-09-01 00:20:00+00:00  18.7    ok            observation     65.0    ok            observation
 
-
         If you want it in a long structure:
+
         >>> combined_df = dataset.get_full_status_df(return_as_wide=False)
         >>> combined_df.head()
                                               value label toolkit_representation
