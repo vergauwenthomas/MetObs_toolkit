@@ -8,14 +8,6 @@ echo " -----------------------------------"
 
 
 DEPLOY_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-DEP_PIPE_LOG=${DEPLOY_DIR}/dev_pipeline_log
-
-
-rm -f ${DEP_PIPE_LOG} #clean start
-touch ${DEP_PIPE_LOG}
-chmod 755 ${DEP_PIPE_LOG}
-
-
 
 cd ${DEPLOY_DIR}
 
