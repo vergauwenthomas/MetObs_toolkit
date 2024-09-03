@@ -100,7 +100,7 @@ Test your GEE access
     # Use the demo files, and extract LCZ from GEE
 
     dataset = metobs_toolkit.Dataset()
-    dataset.update_settings(input_data_file=metobs_toolkit.demo_datafile,
+    dataset.update_file_paths(input_data_file=metobs_toolkit.demo_datafile,
                             input_metadata_file=metobs_toolkit.demo_metadatafile,
                             template_file=metobs_toolkit.demo_template)
 

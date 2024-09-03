@@ -205,7 +205,7 @@ demo_all_metadata = "demo_all_metadata_df.pkl"
 def create_metadata_solution():
     print("THIS WILL OVERWRITE THE SOLUTIONS")
     dataset = metobs_toolkit.Dataset()
-    dataset.update_settings(
+    dataset.update_file_paths(
         input_data_file=metobs_toolkit.demo_datafile,
         input_metadata_file=metobs_toolkit.demo_metadatafile,
         template_file=metobs_toolkit.demo_template,
@@ -242,7 +242,7 @@ def get_altitude_series_solution():
 # print('BE AWARE THAT THE SOLUTIONS WILL BE OVERWRITTEN !!! ')
 # dataset = metobs_toolkit.Dataset()
 # # ------- 5 min demo dataset ---------------
-# dataset.update_settings(
+# dataset.update_file_paths(
 #                           input_data_file=metobs_toolkit.demo_datafile,
 #                           input_metadata_file=metobs_toolkit.demo_metadatafile,
 #                           template_file=metobs_toolkit.demo_template,
@@ -278,7 +278,7 @@ def get_altitude_series_solution():
 
 # # -------  hourly demo dataset ---------------
 # dataset = metobs_toolkit.Dataset()
-# dataset.update_settings(
+# dataset.update_file_paths(
 #                           input_data_file=metobs_toolkit.demo_datafile,
 #                           input_metadata_file=metobs_toolkit.demo_metadatafile,
 #                           template_file=metobs_toolkit.demo_template,

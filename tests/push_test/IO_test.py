@@ -31,7 +31,7 @@ testdatafile = os.path.join(
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(
+dataset.update_file_paths(
     input_data_file=testdatafile, template_file=metobs_toolkit.demo_template
 )
 dataset.show_settings()
@@ -46,7 +46,7 @@ template_loc = "https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=dataloc, template_file=template_loc)
+dataset.update_file_paths(input_data_file=dataloc, template_file=template_loc)
 dataset.import_data_from_file(templatefile_is_url=True)
 assert not dataset.df.empty, "something wrong with importing from onlin locations"
 
@@ -55,7 +55,7 @@ assert not dataset.df.empty, "something wrong with importing from onlin location
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(
+dataset.update_file_paths(
     input_data_file=metobs_toolkit.demo_datafile,
     input_metadata_file=metobs_toolkit.demo_metadatafile,
     template_file=metobs_toolkit.demo_template,
@@ -83,7 +83,7 @@ widetemplate = os.path.join(
 
 # #% Setup dataset
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(
+dataset.update_file_paths(
     input_data_file=widedatafile,
     # input_metadata_file=static_data,
     template_file=widetemplate,
@@ -161,7 +161,7 @@ singlestationmetadata = os.path.join(
 # #% Setup dataset
 
 dataset_single = metobs_toolkit.Dataset()
-dataset_single.update_settings(
+dataset_single.update_file_paths(
     input_data_file=singlestationdatafile,
     input_metadata_file=singlestationmetadata,
     template_file=singlestationtemplate,
@@ -282,7 +282,7 @@ testtemplate = os.path.join(
     str(lib_folder), "tests", "test_data", "single_station_new_obstype_template.json"
 )
 
-dataset.update_settings(
+dataset.update_file_paths(
     input_data_file=testdata,
     input_metadata_file=testmetadata,
     template_file=testtemplate,

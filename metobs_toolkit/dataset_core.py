@@ -1530,7 +1530,7 @@ class Dataset(
         >>>
         >>> # Import data into a Dataset
         >>> dataset = metobs_toolkit.Dataset()
-        >>> dataset.update_settings(
+        >>> dataset.update_file_paths(
         ...                         input_data_file=metobs_toolkit.demo_datafile,
         ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
         ...                         template_file=metobs_toolkit.demo_template,
@@ -1547,11 +1547,11 @@ class Dataset(
 
         # Update paths to the input files, if given.
         if input_data_file is not None:
-            self.update_settings(input_data_file=input_data_file)
+            self.update_file_paths(input_data_file=input_data_file)
         if input_metadata_file is not None:
-            self.update_settings(input_metadata_file=input_metadata_file)
+            self.update_file_paths(input_metadata_file=input_metadata_file)
         if template_file is not None:
-            self.update_settings(template_file=template_file)
+            self.update_file_paths(template_file=template_file)
 
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 

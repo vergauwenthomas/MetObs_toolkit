@@ -571,7 +571,7 @@ def build_template_prompt():
         print("your_dataset = metobs_toolkit.Dataset()")
 
         print("\n#3. Update the paths to your files: \n")
-        print("your_dataset.update_settings(")
+        print("your_dataset.update_file_paths(")
         print("    input_data_file = data_file,")
         if meta_avail:
             print("    input_metadata_file = meta_data_file,")

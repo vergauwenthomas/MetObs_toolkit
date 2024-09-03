@@ -37,6 +37,18 @@ General methods and attributes
    Dataset.sync_records
 
 
+Updating Settings
+-------------------
+
+.. autosummary::
+   :toctree: api/
+
+   Dataset.update_settings
+   Dataset.update_default_name
+   Dataset.update_qc_settings
+   Dataset.update_titan_qc_settings
+
+
 
 Gaps related methods
 ------------------------------

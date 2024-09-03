@@ -28,7 +28,7 @@ metadatafile = os.path.join(str(lib_folder), "static_data", "vlinder_metadata.cs
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(
+dataset.update_file_paths(
     input_data_file=testdatafile,
     template_file=metobs_toolkit.demo_template,
     input_metadata_file=metadatafile,

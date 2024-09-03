@@ -41,7 +41,7 @@ templatefile = os.path.join(
 
 # #% import data
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(
+dataset.update_file_paths(
     input_data_file=testdatafile,
     input_metadata_file=static_data,
     template_file=templatefile,
@@ -139,7 +139,7 @@ diff_df = solution.test_df_are_equal(
 # =============================================================================
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(
+dataset.update_file_paths(
     input_data_file=testdatafile,
     input_metadata_file=static_data,
     template_file=templatefile,

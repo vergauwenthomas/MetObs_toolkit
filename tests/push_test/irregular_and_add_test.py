@@ -51,7 +51,7 @@ def _create_irr_solutions():
     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
 
     dataset2 = metobs_toolkit.Dataset()
-    dataset2.update_settings(
+    dataset2.update_file_paths(
         input_data_file=data2,
         input_metadata_file=None,
         template_file=template2,
@@ -82,7 +82,7 @@ irr_sol_combdf, irr_sol_metadf = get_irr_solutions()
 
 
 dataset2 = metobs_toolkit.Dataset()
-dataset2.update_settings(
+dataset2.update_file_paths(
     input_data_file=data2,
     input_metadata_file=None,
     template_file=template2,
@@ -117,7 +117,7 @@ def _create_add_solutions():
     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
 
     dataset1 = metobs_toolkit.Dataset()
-    dataset1.update_settings(
+    dataset1.update_file_paths(
         input_data_file=metobs_toolkit.demo_datafile,
         input_metadata_file=metobs_toolkit.demo_metadatafile,
         template_file=metobs_toolkit.demo_template,
@@ -145,7 +145,7 @@ def read_add_solution():
 add_sol_comb, add_sol_meta = read_add_solution()
 
 dataset1 = metobs_toolkit.Dataset()
-dataset1.update_settings(
+dataset1.update_file_paths(
     input_data_file=metobs_toolkit.demo_datafile,
     input_metadata_file=metobs_toolkit.demo_metadatafile,
     template_file=metobs_toolkit.demo_template,
@@ -175,7 +175,7 @@ def _create_add_sta_overlap_solutions():
     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
 
     dataset3 = metobs_toolkit.Dataset()
-    dataset3.update_settings(
+    dataset3.update_file_paths(
         input_data_file=data3,
         input_metadata_file=metobs_toolkit.demo_metadatafile,
         template_file=metobs_toolkit.demo_template,
@@ -205,7 +205,7 @@ def read_add_sta_overlap_solution():
 add_sol_comb, add_sol_meta = read_add_sta_overlap_solution()
 
 dataset3 = metobs_toolkit.Dataset()
-dataset3.update_settings(
+dataset3.update_file_paths(
     input_data_file=data3,
     input_metadata_file=metobs_toolkit.demo_metadatafile,
     template_file=metobs_toolkit.demo_template,
@@ -239,7 +239,7 @@ def _create_add_sta_period_overlap_solutions():
     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
 
     dataset4 = metobs_toolkit.Dataset()
-    dataset4.update_settings(
+    dataset4.update_file_paths(
         input_data_file=data4,
         input_metadata_file=metobs_toolkit.demo_metadatafile,
         template_file=metobs_toolkit.demo_template,
@@ -271,7 +271,7 @@ def read_add_sta_overlap_solution():
 add_sol_comb, add_sol_meta = read_add_sta_overlap_solution()
 
 dataset4 = metobs_toolkit.Dataset()
-dataset4.update_settings(
+dataset4.update_file_paths(
     input_data_file=data4,
     input_metadata_file=metobs_toolkit.demo_metadatafile,
     template_file=metobs_toolkit.demo_template,

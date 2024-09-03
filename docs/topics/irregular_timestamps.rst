@@ -45,7 +45,7 @@ for personal use.
    your_dataset = metobs_toolkit.Dataset()
 
    #specify paths
-   dataset.update_settings(
+   dataset.update_file_paths(
                            input_data_file=' .. path to netatmo data ..',
                            data_template_file=' .. template file .. ',
                            )
@@ -85,7 +85,7 @@ We can synchronize the dataset using this code example:
    your_dataset = metobs_toolkit.Dataset()
 
    # Specify paths
-   dataset.update_settings(
+   dataset.update_file_paths(
                            input_data_file=' .. path to netatmo data ..',
                            data_template_file=' .. template file .. ',
                            )

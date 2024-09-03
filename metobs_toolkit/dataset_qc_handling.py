@@ -1066,7 +1066,7 @@ class DatasetQCCore:
 
     #     #      # Import data into a Dataset
     #     #      dataset = metobs_toolkit.Dataset()
-    #     #      dataset.update_settings(
+    #     #      dataset.update_file_paths(
     #     #                              input_data_file=metobs_toolkit.demo_datafile,
     #     #                              input_metadata_file=metobs_toolkit.demo_metadatafile,
     #     #                              template_file=metobs_toolkit.demo_template,

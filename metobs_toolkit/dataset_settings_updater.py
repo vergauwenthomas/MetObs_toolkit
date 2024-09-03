@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class DatasetSettingsCore:
     """Extension on the metobs_toolkit.Dataset class with updaters."""
 
-    def update_settings(
+    def update_file_paths(
         self,
         output_folder=None,
         input_data_file=None,

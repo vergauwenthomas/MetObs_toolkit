@@ -32,7 +32,9 @@ template_file = os.path.join(
 )
 
 dataset_coarsened = metobs_toolkit.Dataset()
-dataset_coarsened.update_settings(input_data_file=testdata, template_file=template_file)
+dataset_coarsened.update_file_paths(
+    input_data_file=testdata, template_file=template_file
+)
 
 
 #####################################################################
@@ -66,7 +68,7 @@ max_decrease_per_second_step = (
 
 # %%
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=testdata, template_file=template_file)
+dataset.update_file_paths(input_data_file=testdata, template_file=template_file)
 dataset.update_qc_settings(
     obstype="temp",
     dupl_timestamp_keep=dupl_dropping,

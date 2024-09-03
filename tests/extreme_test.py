@@ -33,7 +33,7 @@ def read_in_the_dataset(dataname, testdatadict):
     # kwargsdict = testdatadict[dataname]["kwargs"]
 
     dataset = metobs_toolkit.Dataset()
-    dataset.update_settings(
+    dataset.update_file_paths(
         input_data_file=datafile,
         input_metadata_file=metafile,
         template_file=template,
