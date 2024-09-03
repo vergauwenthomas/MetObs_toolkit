@@ -18,8 +18,8 @@ This repo contains all the software for the [metobs_toolkit](https://test.pypi.o
 
 Documentation can be found [here](https://metobs-toolkit.readthedocs.io/en/latest/index.html).
 
-The Documentation contains examples, explenations and the API documentation of
-the toolkit. Make sure that the version of the documentation matches your version
+The Documentation contains examples, explanations, and the API documentation of
+the toolkit. Make sure that the documentation version matches your version
 of the toolkit.
 
 
@@ -59,9 +59,6 @@ metobs_toolkit.__version__
 ## Exercises and demos
 In the context of a [FAIRNESS (COST action)](https://www.fairness-ca20108.eu/) summer school, a set of well-documented exercises and demos are made.
 
-*NOTE: * these excercises are build on an early version of the toolkit! We recommand to use the
-examples in the [documentation](https://metobs-toolkit.readthedocs.io/en/latest/index.html).
-
 | Notebook  | Description  |       |
 |:----------|:-------------|------:|
 | [Introduction](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Introduction_01.ipynb) | Introduction to the toolkit | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Introduction_01.ipynb) |
@@ -69,8 +66,7 @@ examples in the [documentation](https://metobs-toolkit.readthedocs.io/en/latest/
 | [Filling gaps](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Gap_filling_excercise_03.ipynb) | Introduction to gap filling methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Gap_filling_excercise_03.ipynb)|
 | [Analysis](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Urban_analysis_excercise_04.ipynb) | Introduction analysis methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Urban_analysis_excercise_04.ipynb)|
 
-*NOTE: * these excercises are build on an early version of the toolkit! We recommand to use the
-examples in the [documentation](https://metobs-toolkit.readthedocs.io/en/latest/index.html).
+*NOTE: * these exercises are built on an early version of the toolkit! We recommend using the examples in the [documentation](https://metobs-toolkit.readthedocs.io/en/latest/index.html).
 
 
 

@@ -36,6 +36,52 @@ class Analysis(Dataset):
     """The Analysis class contains methods for analysing observations."""
 
     def __init__(self, orig_dataset, use_gapfilled_values=False):
+        """Create an instance of Analysis.
+
+        The Analysis is similar as a Dataset and contains observations,
+        that are concidered to be good. There are no outliers.
+
+        The methods of the Analysis class target on scienctific analysis, and
+        is a feature-futured class.
+
+
+
+
+        Parameters
+        ----------
+        orig_dataset : metobs_toolkit.Dataset
+            The Dataset to create an Analysis of.
+        use_gapfilled_values : bool, optional
+            If True, the gapfilled records are used in the Analysis,
+            else the gapfilled records are (like outliers) present
+            as NaN values. The default is False.
+
+        Returns
+        -------
+        metobs_toolkit.Analysis
+
+        Examples
+        --------
+        An Analysis is always created from a Dataset, so we start by creating
+        a Dataset and importing data into it.
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+
+        Now we have a dataset containing records. We now create a Analysis from it.
+
+        >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+        >>> ana # doctest: +ELLIPSIS
+        Instance of Analysis at ...
+
+        """
 
         # analysis objects
         self.lc_cor_dict = {}

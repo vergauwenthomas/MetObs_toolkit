@@ -8,8 +8,12 @@ echo " -----------------------------------"
 
 
 DEPLOY_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+DEP_PIPE_LOG=${DEPLOY_DIR}/dev_pipeline_log
 
 cd ${DEPLOY_DIR}
+
+rm -f ${DEP_PIPE_LOG} #clean start
+touch ${DEP_PIPE_LOG}
 
 #1. Update and built package
 ./build_package.sh 2>&1 | tee -a ${DEP_PIPE_LOG}
