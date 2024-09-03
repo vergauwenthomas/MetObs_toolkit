@@ -6,6 +6,20 @@ Created on Fri Aug 30 15:02:08 2024
 @author: thoverga
 """
 
+import os
+import sys
+from pathlib import Path
+
+
+def _set_path_to_toolkit():
+    lib_folder = Path(__file__).resolve().parents[1]
+    if sys.path[0] != lib_folder:
+        sys.path.insert(0, str(lib_folder))
+
+    import metobs_toolkit
+
+    print(f" Using metobs: v{metobs_toolkit.__version__}")
+
 
 def _set_pandas_display_options():
     import pandas as pd
@@ -23,6 +37,8 @@ def _set_pandas_display_options():
 def setup_and_run_doctest():
     import doctest
 
+    # set path to the this metobstoolkit
+    _set_path_to_toolkit()
     # Set display options
     _set_pandas_display_options()
 
@@ -32,3 +48,6 @@ def setup_and_run_doctest():
         report=True,
         optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE,
     )
+
+
+_set_path_to_toolkit()

@@ -123,7 +123,7 @@ GEE Modeldata classes
 
 Two classes are designed to interact with a GEE (Google Earth Engine) dataset:
 
-* `GeeStaticModelData`: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers arround them).
+* `GeeStaticModelData`: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers around them).
 * `GeeDynamicModelData`: This class handles GEE Dataset that have a time dimension. This class is used to extract timeseries of GEE dataset values at the stations locations.
 
 Both classes can hold metadata (=Coordinates of the stations), and the `GeeDynamicModelData` class can hold timeseries data.
@@ -139,7 +139,7 @@ There are default modeldata classes prepared, and they are stored in the `Datase
                                        Model=your_datast.gee_datasets['ERA5-land'],
                                         obstype='temp')
 
-See the API documentiontion :ref:`Geemodeldata <Geemodeldata api>` for more details.
+See the API documentation :ref:`Geemodeldata <Geemodeldata api>` for more details.
 
 The toolkit makes use of the Google Earth Engine (GEE), to extract these time-series. To use the GEE API, follow these steps on :ref:`Using Google Earth Engine<Using_gee>`.
 
