@@ -288,8 +288,9 @@ class Obstype:
 
         Returns
         -------
-        data  numeric/numpy.array/
-            The data in standard units.
+        data  numeric / numpy.array / pd.Series
+            The data in standard units. (Returned in the same structure and
+            format as the input_data.)
 
         """
         # check if input unit is known

@@ -10,13 +10,21 @@ Created on Tue Nov 29 12:19:03 2022
 """
 
 import sys, os
-
+import pandas as pd
 from pathlib import Path
 
+
+# add the solutions
 sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+print(sys.path)
 import solutions.solutions_creator as solution
-import pandas as pd
+
+# point to current version of the toolkit
+lib_folder = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(lib_folder))
 import metobs_toolkit
+
+# %%
 
 
 lib_folder = Path(__file__).resolve().parents[2]

@@ -7,24 +7,24 @@ Created on Fri Oct 28 08:18:09 2022
 """
 import copy
 import sys, os
+from pathlib import Path
 import pandas as pd
 from datetime import datetime
 import numpy as np
 
-from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
 
-
-from pathlib import Path
-
+# add the solutions
 sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+print(sys.path)
 import solutions.solutions_creator as solution
 
+# point to current version of the toolkit
 lib_folder = Path(__file__).resolve().parents[2]
-
-# sys.path.append(str(lib_folder))
-
-
+sys.path.insert(0, str(lib_folder))
 import metobs_toolkit
+
+from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
+
 
 # %% Import data
 

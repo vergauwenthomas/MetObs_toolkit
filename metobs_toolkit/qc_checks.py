@@ -99,15 +99,8 @@ def make_outlier_df_for_check(
     # subset outliers
     outliersdf = obsdf.loc[tripl_idx]
 
-    # # make the triple multiindex
-    # outliersdf["obstype"] = obstype
-    # outliersdf = outliersdf.set_index("obstype", append=True)
-
     # add flag
     outliersdf["label"] = flag
-
-    # # subset columns
-    # outliersdf = outliersdf[[obstype, "label"]].rename(columns={obstype: "value"})
 
     # replace values in obsdf by Nan
     obsdf.loc[tripl_idx] = np.nan
@@ -118,71 +111,6 @@ def make_outlier_df_for_check(
 # =============================================================================
 # Quality assesment checks on data import
 # =============================================================================
-
-
-# def invalid_input_check(df, checks_info):
-#     """Test if values are numeric and not Nan.
-
-#     Parameters
-#     ----------
-#     df : pandas.DataFrame
-#         The observations to check the values for. Must contain a column 'name'.
-#     checks_info : dict
-#         Specific settings for the invalid check test.
-
-#     Returns
-#     -------
-#     df : pandas.DataFrame
-#         The observations with NaN values at the location of invalid input.
-#     outl_df : pandas.DataFrame
-#         The updated outliersdf.
-
-#     """
-#     checkname = "invalid_input"
-
-#     # fast scan wich stations and obstypes have nan outliers
-#     groups = (
-#         df.reset_index()
-#         .groupby("name")
-#         .apply(lambda x: (np.isnan(x).any()) & (np.isnan(x).all() == False))
-#     )
-
-#     # extract all obstype that have outliers
-#     outl_obstypes = groups.apply(lambda x: x.any(), axis=0)
-#     outl_obstypes = outl_obstypes[outl_obstypes].index.to_list()
-
-#     # first loop over the smallest sample: outlier obstypes
-#     outl_dict = {}
-
-#     for obstype in outl_obstypes:
-#         # get stations that have ouliers for this obstype
-#         outl_stations = groups.loc[groups[obstype], obstype].index.to_list()
-
-#         outl_multiidx = init_multiindex()
-#         for sta in outl_stations:
-#             # apply check per station
-#             outl_idx = (
-#                 xs_save(df, sta, level="name", drop_level=False)[obstype]
-#                 .isnull()
-#                 .loc[lambda x: x]
-#                 .index
-#             )
-#             outl_multiidx = outl_multiidx.append(outl_idx)
-
-#         outl_dict[obstype] = outl_multiidx
-
-#     # create outliersdf for all outliers for all osbtypes
-#     outl_df = init_multiindexdf()
-#     for obstype, outliers in outl_dict.items():
-#         df, specific_outl_df = make_outlier_df_for_check(
-#             station_dt_list=outliers,
-#             obsdf=df,
-#             obstype=obstype,
-#             flag=checks_info[checkname]["outlier_flag"],
-#         )
-#         outl_df = pd.concat([outl_df, specific_outl_df])
-
-#     return df, outl_df
 
 
 def duplicate_timestamp_check(df, checks_settings):

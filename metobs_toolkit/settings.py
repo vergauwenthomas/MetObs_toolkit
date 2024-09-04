@@ -29,8 +29,6 @@ class Settings:
         # define thematics in settings. Corresponds to settings files.
         self.app = {}
         self.qc = {}
-        # self.gap = {}
-        # self.missing_obs = {}
         self.templatefile = None  # filepath
         self.IO = {
             "output_folder": None,

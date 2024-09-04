@@ -12,12 +12,16 @@ from pathlib import Path
 
 from os.path import join
 
-lib_folder = Path(__file__).resolve().parents[2]
-# sys.path.append(str(lib_folder))
-# print(str(lib_folder))
+# add the solutions
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+print(sys.path)
+import solutions.solutions_creator as solution
 
+# point to current version of the toolkit
+lib_folder = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(lib_folder))
 import metobs_toolkit
+
 
 test_data_dir = os.path.join(str(lib_folder), "tests", "test_data")
 
