@@ -26,7 +26,7 @@ df = pd.read_csv(demofile)  # naive import
 print(f"naive df read: {df}")
 
 
-df = pd.read_csv(demofile, engine="python")  # python engine
+df = pd.read_csv(demofile, sep=";", engine="python")  # python engine
 
 print(f"naive df read: {df}")
 
@@ -53,7 +53,9 @@ def _read_csv_to_df(filepath, kwargsdict):
             df = pd.read_csv(filepath_or_buffer=filepath, **kwargsdict)
     else:
         for sep in common_seperators:
+            print(f" seperator: {sep}")
             df = pd.read_csv(filepath, sep=sep)
+            print(f"df :{df}")
             assert not df.empty, f"{filepath} is empty!"
 
             if len(df.columns) > 1:
@@ -64,3 +66,6 @@ def _read_csv_to_df(filepath, kwargsdict):
     ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
 
     return df
+
+
+_read_csv_to_df(demofile, kwargsdict={})
