@@ -23,7 +23,6 @@ build:
       - ls
       - rm -r ./docs/_build/*
       - rm -r ./docs/autosummary/*
-    commands:
       - sphinx-build -a -E -v ./docs/ ./docs/_build/
 
 
