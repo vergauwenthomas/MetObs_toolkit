@@ -7,6 +7,7 @@ build:
   tools:
     python: "3.10"
   jobs:
+
     post_create_environment:
       # Install poetry
       # https://python-poetry.org/docs/#installing-manually
@@ -17,9 +18,13 @@ build:
       # VIRTUAL_ENV needs to be set manually for now.
       # See https://github.com/readthedocs/readthedocs.org/pull/11152/
       - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --with documentation
-      - rm -r docs/_build/*
-      - rm -r docs/autosummary/*
-      - sphinx-build -a -E -v docs/ docs/_build/
+    pre_build:
+      - pwd
+      - ls
+      - rm -r ./docs/_build/*
+      - rm -r ./docs/autosummary/*
+    commands:
+      - sphinx-build -a -E -v ./docs/ ./docs/_build/
 
 
 
