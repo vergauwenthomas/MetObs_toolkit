@@ -42,7 +42,7 @@ def _read_csv_to_df(filepath, kwargsdict):
 
                 if len(df.columns) > 1:
                     break
-
+    print(df)  # REPORT ME IF YOU SEE ME
     assert (
         len(df.columns) > 1
     ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
