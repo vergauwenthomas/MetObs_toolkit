@@ -42,7 +42,7 @@ poetry add myst_parser@^3 --group documentation #4.0.x not comp with py3.9
 poetry add nbsphinx@latest --group documentation
 poetry add pandoc@latest --group documentation
 poetry add pydata-sphinx-theme@latest --group documentation
-poetry add sphinx@>= 7 --group documentation #v8.x.x not comp with py3.9
+poetry add "sphinx@>=7" --group documentation #v8.x.x not comp with py3.9
 poetry add sphinx-copybutton@latest --group documentation
 poetry add sphinx-rtd-theme@latest --group documentation
 
