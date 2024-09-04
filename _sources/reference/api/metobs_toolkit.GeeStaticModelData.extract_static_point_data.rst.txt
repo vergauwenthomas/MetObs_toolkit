@@ -1,0 +1,6 @@
+metobs\_toolkit.GeeStaticModelData.extract\_static\_point\_data
+===============================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: GeeStaticModelData.extract_static_point_data

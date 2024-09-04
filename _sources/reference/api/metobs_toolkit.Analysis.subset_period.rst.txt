@@ -1,0 +1,6 @@
+metobs\_toolkit.Analysis.subset\_period
+=======================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Analysis.subset_period

@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.convert\_outliers\_to\_gaps
+===================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.convert_outliers_to_gaps

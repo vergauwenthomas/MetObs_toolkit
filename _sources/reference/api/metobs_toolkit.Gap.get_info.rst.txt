@@ -1,0 +1,6 @@
+metobs\_toolkit.Gap.get\_info
+=============================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Gap.get_info

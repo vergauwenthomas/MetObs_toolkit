@@ -1,0 +1,1721 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>metobs_toolkit.gap &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/metobs_toolkit/gap';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">metobs_toolkit.gap</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for metobs_toolkit.gap</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the Gap class and all its methods.</span>
+
+<span class="sd">A Gap contains all information and methods of a data-gap.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">metobs_toolkit.gap_filling</span> <span class="k">as</span> <span class="nn">gap_filling</span>
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.df_helpers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">init_multiindexdf</span><span class="p">,</span>
+    <span class="n">xs_save</span><span class="p">,</span>
+    <span class="n">concat_save</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">Obstype</span> <span class="k">as</span> <span class="n">Obstype_class</span>
+
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.settings_files.default_formats_settings</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">label_def</span><span class="p">,</span>
+<span class="p">)</span>  <span class="c1"># to assign labels</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Gap class</span>
+
+<span class="c1"># a gap is a sequence of repeting missing obs</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="Gap">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Gap.html#metobs_toolkit.Gap">[docs]</a>
+<span class="k">class</span> <span class="nc">Gap</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gap class holds all gap information and methods for gaps.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Gap.__init__">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Gap.html#metobs_toolkit.Gap.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">startdt</span><span class="p">,</span> <span class="n">enddt</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">records_freq</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initiate Gap object.</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : String</span>
+<span class="sd">            Station name where the gap occures.</span>
+<span class="sd">        startdt : datetime.datetime</span>
+<span class="sd">            Start datetime of the gap (included).</span>
+<span class="sd">        enddt : datetime.datetime</span>
+<span class="sd">            End datetime of the gap (included)</span>
+<span class="sd">        obstype : metobs_toolkit.Obstype</span>
+<span class="sd">           The corresponding observation type of the gap.</span>
+<span class="sd">        records_freq : pd.Timedelta()</span>
+<span class="sd">           The assumded frequency of records for this observationtype.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ------</span>
+<span class="sd">        Gaps are automatically located in your Dataset. In common pracktices,</span>
+<span class="sd">        a user does not have to initiate a Gap.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Set key attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">startdt</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2"> not a datetime instance.&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">enddt</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2"> not a datetime instance.&quot;</span>
+        <span class="k">assert</span> <span class="n">enddt</span> <span class="o">&gt;=</span> <span class="n">startdt</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Enddt: </span><span class="si">{</span><span class="n">enddt</span><span class="si">}</span><span class="s2"> is not after startdt: </span><span class="si">{</span><span class="n">startdt</span><span class="si">}</span><span class="s2">.&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">startdt</span> <span class="o">=</span> <span class="n">startdt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enddt</span> <span class="o">=</span> <span class="n">enddt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">enddt</span> <span class="o">-</span> <span class="n">startdt</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">obstype</span><span class="p">,</span> <span class="n">Obstype_class</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is not a metobs_toolkit.Obstype.&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obstype</span> <span class="o">=</span> <span class="n">obstype</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">records_freq</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">records_freq</span><span class="si">}</span><span class="s2"> is not a pd.Timedelta.&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">records_freq</span> <span class="o">=</span> <span class="n">records_freq</span>
+
+        <span class="c1"># gapdf holds all the records in the gap (depending on the freq of the dataset!)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">init_multiindexdf</span><span class="p">()</span>
+        <span class="p">)</span>  <span class="c1"># columns: obstype.name, obstype.name&quot;_fill&#39;, &quot;fill_method&quot;, &quot;msg&quot;</span>
+        <span class="c1"># anchordf holds all the records outside the gap, used by fill methods.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">init_multiindexdf</span><span class="p">()</span>
+        <span class="p">)</span>  <span class="c1"># columns: obstype.name, obstype.name&quot;_fill&#39;, &quot;fill_method&quot;, &quot;msg&quot;</span>
+
+        <span class="c1"># Construct derived attributes and initiate them</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_of_gapdf</span><span class="p">()</span></div>
+
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Specials</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-gap of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">startdt</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">enddt</span><span class="si">}</span><span class="s2">, duration: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> records.&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Setup (methods automatically applied after creation)</span>
+    <span class="c1"># =============================================================================</span>
+    <span class="k">def</span> <span class="nf">_setup_of_gapdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup of the gapdf attribute from the core attributes.&quot;&quot;&quot;</span>
+        <span class="c1"># Compute missing records</span>
+        <span class="n">missing_records</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span>
+            <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">startdt</span><span class="p">,</span>
+            <span class="n">end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">enddt</span><span class="p">,</span>
+            <span class="n">freq</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">records_freq</span><span class="p">,</span>
+            <span class="n">tz</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">startdt</span><span class="o">.</span><span class="n">tz</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># ----  Construct gapdf ------</span>
+        <span class="n">gapdf</span> <span class="o">=</span> <span class="n">init_multiindexdf</span><span class="p">()</span>
+        <span class="c1"># Create index</span>
+        <span class="n">gapdf</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">(</span>
+            <span class="n">arrays</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_records</span><span class="p">),</span>
+                <span class="n">missing_records</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Set columns with default values</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># fill with nan values</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># fill with nan values</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;not filled&quot;</span>  <span class="c1"># on gap creation, will be overwritten</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Nonedataset</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_gapdf</span><span class="p">(</span><span class="n">gapdf</span><span class="p">)</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Getters</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="k">def</span> <span class="nf">_get_gapfill_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a label on the status of gapfilling.&quot;&quot;&quot;</span>
+        <span class="c1"># Warning! do not change these labels (or replace all hardcode occurences)</span>
+        <span class="c1"># if not self.does_gap_holds_missing_records():</span>
+        <span class="c1">#     return &quot;Gap does not exist in observation space&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">return</span> <span class="s2">&quot;Unfilled gap&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">return</span> <span class="s2">&quot;Partially filled gap&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Filled gap&quot;</span>
+
+<div class="viewcode-block" id="Gap.get_info">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Gap.get_info.html#metobs_toolkit.Gap.get_info">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print out detailed info of the Gap.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---- Gap info -----&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;(Note: gaps start and end are defined on the frequency estimation of the native dataset.)&quot;</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Gap for station: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Start gap: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">startdt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * End gap: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">enddt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Duration gap: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * For </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * Gapfill status &gt;&gt;&gt;&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_gapfill_status</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># if not self.does_gap_holds_missing_records():</span>
+        <span class="c1">#     print(</span>
+        <span class="c1">#         &quot;The gap is unreal (=no missing records at the current frequency resolution).&quot;</span>
+        <span class="c1">#     )</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---- Anchor Data Frame ----- &quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---- Gap Data Frame -----&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">)</span></div>
+
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Setters</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="k">def</span> <span class="nf">_set_gapdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gapdf</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setter for the gapdf attribute.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">gapdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">)</span> <span class="o">!=</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">MetobsGapError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The gapdf does not have a correct index: </span><span class="si">{</span><span class="n">gapdf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gapdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MetobsGapError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The gapdf-datetimeindex is tz-naive. </span><span class="si">{</span><span class="n">gapdf</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">pass</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetobsGapError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The gapdf-datetimeindex is not a datetime dtype. </span><span class="si">{</span><span class="n">gapdf</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">gapdf</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">!=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;fill_method&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;msg&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">MetobsGapError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The gapdf does not have a correct columns: </span><span class="si">{</span><span class="n">gapdf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span> <span class="o">=</span> <span class="n">gapdf</span>
+
+    <span class="k">def</span> <span class="nf">_set_anchordf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">anchordf</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setter for the anchordf.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">anchordf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">)</span> <span class="o">!=</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">MetobsGapError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The anchordf does not have a correct index: </span><span class="si">{</span><span class="n">anchordf</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">anchordf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MetobsGapError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The gapdf-datetimeindex is tz-naive. </span><span class="si">{</span><span class="n">anchordf</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">pass</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetobsGapError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The gapdf-datetimeindex is not a datetime dtype. </span><span class="si">{</span><span class="n">anchordf</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">anchordf</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">!=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;fill_method&quot;</span><span class="p">,</span> <span class="s2">&quot;msg&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">MetobsGapError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The anchordf does not have a correct columns: </span><span class="si">{</span><span class="n">anchordf</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span> <span class="o">=</span> <span class="n">anchordf</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Checks</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="k">def</span> <span class="nf">_can_be_filled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite_fill</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns True if no fill values are present.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">overwrite_fill</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The filling of </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">, will be overwritten!&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setup_of_gapdf</span><span class="p">()</span>  <span class="c1"># reset gapfill</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1">#         Gapfill</span>
+    <span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="Gap.interpolate">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Gap.interpolate.html#metobs_toolkit.Gap.interpolate">[docs]</a>
+    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span>
+        <span class="n">max_consec_fill</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">n_leading_anchors</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">n_trailing_anchors</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">max_lead_to_gap_distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_trail_to_gap_distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">method_kwargs</span><span class="o">=</span><span class="p">{},</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill a Gap using interpolation.</span>
+
+<span class="sd">        The Gap (data) attributes will be updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Dataset : metobs_toolkit.Dataset or metobs_toolkit.Station</span>
+<span class="sd">            The dataset that holds the records of the same station as the Gap</span>
+<span class="sd">            is from.</span>
+<span class="sd">        method : str, optional</span>
+<span class="sd">            Intepolation technique to use. See pandas.DataFrame.interpolate</span>
+<span class="sd">            &#39;method&#39; argument for possible values. Make shure that</span>
+<span class="sd">            `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are</span>
+<span class="sd">            set accordingly to the method. The default is &quot;time&quot;.</span>
+<span class="sd">        max_consec_fill : int, optional</span>
+<span class="sd">            The maximum number of consecutive missing records to fill. The default is 10.</span>
+<span class="sd">        n_leading_anchor : int, optional</span>
+<span class="sd">            The number of leading anchors to use for the interpolation. Higher</span>
+<span class="sd">            order polynomial interpolation techniques require multiple leading</span>
+<span class="sd">            anchors. The default is 1.</span>
+<span class="sd">        n_trailing_anchor : int, optional</span>
+<span class="sd">            The number of trailing anchors to use for the interpolation. Higher</span>
+<span class="sd">            order polynomial interpolation techniques require multiple trailing</span>
+<span class="sd">            anchors. The default is 1.</span>
+<span class="sd">        max_lead_to_gap_distance : str or pandas.Timedelta, optional</span>
+<span class="sd">            The maximum time difference between the start of the gap and a</span>
+<span class="sd">            suitable lead (= the good record to start the interpolation from).</span>
+<span class="sd">            If None, the first occuring good records before the start of the gap</span>
+<span class="sd">            is used. The default is None.</span>
+<span class="sd">        max_trail_to_gap_distance : str or pandas.Timedelta, optional</span>
+<span class="sd">            The maximum time difference between the end of the gap and a</span>
+<span class="sd">            suitable trail (= the good record to end the interpolation on).</span>
+<span class="sd">            If None, the first occuring good records after the gap</span>
+<span class="sd">            is used. The default is None.</span>
+<span class="sd">        method_kwargs: dict, optional</span>
+<span class="sd">            A dictionary of kwargs passed to pandas.Dataframe.interpolate(). In</span>
+<span class="sd">            pracktice, extra arguments for specific interpolation methods are</span>
+<span class="sd">            put in method_kwargs. The default is {}.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Gap: The Gap class.</span>
+<span class="sd">        Dataset.interpolate_gaps: Interpolate all gaps in a Dataset.</span>
+<span class="sd">        Gap.raw_model_gapfill: Raw modeldata gapfill method.</span>
+<span class="sd">        Gap.debias_model_gapfill: Debiased modeldata gapfill method.</span>
+<span class="sd">        Gap.diurnal_debias_model_gapfill: Diurnal debiased modeldata gapfill method.</span>
+<span class="sd">        Gap.weighted_diurnal_debias_model_gapfill: Weighted diurnal debiased modeldata gapfill method.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        A schematic description :</span>
+
+<span class="sd">        1. The gap is converted into a set of missing records (depending on the time resolution of the observations).</span>
+<span class="sd">        2. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).</span>
+<span class="sd">        3. Check if the leading and trailing records fulfill the critea of maximum timedifference.</span>
+<span class="sd">        4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan&#39;s.</span>
+<span class="sd">        5. The gap is updated with the interpolated values</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        -------</span>
+<span class="sd">        The inpact of `max_consec_fill` is highly depending on the resolution</span>
+<span class="sd">        of your records.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ------</span>
+<span class="sd">        If you want to use a higher-order method of interpolation, make sure to</span>
+<span class="sd">        increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See ``Dataset.interpolate_gaps`` for examples.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gapdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span>
+        <span class="n">obsname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="c1"># 1. Get leading and trailing</span>
+        <span class="c1"># Create anchor periods</span>
+        <span class="n">anchordf</span><span class="p">,</span> <span class="n">lead_msg</span><span class="p">,</span> <span class="n">trail_msg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">gap_filling</span><span class="o">.</span><span class="n">_create_anchor_df_for_leading_trailing_periods_by_size</span><span class="p">(</span>
+                <span class="n">Gap</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">Dataset</span><span class="o">=</span><span class="n">Dataset</span><span class="p">,</span>
+                <span class="n">n_lead_records</span><span class="o">=</span><span class="n">n_leading_anchors</span><span class="p">,</span>
+                <span class="n">n_trail_records</span><span class="o">=</span><span class="n">n_trailing_anchors</span><span class="p">,</span>
+                <span class="n">max_lead_duration</span><span class="o">=</span><span class="n">max_lead_to_gap_distance</span><span class="p">,</span>
+                <span class="n">max_trail_duration</span><span class="o">=</span><span class="n">max_trail_to_gap_distance</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># Update attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_anchordf</span><span class="p">(</span><span class="n">anchordf</span><span class="p">)</span>
+
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;interpolated_gap&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+
+        <span class="c1"># check if gapfill can proceed</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">lead_msg</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">trail_msg</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cannot fill </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">, because leading and trailing records are not valid.&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Warning! Cannot fill </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">, because leading and trailing periods are not valid.&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;failed_interpolation_gap&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">lead_msg</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">trail_msg</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_gapdf</span><span class="p">(</span><span class="n">gapdf</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lead_msg</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">trail_msg</span> <span class="o">==</span> <span class="s2">&quot;ok&quot;</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot fill </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">, because leading record is not valid.&quot;</span><span class="p">)</span>
+            <span class="c1"># print(f&quot;Warning! Cannot fill {self}, because leading record is not valid.&quot;)</span>
+
+            <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;failed_interpolation_gap&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">lead_msg</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_gapdf</span><span class="p">(</span><span class="n">gapdf</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lead_msg</span> <span class="o">==</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">trail_msg</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot fill </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">, because trailing record is not valid.&quot;</span><span class="p">)</span>
+            <span class="c1"># print(f&quot;Warning! Cannot fill {self}, because trailing record is not valid.&quot;)</span>
+
+            <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;failed_interpolation_gap&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">trail_msg</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_gapdf</span><span class="p">(</span><span class="n">gapdf</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># 3. Combine the anchors with the observations</span>
+        <span class="n">tofilldf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">gapdf</span><span class="p">[[</span><span class="n">obsname</span><span class="p">]],</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="p">[[</span><span class="n">obsname</span><span class="p">]]])</span>
+
+        <span class="c1"># 4. Replace the NaN&#39;s (GAPFILLING)</span>
+        <span class="c1"># make shure only datetimes are in the index, and sorted by datetimes</span>
+        <span class="n">tofilldf</span> <span class="o">=</span> <span class="n">tofilldf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+        <span class="c1"># Interpolate series</span>
+        <span class="n">tofilldf</span><span class="p">[</span><span class="n">obsname</span><span class="p">]</span> <span class="o">=</span> <span class="n">tofilldf</span><span class="p">[</span><span class="n">obsname</span><span class="p">]</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">limit</span><span class="o">=</span><span class="n">max_consec_fill</span><span class="p">,</span>  <span class="c1"># Maximum number of consecutive NaNs to fill. Must be greater than 0.</span>
+            <span class="n">limit_area</span><span class="o">=</span><span class="s2">&quot;inside&quot;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">method_kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># revert to multiindex</span>
+        <span class="n">tofilldf</span> <span class="o">=</span> <span class="n">tofilldf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+        <span class="c1"># 5. Get messages for all filled records</span>
+        <span class="c1"># filter to gap records</span>
+        <span class="n">tofilldf</span> <span class="o">=</span> <span class="n">tofilldf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gapdf</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="c1"># messager</span>
+        <span class="k">def</span> <span class="nf">_msg_interp</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">obstypename</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">obstypename</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="s2">&quot;Permitted_by_max_consecutive_fill&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">method_kwargs</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;ok (method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">, with </span><span class="si">{</span><span class="n">method_kwargs</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;ok (method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">lead_msg</span> <span class="o">==</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+            <span class="n">trail_msg</span> <span class="o">==</span> <span class="s2">&quot;ok&quot;</span>
+        <span class="p">):</span>  <span class="c1"># labels are result of interpolation</span>
+            <span class="n">tofilldf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tofilldf</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="n">_msg_interp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;columns&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">([</span><span class="n">obsname</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lead_msg</span> <span class="o">==</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+            <span class="n">trail_msg</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span>
+        <span class="p">):</span>  <span class="c1"># labels are result of invalid trailing</span>
+            <span class="n">tofilldf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Invalid trailing anchor&quot;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lead_msg</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+            <span class="n">trail_msg</span> <span class="o">==</span> <span class="s2">&quot;ok&quot;</span>
+        <span class="p">):</span>  <span class="c1"># labels are result of invalid leading</span>
+            <span class="n">tofilldf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Invalid leading anchor&quot;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lead_msg</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+            <span class="n">trail_msg</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span>
+        <span class="p">):</span>  <span class="c1"># labels are result of invalid trailing</span>
+            <span class="n">tofilldf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Invalid leading and trailing anchor&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetobsGapError</span><span class="p">(</span>
+                <span class="s2">&quot;unforseen situation of lead and trail messages in interpolation method.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 6. Update the gapdf</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tofilldf</span><span class="p">[</span><span class="n">obsname</span><span class="p">]</span>  <span class="c1"># update values</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tofilldf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span>  <span class="c1"># give the same msg to all</span>
+
+        <span class="c1"># 7. Add FAIL labels if needed</span>
+        <span class="n">gapdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">(),</span> <span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span>
+            <span class="s2">&quot;failed_interpolation_gap&quot;</span>
+        <span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_gapdf</span><span class="p">(</span><span class="n">gapdf</span><span class="p">)</span>
+
+        <span class="k">return</span></div>
+
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Gapfill using modeldata</span>
+    <span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="Gap.raw_model_gapfill">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Gap.raw_model_gapfill.html#metobs_toolkit.Gap.raw_model_gapfill">[docs]</a>
+    <span class="k">def</span> <span class="nf">raw_model_gapfill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill the Gap with raw modeldata.</span>
+
+<span class="sd">        The Gap (data) attributes will be updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Dataset : metobs_toolkit.Dataset or metobs_toolkit.Station</span>
+<span class="sd">            The dataset that holds the records of the same station as the Gap</span>
+<span class="sd">            is from.</span>
+<span class="sd">        Model : metobs_toolkit.GeeDynamicModelData</span>
+<span class="sd">            The model that is used to fill the gaps records. The modeldata</span>
+<span class="sd">            must be compatibel (same metadata and `ModelObstype` equivalent</span>
+<span class="sd">            of obstype) to fill the gaps.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Gap: The Gap class.</span>
+<span class="sd">        Dataset.fill_gaps_with_raw_modeldata: Equivalent for all gaps in a Dataset.</span>
+<span class="sd">        GeeDynamicModelData: The Gee Model data (timeseries).</span>
+<span class="sd">        Dataset.get_modeldata: Method for creating a modeldata from a dataset.</span>
+<span class="sd">        Gap.interpolate: Interpolate gap.</span>
+<span class="sd">        Gap.raw_model_gapfill: Raw modeldata gapfill method.</span>
+<span class="sd">        Gap.debias_model_gapfill: Debiased modeldata gapfill method.</span>
+<span class="sd">        Gap.diurnal_debias_model_gapfill: Diurnal debiased modeldata gapfill method.</span>
+<span class="sd">        Gap.weighted_diurnal_debias_model_gapfill: Weighted diurnal debiased modeldata gapfill method.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        A schematic description of the raw modeldata gap fill:</span>
+
+<span class="sd">        1. The gap is converted into a set of missing records (depending on the time resolution of the observations).</span>
+<span class="sd">        2. The modeldata is interpolated (in time) to the missing records.</span>
+<span class="sd">        3. The gap is updated with the interpolated values from the modeldata.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See ``Dataset.fill_gaps_with_raw_modeldata`` for examples.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obsname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="c1"># 1. Get leading and trailing info</span>
+        <span class="c1"># 2. Update the anchordf</span>
+        <span class="c1"># 3. Combine the anchors with the observations</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;raw_modeldata_fill&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+        <span class="n">fail_label</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;failed_raw_modeldata_fill&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+
+        <span class="c1"># add the gap period</span>
+        <span class="n">filldf</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">_interpolate_modeldata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">filldf</span> <span class="o">=</span> <span class="n">filldf</span><span class="p">[[</span><span class="n">obsname</span><span class="p">]]</span>  <span class="c1"># get only relevant obstype</span>
+        <span class="n">filldf</span> <span class="o">=</span> <span class="n">filldf</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">obsname</span><span class="p">:</span> <span class="s2">&quot;modelvalues&quot;</span><span class="p">})</span>
+
+        <span class="c1"># combine the modeldata and gapdata in one df</span>
+        <span class="n">filldf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">left</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">filldf</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 4. Fill the gap</span>
+        <span class="n">fill_values</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_raw_modeldata_fill</span><span class="p">(</span><span class="n">filldf</span><span class="p">)</span>
+
+        <span class="c1"># 5. create a gapdf</span>
+        <span class="n">gapdf</span> <span class="o">=</span> <span class="n">filldf</span>
+        <span class="n">gapdf</span> <span class="o">=</span> <span class="n">gapdf</span><span class="p">[[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">,</span> <span class="s2">&quot;fill_method&quot;</span><span class="p">,</span> <span class="s2">&quot;msg&quot;</span><span class="p">]]</span>
+
+        <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fill_values</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg</span>
+
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;raw_modeldata_fill&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+        <span class="n">gapdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">(),</span> <span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span>
+            <span class="s2">&quot;failed_raw_modeldata_fill&quot;</span>
+        <span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_gapdf</span><span class="p">(</span><span class="n">gapdf</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Gap.debias_model_gapfill">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Gap.debias_model_gapfill.html#metobs_toolkit.Gap.debias_model_gapfill">[docs]</a>
+    <span class="k">def</span> <span class="nf">debias_model_gapfill</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">Model</span><span class="p">,</span>
+        <span class="n">leading_period_duration</span><span class="o">=</span><span class="s2">&quot;24h&quot;</span><span class="p">,</span>
+        <span class="n">min_leading_records_total</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">trailing_period_duration</span><span class="o">=</span><span class="s2">&quot;24h&quot;</span><span class="p">,</span>
+        <span class="n">min_trailing_records_total</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill Gap with debiased modeldata.</span>
+
+<span class="sd">        The gap will be updated with fill values using the Modeldata. The</span>
+<span class="sd">        Modeldata is interpolated (in time) to the missing records,</span>
+<span class="sd">        and corrected with a bias-correction. The bias is estimated by making use</span>
+<span class="sd">        of a leading (before the gap) and trailing (after the gap) period.</span>
+
+<span class="sd">        The Gap (data) attributes will be updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Dataset : metobs_toolkit.Dataset or metobs_toolkit.Station</span>
+<span class="sd">            The dataset that holds the records of the same station as the Gap</span>
+<span class="sd">            is from.</span>
+<span class="sd">        Model : metobs_toolkit.GeeDynamicModelData</span>
+<span class="sd">            The model that is used to fill the gaps records. The modeldata</span>
+<span class="sd">            must be compatibel (same metadata and `ModelObstype` equivalent</span>
+<span class="sd">            of obstype) to fill the gaps.</span>
+<span class="sd">        leading_period_duration : str or pandas.Timedelta, optional</span>
+<span class="sd">            The duration of the leading period. The default is &quot;24h&quot;.</span>
+<span class="sd">        min_leading_records_total : int, optional</span>
+<span class="sd">            The minimum number of good records in the leading period. The default</span>
+<span class="sd">            is 60.</span>
+<span class="sd">        trailing_period_duration : str or pandas.Timedelta, optional</span>
+<span class="sd">            The duration of the trailing period. The default is &quot;24h&quot;.</span>
+<span class="sd">        min_trailing_records_total : int, optional</span>
+<span class="sd">            The minimum number of good records in the trailing period. The</span>
+<span class="sd">            default is 60.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Gap: The Gap class.</span>
+<span class="sd">        Dataset.fill_gaps_with_debiased_modeldata: Equivalent for all gaps in a Dataset.</span>
+<span class="sd">        GeeDynamicModelData: The Gee Model data (timeseries).</span>
+<span class="sd">        Dataset.get_modeldata: Method for creating a modeldata from a dataset.</span>
+<span class="sd">        Gap.interpolate: Interpolate gap.</span>
+<span class="sd">        Gap.raw_model_gapfill: Raw modeldata gapfill method.</span>
+<span class="sd">        Gap.diurnal_debias_model_gapfill: Diurnal debiased modeldata gapfill method.</span>
+<span class="sd">        Gap.weighted_diurnal_debias_model_gapfill: Weighted diurnal debiased modeldata gapfill method.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        A schematic description:</span>
+
+<span class="sd">        1. The gap is converted into a set of missing records (depending on the time resolution of the observations).</span>
+<span class="sd">        2. The good obervations of the leading and trailing period are selected and checked if they fulfill the conditions.</span>
+<span class="sd">        3. The modeldata is interpolated (in time) to the missing records, the leading, and trailing period.</span>
+<span class="sd">        4. By combining the leading and trailing period both records and modeldata, a bias is calculated.</span>
+<span class="sd">        5. The gap is updated with the interpolated modeldata, corrected by the calculated bias.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See ``Dataset.fill_gaps_with_debiased_modeldata`` for examples.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># 1. Get leading and trailing info</span>
+        <span class="n">obsname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="c1"># Create anchor periods</span>
+        <span class="n">anchordf</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_create_anchor_df_for_leading_trailing_periods</span><span class="p">(</span>
+            <span class="n">Gap</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">Dataset</span><span class="o">=</span><span class="n">Dataset</span><span class="p">,</span>
+            <span class="n">leading_period_duration</span><span class="o">=</span><span class="n">leading_period_duration</span><span class="p">,</span>
+            <span class="n">trailing_period_duration</span><span class="o">=</span><span class="n">trailing_period_duration</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">anchordf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;_init_&quot;</span>
+        <span class="c1"># Check validity of anchors</span>
+        <span class="c1"># 1. Check leading period total sample size and add msg</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">anchordf</span><span class="p">[</span><span class="n">anchordf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;leading period&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="o">&lt;</span> <span class="n">min_leading_records_total</span>
+        <span class="p">):</span>
+            <span class="n">msg_lead</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;minimum records (</span><span class="si">{</span><span class="n">min_leading_records_total</span><span class="si">}</span><span class="s2">) for leading period not met.&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg_lead</span> <span class="o">=</span> <span class="s2">&quot;ok&quot;</span>
+
+        <span class="n">anchordf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">anchordf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;leading period&quot;</span><span class="p">,</span> <span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg_lead</span>
+
+        <span class="c1"># 1B. Check trailing period total sample size and add msg</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">anchordf</span><span class="p">[</span><span class="n">anchordf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;trailing period&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="o">&lt;</span> <span class="n">min_trailing_records_total</span>
+        <span class="p">):</span>
+            <span class="n">msg_trail</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;minimum records (</span><span class="si">{</span><span class="n">min_trailing_records_total</span><span class="si">}</span><span class="s2">) for trailing period not met.&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg_trail</span> <span class="o">=</span> <span class="s2">&quot;ok&quot;</span>
+
+        <span class="n">anchordf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">anchordf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;trailing period&quot;</span><span class="p">,</span> <span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg_lead</span>
+
+        <span class="c1"># 2. Update the Anchor attribute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_anchordf</span><span class="p">(</span><span class="n">anchordf</span><span class="p">)</span>
+
+        <span class="c1"># 3.Test if anchor period is valid, if not write default attribute</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">msg_lead</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">msg_trail</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">):</span>
+            <span class="n">logmsg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot fill </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">, because leading and trailing periods are not valid.&quot;</span>
+            <span class="n">gapmsg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">msg_lead</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">msg_trail</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">msg_lead</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">msg_trail</span> <span class="o">==</span> <span class="s2">&quot;ok&quot;</span><span class="p">):</span>
+            <span class="n">logmsg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot fill </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">, because leading period is not valid.&quot;</span>
+            <span class="n">gapmsg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">msg_lead</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">msg_lead</span> <span class="o">==</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">msg_trail</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">):</span>
+            <span class="n">logmsg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Cannot fill </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">, because trailing period is not valid.&quot;</span>
+            <span class="n">gapmsg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">msg_trail</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">gapdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span>
+        <span class="k">if</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">logmsg</span><span class="p">)</span>
+            <span class="c1"># print(&quot;Warning! &quot;, logmsg)</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gapmsg</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;failed_debias_modeldata_fill&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c1"># 4. combine learning and gap period</span>
+            <span class="n">filldf</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_combine_learning_and_gap_to_one_df</span><span class="p">(</span>
+                <span class="n">Modeldata</span><span class="o">=</span><span class="n">Model</span><span class="p">,</span>
+                <span class="n">anchordf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="p">,</span>
+                <span class="n">gapdf</span><span class="o">=</span><span class="n">gapdf</span><span class="p">,</span>
+                <span class="n">obsname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># 5. Fill the gap</span>
+            <span class="n">fill_values</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_debias_modeldata_fill</span><span class="p">(</span><span class="n">filldf</span><span class="p">)</span>
+
+            <span class="c1"># 6. Update gapdf attribute</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fill_values</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg</span>
+            <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;debias_modeldata_fill&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+            <span class="n">gapdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">(),</span> <span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span>
+                <span class="s2">&quot;failed_debias_modeldata_fill&quot;</span>
+            <span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+
+        <span class="c1"># 7. Update gapdf attribute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_gapdf</span><span class="p">(</span><span class="n">gapdf</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Gap.diurnal_debias_model_gapfill">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Gap.diurnal_debias_model_gapfill.html#metobs_toolkit.Gap.diurnal_debias_model_gapfill">[docs]</a>
+    <span class="k">def</span> <span class="nf">diurnal_debias_model_gapfill</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">Model</span><span class="p">,</span>
+        <span class="n">leading_period_duration</span><span class="o">=</span><span class="s2">&quot;24h&quot;</span><span class="p">,</span>
+        <span class="n">min_debias_sample_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">trailing_period_duration</span><span class="o">=</span><span class="s2">&quot;24h&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill the Gap with (diurnal debiased) model data.</span>
+
+<span class="sd">        The gap will be updated with fill values using the</span>
+<span class="sd">        Modeldata. The Modeldata is interpolated (in time) to the missing records,</span>
+<span class="sd">        and corrected with a bias-correction. Multiple biasses are computed, one</span>
+<span class="sd">        for each timestamp present in the missing records, by using a leading</span>
+<span class="sd">        (before the gap) and trailing (after the gap) period. Each bias is</span>
+<span class="sd">        computed at each timestamp, thus computing a diurnal-bias-cycle.</span>
+
+<span class="sd">        The Gap (data) attributes will be updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Dataset : metobs_toolkit.Dataset or metobs_toolkit.Station</span>
+<span class="sd">            The dataset that holds the records of the same station as the Gap</span>
+<span class="sd">            is from.</span>
+<span class="sd">        Model : metobs_toolkit.GeeDynamicModelData</span>
+<span class="sd">            The model that is used to fill the gaps records. The modeldata</span>
+<span class="sd">            must be compatibel (same metadata and `ModelObstype` equivalent</span>
+<span class="sd">            of obstype) to fill the gaps.</span>
+<span class="sd">        leading_period_duration : str or pandas.Timedelta, optional</span>
+<span class="sd">            The duration of the leading period. The default is &quot;24h&quot;.</span>
+<span class="sd">        min_debias_sample_size : int, optional</span>
+<span class="sd">            The minimum number of good records to</span>
+<span class="sd">            calculate a diurnal bias of. The default is 6.</span>
+<span class="sd">        trailing_period_duration : str or pandas.Timedelta, optional</span>
+<span class="sd">            The duration of the trailing period. The default is &quot;24h&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Gap: The Gap class.</span>
+<span class="sd">        Dataset.fill_gaps_with_diurnal_debiased_modeldata: Equivalent for all gaps in a Dataset.</span>
+<span class="sd">        GeeDynamicModelData: The Gee Model data (timeseries).</span>
+<span class="sd">        Dataset.get_modeldata: Method for creating a modeldata from a dataset.</span>
+<span class="sd">        Gap.interpolate: Interpolate gap.</span>
+<span class="sd">        Gap.raw_model_gapfill: Raw modeldata gapfill method.</span>
+<span class="sd">        Gap.debias_model_gapfill: Debiased modeldata gapfill method.</span>
+<span class="sd">        Gap.weighted_diurnal_debias_model_gapfill: Weighted diurnal debiased modeldata gapfill method.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        A schematic description of the linear gap fill:</span>
+
+<span class="sd">        1. The gap is converted into a set of missing records (depending on the time resolution of the observations).</span>
+<span class="sd">        3. The good obervations of the leading and trailing period are selected and grouped per timestamp.</span>
+<span class="sd">        3. Each group (coresponding to a timestamp) is checked if they fulfill the conditions.</span>
+<span class="sd">        4. The modeldata is interpolated (in time) to the missing records, the leading, and trailing period.</span>
+<span class="sd">        5. A bias for each group is computed by combining the corresponding leading and trailing groups.</span>
+<span class="sd">        6. The gap is updated with the interpolated modeldata, corrected by the calculated bias corresponding to the specific timestamp.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -------</span>
+<span class="sd">        This method requires inter-day records. The timestamps for which the</span>
+<span class="sd">        biases are computed, are the same timestamps as found in the records.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See ``Dataset.fill_gaps_with_diurnal_debiased_modeldata`` for examples.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Get leading and trailing info</span>
+
+        <span class="c1"># Create anchor periods</span>
+        <span class="n">anchordf</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_create_anchor_df_for_leading_trailing_periods</span><span class="p">(</span>
+            <span class="n">Gap</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">Dataset</span><span class="o">=</span><span class="n">Dataset</span><span class="p">,</span>
+            <span class="n">leading_period_duration</span><span class="o">=</span><span class="n">leading_period_duration</span><span class="p">,</span>
+            <span class="n">trailing_period_duration</span><span class="o">=</span><span class="n">trailing_period_duration</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Check validity of anchors and label them</span>
+        <span class="n">anchordf</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_label_anchors_for_diurnal_gapfilling</span><span class="p">(</span>
+            <span class="n">anchordf</span><span class="o">=</span><span class="n">anchordf</span><span class="p">,</span>
+            <span class="n">gapdf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">,</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">min_anchors_per_diurnal_timestamp</span><span class="o">=</span><span class="n">min_debias_sample_size</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_anchordf</span><span class="p">(</span><span class="n">anchordf</span><span class="p">)</span>
+
+        <span class="c1"># 4. combine learning and gap period</span>
+        <span class="n">filldf</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_combine_learning_and_gap_to_one_df</span><span class="p">(</span>
+            <span class="n">Modeldata</span><span class="o">=</span><span class="n">Model</span><span class="p">,</span>
+            <span class="n">anchordf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="p">,</span>
+            <span class="n">gapdf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">,</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 5. apply blacklisting (remove anchors that do not fulfill criteria)</span>
+        <span class="n">blacklist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">filldf</span> <span class="o">=</span> <span class="n">filldf</span><span class="p">[</span><span class="o">~</span><span class="n">filldf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">blacklist</span><span class="p">)]</span>
+
+        <span class="c1"># 6. Fill the gap</span>
+        <span class="n">fill_values</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_diurnal_debias_modeldata_fill</span><span class="p">(</span><span class="n">filldf</span><span class="p">)</span>
+
+        <span class="c1"># 7. Update gapdf attribute</span>
+        <span class="n">gapdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fill_values</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;diurnal_debias_modeldata_fill&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+        <span class="n">gapdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">(),</span> <span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span>
+            <span class="s2">&quot;failed_diurnal_debias_modeldata_fill&quot;</span>
+        <span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_gapdf</span><span class="p">(</span><span class="n">gapdf</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Gap.weighted_diurnal_debias_model_gapfill">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Gap.weighted_diurnal_debias_model_gapfill.html#metobs_toolkit.Gap.weighted_diurnal_debias_model_gapfill">[docs]</a>
+    <span class="k">def</span> <span class="nf">weighted_diurnal_debias_model_gapfill</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">Model</span><span class="p">,</span>
+        <span class="n">leading_period_duration</span><span class="o">=</span><span class="s2">&quot;48h&quot;</span><span class="p">,</span>
+        <span class="n">min_lead_debias_sample_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">trailing_period_duration</span><span class="o">=</span><span class="s2">&quot;48h&quot;</span><span class="p">,</span>
+        <span class="n">min_trail_debias_sample_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill the gap with (weighted-diurnal-debiased) modeldata.</span>
+
+<span class="sd">        The gap will be updated with fill values using the modeldata. The</span>
+<span class="sd">        modeldata is interpolated (in time) to the missing records,</span>
+<span class="sd">        and corrected with a bias-correction. Multiple biasses are computed, one</span>
+<span class="sd">        for each timestamp present in the missing records, by using a leading</span>
+<span class="sd">        (before the gap) and trailing (after the gap) period. Each bias is</span>
+<span class="sd">        computed at each timestamp, thus computing a diurnal-bias-cycle.</span>
+
+<span class="sd">        The modeldata values, used for filling the gaps are corrected by a</span>
+<span class="sd">        weighted sum of the diurnal biases as they are computed for the leading</span>
+<span class="sd">        and trailing period. The weights represent the normalized distance (in</span>
+<span class="sd">        time) to the leading and trailing period.</span>
+
+
+<span class="sd">        The Gap (data) attributes will be updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Dataset : metobs_toolkit.Dataset or metobs_toolkit.Station</span>
+<span class="sd">            The dataset that holds the records of the same station as the Gap</span>
+<span class="sd">            is from.</span>
+<span class="sd">        Model : metobs_toolkit.GeeDynamicModelData</span>
+<span class="sd">            The model that is used to fill the gaps records. The modeldata</span>
+<span class="sd">            must be compatibel (same metadata and `ModelObstype` equivalent</span>
+<span class="sd">            of obstype) to fill the gaps.</span>
+<span class="sd">        leading_period_duration : str or pandas.Timedelta, optional</span>
+<span class="sd">            The duration of the leading period. The default is &quot;48h&quot;.</span>
+<span class="sd">        min_lead_debias_sample_size : int, optional</span>
+<span class="sd">            The minimum number of good records in the leading period, to</span>
+<span class="sd">            calculate a diurnal bias of. The default is 2.</span>
+<span class="sd">        trailing_period_duration : str or pandas.Timedelta, optional</span>
+<span class="sd">            The duration of the trailing period. The default is &quot;48h&quot;.</span>
+<span class="sd">        min_trail_debias_sample_size : int, optional</span>
+<span class="sd">            The minimum number of good records in the trailing period, to</span>
+<span class="sd">            calculate a diurnal bias of. The default is 2.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Gap: The Gap class.</span>
+<span class="sd">        Dataset.fill_gaps_with_weighted_diurnal_debias_modeldata: Equivalent for all gaps in a Dataset.</span>
+<span class="sd">        GeeDynamicModelData: The Gee Model data (timeseries).</span>
+<span class="sd">        Dataset.get_modeldata: Method for creating a modeldata from a dataset.</span>
+<span class="sd">        Gap.interpolate: Interpolate gap.</span>
+<span class="sd">        Gap.raw_model_gapfill: Raw modeldata gapfill method.</span>
+<span class="sd">        Gap.debias_model_gapfill: Debiased modeldata gapfill method.</span>
+<span class="sd">        Gap.diurnal_debias_model_gapfill: Diurnal debiased modeldata gapfill method.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        A schematic description:</span>
+
+<span class="sd">        1. The gap is converted into a set of missing records (depending on the time resolution of the observations).</span>
+<span class="sd">        2. The good obervations of the leading and trailing period are selected and grouped per timestamp.</span>
+<span class="sd">        3. Each group (coresponding to a timestamp) is checked if they fulfill the conditions.</span>
+<span class="sd">        4. The modeldata is interpolated (in time) to the missing records, the leading, and trailing period.</span>
+<span class="sd">        5. A bias for each group is computed for the leading and trailing groups seperatly.</span>
+<span class="sd">        6. Two weights are assigned to each missing record, that is the normalized distance to the leading an trailing period respectively.</span>
+<span class="sd">        7. The gap is updated with the interpolated modeldata, corrected by the weighted sum of calculated bias corresponding to the specific timestamp.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -------</span>
+<span class="sd">        This method requires inter-day records. The timestamps for which the</span>
+<span class="sd">        biases are computed, are the same timestamps as found in the records.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        See ``Dataset.fill_gaps_with_weighted_diurnal_debias_modeldata`` for examples.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">obsname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span>
+        <span class="c1"># Create anchor periods</span>
+        <span class="c1"># TODO: make shure datetime index is datetime dtype</span>
+        <span class="n">anchordf</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_create_anchor_df_for_leading_trailing_periods</span><span class="p">(</span>
+            <span class="n">Gap</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">Dataset</span><span class="o">=</span><span class="n">Dataset</span><span class="p">,</span>
+            <span class="n">leading_period_duration</span><span class="o">=</span><span class="n">leading_period_duration</span><span class="p">,</span>
+            <span class="n">trailing_period_duration</span><span class="o">=</span><span class="n">trailing_period_duration</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Check validity of anchors and label them</span>
+        <span class="n">lead_anchorsdf</span> <span class="o">=</span> <span class="n">anchordf</span><span class="p">[</span><span class="n">anchordf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;leading period&quot;</span><span class="p">]</span>
+        <span class="n">lead_anchorsdf</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_label_anchors_for_diurnal_gapfilling</span><span class="p">(</span>
+            <span class="n">anchordf</span><span class="o">=</span><span class="n">lead_anchorsdf</span><span class="p">,</span>
+            <span class="n">gapdf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">,</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">min_anchors_per_diurnal_timestamp</span><span class="o">=</span><span class="n">min_lead_debias_sample_size</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">trail_anchorsdf</span> <span class="o">=</span> <span class="n">anchordf</span><span class="p">[</span><span class="n">anchordf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;trailing period&quot;</span><span class="p">]</span>
+        <span class="n">trail_anchorsdf</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_label_anchors_for_diurnal_gapfilling</span><span class="p">(</span>
+            <span class="n">anchordf</span><span class="o">=</span><span class="n">trail_anchorsdf</span><span class="p">,</span>
+            <span class="n">gapdf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">,</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">min_anchors_per_diurnal_timestamp</span><span class="o">=</span><span class="n">min_trail_debias_sample_size</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">anchordf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">lead_anchorsdf</span><span class="p">,</span> <span class="n">trail_anchorsdf</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_anchordf</span><span class="p">(</span><span class="n">anchordf</span><span class="p">)</span>
+
+        <span class="c1"># 4. combine learning and gap period</span>
+        <span class="n">filldf</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_combine_learning_and_gap_to_one_df</span><span class="p">(</span>
+            <span class="n">Modeldata</span><span class="o">=</span><span class="n">Model</span><span class="p">,</span>
+            <span class="n">anchordf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="p">,</span>
+            <span class="n">gapdf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span><span class="p">,</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 5. apply blacklisting (remove anchors that do not fulfill criteria)</span>
+        <span class="n">blacklist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">anchordf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">filldf</span> <span class="o">=</span> <span class="n">filldf</span><span class="p">[</span><span class="o">~</span><span class="n">filldf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">blacklist</span><span class="p">)]</span>
+
+        <span class="c1"># 6. Fill the gap</span>
+        <span class="n">fill_values</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">gap_filling</span><span class="o">.</span><span class="n">_weighted_diurnal_debias_modeldata</span><span class="p">(</span><span class="n">filldf</span><span class="p">)</span>
+
+        <span class="c1"># 7. Update gapdf attribute</span>
+        <span class="n">gapdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gapdf</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fill_values</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg</span>
+        <span class="n">gapdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;weighted_diurnal_debias_modeldata_fill&quot;</span><span class="p">][</span>
+            <span class="s2">&quot;label&quot;</span>
+        <span class="p">]</span>
+        <span class="n">gapdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gapdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_fill&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">(),</span> <span class="s2">&quot;fill_method&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span>
+            <span class="s2">&quot;failed_weighted_diurnal_debias_modeldata_fill&quot;</span>
+        <span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_gapdf</span><span class="p">(</span><span class="n">gapdf</span><span class="p">)</span></div>
+
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1">#  Get Anchor methods</span>
+    <span class="c1"># =============================================================================</span>
+    <span class="k">def</span> <span class="nf">_get_leading_period</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">observations_series</span><span class="p">,</span>
+        <span class="n">leading_period_duration</span><span class="o">=</span><span class="s2">&quot;24h&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the leading period of a Gap</span>
+
+<span class="sd">        The leading period are the (good) records in advance of a gap.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        observation_series : pandas.Series</span>
+<span class="sd">            The observation values for the specific station and obstype. This</span>
+<span class="sd">            is thus a pandas.Series with datetime as index. Outliers can be</span>
+<span class="sd">            represented by nan&#39;s.</span>
+<span class="sd">        leading_period_duration : str, optional</span>
+<span class="sd">            A timedelta string, representing the maximum duration of the</span>
+<span class="sd">            leading period.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple : (name, timestamps, obs-value)</span>
+<span class="sd">            All information on the leading record stored in a tuple.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># sta_obs = xs_save(Dataset.df, self.name, level=&quot;name&quot;)</span>
+        <span class="c1"># sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable</span>
+        <span class="n">sta_obs</span> <span class="o">=</span> <span class="n">observations_series</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>  <span class="c1"># remove the Nans (from qc)</span>
+        <span class="n">sta_obs_records</span> <span class="o">=</span> <span class="n">sta_obs</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="n">period_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">startdt</span> <span class="o">-</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">leading_period_duration</span><span class="p">)</span>
+        <span class="n">leading_period</span> <span class="o">=</span> <span class="n">sta_obs_records</span><span class="p">[</span>
+            <span class="p">((</span><span class="n">sta_obs_records</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">startdt</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">sta_obs_records</span> <span class="o">&gt;=</span> <span class="n">period_start</span><span class="p">))</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">leading_period</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>  <span class="c1"># No records found</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">([]),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">leading_period</span><span class="p">,</span>
+                    <span class="n">sta_obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">leading_period</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">(),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_trailing_period</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations_series</span><span class="p">,</span> <span class="n">trailing_period_duration</span><span class="o">=</span><span class="s2">&quot;24h&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the trailing period of a Gap</span>
+
+<span class="sd">        The trailing period are the (good) records just after a gap.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        observation_series : pandas.Series</span>
+<span class="sd">            The observation values for the specific station and obstype. This</span>
+<span class="sd">            is thus a pandas.Series with datetime as index. Outliers can be</span>
+<span class="sd">            represented by nan&#39;s.</span>
+<span class="sd">        trailing_period_duration : str, optional</span>
+<span class="sd">            A timedelta string, representing the maximum duration of the</span>
+<span class="sd">            trailing period.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple : (name, timestamps, obs-value)</span>
+<span class="sd">            All information on the trailing record stored in a tuple.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># sta_obs = xs_save(Dataset.df, self.name, level=&quot;name&quot;)</span>
+        <span class="c1"># sta_obs = sta_obs[[self.obstype.name]]  # subset to the gap variable</span>
+        <span class="n">sta_obs</span> <span class="o">=</span> <span class="n">observations_series</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>  <span class="c1"># remove the Nans (from qc)</span>
+        <span class="n">sta_obs_records</span> <span class="o">=</span> <span class="n">sta_obs</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="n">period_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enddt</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">trailing_period_duration</span><span class="p">)</span>
+        <span class="n">trailing_period</span> <span class="o">=</span> <span class="n">sta_obs_records</span><span class="p">[</span>
+            <span class="p">((</span><span class="n">sta_obs_records</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">enddt</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">sta_obs_records</span> <span class="o">&lt;=</span> <span class="n">period_end</span><span class="p">))</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">trailing_period</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>  <span class="c1"># No records found</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">([]),</span>
+                    <span class="p">[],</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">trailing_period</span><span class="p">,</span>
+                    <span class="n">sta_obs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trailing_period</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">(),</span>
+                <span class="p">]</span>
+            <span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Find gaps and missing values</span>
+<span class="c1"># =============================================================================</span>
+<span class="k">def</span> <span class="nf">get_station_gaps</span><span class="p">(</span><span class="n">gapslist</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subset to gaps of a single station by name.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gapslist : list of gaps</span>
+<span class="sd">        The list of gaps to subset.</span>
+<span class="sd">    name : String</span>
+<span class="sd">        Name of the station to extract a Gaps_collection from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        All gaps of the specified station.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">gap</span> <span class="k">for</span> <span class="n">gap</span> <span class="ow">in</span> <span class="n">gapslist</span> <span class="k">if</span> <span class="n">gap</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">]</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Gap finders</span>
+<span class="c1"># =============================================================================</span>
+<span class="k">def</span> <span class="nf">find_gaps</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">metadf</span><span class="p">,</span> <span class="n">outliersdf</span><span class="p">,</span> <span class="n">obstypes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find missing records and create Gaps of them.</span>
+
+<span class="sd">    Gaps are scanned for per station. The records (of a station) are assumed</span>
+<span class="sd">    to have a perfect frequency, which is defined in the metadf &#39;dataset_resolution&#39;.</span>
+<span class="sd">    Each record is tested if it occures exactly as expected after the previous</span>
+<span class="sd">    record. If that is not the case, then a gap located inbetween these records.</span>
+
+<span class="sd">    Outliers temporary added to the records, to scan for gaps.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas.DataFrame()</span>
+<span class="sd">        The df-attribute of Dataset holding the good records.</span>
+<span class="sd">    metadf : pandas.DataFrame()</span>
+<span class="sd">        The metadf-attribute of the Dataset holding the &#39;dataset_resolution&#39; column.</span>
+<span class="sd">    outliersdf : pandas.DataFrame()</span>
+<span class="sd">        The outliersdf-attribute of the Dataset holding the outliers. This is</span>
+<span class="sd">        needed because an outlier does not count (by default) as a gap.</span>
+<span class="sd">    obstypes : dict of metobs_toolkit.Obstype&#39;s</span>
+<span class="sd">        The obstypes-attribute of a Dataset.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gap_list : list</span>
+<span class="sd">        A list Gap&#39;s .</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">gap_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># Replace the nans in the df, which are assigned as outliers, to a default value</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">outliersdf</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="o">-</span><span class="mi">999</span>
+    <span class="p">)</span>  <span class="c1"># WARNING! df is a pointer, so this affects the self.df of the dataset !!!</span>
+    <span class="c1"># make sure to revert this!!</span>
+
+    <span class="c1"># Subset to the missing records</span>
+    <span class="n">missing_records</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()]</span>
+
+    <span class="c1"># Group by station and obstype to locate and define gaps</span>
+    <span class="k">for</span> <span class="n">groupidx</span><span class="p">,</span> <span class="n">groupdf</span> <span class="ow">in</span> <span class="n">missing_records</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;obstype&quot;</span><span class="p">]):</span>
+        <span class="n">staname</span> <span class="o">=</span> <span class="n">groupidx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">obsname</span> <span class="o">=</span> <span class="n">groupidx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sta_res</span> <span class="o">=</span> <span class="n">metadf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">staname</span><span class="p">,</span> <span class="s2">&quot;dataset_resolution&quot;</span><span class="p">]</span>
+
+        <span class="c1"># calculate differences (at level of obstype) because else</span>
+        <span class="c1"># gaps are computed wrong !! (DO NOT TRY TO REDUCE COMPUTATIONS ON THIS STEP! )</span>
+        <span class="n">groupdf</span><span class="p">[</span><span class="s2">&quot;diff&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">groupdf</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">groupdf</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span>
+
+        <span class="c1"># find groups of consecutive missing records</span>
+        <span class="n">groupdf</span><span class="p">[</span><span class="s2">&quot;gap_def&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">groupdf</span><span class="p">[</span><span class="s2">&quot;diff&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">sta_res</span><span class="p">))</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+        <span class="n">gapgroups</span> <span class="o">=</span> <span class="n">groupdf</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;gap_def&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">_idx</span><span class="p">,</span> <span class="n">gapgroup</span> <span class="ow">in</span> <span class="n">gapgroups</span><span class="p">:</span>
+            <span class="c1"># Construct gap</span>
+            <span class="n">gap</span> <span class="o">=</span> <span class="n">Gap</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">staname</span><span class="p">,</span>
+                <span class="n">startdt</span><span class="o">=</span><span class="n">gapgroup</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                <span class="n">enddt</span><span class="o">=</span><span class="n">gapgroup</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+                <span class="n">obstype</span><span class="o">=</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obsname</span><span class="p">],</span>
+                <span class="n">records_freq</span><span class="o">=</span><span class="n">sta_res</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># # Compute missing records</span>
+            <span class="c1"># missing_records = pd.date_range(</span>
+            <span class="c1">#     start=gap.startdt, end=gap.enddt, freq=sta_res, tz=gap.startdt.tz</span>
+            <span class="c1"># )</span>
+            <span class="c1"># gap._construct_gapdf(missing_datetime_records=missing_records)</span>
+
+            <span class="c1"># add gap to list</span>
+            <span class="n">gap_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gap</span><span class="p">)</span>
+
+    <span class="c1"># Make sure to revert all outlier values to Nan (because they are present as -999)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">outliersdf</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">gap_list</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Errors</span>
+<span class="c1"># =============================================================================</span>
+<span class="k">class</span> <span class="nc">MetobsGapError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised for errors in the Gap() class&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Docstring test</span>
+<span class="c1"># =============================================================================</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">metobs_toolkit.doctest_fmt</span> <span class="kn">import</span> <span class="n">setup_and_run_doctest</span>
+
+    <span class="n">setup_and_run_doctest</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

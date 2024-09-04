@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.add\_new\_geemodeldata
+==============================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.add_new_geemodeldata

@@ -1,0 +1,27 @@
+metobs\_toolkit.GeeStaticModelData
+==================================
+
+.. currentmodule:: metobs_toolkit
+
+.. autoclass:: GeeStaticModelData
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~GeeStaticModelData.__init__
+      ~GeeStaticModelData.extract_static_buffer_frac_data
+      ~GeeStaticModelData.extract_static_point_data
+      ~GeeStaticModelData.get_info
+      ~GeeStaticModelData.make_gee_plot
+      ~GeeStaticModelData.set_metadf
+   
+   
+
+   
+   
+   

@@ -1,0 +1,6 @@
+metobs\_toolkit.GeeDynamicModelData.make\_gee\_plot
+===================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: GeeDynamicModelData.make_gee_plot

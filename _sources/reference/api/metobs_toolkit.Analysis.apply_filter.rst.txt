@@ -1,0 +1,6 @@
+metobs\_toolkit.Analysis.apply\_filter
+======================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Analysis.apply_filter

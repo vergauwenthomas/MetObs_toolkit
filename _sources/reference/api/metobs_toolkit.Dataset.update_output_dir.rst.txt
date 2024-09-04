@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.update\_output\_dir
+===========================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.update_output_dir

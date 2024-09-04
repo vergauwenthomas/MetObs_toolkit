@@ -1,0 +1,6 @@
+metobs\_toolkit.import\_dataset
+===============================
+
+.. currentmodule:: metobs_toolkit
+
+.. autofunction:: import_dataset

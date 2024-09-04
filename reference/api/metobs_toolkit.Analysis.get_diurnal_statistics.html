@@ -1,0 +1,792 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>metobs_toolkit.Analysis.get_diurnal_statistics &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/api/metobs_toolkit.Analysis.get_diurnal_statistics';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="metobs_toolkit.Analysis.get_diurnal_statistics_with_reference" href="metobs_toolkit.Analysis.get_diurnal_statistics_with_reference.html" />
+    <link rel="prev" title="metobs_toolkit.Analysis.get_anual_statistics" href="metobs_toolkit.Analysis.get_anual_statistics.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../dataset.html">Dataset</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.html">metobs_toolkit.Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.show.html">metobs_toolkit.Dataset.show</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_info.html">metobs_toolkit.Dataset.get_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.import_data_from_file.html">metobs_toolkit.Dataset.import_data_from_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.save_dataset.html">metobs_toolkit.Dataset.save_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.import_dataset.html">metobs_toolkit.import_dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_full_status_df.html">metobs_toolkit.Dataset.get_full_status_df</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.add_new_observationtype.html">metobs_toolkit.Dataset.add_new_observationtype</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.add_new_unit.html">metobs_toolkit.Dataset.add_new_unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.show_settings.html">metobs_toolkit.Dataset.show_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_station.html">metobs_toolkit.Dataset.get_station</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.write_to_csv.html">metobs_toolkit.Dataset.write_to_csv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.coarsen_time_resolution.html">metobs_toolkit.Dataset.coarsen_time_resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.sync_records.html">metobs_toolkit.Dataset.sync_records</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_file_paths.html">metobs_toolkit.Dataset.update_file_paths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_output_dir.html">metobs_toolkit.Dataset.update_output_dir</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_default_name.html">metobs_toolkit.Dataset.update_default_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_qc_settings.html">metobs_toolkit.Dataset.update_qc_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.update_titan_qc_settings.html">metobs_toolkit.Dataset.update_titan_qc_settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_gaps_fill_df.html">metobs_toolkit.Dataset.get_gaps_fill_df</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.convert_outliers_to_gaps.html">metobs_toolkit.Dataset.convert_outliers_to_gaps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.find_gap.html">metobs_toolkit.Dataset.find_gap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.interpolate_gaps.html">metobs_toolkit.Dataset.interpolate_gaps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.fill_gaps_with_raw_modeldata.html">metobs_toolkit.Dataset.fill_gaps_with_raw_modeldata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.fill_gaps_with_debiased_modeldata.html">metobs_toolkit.Dataset.fill_gaps_with_debiased_modeldata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.fill_gaps_with_diurnal_debiased_modeldata.html">metobs_toolkit.Dataset.fill_gaps_with_diurnal_debiased_modeldata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.fill_gaps_with_weighted_diurnal_debias_modeldata.html">metobs_toolkit.Dataset.fill_gaps_with_weighted_diurnal_debias_modeldata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_qc_stats.html">metobs_toolkit.Dataset.get_qc_stats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.apply_quality_control.html">metobs_toolkit.Dataset.apply_quality_control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.apply_buddy_check.html">metobs_toolkit.Dataset.apply_buddy_check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.apply_titan_buddy_check.html">metobs_toolkit.Dataset.apply_titan_buddy_check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.make_plot.html">metobs_toolkit.Dataset.make_plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.make_geo_plot.html">metobs_toolkit.Dataset.make_geo_plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.make_interactive_plot.html">metobs_toolkit.Dataset.make_interactive_plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.make_gee_static_spatialplot.html">metobs_toolkit.Dataset.make_gee_static_spatialplot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.make_gee_dynamic_spatialplot.html">metobs_toolkit.Dataset.make_gee_dynamic_spatialplot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_modeldata.html">metobs_toolkit.Dataset.get_modeldata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.add_new_geemodeldata.html">metobs_toolkit.Dataset.add_new_geemodeldata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_lcz.html">metobs_toolkit.Dataset.get_lcz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_altitude.html">metobs_toolkit.Dataset.get_altitude</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.get_landcover.html">metobs_toolkit.Dataset.get_landcover</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Dataset.__add__.html">metobs_toolkit.Dataset.__add__</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../station.html">Station</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../obstype.html">Obstype</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.html">metobs_toolkit.Obstype</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.set_description.html">metobs_toolkit.Obstype.set_description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.set_original_name.html">metobs_toolkit.Obstype.set_original_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.set_original_unit.html">metobs_toolkit.Obstype.set_original_unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.add_unit.html">metobs_toolkit.Obstype.add_unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_orig_name.html">metobs_toolkit.Obstype.get_orig_name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_description.html">metobs_toolkit.Obstype.get_description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_all_units.html">metobs_toolkit.Obstype.get_all_units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_standard_unit.html">metobs_toolkit.Obstype.get_standard_unit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.get_info.html">metobs_toolkit.Obstype.get_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.convert_to_standard_units.html">metobs_toolkit.Obstype.convert_to_standard_units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Obstype.test_if_unit_is_known.html">metobs_toolkit.Obstype.test_if_unit_is_known</a></li>
+</ul>
+</details></li>
+
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../analysis.html">Analysis</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.html">metobs_toolkit.Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.subset_period.html">metobs_toolkit.Analysis.subset_period</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.get_possible_filter_keywords.html">metobs_toolkit.Analysis.get_possible_filter_keywords</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.apply_filter.html">metobs_toolkit.Analysis.apply_filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.get_analysis_records.html">metobs_toolkit.Analysis.get_analysis_records</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.aggregate_df.html">metobs_toolkit.Analysis.aggregate_df</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.get_anual_statistics.html">metobs_toolkit.Analysis.get_anual_statistics</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">metobs_toolkit.Analysis.get_diurnal_statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.get_diurnal_statistics_with_reference.html">metobs_toolkit.Analysis.get_diurnal_statistics_with_reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.get_aggregated_cycle_statistics.html">metobs_toolkit.Analysis.get_aggregated_cycle_statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.get_lc_correlation_matrices.html">metobs_toolkit.Analysis.get_lc_correlation_matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.plot_correlation_heatmap.html">metobs_toolkit.Analysis.plot_correlation_heatmap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Analysis.plot_correlation_variation.html">metobs_toolkit.Analysis.plot_correlation_variation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../geemodeldata.html">Gee modeldata</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeStaticModelData.html">metobs_toolkit.GeeStaticModelData</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeStaticModelData.get_info.html">metobs_toolkit.GeeStaticModelData.get_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeStaticModelData.extract_static_point_data.html">metobs_toolkit.GeeStaticModelData.extract_static_point_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeStaticModelData.extract_static_buffer_frac_data.html">metobs_toolkit.GeeStaticModelData.extract_static_buffer_frac_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeStaticModelData.make_gee_plot.html">metobs_toolkit.GeeStaticModelData.make_gee_plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeDynamicModelData.html">metobs_toolkit.GeeDynamicModelData</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeDynamicModelData.get_info.html">metobs_toolkit.GeeDynamicModelData.get_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeDynamicModelData.add_modelobstype.html">metobs_toolkit.GeeDynamicModelData.add_modelobstype</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeDynamicModelData.extract_timeseries_data.html">metobs_toolkit.GeeDynamicModelData.extract_timeseries_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeDynamicModelData.save_modeldata.html">metobs_toolkit.GeeDynamicModelData.save_modeldata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeDynamicModelData.set_modeldata_from_csv.html">metobs_toolkit.GeeDynamicModelData.set_modeldata_from_csv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.import_modeldata_from_pkl.html">metobs_toolkit.import_modeldata_from_pkl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeDynamicModelData.make_plot.html">metobs_toolkit.GeeDynamicModelData.make_plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.GeeDynamicModelData.make_gee_plot.html">metobs_toolkit.GeeDynamicModelData.make_gee_plot</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../template.html">Template</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.build_template_prompt.html">metobs_toolkit.build_template_prompt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.template.Template.get_info.html">metobs_toolkit.template.Template.get_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.template.Template.show.html">metobs_toolkit.template.Template.show</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../gap.html">Gap</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Gap.html">metobs_toolkit.Gap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Gap.get_info.html">metobs_toolkit.Gap.get_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Gap.interpolate.html">metobs_toolkit.Gap.interpolate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Gap.raw_model_gapfill.html">metobs_toolkit.Gap.raw_model_gapfill</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Gap.debias_model_gapfill.html">metobs_toolkit.Gap.debias_model_gapfill</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Gap.diurnal_debias_model_gapfill.html">metobs_toolkit.Gap.diurnal_debias_model_gapfill</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.Gap.weighted_diurnal_debias_model_gapfill.html">metobs_toolkit.Gap.weighted_diurnal_debias_model_gapfill</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../special_functions.html">Special functions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.connect_to_gee.html">metobs_toolkit.connect_to_gee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.build_template_prompt.html">metobs_toolkit.build_template_prompt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.add_FileHandler.html">metobs_toolkit.add_FileHandler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metobs_toolkit.add_StreamHandler.html">metobs_toolkit.add_StreamHandler</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../MetObs_documentation_flat.html" class="nav-link">MetObs toolkit API Documentation</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../analysis.html" class="nav-link">Analysis</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">metobs_toolk...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="metobs-toolkit-analysis-get-diurnal-statistics">
+<h1>metobs_toolkit.Analysis.get_diurnal_statistics<a class="headerlink" href="#metobs-toolkit-analysis-get-diurnal-statistics" title="Link to this heading">#</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="metobs_toolkit.Analysis.get_diurnal_statistics">
+<span class="sig-prename descclassname"><span class="pre">Analysis.</span></span><span class="sig-name descname"><span class="pre">get_diurnal_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">colorby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'temp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startdt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enddt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errorbands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_return_all_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/metobs_toolkit/analysis.html#Analysis.get_diurnal_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#metobs_toolkit.Analysis.get_diurnal_statistics" title="Link to this definition">#</a></dt>
+<dd><blockquote>
+<div><p>Create an average diurnal cycle for the observations.</p>
+<p>(In the plot, each station is represed by a line.)</p>
+<dl class="simple">
+<dt>colorby<span class="classifier">‘name’ or ‘lcz’, optional</span></dt><dd><p>If ‘name’ the plotted lines will be colored per station, if ‘lcz’ the colors represent the stations lcz. The default is ‘name’.</p>
+</dd>
+<dt>obstype<span class="classifier">str, optional</span></dt><dd><p>Element of the metobs_toolkit.observation_types The default is ‘temp’.</p>
+</dd>
+<dt>stations<span class="classifier">list, optional</span></dt><dd><p>List of station names to use. If None, all present stations will be used. The default is None.</p>
+</dd>
+<dt>startdt<span class="classifier">datetime.datetime, optional</span></dt><dd><p>The start datetime of the observations to use. If None, all timestamps will be used. The default is None.</p>
+</dd>
+<dt>enddt<span class="classifier">datetime.datetime, optional</span></dt><dd><p>The end datetime of the observations to use. If None, all timestamps will be used. The default is None.</p>
+</dd>
+<dt>plot<span class="classifier">bool, optional</span></dt><dd><p>If True, an diurnal plot is made. The default is True.</p>
+</dd>
+<dt>title<span class="classifier">string, optional</span></dt><dd><p>Title of the figure, if None a default title is generated. The default is None.</p>
+</dd>
+<dt>legend<span class="classifier">bool, optional</span></dt><dd><p>I True, a legend is added to the plot. The default is True.</p>
+</dd>
+<dt>errorbands<span class="classifier">bool, optional</span></dt><dd><p>If True, the std is representd in the plot by colored bands. The default is False.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>df<span class="classifier">pandas.DataFrame()</span></dt><dd><p>The dataframe containing the aggregated values.</p>
+</dd>
+</dl>
+<p>Analysis: The Analysis class
+Analysis.aggregate_df: Data method for aggregating Analysis data.
+Analysis.get_diurnal_statistics_with_reference: Diurnal difference to reference cycle.
+Analysis.get_anual_statistics: Aggregate to anual cycle.</p>
+<p>If a timezone unaware datetime is given as an argument, it is interpreted
+as if it has the same timezone as the observations.</p>
+<p>An Analysis is always created from a Dataset, so we start by creating
+a Dataset and importing data into it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#Create your Dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span> <span class="c1">#empty Dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">(</span>
+<span class="gp">... </span>                        <span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span>
+<span class="gp">... </span>                        <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+<span class="gp">... </span>                        <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+<span class="gp">... </span>                        <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get LCZ (so we can aggregate per LCZ)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lcz_series</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_lcz</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now we have a dataset containing records. We now create a Analysis from it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ana</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Analysis</span><span class="p">(</span><span class="n">orig_dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ana</span>
+<span class="go">Instance of Analysis at ...</span>
+</pre></div>
+</div>
+<p>We can create a diurnal cycle for each station</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">diurnal_aggdf</span> <span class="o">=</span> <span class="n">ana</span><span class="o">.</span><span class="n">get_diurnal_statistics</span><span class="p">(</span>
+<span class="gp">... </span>                     <span class="n">colorby</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">diurnal_aggdf</span>
+<span class="go">name  vlinder01  vlinder02  vlinder03  vlinder04  ...  vlinder25  vlinder26  vlinder27  vlinder28</span>
+<span class="go">hour                                              ...</span>
+<span class="go">0         16.19      16.95      16.35      14.81  ...      17.61      16.84      17.84      15.22</span>
+<span class="go">1         15.59      16.45      15.76      14.34  ...      17.14      16.26      17.28      14.74</span>
+<span class="go">2         15.09      15.90      15.13      13.47  ...      16.62      15.61      16.76      14.08</span>
+<span class="go">3         15.21      15.80      14.87      13.32  ...      16.38      15.42      16.57      13.87</span>
+<span class="go">4         15.24      15.64      14.72      13.28  ...      16.09      15.22      16.34      13.81</span>
+<span class="go">...         ...        ...        ...        ...  ...        ...        ...        ...        ...</span>
+<span class="go">19        17.90      18.77      19.02      17.44  ...      19.05      19.56      19.69      17.55</span>
+<span class="go">20        17.08      18.07      18.23      16.55  ...      18.53      18.65      19.01      16.61</span>
+<span class="go">21        16.65      17.55      17.55      15.95  ...      18.18      18.04      18.52      16.00</span>
+<span class="go">22        16.39      17.11      16.96      15.30  ...      17.80      17.51      18.12      15.56</span>
+<span class="go">23        15.99      16.83      16.42      14.77  ...      17.51      16.95      17.81      15.22</span>
+
+<span class="go">[24 rows x 28 columns]</span>
+</pre></div>
+</div>
+<p>We can also aggregate them in groups. As an example, we group them by LCZ.
+&gt;&gt;&gt; diurnal_lcz_aggdf = ana.get_diurnal_statistics(
+…                      colorby=”lcz”,
+…                      obstype=”temp”,
+…                      plot=True)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">diurnal_lcz_aggdf</span>
+<span class="go">lcz   Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  ...  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)</span>
+<span class="go">hour                                                                           ...</span>
+<span class="go">0               17.74                16.14          16.95               15.97  ...         16.60                    15.58           16.23          18.22</span>
+<span class="go">1               17.23                15.57          16.45               15.54  ...         16.01                    15.11           15.81          17.88</span>
+<span class="go">2               16.66                15.09          15.90               14.93  ...         15.37                    14.30           15.20          17.57</span>
+<span class="go">3               16.42                14.91          15.80               14.82  ...         15.14                    14.16           15.00          17.39</span>
+<span class="go">4               16.21                14.77          15.64               14.66  ...         14.97                    13.97           14.87          17.21</span>
+<span class="go">...               ...                  ...            ...                 ...  ...           ...                      ...             ...            ...</span>
+<span class="go">19              19.69                17.29          18.77               17.80  ...         19.29                    17.63           18.02          19.38</span>
+<span class="go">20              19.10                16.74          18.07               17.06  ...         18.44                    17.04           17.37          18.93</span>
+<span class="go">21              18.54                16.46          17.55               16.60  ...         17.79                    16.52           16.97          18.55</span>
+<span class="go">22              18.03                16.15          17.11               16.27  ...         17.24                    15.96           16.52          18.32</span>
+<span class="go">23              17.70                15.89          16.83               15.88  ...         16.68                    15.54           16.16          18.13</span>
+
+<span class="go">[24 rows x 10 columns]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="metobs_toolkit.Analysis.get_anual_statistics.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">metobs_toolkit.Analysis.get_anual_statistics</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="metobs_toolkit.Analysis.get_diurnal_statistics_with_reference.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">metobs_toolkit.Analysis.get_diurnal_statistics_with_reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metobs_toolkit.Analysis.get_diurnal_statistics"><code class="docutils literal notranslate"><span class="pre">Analysis.get_diurnal_statistics</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/reference/api/metobs_toolkit.Analysis.get_diurnal_statistics.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

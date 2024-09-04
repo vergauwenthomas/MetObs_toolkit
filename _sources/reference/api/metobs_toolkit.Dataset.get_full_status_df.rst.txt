@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.get\_full\_status\_df
+=============================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.get_full_status_df

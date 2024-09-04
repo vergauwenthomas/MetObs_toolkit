@@ -1,0 +1,74 @@
+metobs\_toolkit.Analysis
+========================
+
+.. currentmodule:: metobs_toolkit
+
+.. autoclass:: Analysis
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Analysis.__init__
+      ~Analysis.add_new_geemodeldata
+      ~Analysis.add_new_observationtype
+      ~Analysis.add_new_unit
+      ~Analysis.aggregate_df
+      ~Analysis.apply_buddy_check
+      ~Analysis.apply_filter
+      ~Analysis.apply_quality_control
+      ~Analysis.apply_titan_buddy_check
+      ~Analysis.coarsen_time_resolution
+      ~Analysis.construct_equi_spaced_records
+      ~Analysis.convert_outliers_to_gaps
+      ~Analysis.fill_gaps_with_debiased_modeldata
+      ~Analysis.fill_gaps_with_diurnal_debiased_modeldata
+      ~Analysis.fill_gaps_with_raw_modeldata
+      ~Analysis.fill_gaps_with_weighted_diurnal_debias_modeldata
+      ~Analysis.find_gap
+      ~Analysis.get_aggregated_cycle_statistics
+      ~Analysis.get_altitude
+      ~Analysis.get_analysis_records
+      ~Analysis.get_anual_statistics
+      ~Analysis.get_diurnal_statistics
+      ~Analysis.get_diurnal_statistics_with_reference
+      ~Analysis.get_full_status_df
+      ~Analysis.get_gaps_fill_df
+      ~Analysis.get_info
+      ~Analysis.get_landcover
+      ~Analysis.get_lc_correlation_matrices
+      ~Analysis.get_lcz
+      ~Analysis.get_modeldata
+      ~Analysis.get_possible_filter_keywords
+      ~Analysis.get_qc_stats
+      ~Analysis.get_station
+      ~Analysis.import_data_from_file
+      ~Analysis.interpolate_gaps
+      ~Analysis.make_gee_dynamic_spatialplot
+      ~Analysis.make_gee_static_spatialplot
+      ~Analysis.make_geo_plot
+      ~Analysis.make_interactive_plot
+      ~Analysis.make_plot
+      ~Analysis.plot_correlation_heatmap
+      ~Analysis.plot_correlation_variation
+      ~Analysis.save_dataset
+      ~Analysis.show
+      ~Analysis.show_settings
+      ~Analysis.subset_period
+      ~Analysis.sync_records
+      ~Analysis.update_default_name
+      ~Analysis.update_file_paths
+      ~Analysis.update_output_dir
+      ~Analysis.update_qc_settings
+      ~Analysis.update_titan_qc_settings
+      ~Analysis.write_to_csv
+   
+   
+
+   
+   
+   

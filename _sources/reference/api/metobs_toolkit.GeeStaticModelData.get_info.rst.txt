@@ -1,0 +1,6 @@
+metobs\_toolkit.GeeStaticModelData.get\_info
+============================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: GeeStaticModelData.get_info

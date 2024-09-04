@@ -1,0 +1,6 @@
+metobs\_toolkit.build\_template\_prompt
+=======================================
+
+.. currentmodule:: metobs_toolkit
+
+.. autofunction:: build_template_prompt

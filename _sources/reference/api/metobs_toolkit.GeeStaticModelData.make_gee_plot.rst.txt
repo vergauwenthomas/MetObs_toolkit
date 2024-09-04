@@ -1,0 +1,6 @@
+metobs\_toolkit.GeeStaticModelData.make\_gee\_plot
+==================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: GeeStaticModelData.make_gee_plot

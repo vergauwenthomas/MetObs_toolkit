@@ -1,0 +1,3358 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Demo example: Using a Google Earth engine &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/gee_example';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo example: Applying Quality Control." href="qc_example.html" />
+    <link rel="prev" title="Demo example: Using a Dataset" href="doc_example.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="doc_example.html">Demo example: Using a Dataset</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Demo example: Using a Google Earth engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qc_example.html">Demo example: Applying Quality Control.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filling_example.html">Demo example: filling gaps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis_example.html">Demo example: Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_obstypes.html">Working with specific observation types</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Examples</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Demo...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Demo-example:-Using-a-Google-Earth-engine">
+<h1>Demo example: Using a Google Earth engine<a class="headerlink" href="#Demo-example:-Using-a-Google-Earth-engine" title="Link to this heading">#</a></h1>
+<p>This example is the continuation of the previous example: <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/latest/examples/doc_example.html">Using a Dataset</a>. This example serves as a demonstration on how to get meta-data from the Google Earth Engine (GEE).</p>
+<p>Before proceeding, make sure you have <strong>set up a Google developers account and a GEE project</strong>. See <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/latest/topics/gee_authentication.html#using-google-earth-engine">Using Google Earth Engine</a> for a detailed description of this.</p>
+<p>There are two classes that facilitate the interaction with GEE and the metobs_toolkit:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">GeeStaticModelData</span></code>: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers around them).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GeeDynamicModelData</span></code>: This class handles GEE Datasets that have a time dimension. This class is used to extract timeseries of GEE dataset values at the stations locations.</p></li>
+</ul>
+<p>Both classes can hold metadata (=Coordinates of the stations), and the ´GeeDynamicModelData` class can hold timeseries data.</p>
+<p>In this example, we first demonstrate the <code class="docutils literal notranslate"><span class="pre">GeeStaticModelData</span></code> to extract extra metadata for the stations. Then we demonstrate how to extract timeseries at the station locations using <code class="docutils literal notranslate"><span class="pre">GeeDynamicModelData</span></code>.</p>
+<section id="Create-your-Dataset">
+<h2>Create your Dataset<a class="headerlink" href="#Create-your-Dataset" title="Link to this heading">#</a></h2>
+<p>Create a dataset with the demo data.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+
+<span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_file_paths</span><span class="p">(</span>
+    <span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="c1"># path to the data file</span>
+    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+    <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+The following data columns are renamed because of special meaning by the toolkit: {}
+Luchtdruk is present in the datafile, but not found in the template! This column will be ignored.
+Neerslagintensiteit is present in the datafile, but not found in the template! This column will be ignored.
+Neerslagsom is present in the datafile, but not found in the template! This column will be ignored.
+Rukwind is present in the datafile, but not found in the template! This column will be ignored.
+Luchtdruk_Zeeniveau is present in the datafile, but not found in the template! This column will be ignored.
+Globe Temperatuur is present in the datafile, but not found in the template! This column will be ignored.
+The following metadata columns are renamed because of special meaning by the toolkit: {}
+These stations will be removed because of only having one record: []
+</pre></div></div>
+</div>
+</section>
+<section id="Extracting-LCZ-from-GEE">
+<h2>Extracting LCZ from GEE<a class="headerlink" href="#Extracting-LCZ-from-GEE" title="Link to this heading">#</a></h2>
+<p>Here is an example of how to extract the Local Climate Zone (LCZ) information of your stations. First, we take a look at what is present in the metadata of the dataset.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>lat</th>
+      <th>lon</th>
+      <th>school</th>
+      <th>geometry</th>
+      <th>dataset_resolution</th>
+      <th>dt_start</th>
+      <th>dt_end</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>vlinder01</th>
+      <td>50.980438</td>
+      <td>3.815763</td>
+      <td>UGent</td>
+      <td>POINT (3.81576 50.98044)</td>
+      <td>0 days 00:05:00</td>
+      <td>2022-09-01 00:00:00+00:00</td>
+      <td>2022-09-15 23:55:00+00:00</td>
+    </tr>
+    <tr>
+      <th>vlinder02</th>
+      <td>51.022379</td>
+      <td>3.709695</td>
+      <td>UGent</td>
+      <td>POINT (3.7097 51.02238)</td>
+      <td>0 days 00:05:00</td>
+      <td>2022-09-01 00:00:00+00:00</td>
+      <td>2022-09-15 23:55:00+00:00</td>
+    </tr>
+    <tr>
+      <th>vlinder03</th>
+      <td>51.324583</td>
+      <td>4.952109</td>
+      <td>Heilig Graf</td>
+      <td>POINT (4.95211 51.32458)</td>
+      <td>0 days 00:05:00</td>
+      <td>2022-09-01 00:00:00+00:00</td>
+      <td>2022-09-15 23:55:00+00:00</td>
+    </tr>
+    <tr>
+      <th>vlinder04</th>
+      <td>51.335522</td>
+      <td>4.934732</td>
+      <td>Heilig Graf</td>
+      <td>POINT (4.93473 51.33552)</td>
+      <td>0 days 00:05:00</td>
+      <td>2022-09-01 00:00:00+00:00</td>
+      <td>2022-09-15 23:55:00+00:00</td>
+    </tr>
+    <tr>
+      <th>vlinder05</th>
+      <td>51.052655</td>
+      <td>3.675183</td>
+      <td>Sint-Barbara</td>
+      <td>POINT (3.67518 51.05266)</td>
+      <td>0 days 00:05:00</td>
+      <td>2022-09-01 00:00:00+00:00</td>
+      <td>2022-09-15 23:55:00+00:00</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>To extract geospatial information for your stations, the <strong>lat</strong> and <strong>lon</strong> (latitude and longitude) of your stations must be present in the metadf. If so, than geospatial information will be extracted from GEE at these locations.</p>
+<p>To extract the Local Climate Zones (LCZs) of your stations:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lcz_values</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_lcz</span><span class="p">()</span>
+<span class="c1"># The LCZs for all your stations are extracted</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lcz_values</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+                               lcz
+name
+vlinder01       Low plants (LCZ D)
+vlinder02            Large lowrise
+vlinder03             Open midrise
+vlinder04           Sparsely built
+vlinder05            Water (LCZ G)
+vlinder06  Scattered Trees (LCZ B)
+vlinder07          Compact midrise
+vlinder08          Compact midrise
+vlinder09  Scattered Trees (LCZ B)
+vlinder10          Compact midrise
+vlinder11             Open lowrise
+vlinder12            Open highrise
+vlinder13          Compact midrise
+vlinder14       Low plants (LCZ D)
+vlinder15       Low plants (LCZ D)
+vlinder16            Water (LCZ G)
+vlinder17  Scattered Trees (LCZ B)
+vlinder18       Low plants (LCZ D)
+vlinder19          Compact midrise
+vlinder20          Compact midrise
+vlinder21           Sparsely built
+vlinder22       Low plants (LCZ D)
+vlinder23       Low plants (LCZ D)
+vlinder24      Dense Trees (LCZ A)
+vlinder25            Water (LCZ G)
+vlinder26             Open midrise
+vlinder27          Compact midrise
+vlinder28             Open lowrise
+</pre></div></div>
+</div>
+<p>The first time, in each session, you are asked to authenticated by Google. Select your Google account and billing project that you have set up and accept the terms of the condition.</p>
+<p><em>NOTE: For small data-requests the read-only scopes are sufficient, for large data-requests this is insufficient because the data will be written directly to your Google Drive.</em></p>
+<p>The metadata of your dataset is also updated</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">your_dataset</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s1">&#39;lcz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+name
+vlinder01    Low plants (LCZ D)
+vlinder02         Large lowrise
+vlinder03          Open midrise
+vlinder04        Sparsely built
+vlinder05         Water (LCZ G)
+Name: lcz, dtype: object
+</pre></div></div>
+</div>
+<p>To make a geospatial plot you can use the following method:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">make_geo_plot</span><span class="p">(</span><span class="n">variable</span><span class="o">=</span><span class="s2">&quot;lcz&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;GeoAxes: title={&#39;center&#39;: &#39;lcz&#39;}&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_gee_example_11_2.png" src="../_images/examples_gee_example_11_2.png" />
+</div>
+</div>
+</section>
+<section id="Extracting-other-Geospatial-information">
+<h2>Extracting other Geospatial information<a class="headerlink" href="#Extracting-other-Geospatial-information" title="Link to this heading">#</a></h2>
+<p>Similar as LCZ extraction you can extract the altitude of the stations (from a digital elevation model):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">altitudes</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_altitude</span><span class="p">()</span> <span class="c1">#The altitudes are in meters above sea level.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">altitudes</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+           altitude
+name
+vlinder01        12
+vlinder02         7
+vlinder03        30
+vlinder04        25
+vlinder05         0
+vlinder06         0
+vlinder07         7
+vlinder08         7
+vlinder09        19
+vlinder10        14
+vlinder11         6
+vlinder12         9
+vlinder13        10
+vlinder14         4
+vlinder15        41
+vlinder16         4
+vlinder17        83
+vlinder18        35
+vlinder19        75
+vlinder20        44
+vlinder21        19
+vlinder22         3
+vlinder23         1
+vlinder24        12
+vlinder25        12
+vlinder26        24
+vlinder27        12
+vlinder28         7
+</pre></div></div>
+</div>
+<p>A more detailed description of the landcover/land use in the microenvironment can be extracted in the form of landcover fractions in a circular buffer for each station.</p>
+<p>You can select to aggregate the landcover classes to water - pervious and impervious, or set aggregation to false to extract the landcover classes as present in the worldcover_10m dataset.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">aggregated_landcover</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_landcover</span><span class="p">(</span>
+                                        <span class="n">buffers</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">250</span><span class="p">],</span> <span class="c1"># a list of buffer radii in meters</span>
+                                        <span class="n">aggregate</span><span class="o">=</span><span class="kc">True</span> <span class="c1">#if True, aggregate landcover classes to the water, pervious and impervious.</span>
+                                        <span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">aggregated_landcover</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+                            water  pervious  impervious
+name      buffer_radius
+vlinder01 100            0.000000  0.981781    0.018219
+          250            0.000000  0.963635    0.036365
+vlinder02 100            0.000000  0.428769    0.571231
+          250            0.000000  0.535944    0.464056
+vlinder03 100            0.000000  0.245454    0.754546
+          250            0.000000  0.160831    0.839169
+vlinder04 100            0.000000  0.979569    0.020431
+          250            0.000000  0.881948    0.118052
+vlinder05 100            0.446604  0.224871    0.328525
+          250            0.242406  0.526977    0.230617
+vlinder06 100            0.000000  1.000000    0.000000
+          250            0.000000  0.995819    0.004181
+vlinder07 100            0.000000  0.433034    0.566966
+          250            0.002911  0.149681    0.847407
+vlinder08 100            0.000000  0.029552    0.970448
+          250            0.002911  0.030423    0.966666
+vlinder09 100            0.000000  1.000000    0.000000
+          250            0.000000  0.974895    0.025105
+vlinder10 100            0.000000  0.129686    0.870314
+          250            0.000000  0.125173    0.874827
+vlinder11 100            0.000000  0.273457    0.726543
+          250            0.000000  0.204337    0.795663
+vlinder12 100            0.000000  0.803321    0.196679
+          250            0.004188  0.313829    0.681983
+vlinder13 100            0.000000  0.006042    0.993958
+          250            0.000000  0.044648    0.955352
+vlinder14 100            0.000000  0.803469    0.196531
+          250            0.000000  0.835386    0.164614
+vlinder15 100            0.000000  0.798196    0.201804
+          250            0.000000  0.918644    0.081356
+vlinder16 100            0.367579  0.232926    0.399495
+          250            0.448841  0.217178    0.333981
+vlinder17 100            0.000000  0.989899    0.010101
+          250            0.000000  0.980923    0.019077
+vlinder18 100            0.000000  1.000000    0.000000
+          250            0.000000  1.000000    0.000000
+vlinder19 100            0.000000  0.447270    0.552730
+          250            0.000000  0.343485    0.656515
+vlinder20 100            0.000000  0.129964    0.870036
+          250            0.000000  0.039639    0.960361
+vlinder21 100            0.000000  1.000000    0.000000
+          250            0.000487  0.962068    0.037445
+vlinder22 100            0.973231  0.026769    0.000000
+          250            0.884010  0.115990    0.000000
+vlinder23 100            0.399503  0.600497    0.000000
+          250            0.272793  0.712724    0.014483
+vlinder24 100            0.000000  0.960773    0.039227
+          250            0.000000  0.946138    0.053862
+vlinder25 100            0.790001  0.152027    0.057972
+          250            0.899936  0.063972    0.036092
+vlinder26 100            0.000000  0.148975    0.851025
+          250            0.000000  0.174383    0.825617
+vlinder27 100            0.000000  0.011601    0.988399
+          250            0.018481  0.084840    0.896679
+vlinder28 100            0.000000  0.489951    0.510049
+          250            0.000000  0.721950    0.278050
+</pre></div></div>
+</div>
+<section id="Plotting-with-GeeStaticModelData">
+<h3>Plotting with GeeStaticModelData<a class="headerlink" href="#Plotting-with-GeeStaticModelData" title="Link to this heading">#</a></h3>
+<p>You can make an interactive plot of a <code class="docutils literal notranslate"><span class="pre">GeeStaticModelData</span></code>, by using the <code class="docutils literal notranslate"><span class="pre">GeeStaticModelData.make_gee_plot()</span></code> method.</p>
+<p><em>Note: Not all Python environments can visualize the interactive map. If that is the case for you, you can save the map as a (html) file, and open it with your browser.</em></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The (default) Gee Modeldata is stored in all Datasets</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">gee_datasets</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;lcz&#39;: GeeStaticModelData instance of lcz  (known metadata),
+ &#39;altitude&#39;: GeeStaticModelData instance of altitude  (known metadata),
+ &#39;worldcover&#39;: GeeStaticModelData instance of worldcover  (known metadata),
+ &#39;ERA5-land&#39;: Empty GeeDynamicModelData instance of ERA5-land }
+</pre></div></div>
+</div>
+<p>We can see ‘lcz’ is a known GeeStaticModelData, so we can plot it</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lcz_map</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">gee_datasets</span><span class="p">[</span><span class="s1">&#39;lcz&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Make the plot</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">make_gee_static_spatialplot</span><span class="p">(</span><span class="n">Model</span><span class="o">=</span><span class="n">your_dataset</span><span class="o">.</span><span class="n">gee_datasets</span><span class="p">[</span><span class="s1">&#39;lcz&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/modeldata.py:1013: UserWarning: Geometry is in a geographic CRS. Results from &#39;centroid&#39; are likely incorrect. Use &#39;GeoSeries.to_crs()&#39; to re-project geometries to a projected CRS before this operation.
+
+  centroid = self.metadf.dissolve().centroid
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+
+    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
+
+        &lt;script&gt;
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        &lt;/script&gt;
+
+    &lt;style&gt;html, body {width: 100%;height: 100%;margin: 0;padding: 0;}&lt;/style&gt;
+    &lt;style&gt;#map {position:absolute;top:0;bottom:0;right:0;left:0;}&lt;/style&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;
+
+            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
+            &lt;style&gt;
+                #map_ffec8d6deeaa7623d821bd8586f6bb73 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            &lt;/style&gt;
+
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.min.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.css&quot;/&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.css&quot;/&gt;
+    &lt;script src=&quot;https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css&quot;/&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_ffec8d6deeaa7623d821bd8586f6bb73&quot; &gt;&lt;/div&gt;
+
+
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+  &lt;title&gt;jQuery UI Draggable - Default functionality&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css&quot;&gt;
+
+  &lt;script src=&quot;https://code.jquery.com/jquery-1.12.4.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;https://code.jquery.com/ui/1.12.1/jquery-ui.js&quot;&gt;&lt;/script&gt;
+
+  &lt;script&gt;
+  $( function() {
+    $( &quot;#maplegend&quot; ).draggable({
+                    start: function (event, ui) {
+                        $(this).css({
+                            right: &quot;auto&quot;,
+                            top: &quot;auto&quot;,
+                            bottom: &quot;auto&quot;
+                        });
+                    }
+                });
+});
+
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+
+&lt;div id=&#x27;maplegend&#x27; class=&#x27;maplegend&#x27;
+    style=&#x27;position: absolute; z-index:9999; border:2px solid grey; background-color:rgba(255, 255, 255, 0.8);
+     border-radius:6px; padding: 10px; font-size:14px; right: 20px; bottom: 20px;&#x27;&gt;
+
+&lt;div class=&#x27;legend-title&#x27;&gt;NLCD Land Cover Classification&lt;/div&gt;
+&lt;div class=&#x27;legend-scale&#x27;&gt;
+  &lt;ul class=&#x27;legend-labels&#x27;&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#8c0000;opacity:1.0;&#x27;&gt;&lt;/span&gt;Compact highrise&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#d10000;opacity:1.0;&#x27;&gt;&lt;/span&gt;Compact midrise&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#ff0000;opacity:1.0;&#x27;&gt;&lt;/span&gt;Compact lowrise&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#bf4d00;opacity:1.0;&#x27;&gt;&lt;/span&gt;Open highrise&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#ff6600;opacity:1.0;&#x27;&gt;&lt;/span&gt;Open midrise&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#ff9955;opacity:1.0;&#x27;&gt;&lt;/span&gt;Open lowrise&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#faee05;opacity:1.0;&#x27;&gt;&lt;/span&gt;Lightweight lowrise&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#bcbcbc;opacity:1.0;&#x27;&gt;&lt;/span&gt;Large lowrise&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#ffccaa;opacity:1.0;&#x27;&gt;&lt;/span&gt;Sparsely built&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#555555;opacity:1.0;&#x27;&gt;&lt;/span&gt;Heavy industry&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#006a00;opacity:1.0;&#x27;&gt;&lt;/span&gt;Dense Trees (LCZ A)&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#00aa00;opacity:1.0;&#x27;&gt;&lt;/span&gt;Scattered Trees (LCZ B)&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#648525;opacity:1.0;&#x27;&gt;&lt;/span&gt;Bush, scrub (LCZ C)&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#b9db79;opacity:1.0;&#x27;&gt;&lt;/span&gt;Low plants (LCZ D)&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#000000;opacity:1.0;&#x27;&gt;&lt;/span&gt;Bare rock or paved (LCZ E)&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#fbf7ae;opacity:1.0;&#x27;&gt;&lt;/span&gt;Bare soil or sand (LCZ F)&lt;/li&gt;
+    &lt;li&gt;&lt;span style=&#x27;background:#6a6aff;opacity:1.0;&#x27;&gt;&lt;/span&gt;Water (LCZ G)&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+&lt;style type=&#x27;text/css&#x27;&gt;
+  .maplegend .legend-title {
+    text-align: left;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 90%;
+    }
+  .maplegend .legend-scale ul {
+    margin: 0;
+    margin-bottom: 5px;
+    padding: 0;
+    float: left;
+    list-style: none;
+    }
+  .maplegend .legend-scale ul li {
+    font-size: 80%;
+    list-style: none;
+    margin-left: 0;
+    line-height: 18px;
+    margin-bottom: 2px;
+    }
+  .maplegend ul.legend-labels li span {
+    display: block;
+    float: left;
+    height: 16px;
+    width: 30px;
+    margin-right: 5px;
+    margin-left: 0;
+    border: 1px solid #999;
+    }
+  .maplegend .legend-source {
+    font-size: 80%;
+    color: #777;
+    clear: both;
+    }
+  .maplegend a {
+    color: #777;
+    }
+&lt;/style&gt;
+
+&lt;/body&gt;
+&lt;script&gt;
+
+
+            var map_ffec8d6deeaa7623d821bd8586f6bb73 = L.map(
+                &quot;map_ffec8d6deeaa7623d821bd8586f6bb73&quot;,
+                {
+                    center: [20.0, 0.0],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 2,
+                    zoomControl: true,
+                    preferCanvas: false,
+                    addGoogleMap: false,
+                    eeInitialize: true,
+                    pluginLatlngpopup: false,
+                    pluginFullscreen: true,
+                    pluginDraw: true,
+                    DrawExport: false,
+                    pluginMinimap: false,
+                    locateControl: false,
+                    searchControl: true,
+                    layersControl: true,
+                }
+            );
+
+
+
+
+
+            var tile_layer_8faf0c90ad144ab1dca787d8fa62c9a5 = L.tileLayer(
+                &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
+                {&quot;attribution&quot;: &quot;\u0026copy; \u003ca href=\&quot;https://www.openstreetmap.org/copyright\&quot;\u003eOpenStreetMap\u003c/a\u003e contributors&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 19, &quot;maxZoom&quot;: 30, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+            tile_layer_8faf0c90ad144ab1dca787d8fa62c9a5.addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+            L.control.fullscreen(
+                {&quot;forceSeparateButton&quot;: false, &quot;position&quot;: &quot;topleft&quot;, &quot;title&quot;: &quot;Full Screen&quot;, &quot;titleCancel&quot;: &quot;Exit Full Screen&quot;}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+            var options = {
+              position: &quot;topleft&quot;,
+              draw: {},
+              edit: {},
+            }
+            // FeatureGroup is to store editable layers.
+            var drawnItems_draw_control_05d1ddafd1bd39955d35917158f01f52 = new L.featureGroup().addTo(
+                map_ffec8d6deeaa7623d821bd8586f6bb73
+            );
+            options.edit.featureGroup = drawnItems_draw_control_05d1ddafd1bd39955d35917158f01f52;
+            var draw_control_05d1ddafd1bd39955d35917158f01f52 = new L.Control.Draw(
+                options
+            ).addTo( map_ffec8d6deeaa7623d821bd8586f6bb73 );
+            map_ffec8d6deeaa7623d821bd8586f6bb73.on(L.Draw.Event.CREATED, function(e) {
+                var layer = e.layer,
+                    type = e.layerType;
+                var coords = JSON.stringify(layer.toGeoJSON());
+                layer.on(&#x27;click&#x27;, function() {
+                    alert(coords);
+                    console.log(coords);
+                });
+                drawnItems_draw_control_05d1ddafd1bd39955d35917158f01f52.addLayer(layer);
+             });
+            map_ffec8d6deeaa7623d821bd8586f6bb73.on(&#x27;draw:created&#x27;, function(e) {
+                drawnItems_draw_control_05d1ddafd1bd39955d35917158f01f52.addLayer(e.layer);
+            });
+
+
+
+
+            var geocoderOpts_geocoder_aa87641a4a351684774c05a353777b84 = {&quot;collapsed&quot;: true, &quot;defaultMarkGeocode&quot;: true, &quot;position&quot;: &quot;topleft&quot;, &quot;provider&quot;: &quot;nominatim&quot;, &quot;providerOptions&quot;: {}, &quot;zoom&quot;: 11};
+
+            // note: geocoder name should start with lowercase
+            var geocoderName_geocoder_aa87641a4a351684774c05a353777b84 = geocoderOpts_geocoder_aa87641a4a351684774c05a353777b84[&quot;provider&quot;];
+
+            var customGeocoder_geocoder_aa87641a4a351684774c05a353777b84 = L.Control.Geocoder[ geocoderName_geocoder_aa87641a4a351684774c05a353777b84 ](
+                geocoderOpts_geocoder_aa87641a4a351684774c05a353777b84[&#x27;providerOptions&#x27;]
+            );
+            geocoderOpts_geocoder_aa87641a4a351684774c05a353777b84[&quot;geocoder&quot;] = customGeocoder_geocoder_aa87641a4a351684774c05a353777b84;
+
+            L.Control.geocoder(
+                geocoderOpts_geocoder_aa87641a4a351684774c05a353777b84
+            ).on(&#x27;markgeocode&#x27;, function(e) {
+                var zoom = geocoderOpts_geocoder_aa87641a4a351684774c05a353777b84[&#x27;zoom&#x27;] || map_ffec8d6deeaa7623d821bd8586f6bb73.getZoom();
+                map_ffec8d6deeaa7623d821bd8586f6bb73.setView(e.geocode.center, zoom);
+            }).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+
+            map_ffec8d6deeaa7623d821bd8586f6bb73.fitBounds(
+                [[20, 0], [20, 0]],
+                {&quot;maxZoom&quot;: 2}
+            );
+
+
+            var marker_8cc1640cb02bca8b842def2e49875c1e = L.marker(
+                [50.980438, 3.815763],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_63dfdb74c6d722cff5db3c37c0e7c5d6 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_fc45440f0cd231708f8a97f97eb3272b = $(`&lt;div id=&quot;html_fc45440f0cd231708f8a97f97eb3272b&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder01 Low plants (LCZ D) &lt;/div&gt;`)[0];
+                popup_63dfdb74c6d722cff5db3c37c0e7c5d6.setContent(html_fc45440f0cd231708f8a97f97eb3272b);
+
+
+
+        marker_8cc1640cb02bca8b842def2e49875c1e.bindPopup(popup_63dfdb74c6d722cff5db3c37c0e7c5d6)
+        ;
+
+
+
+
+            var marker_e89c1998e0958eb3e49bd50e9b1935d5 = L.marker(
+                [51.022379, 3.709695],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_dcf01bad1fd25874ec93d4a7f5c9a7cf = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_2aa39307817032db502a4ab9498044f0 = $(`&lt;div id=&quot;html_2aa39307817032db502a4ab9498044f0&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder02 Large lowrise &lt;/div&gt;`)[0];
+                popup_dcf01bad1fd25874ec93d4a7f5c9a7cf.setContent(html_2aa39307817032db502a4ab9498044f0);
+
+
+
+        marker_e89c1998e0958eb3e49bd50e9b1935d5.bindPopup(popup_dcf01bad1fd25874ec93d4a7f5c9a7cf)
+        ;
+
+
+
+
+            var marker_e149f4f2d57b15c522599fa3b4963d41 = L.marker(
+                [51.324583, 4.952109],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_ad0baeddcba534d60ca8e5aacf05d8f0 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_1e89877fba0d9390efa4d8f06c0b7ae5 = $(`&lt;div id=&quot;html_1e89877fba0d9390efa4d8f06c0b7ae5&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder03 Open midrise &lt;/div&gt;`)[0];
+                popup_ad0baeddcba534d60ca8e5aacf05d8f0.setContent(html_1e89877fba0d9390efa4d8f06c0b7ae5);
+
+
+
+        marker_e149f4f2d57b15c522599fa3b4963d41.bindPopup(popup_ad0baeddcba534d60ca8e5aacf05d8f0)
+        ;
+
+
+
+
+            var marker_787a76e24b2190475b7e22c76177dcf4 = L.marker(
+                [51.335522, 4.934732],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_1739a6a9036c03ccdf736c8c95bff89a = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_9e52f7c7a749630134ec14381c36190a = $(`&lt;div id=&quot;html_9e52f7c7a749630134ec14381c36190a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder04 Sparsely built &lt;/div&gt;`)[0];
+                popup_1739a6a9036c03ccdf736c8c95bff89a.setContent(html_9e52f7c7a749630134ec14381c36190a);
+
+
+
+        marker_787a76e24b2190475b7e22c76177dcf4.bindPopup(popup_1739a6a9036c03ccdf736c8c95bff89a)
+        ;
+
+
+
+
+            var marker_5f81b48b7f7a4f1b12cb0824296425e1 = L.marker(
+                [51.052655, 3.675183],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_d6e7ee71e4e13b9a45c98245f5c9adb8 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_4b91d7656975742bb12a8428cf9a7ca6 = $(`&lt;div id=&quot;html_4b91d7656975742bb12a8428cf9a7ca6&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder05 Water (LCZ G) &lt;/div&gt;`)[0];
+                popup_d6e7ee71e4e13b9a45c98245f5c9adb8.setContent(html_4b91d7656975742bb12a8428cf9a7ca6);
+
+
+
+        marker_5f81b48b7f7a4f1b12cb0824296425e1.bindPopup(popup_d6e7ee71e4e13b9a45c98245f5c9adb8)
+        ;
+
+
+
+
+            var marker_0484e54173cf119cadc939edb1d7d5ea = L.marker(
+                [51.0271, 4.5163],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_0b6d08462ec79e05c49a54bf9f3edcba = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_0d584286660d1f06c88b096c48b57c07 = $(`&lt;div id=&quot;html_0d584286660d1f06c88b096c48b57c07&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder06 Scattered Trees (LCZ B) &lt;/div&gt;`)[0];
+                popup_0b6d08462ec79e05c49a54bf9f3edcba.setContent(html_0d584286660d1f06c88b096c48b57c07);
+
+
+
+        marker_0484e54173cf119cadc939edb1d7d5ea.bindPopup(popup_0b6d08462ec79e05c49a54bf9f3edcba)
+        ;
+
+
+
+
+            var marker_f182357d044217875ed8dcc9d3772e3b = L.marker(
+                [51.030889, 4.478445],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_e225cd81355d02cda8b7009f7534452f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_be040b719b0ecb80397bf193a3aef3bd = $(`&lt;div id=&quot;html_be040b719b0ecb80397bf193a3aef3bd&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder07 Compact midrise &lt;/div&gt;`)[0];
+                popup_e225cd81355d02cda8b7009f7534452f.setContent(html_be040b719b0ecb80397bf193a3aef3bd);
+
+
+
+        marker_f182357d044217875ed8dcc9d3772e3b.bindPopup(popup_e225cd81355d02cda8b7009f7534452f)
+        ;
+
+
+
+
+            var marker_23a1a08fa36ab2970a8e69942292e9c8 = L.marker(
+                [51.02813, 4.477398],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_86a0ecc169acdbc2cbccbe2b35615bf7 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_0674fe1ab16340a176cd1b0047a7095b = $(`&lt;div id=&quot;html_0674fe1ab16340a176cd1b0047a7095b&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder08 Compact midrise &lt;/div&gt;`)[0];
+                popup_86a0ecc169acdbc2cbccbe2b35615bf7.setContent(html_0674fe1ab16340a176cd1b0047a7095b);
+
+
+
+        marker_23a1a08fa36ab2970a8e69942292e9c8.bindPopup(popup_86a0ecc169acdbc2cbccbe2b35615bf7)
+        ;
+
+
+
+
+            var marker_fed5a3792f311760ef89a458792b5a19 = L.marker(
+                [50.927167, 4.075722],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_e055e9f8cb8ec179119511aa1a106043 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_f9ea48f7f1082d018a8b709df5c3162f = $(`&lt;div id=&quot;html_f9ea48f7f1082d018a8b709df5c3162f&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder09 Scattered Trees (LCZ B) &lt;/div&gt;`)[0];
+                popup_e055e9f8cb8ec179119511aa1a106043.setContent(html_f9ea48f7f1082d018a8b709df5c3162f);
+
+
+
+        marker_fed5a3792f311760ef89a458792b5a19.bindPopup(popup_e055e9f8cb8ec179119511aa1a106043)
+        ;
+
+
+
+
+            var marker_c85f1dd560c071de60f2a73fe5dc46e7 = L.marker(
+                [50.935556, 4.041389],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_0b3a21db739bde8c365eff38c63610e4 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_a7503e741340949770ecd1e2b2e02274 = $(`&lt;div id=&quot;html_a7503e741340949770ecd1e2b2e02274&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder10 Compact midrise &lt;/div&gt;`)[0];
+                popup_0b3a21db739bde8c365eff38c63610e4.setContent(html_a7503e741340949770ecd1e2b2e02274);
+
+
+
+        marker_c85f1dd560c071de60f2a73fe5dc46e7.bindPopup(popup_0b3a21db739bde8c365eff38c63610e4)
+        ;
+
+
+
+
+            var marker_bb201e03177e351057b8118e078ff69a = L.marker(
+                [51.222422, 4.381726],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_8775926819dea570c8294823c05ecc1c = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_ea90fff24fc78305edd9cdeb6068aab5 = $(`&lt;div id=&quot;html_ea90fff24fc78305edd9cdeb6068aab5&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder11 Open lowrise &lt;/div&gt;`)[0];
+                popup_8775926819dea570c8294823c05ecc1c.setContent(html_ea90fff24fc78305edd9cdeb6068aab5);
+
+
+
+        marker_bb201e03177e351057b8118e078ff69a.bindPopup(popup_8775926819dea570c8294823c05ecc1c)
+        ;
+
+
+
+
+            var marker_6212b7c2cba5230c44373dc3237d5cf8 = L.marker(
+                [51.216477, 4.42344],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_6d9c37735507eeb69a2d3b79db885715 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_bdfa5eb51709e1937d8f7aa6fff2bdc9 = $(`&lt;div id=&quot;html_bdfa5eb51709e1937d8f7aa6fff2bdc9&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder12 Open highrise &lt;/div&gt;`)[0];
+                popup_6d9c37735507eeb69a2d3b79db885715.setContent(html_bdfa5eb51709e1937d8f7aa6fff2bdc9);
+
+
+
+        marker_6212b7c2cba5230c44373dc3237d5cf8.bindPopup(popup_6d9c37735507eeb69a2d3b79db885715)
+        ;
+
+
+
+
+            var marker_890286d91f812a4afdfa99a2d6c18516 = L.marker(
+                [51.212211, 4.398065],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_90de47bbc4bdc03c385326e8aeb693ad = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_f237bf92f59bc8b96e683753adb408fd = $(`&lt;div id=&quot;html_f237bf92f59bc8b96e683753adb408fd&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder13 Compact midrise &lt;/div&gt;`)[0];
+                popup_90de47bbc4bdc03c385326e8aeb693ad.setContent(html_f237bf92f59bc8b96e683753adb408fd);
+
+
+
+        marker_890286d91f812a4afdfa99a2d6c18516.bindPopup(popup_90de47bbc4bdc03c385326e8aeb693ad)
+        ;
+
+
+
+
+            var marker_d76f6e05927462ff7e664cd316592bb6 = L.marker(
+                [51.350618, 4.315013],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_619e2360b2c7ba6a629487d9993f5865 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_7fe4e09e71006bf32a2aff10669c62fc = $(`&lt;div id=&quot;html_7fe4e09e71006bf32a2aff10669c62fc&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder14 Low plants (LCZ D) &lt;/div&gt;`)[0];
+                popup_619e2360b2c7ba6a629487d9993f5865.setContent(html_7fe4e09e71006bf32a2aff10669c62fc);
+
+
+
+        marker_d76f6e05927462ff7e664cd316592bb6.bindPopup(popup_619e2360b2c7ba6a629487d9993f5865)
+        ;
+
+
+
+
+            var marker_d2f80226dcdf5b7881dcc48c89ffd953 = L.marker(
+                [50.9353, 4.1926],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_d95c6df77f6169e62ee66d500220a3ac = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_312476748bb3e8a972a1d07eee36c245 = $(`&lt;div id=&quot;html_312476748bb3e8a972a1d07eee36c245&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder15 Low plants (LCZ D) &lt;/div&gt;`)[0];
+                popup_d95c6df77f6169e62ee66d500220a3ac.setContent(html_312476748bb3e8a972a1d07eee36c245);
+
+
+
+        marker_d2f80226dcdf5b7881dcc48c89ffd953.bindPopup(popup_d95c6df77f6169e62ee66d500220a3ac)
+        ;
+
+
+
+
+            var marker_e4920c33d6146e4d7c8933e7e718e223 = L.marker(
+                [51.26685, 4.293436],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_3b5b8d5211c2270d5b402db02c19498f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_12275514b88d13c38977d50fd2ab5cd1 = $(`&lt;div id=&quot;html_12275514b88d13c38977d50fd2ab5cd1&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder16 Water (LCZ G) &lt;/div&gt;`)[0];
+                popup_3b5b8d5211c2270d5b402db02c19498f.setContent(html_12275514b88d13c38977d50fd2ab5cd1);
+
+
+
+        marker_e4920c33d6146e4d7c8933e7e718e223.bindPopup(popup_3b5b8d5211c2270d5b402db02c19498f)
+        ;
+
+
+
+
+            var marker_7e44bb701760eda82b6dc319a4db6a9d = L.marker(
+                [51.065269, 5.613458],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_c42e5e7c06af8463fdc74937f24e6802 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_ddfa2652c2ad05091abbcf15b0e282f8 = $(`&lt;div id=&quot;html_ddfa2652c2ad05091abbcf15b0e282f8&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder17 Scattered Trees (LCZ B) &lt;/div&gt;`)[0];
+                popup_c42e5e7c06af8463fdc74937f24e6802.setContent(html_ddfa2652c2ad05091abbcf15b0e282f8);
+
+
+
+        marker_7e44bb701760eda82b6dc319a4db6a9d.bindPopup(popup_c42e5e7c06af8463fdc74937f24e6802)
+        ;
+
+
+
+
+            var marker_f6cae88f9e4b07fd24e49ab1be6959c3 = L.marker(
+                [51.136244, 5.656769],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_eff266a75b81269fd7656be92e662683 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_72760c41bc7d085905ffaa4dcfc7ab74 = $(`&lt;div id=&quot;html_72760c41bc7d085905ffaa4dcfc7ab74&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder18 Low plants (LCZ D) &lt;/div&gt;`)[0];
+                popup_eff266a75b81269fd7656be92e662683.setContent(html_72760c41bc7d085905ffaa4dcfc7ab74);
+
+
+
+        marker_f6cae88f9e4b07fd24e49ab1be6959c3.bindPopup(popup_eff266a75b81269fd7656be92e662683)
+        ;
+
+
+
+
+            var marker_b4a78488374a43000b4e860ad2b7c503 = L.marker(
+                [50.841455, 4.363672],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_9807dcae4e75c934e105fc78844b3713 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_813900ec1a76fe6d59f0f85be5cb12a5 = $(`&lt;div id=&quot;html_813900ec1a76fe6d59f0f85be5cb12a5&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder19 Compact midrise &lt;/div&gt;`)[0];
+                popup_9807dcae4e75c934e105fc78844b3713.setContent(html_813900ec1a76fe6d59f0f85be5cb12a5);
+
+
+
+        marker_b4a78488374a43000b4e860ad2b7c503.bindPopup(popup_9807dcae4e75c934e105fc78844b3713)
+        ;
+
+
+
+
+            var marker_f00c46427a2ab4b3027b623284f8b779 = L.marker(
+                [50.847025, 4.357971],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_ac5eb2606c69580477d7a13e41308015 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_63398eb42979b86e98e938e6d8b879d6 = $(`&lt;div id=&quot;html_63398eb42979b86e98e938e6d8b879d6&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder20 Compact midrise &lt;/div&gt;`)[0];
+                popup_ac5eb2606c69580477d7a13e41308015.setContent(html_63398eb42979b86e98e938e6d8b879d6);
+
+
+
+        marker_f00c46427a2ab4b3027b623284f8b779.bindPopup(popup_ac5eb2606c69580477d7a13e41308015)
+        ;
+
+
+
+
+            var marker_b13d8d9e0c1f6b8a8abfd35faddde12a = L.marker(
+                [51.260389, 2.991917],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_842bd7f40f1de8bfbeff0ede050aa57c = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_886798ee618ac73445dfcda3d00fad94 = $(`&lt;div id=&quot;html_886798ee618ac73445dfcda3d00fad94&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder21 Sparsely built &lt;/div&gt;`)[0];
+                popup_842bd7f40f1de8bfbeff0ede050aa57c.setContent(html_886798ee618ac73445dfcda3d00fad94);
+
+
+
+        marker_b13d8d9e0c1f6b8a8abfd35faddde12a.bindPopup(popup_842bd7f40f1de8bfbeff0ede050aa57c)
+        ;
+
+
+
+
+            var marker_acc9a146b8c5efe55198ff37fd42a25a = L.marker(
+                [50.989501, 2.85622],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_92225f8ab0e2376a8d5a563c95e03ed1 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_7b44167768bb50371981465ee20bd18a = $(`&lt;div id=&quot;html_7b44167768bb50371981465ee20bd18a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder22 Low plants (LCZ D) &lt;/div&gt;`)[0];
+                popup_92225f8ab0e2376a8d5a563c95e03ed1.setContent(html_7b44167768bb50371981465ee20bd18a);
+
+
+
+        marker_acc9a146b8c5efe55198ff37fd42a25a.bindPopup(popup_92225f8ab0e2376a8d5a563c95e03ed1)
+        ;
+
+
+
+
+            var marker_e9f0983a2f8ea3ad75d33c24b18863ff = L.marker(
+                [51.260578, 3.580151],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_3a2a9608760f3418e462aff9f1bd0fca = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_38159d597632b00cee545ceb6365b356 = $(`&lt;div id=&quot;html_38159d597632b00cee545ceb6365b356&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder23 Low plants (LCZ D) &lt;/div&gt;`)[0];
+                popup_3a2a9608760f3418e462aff9f1bd0fca.setContent(html_38159d597632b00cee545ceb6365b356);
+
+
+
+        marker_e9f0983a2f8ea3ad75d33c24b18863ff.bindPopup(popup_3a2a9608760f3418e462aff9f1bd0fca)
+        ;
+
+
+
+
+            var marker_1b298a856201465d2ff835c6c9103694 = L.marker(
+                [51.167015, 3.572062],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_f5c41ab32f2dcfcd094323d043d2cfcd = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_c0038fc414d6e4afa0685de9678bb86c = $(`&lt;div id=&quot;html_c0038fc414d6e4afa0685de9678bb86c&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder24 Dense Trees (LCZ A) &lt;/div&gt;`)[0];
+                popup_f5c41ab32f2dcfcd094323d043d2cfcd.setContent(html_c0038fc414d6e4afa0685de9678bb86c);
+
+
+
+        marker_1b298a856201465d2ff835c6c9103694.bindPopup(popup_f5c41ab32f2dcfcd094323d043d2cfcd)
+        ;
+
+
+
+
+            var marker_f5fcc49503b9bff48f0b51de5c43b6d8 = L.marker(
+                [51.15472, 3.708611],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_0ac0e9ecc3a559cc4b6843ae5ac7c7d9 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_ee9ba2796f01e6fc4245d21ab6440a58 = $(`&lt;div id=&quot;html_ee9ba2796f01e6fc4245d21ab6440a58&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder25 Water (LCZ G) &lt;/div&gt;`)[0];
+                popup_0ac0e9ecc3a559cc4b6843ae5ac7c7d9.setContent(html_ee9ba2796f01e6fc4245d21ab6440a58);
+
+
+
+        marker_f5fcc49503b9bff48f0b51de5c43b6d8.bindPopup(popup_0ac0e9ecc3a559cc4b6843ae5ac7c7d9)
+        ;
+
+
+
+
+            var marker_3f67127fc3823a9f14ec516655746876 = L.marker(
+                [51.16176, 4.997653],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_336fc3e9e4b66301728996ad5c4d6191 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_d57fdb9d96464484ff9306737c928236 = $(`&lt;div id=&quot;html_d57fdb9d96464484ff9306737c928236&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder26 Open midrise &lt;/div&gt;`)[0];
+                popup_336fc3e9e4b66301728996ad5c4d6191.setContent(html_d57fdb9d96464484ff9306737c928236);
+
+
+
+        marker_3f67127fc3823a9f14ec516655746876.bindPopup(popup_336fc3e9e4b66301728996ad5c4d6191)
+        ;
+
+
+
+
+            var marker_7ddc1c5960f183107ebf977762838d7e = L.marker(
+                [51.058099, 3.728067],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_962a132cb9702ebbe044a961e9e82fbc = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_3cc3d40f8cff388093969d6e38d71afd = $(`&lt;div id=&quot;html_3cc3d40f8cff388093969d6e38d71afd&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder27 Compact midrise &lt;/div&gt;`)[0];
+                popup_962a132cb9702ebbe044a961e9e82fbc.setContent(html_3cc3d40f8cff388093969d6e38d71afd);
+
+
+
+        marker_7ddc1c5960f183107ebf977762838d7e.bindPopup(popup_962a132cb9702ebbe044a961e9e82fbc)
+        ;
+
+
+
+
+            var marker_6eacc8a8e9f7e56f7c2c2b0914857e8a = L.marker(
+                [51.035293, 3.769741],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+        var popup_22755afefa14ec6be1832fe9c3eefa6e = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_027731bc4999f91b5f439a0bdb3ce16a = $(`&lt;div id=&quot;html_027731bc4999f91b5f439a0bdb3ce16a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder28 Open lowrise &lt;/div&gt;`)[0];
+                popup_22755afefa14ec6be1832fe9c3eefa6e.setContent(html_027731bc4999f91b5f439a0bdb3ce16a);
+
+
+
+        marker_6eacc8a8e9f7e56f7c2c2b0914857e8a.bindPopup(popup_22755afefa14ec6be1832fe9c3eefa6e)
+        ;
+
+
+
+
+            map_ffec8d6deeaa7623d821bd8586f6bb73.fitBounds(
+                [[51.101630178571426, 4.209903857142856], [51.101630178571426, 4.209903857142856]],
+                {&quot;maxZoom&quot;: 8}
+            );
+
+
+            var tile_layer_04c3f7c41b4dc885bd0bf6ff5fa52bc7 = L.tileLayer(
+                &quot;https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/f11bfc4002f2b3c6a141d8fa6ef8dc68-2c45a50d95b391f8eacba30c35c5bf72/tiles/{z}/{x}/{y}&quot;,
+                {&quot;attribution&quot;: &quot;Google Earth Engine&quot;, &quot;detectRetina&quot;: false, &quot;maxZoom&quot;: 24, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1.0, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+            tile_layer_04c3f7c41b4dc885bd0bf6ff5fa52bc7.addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+            var layer_control_58de11632d6b35f99275da025b1a4357_layers = {
+                base_layers : {
+                    &quot;openstreetmap&quot; : tile_layer_8faf0c90ad144ab1dca787d8fa62c9a5,
+                },
+                overlays :  {
+                    &quot;lcz&quot; : tile_layer_04c3f7c41b4dc885bd0bf6ff5fa52bc7,
+                },
+            };
+            let layer_control_58de11632d6b35f99275da025b1a4357 = L.control.layers(
+                layer_control_58de11632d6b35f99275da025b1a4357_layers.base_layers,
+                layer_control_58de11632d6b35f99275da025b1a4357_layers.overlays,
+                {&quot;autoZIndex&quot;: true, &quot;collapsed&quot;: true, &quot;position&quot;: &quot;topright&quot;}
+            ).addTo(map_ffec8d6deeaa7623d821bd8586f6bb73);
+
+
+&lt;/script&gt;
+&lt;/html&gt;" width="100%" height="600"style="border:none !important;" "allowfullscreen" "webkitallowfullscreen" "mozallowfullscreen"></iframe></div>
+</div>
+</section>
+</section>
+<section id="Extracting-ERA5-timeseries">
+<h2>Extracting ERA5 timeseries<a class="headerlink" href="#Extracting-ERA5-timeseries" title="Link to this heading">#</a></h2>
+<p>Now we demonstrate how to use the <code class="docutils literal notranslate"><span class="pre">GeeDynamicModelData</span></code>, and use the ERA5-land (GEE) dataset for it. All available Gee Modeldata’s for your Dataset are stored in the <code class="docutils literal notranslate"><span class="pre">GeeDynamicModelData.gee_datasets</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">gee_datasets</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;lcz&#39;: GeeStaticModelData instance of lcz  (no metadata has been set) ,
+ &#39;altitude&#39;: GeeStaticModelData instance of altitude  (no metadata has been set) ,
+ &#39;worldcover&#39;: GeeStaticModelData instance of worldcover  (no metadata has been set) ,
+ &#39;ERA5-land&#39;: Empty GeeDynamicModelData instance of ERA5-land }
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">era5_model</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">gee_datasets</span><span class="p">[</span><span class="s1">&#39;ERA5-land&#39;</span><span class="p">]</span>
+<span class="n">era5_model</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Empty GeeDynamicModelData instance of ERA5-land
+------ Details ---------
+
+ * name: ERA5-land
+ * location: ECMWF/ERA5_LAND/HOURLY
+ * value_type: numeric
+ * scale: 2500
+ * is_static: False
+ * is_image: False
+ * is_mosaic: False
+ * credentials:
+ * time res: 1h
+
+ -- Known Modelobstypes --
+
+ * temp : ModelObstype instance of temp (linked to band: temperature_2m)
+    (conversion: Kelvin --&gt; Celsius)
+ * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
+    (conversion: pa --&gt; pa)
+ * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+    vectorfield that will be converted to:
+      * wind_speed
+      * wind_direction
+    (conversion: m/s --&gt; m/s)
+
+ -- Metadata --
+
+No metadf is set.
+
+ -- Modeldata --
+
+No model data is set.
+</pre></div></div>
+</div>
+<p>We can see that <em>temp</em> is a known <code class="docutils literal notranslate"><span class="pre">ModelObstype</span></code> present in the era_model. Thus we can use it to extract temperature timeseries.</p>
+<p>If the target <code class="docutils literal notranslate"><span class="pre">ModelObstype</span></code> is not present, create the <code class="docutils literal notranslate"><span class="pre">ModelObstype</span></code> and add it with <code class="docutils literal notranslate"><span class="pre">GeeDynamicModelData.add_modelobstype()</span></code>.</p>
+<p>The toolkit has built-in functionality to extract ERA5 time series at the station locations. The ERA5 data will be stored in a <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/latest/reference/modeldata.html">Modeldata</a> instance. Here is an example on how to get the ERA5 time series by using the <code class="docutils literal notranslate"><span class="pre">get_modeldata()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Get the ERA5 data for a single station (to reduce data transfer)</span>
+<span class="n">your_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder02&#39;</span><span class="p">)</span>
+
+<span class="c1">#Extract time series at the location of the station</span>
+<span class="n">ERA5_data</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">Model</span><span class="o">=</span><span class="n">era5_model</span><span class="p">,</span>
+                                       <span class="n">obstypes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">],</span>
+                                       <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the start of the observations is used</span>
+                                       <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the end of the observations is used</span>
+                                       <span class="n">get_all_bands</span><span class="o">=</span><span class="kc">False</span> <span class="c1">#if True, all the GEE bands are extracted.</span>
+                                       <span class="p">)</span>
+
+<span class="c1">#Get info</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ERA5_data</span><span class="p">)</span>
+<span class="n">ERA5_data</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">obstype_model</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                    <span class="n">Dataset</span><span class="o">=</span><span class="n">your_station</span><span class="p">,</span> <span class="c1">#add the observations to the same plot</span>
+                    <span class="n">obstype_dataset</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+GeeDynamicModelData instance of ERA5-land with modeldata
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/dataset_core.py:508: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  combdf = pd.concat([df, outliersdf])  # combine the two
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;ERA5-land and temp observations.&#39;}, ylabel=&#39;temp (Celsius)\n originates from temperature_2m&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_gee_example_26_4.png" src="../_images/examples_gee_example_26_4.png" />
+</div>
+</div>
+<section id="GEE-data-transfer">
+<h3>GEE data transfer<a class="headerlink" href="#GEE-data-transfer" title="Link to this heading">#</a></h3>
+<p>There is a limit to the amount of data that can be transfered directly from GEE. When the data cannot be transferred directly, <strong>it will be written to a file on your Google Drive</strong>. The location of the file will be printed out. When the writing to the file is done, you must download the file and import it to an empty <em>Modeldata</em> instance using the <code class="docutils literal notranslate"><span class="pre">set_model_from_csv()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Illustration</span>
+<span class="c1">#Extract time series at the locations all the station</span>
+<span class="n">ERA5_data</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span><span class="n">Model</span><span class="o">=</span><span class="n">era5_model</span><span class="p">,</span>
+                                       <span class="n">obstypes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">],</span>
+                                       <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the start of the observations is used</span>
+                                       <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the end of the observations is used</span>
+                                       <span class="n">force_to_drive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1">#We can force it to use Google Drive</span>
+                                       <span class="p">)</span>
+
+<span class="c1">#Because the data amount is too large (or because of the force_to_drive),</span>
+<span class="c1"># it will be written to a file on your Google Drive! The returned Modeldata is empty.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ERA5_data</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The timeseries will be written to your Drive in gee_timeseries_data/ERA5-land_timeseries_data
+The data is transfered! Open the following link in your browser:
+
+
+https://drive.google.com/#folders/1QE0DA-YqeHh5gSUG2L1EWh7ndyxa7xNj
+
+
+To upload the data to the model, use the Modeldata.set_model_from_csv() method
+GeeDynamicModelData instance of ERA5-land with modeldata
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#See the output to find the modeldata in your Google Drive, and download the file.</span>
+<span class="c1">#Update the empty Modeldata with the data from the file</span>
+
+<span class="c1">#ERA5_data.set_model_from_csv(csvpath=&#39;/home/..../era5_data.csv&#39;) #The path to the downloaded file</span>
+<span class="c1">#print(ERA5_data)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="Plotting-with-GeeDynamicModelData">
+<h2>Plotting with GeeDynamicModelData<a class="headerlink" href="#Plotting-with-GeeDynamicModelData" title="Link to this heading">#</a></h2>
+<p>You can make an interactive spatial plot to visualize the stations spatially by using the <code class="docutils literal notranslate"><span class="pre">make_gee_plot()</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">str</span><span class="p">(</span><span class="n">your_dataset</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#34;Dataset instance containing: \n     *28 stations \n     *[&#39;humidity&#39;, &#39;temp&#39;, &#39;wind_direction&#39;, &#39;wind_speed&#39;] observation types present\n     *483828 observation records (not Nan&#39;s) \n     *0 records labeled as outliers \n     *8 gaps \n     *records range: 2022-09-01 00:00:00+00:00 --&gt; 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00) \n     *time zone of the records: UTC \n     *Known GEE datasets for:  [&#39;lcz&#39;, &#39;altitude&#39;, &#39;worldcover&#39;, &#39;ERA5-land&#39;] \n     *Coordinates are available for all stations.&#34;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="n">at_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">at_time</span><span class="p">)</span>
+
+<span class="n">spatial_map</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">make_gee_dynamic_spatialplot</span><span class="p">(</span>
+                            <span class="n">timeinstance</span><span class="o">=</span><span class="n">at_time</span><span class="p">,</span>
+                            <span class="n">Model</span><span class="o">=</span><span class="n">era5_model</span><span class="p">,</span>
+                            <span class="n">modelobstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                            <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if none, toolkit makes a guess based on your stations</span>
+                            <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="c1">#if none, toolkit makes a guess based on your stations)</span>
+<span class="n">spatial_map</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2022-09-12 16:00:00
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/modeldata.py:1756: UserWarning: Geometry is in a geographic CRS. Results from &#39;centroid&#39; are likely incorrect. Use &#39;GeoSeries.to_crs()&#39; to re-project geometries to a projected CRS before this operation.
+
+  centroid = self.metadf.dissolve().centroid
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+
+    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
+
+        &lt;script&gt;
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        &lt;/script&gt;
+
+    &lt;style&gt;html, body {width: 100%;height: 100%;margin: 0;padding: 0;}&lt;/style&gt;
+    &lt;style&gt;#map {position:absolute;top:0;bottom:0;right:0;left:0;}&lt;/style&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;
+
+            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
+            &lt;style&gt;
+                #map_3b97707fee5c1a2d81f5436b219b6557 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            &lt;/style&gt;
+
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.min.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.css&quot;/&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.css&quot;/&gt;
+    &lt;script src=&quot;https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css&quot;/&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+
+                 &lt;h3 align=&quot;center&quot; style=&quot;font-size:20px&quot;&gt;&lt;b&gt;ERA5-land GEE plot of temperature_2m (in Kelvin) at 2022-09-12 16:00:00+00:00.&lt;/b&gt;&lt;/h3&gt;
+
+
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_3b97707fee5c1a2d81f5436b219b6557&quot; &gt;&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;script&gt;
+
+
+            var map_3b97707fee5c1a2d81f5436b219b6557 = L.map(
+                &quot;map_3b97707fee5c1a2d81f5436b219b6557&quot;,
+                {
+                    center: [20.0, 0.0],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 2,
+                    zoomControl: true,
+                    preferCanvas: false,
+                    addGoogleMap: false,
+                    eeInitialize: true,
+                    pluginLatlngpopup: false,
+                    pluginFullscreen: true,
+                    pluginDraw: true,
+                    DrawExport: false,
+                    pluginMinimap: false,
+                    locateControl: false,
+                    searchControl: true,
+                    layersControl: true,
+                }
+            );
+
+
+
+
+
+            var tile_layer_72893eadb1e3b19e8df5ca97c8436c50 = L.tileLayer(
+                &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
+                {&quot;attribution&quot;: &quot;\u0026copy; \u003ca href=\&quot;https://www.openstreetmap.org/copyright\&quot;\u003eOpenStreetMap\u003c/a\u003e contributors&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 19, &quot;maxZoom&quot;: 30, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+            tile_layer_72893eadb1e3b19e8df5ca97c8436c50.addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+            L.control.fullscreen(
+                {&quot;forceSeparateButton&quot;: false, &quot;position&quot;: &quot;topleft&quot;, &quot;title&quot;: &quot;Full Screen&quot;, &quot;titleCancel&quot;: &quot;Exit Full Screen&quot;}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+            var options = {
+              position: &quot;topleft&quot;,
+              draw: {},
+              edit: {},
+            }
+            // FeatureGroup is to store editable layers.
+            var drawnItems_draw_control_067c8952aafa4332b503267955a96f77 = new L.featureGroup().addTo(
+                map_3b97707fee5c1a2d81f5436b219b6557
+            );
+            options.edit.featureGroup = drawnItems_draw_control_067c8952aafa4332b503267955a96f77;
+            var draw_control_067c8952aafa4332b503267955a96f77 = new L.Control.Draw(
+                options
+            ).addTo( map_3b97707fee5c1a2d81f5436b219b6557 );
+            map_3b97707fee5c1a2d81f5436b219b6557.on(L.Draw.Event.CREATED, function(e) {
+                var layer = e.layer,
+                    type = e.layerType;
+                var coords = JSON.stringify(layer.toGeoJSON());
+                layer.on(&#x27;click&#x27;, function() {
+                    alert(coords);
+                    console.log(coords);
+                });
+                drawnItems_draw_control_067c8952aafa4332b503267955a96f77.addLayer(layer);
+             });
+            map_3b97707fee5c1a2d81f5436b219b6557.on(&#x27;draw:created&#x27;, function(e) {
+                drawnItems_draw_control_067c8952aafa4332b503267955a96f77.addLayer(e.layer);
+            });
+
+
+
+
+            var geocoderOpts_geocoder_e7f50b49a534340b16645386727ae063 = {&quot;collapsed&quot;: true, &quot;defaultMarkGeocode&quot;: true, &quot;position&quot;: &quot;topleft&quot;, &quot;provider&quot;: &quot;nominatim&quot;, &quot;providerOptions&quot;: {}, &quot;zoom&quot;: 11};
+
+            // note: geocoder name should start with lowercase
+            var geocoderName_geocoder_e7f50b49a534340b16645386727ae063 = geocoderOpts_geocoder_e7f50b49a534340b16645386727ae063[&quot;provider&quot;];
+
+            var customGeocoder_geocoder_e7f50b49a534340b16645386727ae063 = L.Control.Geocoder[ geocoderName_geocoder_e7f50b49a534340b16645386727ae063 ](
+                geocoderOpts_geocoder_e7f50b49a534340b16645386727ae063[&#x27;providerOptions&#x27;]
+            );
+            geocoderOpts_geocoder_e7f50b49a534340b16645386727ae063[&quot;geocoder&quot;] = customGeocoder_geocoder_e7f50b49a534340b16645386727ae063;
+
+            L.Control.geocoder(
+                geocoderOpts_geocoder_e7f50b49a534340b16645386727ae063
+            ).on(&#x27;markgeocode&#x27;, function(e) {
+                var zoom = geocoderOpts_geocoder_e7f50b49a534340b16645386727ae063[&#x27;zoom&#x27;] || map_3b97707fee5c1a2d81f5436b219b6557.getZoom();
+                map_3b97707fee5c1a2d81f5436b219b6557.setView(e.geocode.center, zoom);
+            }).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+
+            map_3b97707fee5c1a2d81f5436b219b6557.fitBounds(
+                [[20, 0], [20, 0]],
+                {&quot;maxZoom&quot;: 2}
+            );
+
+
+            var marker_17c32de322f4ea43859594e52173945a = L.marker(
+                [50.980438, 3.815763],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_1a6b562f9c83d3f241db4bcca7072ce9 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_617e71feb172d1d5fc5c2604a7e81e1d = $(`&lt;div id=&quot;html_617e71feb172d1d5fc5c2604a7e81e1d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder01 &lt;/div&gt;`)[0];
+                popup_1a6b562f9c83d3f241db4bcca7072ce9.setContent(html_617e71feb172d1d5fc5c2604a7e81e1d);
+
+
+
+        marker_17c32de322f4ea43859594e52173945a.bindPopup(popup_1a6b562f9c83d3f241db4bcca7072ce9)
+        ;
+
+
+
+
+            var marker_5d16b1329f5fe5fa968fd32a2df35de5 = L.marker(
+                [51.022379, 3.709695],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_5ae84e46bc3b8e13585554db99b3cd40 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_b0a4f800ce85ae9c1c0ca6f70dc2552c = $(`&lt;div id=&quot;html_b0a4f800ce85ae9c1c0ca6f70dc2552c&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder02 &lt;/div&gt;`)[0];
+                popup_5ae84e46bc3b8e13585554db99b3cd40.setContent(html_b0a4f800ce85ae9c1c0ca6f70dc2552c);
+
+
+
+        marker_5d16b1329f5fe5fa968fd32a2df35de5.bindPopup(popup_5ae84e46bc3b8e13585554db99b3cd40)
+        ;
+
+
+
+
+            var marker_7237545ad9812e9061d84822868625aa = L.marker(
+                [51.324583, 4.952109],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_be9674df141c8be4afe912c3c1ddbe1b = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_b8e0936f69113fb8a4a2414084db66ad = $(`&lt;div id=&quot;html_b8e0936f69113fb8a4a2414084db66ad&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder03 &lt;/div&gt;`)[0];
+                popup_be9674df141c8be4afe912c3c1ddbe1b.setContent(html_b8e0936f69113fb8a4a2414084db66ad);
+
+
+
+        marker_7237545ad9812e9061d84822868625aa.bindPopup(popup_be9674df141c8be4afe912c3c1ddbe1b)
+        ;
+
+
+
+
+            var marker_f8dc1a99d82f63daf2c9a709c36271f1 = L.marker(
+                [51.335522, 4.934732],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_cee5caa7bc25c3d45c9ec5aa8af3a6ac = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_2e36ad3e2a3f73307d7e7c4131b161a3 = $(`&lt;div id=&quot;html_2e36ad3e2a3f73307d7e7c4131b161a3&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder04 &lt;/div&gt;`)[0];
+                popup_cee5caa7bc25c3d45c9ec5aa8af3a6ac.setContent(html_2e36ad3e2a3f73307d7e7c4131b161a3);
+
+
+
+        marker_f8dc1a99d82f63daf2c9a709c36271f1.bindPopup(popup_cee5caa7bc25c3d45c9ec5aa8af3a6ac)
+        ;
+
+
+
+
+            var marker_2c794ff6dd7b96c38342e1c0f61ae3d2 = L.marker(
+                [51.052655, 3.675183],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_2e37e1d8904a1b5cee457c2838982fd5 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_0c7aefd909288f80ec6da76a0cf0d41e = $(`&lt;div id=&quot;html_0c7aefd909288f80ec6da76a0cf0d41e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder05 &lt;/div&gt;`)[0];
+                popup_2e37e1d8904a1b5cee457c2838982fd5.setContent(html_0c7aefd909288f80ec6da76a0cf0d41e);
+
+
+
+        marker_2c794ff6dd7b96c38342e1c0f61ae3d2.bindPopup(popup_2e37e1d8904a1b5cee457c2838982fd5)
+        ;
+
+
+
+
+            var marker_819e02193c7d3d759c16abc9ff11b4e8 = L.marker(
+                [51.0271, 4.5163],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_9f36247024c3dd2233547bd0655b1df6 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_128afcd83eb527d9eb0857ebd223b66e = $(`&lt;div id=&quot;html_128afcd83eb527d9eb0857ebd223b66e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder06 &lt;/div&gt;`)[0];
+                popup_9f36247024c3dd2233547bd0655b1df6.setContent(html_128afcd83eb527d9eb0857ebd223b66e);
+
+
+
+        marker_819e02193c7d3d759c16abc9ff11b4e8.bindPopup(popup_9f36247024c3dd2233547bd0655b1df6)
+        ;
+
+
+
+
+            var marker_6fae37570d049464b5668816c5be52f7 = L.marker(
+                [51.030889, 4.478445],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_8b626a8a3cff3e3721a9d871e60175ef = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_ca313abc727bd3522f52418ebd4ce37d = $(`&lt;div id=&quot;html_ca313abc727bd3522f52418ebd4ce37d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder07 &lt;/div&gt;`)[0];
+                popup_8b626a8a3cff3e3721a9d871e60175ef.setContent(html_ca313abc727bd3522f52418ebd4ce37d);
+
+
+
+        marker_6fae37570d049464b5668816c5be52f7.bindPopup(popup_8b626a8a3cff3e3721a9d871e60175ef)
+        ;
+
+
+
+
+            var marker_5135fe745acfe34a0b59c7cb4bf11867 = L.marker(
+                [51.02813, 4.477398],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_f31155854a38495424d6a07af532b64e = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_cc15cec986eb44096fc1629afc3d2ba3 = $(`&lt;div id=&quot;html_cc15cec986eb44096fc1629afc3d2ba3&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder08 &lt;/div&gt;`)[0];
+                popup_f31155854a38495424d6a07af532b64e.setContent(html_cc15cec986eb44096fc1629afc3d2ba3);
+
+
+
+        marker_5135fe745acfe34a0b59c7cb4bf11867.bindPopup(popup_f31155854a38495424d6a07af532b64e)
+        ;
+
+
+
+
+            var marker_318ec9a3902e84209332c1eeb073ac67 = L.marker(
+                [50.927167, 4.075722],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_824503409187a79f42f39324fd726023 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_b2eef893d664e337a91764368e3c457d = $(`&lt;div id=&quot;html_b2eef893d664e337a91764368e3c457d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder09 &lt;/div&gt;`)[0];
+                popup_824503409187a79f42f39324fd726023.setContent(html_b2eef893d664e337a91764368e3c457d);
+
+
+
+        marker_318ec9a3902e84209332c1eeb073ac67.bindPopup(popup_824503409187a79f42f39324fd726023)
+        ;
+
+
+
+
+            var marker_a94fca373d8f3ee494fe21b9a0ccc48d = L.marker(
+                [50.935556, 4.041389],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_729253b3d7618329ef6f71ecee983117 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_777f0ff3665a08dbfe3c3589fa399d92 = $(`&lt;div id=&quot;html_777f0ff3665a08dbfe3c3589fa399d92&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder10 &lt;/div&gt;`)[0];
+                popup_729253b3d7618329ef6f71ecee983117.setContent(html_777f0ff3665a08dbfe3c3589fa399d92);
+
+
+
+        marker_a94fca373d8f3ee494fe21b9a0ccc48d.bindPopup(popup_729253b3d7618329ef6f71ecee983117)
+        ;
+
+
+
+
+            var marker_e1b174bc760204e777ee302ced7cd738 = L.marker(
+                [51.222422, 4.381726],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_078db9f1edc0c7f6a38d381c364b4c8d = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_56547d8ef38b84484348f14904e8c8e0 = $(`&lt;div id=&quot;html_56547d8ef38b84484348f14904e8c8e0&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder11 &lt;/div&gt;`)[0];
+                popup_078db9f1edc0c7f6a38d381c364b4c8d.setContent(html_56547d8ef38b84484348f14904e8c8e0);
+
+
+
+        marker_e1b174bc760204e777ee302ced7cd738.bindPopup(popup_078db9f1edc0c7f6a38d381c364b4c8d)
+        ;
+
+
+
+
+            var marker_f4ea27c26caad6779e202523aa798829 = L.marker(
+                [51.216477, 4.42344],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_6997f3c3b289be5c7ebd6625f652fdf2 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_80de4580556372798a8f7cd4aefc120b = $(`&lt;div id=&quot;html_80de4580556372798a8f7cd4aefc120b&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder12 &lt;/div&gt;`)[0];
+                popup_6997f3c3b289be5c7ebd6625f652fdf2.setContent(html_80de4580556372798a8f7cd4aefc120b);
+
+
+
+        marker_f4ea27c26caad6779e202523aa798829.bindPopup(popup_6997f3c3b289be5c7ebd6625f652fdf2)
+        ;
+
+
+
+
+            var marker_360c88fd24c4f18162944aba2d6d5bdb = L.marker(
+                [51.212211, 4.398065],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_e07b268c52a5555dc3310e10d19c2a23 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_d3bdc606460c34aab497c0fb0e59df53 = $(`&lt;div id=&quot;html_d3bdc606460c34aab497c0fb0e59df53&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder13 &lt;/div&gt;`)[0];
+                popup_e07b268c52a5555dc3310e10d19c2a23.setContent(html_d3bdc606460c34aab497c0fb0e59df53);
+
+
+
+        marker_360c88fd24c4f18162944aba2d6d5bdb.bindPopup(popup_e07b268c52a5555dc3310e10d19c2a23)
+        ;
+
+
+
+
+            var marker_5a02c778aed66fdc63643b8a71264db5 = L.marker(
+                [51.350618, 4.315013],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_36ebff6e6c2f305b2448caedd2277370 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_44ebc08c37ccc91cbed94c6c7ba1a7ba = $(`&lt;div id=&quot;html_44ebc08c37ccc91cbed94c6c7ba1a7ba&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder14 &lt;/div&gt;`)[0];
+                popup_36ebff6e6c2f305b2448caedd2277370.setContent(html_44ebc08c37ccc91cbed94c6c7ba1a7ba);
+
+
+
+        marker_5a02c778aed66fdc63643b8a71264db5.bindPopup(popup_36ebff6e6c2f305b2448caedd2277370)
+        ;
+
+
+
+
+            var marker_4b25d149ad7ba02cac8f2d034449e285 = L.marker(
+                [50.9353, 4.1926],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_99a540cc6b930d2d3bde902f2015eb0f = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_e8a8a2cb299af6791536e00b93b5d7a7 = $(`&lt;div id=&quot;html_e8a8a2cb299af6791536e00b93b5d7a7&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder15 &lt;/div&gt;`)[0];
+                popup_99a540cc6b930d2d3bde902f2015eb0f.setContent(html_e8a8a2cb299af6791536e00b93b5d7a7);
+
+
+
+        marker_4b25d149ad7ba02cac8f2d034449e285.bindPopup(popup_99a540cc6b930d2d3bde902f2015eb0f)
+        ;
+
+
+
+
+            var marker_d3a6c223c68b947fc84b2307c38ff91f = L.marker(
+                [51.26685, 4.293436],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_7150565af54d2c31f20d90903fe5b113 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_8e7b2dd55c96dd6e75f7c0327fd308a2 = $(`&lt;div id=&quot;html_8e7b2dd55c96dd6e75f7c0327fd308a2&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder16 &lt;/div&gt;`)[0];
+                popup_7150565af54d2c31f20d90903fe5b113.setContent(html_8e7b2dd55c96dd6e75f7c0327fd308a2);
+
+
+
+        marker_d3a6c223c68b947fc84b2307c38ff91f.bindPopup(popup_7150565af54d2c31f20d90903fe5b113)
+        ;
+
+
+
+
+            var marker_a47ee45b7a749d687753a10c24b5d10d = L.marker(
+                [51.065269, 5.613458],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_fde2e938967c45bf2a6263d8213725bc = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_40b58b2331e9a6254caeb61b73f65a47 = $(`&lt;div id=&quot;html_40b58b2331e9a6254caeb61b73f65a47&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder17 &lt;/div&gt;`)[0];
+                popup_fde2e938967c45bf2a6263d8213725bc.setContent(html_40b58b2331e9a6254caeb61b73f65a47);
+
+
+
+        marker_a47ee45b7a749d687753a10c24b5d10d.bindPopup(popup_fde2e938967c45bf2a6263d8213725bc)
+        ;
+
+
+
+
+            var marker_aaa1ba5f5911a553e4bdc18935b403df = L.marker(
+                [51.136244, 5.656769],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_42a85b67f4b4c2c903b9e0dfc4a32838 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_3be5539e557d2d7e43a01b32bb3f0208 = $(`&lt;div id=&quot;html_3be5539e557d2d7e43a01b32bb3f0208&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder18 &lt;/div&gt;`)[0];
+                popup_42a85b67f4b4c2c903b9e0dfc4a32838.setContent(html_3be5539e557d2d7e43a01b32bb3f0208);
+
+
+
+        marker_aaa1ba5f5911a553e4bdc18935b403df.bindPopup(popup_42a85b67f4b4c2c903b9e0dfc4a32838)
+        ;
+
+
+
+
+            var marker_c3bff63e283e5f370bad327e6e6adaaf = L.marker(
+                [50.841455, 4.363672],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_df1b9c548e49537c532b76798fc4e6b1 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_9cd5d97790492cbf2d54562279a8f01e = $(`&lt;div id=&quot;html_9cd5d97790492cbf2d54562279a8f01e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder19 &lt;/div&gt;`)[0];
+                popup_df1b9c548e49537c532b76798fc4e6b1.setContent(html_9cd5d97790492cbf2d54562279a8f01e);
+
+
+
+        marker_c3bff63e283e5f370bad327e6e6adaaf.bindPopup(popup_df1b9c548e49537c532b76798fc4e6b1)
+        ;
+
+
+
+
+            var marker_6487afa30d709a0589986929016581c9 = L.marker(
+                [50.847025, 4.357971],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_a1fe56746c8daba5f967c67488a2dd7b = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_f1c6156934888fde606900597d13995f = $(`&lt;div id=&quot;html_f1c6156934888fde606900597d13995f&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder20 &lt;/div&gt;`)[0];
+                popup_a1fe56746c8daba5f967c67488a2dd7b.setContent(html_f1c6156934888fde606900597d13995f);
+
+
+
+        marker_6487afa30d709a0589986929016581c9.bindPopup(popup_a1fe56746c8daba5f967c67488a2dd7b)
+        ;
+
+
+
+
+            var marker_4dc6d5ba0486104d67fe9e477a11b220 = L.marker(
+                [51.260389, 2.991917],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_ba039c1dc55d098235d2a78e2de3a020 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_6e716ee8459226d46cb6c1aad2447bc6 = $(`&lt;div id=&quot;html_6e716ee8459226d46cb6c1aad2447bc6&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder21 &lt;/div&gt;`)[0];
+                popup_ba039c1dc55d098235d2a78e2de3a020.setContent(html_6e716ee8459226d46cb6c1aad2447bc6);
+
+
+
+        marker_4dc6d5ba0486104d67fe9e477a11b220.bindPopup(popup_ba039c1dc55d098235d2a78e2de3a020)
+        ;
+
+
+
+
+            var marker_38051798c4470f0033212ac3a4de3b81 = L.marker(
+                [50.989501, 2.85622],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_6e1f86452a21fa7be5c93c8d3b802147 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_8859a21fe071d6bc8e71ac89633ba879 = $(`&lt;div id=&quot;html_8859a21fe071d6bc8e71ac89633ba879&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder22 &lt;/div&gt;`)[0];
+                popup_6e1f86452a21fa7be5c93c8d3b802147.setContent(html_8859a21fe071d6bc8e71ac89633ba879);
+
+
+
+        marker_38051798c4470f0033212ac3a4de3b81.bindPopup(popup_6e1f86452a21fa7be5c93c8d3b802147)
+        ;
+
+
+
+
+            var marker_91c6445092d1f64e3cf9d1a2fe662547 = L.marker(
+                [51.260578, 3.580151],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_8db3590b83b66b2dd63cd49f429418e7 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_04316985272e32b81b1a46351762ed4e = $(`&lt;div id=&quot;html_04316985272e32b81b1a46351762ed4e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder23 &lt;/div&gt;`)[0];
+                popup_8db3590b83b66b2dd63cd49f429418e7.setContent(html_04316985272e32b81b1a46351762ed4e);
+
+
+
+        marker_91c6445092d1f64e3cf9d1a2fe662547.bindPopup(popup_8db3590b83b66b2dd63cd49f429418e7)
+        ;
+
+
+
+
+            var marker_9873d13518b38f9c84db2ad6548ccabd = L.marker(
+                [51.167015, 3.572062],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_933f339c531c7f463a8ab02c507e202a = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_2debb3381fe8a4ee2e5dfacf18f99971 = $(`&lt;div id=&quot;html_2debb3381fe8a4ee2e5dfacf18f99971&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder24 &lt;/div&gt;`)[0];
+                popup_933f339c531c7f463a8ab02c507e202a.setContent(html_2debb3381fe8a4ee2e5dfacf18f99971);
+
+
+
+        marker_9873d13518b38f9c84db2ad6548ccabd.bindPopup(popup_933f339c531c7f463a8ab02c507e202a)
+        ;
+
+
+
+
+            var marker_e9c66ed405fe1fff15dd8e4b2f6e9afd = L.marker(
+                [51.15472, 3.708611],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_7bd696a02c23ff3258bafd57dd436c53 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_92593544f734bdaf6d7dad55a78cabbd = $(`&lt;div id=&quot;html_92593544f734bdaf6d7dad55a78cabbd&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder25 &lt;/div&gt;`)[0];
+                popup_7bd696a02c23ff3258bafd57dd436c53.setContent(html_92593544f734bdaf6d7dad55a78cabbd);
+
+
+
+        marker_e9c66ed405fe1fff15dd8e4b2f6e9afd.bindPopup(popup_7bd696a02c23ff3258bafd57dd436c53)
+        ;
+
+
+
+
+            var marker_b3077ba0617f04963e8e4c504f588055 = L.marker(
+                [51.16176, 4.997653],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_9814d5e8fee3607751530e036227afed = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_34f6c23a864e4fed929b825b0accd97d = $(`&lt;div id=&quot;html_34f6c23a864e4fed929b825b0accd97d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder26 &lt;/div&gt;`)[0];
+                popup_9814d5e8fee3607751530e036227afed.setContent(html_34f6c23a864e4fed929b825b0accd97d);
+
+
+
+        marker_b3077ba0617f04963e8e4c504f588055.bindPopup(popup_9814d5e8fee3607751530e036227afed)
+        ;
+
+
+
+
+            var marker_86d432c975cdd02818e3cac302c6e6b2 = L.marker(
+                [51.058099, 3.728067],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_30618c1083496cf740d1029be014b461 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_485405ca4b609bae115b79e398fc0df0 = $(`&lt;div id=&quot;html_485405ca4b609bae115b79e398fc0df0&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder27 &lt;/div&gt;`)[0];
+                popup_30618c1083496cf740d1029be014b461.setContent(html_485405ca4b609bae115b79e398fc0df0);
+
+
+
+        marker_86d432c975cdd02818e3cac302c6e6b2.bindPopup(popup_30618c1083496cf740d1029be014b461)
+        ;
+
+
+
+
+            var marker_3471445e0f37f22e6a79ed448f134d1e = L.marker(
+                [51.035293, 3.769741],
+                {&quot;fillColor&quot;: &quot;#43d9de&quot;, &quot;radius&quot;: 8}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+        var popup_143d914605ea8f287ee0b5ced809f2f6 = L.popup({&quot;maxWidth&quot;: &quot;100%&quot;});
+
+
+
+                var html_2798da350f25bb59db0243bcbd453430 = $(`&lt;div id=&quot;html_2798da350f25bb59db0243bcbd453430&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;&gt;vlinder28 &lt;/div&gt;`)[0];
+                popup_143d914605ea8f287ee0b5ced809f2f6.setContent(html_2798da350f25bb59db0243bcbd453430);
+
+
+
+        marker_3471445e0f37f22e6a79ed448f134d1e.bindPopup(popup_143d914605ea8f287ee0b5ced809f2f6)
+        ;
+
+
+
+
+            map_3b97707fee5c1a2d81f5436b219b6557.fitBounds(
+                [[51.101630178571426, 4.209903857142856], [51.101630178571426, 4.209903857142856]],
+                {&quot;maxZoom&quot;: 8}
+            );
+
+
+    var color_map_9f10e5903063b93aa33dbe749c5b00fe = {};
+
+
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.color = d3.scale.threshold()
+              .domain([296.1171905517578, 296.12207023299527, 296.12694991423274, 296.1318295954702, 296.1367092767077, 296.1415889579452, 296.1464686391827, 296.15134832042014, 296.1562280016576, 296.1611076828951, 296.16598736413255, 296.17086704537, 296.1757467266075, 296.18062640784495, 296.1855060890824, 296.19038577031995, 296.1952654515574, 296.2001451327949, 296.20502481403236, 296.2099044952698, 296.2147841765073, 296.21966385774476, 296.22454353898223, 296.2294232202197, 296.2343029014572, 296.2391825826947, 296.24406226393216, 296.24894194516963, 296.2538216264071, 296.25870130764457, 296.26358098888204, 296.2684606701195, 296.273340351357, 296.2782200325945, 296.283099713832, 296.28797939506944, 296.2928590763069, 296.2977387575444, 296.30261843878185, 296.3074981200193, 296.3123778012568, 296.31725748249426, 296.3221371637317, 296.32701684496925, 296.3318965262067, 296.3367762074442, 296.34165588868166, 296.3465355699191, 296.3514152511566, 296.35629493239406, 296.36117461363153, 296.366054294869, 296.3709339761065, 296.375813657344, 296.38069333858147, 296.38557301981893, 296.3904527010564, 296.3953323822939, 296.40021206353134, 296.4050917447688, 296.4099714260063, 296.41485110724375, 296.4197307884813, 296.42461046971874, 296.4294901509562, 296.4343698321937, 296.43924951343115, 296.4441291946686, 296.4490088759061, 296.45388855714356, 296.458768238381, 296.46364791961855, 296.468527600856, 296.4734072820935, 296.47828696333096, 296.4831666445684, 296.4880463258059, 296.49292600704337, 296.49780568828083, 296.5026853695183, 296.5075650507558, 296.5124447319933, 296.51732441323077, 296.52220409446824, 296.5270837757057, 296.5319634569432, 296.53684313818064, 296.5417228194181, 296.5466025006556, 296.55148218189305, 296.5563618631306, 296.56124154436804, 296.5661212256055, 296.571000906843, 296.57588058808045, 296.5807602693179, 296.5856399505554, 296.59051963179286, 296.5953993130303, 296.60027899426785, 296.6051586755053, 296.6100383567428, 296.61491803798026, 296.61979771921773, 296.6246774004552, 296.62955708169267, 296.63443676293014, 296.6393164441676, 296.6441961254051, 296.6490758066426, 296.65395548788007, 296.65883516911754, 296.663714850355, 296.6685945315925, 296.67347421282994, 296.6783538940674, 296.6832335753049, 296.68811325654235, 296.6929929377799, 296.69787261901735, 296.7027523002548, 296.7076319814923, 296.71251166272975, 296.7173913439672, 296.7222710252047, 296.72715070644216, 296.73203038767963, 296.7369100689171, 296.7417897501546, 296.7466694313921, 296.75154911262956, 296.75642879386703, 296.7613084751045, 296.76618815634197, 296.77106783757944, 296.7759475188169, 296.7808272000544, 296.7857068812919, 296.79058656252937, 296.79546624376684, 296.8003459250043, 296.8052256062418, 296.81010528747925, 296.8149849687167, 296.8198646499542, 296.82474433119165, 296.8296240124292, 296.83450369366665, 296.8393833749041, 296.8442630561416, 296.84914273737905, 296.8540224186165, 296.858902099854, 296.86378178109146, 296.86866146232893, 296.8735411435664, 296.8784208248039, 296.8833005060414, 296.88818018727886, 296.89305986851633, 296.8979395497538, 296.90281923099127, 296.90769891222874, 296.9125785934662, 296.9174582747037, 296.9223379559412, 296.92721763717867, 296.93209731841614, 296.9369769996536, 296.9418566808911, 296.94673636212855, 296.951616043366, 296.9564957246035, 296.96137540584095, 296.9662550870784, 296.97113476831595, 296.9760144495534, 296.9808941307909, 296.98577381202836, 296.9906534932658, 296.9955331745033, 297.00041285574076, 297.00529253697823, 297.0101722182157, 297.0150518994532, 297.0199315806907, 297.02481126192816, 297.02969094316563, 297.0345706244031, 297.03945030564057, 297.04432998687804, 297.0492096681155, 297.054089349353, 297.05896903059045, 297.063848711828, 297.06872839306544, 297.0736080743029, 297.0784877555404, 297.08336743677785, 297.0882471180153, 297.0931267992528, 297.09800648049026, 297.1028861617277, 297.10776584296525, 297.1126455242027, 297.1175252054402, 297.12240488667766, 297.1272845679151, 297.1321642491526, 297.13704393039006, 297.14192361162753, 297.146803292865, 297.1516829741025, 297.15656265534, 297.16144233657747, 297.16632201781493, 297.1712016990524, 297.1760813802899, 297.18096106152734, 297.1858407427648, 297.1907204240023, 297.19560010523975, 297.2004797864773, 297.20535946771474, 297.2102391489522, 297.2151188301897, 297.21999851142715, 297.2248781926646, 297.2297578739021, 297.23463755513956, 297.239517236377, 297.24439691761455, 297.249276598852, 297.2541562800895, 297.25903596132696, 297.2639156425644, 297.2687953238019, 297.27367500503937, 297.27855468627683, 297.2834343675143, 297.2883140487518, 297.2931937299893, 297.29807341122677, 297.30295309246424, 297.3078327737017, 297.3127124549392, 297.31759213617664, 297.3224718174141, 297.3273514986516, 297.33223117988905, 297.3371108611266, 297.34199054236404, 297.3468702236015, 297.351749904839, 297.35662958607645, 297.3615092673139, 297.3663889485514, 297.37126862978886, 297.3761483110263, 297.38102799226385, 297.3859076735013, 297.3907873547388, 297.39566703597626, 297.40054671721373, 297.4054263984512, 297.41030607968867, 297.41518576092614, 297.4200654421636, 297.4249451234011, 297.4298248046386, 297.43470448587607, 297.43958416711354, 297.444463848351, 297.4493435295885, 297.45422321082594, 297.4591028920634, 297.4639825733009, 297.46886225453835, 297.4737419357759, 297.47862161701335, 297.4835012982508, 297.4883809794883, 297.49326066072575, 297.4981403419632, 297.5030200232007, 297.50789970443816, 297.5127793856756, 297.5176590669131, 297.5225387481506, 297.5274184293881, 297.53229811062556, 297.53717779186303, 297.5420574731005, 297.54693715433797, 297.55181683557544, 297.5566965168129, 297.5615761980504, 297.5664558792879, 297.57133556052537, 297.57621524176284, 297.5810949230003, 297.5859746042378, 297.59085428547525, 297.5957339667127, 297.6006136479502, 297.60549332918765, 297.6103730104252, 297.61525269166265, 297.6201323729001, 297.6250120541376, 297.62989173537505, 297.6347714166125, 297.63965109785, 297.64453077908746, 297.64941046032493, 297.6542901415624, 297.6591698227999, 297.6640495040374, 297.66892918527486, 297.67380886651233, 297.6786885477498, 297.68356822898727, 297.68844791022474, 297.6933275914622, 297.6982072726997, 297.7030869539372, 297.70796663517467, 297.71284631641214, 297.7177259976496, 297.7226056788871, 297.72748536012455, 297.732365041362, 297.7372447225995, 297.74212440383695, 297.7470040850744, 297.75188376631195, 297.7567634475494, 297.7616431287869, 297.76652281002436, 297.7714024912618, 297.7762821724993, 297.78116185373676, 297.78604153497423, 297.7909212162117, 297.7958008974492, 297.8006805786867, 297.80556025992416, 297.81043994116163, 297.8153196223991, 297.82019930363657, 297.82507898487404, 297.8299586661115, 297.834838347349, 297.83971802858645, 297.844597709824, 297.84947739106144, 297.8543570722989, 297.8592367535364, 297.86411643477385, 297.8689961160113, 297.8738757972488, 297.87875547848626, 297.8836351597237, 297.88851484096125, 297.8933945221987, 297.8982742034362, 297.90315388467366, 297.9080335659111, 297.9129132471486, 297.91779292838606, 297.92267260962353, 297.927552290861, 297.9324319720985, 297.937311653336, 297.94219133457347, 297.94707101581093, 297.9519506970484, 297.9568303782859, 297.96171005952334, 297.9665897407608, 297.9714694219983, 297.97634910323575, 297.9812287844733, 297.98610846571074, 297.9909881469482, 297.9958678281857, 298.00074750942315, 298.0056271906606, 298.0105068718981, 298.01538655313556, 298.020266234373, 298.02514591561055, 298.030025596848, 298.0349052780855, 298.03978495932296, 298.0446646405604, 298.0495443217979, 298.05442400303536, 298.05930368427283, 298.0641833655103, 298.0690630467478, 298.0739427279853, 298.07882240922277, 298.08370209046024, 298.0885817716977, 298.0934614529352, 298.09834113417264, 298.1032208154101, 298.1081004966476, 298.11298017788505, 298.1178598591226, 298.12273954036004, 298.1276192215975, 298.132498902835, 298.13737858407245, 298.1422582653099, 298.1471379465474, 298.15201762778486, 298.1568973090223, 298.1617769902598, 298.1666566714973, 298.1715363527348, 298.17641603397226, 298.1812957152097, 298.1861753964472, 298.19105507768467, 298.19593475892214, 298.2008144401596, 298.2056941213971, 298.2105738026346, 298.21545348387207, 298.22033316510954, 298.225212846347, 298.2300925275845, 298.23497220882194, 298.2398518900594, 298.2447315712969, 298.24961125253435, 298.2544909337719, 298.25937061500935, 298.2642502962468, 298.2691299774843, 298.27400965872175, 298.2788893399592, 298.2837690211967, 298.28864870243416, 298.2935283836716, 298.2984080649091, 298.3032877461466, 298.3081674273841, 298.31304710862156, 298.31792678985903, 298.3228064710965, 298.32768615233397, 298.33256583357144, 298.3374455148089, 298.3423251960464, 298.3472048772839, 298.35208455852137, 298.35696423975884, 298.3618439209963, 298.3667236022338, 298.37160328347125, 298.3764829647087, 298.3813626459462, 298.38624232718365, 298.3911220084211, 298.39600168965865, 298.4008813708961, 298.4057610521336, 298.41064073337105, 298.4155204146085, 298.420400095846, 298.42527977708346, 298.43015945832093, 298.4350391395584, 298.4399188207959, 298.4447985020334, 298.44967818327086, 298.45455786450833, 298.4594375457458, 298.46431722698327, 298.46919690822074, 298.4740765894582, 298.4789562706957, 298.4838359519332, 298.48871563317067, 298.49359531440814, 298.4984749956456, 298.5033546768831, 298.50823435812055, 298.513114039358, 298.5179937205955, 298.52287340183295, 298.5277530830704, 298.53263276430795, 298.5375124455454, 298.5423921267829, 298.54727180802035, 298.5521514892578])
+              .range([&#x27;#000080ff&#x27;, &#x27;#000083ff&#x27;, &#x27;#000086ff&#x27;, &#x27;#000089ff&#x27;, &#x27;#00008cff&#x27;, &#x27;#00008fff&#x27;, &#x27;#000092ff&#x27;, &#x27;#000095ff&#x27;, &#x27;#000098ff&#x27;, &#x27;#00009bff&#x27;, &#x27;#00009eff&#x27;, &#x27;#0000a1ff&#x27;, &#x27;#0000a5ff&#x27;, &#x27;#0000a8ff&#x27;, &#x27;#0000abff&#x27;, &#x27;#0000aeff&#x27;, &#x27;#0000b1ff&#x27;, &#x27;#0000b4ff&#x27;, &#x27;#0000b7ff&#x27;, &#x27;#0000baff&#x27;, &#x27;#0000bdff&#x27;, &#x27;#0000c0ff&#x27;, &#x27;#0000c3ff&#x27;, &#x27;#0000c6ff&#x27;, &#x27;#0000c9ff&#x27;, &#x27;#0000ccff&#x27;, &#x27;#0000cfff&#x27;, &#x27;#0000d2ff&#x27;, &#x27;#0000d5ff&#x27;, &#x27;#0000d8ff&#x27;, &#x27;#0100daff&#x27;, &#x27;#0300dbff&#x27;, &#x27;#0500ddff&#x27;, &#x27;#0700deff&#x27;, &#x27;#0a00dfff&#x27;, &#x27;#0c00e1ff&#x27;, &#x27;#0e00e2ff&#x27;, &#x27;#1000e3ff&#x27;, &#x27;#1200e5ff&#x27;, &#x27;#1500e6ff&#x27;, &#x27;#1700e7ff&#x27;, &#x27;#1900e8ff&#x27;, &#x27;#1b00eaff&#x27;, &#x27;#1d00ebff&#x27;, &#x27;#2000ecff&#x27;, &#x27;#2200eeff&#x27;, &#x27;#2400efff&#x27;, &#x27;#2600f0ff&#x27;, &#x27;#2800f2ff&#x27;, &#x27;#2b00f3ff&#x27;, &#x27;#2d00f4ff&#x27;, &#x27;#2f00f5ff&#x27;, &#x27;#3100f7ff&#x27;, &#x27;#3300f8ff&#x27;, &#x27;#3500f9ff&#x27;, &#x27;#3800fbff&#x27;, &#x27;#3a00fcff&#x27;, &#x27;#3c00fdff&#x27;, &#x27;#3e00ffff&#x27;, &#x27;#4000ffff&#x27;, &#x27;#4300ffff&#x27;, &#x27;#4500ffff&#x27;, &#x27;#4700ffff&#x27;, &#x27;#4900ffff&#x27;, &#x27;#4b00ffff&#x27;, &#x27;#4e00ffff&#x27;, &#x27;#5000ffff&#x27;, &#x27;#5200ffff&#x27;, &#x27;#5400ffff&#x27;, &#x27;#5600ffff&#x27;, &#x27;#5800ffff&#x27;, &#x27;#5b00ffff&#x27;, &#x27;#5d00ffff&#x27;, &#x27;#5f00ffff&#x27;, &#x27;#6100ffff&#x27;, &#x27;#6300ffff&#x27;, &#x27;#6600ffff&#x27;, &#x27;#6800ffff&#x27;, &#x27;#6a00ffff&#x27;, &#x27;#6c00ffff&#x27;, &#x27;#6e00ffff&#x27;, &#x27;#7100ffff&#x27;, &#x27;#7300ffff&#x27;, &#x27;#7500ffff&#x27;, &#x27;#7700ffff&#x27;, &#x27;#7900ffff&#x27;, &#x27;#7b00ffff&#x27;, &#x27;#7e00ffff&#x27;, &#x27;#8000ffff&#x27;, &#x27;#7c04ffff&#x27;, &#x27;#7808ffff&#x27;, &#x27;#730cffff&#x27;, &#x27;#6f11ffff&#x27;, &#x27;#6a15ffff&#x27;, &#x27;#661affff&#x27;, &#x27;#621effff&#x27;, &#x27;#5d22ffff&#x27;, &#x27;#5927ffff&#x27;, &#x27;#542bffff&#x27;, &#x27;#502fffff&#x27;, &#x27;#4c34ffff&#x27;, &#x27;#4738ffff&#x27;, &#x27;#433dffff&#x27;, &#x27;#3f41ffff&#x27;, &#x27;#3a45ffff&#x27;, &#x27;#364affff&#x27;, &#x27;#314effff&#x27;, &#x27;#2d52ffff&#x27;, &#x27;#2957ffff&#x27;, &#x27;#245bffff&#x27;, &#x27;#2060ffff&#x27;, &#x27;#1c64ffff&#x27;, &#x27;#1768ffff&#x27;, &#x27;#136dffff&#x27;, &#x27;#0e71ffff&#x27;, &#x27;#0a75ffff&#x27;, &#x27;#067affff&#x27;, &#x27;#017effff&#x27;, &#x27;#0083ffff&#x27;, &#x27;#0087ffff&#x27;, &#x27;#008bffff&#x27;, &#x27;#0090ffff&#x27;, &#x27;#0094ffff&#x27;, &#x27;#0098ffff&#x27;, &#x27;#009dffff&#x27;, &#x27;#00a1ffff&#x27;, &#x27;#00a5ffff&#x27;, &#x27;#00aaffff&#x27;, &#x27;#00aeffff&#x27;, &#x27;#00b2ffff&#x27;, &#x27;#00b7ffff&#x27;, &#x27;#00bbffff&#x27;, &#x27;#00bfffff&#x27;, &#x27;#00c4ffff&#x27;, &#x27;#00c8ffff&#x27;, &#x27;#00ccffff&#x27;, &#x27;#00d1ffff&#x27;, &#x27;#00d5ffff&#x27;, &#x27;#00d9ffff&#x27;, &#x27;#00deffff&#x27;, &#x27;#00e2ffff&#x27;, &#x27;#00e6ffff&#x27;, &#x27;#00ebffff&#x27;, &#x27;#00efffff&#x27;, &#x27;#00f3ffff&#x27;, &#x27;#00f8ffff&#x27;, &#x27;#00fcffff&#x27;, &#x27;#00fffeff&#x27;, &#x27;#00fffaff&#x27;, &#x27;#00fff6ff&#x27;, &#x27;#00fff1ff&#x27;, &#x27;#00ffedff&#x27;, &#x27;#00ffe9ff&#x27;, &#x27;#00ffe4ff&#x27;, &#x27;#00ffe0ff&#x27;, &#x27;#00ffdcff&#x27;, &#x27;#00ffd7ff&#x27;, &#x27;#00ffd3ff&#x27;, &#x27;#00ffcfff&#x27;, &#x27;#00ffcaff&#x27;, &#x27;#00ffc6ff&#x27;, &#x27;#00ffc2ff&#x27;, &#x27;#00ffbdff&#x27;, &#x27;#00ffb9ff&#x27;, &#x27;#00ffb5ff&#x27;, &#x27;#00ffb0ff&#x27;, &#x27;#00ffacff&#x27;, &#x27;#00ffa8ff&#x27;, &#x27;#00ffa3ff&#x27;, &#x27;#00ff9fff&#x27;, &#x27;#00ff9bff&#x27;, &#x27;#00ff96ff&#x27;, &#x27;#00ff92ff&#x27;, &#x27;#00ff8eff&#x27;, &#x27;#00ff89ff&#x27;, &#x27;#00ff85ff&#x27;, &#x27;#00ff81ff&#x27;, &#x27;#03ff7cff&#x27;, &#x27;#08ff78ff&#x27;, &#x27;#0cff73ff&#x27;, &#x27;#10ff6fff&#x27;, &#x27;#15ff6bff&#x27;, &#x27;#19ff66ff&#x27;, &#x27;#1eff62ff&#x27;, &#x27;#22ff5dff&#x27;, &#x27;#26ff59ff&#x27;, &#x27;#2bff55ff&#x27;, &#x27;#2fff50ff&#x27;, &#x27;#34ff4cff&#x27;, &#x27;#38ff48ff&#x27;, &#x27;#3cff43ff&#x27;, &#x27;#41ff3fff&#x27;, &#x27;#45ff3aff&#x27;, &#x27;#49ff36ff&#x27;, &#x27;#4eff32ff&#x27;, &#x27;#52ff2dff&#x27;, &#x27;#57ff29ff&#x27;, &#x27;#5bff25ff&#x27;, &#x27;#5fff20ff&#x27;, &#x27;#64ff1cff&#x27;, &#x27;#68ff17ff&#x27;, &#x27;#6cff13ff&#x27;, &#x27;#71ff0fff&#x27;, &#x27;#75ff0aff&#x27;, &#x27;#7aff06ff&#x27;, &#x27;#7eff02ff&#x27;, &#x27;#82ff00ff&#x27;, &#x27;#85ff00ff&#x27;, &#x27;#88ff00ff&#x27;, &#x27;#8bff00ff&#x27;, &#x27;#8eff00ff&#x27;, &#x27;#91ff00ff&#x27;, &#x27;#94ff00ff&#x27;, &#x27;#97ff00ff&#x27;, &#x27;#9aff00ff&#x27;, &#x27;#9dff00ff&#x27;, &#x27;#a0ff00ff&#x27;, &#x27;#a3ff00ff&#x27;, &#x27;#a7ff00ff&#x27;, &#x27;#aaff00ff&#x27;, &#x27;#adff00ff&#x27;, &#x27;#b0ff00ff&#x27;, &#x27;#b3ff00ff&#x27;, &#x27;#b6ff00ff&#x27;, &#x27;#b9ff00ff&#x27;, &#x27;#bcff00ff&#x27;, &#x27;#bfff00ff&#x27;, &#x27;#c2ff00ff&#x27;, &#x27;#c5ff00ff&#x27;, &#x27;#c8ff00ff&#x27;, &#x27;#ccff00ff&#x27;, &#x27;#cfff00ff&#x27;, &#x27;#d2ff00ff&#x27;, &#x27;#d5ff00ff&#x27;, &#x27;#d8ff00ff&#x27;, &#x27;#dbff00ff&#x27;, &#x27;#dcff00ff&#x27;, &#x27;#ddff00ff&#x27;, &#x27;#deff00ff&#x27;, &#x27;#e0ff00ff&#x27;, &#x27;#e1ff00ff&#x27;, &#x27;#e2ff00ff&#x27;, &#x27;#e3ff00ff&#x27;, &#x27;#e5ff00ff&#x27;, &#x27;#e6ff00ff&#x27;, &#x27;#e7ff00ff&#x27;, &#x27;#e8ff00ff&#x27;, &#x27;#eaff00ff&#x27;, &#x27;#ebff00ff&#x27;, &#x27;#ecff00ff&#x27;, &#x27;#eeff00ff&#x27;, &#x27;#efff00ff&#x27;, &#x27;#f0ff00ff&#x27;, &#x27;#f1ff00ff&#x27;, &#x27;#f3ff00ff&#x27;, &#x27;#f4ff00ff&#x27;, &#x27;#f5ff00ff&#x27;, &#x27;#f6ff00ff&#x27;, &#x27;#f8ff00ff&#x27;, &#x27;#f9ff00ff&#x27;, &#x27;#faff00ff&#x27;, &#x27;#fbff00ff&#x27;, &#x27;#fdff00ff&#x27;, &#x27;#feff00ff&#x27;, &#x27;#ffff00ff&#x27;, &#x27;#ffff00ff&#x27;, &#x27;#ffff00ff&#x27;, &#x27;#ffff00ff&#x27;, &#x27;#fffe00ff&#x27;, &#x27;#fffe00ff&#x27;, &#x27;#fffe00ff&#x27;, &#x27;#fffd00ff&#x27;, &#x27;#fffd00ff&#x27;, &#x27;#fffc00ff&#x27;, &#x27;#fffc00ff&#x27;, &#x27;#fffc00ff&#x27;, &#x27;#fffb00ff&#x27;, &#x27;#fffb00ff&#x27;, &#x27;#fffb00ff&#x27;, &#x27;#fffa00ff&#x27;, &#x27;#fffa00ff&#x27;, &#x27;#fffa00ff&#x27;, &#x27;#fff900ff&#x27;, &#x27;#fff900ff&#x27;, &#x27;#fff900ff&#x27;, &#x27;#fff800ff&#x27;, &#x27;#fff800ff&#x27;, &#x27;#fff800ff&#x27;, &#x27;#fff700ff&#x27;, &#x27;#fff700ff&#x27;, &#x27;#fff700ff&#x27;, &#x27;#fff600ff&#x27;, &#x27;#fff600ff&#x27;, &#x27;#fff600ff&#x27;, &#x27;#fff500ff&#x27;, &#x27;#fff400ff&#x27;, &#x27;#fff300ff&#x27;, &#x27;#fff200ff&#x27;, &#x27;#fff100ff&#x27;, &#x27;#fff000ff&#x27;, &#x27;#ffef00ff&#x27;, &#x27;#ffef00ff&#x27;, &#x27;#ffee00ff&#x27;, &#x27;#ffed00ff&#x27;, &#x27;#ffec00ff&#x27;, &#x27;#ffeb00ff&#x27;, &#x27;#ffea00ff&#x27;, &#x27;#ffe900ff&#x27;, &#x27;#ffe800ff&#x27;, &#x27;#ffe700ff&#x27;, &#x27;#ffe600ff&#x27;, &#x27;#ffe500ff&#x27;, &#x27;#ffe400ff&#x27;, &#x27;#ffe300ff&#x27;, &#x27;#ffe300ff&#x27;, &#x27;#ffe200ff&#x27;, &#x27;#ffe100ff&#x27;, &#x27;#ffe000ff&#x27;, &#x27;#ffdf00ff&#x27;, &#x27;#ffde00ff&#x27;, &#x27;#ffdd00ff&#x27;, &#x27;#ffdc00ff&#x27;, &#x27;#ffdb00ff&#x27;, &#x27;#ffda00ff&#x27;, &#x27;#ffd900ff&#x27;, &#x27;#ffd700ff&#x27;, &#x27;#ffd600ff&#x27;, &#x27;#ffd400ff&#x27;, &#x27;#ffd300ff&#x27;, &#x27;#ffd200ff&#x27;, &#x27;#ffd000ff&#x27;, &#x27;#ffcf00ff&#x27;, &#x27;#ffcd00ff&#x27;, &#x27;#ffcc00ff&#x27;, &#x27;#ffca00ff&#x27;, &#x27;#ffc900ff&#x27;, &#x27;#ffc800ff&#x27;, &#x27;#ffc600ff&#x27;, &#x27;#ffc500ff&#x27;, &#x27;#ffc300ff&#x27;, &#x27;#ffc200ff&#x27;, &#x27;#ffc000ff&#x27;, &#x27;#ffbf00ff&#x27;, &#x27;#ffbd00ff&#x27;, &#x27;#ffbc00ff&#x27;, &#x27;#ffbb00ff&#x27;, &#x27;#ffb900ff&#x27;, &#x27;#ffb800ff&#x27;, &#x27;#ffb600ff&#x27;, &#x27;#ffb500ff&#x27;, &#x27;#ffb300ff&#x27;, &#x27;#ffb200ff&#x27;, &#x27;#ffb100ff&#x27;, &#x27;#ffb000ff&#x27;, &#x27;#ffaf00ff&#x27;, &#x27;#ffaf00ff&#x27;, &#x27;#ffaf00ff&#x27;, &#x27;#ffae00ff&#x27;, &#x27;#ffae00ff&#x27;, &#x27;#ffad00ff&#x27;, &#x27;#ffad00ff&#x27;, &#x27;#ffad00ff&#x27;, &#x27;#ffac00ff&#x27;, &#x27;#ffac00ff&#x27;, &#x27;#ffab00ff&#x27;, &#x27;#ffab00ff&#x27;, &#x27;#ffab00ff&#x27;, &#x27;#ffaa00ff&#x27;, &#x27;#ffaa00ff&#x27;, &#x27;#ffa900ff&#x27;, &#x27;#ffa900ff&#x27;, &#x27;#ffa800ff&#x27;, &#x27;#ffa800ff&#x27;, &#x27;#ffa800ff&#x27;, &#x27;#ffa700ff&#x27;, &#x27;#ffa700ff&#x27;, &#x27;#ffa600ff&#x27;, &#x27;#ffa600ff&#x27;, &#x27;#ffa600ff&#x27;, &#x27;#ffa500ff&#x27;, &#x27;#ffa500ff&#x27;, &#x27;#ffa400ff&#x27;, &#x27;#ffa300ff&#x27;, &#x27;#ffa000ff&#x27;, &#x27;#ff9d00ff&#x27;, &#x27;#ff9a00ff&#x27;, &#x27;#ff9700ff&#x27;, &#x27;#ff9400ff&#x27;, &#x27;#ff9200ff&#x27;, &#x27;#ff8f00ff&#x27;, &#x27;#ff8c00ff&#x27;, &#x27;#ff8900ff&#x27;, &#x27;#ff8600ff&#x27;, &#x27;#ff8300ff&#x27;, &#x27;#ff8000ff&#x27;, &#x27;#ff7d00ff&#x27;, &#x27;#ff7a00ff&#x27;, &#x27;#ff7700ff&#x27;, &#x27;#ff7400ff&#x27;, &#x27;#ff7200ff&#x27;, &#x27;#ff6f00ff&#x27;, &#x27;#ff6c00ff&#x27;, &#x27;#ff6900ff&#x27;, &#x27;#ff6600ff&#x27;, &#x27;#ff6300ff&#x27;, &#x27;#ff6000ff&#x27;, &#x27;#ff5d00ff&#x27;, &#x27;#ff5a00ff&#x27;, &#x27;#ff5700ff&#x27;, &#x27;#ff5400ff&#x27;, &#x27;#ff5200ff&#x27;, &#x27;#ff4f00ff&#x27;, &#x27;#ff4d00ff&#x27;, &#x27;#ff4c00ff&#x27;, &#x27;#ff4a00ff&#x27;, &#x27;#ff4900ff&#x27;, &#x27;#ff4800ff&#x27;, &#x27;#ff4600ff&#x27;, &#x27;#ff4500ff&#x27;, &#x27;#ff4300ff&#x27;, &#x27;#ff4200ff&#x27;, &#x27;#ff4000ff&#x27;, &#x27;#ff3f00ff&#x27;, &#x27;#ff3d00ff&#x27;, &#x27;#ff3c00ff&#x27;, &#x27;#ff3b00ff&#x27;, &#x27;#ff3900ff&#x27;, &#x27;#ff3800ff&#x27;, &#x27;#ff3600ff&#x27;, &#x27;#ff3500ff&#x27;, &#x27;#ff3300ff&#x27;, &#x27;#ff3200ff&#x27;, &#x27;#ff3100ff&#x27;, &#x27;#ff2f00ff&#x27;, &#x27;#ff2e00ff&#x27;, &#x27;#ff2c00ff&#x27;, &#x27;#ff2b00ff&#x27;, &#x27;#ff2900ff&#x27;, &#x27;#ff2800ff&#x27;, &#x27;#ff2700ff&#x27;, &#x27;#ff2500ff&#x27;, &#x27;#ff2400ff&#x27;, &#x27;#ff2300ff&#x27;, &#x27;#ff2200ff&#x27;, &#x27;#ff2100ff&#x27;, &#x27;#ff2000ff&#x27;, &#x27;#ff1f00ff&#x27;, &#x27;#ff1e00ff&#x27;, &#x27;#ff1e00ff&#x27;, &#x27;#ff1d00ff&#x27;, &#x27;#ff1c00ff&#x27;, &#x27;#ff1b00ff&#x27;, &#x27;#ff1a00ff&#x27;, &#x27;#ff1900ff&#x27;, &#x27;#ff1800ff&#x27;, &#x27;#ff1700ff&#x27;, &#x27;#ff1600ff&#x27;, &#x27;#ff1500ff&#x27;, &#x27;#ff1400ff&#x27;, &#x27;#ff1300ff&#x27;, &#x27;#ff1200ff&#x27;, &#x27;#ff1200ff&#x27;, &#x27;#ff1100ff&#x27;, &#x27;#ff1000ff&#x27;, &#x27;#ff0f00ff&#x27;, &#x27;#ff0e00ff&#x27;, &#x27;#ff0d00ff&#x27;, &#x27;#ff0c00ff&#x27;, &#x27;#ff0b00ff&#x27;, &#x27;#ff0a00ff&#x27;, &#x27;#ff0903ff&#x27;, &#x27;#ff090bff&#x27;, &#x27;#ff0914ff&#x27;, &#x27;#ff081dff&#x27;, &#x27;#ff0825ff&#x27;, &#x27;#ff082eff&#x27;, &#x27;#ff0737ff&#x27;, &#x27;#ff0740ff&#x27;, &#x27;#ff0748ff&#x27;, &#x27;#ff0651ff&#x27;, &#x27;#ff065aff&#x27;, &#x27;#ff0663ff&#x27;, &#x27;#ff056bff&#x27;, &#x27;#ff0574ff&#x27;, &#x27;#ff057dff&#x27;, &#x27;#ff0485ff&#x27;, &#x27;#ff048eff&#x27;, &#x27;#ff0497ff&#x27;, &#x27;#ff03a0ff&#x27;, &#x27;#ff03a8ff&#x27;, &#x27;#ff03b1ff&#x27;, &#x27;#ff02baff&#x27;, &#x27;#ff02c2ff&#x27;, &#x27;#ff02cbff&#x27;, &#x27;#ff01d4ff&#x27;, &#x27;#ff01ddff&#x27;, &#x27;#ff01e5ff&#x27;, &#x27;#ff00eeff&#x27;, &#x27;#ff00f7ff&#x27;, &#x27;#ff00ffff&#x27;]);
+
+
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.x = d3.scale.linear()
+              .domain([296.1171905517578, 298.5521514892578])
+              .range([0, 450 - 50]);
+
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.legend = L.control({position: &#x27;topright&#x27;});
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.legend.onAdd = function (map) {var div = L.DomUtil.create(&#x27;div&#x27;, &#x27;legend&#x27;); return div};
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.legend.addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.xAxis = d3.svg.axis()
+        .scale(color_map_9f10e5903063b93aa33dbe749c5b00fe.x)
+        .orient(&quot;top&quot;)
+        .tickSize(1)
+        .tickValues([296.1171905517578, &#x27;&#x27;, 296.40365654440484, &#x27;&#x27;, 296.69012253705193, &#x27;&#x27;, 296.976588529699, &#x27;&#x27;, 297.26305452234607, &#x27;&#x27;, 297.5495205149931, &#x27;&#x27;, 297.83598650764014, &#x27;&#x27;, 298.12245250028724, &#x27;&#x27;, 298.4089184929343, &#x27;&#x27;]);
+
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.svg = d3.select(&quot;.legend.leaflet-control&quot;).append(&quot;svg&quot;)
+        .attr(&quot;id&quot;, &#x27;legend&#x27;)
+        .attr(&quot;width&quot;, 450)
+        .attr(&quot;height&quot;, 40);
+
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.g = color_map_9f10e5903063b93aa33dbe749c5b00fe.svg.append(&quot;g&quot;)
+        .attr(&quot;class&quot;, &quot;key&quot;)
+        .attr(&quot;transform&quot;, &quot;translate(25,16)&quot;);
+
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.g.selectAll(&quot;rect&quot;)
+        .data(color_map_9f10e5903063b93aa33dbe749c5b00fe.color.range().map(function(d, i) {
+          return {
+            x0: i ? color_map_9f10e5903063b93aa33dbe749c5b00fe.x(color_map_9f10e5903063b93aa33dbe749c5b00fe.color.domain()[i - 1]) : color_map_9f10e5903063b93aa33dbe749c5b00fe.x.range()[0],
+            x1: i &lt; color_map_9f10e5903063b93aa33dbe749c5b00fe.color.domain().length ? color_map_9f10e5903063b93aa33dbe749c5b00fe.x(color_map_9f10e5903063b93aa33dbe749c5b00fe.color.domain()[i]) : color_map_9f10e5903063b93aa33dbe749c5b00fe.x.range()[1],
+            z: d
+          };
+        }))
+      .enter().append(&quot;rect&quot;)
+        .attr(&quot;height&quot;, 40 - 30)
+        .attr(&quot;x&quot;, function(d) { return d.x0; })
+        .attr(&quot;width&quot;, function(d) { return d.x1 - d.x0; })
+        .style(&quot;fill&quot;, function(d) { return d.z; });
+
+    color_map_9f10e5903063b93aa33dbe749c5b00fe.g.call(color_map_9f10e5903063b93aa33dbe749c5b00fe.xAxis).append(&quot;text&quot;)
+        .attr(&quot;class&quot;, &quot;caption&quot;)
+        .attr(&quot;y&quot;, 21)
+        .text(&quot;&quot;);
+
+            var tile_layer_ce6f68a7fa83cf7780999cac0f2218fd = L.tileLayer(
+                &quot;https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/49ca5d57e83b5494deefd201392dab67-c582ebadb4b18c1d5fde8b894dfdbf88/tiles/{z}/{x}/{y}&quot;,
+                {&quot;attribution&quot;: &quot;Google Earth Engine&quot;, &quot;detectRetina&quot;: false, &quot;maxZoom&quot;: 24, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1.0, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
+            );
+
+
+            tile_layer_ce6f68a7fa83cf7780999cac0f2218fd.addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+            var layer_control_5b4359fbe47025e9c42f5dbaf2f27f7f_layers = {
+                base_layers : {
+                    &quot;openstreetmap&quot; : tile_layer_72893eadb1e3b19e8df5ca97c8436c50,
+                },
+                overlays :  {
+                    &quot;ERA5-land: temperature_2m&quot; : tile_layer_ce6f68a7fa83cf7780999cac0f2218fd,
+                },
+            };
+            let layer_control_5b4359fbe47025e9c42f5dbaf2f27f7f = L.control.layers(
+                layer_control_5b4359fbe47025e9c42f5dbaf2f27f7f_layers.base_layers,
+                layer_control_5b4359fbe47025e9c42f5dbaf2f27f7f_layers.overlays,
+                {&quot;autoZIndex&quot;: true, &quot;collapsed&quot;: true, &quot;position&quot;: &quot;topright&quot;}
+            ).addTo(map_3b97707fee5c1a2d81f5436b219b6557);
+
+
+&lt;/script&gt;
+&lt;/html&gt;" width="100%" height="600"style="border:none !important;" "allowfullscreen" "webkitallowfullscreen" "mozallowfullscreen"></iframe></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="doc_example.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Demo example: Using a Dataset</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="qc_example.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Demo example: Applying Quality Control.</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Create-your-Dataset">Create your Dataset</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Extracting-LCZ-from-GEE">Extracting LCZ from GEE</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Extracting-other-Geospatial-information">Extracting other Geospatial information</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Plotting-with-GeeStaticModelData">Plotting with GeeStaticModelData</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Extracting-ERA5-timeseries">Extracting ERA5 timeseries</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#GEE-data-transfer">GEE data transfer</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Plotting-with-GeeDynamicModelData">Plotting with GeeDynamicModelData</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/examples/gee_example.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

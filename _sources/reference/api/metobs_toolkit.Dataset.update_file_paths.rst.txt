@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.update\_file\_paths
+===========================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.update_file_paths

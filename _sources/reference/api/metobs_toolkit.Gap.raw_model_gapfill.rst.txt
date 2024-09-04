@@ -1,0 +1,6 @@
+metobs\_toolkit.Gap.raw\_model\_gapfill
+=======================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Gap.raw_model_gapfill

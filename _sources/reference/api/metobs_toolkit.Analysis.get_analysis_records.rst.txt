@@ -1,0 +1,6 @@
+metobs\_toolkit.Analysis.get\_analysis\_records
+===============================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Analysis.get_analysis_records

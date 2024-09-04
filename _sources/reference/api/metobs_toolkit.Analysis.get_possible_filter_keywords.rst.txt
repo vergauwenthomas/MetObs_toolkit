@@ -1,0 +1,6 @@
+metobs\_toolkit.Analysis.get\_possible\_filter\_keywords
+========================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Analysis.get_possible_filter_keywords

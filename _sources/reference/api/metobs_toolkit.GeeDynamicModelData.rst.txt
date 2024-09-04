@@ -1,0 +1,30 @@
+metobs\_toolkit.GeeDynamicModelData
+===================================
+
+.. currentmodule:: metobs_toolkit
+
+.. autoclass:: GeeDynamicModelData
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~GeeDynamicModelData.__init__
+      ~GeeDynamicModelData.add_modelobstype
+      ~GeeDynamicModelData.extract_timeseries_data
+      ~GeeDynamicModelData.get_info
+      ~GeeDynamicModelData.make_gee_plot
+      ~GeeDynamicModelData.make_plot
+      ~GeeDynamicModelData.save_modeldata
+      ~GeeDynamicModelData.set_metadf
+      ~GeeDynamicModelData.set_modeldata_from_csv
+   
+   
+
+   
+   
+   

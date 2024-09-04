@@ -1,0 +1,28 @@
+metobs\_toolkit.Gap
+===================
+
+.. currentmodule:: metobs_toolkit
+
+.. autoclass:: Gap
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Gap.__init__
+      ~Gap.debias_model_gapfill
+      ~Gap.diurnal_debias_model_gapfill
+      ~Gap.get_info
+      ~Gap.interpolate
+      ~Gap.raw_model_gapfill
+      ~Gap.weighted_diurnal_debias_model_gapfill
+   
+   
+
+   
+   
+   

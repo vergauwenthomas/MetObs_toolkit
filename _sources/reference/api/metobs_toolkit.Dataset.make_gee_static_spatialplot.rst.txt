@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.make\_gee\_static\_spatialplot
+======================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.make_gee_static_spatialplot

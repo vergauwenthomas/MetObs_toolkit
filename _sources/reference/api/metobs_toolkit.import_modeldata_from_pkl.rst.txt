@@ -1,0 +1,6 @@
+metobs\_toolkit.import\_modeldata\_from\_pkl
+============================================
+
+.. currentmodule:: metobs_toolkit
+
+.. autofunction:: import_modeldata_from_pkl

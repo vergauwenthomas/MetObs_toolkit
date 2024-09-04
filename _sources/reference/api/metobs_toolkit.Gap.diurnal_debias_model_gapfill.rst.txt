@@ -1,0 +1,6 @@
+metobs\_toolkit.Gap.diurnal\_debias\_model\_gapfill
+===================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Gap.diurnal_debias_model_gapfill

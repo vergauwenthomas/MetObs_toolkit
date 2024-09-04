@@ -1,0 +1,910 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>metobs_toolkit.obstype_modeldata &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/metobs_toolkit/obstype_modeldata';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">metobs_toolk...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for metobs_toolkit.obstype_modeldata</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Class defenition of model observationtypes. These are regular observationtypes</span>
+<span class="sd">witht extra attributes and methods for interacting with the google earht engine.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">Obstype</span><span class="p">,</span> <span class="n">expression_calculator</span>
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">pressure</span><span class="p">,</span> <span class="n">wind_speed</span><span class="p">,</span> <span class="n">direction_aliases</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ModelObstype">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.ModelObstype.html#metobs_toolkit.ModelObstype">[docs]</a>
+<span class="k">class</span> <span class="nc">ModelObstype</span><span class="p">(</span><span class="n">Obstype</span><span class="p">):</span>
+<div class="viewcode-block" id="ModelObstype.__init__">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.ModelObstype.html#metobs_toolkit.ModelObstype.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">model_unit</span><span class="p">,</span> <span class="n">model_band</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiate an observation type, to link with a GEE dataset band.</span>
+
+<span class="sd">        A ModelObstype is specific to a GEE Dataset, and is therefore added</span>
+<span class="sd">        to a `GeeDynamicModelData` (that facilitates the link with a GEE dataset).</span>
+
+<span class="sd">        All methods and attributes are inherited of the `Obstype` class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obstype : metobs_toolkit.Obstype</span>
+<span class="sd">            The Obstype that represents the band in the GEE dataset.</span>
+<span class="sd">        model_unit : str</span>
+<span class="sd">            The units of the GEE band. This can be found in the details of</span>
+<span class="sd">            the corresponding GEE dataset. This unit must be known by the obstype (</span>
+<span class="sd">            add it if it is not known).</span>
+<span class="sd">        model_band : str</span>
+<span class="sd">            The name of the band representing the obstype. This can be found in</span>
+<span class="sd">            the details of the GEE dataset.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Obstype: A regular observation type</span>
+<span class="sd">        ModelObstype_Vectorfield: A vector representation of a ModelObstype.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ---------</span>
+<span class="sd">        As example we create a `ModelObstype` for downward solar radiation at the</span>
+<span class="sd">        surface, to be used with the ERA5-land GEE dataset.</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.gee_datasets[&#39;ERA5-land&#39;].modelobstypes</span>
+<span class="sd">        {&#39;temp&#39;: ModelObstype instance of temp (linked to band: temperature_2m), &#39;pressure&#39;: ModelObstype instance of pressure (linked to band: surface_pressure), &#39;wind&#39;: ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}</span>
+
+<span class="sd">        There is no default solar radiation modeldata `ModelObstype` present for the</span>
+<span class="sd">        ERA5 `GeeDynamicModelData`. Thus we must create one.</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.obstypes</span>
+<span class="sd">        {&#39;temp&#39;: Obstype instance of temp, &#39;humidity&#39;: Obstype instance of humidity, &#39;radiation_temp&#39;: Obstype instance of radiation_temp, &#39;pressure&#39;: Obstype instance of pressure, &#39;pressure_at_sea_level&#39;: Obstype instance of pressure_at_sea_level, &#39;precip&#39;: Obstype instance of precip, &#39;precip_sum&#39;: Obstype instance of precip_sum, &#39;wind_speed&#39;: Obstype instance of wind_speed, &#39;wind_gust&#39;: Obstype instance of wind_gust, &#39;wind_direction&#39;: Obstype instance of wind_direction}</span>
+
+<span class="sd">        We see that there is no default `Obstype` that we can use for the</span>
+<span class="sd">        solar radiation. Therefore we must create a new `Obstype`.</span>
+
+<span class="sd">        &gt;&gt;&gt; sol_rad_down_surf = metobs_toolkit.Obstype(</span>
+<span class="sd">        ...                         obsname=&quot;solar_rad_down_at_surface&quot;,</span>
+<span class="sd">        ...                         std_unit=&#39;J/m²&#39;)</span>
+
+<span class="sd">        By looking up the details of ERA5-land (https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY),</span>
+<span class="sd">        we find that the corresponding band is *surface_solar_radiation_downwards* and</span>
+<span class="sd">        the units are in &quot;J/m²&quot; (no coinsidence).</span>
+
+<span class="sd">        &gt;&gt;&gt; sol_rad_down_for_ERA5 = metobs_toolkit.ModelObstype(</span>
+<span class="sd">        ...                            obstype=sol_rad_down_surf,</span>
+<span class="sd">        ...                            model_unit=&quot;J/m²&quot;,</span>
+<span class="sd">        ...                            model_band=&quot;surface_solar_radiation_downwards&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; sol_rad_down_for_ERA5</span>
+<span class="sd">        ModelObstype instance of solar_rad_down_at_surface (linked to band: surface_solar_radiation_downwards)</span>
+
+<span class="sd">        In pracktice we add it to the knonw ModelObstypes of the ERA5 `GeeDynamicModelData`.</span>
+
+<span class="sd">        &gt;&gt;&gt; era5_mod = dataset.gee_datasets[&#39;ERA5-land&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; era5_mod.add_modelobstype(sol_rad_down_for_ERA5)</span>
+<span class="sd">        &gt;&gt;&gt; era5_mod.modelobstypes</span>
+<span class="sd">        {&#39;temp&#39;: ModelObstype instance of temp (linked to band: temperature_2m), &#39;pressure&#39;: ModelObstype instance of pressure (linked to band: surface_pressure), &#39;wind&#39;: ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), &#39;solar_rad_down_at_surface&#39;: ModelObstype instance of solar_rad_down_at_surface (linked to band: surface_solar_radiation_downwards)}</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">std_unit</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">std_unit</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">unit_aliases</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
+            <span class="n">unit_conversions</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">conv_table</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_unit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_band</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_band</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_validity</span><span class="p">()</span>
+
+        <span class="c1"># to make link with Obstype class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_original_name</span><span class="p">(</span><span class="n">model_band</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_original_unit</span><span class="p">(</span><span class="n">model_unit</span><span class="p">)</span>
+
+        <span class="c1"># link with vectorfield</span>
+        <span class="c1"># The amplitude and direction fields, created by a vectorfield, are</span>
+        <span class="c1"># Modelobstpes. But the model_band does not realy exist, so special</span>
+        <span class="c1"># care is needed for them</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_originates_from_vectorfield</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1">#</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="n">is_eq</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">std_unit</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">std_unit</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_aliases</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv_table</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">conv_table</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">model_unit</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_band</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">model_band</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_originates_from_vectorfield</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_originates_from_vectorfield</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">is_eq</span>
+
+    <span class="k">def</span> <span class="nf">_check_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_if_unit_is_known</span><span class="p">(</span><span class="n">unit_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MetobsModelObstypeHandlingError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span><span class="si">}</span><span class="s2"> is not a known unit of </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="c1"># convert to standard -naming</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_std_unit_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> instance of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (linked to band: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_band</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Getters</span>
+    <span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="ModelObstype.get_modelunit">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.ModelObstype.get_modelunit.html#metobs_toolkit.ModelObstype.get_modelunit">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_modelunit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span></div>
+
+
+<div class="viewcode-block" id="ModelObstype.get_modelband">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.ModelObstype.get_modelband.html#metobs_toolkit.ModelObstype.get_modelband">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_modelband</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_band</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_plot_y_label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a string to represent the vertical axes of a plot.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">std_unit</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2"> originates from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">original_name</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ModelObstype_Vectorfield">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.ModelObstype_Vectorfield.html#metobs_toolkit.ModelObstype_Vectorfield">[docs]</a>
+<span class="k">class</span> <span class="nc">ModelObstype_Vectorfield</span><span class="p">(</span><span class="n">Obstype</span><span class="p">):</span>
+<div class="viewcode-block" id="ModelObstype_Vectorfield.__init__">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.ModelObstype_Vectorfield.html#metobs_toolkit.ModelObstype_Vectorfield.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obstype</span><span class="p">,</span>
+        <span class="n">model_unit</span><span class="p">,</span>
+        <span class="n">model_band_u</span><span class="p">,</span>
+        <span class="n">model_band_v</span><span class="p">,</span>
+        <span class="n">amplitude_obstype_name</span><span class="p">,</span>
+        <span class="n">direction_obstype_name</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">std_unit</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">std_unit</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">unit_aliases</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
+            <span class="n">unit_conversions</span><span class="o">=</span><span class="n">obstype</span><span class="o">.</span><span class="n">conv_table</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_unit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_band_u</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_band_u</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_band_v</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_band_v</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_amp_obs_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">amplitude_obstype_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dir_obs_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">direction_obstype_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_validity</span><span class="p">()</span>
+
+        <span class="c1"># to make link with Obstype class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_original_name</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_band_u</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">model_band_v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_original_unit</span><span class="p">(</span><span class="n">model_unit</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_check_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_units</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">MetobsModelObstypeHandlingError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span><span class="si">}</span><span class="s2"> is not a known unit of </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> instance of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (linked to bands: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_modelband_u</span><span class="p">()</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_modelband_v</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ModelObstype_Vectorfield.get_modelunit">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.ModelObstype_Vectorfield.get_modelunit.html#metobs_toolkit.ModelObstype_Vectorfield.get_modelunit">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_modelunit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_unit</span></div>
+
+
+<div class="viewcode-block" id="ModelObstype_Vectorfield.get_modelband_u">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.ModelObstype_Vectorfield.get_modelband_u.html#metobs_toolkit.ModelObstype_Vectorfield.get_modelband_u">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_modelband_u</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_band_u</span></div>
+
+
+<div class="viewcode-block" id="ModelObstype_Vectorfield.get_modelband_v">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.ModelObstype_Vectorfield.get_modelband_v.html#metobs_toolkit.ModelObstype_Vectorfield.get_modelband_v">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_modelband_v</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_band_v</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_plot_y_label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a string to represent the vertical axes of a plot.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">std_unit</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2"> originates from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">original_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_compute_angle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute vector direction of 2D vectorfield components.</span>
+
+<span class="sd">        The direction column is added to the dataframe and a new ModelObstype,</span>
+<span class="sd">        representing the angle is returned. The values represents the angles in</span>
+<span class="sd">        degrees, from north in clock-wise rotation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        modelobs_vectorfield : ModelObstype_Vectorfield</span>
+<span class="sd">            The vectorfield observation type to compute the vector directions for.</span>
+<span class="sd">        df : pandas.DataFrame</span>
+<span class="sd">            The dataframe with the vector components present as columns.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        data : pandas.DataFrame</span>
+<span class="sd">            The df with an extra column representing the directions.</span>
+<span class="sd">        amplitude_obstype : ModelObstype</span>
+<span class="sd">            The (scalar) Modelobstype representation of the angles.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">unit_vector</span><span class="p">(</span><span class="n">vector</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Returns the unit vector of the vector.&quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="n">vector</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">angle_between</span><span class="p">(</span><span class="n">u_comp</span><span class="p">,</span> <span class="n">v_comp</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Returns the angle in ° from North (CW) from 2D Vector components.&quot;&quot;&quot;</span>
+
+            <span class="n">v2</span> <span class="o">=</span> <span class="p">(</span><span class="n">u_comp</span><span class="p">,</span> <span class="n">v_comp</span><span class="p">)</span>
+            <span class="n">v1_u</span> <span class="o">=</span> <span class="n">unit_vector</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>  <span class="c1"># North unit arrow</span>
+            <span class="n">v2_u</span> <span class="o">=</span> <span class="n">unit_vector</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span>
+
+            <span class="n">angle_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1_u</span><span class="p">,</span> <span class="n">v2_u</span><span class="p">),</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+            <span class="n">angle_degrees</span> <span class="o">=</span> <span class="n">angle_rad</span> <span class="o">*</span> <span class="p">((</span><span class="mf">180.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+            <span class="c1"># return angle_degrees</span>
+            <span class="c1"># fix the quadrants</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c1"># N-E quadrant</span>
+                <span class="k">return</span> <span class="n">angle_degrees</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c1"># S-E quadrant</span>
+                <span class="k">return</span> <span class="n">angle_degrees</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c1"># S-W quadrant</span>
+                <span class="k">return</span> <span class="mf">180.0</span> <span class="o">+</span> <span class="p">(</span><span class="mf">180.0</span> <span class="o">-</span> <span class="n">angle_degrees</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c1"># N-W quadrant</span>
+                <span class="k">return</span> <span class="mf">360.0</span> <span class="o">-</span> <span class="n">angle_degrees</span>
+
+        <span class="n">u_column</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_modelband_u</span><span class="p">()</span>
+        <span class="n">v_column</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_modelband_v</span><span class="p">()</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">angle_between</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">u_column</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">v_column</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Create a new obstype for the direction</span>
+        <span class="n">direction_obstype</span> <span class="o">=</span> <span class="n">Obstype</span><span class="p">(</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dir_obs_name</span><span class="p">,</span>
+            <span class="n">std_unit</span><span class="o">=</span><span class="s2">&quot;° from north (CW)&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Direction of 2D-vector of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> components.&quot;</span><span class="p">,</span>
+            <span class="n">unit_aliases</span><span class="o">=</span><span class="n">direction_aliases</span><span class="p">,</span>
+            <span class="n">unit_conversions</span><span class="o">=</span><span class="p">{},</span>
+        <span class="p">)</span>
+        <span class="c1"># convert to model obstype</span>
+        <span class="n">direction_modelobstype</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">direction_obstype</span><span class="p">,</span>
+            <span class="n">model_unit</span><span class="o">=</span><span class="s2">&quot;° from north (CW)&quot;</span><span class="p">,</span>  <span class="c1"># indep of units</span>
+            <span class="n">model_band</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dir_obs_name</span><span class="p">,</span>  <span class="c1"># NOTE: this band does not exist, but column is created with this name by the toolkit</span>
+        <span class="p">)</span>
+        <span class="n">direction_modelobstype</span><span class="o">.</span><span class="n">_originates_from_vectorfield</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">direction_modelobstype</span>
+
+    <span class="k">def</span> <span class="nf">compute_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute amplitude of 2D vectorfield components.</span>
+
+<span class="sd">        The amplitude column is added to the dataframe and a new ModelObstype,</span>
+<span class="sd">        representing the amplitude is returned. All attributes wrt the units are</span>
+<span class="sd">        inherited from the ModelObstype_vectorfield.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        modelobs_vectorfield : ModelObstype_Vectorfield</span>
+<span class="sd">            The vectorfield observation type to compute the vector amplitudes for.</span>
+<span class="sd">        df : pandas.DataFrame</span>
+<span class="sd">            The dataframe with the vector components present as columns.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        data : pandas.DataFrame</span>
+<span class="sd">            The df with an extra column representing the amplitudes.</span>
+<span class="sd">        amplitude_obstype : ModelObstype</span>
+<span class="sd">            The (scalar) Modelobstype representation of the amplitudes.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Compute the data</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_modelband_u</span><span class="p">()]</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_modelband_v</span><span class="p">()]</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Create a new Obstype for the amplitude</span>
+        <span class="n">amplitude_obstype</span> <span class="o">=</span> <span class="n">Obstype</span><span class="p">(</span>
+            <span class="n">obsname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_amp_obs_name</span><span class="p">,</span>
+            <span class="n">std_unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">std_unit</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;2D-vector amplitde of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> components.&quot;</span><span class="p">,</span>
+            <span class="n">unit_aliases</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
+            <span class="n">unit_conversions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conv_table</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># convert to model obstype</span>
+        <span class="n">amplitude_modelobstype</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="n">amplitude_obstype</span><span class="p">,</span>
+            <span class="n">model_unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_modelunit</span><span class="p">(),</span>
+            <span class="n">model_band</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_amp_obs_name</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># NOTE: this band does not exist, but column is created with this name by the toolkit</span>
+        <span class="n">amplitude_modelobstype</span><span class="o">.</span><span class="n">_originates_from_vectorfield</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">amplitude_modelobstype</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Define era5 default obstypes</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="n">temp_era5</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span>
+    <span class="n">obstype</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span> <span class="n">model_unit</span><span class="o">=</span><span class="s2">&quot;Kelvin&quot;</span><span class="p">,</span> <span class="n">model_band</span><span class="o">=</span><span class="s2">&quot;temperature_2m&quot;</span>
+<span class="p">)</span>
+<span class="n">temp_era5</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span>
+    <span class="s2">&quot;Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth&#39;s surface, taking account of the atmospheric conditions.&quot;</span>
+<span class="p">)</span>
+
+
+<span class="n">pressure_era5</span> <span class="o">=</span> <span class="n">ModelObstype</span><span class="p">(</span>
+    <span class="n">obstype</span><span class="o">=</span><span class="n">pressure</span><span class="p">,</span> <span class="n">model_unit</span><span class="o">=</span><span class="s2">&quot;pa&quot;</span><span class="p">,</span> <span class="n">model_band</span><span class="o">=</span><span class="s2">&quot;surface_pressure&quot;</span>
+<span class="p">)</span>
+<span class="n">pressure_era5</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span>
+    <span class="s2">&quot;Pressure (force per unit area) of the atmosphere on the surface of land, sea and in-land water. It is a measure of the weight of all the air in a column vertically above the area of the Earth&#39;s surface represented at a fixed point. Surface pressure is often used in combination with temperature to calculate air density. The strong variation of pressure with altitude makes it difficult to see the low and high pressure systems over mountainous areas, so mean sea level pressure, rather than surface pressure, is normally used for this purpose. The units of this variable are Pascals (Pa). Surface pressure is often measured in hPa and sometimes is presented in the old units of millibars, mb (1 hPa = 1 mb = 100 Pa).&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="c1"># create a new obstype that represent the vectorfield of wind</span>
+<span class="n">wind_components</span> <span class="o">=</span> <span class="n">Obstype</span><span class="p">(</span>
+    <span class="s2">&quot;wind&quot;</span><span class="p">,</span>
+    <span class="n">std_unit</span><span class="o">=</span><span class="n">wind_speed</span><span class="o">.</span><span class="n">get_standard_unit</span><span class="p">(),</span>
+    <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">unit_aliases</span><span class="o">=</span><span class="n">wind_speed</span><span class="o">.</span><span class="n">units_aliases</span><span class="p">,</span>
+    <span class="n">unit_conversions</span><span class="o">=</span><span class="n">wind_speed</span><span class="o">.</span><span class="n">conv_table</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">wind_era5</span> <span class="o">=</span> <span class="n">ModelObstype_Vectorfield</span><span class="p">(</span>
+    <span class="n">obstype</span><span class="o">=</span><span class="n">wind_components</span><span class="p">,</span>
+    <span class="n">model_unit</span><span class="o">=</span><span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
+    <span class="n">model_band_u</span><span class="o">=</span><span class="s2">&quot;u_component_of_wind_10m&quot;</span><span class="p">,</span>
+    <span class="n">model_band_v</span><span class="o">=</span><span class="s2">&quot;v_component_of_wind_10m&quot;</span><span class="p">,</span>
+    <span class="n">amplitude_obstype_name</span><span class="o">=</span><span class="s2">&quot;wind_speed&quot;</span><span class="p">,</span>
+    <span class="n">direction_obstype_name</span><span class="o">=</span><span class="s2">&quot;wind_direction&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">wind_era5</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span>
+    <span class="s2">&quot;2D-vector combined 10m windspeed. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System.&quot;</span>
+<span class="p">)</span>
+
+
+<span class="n">default_era5_obstypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">temp_era5</span><span class="p">,</span> <span class="n">pressure_era5</span><span class="p">,</span> <span class="n">wind_era5</span><span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">MetobsModelObstypeHandlingError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised for errors in the ModelObstype&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

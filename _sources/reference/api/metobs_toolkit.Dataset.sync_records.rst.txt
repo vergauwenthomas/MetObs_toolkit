@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.sync\_records
+=====================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.sync_records

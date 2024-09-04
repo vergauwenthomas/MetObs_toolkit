@@ -1,0 +1,6 @@
+metobs\_toolkit.GeeDynamicModelData.add\_modelobstype
+=====================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: GeeDynamicModelData.add_modelobstype

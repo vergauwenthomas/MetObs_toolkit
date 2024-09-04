@@ -1,0 +1,6 @@
+metobs\_toolkit.ModelObstype\_Vectorfield.get\_modelband\_u
+===========================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: ModelObstype_Vectorfield.get_modelband_u

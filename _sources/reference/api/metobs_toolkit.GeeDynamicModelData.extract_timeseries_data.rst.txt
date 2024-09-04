@@ -1,0 +1,6 @@
+metobs\_toolkit.GeeDynamicModelData.extract\_timeseries\_data
+=============================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: GeeDynamicModelData.extract_timeseries_data

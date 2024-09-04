@@ -1,0 +1,2240 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>metobs_toolkit.dataset_core &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/metobs_toolkit/dataset_core';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">metobs_toolk...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for metobs_toolkit.dataset_core</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the Dataset class and all its methods.</span>
+
+<span class="sd">A Dataset holds all observations and is at the center of the</span>
+<span class="sd">MetObs-toolkit.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">import</span> <span class="nn">pytz</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.data_import</span> <span class="kn">import</span> <span class="n">import_data_from_csv</span><span class="p">,</span> <span class="n">import_metadata_from_csv</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.printing</span> <span class="kn">import</span> <span class="n">print_dataset_info</span>
+
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.settings_files.default_formats_settings</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">label_def</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.writing_files</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">write_df_to_csv</span><span class="p">,</span>
+    <span class="n">_does_trg_file_exist</span><span class="p">,</span>
+    <span class="n">_remove_file</span><span class="p">,</span>
+    <span class="n">MetobsWritingError</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.gap</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">find_gaps</span><span class="p">,</span>
+    <span class="n">get_station_gaps</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.df_helpers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">empty_outliers_df</span><span class="p">,</span>
+    <span class="n">metadf_to_gdf</span><span class="p">,</span>
+    <span class="c1"># xs_save,</span>
+    <span class="c1"># concat_save,</span>
+    <span class="n">_simplify_time</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">metobs_toolkit.obstypes</span> <span class="kn">import</span> <span class="n">Obstype</span> <span class="k">as</span> <span class="n">Obstype_class</span>
+
+
+<span class="c1"># dataset extensions</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.datasetbase</span> <span class="kn">import</span> <span class="n">DatasetBase</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.dataset_settings_updater</span> <span class="kn">import</span> <span class="n">DatasetSettingsCore</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.dataset_visuals</span> <span class="kn">import</span> <span class="n">DatasetVisuals</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.dataset_qc_handling</span> <span class="kn">import</span> <span class="n">DatasetQCCore</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.dataset_gap_handling</span> <span class="kn">import</span> <span class="n">DatasetGapCore</span>
+<span class="kn">from</span> <span class="nn">metobs_toolkit.dataset_modeldata</span> <span class="kn">import</span> <span class="n">DatasetModelData</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Dataset class</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="Dataset">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.html#metobs_toolkit.Dataset">[docs]</a>
+<span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span>
+    <span class="n">DatasetBase</span><span class="p">,</span>
+    <span class="n">DatasetSettingsCore</span><span class="p">,</span>
+    <span class="n">DatasetVisuals</span><span class="p">,</span>
+    <span class="n">DatasetQCCore</span><span class="p">,</span>
+    <span class="n">DatasetGapCore</span><span class="p">,</span>
+    <span class="n">DatasetModelData</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Objects holding observations and methods on observations.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Dataset.__init__">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.html#metobs_toolkit.Dataset.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct all the necessary attributes for Dataset object.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initialise dataset&quot;</span><span class="p">)</span>
+
+        <span class="n">DatasetBase</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># holds df, metadf, obstypes and settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_istype</span> <span class="o">=</span> <span class="s2">&quot;Dataset&quot;</span></div>
+
+
+<div class="viewcode-block" id="Dataset.__add__">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.__add__.html#metobs_toolkit.Dataset.__add__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">timestamp_tolerance</span><span class="o">=</span><span class="s2">&quot;0min&quot;</span><span class="p">,</span> <span class="n">freq_simplify_tolerance</span><span class="o">=</span><span class="s2">&quot;0min&quot;</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add another Dataset to self.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : metobs_toolkit.Dataset()</span>
+<span class="sd">            The dataset to add.</span>
+<span class="sd">        timestamp_tolerance : Timedelta or str, optional</span>
+<span class="sd">            The tolerance string or object representing the maximum translation</span>
+<span class="sd">            in time to apply on a timestamp for conversion to an ideal set of timestamps.</span>
+<span class="sd">            Ex: &#39;5min&#39; is 5 minutes, &#39;1H&#39;, is one hour. A zero-tolerance (thus no</span>
+<span class="sd">            simplification) can be set by &#39;0min&#39;. The default is &#39;0min&#39;.</span>
+<span class="sd">        freq_simplify_tolerance : Timedelta or str, optional</span>
+<span class="sd">            The tolerance string or object representing the maximum translation</span>
+<span class="sd">            in time to form a simplified frequency estimation.</span>
+<span class="sd">            Ex: &#39;5min&#39; is 5 minutes, &#39;1H&#39;, is one hour. A zero-tolerance (thus no</span>
+<span class="sd">            simplification) can be set by &#39;0min&#39;. The default is &#39;0min&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        new : metobs_toolkit.Dataset()</span>
+<span class="sd">            The combine dataset.</span>
+
+<span class="sd">        Warning</span>
+<span class="sd">        ---------</span>
+<span class="sd">        Gaps have to be recomputed, so all gaps (and filling information) will</span>
+<span class="sd">        be lost.</span>
+
+<span class="sd">        Warning</span>
+<span class="sd">        ---------</span>
+<span class="sd">        In case of duplicates (in records, outliers, metadate) the reference of</span>
+<span class="sd">        self will be used.</span>
+
+<span class="sd">        Warning</span>
+<span class="sd">        ----------</span>
+<span class="sd">        The order of QC applied checks, is dubious when differnet QC methods or</span>
+<span class="sd">        orders are used between self and other. The inpact of this is limited</span>
+<span class="sd">        to a possible false representation of the individual QC check effectiveness</span>
+<span class="sd">        when `Dataset.get_qc_stats()` is called.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Combining two ``Datasets`` together:</span>
+
+<span class="sd">        &gt;&gt;&gt; Combined = dataset_A + dataset_B # doctest: +SKIP</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;adding </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">timestamp_tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timedelta_arg_check</span><span class="p">(</span><span class="n">timestamp_tolerance</span><span class="p">)</span>
+        <span class="n">freq_simplify_tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timedelta_arg_check</span><span class="p">(</span><span class="n">freq_simplify_tolerance</span><span class="p">)</span>
+
+        <span class="c1"># the toolkit makes a new dataframe, and assumes the df from self and other</span>
+        <span class="c1"># to be the input data.</span>
+        <span class="c1"># This means that any progress in gaps is removed an gaps are located</span>
+        <span class="c1"># again.</span>
+
+        <span class="n">new</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">()</span>
+
+        <span class="c1">#  ---- df ----</span>
+        <span class="c1"># combine both long dataframes (without gaps !)</span>
+        <span class="n">newdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_gaps_df_for_stacking</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                <span class="n">other</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_get_gaps_df_for_stacking</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">newdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Duplicate records are found between self and other. The records of self are used!&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># drop duplicated indeces, keep the records from self</span>
+            <span class="n">newdf</span> <span class="o">=</span> <span class="n">newdf</span><span class="p">[</span><span class="o">~</span><span class="n">newdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;first&quot;</span><span class="p">)]</span>
+
+        <span class="n">new</span><span class="o">.</span><span class="n">_set_df</span><span class="p">(</span><span class="n">newdf</span><span class="p">)</span>
+
+        <span class="c1">#  ----- outliers df ---------</span>
+
+        <span class="n">newoutliersdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">outliersdf</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">outliersdf</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">newoutliersdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Duplicate outliers are found between self and other. For duplicates, the outliers of self are used!&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># drop duplicated indeces, keep the records from self</span>
+            <span class="n">newoutliersdf</span> <span class="o">=</span> <span class="n">newoutliersdf</span><span class="p">[</span><span class="o">~</span><span class="n">newoutliersdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;first&quot;</span><span class="p">)]</span>
+
+        <span class="n">new</span><span class="o">.</span><span class="n">_set_outliersdf</span><span class="p">(</span><span class="n">newoutliersdf</span><span class="p">)</span>
+
+        <span class="c1"># ------- meta df ----------</span>
+        <span class="n">newmetadf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">metadf</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">newmetadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Duplicate metadata is found between self and other. For duplicates, the outliers of self are used!&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># drop duplicated indeces, keep the records from self</span>
+            <span class="n">newmetadf</span> <span class="o">=</span> <span class="n">newmetadf</span><span class="p">[</span><span class="o">~</span><span class="n">newmetadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;first&quot;</span><span class="p">)]</span>
+        <span class="c1"># newmetadf = metadf_to_gdf(newmetadf)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">_set_metadf</span><span class="p">(</span><span class="n">newmetadf</span><span class="p">)</span>
+
+        <span class="c1"># ---- template -----</span>
+        <span class="c1"># once the mapping is done the template is of no use anymore (obstypes,</span>
+        <span class="c1"># are updated with descrptions etc). We use the template of self, for</span>
+        <span class="c1"># sake of having a complete Dataset</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span>
+
+        <span class="c1"># ----- obstypes ------</span>
+
+        <span class="c1"># check if obstypes have the same defenition</span>
+        <span class="k">for</span> <span class="n">obstypename</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_present_obstypes</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">obstypename</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">_get_present_obstypes</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstypename</span><span class="p">]</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstypename</span><span class="p">]:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;The obstype </span><span class="si">{</span><span class="n">obstypename</span><span class="si">}</span><span class="s2"> is different between self and other, the defenition of self is used&quot;</span>
+                    <span class="p">)</span>
+
+        <span class="n">new_obstypes</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">new_obstypes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">_set_obstypes</span><span class="p">(</span><span class="n">new_obstypes</span><span class="p">)</span>
+
+        <span class="c1"># ----- Settings -------</span>
+        <span class="c1"># overload from self</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">_set_settings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
+
+        <span class="c1"># ------ QC order --------</span>
+
+        <span class="c1"># The QC order of applied qc is (for now) only used to make an</span>
+        <span class="c1"># estimate on how effective a specific check is --&gt; get_qc_stats.</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_applied_qc</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">_applied_qc</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;The order and applied QC differs between self and other. QC check effectiveness can not be estimated correctly when calling get_qc_stats().&quot;</span>
+            <span class="p">)</span>
+        <span class="n">new_applied_qc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_applied_qc</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_applied_qc</span><span class="p">])</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">new_applied_qc</span> <span class="o">=</span> <span class="n">new_applied_qc</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;obstype&quot;</span><span class="p">,</span> <span class="s2">&quot;checkname&quot;</span><span class="p">])</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">_applied_qc</span> <span class="o">=</span> <span class="n">new_applied_qc</span>
+
+        <span class="c1">#  ------- Gaps -------------</span>
+        <span class="c1"># Gaps have to be recaluculated using a frequency assumtion from the</span>
+        <span class="c1"># combination of self.df and other.df, thus NOT the native frequency if</span>
+        <span class="c1"># their is a coarsening allied on either of them.</span>
+        <span class="c1"># find the start, end timestamps and frequency for each station + write it to the metadf</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">_get_timestamps_info</span><span class="p">(</span>
+            <span class="n">freq_estimation_method</span><span class="o">=</span><span class="s2">&quot;highest&quot;</span><span class="p">,</span>  <span class="c1"># does not matter on perfect timeseries</span>
+            <span class="n">freq_simplify_tolerance</span><span class="o">=</span><span class="n">freq_simplify_tolerance</span><span class="p">,</span>  <span class="c1"># Do no chain error oropagation by default</span>
+            <span class="n">origin_simplify_tolerance</span><span class="o">=</span><span class="s2">&quot;0min&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Convert the records to clean equidistanced records for both the df and outliersdf</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">construct_equi_spaced_records</span><span class="p">(</span>
+            <span class="n">timestamp_mapping_tolerance</span><span class="o">=</span><span class="n">timestamp_tolerance</span>
+        <span class="p">)</span>
+
+        <span class="c1"># # Find gaps on Import resolution</span>
+        <span class="n">gaps</span> <span class="o">=</span> <span class="n">find_gaps</span><span class="p">(</span>
+            <span class="n">df</span><span class="o">=</span><span class="n">new</span><span class="o">.</span><span class="n">df</span><span class="p">,</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="n">new</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span>
+            <span class="n">outliersdf</span><span class="o">=</span><span class="n">new</span><span class="o">.</span><span class="n">outliersdf</span><span class="p">,</span>
+            <span class="n">obstypes</span><span class="o">=</span><span class="n">new</span><span class="o">.</span><span class="n">obstypes</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">_set_gaps</span><span class="p">(</span><span class="n">gaps</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+
+<div class="viewcode-block" id="Dataset.show">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.show.html#metobs_toolkit.Dataset.show">[docs]</a>
+    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_all_settings</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_disp_n_gaps</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Show detailed information of the Dataset.</span>
+
+<span class="sd">        A function to print out a detailed overview information about the Dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        show_all_settings : bool, optional</span>
+<span class="sd">            If True all the settings are printed out. The default is False.</span>
+<span class="sd">        max_disp_n_gaps: int, optional</span>
+<span class="sd">            The maximum number of gaps to display detailed information of.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_info: Alias of show()</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Create a ``Dataset`` and fill it with data (and metadata).</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; #Create your Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+
+<span class="sd">        Apply `show` on your Dataset</span>
+
+<span class="sd">        &gt;&gt;&gt; # Print out details</span>
+<span class="sd">        &gt;&gt;&gt; dataset.show()</span>
+<span class="sd">        --------  General ---------</span>
+<span class="sd">        ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Show basic info of dataset.&quot;</span><span class="p">)</span>
+
+        <span class="n">print_dataset_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_all_settings</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.get_info">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.get_info.html#metobs_toolkit.Dataset.get_info">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_all_settings</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_disp_n_gaps</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias of show().</span>
+
+<span class="sd">        A function to print out a detailed overview information about the Dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        show_all_settings : bool, optional</span>
+<span class="sd">            If True all the settings are printed out. The default is False.</span>
+<span class="sd">        max_disp_n_gaps: int, optional</span>
+<span class="sd">            The maximum number of gaps to display detailed information of.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        show:  The same method.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Create a ``Dataset`` and fill it with data (and metadata).</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; #Create your Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+
+<span class="sd">        Apply `show` on your Dataset</span>
+
+<span class="sd">        &gt;&gt;&gt; # Print out details</span>
+<span class="sd">        &gt;&gt;&gt; dataset.get_info()</span>
+<span class="sd">        --------  General ---------</span>
+<span class="sd">        ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">show_all_settings</span><span class="p">,</span> <span class="n">max_disp_n_gaps</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.save_dataset">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.save_dataset.html#metobs_toolkit.Dataset.save_dataset">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_dataset</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">outputfolder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;saved_dataset.pkl&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save a Dataset instance to a (pickle) file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        outputfolder : str or None, optional</span>
+<span class="sd">            The path to the folder to save the file. If None, the outputfolder</span>
+<span class="sd">            from the Settings is used. The default is None.</span>
+<span class="sd">        filename : str, optional</span>
+<span class="sd">            The name of the output file. The default is &#39;saved_dataset.pkl&#39;.</span>
+<span class="sd">        overwrite : bool, optional</span>
+<span class="sd">            If True, the target file will be overwritten if it exist. The</span>
+<span class="sd">            default is False.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        import_dataset: Import a dataset from a pickle file.</span>
+<span class="sd">        write_to_csv: Write data to a csv file.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Create a ``Dataset`` and fill it with data (and metadata).</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; #Create your Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+
+<span class="sd">        Save it as a pickle file. As a demo, the pickle will be saved in the</span>
+<span class="sd">        current working directory (`os.getcwd()`)</span>
+
+<span class="sd">        &gt;&gt;&gt; # Save dataset to a .pkl file</span>
+<span class="sd">        &gt;&gt;&gt; dataset.save_dataset(outputfolder=os.getcwd(),</span>
+<span class="sd">        ...                     filename=&#39;your_saved_dataset.pkl&#39;,</span>
+<span class="sd">        ...                     overwrite=True)</span>
+<span class="sd">        Dataset saved in ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check if outputfolder is known and exists</span>
+        <span class="k">if</span> <span class="n">outputfolder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">outputfolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">IO</span><span class="p">[</span><span class="s2">&quot;output_folder&quot;</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">outputfolder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="p">),</span> <span class="s2">&quot;No outputfolder is given, and no outputfolder is found in the settings.&quot;</span>
+
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">outputfolder</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">outputfolder</span><span class="si">}</span><span class="s2"> is not a directory!&quot;</span>
+
+        <span class="c1"># check file extension in the filename:</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">!=</span> <span class="s2">&quot;.pkl&quot;</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">+=</span> <span class="s2">&quot;.pkl&quot;</span>
+
+        <span class="n">full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputfolder</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">full_path</span><span class="p">))</span> <span class="o">&amp;</span> <span class="n">overwrite</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The file </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> will be overwritten!&quot;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">full_path</span><span class="p">)</span>
+
+        <span class="c1"># check if file exists</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">full_path</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> is already a file!&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outp</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset saved in </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset saved in </span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.get_full_status_df">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.get_full_status_df.html#metobs_toolkit.Dataset.get_full_status_df">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_full_status_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_as_wide</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Combine all records, outliers and gaps in one Dataframe</span>
+
+<span class="sd">        Records, outliers and gaps are seperatly stored in each Dataset. This</span>
+<span class="sd">        method will combine them into one pandas.DataFrame.</span>
+
+<span class="sd">        The full dataframe displays the obsevation values, a label, and how</span>
+<span class="sd">        the records is stored in the Dataset (as a good observation, an outlier or gap).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        return_as_wide : bool, optional</span>
+<span class="sd">            If True, the dataset is wide-structured (observationtypes are spread</span>
+<span class="sd">            over different columns). If False, all records are stacked in</span>
+<span class="sd">            a long-format. The default is True.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ---------</span>
+<span class="sd">        combdf : pandas.DataFrame()</span>
+<span class="sd">            A dataframe containing a continious time resolution of records, where each</span>
+<span class="sd">            record is labeld.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Create a ``Dataset`` and fill it with data (and metadata).</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; #Create your Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+
+<span class="sd">        To get a dataframe with all records, outliers and gaps, use the</span>
+<span class="sd">        `get_full_status_df()` method.</span>
+
+<span class="sd">        &gt;&gt;&gt; # Combine all into one Dataframe</span>
+<span class="sd">        &gt;&gt;&gt; combined_df = dataset.get_full_status_df()</span>
+<span class="sd">        &gt;&gt;&gt; combined_df[[&#39;temp&#39;, &#39;humidity&#39;]].head() #select only temperature and humidity</span>
+<span class="sd">        obstype                              temp                              humidity</span>
+<span class="sd">                                            value label toolkit_representation    value label toolkit_representation</span>
+<span class="sd">        name      datetime</span>
+<span class="sd">        vlinder01 2022-09-01 00:00:00+00:00  18.8    ok            observation     65.0    ok            observation</span>
+<span class="sd">                  2022-09-01 00:05:00+00:00  18.8    ok            observation     65.0    ok            observation</span>
+<span class="sd">                  2022-09-01 00:10:00+00:00  18.8    ok            observation     65.0    ok            observation</span>
+<span class="sd">                  2022-09-01 00:15:00+00:00  18.7    ok            observation     65.0    ok            observation</span>
+<span class="sd">                  2022-09-01 00:20:00+00:00  18.7    ok            observation     65.0    ok            observation</span>
+
+<span class="sd">        If you want it in a long structure:</span>
+
+<span class="sd">        &gt;&gt;&gt; combined_df = dataset.get_full_status_df(return_as_wide=False)</span>
+<span class="sd">        &gt;&gt;&gt; combined_df.head()</span>
+<span class="sd">                                              value label toolkit_representation</span>
+<span class="sd">        name      obstype  datetime</span>
+<span class="sd">        vlinder01 humidity 2022-09-01 00:00:00+00:00   65.0    ok            observation</span>
+<span class="sd">                           2022-09-01 00:05:00+00:00   65.0    ok            observation</span>
+<span class="sd">                           2022-09-01 00:10:00+00:00   65.0    ok            observation</span>
+<span class="sd">                           2022-09-01 00:15:00+00:00   65.0    ok            observation</span>
+<span class="sd">                           2022-09-01 00:20:00+00:00   65.0    ok            observation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># =============================================================================</span>
+        <span class="c1"># Stack observations and outliers</span>
+        <span class="c1"># =============================================================================</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+        <span class="c1"># note: df is a pointer, and adding these colmns will add them</span>
+        <span class="c1"># also in the self.df</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;goodrecord&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;toolkit_representation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;observation&quot;</span>
+
+        <span class="c1"># =============================================================================</span>
+        <span class="c1"># Stack outliers</span>
+        <span class="c1"># =============================================================================</span>
+
+        <span class="n">outliersdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outliersdf</span>
+        <span class="n">outliersdf</span><span class="p">[</span><span class="s2">&quot;toolkit_representation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;outlier&quot;</span>
+
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">outliersdf</span><span class="p">])</span>  <span class="c1"># combine the two</span>
+
+        <span class="c1"># Since outliers are present records in the df (as NaN&#39;s) we introduce</span>
+        <span class="c1"># duplicats in the index of combdf. We drop the duplicates and keep,</span>
+        <span class="c1"># the records comming from outliersdf (=last)</span>
+
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">combdf</span><span class="p">[</span><span class="o">~</span><span class="n">combdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">)]</span>
+
+        <span class="c1"># =============================================================================</span>
+        <span class="c1"># Stack gaps</span>
+        <span class="c1"># =============================================================================</span>
+
+        <span class="n">gapsdf</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_gaps_df_for_stacking</span><span class="p">()</span>
+        <span class="p">)</span>  <span class="c1"># get a gapdf in the long (similar as outliersdf) structure</span>
+        <span class="c1"># map labels to known labels (must have a color def in the settings)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">gapsdf</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">gapsdf</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gapsdf</span><span class="p">[</span><span class="s2">&quot;fill_method&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;not filled&quot;</span><span class="p">:</span> <span class="n">label_def</span><span class="p">[</span><span class="s2">&quot;regular_gap&quot;</span><span class="p">][</span><span class="s2">&quot;label&quot;</span><span class="p">]}</span>
+            <span class="p">)</span>
+
+        <span class="n">gapsdf</span> <span class="o">=</span> <span class="n">gapsdf</span><span class="p">[[</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">]]</span>
+
+        <span class="n">gapsdf</span><span class="p">[</span><span class="s2">&quot;toolkit_representation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;gap&quot;</span>
+
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">combdf</span><span class="p">,</span> <span class="n">gapsdf</span><span class="p">])</span>  <span class="c1"># combine</span>
+
+        <span class="c1"># Since gaps are present records in the df (as NaN&#39;s, because of the</span>
+        <span class="c1"># ideal freq structure in the df) we introduce</span>
+        <span class="c1"># duplicats in the index of combdf. We drop the duplicates and keep,</span>
+        <span class="c1"># the records comming from outliersdf (=last)</span>
+
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">combdf</span><span class="p">[</span><span class="o">~</span><span class="n">combdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">)]</span>
+        <span class="c1"># =============================================================================</span>
+        <span class="c1"># Formatting the combineddf</span>
+        <span class="c1"># =============================================================================</span>
+
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">combdf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+        <span class="p">),</span> <span class="s2">&quot;Duplicates found in the combdf --&gt; report bug.&quot;</span>
+
+        <span class="c1"># for some reason the dtype of the datetime index-level is &#39;obstype&#39; and</span>
+        <span class="c1"># thus not a datetimeindex. This must be fixed</span>
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">combdf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="n">combdf</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">combdf</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+        <span class="n">combdf</span> <span class="o">=</span> <span class="n">combdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;obstype&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">return_as_wide</span><span class="p">:</span>
+            <span class="n">combdf</span> <span class="o">=</span> <span class="n">combdf</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;obstype&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reorder_levels</span><span class="p">(</span>
+                <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)</span>
+
+        <span class="c1"># pointer issue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;value&quot;</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outliersdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outliersdf</span><span class="p">[[</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">combdf</span></div>
+
+
+<div class="viewcode-block" id="Dataset.add_new_observationtype">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.add_new_observationtype.html#metobs_toolkit.Dataset.add_new_observationtype">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_new_observationtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Obstype</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new observation type to the known observation types.</span>
+
+<span class="sd">        The observation can only be added if it is not already present in the</span>
+<span class="sd">        knonw observation types. If that is the case that you probably need to</span>
+<span class="sd">        use use the Dataset.add_new_unit() method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Obstype: metobs_toolkit.Obstype</span>
+<span class="sd">            The new Obstype to add.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Obstype: The Obstype class.</span>
+<span class="sd">        add_new_unit : Add a new unit to a knonw obstype.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Start by creating a new ``Obstype``</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt; co2_concentration = metobs_toolkit.Obstype(obsname=&#39;co2&#39;,</span>
+<span class="sd">        ...                                            std_unit=&#39;ppm&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #add other units to it (if needed)</span>
+<span class="sd">        &gt;&gt;&gt; co2_concentration.add_unit(unit_name=&#39;ppb&#39;,</span>
+<span class="sd">        ...                            conversion=[&#39;x / 1000&#39;], #1 ppb = 0.001 ppm</span>
+<span class="sd">        ...                           )</span>
+<span class="sd">        &gt;&gt;&gt; #Set a description</span>
+<span class="sd">        &gt;&gt;&gt; co2_concentration.set_description(desc=&#39;The CO2 concentration measured at 2m above surface&#39;)</span>
+
+<span class="sd">        Create a ``Dataset`` and fill it with data (and metadata).</span>
+
+<span class="sd">        &gt;&gt;&gt; #Create your Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+
+<span class="sd">        Now add the newly created Obtype to the Dataset.</span>
+
+<span class="sd">        &gt;&gt;&gt; #Add it to a Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset()</span>
+<span class="sd">        &gt;&gt;&gt; dataset.add_new_observationtype(co2_concentration)</span>
+
+<span class="sd">        By inspecting the `Dataset.obstypes` we can see that the CO2 concentration</span>
+<span class="sd">        is added.</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.obstypes</span>
+<span class="sd">        {&#39;temp&#39;: Obstype instance of temp, &#39;humidity&#39;: Obstype instance of humidity, &#39;radiation_temp&#39;: Obstype instance of radiation_temp, &#39;pressure&#39;: Obstype instance of pressure, &#39;pressure_at_sea_level&#39;: Obstype instance of pressure_at_sea_level, &#39;precip&#39;: Obstype instance of precip, &#39;precip_sum&#39;: Obstype instance of precip_sum, &#39;wind_speed&#39;: Obstype instance of wind_speed, &#39;wind_gust&#39;: Obstype instance of wind_gust, &#39;wind_direction&#39;: Obstype instance of wind_direction, &#39;co2&#39;: Obstype instance of co2}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Test if the obstype is of the correct class.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Obstype</span><span class="p">,</span> <span class="n">Obstype_class</span><span class="p">):</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Obstype</span><span class="si">}</span><span class="s2"> is not an instance of metobs_toolkit.obstypes.Obstype.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Test if the obsname is already in use</span>
+        <span class="k">if</span> <span class="n">Obstype</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Obstype</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is already a known observation type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">Obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Update the known obstypes</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding </span><span class="si">{</span><span class="n">Obstype</span><span class="si">}</span><span class="s2"> to the list of knonw observation types.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">Obstype</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Obstype</span></div>
+
+
+<div class="viewcode-block" id="Dataset.add_new_unit">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.add_new_unit.html#metobs_toolkit.Dataset.add_new_unit">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_new_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstype</span><span class="p">,</span> <span class="n">new_unit</span><span class="p">,</span> <span class="n">conversion_expression</span><span class="o">=</span><span class="p">[]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new unit to a known observation type.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obstype : str</span>
+<span class="sd">            The observation type to add the new unit to.</span>
+<span class="sd">        new_unit : str</span>
+<span class="sd">            The new unit name.</span>
+<span class="sd">        conversion_expression : list or str, optional</span>
+<span class="sd">            The conversion expression to the standard unit of the observation</span>
+<span class="sd">            type. The expression is a (list of) strings with simple algebraic</span>
+<span class="sd">            operations, where x represent the value in the new unit, and the</span>
+<span class="sd">            result is the value in the standard unit. Two examples for</span>
+<span class="sd">            temperature (with a standard unit in Celsius):</span>
+
+<span class="sd">                [&quot;x - 273.15&quot;] #if the new_unit is Kelvin</span>
+<span class="sd">                [&quot;x-32.0&quot;, &quot;x/1.8&quot;] #if the new unit is Farenheit</span>
+
+<span class="sd">            The default is [].</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Obstype: The Obstype class.</span>
+<span class="sd">        add_new_observationtype : Add a new observationtype to the Dataset.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        Create an empty ``Dataset``.</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+
+<span class="sd">        There are default Observationtypes present in all Datasets.</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.obstypes</span>
+<span class="sd">        {&#39;temp&#39;: Obstype instance of temp,</span>
+<span class="sd">         &#39;humidity&#39;: Obstype instance of humidity,</span>
+<span class="sd">         &#39;radiation_temp&#39;: Obstype instance of radiation_temp,</span>
+<span class="sd">         &#39;pressure&#39;: Obstype instance of pressure,</span>
+<span class="sd">         &#39;pressure_at_sea_level&#39;: Obstype instance of pressure_at_sea_level,</span>
+<span class="sd">         &#39;precip&#39;: Obstype instance of precip,</span>
+<span class="sd">         &#39;precip_sum&#39;: Obstype instance of precip_sum,</span>
+<span class="sd">         &#39;wind_speed&#39;: Obstype instance of wind_speed,</span>
+<span class="sd">         &#39;wind_gust&#39;: Obstype instance of wind_gust,</span>
+<span class="sd">         &#39;wind_direction&#39;: Obstype instance of wind_direction}</span>
+
+<span class="sd">        We can add a new unit to an existing obstype by using ``add_new_unit()``</span>
+<span class="sd">        and specifying how it relates to the standard unit.</span>
+
+<span class="sd">        You can get the standard unit of an Obsytype by calling the ``get_standard_unit()`` on it.</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.obstypes[&#39;temp&#39;].get_standard_unit()</span>
+<span class="sd">        &#39;Celsius&#39;</span>
+
+<span class="sd">        To see all knonw units for an Obstype, use the `get_all_units()` on it.</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.obstypes[&#39;temp&#39;].get_all_units()</span>
+<span class="sd">        [&#39;Celsius&#39;, &#39;Farenheit&#39;, &#39;Kelvin&#39;]</span>
+
+<span class="sd">        Now we add a new unit</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.add_new_unit(obstype = &#39;temp&#39;,</span>
+<span class="sd">        ...                      new_unit= &#39;your_new_unit&#39;,</span>
+<span class="sd">        ...                      conversion_expression = [&#39;x+3&#39;, &#39;x * 2&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; # The conversion means: 1 [your_new_unit] = (1 + 3) * 2 [°C]</span>
+<span class="sd">        &gt;&gt;&gt; dataset.obstypes[&#39;temp&#39;].get_info()</span>
+<span class="sd">        temp observation with:</span>
+<span class="sd">         * standard unit: Celsius</span>
+<span class="sd">         * data column as Temperatuur in Celsius</span>
+<span class="sd">         * known units and aliases: {&#39;Celsius&#39;: [&#39;celsius&#39;, &#39;°C&#39;, &#39;°c&#39;, &#39;celcius&#39;, &#39;Celcius&#39;], &#39;Kelvin&#39;: [&#39;K&#39;, &#39;kelvin&#39;], &#39;Farenheit&#39;: [&#39;farenheit&#39;], &#39;your_new_unit&#39;: []}</span>
+<span class="sd">         * description: 2mT passive</span>
+<span class="sd">         * conversions to known units: {&#39;Kelvin&#39;: [&#39;x - 273.15&#39;], &#39;Farenheit&#39;: [&#39;x-32.0&#39;, &#39;x/1.8&#39;], &#39;your_new_unit&#39;: [&#39;x+3&#39;, &#39;x * 2&#39;]}</span>
+<span class="sd">         * originates from data column: Temperatuur with Celsius as native unit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># test if observation is present</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">obstype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obstype</span><span class="si">}</span><span class="s2"> is not a known obstype! No unit can be added.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># check if the unit is already present</span>
+        <span class="n">is_present</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">test_if_unit_is_known</span><span class="p">(</span><span class="n">new_unit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_present</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_unit</span><span class="si">}</span><span class="s2"> is already a known unit of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obstype</span><span class="p">]</span><span class="o">.</span><span class="n">add_unit</span><span class="p">(</span>
+            <span class="n">unit_name</span><span class="o">=</span><span class="n">new_unit</span><span class="p">,</span> <span class="n">conversion</span><span class="o">=</span><span class="n">conversion_expression</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.show_settings">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.show_settings.html#metobs_toolkit.Dataset.show_settings">[docs]</a>
+    <span class="k">def</span> <span class="nf">show_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Show detailed information of the stored Settings.</span>
+
+<span class="sd">        A function that prints out all the settings, structured per thematic.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_info: Print out basic info of the Dataset.</span>
+<span class="sd">        Settings: Settings class</span>
+<span class="sd">        Datset.settings: The attribute holding the `Settings`</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        Create an empty ``Dataset``.</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+
+<span class="sd">        Print out all the current (in this case the default) settings.</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.show_settings()</span>
+<span class="sd">        All settings:...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Dataset.get_station">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.get_station.html#metobs_toolkit.Dataset.get_station">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stationname</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter out one station of the Dataset.</span>
+
+<span class="sd">        Extract a metobs_toolkit.Station object from the dataset by name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stationname : str</span>
+<span class="sd">            The name of the station.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        station: metobs_toolkit.Station</span>
+<span class="sd">            The station object.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Station: The Station class</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Create a ``Dataset`` and fill it with data (and metadata).</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; #Create your Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+
+<span class="sd">        To see which stations are present in your `Dataset`, you can use the</span>
+<span class="sd">        metadata or by using the &#39;name&#39; index of the records:</span>
+
+<span class="sd">        &gt;&gt;&gt; #Using the metadata (index):</span>
+<span class="sd">        &gt;&gt;&gt; dataset.metadf.index</span>
+<span class="sd">        Index([&#39;vlinder01&#39;, &#39;vlinder02&#39;, &#39;vlinder03&#39;, &#39;vlinder04&#39;, &#39;vlinder05&#39;,</span>
+<span class="sd">               &#39;vlinder06&#39;, &#39;vlinder07&#39;, &#39;vlinder08&#39;, &#39;vlinder09&#39;, &#39;vlinder10&#39;,</span>
+<span class="sd">               &#39;vlinder11&#39;, &#39;vlinder12&#39;, &#39;vlinder13&#39;, &#39;vlinder14&#39;, &#39;vlinder15&#39;,</span>
+<span class="sd">               &#39;vlinder16&#39;, &#39;vlinder17&#39;, &#39;vlinder18&#39;, &#39;vlinder19&#39;, &#39;vlinder20&#39;,</span>
+<span class="sd">               &#39;vlinder21&#39;, &#39;vlinder22&#39;, &#39;vlinder23&#39;, &#39;vlinder24&#39;, &#39;vlinder25&#39;,</span>
+<span class="sd">               &#39;vlinder26&#39;, &#39;vlinder27&#39;, &#39;vlinder28&#39;],</span>
+<span class="sd">              dtype=&#39;object&#39;, name=&#39;name&#39;)</span>
+
+<span class="sd">        &gt;&gt;&gt; #Using the records</span>
+<span class="sd">        &gt;&gt;&gt; dataset.df.index.get_level_values(&#39;name&#39;).unique()</span>
+<span class="sd">        Index([&#39;vlinder01&#39;, &#39;vlinder02&#39;, &#39;vlinder03&#39;, &#39;vlinder04&#39;, &#39;vlinder05&#39;,</span>
+<span class="sd">               &#39;vlinder06&#39;, &#39;vlinder07&#39;, &#39;vlinder08&#39;, &#39;vlinder09&#39;, &#39;vlinder10&#39;,</span>
+<span class="sd">               &#39;vlinder11&#39;, &#39;vlinder12&#39;, &#39;vlinder13&#39;, &#39;vlinder14&#39;, &#39;vlinder15&#39;,</span>
+<span class="sd">               &#39;vlinder16&#39;, &#39;vlinder17&#39;, &#39;vlinder18&#39;, &#39;vlinder19&#39;, &#39;vlinder20&#39;,</span>
+<span class="sd">               &#39;vlinder21&#39;, &#39;vlinder22&#39;, &#39;vlinder23&#39;, &#39;vlinder24&#39;, &#39;vlinder25&#39;,</span>
+<span class="sd">               &#39;vlinder26&#39;, &#39;vlinder27&#39;, &#39;vlinder28&#39;],</span>
+<span class="sd">              dtype=&#39;object&#39;, name=&#39;name&#39;)</span>
+
+<span class="sd">        Now we can select a station by name</span>
+
+<span class="sd">        &gt;&gt;&gt; favorite_station = dataset.get_station(&#39;vlinder05&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(favorite_station)</span>
+<span class="sd">        Station instance containing:</span>
+<span class="sd">             *1 stations</span>
+<span class="sd">             *[&#39;humidity&#39;, &#39;temp&#39;, &#39;wind_direction&#39;, &#39;wind_speed&#39;] observation types present</span>
+<span class="sd">             *17280 observation records (not Nan&#39;s)</span>
+<span class="sd">             *0 records labeled as outliers</span>
+<span class="sd">             *0 gaps</span>
+<span class="sd">             *records range: 2022-09-01 00:00:00+00:00 --&gt; 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)</span>
+<span class="sd">             *time zone of the records: UTC</span>
+<span class="sd">             *Known GEE datasets for:  [&#39;lcz&#39;, &#39;altitude&#39;, &#39;worldcover&#39;, &#39;ERA5-land&#39;]</span>
+<span class="sd">             *Coordinates are available for all stations.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">metobs_toolkit.station</span> <span class="kn">import</span> <span class="n">Station</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extract </span><span class="si">{</span><span class="n">stationname</span><span class="si">}</span><span class="s2"> from dataset.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetobsDatasetError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cannot get station </span><span class="si">{</span><span class="n">stationname</span><span class="si">}</span><span class="s2"> from an empty Dataset.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># important: make sure all station attributes are of the same time as dataset.</span>
+        <span class="c1"># so that all methods can be inherited.</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sta_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">stationname</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">sta_metadf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">stationname</span><span class="p">]</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+            <span class="n">sta_metadf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stationname</span><span class="si">}</span><span class="s2"> not found in the dataset.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sta_outliers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outliersdf</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span>
+                <span class="n">stationname</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">sta_outliers</span> <span class="o">=</span> <span class="n">empty_outliers_df</span><span class="p">()</span>
+
+        <span class="n">sta_gaps</span> <span class="o">=</span> <span class="n">get_station_gaps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">,</span> <span class="n">stationname</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Station</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">stationname</span><span class="p">,</span>
+            <span class="n">df</span><span class="o">=</span><span class="n">sta_df</span><span class="p">,</span>
+            <span class="n">outliersdf</span><span class="o">=</span><span class="n">sta_outliers</span><span class="p">,</span>
+            <span class="n">gaps</span><span class="o">=</span><span class="n">sta_gaps</span><span class="p">,</span>
+            <span class="n">gee_datasets</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gee_datasets</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="n">sta_metadf</span><span class="p">,</span>
+            <span class="n">obstypes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">,</span>
+            <span class="n">template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="p">,</span>
+            <span class="n">settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span>
+            <span class="n">_applied_qc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_applied_qc</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.write_to_csv">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.write_to_csv.html#metobs_toolkit.Dataset.write_to_csv">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_to_csv</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data_file</span><span class="p">,</span>
+        <span class="n">metadata_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_outliers_as_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">kwargs_to_csv</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write Dataset to a csv file.</span>
+
+<span class="sd">        Write all present records to a file. This is done by combining the</span>
+<span class="sd">        good records, outliers and gaps into one dataframe. An extra</span>
+<span class="sd">        &#39;label-column&#39;, for each observationtype is added.</span>
+
+<span class="sd">        The metadata can be written to a seperate file.</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data_file : str or None</span>
+<span class="sd">            The path to a csv location to write the data to. If the path does</span>
+<span class="sd">            not have an &quot;.csv&quot; extension, it will be added. If None, no data is</span>
+<span class="sd">            written.</span>
+<span class="sd">        metadata_file : str or None, optional</span>
+<span class="sd">            The path to a csv location to write the metadata to. If the path does</span>
+<span class="sd">            not have an &quot;.csv&quot; extension, it will be added. If None, no metadata is</span>
+<span class="sd">            written.</span>
+<span class="sd">        overwrite : bool, optional</span>
+<span class="sd">            If True, the target files will be written even if they already exist.</span>
+<span class="sd">            The default is False.</span>
+<span class="sd">        all_outliers_as_nan : bool, optional</span>
+<span class="sd">            If True, all records flagged as outlier are represented by Nan.</span>
+<span class="sd">            The default is False.</span>
+<span class="sd">        kwargs_to_csv : dict, optional</span>
+<span class="sd">            Kwargs that are passed to the pandas.DataFrame.to_csv() method.</span>
+<span class="sd">            The default is {&#39;index&#39;: False}.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        save_dataset: Save a dataset as a pickle file.</span>
+
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Create a ``Dataset`` and fill it with data (and metadata).</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; #Create your Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+
+<span class="sd">        Now we will create a file (.csv) with all records and a file with the metadata.</span>
+
+<span class="sd">        &gt;&gt;&gt; # create paths to target files</span>
+<span class="sd">        &gt;&gt;&gt; import os</span>
+<span class="sd">        &gt;&gt;&gt; target_data_file = os.path.join(os.getcwd(), &#39;your_data.csv&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; target_metadatafile = os.path.join(os.getcwd(), &#39;your_metadata.csv&#39;)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; dataset.write_to_csv(data_file=target_data_file,</span>
+<span class="sd">        ...                      metadata_file=target_metadatafile,</span>
+<span class="sd">        ...                      overwrite=True)</span>
+<span class="sd">        write to file: /home/.../your_data.csv</span>
+<span class="sd">        write to file: /home/.../your_metadata.csv</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Writing the dataset to a csv file&quot;</span><span class="p">)</span>
+
+        <span class="c1"># check path to target files</span>
+        <span class="k">if</span> <span class="n">data_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># do not write data</span>
+            <span class="n">write_data</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">write_data</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># make sure it has a .csv filetype extension</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">data_file</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">):</span>
+                <span class="c1"># add .csv</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">data_file</span><span class="si">}</span><span class="s1"> has no &quot;.csv&quot; extension, this will be added to the path.&#39;</span>
+                <span class="p">)</span>
+                <span class="n">data_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data_file</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+            <span class="c1"># check if path exist</span>
+            <span class="k">if</span> <span class="n">_does_trg_file_exist</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">data_file</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">MetobsWritingError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data_file</span><span class="si">}</span><span class="s2"> already exists. Use overwrite=True, or change the path.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_remove_file</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">data_file</span><span class="p">))</span>
+
+        <span class="c1"># check path to target files</span>
+        <span class="k">if</span> <span class="n">metadata_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># do not write data</span>
+            <span class="n">write_metadata</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">write_metadata</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">):</span>
+                <span class="c1"># add .csv</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">metadata_file</span><span class="si">}</span><span class="s1"> has no &quot;.csv&quot; extension, this will be added to the path.&#39;</span>
+                <span class="p">)</span>
+                <span class="n">metadata_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metadata_file</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+            <span class="c1"># check if path exist</span>
+            <span class="k">if</span> <span class="n">_does_trg_file_exist</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">MetobsWritingError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metadata_file</span><span class="si">}</span><span class="s2"> already exists. Use overwrite=True, or change the path.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_remove_file</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">write_data</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="ow">not</span> <span class="n">write_metadata</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MetobsDatasetError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cannot write data to a file since no target datafile or target metadatafile is given.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># =============================================================================</span>
+        <span class="c1"># Write data</span>
+        <span class="c1"># =============================================================================</span>
+
+        <span class="k">if</span> <span class="n">write_data</span><span class="p">:</span>
+            <span class="n">combdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_full_status_df</span><span class="p">()</span>
+
+            <span class="n">present_obs</span> <span class="o">=</span> <span class="n">combdf</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+            <span class="c1"># Too a single columnindex</span>
+            <span class="n">combdf</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">combdf</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">)</span>
+
+            <span class="c1"># drop the toolkit representation columns</span>
+            <span class="n">combdf</span> <span class="o">=</span> <span class="n">combdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">col</span>
+                    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">combdf</span><span class="o">.</span><span class="n">columns</span>
+                    <span class="k">if</span> <span class="n">col</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_toolkit_representation&quot;</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">ob</span> <span class="ow">in</span> <span class="n">present_obs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">all_outliers_as_nan</span><span class="p">:</span>
+                    <span class="n">combdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">combdf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ob</span><span class="si">}</span><span class="s2">_label&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ob</span><span class="si">}</span><span class="s2">_value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="c1"># write to file</span>
+            <span class="n">write_df_to_csv</span><span class="p">(</span>
+                <span class="n">df</span><span class="o">=</span><span class="n">combdf</span><span class="p">,</span>
+                <span class="n">trgfile</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">data_file</span><span class="p">),</span>
+                <span class="n">to_csv_kwargs</span><span class="o">=</span><span class="n">kwargs_to_csv</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">write_metadata</span><span class="p">:</span>
+            <span class="n">metadf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span>
+
+            <span class="c1"># add present obstype info to the metadf</span>
+            <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;obstype&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+                <span class="n">obstype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">[</span><span class="n">obs</span><span class="p">]</span>
+                <span class="n">metadf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obs</span><span class="si">}</span><span class="s2">_unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span><span class="o">.</span><span class="n">get_standard_unit</span><span class="p">()</span>
+                <span class="n">metadf</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obs</span><span class="si">}</span><span class="s2">_description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obstype</span><span class="o">.</span><span class="n">get_description</span><span class="p">()</span>
+
+            <span class="n">write_df_to_csv</span><span class="p">(</span>
+                <span class="n">df</span><span class="o">=</span><span class="n">metadf</span><span class="p">,</span>
+                <span class="n">trgfile</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">),</span>
+                <span class="n">to_csv_kwargs</span><span class="o">=</span><span class="n">kwargs_to_csv</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="Dataset.coarsen_time_resolution">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.coarsen_time_resolution.html#metobs_toolkit.Dataset.coarsen_time_resolution">[docs]</a>
+    <span class="k">def</span> <span class="nf">coarsen_time_resolution</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;60min&quot;</span><span class="p">,</span>
+        <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+        <span class="n">timestamp_shift_tolerance</span><span class="o">=</span><span class="s2">&quot;4min&quot;</span><span class="p">,</span>
+        <span class="c1"># limit=1,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resample the observations to coarser timeresolution.</span>
+
+<span class="sd">        This method is used to convert the time resolution of the Dataset. This</span>
+<span class="sd">        will affect the records (.df), the outliers (.outliersdf) and gaps (.gaps).</span>
+
+
+
+<span class="sd">        The assumed dataset resolution (stored in the metadf attribute) will be</span>
+<span class="sd">        updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        origin : datetime.datetime, optional</span>
+<span class="sd">            Define the origin (first timestamp) for the obervations. The origin</span>
+<span class="sd">            is timezone naive, and is assumed to have the same timezone as the</span>
+<span class="sd">            obervations. If None, the earliest occuring timestamp is used as</span>
+<span class="sd">            origin. The default is None.</span>
+<span class="sd">        freq : DateOffset, Timedelta or str, optional</span>
+<span class="sd">            The target frequency to coarsen all records to.</span>
+<span class="sd">            Ex: &#39;15min&#39; is 15 minutes, &#39;1h&#39;, is one hour. The default is &#39;60min&#39;.</span>
+<span class="sd">        direction : &#39;backward&#39;, &#39;forward&#39;, or &#39;nearest&#39;</span>
+<span class="sd">            Whether to search for prior, subsequent, or closest matches for</span>
+<span class="sd">            mapping to ideal timestamps. The default is &#39;nearest&#39;.</span>
+<span class="sd">        timestamp_shift_tolerance : Timedelta or str</span>
+<span class="sd">            The tolerance string or object representing the maximum translation</span>
+<span class="sd">            (in time) to map a timestamp to a target timestamp.</span>
+<span class="sd">            Ex: &#39;5min&#39; is 5 minutes. The default is &#39;4min&#39;.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ------</span>
+<span class="sd">        This method is actually a call to `Dataset.sync_records()` with a fixed</span>
+<span class="sd">        frequency and a zero-tolerance on frequency shift.</span>
+
+<span class="sd">        Warning</span>
+<span class="sd">        ---------</span>
+<span class="sd">        Since the gaps depend on the records frequency and origin, all gaps are</span>
+<span class="sd">        removed and re-located. All progress in gap(filling) will be lost.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        -------</span>
+<span class="sd">        It is technically possible to increase the time resolution. This will</span>
+<span class="sd">        will hower does not result in an information increase, more gaps are</span>
+<span class="sd">        created instead.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        sync_records: Syncronize records in time.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Create a ``Dataset`` and fill it with data (and metadata).</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; #Create your Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+
+<span class="sd">        When importing a data from file, a frequency assumtion is made for</span>
+<span class="sd">        each station (seperatly) in the Dataset. This is stored in the `metadf`</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.metadf[&#39;dataset_resolution&#39;]</span>
+<span class="sd">        name</span>
+<span class="sd">        vlinder01   0 days 00:05:00</span>
+<span class="sd">        vlinder02   0 days 00:05:00</span>
+<span class="sd">        vlinder03   0 days 00:05:00</span>
+<span class="sd">        vlinder04   0 days 00:05:00</span>
+<span class="sd">        vlinder05   0 days 00:05:00</span>
+<span class="sd">                          ...</span>
+<span class="sd">        vlinder24   0 days 00:05:00</span>
+<span class="sd">        vlinder25   0 days 00:05:00</span>
+<span class="sd">        vlinder26   0 days 00:05:00</span>
+<span class="sd">        vlinder27   0 days 00:05:00</span>
+<span class="sd">        vlinder28   0 days 00:05:00</span>
+<span class="sd">        Name: dataset_resolution, Length: 28, dtype: timedelta64[ns]</span>
+
+<span class="sd">        We can coarsen the time resolution to 15 minutes with a maximum</span>
+<span class="sd">        allowd timestamp shift of 4 minutes.</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.coarsen_time_resolution(freq=&#39;15min&#39;,</span>
+<span class="sd">        ...                                 timestamp_shift_tolerance=&#39;4min&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; dataset.metadf[&#39;dataset_resolution&#39;]</span>
+<span class="sd">        name</span>
+<span class="sd">        vlinder01   0 days 00:15:00</span>
+<span class="sd">        vlinder02   0 days 00:15:00</span>
+<span class="sd">        vlinder03   0 days 00:15:00</span>
+<span class="sd">        vlinder04   0 days 00:15:00</span>
+<span class="sd">        vlinder05   0 days 00:15:00</span>
+<span class="sd">                          ...</span>
+<span class="sd">        vlinder24   0 days 00:15:00</span>
+<span class="sd">        vlinder25   0 days 00:15:00</span>
+<span class="sd">        vlinder26   0 days 00:15:00</span>
+<span class="sd">        vlinder27   0 days 00:15:00</span>
+<span class="sd">        vlinder28   0 days 00:15:00</span>
+<span class="sd">        Name: dataset_resolution, Length: 28, dtype: timedelta64[ns]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># coarsening/resamplin is the same as sync with a fixed frequency.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sync_records</span><span class="p">(</span>
+            <span class="n">timestamp_shift_tolerance</span><span class="o">=</span><span class="n">timestamp_shift_tolerance</span><span class="p">,</span>
+            <span class="n">freq_shift_tolerance</span><span class="o">=</span><span class="s2">&quot;0min&quot;</span><span class="p">,</span>
+            <span class="n">fixed_origin</span><span class="o">=</span><span class="n">origin</span><span class="p">,</span>
+            <span class="n">fixed_enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">fixed_freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span>  <span class="c1"># fixed freq</span>
+            <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.sync_records">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.sync_records.html#metobs_toolkit.Dataset.sync_records">[docs]</a>
+    <span class="k">def</span> <span class="nf">sync_records</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">timestamp_shift_tolerance</span><span class="o">=</span><span class="s2">&quot;2min&quot;</span><span class="p">,</span>
+        <span class="n">freq_shift_tolerance</span><span class="o">=</span><span class="s2">&quot;1min&quot;</span><span class="p">,</span>
+        <span class="n">fixed_origin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fixed_enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fixed_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Synchronize observation records in time.</span>
+
+<span class="sd">        Synchronisation is shifting timestamps by litle, so that the same</span>
+<span class="sd">        timestamps are found accros mulitple stations. The maximum allowd shift</span>
+<span class="sd">        of a timestamp is set by timestamp_shift_tolerance.</span>
+
+<span class="sd">        Syncronized observations must have the same frequency. This method will</span>
+<span class="sd">        therefore try to alter the frequency a bit, so is in sync with other</span>
+<span class="sd">        observations (from other stations).</span>
+
+<span class="sd">        The timestamp related columns in the Dataset.metadf are updated, and</span>
+<span class="sd">        gaps are reconstructed! All current info stored in the gaps will be lost.</span>
+
+<span class="sd">        In pracktice, the syncronisation is applied at the start your workflow</span>
+<span class="sd">        on datasets with irregular or unsynchronized timestamps.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        timestamp_shift_tolerance : str or Timedelta, optional</span>
+<span class="sd">            The tolerance string or object representing the maximum translation</span>
+<span class="sd">            in time for a timestamp. The default is &quot;2min&quot;.</span>
+<span class="sd">        freq_shift_tolerance : str or Timedelta, optional,</span>
+<span class="sd">            The tolerance string or object representing the maximum translation</span>
+<span class="sd">            in time for a frequency. The default is &quot;1min&quot;.</span>
+<span class="sd">        fixed_origin : datetime.datetime, optional</span>
+<span class="sd">            Define the origin (first timestamp) for the obervations. This is</span>
+<span class="sd">            applied on all the stations. If the origin is timezone naive, it is</span>
+<span class="sd">            assumed to have the same timezone as the obervations. If None, the</span>
+<span class="sd">            (shifted) earliest occuring timestamp is used as origin with. The</span>
+<span class="sd">            default is None.</span>
+<span class="sd">        fixed_enddt : datetime.datetime, optional</span>
+<span class="sd">            Define the latest timestamp for the obervations. This is</span>
+<span class="sd">            applied on all the stations. If the fixed_enddt is timezone naive,</span>
+<span class="sd">            it is assumed to have the same timezone as the obervations. If</span>
+<span class="sd">            None, the (shifted) latest occuring timestamp is used as enddt</span>
+<span class="sd">            The default is None.</span>
+<span class="sd">        fixed_freq : str or Timedelta, optional,</span>
+<span class="sd">            The target frequency which is applied on all records. If None,</span>
+<span class="sd">            (a simplyfied version of the) present frequency is used. The default is None.</span>
+<span class="sd">        direction : &#39;backward&#39;, &#39;forward&#39;, or &#39;nearest&#39;</span>
+<span class="sd">            Whether to search for prior, subsequent, or closest matches for</span>
+<span class="sd">            mapping to ideal timestamps. The default is &#39;nearest&#39;.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        --------</span>
+<span class="sd">        Keep in mind that this method will overwrite the df, outliersdf and gaps.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        coarsen_time_resolution: To coarsen the time resolution to a fixed freq.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Create a ``Dataset`` and fill it with data (and metadata).</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; #Create your Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset() #empty Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+
+<span class="sd">        When importing a data from file, a frequency, origin and enddt assumtion</span>
+<span class="sd">        is made for each station (seperatly) in the Dataset. This is stored in the `metadf`.</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.metadf[[&#39;dataset_resolution&#39;, &#39;dt_start&#39;, &#39;dt_end&#39;]].head()</span>
+<span class="sd">                  dataset_resolution                  dt_start                    dt_end</span>
+<span class="sd">        name</span>
+<span class="sd">        vlinder01    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00</span>
+<span class="sd">        vlinder02    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00</span>
+<span class="sd">        vlinder03    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00</span>
+<span class="sd">        vlinder04    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00</span>
+<span class="sd">        vlinder05    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00</span>
+
+<span class="sd">        When you have irregular/unsynchronized timestamp, you can sync them</span>
+
+<span class="sd">        &gt;&gt;&gt; dataset.sync_records(</span>
+<span class="sd">        ...     timestamp_shift_tolerance=&quot;7min&quot;,</span>
+<span class="sd">        ...     freq_shift_tolerance=&quot;4min&quot;)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># checking arguments</span>
+        <span class="n">timestamp_shift_tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timedelta_arg_check</span><span class="p">(</span><span class="n">timestamp_shift_tolerance</span><span class="p">)</span>
+        <span class="n">freq_shift_tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timedelta_arg_check</span><span class="p">(</span><span class="n">freq_shift_tolerance</span><span class="p">)</span>
+        <span class="n">fixed_origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datetime_arg_check</span><span class="p">(</span><span class="n">fixed_origin</span><span class="p">)</span>
+        <span class="n">fixed_enddt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datetime_arg_check</span><span class="p">(</span><span class="n">fixed_enddt</span><span class="p">)</span>
+        <span class="n">fixed_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timedelta_arg_check</span><span class="p">(</span><span class="n">fixed_freq</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Syncronizing records&quot;</span><span class="p">)</span>
+        <span class="c1"># 1. find common freqencies</span>
+
+        <span class="c1"># TODO: This method is technically not the most suitable method, but it is</span>
+        <span class="c1"># straight forward and will work on many cases.</span>
+
+        <span class="c1"># The ideal method is to create groups base on the dataset resolution (unsimplified),</span>
+        <span class="c1"># grouping by target simplified frequencies within the tolerance. It may sound</span>
+        <span class="c1"># easy, but it is not straight forward to implement IMO</span>
+        <span class="k">if</span> <span class="n">fixed_freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">simple_freqs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">fixed_freq</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">simple_freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;dataset_resolution&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_simplify_time</span><span class="p">(</span>
+                    <span class="n">time</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">max_simplyfi_error</span><span class="o">=</span><span class="n">freq_shift_tolerance</span><span class="p">,</span>
+                    <span class="n">zero_protection</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simplified target resolutions: </span><span class="si">{</span><span class="n">simple_freqs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># 2. find common origins</span>
+        <span class="k">if</span> <span class="n">fixed_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">simple_origins</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">fixed_origin</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">simple_origins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;dt_start&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_simplify_time</span><span class="p">(</span>
+                    <span class="n">time</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">max_simplyfi_error</span><span class="o">=</span><span class="n">timestamp_shift_tolerance</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simplified target origins: </span><span class="si">{</span><span class="n">simple_origins</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 3. find common end timestamps</span>
+        <span class="k">if</span> <span class="n">fixed_enddt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">simple_ends</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">fixed_enddt</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="o">.</span><span class="n">index</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">simple_ends</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;dt_end&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_simplify_time</span><span class="p">(</span>
+                    <span class="n">time</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">max_simplyfi_error</span><span class="o">=</span><span class="n">timestamp_shift_tolerance</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simplified target end timestamps: </span><span class="si">{</span><span class="n">simple_ends</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># 4. Update the metadata, and restructure the records to these targets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;dataset_resolution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">simple_freqs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;dt_start&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">simple_origins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">[</span><span class="s2">&quot;dt_end&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">simple_ends</span>
+
+        <span class="c1"># Convert the records to clean equidistanced records for both the df and outliersdf</span>
+        <span class="c1"># note: The outliers are taken care of as well</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">construct_equi_spaced_records</span><span class="p">(</span>
+            <span class="n">timestamp_mapping_tolerance</span><span class="o">=</span><span class="n">timestamp_shift_tolerance</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span>
+        <span class="p">)</span>
+
+        <span class="c1"># better save than sorry: update metadf automatically</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_timestamps_info</span><span class="p">(</span>
+            <span class="n">freq_estimation_method</span><span class="o">=</span><span class="s2">&quot;highest&quot;</span><span class="p">,</span>  <span class="c1"># does not matter on perfect frequency</span>
+            <span class="n">freq_simplify_tolerance</span><span class="o">=</span><span class="s2">&quot;0min&quot;</span><span class="p">,</span>  <span class="c1"># no simplification</span>
+            <span class="n">origin_simplify_tolerance</span><span class="o">=</span><span class="s2">&quot;0min&quot;</span><span class="p">,</span>  <span class="c1"># no simplification</span>
+        <span class="p">)</span>
+
+        <span class="c1"># # Find gaps on Import resolution</span>
+        <span class="n">gaps</span> <span class="o">=</span> <span class="n">find_gaps</span><span class="p">(</span>
+            <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">,</span>
+            <span class="n">metadf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadf</span><span class="p">,</span>
+            <span class="n">outliersdf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outliersdf</span><span class="p">,</span>
+            <span class="n">obstypes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_gaps</span><span class="p">(</span><span class="n">gaps</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Dataset.import_data_from_file">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.Dataset.import_data_from_file.html#metobs_toolkit.Dataset.import_data_from_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">import_data_from_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_data_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">input_metadata_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">template_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">freq_estimation_method</span><span class="o">=</span><span class="s2">&quot;highest&quot;</span><span class="p">,</span>
+        <span class="n">freq_estimation_simplify_tolerance</span><span class="o">=</span><span class="s2">&quot;2min&quot;</span><span class="p">,</span>
+        <span class="n">origin_simplify_tolerance</span><span class="o">=</span><span class="s2">&quot;5min&quot;</span><span class="p">,</span>
+        <span class="n">timestamp_tolerance</span><span class="o">=</span><span class="s2">&quot;4min&quot;</span><span class="p">,</span>
+        <span class="n">kwargs_data_read</span><span class="o">=</span><span class="p">{},</span>
+        <span class="n">kwargs_metadata_read</span><span class="o">=</span><span class="p">{},</span>
+        <span class="n">templatefile_is_url</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read observations from a csv file and fill the Dataset.</span>
+
+
+<span class="sd">        The input data (and metadata) are interpreted by using a template</span>
+<span class="sd">        (json file).</span>
+
+<span class="sd">        In order to locate gaps, an ideal set of timestamps is exptected. This</span>
+<span class="sd">        set of timestamps is computed for each station seperatly by:</span>
+
+<span class="sd">         * Assuming a constant frequency. This frequency is estimated by using</span>
+<span class="sd">           a freq_estimation_method. If multiple observationtypes are present,</span>
+<span class="sd">           the assumed frequency is the highest of estimated frequency among</span>
+<span class="sd">           the differnt observationtypes. To simplify the estimated frequency a</span>
+<span class="sd">           freq_estimation_simplify_error can be specified.</span>
+<span class="sd">         * A start timestamp (origin) is found for each station. If multiple</span>
+<span class="sd">           observationtypes are present,</span>
+<span class="sd">           the start timestamp is the first timestamp among</span>
+<span class="sd">           the different observationtypes. The start</span>
+<span class="sd">           timestamp can be simplified by specifying a origin_simplify_tolerance.</span>
+<span class="sd">         * The last timestamp is found for each station by taking the timestamp</span>
+<span class="sd">           which is closest and smaller then the latest timestamp found of a station,</span>
+<span class="sd">           and is an element of the ideal set of timestamps.</span>
+
+<span class="sd">        Each present observation record is linked to a timestamp of this ideal set,</span>
+<span class="sd">        by using a &#39;nearest&#39; merge. If the timediffernce is smaller than the</span>
+<span class="sd">        timestamp_tolerance, the ideal timestamp is used. Else, the timestamp</span>
+<span class="sd">        will be interpreted as a (part of a) gap.</span>
+
+
+<span class="sd">        The Dataset attributes are set and the following checks are executed:</span>
+<span class="sd">                * Duplicate check</span>
+<span class="sd">                * Invalid input check</span>
+<span class="sd">                * Find gaps</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_data_file : string, optional</span>
+<span class="sd">            Path to the input data file with observations. If None, the input</span>
+<span class="sd">            data path in the settings is used. If an provided, the</span>
+<span class="sd">            template_file must be provided as well. The default is None.</span>
+<span class="sd">        input_metadata_file : string, optional</span>
+<span class="sd">            Path to the input metadata file. If None, the input metadata path</span>
+<span class="sd">            in the settings is used. The default is None</span>
+<span class="sd">        template_file : string, optional</span>
+<span class="sd">            Path to the template (json) file to be used on the observations</span>
+<span class="sd">            and metadata. If None, the template path in the settings is used.</span>
+<span class="sd">            If provided, the input_data_file must be provided as well. The</span>
+<span class="sd">            default is None.</span>
+<span class="sd">        freq_estimation_method : &#39;highest&#39; or &#39;median&#39;, optional</span>
+<span class="sd">            Select wich method to use for the frequency estimation. If</span>
+<span class="sd">            &#39;highest&#39;, the highest apearing frequency is used. If &#39;median&#39;, the</span>
+<span class="sd">            median of the apearing frequencies is used. The default is &#39;highest&#39;.</span>
+<span class="sd">        freq_estimation_simplify_tolerance : Timedelta or str, optional</span>
+<span class="sd">            The tolerance string or object representing the maximum translation</span>
+<span class="sd">            in time to form a simplified frequency estimation.</span>
+<span class="sd">            Ex: &#39;5min&#39; is 5 minutes, &#39;1H&#39;, is one hour. A zero-tolerance (thus no</span>
+<span class="sd">            simplification) can be set by &#39;0min&#39;. The default is &#39;2min&#39; (2 minutes).</span>
+<span class="sd">        origin_simplify_tolerance : Timedelta or str, optional</span>
+<span class="sd">            The tolerance string or object representing the maximum translation</span>
+<span class="sd">            in time to apply on the start timestamp to create a simplified timestamp.</span>
+<span class="sd">            Ex: &#39;5min&#39; is 5 minutes, &#39;1H&#39;, is one hour. A zero-tolerance (thus no</span>
+<span class="sd">            simplification) can be set by &#39;0min&#39;. The default is &#39;5min&#39; (5 minutes).</span>
+<span class="sd">        timestamp_tolerance : Timedelta or str, optional</span>
+<span class="sd">            The tolerance string or object representing the maximum translation</span>
+<span class="sd">            in time to apply on a timestamp for conversion to an ideal set of timestamps.</span>
+<span class="sd">            Ex: &#39;5min&#39; is 5 minutes, &#39;1H&#39;, is one hour. A zero-tolerance (thus no</span>
+<span class="sd">            simplification) can be set by &#39;0min&#39;. The default is &#39;4min&#39; (4 minutes).</span>
+<span class="sd">        kwargs_data_read : dict, optional</span>
+<span class="sd">            Keyword arguments collected in a dictionary to pass to the</span>
+<span class="sd">            pandas.read_csv() function on the data file. The default is {}.</span>
+<span class="sd">        kwargs_metadata_read : dict, optional</span>
+<span class="sd">            Keyword arguments collected in a dictionary to pass to the</span>
+<span class="sd">            pandas.read_csv() function on the metadata file. The default is {}.</span>
+<span class="sd">        templatefile_is_url : bool, optional</span>
+<span class="sd">            If the path to the template file, is a url to an online template file,</span>
+<span class="sd">            set templatefile_is_url to True. If False, the template_file is</span>
+<span class="sd">            interpreted as a path</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        --------</span>
+<span class="sd">        In pracktice, the default arguments will be sufficient for most applications.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        --------</span>
+<span class="sd">        If options are present in the template, these will have priority over the arguments of this function.</span>
+
+<span class="sd">        Warning</span>
+<span class="sd">        ---------</span>
+<span class="sd">        All CSV data files must be in *UTF-8 encoding*. For most CSV files,</span>
+<span class="sd">        this condition is already met. To make sure, in Microsoft Excel (or</span>
+<span class="sd">        similar), you can specify to export as **`CSV UTF-8`**. If you</span>
+<span class="sd">        encounter an error, mentioning a `&quot;/ueff...&quot;` tag in a CSV file, it is</span>
+<span class="sd">        often solved by converting the CSV to UTF-8.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        update_settings: Update the (file paths) settings of a Dataset.</span>
+
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # Import data into a Dataset</span>
+<span class="sd">        &gt;&gt;&gt; dataset = metobs_toolkit.Dataset()</span>
+<span class="sd">        &gt;&gt;&gt; dataset.update_file_paths(</span>
+<span class="sd">        ...                         input_data_file=metobs_toolkit.demo_datafile,</span>
+<span class="sd">        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,</span>
+<span class="sd">        ...                         template_file=metobs_toolkit.demo_template,</span>
+<span class="sd">        ...                         )</span>
+<span class="sd">        &gt;&gt;&gt; dataset.import_data_from_file()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Special argschecks</span>
+        <span class="n">freq_estimation_simplify_tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timedelta_arg_check</span><span class="p">(</span>
+            <span class="n">freq_estimation_simplify_tolerance</span>
+        <span class="p">)</span>
+        <span class="n">origin_simplify_tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timedelta_arg_check</span><span class="p">(</span><span class="n">origin_simplify_tolerance</span><span class="p">)</span>
+        <span class="n">timestamp_tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timedelta_arg_check</span><span class="p">(</span><span class="n">timestamp_tolerance</span><span class="p">)</span>
+
+        <span class="c1"># check input file args</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">input_data_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">template_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MetobsDatasetError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;A input_data_file is provided, but the template_file is missing.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">input_data_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">template_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MetobsDatasetError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;A template_file is provided, but the input_data_file is missing.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Update paths to the input files, if given.</span>
+        <span class="k">if</span> <span class="n">input_data_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_file_paths</span><span class="p">(</span>
+                <span class="n">input_data_file</span><span class="o">=</span><span class="n">input_data_file</span><span class="p">,</span>
+                <span class="n">template_file</span><span class="o">=</span><span class="n">template_file</span><span class="p">,</span>
+                <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">input_metadata_file</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Importing data from file: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">IO</span><span class="p">[</span><span class="s2">&quot;input_data_file&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">templatefile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No templatefile is specified.&quot;</span>
+
+        <span class="c1"># Read template</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading the templatefile&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">read_template_from_file</span><span class="p">(</span>
+            <span class="n">jsonpath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">templatefile</span><span class="p">,</span> <span class="n">templatefile_is_url</span><span class="o">=</span><span class="n">templatefile_is_url</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Read observations into pandas dataframe</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading the observations from file&quot;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">import_data_from_csv</span><span class="p">(</span>
+            <span class="n">input_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">IO</span><span class="p">[</span><span class="s2">&quot;input_data_file&quot;</span><span class="p">],</span>
+            <span class="n">template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="p">,</span>
+            <span class="n">known_obstypes</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obstypes</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="n">kwargs_data_read</span><span class="o">=</span><span class="n">kwargs_data_read</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># drop Nat datetimes if present</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">notnull</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Data from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">IO</span><span class="p">[</span><span class="s2">&quot;input_data_file&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> </span><span class="se">\</span>
+<span class="s1">                      imported to dataframe </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="si">}</span><span class="s1">.&#39;</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">IO</span><span class="p">[</span><span class="s2">&quot;input_metadata_file&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;No metadata file is defined,</span><span class="se">\</span>
+<span class="s2">                    no metadata attributes can be set!&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">use_metadata</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Importing metadata from file: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">IO</span><span class="p">[</span><span class="s2">&quot;input_metadata_file&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="n">use_metadata</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">meta_df</span> <span class="o">=</span> <span class="n">import_metadata_from_csv</span><span class="p">(</span>
+                <span class="n">input_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">IO</span><span class="p">[</span><span class="s2">&quot;input_metadata_file&quot;</span><span class="p">],</span>
+                <span class="n">template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="p">,</span>
+                <span class="n">kwargs_metadata_read</span><span class="o">=</span><span class="n">kwargs_metadata_read</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="c1"># in dataset of one station</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">_is_data_single_station</span><span class="p">():</span>
+                <span class="c1"># logger.warning(&quot;No station names find in the observations!&quot;)</span>
+
+                <span class="c1"># If there is ONE name in the metadf, than we use that name for</span>
+                <span class="c1"># the df, else we use the default name</span>
+                <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">meta_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">meta_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">name</span> <span class="o">=</span> <span class="n">meta_df</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;One stationname found in the metadata: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">, this name is used for the data.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;default_name&quot;</span><span class="p">])</span>
+                    <span class="c1"># for later merging, we add the name column with the default</span>
+                    <span class="c1"># also in the metadf</span>
+                    <span class="n">meta_df</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;default_name&quot;</span><span class="p">])</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;Assume the dataset is for ONE station with the </span><span class="se">\</span>
+<span class="s1">                        default name: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">app</span><span class="p">[</span><span class="s2">&quot;default_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">.&#39;</span>
+                    <span class="p">)</span>
+
+            <span class="c1"># merge additional metadata to observations</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Head of data file, before merge: </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Head of metadata file, before merge: </span><span class="si">{</span><span class="n">meta_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">meta_cols</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">colname</span> <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">meta_df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">colname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">additional_meta_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">meta_cols</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">additional_meta_cols</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Merging metadata (</span><span class="si">{</span><span class="n">additional_meta_cols</span><span class="si">}</span><span class="s2">) to dataset data by name.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">additional_meta_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>  <span class="c1"># merging on name</span>
+                <span class="c1"># merge deletes datetime index somehow? so add it back.</span>
+                <span class="n">df_index</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                    <span class="n">right</span><span class="o">=</span><span class="n">meta_df</span><span class="p">[</span><span class="n">additional_meta_cols</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;name&quot;</span>
+                <span class="p">)</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df_index</span>
+
+        <span class="c1"># update dataset object</span>
+
+        <span class="c1"># Remove stations whith only one observation (no freq estimation)</span>
+        <span class="n">station_counts</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+        <span class="n">issue_station</span> <span class="o">=</span> <span class="n">station_counts</span><span class="p">[</span><span class="n">station_counts</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;These stations will be removed because of only having one record: </span><span class="si">{</span><span class="n">issue_station</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">issue_station</span><span class="p">)]</span>
+
+        <span class="c1"># convert dataframe to multiindex (datetime - name)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">])</span>
+
+        <span class="c1"># Sort by name and then by datetime (to avoid negative freq)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;datetime&quot;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_construct_dataset</span><span class="p">(</span>
+            <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
+            <span class="n">freq_estimation_method</span><span class="o">=</span><span class="n">freq_estimation_method</span><span class="p">,</span>
+            <span class="n">freq_estimation_simplify_tolerance</span><span class="o">=</span><span class="n">freq_estimation_simplify_tolerance</span><span class="p">,</span>
+            <span class="n">origin_simplify_tolerance</span><span class="o">=</span><span class="n">origin_simplify_tolerance</span><span class="p">,</span>
+            <span class="n">timestamp_tolerance</span><span class="o">=</span><span class="n">timestamp_tolerance</span><span class="p">,</span>
+            <span class="n">use_metadata</span><span class="o">=</span><span class="n">use_metadata</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="import_dataset">
+<a class="viewcode-back" href="../../reference/api/metobs_toolkit.import_dataset.html#metobs_toolkit.import_dataset">[docs]</a>
+<span class="k">def</span> <span class="nf">import_dataset</span><span class="p">(</span><span class="n">folder_path</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;saved_dataset.pkl&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Import a Dataset instance from a (pickle) file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder_path : str</span>
+<span class="sd">        The path to the directory where the pickle file is stored.</span>
+<span class="sd">    filename : str, optional</span>
+<span class="sd">        The name of the output file. The default is &#39;saved_dataset.pkl&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    metobs_toolkit.Dataset</span>
+<span class="sd">        The Dataset instance.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    Dataset.save_dataset: Save a Dataset as a pickle file.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    As an example we will import a Dataset that is stored as a pkl file in the</span>
+<span class="sd">    current working directory (`os.getcwd()`).</span>
+
+<span class="sd">    &gt;&gt;&gt; import os</span>
+<span class="sd">    &gt;&gt;&gt; import metobs_toolkit</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; dataset=metobs_toolkit.import_dataset(folder_path=os.getcwd(),</span>
+<span class="sd">    ...                                      filename=&#39;your_saved_dataset.pkl&#39;)  # doctest: +SKIP</span>
+<span class="sd">    &gt;&gt;&gt; dataset # doctest: +SKIP</span>
+<span class="sd">    Instance of Dataset at ...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># check if folder_path is known and exists</span>
+    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">folder_path</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">folder_path</span><span class="si">}</span><span class="s2"> is not a directory!&quot;</span>
+
+    <span class="n">full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+    <span class="c1"># check if file exists</span>
+    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">full_path</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">inp</span><span class="p">:</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+
+    <span class="c1"># convert metadf to a geodataframe (if coordinates are available)</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">metadf</span> <span class="o">=</span> <span class="n">metadf_to_gdf</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">metadf</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dataset</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Exceptions</span>
+<span class="c1"># =============================================================================</span>
+
+
+<span class="k">class</span> <span class="nc">MetobsDatasetError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised for errors in the template.&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Docstring test</span>
+<span class="c1"># =============================================================================</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">metobs_toolkit.doctest_fmt</span> <span class="kn">import</span> <span class="n">setup_and_run_doctest</span>
+
+    <span class="n">setup_and_run_doctest</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

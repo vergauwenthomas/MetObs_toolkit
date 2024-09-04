@@ -1,0 +1,6 @@
+metobs\_toolkit.Dataset.find\_gap
+=================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Dataset.find_gap

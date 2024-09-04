@@ -1,0 +1,6 @@
+metobs\_toolkit.Gap.interpolate
+===============================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: Gap.interpolate

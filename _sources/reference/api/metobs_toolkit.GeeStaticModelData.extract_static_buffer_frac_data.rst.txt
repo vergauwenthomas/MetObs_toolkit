@@ -1,0 +1,6 @@
+metobs\_toolkit.GeeStaticModelData.extract\_static\_buffer\_frac\_data
+======================================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: GeeStaticModelData.extract_static_buffer_frac_data

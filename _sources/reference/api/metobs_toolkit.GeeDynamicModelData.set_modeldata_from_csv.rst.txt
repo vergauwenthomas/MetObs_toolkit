@@ -1,0 +1,6 @@
+metobs\_toolkit.GeeDynamicModelData.set\_modeldata\_from\_csv
+=============================================================
+
+.. currentmodule:: metobs_toolkit
+
+.. automethod:: GeeDynamicModelData.set_modeldata_from_csv

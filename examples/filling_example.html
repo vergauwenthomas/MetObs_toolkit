@@ -1,0 +1,1750 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Demo example: filling gaps &#8212; MetObs Toolkit documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=643eef25" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/filling_example';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo example: Analysis" href="analysis_example.html" />
+    <link rel="prev" title="Demo example: Applying Quality Control." href="qc_example.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_small.svg" class="logo__image only-light" alt="MetObs Toolkit documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo_small.svg" class="logo__image only-dark" alt="MetObs Toolkit documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../intro.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../specific_topics.html">
+    Specific topics
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../MetObs_documentation_flat.html">
+    Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../topics/contributing_link.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/vergauwenthomas/MetObs_toolkit" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-xl fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="doc_example.html">Demo example: Using a Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gee_example.html">Demo example: Using a Google Earth engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qc_example.html">Demo example: Applying Quality Control.</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Demo example: filling gaps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis_example.html">Demo example: Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_obstypes.html">Working with specific observation types</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Examples</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Demo...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Demo-example:-filling-gaps">
+<h1>Demo example: filling gaps<a class="headerlink" href="#Demo-example:-filling-gaps" title="Link to this heading">#</a></h1>
+<p>This example is the continuation of the previous example: <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/latest/examples/qc_example.html">Apply quality control</a>. This example serves as a demonstration of how to fill gaps.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metobs_toolkit</span>
+<span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">add_StreamHandler</span><span class="p">(</span><span class="n">setlvl</span><span class="o">=</span><span class="s1">&#39;WARNING&#39;</span><span class="p">)</span>
+
+<span class="n">your_dataset</span> <span class="o">=</span> <span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">update_file_paths</span><span class="p">(</span>
+    <span class="n">input_data_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_datafile</span><span class="p">,</span> <span class="c1"># path to the data file</span>
+    <span class="n">input_metadata_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_metadatafile</span><span class="p">,</span>
+    <span class="n">template_file</span><span class="o">=</span><span class="n">metobs_toolkit</span><span class="o">.</span><span class="n">demo_template</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Finding-Gaps">
+<h2>Finding Gaps<a class="headerlink" href="#Finding-Gaps" title="Link to this heading">#</a></h2>
+<p>When you import your datafile, the toolkit will look for gaps in your data. This is done by assuming that each station has a perfect frequency of observations (i.g. 5 minutes), a start timestamp, and an end timestamp. The toolkit can construct a perfect set of timestamps for which an observation is expected. The toolkit will try to find an observation for each (perfect) timestamp, using timestamp tolerances if specified.</p>
+<p>When it is not possible to assign an observation to a timestamp, we have a <em>gap</em>. If multiple consecutive timestaps could not be matched to observations, we also have a gap but the gap spans a longer period.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">import_data_from_file</span><span class="p">(</span>
+        <span class="n">freq_estimation_method</span><span class="o">=</span><span class="s2">&quot;highest&quot;</span><span class="p">,</span> <span class="c1">#which method to use for estimating a frequency</span>
+        <span class="n">freq_estimation_simplify_tolerance</span><span class="o">=</span><span class="s2">&quot;2min&quot;</span><span class="p">,</span> <span class="c1">#tolerance for simplifying a frequency</span>
+        <span class="n">origin_simplify_tolerance</span><span class="o">=</span><span class="s2">&quot;5min&quot;</span><span class="p">,</span> <span class="c1">#tolerance for simplifying an origin (=start timestap per station)</span>
+        <span class="n">timestamp_tolerance</span><span class="o">=</span><span class="s2">&quot;4min&quot;</span><span class="p">)</span> <span class="c1">#tolerance for mapping an observation to a (perfect) timestamp</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">coarsen_time_resolution</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="s1">&#39;15T&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+The following data columns are renamed because of special meaning by the toolkit: {}
+Luchtdruk is present in the datafile, but not found in the template! This column will be ignored.
+Neerslagintensiteit is present in the datafile, but not found in the template! This column will be ignored.
+Neerslagsom is present in the datafile, but not found in the template! This column will be ignored.
+Rukwind is present in the datafile, but not found in the template! This column will be ignored.
+Luchtdruk_Zeeniveau is present in the datafile, but not found in the template! This column will be ignored.
+Globe Temperatuur is present in the datafile, but not found in the template! This column will be ignored.
+The following metadata columns are renamed because of special meaning by the toolkit: {}
+These stations will be removed because of only having one record: []
+A 0 days 00:00:00 is given as an argument for a timedelta.
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/datasetbase.py:137: FutureWarning: &#39;T&#39; is deprecated and will be removed in a future version. Please use &#39;min&#39; instead of &#39;T&#39;.
+  dt = pd.Timedelta(timedeltaarg)
+</pre></div></div>
+</div>
+<p>These missing observations are indicated in time series plots as vertical lines:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder02&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/dataset_core.py:503: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  combdf = pd.concat([df, outliersdf])  # combine the two
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder02&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_5_3.png" src="../_images/examples_filling_example_5_3.png" />
+</div>
+</div>
+</section>
+<section id="Inspect-gaps">
+<h2>Inspect gaps<a class="headerlink" href="#Inspect-gaps" title="Link to this heading">#</a></h2>
+<p>The gaps are stored in the form of at the <code class="docutils literal notranslate"><span class="pre">.gaps</span></code> attribute of a Dataset. Each gap is defined by * an observationtype * a station name * a start timestamp * a end timestamp</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">gaps</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[humidity-gap of vlinder02 for 2022-09-10 17:15:00+00:00 --&gt; 2022-09-10 17:15:00+00:00, duration: 0 days 00:00:00 or 1 records.,
+ humidity-gap of vlinder02 for 2022-09-10 17:45:00+00:00 --&gt; 2022-09-10 17:45:00+00:00, duration: 0 days 00:00:00 or 1 records.,
+ temp-gap of vlinder02 for 2022-09-10 17:15:00+00:00 --&gt; 2022-09-10 17:15:00+00:00, duration: 0 days 00:00:00 or 1 records.,
+ temp-gap of vlinder02 for 2022-09-10 17:45:00+00:00 --&gt; 2022-09-10 17:45:00+00:00, duration: 0 days 00:00:00 or 1 records.,
+ wind_direction-gap of vlinder02 for 2022-09-10 17:15:00+00:00 --&gt; 2022-09-10 17:15:00+00:00, duration: 0 days 00:00:00 or 1 records.,
+ wind_direction-gap of vlinder02 for 2022-09-10 17:45:00+00:00 --&gt; 2022-09-10 17:45:00+00:00, duration: 0 days 00:00:00 or 1 records.,
+ wind_speed-gap of vlinder02 for 2022-09-10 17:15:00+00:00 --&gt; 2022-09-10 17:15:00+00:00, duration: 0 days 00:00:00 or 1 records.,
+ wind_speed-gap of vlinder02 for 2022-09-10 17:45:00+00:00 --&gt; 2022-09-10 17:45:00+00:00, duration: 0 days 00:00:00 or 1 records.]
+</pre></div></div>
+</div>
+<p>To have a tabular representation of the present gaps, use the ´.get_gaps_fill_df()` method. This method returns a dataframe that contains all the records present in the gaps. When gapfill methods are applied, the filled values appear in this dataframe.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_gaps_fill_df</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>value</th>
+      <th>fill_method</th>
+      <th>msg</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th>obstype</th>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="8" valign="top">vlinder02</th>
+      <th rowspan="2" valign="top">humidity</th>
+      <th>2022-09-10 17:15:00+00:00</th>
+      <td>NaN</td>
+      <td>not filled</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>2022-09-10 17:45:00+00:00</th>
+      <td>NaN</td>
+      <td>not filled</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">temp</th>
+      <th>2022-09-10 17:15:00+00:00</th>
+      <td>NaN</td>
+      <td>not filled</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>2022-09-10 17:45:00+00:00</th>
+      <td>NaN</td>
+      <td>not filled</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">wind_direction</th>
+      <th>2022-09-10 17:15:00+00:00</th>
+      <td>NaN</td>
+      <td>not filled</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>2022-09-10 17:45:00+00:00</th>
+      <td>NaN</td>
+      <td>not filled</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">wind_speed</th>
+      <th>2022-09-10 17:15:00+00:00</th>
+      <td>NaN</td>
+      <td>not filled</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>2022-09-10 17:45:00+00:00</th>
+      <td>NaN</td>
+      <td>not filled</td>
+      <td>None</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="Outliers-to-gaps-and-missing-observations">
+<h2>Outliers to gaps and missing observations<a class="headerlink" href="#Outliers-to-gaps-and-missing-observations" title="Link to this heading">#</a></h2>
+<p>In practice, the observations that are labeled as outliers are often interpreted as gaps (because we assume that the observation value is erroneous) so that they can be filled. In the toolkit it is possible to convert the outliers to gaps by using the <code class="docutils literal notranslate"><span class="pre">convert_outliers_to_gaps()</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#first apply (default) quality control</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">apply_quality_control</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span> <span class="c1">#we use the default settings in this example</span>
+
+<span class="c1">#Interpret the outliers as missing observations and gaps.</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">convert_outliers_to_gaps</span><span class="p">()</span>
+<span class="c1">#Inspect your gaps</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+The windows are too small for stations  [&#39;vlinder01&#39;, &#39;vlinder02&#39;, &#39;vlinder03&#39;, &#39;vlinder04&#39;, &#39;vlinder05&#39;, &#39;vlinder06&#39;, &#39;vlinder07&#39;, &#39;vlinder08&#39;, &#39;vlinder09&#39;, &#39;vlinder10&#39;, &#39;vlinder11&#39;, &#39;vlinder12&#39;, &#39;vlinder13&#39;, &#39;vlinder14&#39;, &#39;vlinder15&#39;, &#39;vlinder16&#39;, &#39;vlinder17&#39;, &#39;vlinder18&#39;, &#39;vlinder19&#39;, &#39;vlinder20&#39;, &#39;vlinder21&#39;, &#39;vlinder22&#39;, &#39;vlinder23&#39;, &#39;vlinder24&#39;, &#39;vlinder25&#39;, &#39;vlinder26&#39;, &#39;vlinder27&#39;, &#39;vlinder28&#39;] to perform persistance check
+The current gaps will be removed and new gaps are formed!
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/dataset_core.py:503: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  combdf = pd.concat([df, outliersdf])  # combine the two
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur for all stations. &#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_11_3.png" src="../_images/examples_filling_example_11_3.png" />
+</div>
+</div>
+<p>When plotting a single station, the figure becomes more clear</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/dataset_core.py:503: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  combdf = pd.concat([df, outliersdf])  # combine the two
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder05&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_13_3.png" src="../_images/examples_filling_example_13_3.png" />
+</div>
+</div>
+</section>
+<section id="Fill-gaps">
+<h2>Fill gaps<a class="headerlink" href="#Fill-gaps" title="Link to this heading">#</a></h2>
+<p>In the toolkit, two groups of methods are implemented: <strong>interpolation methods</strong> and by making <strong>use of external modeldata</strong>.</p>
+<p><strong>NOTE</strong>: In this example, we use a single station (vlinder05) for demonstration. All methods can be directly applied on a Dataset, you do not need to apply this on all stations separately.</p>
+<section id="Interpolation-methods">
+<h3>Interpolation methods<a class="headerlink" href="#Interpolation-methods" title="Link to this heading">#</a></h3>
+<p>The most straightforward method to fill a gap is by using interpolation. Linear interpolation is the best-known form of interpolation, but there are also more advanced forms of interpolation. In the toolkit, we can easily interpolate the gaps by making use of the <code class="docutils literal notranslate"><span class="pre">Dataset.interpolate_gaps()</span></code> method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">interpolate_gaps</span><span class="p">(</span><span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span> <span class="c1">#Which gaps to fill</span>
+                              <span class="n">overwrite_fill</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="c1">#Overwrite previous filled values if they are present</span>
+                              <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="c1">#which interpolation method</span>
+                              <span class="n">max_consec_fill</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="c1">#maximum number of consecutive missing records to fill.</span>
+                              <span class="p">)</span>
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Cannot fill temp-gap of vlinder05 for 2022-09-01 00:00:00+00:00 --&gt; 2022-09-01 05:45:00+00:00, duration: 0 days 05:45:00 or 24 records., because leading record is not valid.
+Cannot fill temp-gap of vlinder05 for 2022-09-13 20:00:00+00:00 --&gt; 2022-09-15 23:45:00+00:00, duration: 2 days 03:45:00 or 208 records., because trailing record is not valid.
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/dataset_core.py:503: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  combdf = pd.concat([df, outliersdf])  # combine the two
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder05&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_16_3.png" src="../_images/examples_filling_example_16_3.png" />
+</div>
+</div>
+<p>As you can see, some gaps are (partially) filled others are not filled. This is because a filling criterea was not matched. By using the <code class="docutils literal notranslate"><span class="pre">Dataset.get_gaps_fill_df()</span></code> method, it becomes clear why some gaps could not be filled.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_gaps_fill_df</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>value</th>
+      <th>fill_method</th>
+      <th>msg</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th>obstype</th>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="11" valign="top">vlinder05</th>
+      <th rowspan="11" valign="top">temp</th>
+      <th>2022-09-01 00:00:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few leading records (0 found but 1 needed).</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 00:15:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few leading records (0 found but 1 needed).</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 00:30:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few leading records (0 found but 1 needed).</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 00:45:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few leading records (0 found but 1 needed).</td>
+    </tr>
+    <tr>
+      <th>2022-09-01 01:00:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few leading records (0 found but 1 needed).</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 22:45:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few trailing records (0 found but 1 needed).</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 23:00:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few trailing records (0 found but 1 needed).</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 23:15:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few trailing records (0 found but 1 needed).</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 23:30:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few trailing records (0 found but 1 needed).</td>
+    </tr>
+    <tr>
+      <th>2022-09-15 23:45:00+00:00</th>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>to few trailing records (0 found but 1 needed).</td>
+    </tr>
+  </tbody>
+</table>
+<p>1219 rows × 3 columns</p>
+</div></div>
+</div>
+<p>If you are interested in all details of a specific gap, you can find that gap using the <code class="docutils literal notranslate"><span class="pre">Dataset.find_gap()</span></code> method, and then inspect the specific <code class="docutils literal notranslate"><span class="pre">Gap()</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="n">gap_of_interest</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find_gap</span><span class="p">(</span><span class="n">stationname</span><span class="o">=</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">,</span>
+                                                                 <span class="n">obstype</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                                                                 <span class="n">in_gap_timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="c1">#2022-09-03 01:00:00</span>
+
+<span class="n">gap_of_interest</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+
+<span class="c1">#or inspect the gapdf</span>
+<span class="n">gap_of_interest</span><span class="o">.</span><span class="n">gapdf</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+---- Gap info -----
+(Note: gaps start and end are defined on the frequency estimation of the native dataset.)
+  * Gap for station: vlinder05
+  * Start gap: 2022-09-02 10:15:00+00:00
+  * End gap: 2022-09-03 05:45:00+00:00
+  * Duration gap: 0 days 19:30:00
+  * For temp
+  * Gapfill status &gt;&gt;&gt;&gt; Partially filled gap
+---- Anchor Data Frame -----
+                                     temp      fill_method msg
+name      datetime
+vlinder05 2022-09-02 10:00:00+00:00  20.9   leading period  ok
+          2022-09-03 06:00:00+00:00  17.4  trailing period  ok
+---- Gap Data Frame -----
+                                     temp  temp_fill           fill_method  \
+name      datetime
+vlinder05 2022-09-02 10:15:00+00:00   NaN   20.85625         interpolation
+          2022-09-02 10:30:00+00:00   NaN   20.81250         interpolation
+          2022-09-02 10:45:00+00:00   NaN   20.76875         interpolation
+          2022-09-02 11:00:00+00:00   NaN   20.72500         interpolation
+          2022-09-02 11:15:00+00:00   NaN   20.68125         interpolation
+...                                   ...        ...                   ...
+          2022-09-03 04:45:00+00:00   NaN        NaN  failed interpolation
+          2022-09-03 05:00:00+00:00   NaN        NaN  failed interpolation
+          2022-09-03 05:15:00+00:00   NaN        NaN  failed interpolation
+          2022-09-03 05:30:00+00:00   NaN        NaN  failed interpolation
+          2022-09-03 05:45:00+00:00   NaN        NaN  failed interpolation
+
+                                                                   msg
+name      datetime
+vlinder05 2022-09-02 10:15:00+00:00                ok (method: linear)
+          2022-09-02 10:30:00+00:00                ok (method: linear)
+          2022-09-02 10:45:00+00:00                ok (method: linear)
+          2022-09-02 11:00:00+00:00                ok (method: linear)
+          2022-09-02 11:15:00+00:00                ok (method: linear)
+...                                                                ...
+          2022-09-03 04:45:00+00:00  Permitted_by_max_consecutive_fill
+          2022-09-03 05:00:00+00:00  Permitted_by_max_consecutive_fill
+          2022-09-03 05:15:00+00:00  Permitted_by_max_consecutive_fill
+          2022-09-03 05:30:00+00:00  Permitted_by_max_consecutive_fill
+          2022-09-03 05:45:00+00:00  Permitted_by_max_consecutive_fill
+
+[79 rows x 4 columns]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>temp</th>
+      <th>temp_fill</th>
+      <th>fill_method</th>
+      <th>msg</th>
+    </tr>
+    <tr>
+      <th>name</th>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="11" valign="top">vlinder05</th>
+      <th>2022-09-02 10:15:00+00:00</th>
+      <td>NaN</td>
+      <td>20.85625</td>
+      <td>interpolation</td>
+      <td>ok (method: linear)</td>
+    </tr>
+    <tr>
+      <th>2022-09-02 10:30:00+00:00</th>
+      <td>NaN</td>
+      <td>20.81250</td>
+      <td>interpolation</td>
+      <td>ok (method: linear)</td>
+    </tr>
+    <tr>
+      <th>2022-09-02 10:45:00+00:00</th>
+      <td>NaN</td>
+      <td>20.76875</td>
+      <td>interpolation</td>
+      <td>ok (method: linear)</td>
+    </tr>
+    <tr>
+      <th>2022-09-02 11:00:00+00:00</th>
+      <td>NaN</td>
+      <td>20.72500</td>
+      <td>interpolation</td>
+      <td>ok (method: linear)</td>
+    </tr>
+    <tr>
+      <th>2022-09-02 11:15:00+00:00</th>
+      <td>NaN</td>
+      <td>20.68125</td>
+      <td>interpolation</td>
+      <td>ok (method: linear)</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>2022-09-03 04:45:00+00:00</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>Permitted_by_max_consecutive_fill</td>
+    </tr>
+    <tr>
+      <th>2022-09-03 05:00:00+00:00</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>Permitted_by_max_consecutive_fill</td>
+    </tr>
+    <tr>
+      <th>2022-09-03 05:15:00+00:00</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>Permitted_by_max_consecutive_fill</td>
+    </tr>
+    <tr>
+      <th>2022-09-03 05:30:00+00:00</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>Permitted_by_max_consecutive_fill</td>
+    </tr>
+    <tr>
+      <th>2022-09-03 05:45:00+00:00</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>failed interpolation</td>
+      <td>Permitted_by_max_consecutive_fill</td>
+    </tr>
+  </tbody>
+</table>
+<p>79 rows × 4 columns</p>
+</div></div>
+</div>
+</section>
+<section id="Higher-order-interpolation-demo">
+<h3>Higher order interpolation demo<a class="headerlink" href="#Higher-order-interpolation-demo" title="Link to this heading">#</a></h3>
+<p>When using more advanced interpolation methods, often multiple <strong>anchors</strong> (= the good records that serve as anchor points for the interpolation). In the toolkit we will refer to a <strong>leading period</strong> and a <strong>trailing period</strong>, the anchor’s observations before and after the gaps respectively.</p>
+<p>Here is an example on applying a polynomial interpolation on gaps.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder04&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">interpolate_gaps</span><span class="p">(</span>
+                          <span class="n">method</span><span class="o">=</span><span class="s1">&#39;polynomial&#39;</span><span class="p">,</span>
+                          <span class="n">overwrite_fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">n_leading_anchors</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="c1">#at least 3 leading anchors are needed for 3th order polynomial interpolation</span>
+                          <span class="n">n_trailing_anchors</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="c1">#at least 3 trailing anchors are needed for 3th order polynomial interpolation</span>
+                          <span class="n">max_consec_fill</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+                          <span class="n">max_lead_to_gap_distance</span><span class="o">=</span><span class="s1">&#39;60min&#39;</span><span class="p">,</span> <span class="c1">#the maximum distance (in time) beween the leading anchors and the start of the gap.</span>
+                          <span class="n">method_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;order&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">},</span> <span class="c1">#all extra arguments to pass to the pandas.Dataframe.interpolate method.</span>
+<span class="p">)</span>
+
+<span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder04&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+The filling of temp-gap of vlinder04 for 2022-09-02 15:30:00+00:00 --&gt; 2022-09-03 01:30:00+00:00, duration: 0 days 10:00:00 or 41 records., will be overwritten!
+The filling of temp-gap of vlinder04 for 2022-09-07 06:30:00+00:00 --&gt; 2022-09-08 14:00:00+00:00, duration: 1 days 07:30:00 or 127 records., will be overwritten!
+The filling of temp-gap of vlinder04 for 2022-09-09 00:30:00+00:00 --&gt; 2022-09-09 09:00:00+00:00, duration: 0 days 08:30:00 or 35 records., will be overwritten!
+The filling of temp-gap of vlinder04 for 2022-09-10 02:15:00+00:00 --&gt; 2022-09-10 05:00:00+00:00, duration: 0 days 02:45:00 or 12 records., will be overwritten!
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/dataset_core.py:503: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  combdf = pd.concat([df, outliersdf])  # combine the two
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder04&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_22_3.png" src="../_images/examples_filling_example_22_3.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Fill-gaps-using-external-modeldata">
+<h2>Fill gaps using external modeldata<a class="headerlink" href="#Fill-gaps-using-external-modeldata" title="Link to this heading">#</a></h2>
+<p>As an example, we will fill the gaps using bias-corrected ERA5 data. For more info on how to download ERA5 data in the toolkit, see <a class="reference external" href="https://metobs-toolkit.readthedocs.io/en/latest/examples/gee_example.html#Extracting-ERA5-timeseries">Demo example: Using a Google Earth engine</a>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1">#as a demonstration, we use a single station to fill the gaps of. All methods can be directly applied on a full Dataset.</span>
+<span class="n">your_station</span> <span class="o">=</span> <span class="n">your_dataset</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="s1">&#39;vlinder05&#39;</span><span class="p">)</span>
+
+
+<span class="c1">#ERA5-land is a (default) known dataset, AND &#39;temp&#39; is a known ModelObstype (thus linked to a band)</span>
+<span class="n">era5_model</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">gee_datasets</span><span class="p">[</span><span class="s1">&#39;ERA5-land&#39;</span><span class="p">]</span>
+<span class="n">era5_model</span><span class="o">.</span><span class="n">get_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Empty GeeDynamicModelData instance of ERA5-land
+------ Details ---------
+
+ * name: ERA5-land
+ * location: ECMWF/ERA5_LAND/HOURLY
+ * value_type: numeric
+ * scale: 2500
+ * is_static: False
+ * is_image: False
+ * is_mosaic: False
+ * credentials:
+ * time res: 1h
+
+ -- Known Modelobstypes --
+
+ * temp : ModelObstype instance of temp (linked to band: temperature_2m)
+    (conversion: Kelvin --&gt; Celsius)
+ * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
+    (conversion: pa --&gt; pa)
+ * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+    vectorfield that will be converted to:
+      * wind_speed
+      * wind_direction
+    (conversion: m/s --&gt; m/s)
+
+ -- Metadata --
+
+No metadf is set.
+
+ -- Modeldata --
+
+No model data is set.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#Extract time series at the location of the station</span>
+<span class="n">ERA5_data</span> <span class="o">=</span> <span class="n">your_station</span><span class="o">.</span><span class="n">get_modeldata</span><span class="p">(</span>
+                        <span class="n">Model</span><span class="o">=</span><span class="n">era5_model</span><span class="p">,</span>
+                        <span class="n">obstypes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;temp&#39;</span><span class="p">],</span>
+                        <span class="n">startdt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the start of the observations is used</span>
+                        <span class="n">enddt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#if None, the end of the observations is used</span>
+            <span class="p">)</span>
+
+<span class="c1">#Use a debiased gapfill method to fill the gaps:</span>
+<span class="n">your_station</span><span class="o">.</span><span class="n">fill_gaps_with_debiased_modeldata</span><span class="p">(</span>
+            <span class="n">Model</span><span class="o">=</span><span class="n">ERA5_data</span><span class="p">,</span>
+            <span class="n">obstype</span><span class="o">=</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span>
+            <span class="n">overwrite_fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">leading_period_duration</span><span class="o">=</span><span class="s2">&quot;24h&quot;</span><span class="p">,</span> <span class="c1">#leading period definition for bias calculation</span>
+            <span class="n">min_leading_records_total</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="c1"># minimum size of leading period (in records)</span>
+            <span class="n">trailing_period_duration</span><span class="o">=</span><span class="s2">&quot;24h&quot;</span><span class="p">,</span> <span class="c1">#trailing period definition for bias calculation</span>
+            <span class="n">min_trailing_records_total</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="c1"># minimum size of trailing period (in records)</span>
+        <span class="p">)</span>
+
+
+<span class="n">your_station</span><span class="o">.</span><span class="n">make_plot</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+    .geemap-dark {
+        --jp-widgets-color: white;
+        --jp-widgets-label-color: white;
+        --jp-ui-font-color1: white;
+        --jp-layout-color2: #454545;
+        background-color: #383838;
+    }
+
+    .geemap-dark .jupyter-button {
+        --jp-layout-color3: #383838;
+    }
+
+    .geemap-colab {
+        background-color: var(--colab-primary-surface-color, white);
+    }
+
+    .geemap-colab .jupyter-button {
+        --jp-layout-color3: var(--colab-primary-surface-color, white);
+    }
+</style></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Cannot fill temp-gap of vlinder05 for 2022-09-01 00:00:00+00:00 --&gt; 2022-09-01 05:45:00+00:00, duration: 0 days 05:45:00 or 24 records., because leading period is not valid.
+The filling of temp-gap of vlinder05 for 2022-09-01 07:30:00+00:00 --&gt; 2022-09-01 10:15:00+00:00, duration: 0 days 02:45:00 or 12 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-01 19:45:00+00:00 --&gt; 2022-09-02 05:45:00+00:00, duration: 0 days 10:00:00 or 41 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-02 09:00:00+00:00 --&gt; 2022-09-02 09:00:00+00:00, duration: 0 days 00:00:00 or 1 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-02 10:15:00+00:00 --&gt; 2022-09-03 05:45:00+00:00, duration: 0 days 19:30:00 or 79 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-03 06:15:00+00:00 --&gt; 2022-09-03 07:30:00+00:00, duration: 0 days 01:15:00 or 6 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-03 08:00:00+00:00 --&gt; 2022-09-03 09:15:00+00:00, duration: 0 days 01:15:00 or 6 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-03 11:30:00+00:00 --&gt; 2022-09-03 12:45:00+00:00, duration: 0 days 01:15:00 or 6 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-03 13:45:00+00:00 --&gt; 2022-09-03 15:00:00+00:00, duration: 0 days 01:15:00 or 6 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-03 21:00:00+00:00 --&gt; 2022-09-05 05:30:00+00:00, duration: 1 days 08:30:00 or 131 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-05 07:30:00+00:00 --&gt; 2022-09-05 08:45:00+00:00, duration: 0 days 01:15:00 or 6 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-05 15:15:00+00:00 --&gt; 2022-09-05 17:00:00+00:00, duration: 0 days 01:45:00 or 8 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-05 18:30:00+00:00 --&gt; 2022-09-05 18:30:00+00:00, duration: 0 days 00:00:00 or 1 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-05 19:30:00+00:00 --&gt; 2022-09-06 06:00:00+00:00, duration: 0 days 10:30:00 or 43 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-06 08:45:00+00:00 --&gt; 2022-09-06 10:00:00+00:00, duration: 0 days 01:15:00 or 6 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-06 13:45:00+00:00 --&gt; 2022-09-06 15:00:00+00:00, duration: 0 days 01:15:00 or 6 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-06 20:45:00+00:00 --&gt; 2022-09-07 06:15:00+00:00, duration: 0 days 09:30:00 or 39 records., will be overwritten!
+Cannot fill temp-gap of vlinder05 for 2022-09-06 20:45:00+00:00 --&gt; 2022-09-07 06:15:00+00:00, duration: 0 days 09:30:00 or 39 records., because trailing period is not valid.
+The filling of temp-gap of vlinder05 for 2022-09-07 06:45:00+00:00 --&gt; 2022-09-13 06:45:00+00:00, duration: 6 days 00:00:00 or 577 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-13 08:15:00+00:00 --&gt; 2022-09-13 09:30:00+00:00, duration: 0 days 01:15:00 or 6 records., will be overwritten!
+The filling of temp-gap of vlinder05 for 2022-09-13 15:15:00+00:00 --&gt; 2022-09-13 16:45:00+00:00, duration: 0 days 01:30:00 or 7 records., will be overwritten!
+Cannot fill temp-gap of vlinder05 for 2022-09-13 20:00:00+00:00 --&gt; 2022-09-15 23:45:00+00:00, duration: 2 days 03:45:00 or 208 records., because trailing period is not valid.
+/home/thoverga/Documents/VLINDER_github/MetObs_toolkit/metobs_toolkit/dataset_core.py:503: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  combdf = pd.concat([df, outliersdf])  # combine the two
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Axes: title={&#39;center&#39;: &#39;Temperatuur of vlinder05&#39;}, xlabel=&#39;datetime&#39;, ylabel=&#39;temp (Celsius)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_filling_example_25_3.png" src="../_images/examples_filling_example_25_3.png" />
+</div>
+</div>
+<p>The following modeldata-gapfill methods are implemented in the toolkit:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Dataset.fill_gaps_with_raw_modeldata()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Dataset.fill_gaps_with_debiased_modeldata()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Dataset.fill_gaps_with_diurnal_debiased_modeldata()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Dataset.fill_gaps_with_weighted_diurnal_debias_modeldata()</span></code></p></li>
+</ul>
+<p>For more information, see the Documentation of the methods.</p>
+</section>
+<section id="Filling-gaps-exercise">
+<h2>Filling gaps exercise<a class="headerlink" href="#Filling-gaps-exercise" title="Link to this heading">#</a></h2>
+<p>For a more detailed reference you can use this <a class="reference external" href="https://github.com/vergauwenthomas/MetObs_toolkit/blob/4d5a35954eb8ff153eb0d9e9c8a34cee7e3c50f4/fairness_demo_exercises/Gap_filling_excercise_03.ipynb">Filling gaps exercise</a>, which was created in the context of the <a class="reference external" href="https://www.cost.eu/actions/CA20108/">COST FAIRNESS</a> summer school 2023 in Ghent.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="qc_example.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Demo example: Applying Quality Control.</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="analysis_example.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Demo example: Analysis</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Finding-Gaps">Finding Gaps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Inspect-gaps">Inspect gaps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Outliers-to-gaps-and-missing-observations">Outliers to gaps and missing observations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Fill-gaps">Fill gaps</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Interpolation-methods">Interpolation methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Higher-order-interpolation-demo">Higher order interpolation demo</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Fill-gaps-using-external-modeldata">Fill gaps using external modeldata</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Filling-gaps-exercise">Filling gaps exercise</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/examples/filling_example.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Thomas Vergauwen.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

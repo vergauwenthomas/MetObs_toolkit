@@ -1,0 +1,6 @@
+metobs\_toolkit.add\_StreamHandler
+==================================
+
+.. currentmodule:: metobs_toolkit
+
+.. autofunction:: add_StreamHandler

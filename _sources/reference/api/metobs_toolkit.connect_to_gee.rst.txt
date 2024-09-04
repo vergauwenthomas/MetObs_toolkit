@@ -1,0 +1,6 @@
+metobs\_toolkit.connect\_to\_gee
+================================
+
+.. currentmodule:: metobs_toolkit
+
+.. autofunction:: connect_to_gee
