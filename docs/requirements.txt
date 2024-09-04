@@ -5,3 +5,4 @@ myst-parser==2.0.0
 nbsphinx==0.9.3
 pydata-sphinx-theme==0.15.2
 sphinx-copybutton==0.5.2
+matplotlib==3.9.2

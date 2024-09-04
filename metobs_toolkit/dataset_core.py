@@ -1401,13 +1401,16 @@ class Dataset(
         ----------
         input_data_file : string, optional
             Path to the input data file with observations. If None, the input
-            data path in the settings is used.
+            data path in the settings is used. If an provided, the
+            template_file must be provided as well. The default is None.
         input_metadata_file : string, optional
             Path to the input metadata file. If None, the input metadata path
-            in the settings is used.
+            in the settings is used. The default is None
         template_file : string, optional
             Path to the template (json) file to be used on the observations
             and metadata. If None, the template path in the settings is used.
+            If provided, the input_data_file must be provided as well. The
+            default is None.
         freq_estimation_method : 'highest' or 'median', optional
             Select wich method to use for the frequency estimation. If
             'highest', the highest apearing frequency is used. If 'median', the
@@ -1486,13 +1489,23 @@ class Dataset(
         origin_simplify_tolerance = self._timedelta_arg_check(origin_simplify_tolerance)
         timestamp_tolerance = self._timedelta_arg_check(timestamp_tolerance)
 
+        # check input file args
+        if (input_data_file is not None) & (template_file is None):
+            raise MetobsDatasetError(
+                f"A input_data_file is provided, but the template_file is missing."
+            )
+        if (input_data_file is None) & (template_file is not None):
+            raise MetobsDatasetError(
+                f"A template_file is provided, but the input_data_file is missing."
+            )
+
         # Update paths to the input files, if given.
         if input_data_file is not None:
-            self.update_file_paths(input_data_file=input_data_file)
-        if input_metadata_file is not None:
-            self.update_file_paths(input_metadata_file=input_metadata_file)
-        if template_file is not None:
-            self.update_file_paths(template_file=template_file)
+            self.update_file_paths(
+                input_data_file=input_data_file,
+                template_file=template_file,
+                input_metadata_file=input_metadata_file,
+            )
 
         logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
