@@ -20,6 +20,8 @@ docs/examples/*.py
 docs/notebook_references/*.py
 docs/topics/*.py
 
+docs/paper/*.py
+
 # ------------ Documentation ------------------
 #Exclude local documentation builds
 docs/_*

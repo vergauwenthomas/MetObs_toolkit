@@ -45,7 +45,8 @@ cd ${TOPIC_NOTEBOOKS}
 jupyter nbconvert --to python *.ipynb
 
 cd ${PAPER_NOTEBOOKS}
-jupyter nbconvert --to python *.ipynb´
+jupyter nbconvert --to python *.ipynb
+
 
 #3. Run examples
 cd ${DOCEXAMPLEDIR}
@@ -79,6 +80,7 @@ for t in $filenames; do
 
 done
 
+
 #3. Run other notebooks of topics used in the documentation
 cd ${TOPIC_NOTEBOOKS}
 filenames=`ls ./*.py`
@@ -98,6 +100,7 @@ done
 
 #Run the paper notebook (for figures creation) again with new version
 cd ${PAPER_NOTEBOOKS}
+
 filenames=`ls ./*.py`
 for t in $filenames; do
         example_file=${PAPER_NOTEBOOKS}/${t}
