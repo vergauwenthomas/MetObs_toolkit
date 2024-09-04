@@ -130,24 +130,21 @@ hourly_qc_applied_demo_comb_df_pkl = "hourly_comb_df_qc_applied_demo.pkl"
 
 
 def get_demo_qc_applied_5_min_dataset():
-    dataset = metobs_toolkit.Dataset()
-    new_dataset = dataset.import_dataset(
+    new_dataset = metobs_toolkit.import_dataset(
         folder_path=solutions_dir, filename=qc_applied_demo_pkl
     )
     return new_dataset
 
 
 def get_demo_outliers_as_gaps_5_min_dataset():
-    dataset = metobs_toolkit.Dataset()
-    new_dataset = dataset.import_dataset(
+    new_dataset = metobs_toolkit.import_dataset(
         folder_path=solutions_dir, filename=gaps_from_qc_demo_pkl
     )
     return new_dataset
 
 
 def get_demo_outliers_as_gaps_and_interp_5_min_dataset():
-    dataset = metobs_toolkit.Dataset()
-    new_dataset = dataset.import_dataset(
+    new_dataset = metobs_toolkit.import_dataset(
         folder_path=solutions_dir, filename=itnerp_gaps_from_qc_demo_pkl
     )
     return new_dataset
@@ -155,32 +152,27 @@ def get_demo_outliers_as_gaps_and_interp_5_min_dataset():
 
 # dataset pickles hourly resolution
 def get_demo_qc_applied_hourly_dataset():
-    dataset = metobs_toolkit.Dataset()
-    new_dataset = dataset.import_dataset(
+    new_dataset = metobs_toolkit.import_dataset(
         folder_path=solutions_dir, filename=hourly_qc_applied_demo_pkl
     )
     return new_dataset
 
 
 def get_demo_outliers_as_gaps_hourly_dataset():
-    dataset = metobs_toolkit.Dataset()
-    new_dataset = dataset.import_dataset(
+    new_dataset = metobs_toolkit.import_dataset(
         folder_path=solutions_dir, filename=hourly_gaps_from_qc_demo_pkl
     )
     return new_dataset
 
 
 def get_demo_outliers_as_gaps_and_interp_hourly_dataset():
-    dataset = metobs_toolkit.Dataset()
-    new_dataset = dataset.import_dataset(
+    new_dataset = metobs_toolkit.import_dataset(
         folder_path=solutions_dir, filename=hourly_itnerp_gaps_from_qc_demo_pkl
     )
     return new_dataset
 
 
 # Dataframes
-
-
 def get_demo_qc_applied_5_min_comb_df():
     targetfile = os.path.join(solutions_dir, qc_applied_demo_comb_df_pkl)
     df = pd.read_pickle(targetfile)

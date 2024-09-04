@@ -26,8 +26,8 @@ General methods and attributes
    Dataset.get_info
    Dataset.import_data_from_file
    Dataset.save_dataset
+   import_dataset
    Dataset.get_full_status_df
-   Dataset.import_dataset
    Dataset.add_new_observationtype
    Dataset.add_new_unit
    Dataset.show_settings

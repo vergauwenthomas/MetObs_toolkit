@@ -224,8 +224,9 @@ del dataset  # remove from kernel
 
 
 # read dataset
-new_dataset = metobs_toolkit.Dataset()
-new_dataset = new_dataset.import_dataset(folder_path=outfolder, filename=file + ".pkl")
+new_dataset = metobs_toolkit.import_dataset(
+    folder_path=outfolder, filename=file + ".pkl"
+)
 
 del_file(os.path.join(outfolder, file + ".pkl"))
 

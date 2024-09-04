@@ -557,65 +557,6 @@ class Dataset(
         self.outliersdf = self.outliersdf[["value", "label"]]
         return combdf
 
-    def import_dataset(self, folder_path=None, filename="saved_dataset.pkl"):
-        """Import a Dataset instance from a (pickle) file.
-
-        Parameters
-        ----------
-        folder_path : str or None, optional
-            The path to the folder to save the file. If None, the outputfolder
-            from the Settings is used. The default is None.
-        filename : str, optional
-            The name of the output file. The default is 'saved_dataset.pkl'.
-
-        Returns
-        -------
-        metobs_toolkit.Dataset
-            The Dataset instance.
-
-        See Also
-        --------
-        save_dataset: Save a Dataset as a pickle file.
-
-        Examples
-        --------
-
-        Start by creating an empty Dataset
-
-        >>> import metobs_toolkit
-        >>> empty_dataset = metobs_toolkit.Dataset()
-
-        Now, use the `import_dataset()` on the empty Dataset. Specify a target
-        pickle file, that is a dataset.
-
-        >>> import os
-        >>> # Import the dataset
-        >>> dataset=empty_dataset.import_dataset(folder_path=os.getcwd(),
-        ...                                      filename='your_saved_dataset.pkl')  # doctest: +SKIP
-
-        """
-        # check if folder_path is known and exists
-        if folder_path is None:
-            folder_path = self.settings.IO["output_folder"]
-            assert (
-                folder_path is not None
-            ), "No folder_path is given, and no outputfolder is found in the settings."
-
-        assert os.path.isdir(folder_path), f"{folder_path} is not a directory!"
-
-        full_path = os.path.join(folder_path, filename)
-
-        # check if file exists
-        assert os.path.isfile(full_path), f"{full_path} does not exist."
-
-        with open(full_path, "rb") as inp:
-            dataset = pickle.load(inp)
-
-        # convert metadf to a geodataframe (if coordinates are available)
-        dataset.metadf = metadf_to_gdf(dataset.metadf)
-
-        return dataset
-
     def add_new_observationtype(self, Obstype):
         """Add a new observation type to the known observation types.
 
@@ -1665,6 +1606,56 @@ class Dataset(
             timestamp_tolerance=timestamp_tolerance,
             use_metadata=use_metadata,
         )
+
+
+def import_dataset(folder_path, filename="saved_dataset.pkl"):
+    """Import a Dataset instance from a (pickle) file.
+
+    Parameters
+    ----------
+    folder_path : str
+        The path to the directory where the pickle file is stored.
+    filename : str, optional
+        The name of the output file. The default is 'saved_dataset.pkl'.
+
+    Returns
+    -------
+    metobs_toolkit.Dataset
+        The Dataset instance.
+
+    See Also
+    --------
+    Dataset.save_dataset: Save a Dataset as a pickle file.
+
+    Examples
+    --------
+
+    As an example we will import a Dataset that is stored as a pkl file in the
+    current working directory (`os.getcwd()`).
+
+    >>> import os
+    >>> import metobs_toolkit
+    >>>
+    >>> dataset=metobs_toolkit.import_dataset(folder_path=os.getcwd(),
+    ...                                      filename='your_saved_dataset.pkl')  # doctest: +SKIP
+    >>> dataset # doctest: +SKIP
+    Instance of Dataset at ...
+    """
+    # check if folder_path is known and exists
+    assert os.path.isdir(folder_path), f"{folder_path} is not a directory!"
+
+    full_path = os.path.join(folder_path, filename)
+
+    # check if file exists
+    assert os.path.isfile(full_path), f"{full_path} does not exist."
+
+    with open(full_path, "rb") as inp:
+        dataset = pickle.load(inp)
+
+    # convert metadf to a geodataframe (if coordinates are available)
+    dataset.metadf = metadf_to_gdf(dataset.metadf)
+
+    return dataset
 
 
 # =============================================================================
