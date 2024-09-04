@@ -21,9 +21,7 @@ build:
     pre_build:
       - pwd
       - ls
-      - rm -r ./docs/_build/*
-      - rm -r ./docs/autosummary/*
-      - sphinx-build -a -E -v ./docs/ ./docs/_build/
+      - poetry run sphinx-build -a -E -v ./docs/ ./docs/_build/
 
 
 
