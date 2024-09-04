@@ -49,6 +49,10 @@ class DatasetSettingsCore:
         -------
         None.
 
+        See Also
+        -----------
+        Dataset.update_output_dir: Update the default output directory.
+
         Note
         -----
         This methods is redundant if you specify the paths in the
@@ -116,6 +120,10 @@ class DatasetSettingsCore:
         Returns
         -------
         None.
+
+        See Also
+        -----------
+        Dataset.update_file_paths: Update the input file paths
 
         """
 
@@ -221,6 +229,75 @@ class DatasetSettingsCore:
         Returns
         -------
         None.
+
+        See Also
+        -----------
+        Dataset.update_titan_qc_settings: Update the QC settings for TITAN checks
+        Dataset.apply_quality_control: Apply the default QC pipeline.
+        Dataset.apply_buddy_check: Apply spatial buddy check.
+
+        Examples
+        --------
+
+        We start by creating a Dataset, and importing data.
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
+
+        For this example we reduce the data by coarsening the time resolution
+        to hourly. It is important to resample the time resolution in advance of
+        applying quality control since some checks depend on the records frequency!
+
+        >>> dataset.coarsen_time_resolution(freq='1h')
+
+        There are default settings for quality control (for temperature). These
+        are stored in the `Dataset.settings` attribute. We can inspect them directly,
+        or by using the `Datatest.show_settings()` method.
+
+        >>> dataset.settings.qc['qc_check_settings']
+        {'duplicated_timestamp': {'keep': False}, 'persistance': {'temp': {'time_window_to_check': '1h', 'min_num_obs': 5}}, 'repetitions': {'temp': {'max_valid_repetitions': 5}}, 'gross_value': {'temp': {'min_value': -15.0, 'max_value': 39.0}}, 'window_variation': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': 0.002777777777777778, 'time_window_to_check': '1h', 'min_window_members': 3}}, 'step': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': -0.002777777777777778}}, 'buddy_check': {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}}
+        >>> dataset.show_settings()
+        All settings: ...
+
+
+        We can change the (default) settings for QC using the `Dataset.update_qc_settings()`
+        method. These settings are observationtype dependant!
+
+        >>> dataset.update_qc_settings(
+        ...                obstype='temp',
+        ...                gross_value_max_value=26.0,
+        ...                step_max_increase_per_sec=6.5/3600,
+        ...                rep_max_valid_repetitions=4) #depends highly on records frequency!
+
+        >>> dataset.update_qc_settings(
+        ...                obstype='humidity',
+        ...                gross_value_min_value = 0.,
+        ...                gross_value_max_value=100.0)
+
+
+        Now that the QC settings are adjusted, we can apply standard QC checks.
+
+        >>> dataset.apply_quality_control(obstype='temp')
+        >>> dataset.apply_quality_control(obstype='humidity')
 
 
         """
@@ -681,6 +758,64 @@ class DatasetSettingsCore:
         Returns
         -------
         None.
+
+        See Also
+        -----------
+        Dataset.update_qc_settings: Update the settings for the defualt QC pipeline.
+        Dataset.apply_titan_buddy_check: Apply TITAN buddy check
+
+        Examples
+        --------
+
+        We start by creating a Dataset, and importing data.
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
+        For this example we reduce the data by coarsening the time resolution
+        to hourly.
+
+        >>> dataset.coarsen_time_resolution(freq='1h')
+
+        There are default TITAN buddy check settings (for temperature). These
+        are stored in the `Dataset.settings` attribute. We can inspect them directly,
+        or by using the `Datatest.show_settings()` method.
+
+        >>> dataset.settings.qc['titan_check_settings']['titan_buddy_check']
+        {'temp': {'radius': 50000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0, 'num_iterations': 1}}
+
+        We can change the (default) settings using the `Dataset.update_titan_qc_settings()`
+        method. These settings are observationtype dependant!
+
+        >>> # The following settings are illustrative, do not copy blindly
+        >>> dataset.update_titan_qc_settings(
+        ...                obstype='temp',
+        ...                buddy_radius=20000,
+        ...                buddy_num_min=4,
+        ...                buddy_threshold=2.5,
+        ...                buddy_min_std=1.)
+        buddy radius for the TITAN buddy check updated:  50000--> 20000.0
+        buddy num min for the TITAN buddy check updated:  2--> 4
+        buddy threshold for the TITAN buddy check updated:  1.5--> 2.5
+        buddy min std for the TITAN buddy check updated:  1.0--> 1.0
 
         """
         assert (
