@@ -6,6 +6,7 @@ Extension of the Dataset class (methods for updating settings).
 @author: thoverga
 """
 import logging
+import os
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -16,45 +17,119 @@ class DatasetSettingsCore:
 
     def update_file_paths(
         self,
-        output_folder=None,
-        input_data_file=None,
+        input_data_file,
+        template_file,
         input_metadata_file=None,
-        template_file=None,
     ):
-        """Update the most common input-output (IO) settings.
+        """Update the paths to the input files.
+
+        This method will set the path to your data file, (metadata file) and
+        template file.
+
+         * input_data_file:  The path to your raw observations (CSV)
+         * input_metadata_file: (Optional) The path to your metadata file (CSV)
+         * template_file: The path to the template file (JSON). (Use the
+           `metobs_toolkit.build_template_prompt()` method to create this file.)
 
         (This should be applied before importing the observations.)
 
-        When an update value is None, the specific setting will not be updated.
 
         Parameters
         ----------
-        output_folder : string, optional
-            A directory to store the output to. The default is None.
-        input_data_file : string, optional
-            Path to the input data file with observations. The default is None.
-        input_metadata_file : string, optional
-            Path to the input metadata file. The default is None.
-        template_file : string, optional
-            Path to the template (json) file to be used on the observations
+
+        input_data_file : string,
+            Path to the input data file with observations (CSV).
+        template_file : string
+            Path to the template file (json) to be used on the observations
             and metadata. The default is None.
+        input_metadata_file : string, optional
+            Path to the input metadata file (CSV). The default is None.
+
+        Returns
+        -------
+        None.
+
+        Note
+        -----
+        This methods is redundant if you specify the paths in the
+        `metobs_toolkit.Dataset.import_data_from_file()` method.
+
+        Note
+        -------
+        To create the template file (JSON), use the `metobs_toolkit.build_template_prompt()` method.
+
+        Warning
+        ---------
+        In pervious versions ( <= v0.2.1) the templatefile was a csv. Thus you have
+        to create the template again to be compatible with this version of the toolkit.
+
+        Examples
+        --------
+        Start by creating a template file. This file contains all the info for
+        the toolkit on how to interpret your raw datafile.
+
+        To create the template run the `metobs_toolkit.build_template_prompt()`
+        function.
+
+        >>> import metobs_toolkit
+        >>> metobs_toolkit.build_template_prompt() # doctest: +SKIP
+
+        You will be prompted some questions on your data file (and metadatafile if you have one).
+        In the end, the toolkit will write the templatefile (json format) to
+        a location of your choice.
+
+        Now you can create a Dataset (empty), update the paths on it, and import the data.
+
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset = update_file_paths(input_data_file=" ... ",  # doctest: +SKIP
+        ...                             template_file=" ... ",  # doctest: +SKIP
+        ...                             input_metadata_file=" ... ")  # doctest: +SKIP
+        >>> dataset.import_data_from_file()  # doctest: +SKIP
+
+        For being more concise, your can avoid the `Dataset.update_file_paths()` method
+        and pass the paths directly to the `Dataset.update_file_paths()` method:
+
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(input_data_file=" ... ",  # doctest: +SKIP
+        ...                               input_metadata_file=" ... ",  # doctest: +SKIP
+        ...                               template_file=" ... ")  # doctest: +SKIP
+
+        """
+        self.settings.update_IO(
+            input_data_file=input_data_file,
+            input_metadata_file=input_metadata_file,
+            template_file=template_file,
+        )
+
+    def update_output_dir(self, dirpath):
+        """Update the path to the output directory.
+
+        The output directory is used if an output is created (figure, datafiles, ...),
+        without specifying the output folder in the specific method.
+
+
+        Parameters
+        ----------
+        dirpath : str
+            Path to existing directory that will be used as default output directory.
 
         Returns
         -------
         None.
 
         """
-        self.settings.update_IO(
-            output_folder=output_folder,
-            input_data_file=input_data_file,
-            input_metadata_file=input_metadata_file,
-            template_file=template_file,
-        )
+
+        if not os.path.isdir(dirpath):
+            raise MetobsDatasetSettingsUpdaterError(
+                f"{dirpath} is not a path to an existing directory."
+            )
+        self.settings.IO["output_folder"] = str(dirpath)
 
     def update_default_name(self, default_name):
         """Update the default name (the name of the station).
 
-        This name will be used when no names are found in the observational dataset.
+        This name will be used when only one station is detected. Applying
+        this method will overwrite the 'default_name' in the templatefile.
 
         (All observations are assumed to come from one station.)
 
@@ -691,6 +766,17 @@ def is_timedelta(timedeltastr):
         return True
     except ValueError:
         return False
+
+
+# =============================================================================
+# Exceptions
+# =============================================================================
+
+
+class MetobsDatasetSettingsUpdaterError(Exception):
+    """Exception raised for errors when updating settings."""
+
+    pass
 
 
 # =============================================================================

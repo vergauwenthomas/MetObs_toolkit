@@ -210,6 +210,10 @@ def build_template_prompt():
     Enter to continue. At the end of the prompt, you can specify a location where
     to save the template.json file.
 
+    Returns
+    -------
+    None.
+
     Note
     ------
     It is a good practice to rename the template.json file to specify the corresponding datafile(s).
@@ -219,9 +223,10 @@ def build_template_prompt():
     At the end, the prompt asks if you need further assistance. If you do, the prompt
     will print out code that you can copy and run to create a `Dataset()`.
 
-    Returns
-    -------
-    None.
+    Warning
+    ---------
+    In pervious versions (<=v0.2.1) the templatefile was a csv. Thus you have
+    to create the template again to be compatible with this version of the toolkit.
 
     Examples
     --------
@@ -548,16 +553,6 @@ def build_template_prompt():
     apply_tips = yes_no_ques("Do you want some help creating your Dataset?")
     if apply_tips is True:
 
-        print("\n ------ How to use the template ----- ")
-
-        print("(Some questions will be asked that are case-specific) \n")
-
-        output_change = yes_no_ques("Do you plan to save images to a direcory?")
-        output_update = False
-        if output_change is True:
-            output_folder = input(" Give the path of your output direcory : ")
-            output_update = True
-
         print("\n\n ========= RUN THIS CODE ========= \n\n")
 
         print("\n#1. Define the paths to your files: \n")
@@ -576,8 +571,6 @@ def build_template_prompt():
         if meta_avail:
             print("    input_metadata_file = meta_data_file,")
         print("    template_file = template,")
-        if output_update:
-            print(f'    output_folder = "{output_folder}",')
         print("    )")
 
         # add new obstypes if needed

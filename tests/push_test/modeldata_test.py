@@ -26,7 +26,6 @@ import metobs_toolkit
 dataset = metobs_toolkit.Dataset()
 
 dataset.update_file_paths(
-    output_folder=None,
     input_data_file=metobs_toolkit.demo_datafile,
     template_file=metobs_toolkit.demo_template,
     input_metadata_file=metobs_toolkit.demo_metadatafile,

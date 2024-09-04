@@ -43,7 +43,8 @@ Updating Settings
 .. autosummary::
    :toctree: api/
 
-   Dataset.update_settings
+   Dataset.update_file_paths
+   Dataset.update_output_dir
    Dataset.update_default_name
    Dataset.update_qc_settings
    Dataset.update_titan_qc_settings

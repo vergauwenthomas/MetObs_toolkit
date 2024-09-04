@@ -224,7 +224,8 @@ class DatasetVisuals:
         self,
         obstype="temp",
         save=True,
-        outputfile=None,
+        outputfile="interactive_figure.html",
+        outputfolder=None,
         starttime=None,
         endtime=None,
         vmin=None,
@@ -255,7 +256,12 @@ class DatasetVisuals:
             The path of the output html-file. The figure will be saved here, if
             save is True. If outputfile is not given, and save is True, than
             the figure will be saved in the default outputfolder (if given).
-            The default is None.
+            The default is "interactive_figure.html".
+        outputfolder : str, optional
+            The path of the folder where to save the html-figure, if
+            save is True. If outputfile is not given, and save is True, the
+            default outputfolder (see `Dataset.settings.IO['output_folder']`)
+            is used. The default is None.
         starttime : datetime.datetime, optional
              Specifiy the start datetime for the plot. If None is given it will
              use the start datetime of the dataset, defaults to None.
@@ -360,22 +366,32 @@ class DatasetVisuals:
                 obstype = self.obstypes[obstype]
 
         if save:
-            if outputfile is None:
+            # Checkout outputfolder
+            if outputfolder is None:
                 if self.settings.IO["output_folder"] is None:
+                    # no argument, no defualt
                     raise MetobsDatasetVisualisationError(
-                        "No outputfile is given, and there is no default outputfolder specified."
+                        "No outputfolder is specified (as argment or as default)."
+                    )
+                else:  # use default
+                    trg_outputdir = self.settings.IO["output_folder"]
+            else:  # outputfolder argumen
+                if not os.path.isdir(outputfolder):
+                    raise MetobsDatasetVisualisationError(
+                        f"{outputfolder} is not an existing directory."
                     )
                 else:
-                    outputfile = os.path.join(
-                        self.output_folder, "interactive_figure.html"
-                    )
-            else:
+                    trg_outputdir = outputfolder
+
+            # Check outputfile
+            if outputfile is None:
                 # Check if outputfile has .html extension
                 if not outputfile.endswith(".html"):
                     outputfile = outputfile + ".html"
                     logger.warning(
                         f"The .hmtl extension is added to the outputfile: {outputfile}"
                     )
+            trg_path = os.path.join(trg_outputdir, outputfile)
 
         # Check if the obstype is present in the data
         if obstype.name not in self._get_present_obstypes():
@@ -456,8 +472,8 @@ class DatasetVisuals:
             max_fps=int(max_fps),
         )
         if save:
-            logger.info(f"Saving the htlm figure at {outputfile}")
-            m.save(outputfile)
+            logger.info(f"Saving the htlm figure at {trg_path}")
+            m.save(trg_path)
         return m
 
     def make_geo_plot(

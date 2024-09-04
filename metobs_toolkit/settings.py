@@ -110,21 +110,24 @@ class Settings:
 
     def update_IO(
         self,
-        output_folder=None,
         input_data_file=None,
         input_metadata_file=None,
         template_file=None,
     ):
-        """
-        Update some settings that are relevent before data is imported.
+        """Update the paths to the input files.
 
-        When a argument is None, no update of that settings is performed.
-        The self object will be updated.
+        This method will set the path to your data file, (metadata file) and
+        template file.
+
+         * input_data_file:  The path to your raw observations (CSV)
+         * input_metadata_file: (Optional) The path to your metadata file (CSV)
+         * template_file: The path to the template file (JSON). (Use the
+           `metobs_toolkit.build_template_prompt()` method to create this file.)
+
+        (This should be applied before importing the observations.)
 
         Parameters
         ----------
-        output_folder : str, optional
-            A directory to store the output to, defaults to None.
         input_data_file : str, optional
             Path to the input data file, defaults to None.
         input_metadata_file : str, optional
@@ -134,18 +137,12 @@ class Settings:
             and metadata. If not given, the default template is used. The
             default is None.
 
-        Returns
-        -------
-        None.
+         Returns
+         -------
+         None.
 
         """
         logger.info("Updating settings with input: ")
-
-        if not isinstance(output_folder, type(None)):
-            logger.info(
-                f'Update output_folder:  {self.IO["output_folder"]}  -->  {output_folder}'
-            )
-            self.IO["output_folder"] = output_folder
 
         if not isinstance(input_data_file, type(None)):
             logger.info(
