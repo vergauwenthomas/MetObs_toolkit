@@ -23,13 +23,14 @@ build:
       - pwd
       - ls
       - poetry build
-    pre_build:
-      - python -m pip list
-      #create a python environment
       - poetry install --all-extras
       # create a requirements file of the poetry env
       - rm -f ./docs/rtd_requirements.txt
       - poetry export --without-hashes --all-extras --format=requirements.txt > ./docs/rtd_requirements.txt
+    pre_build:
+      - python -m pip list
+      #create a python environment
+
       #run test?
       #- poetry run python rtdtest.py
       #build doc in sphinx env (this is not pre build !!)
