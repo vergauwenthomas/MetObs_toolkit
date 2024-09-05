@@ -90,22 +90,22 @@ master_doc = "index"  # The master toctree document.
 # this is not needed and problematic when building the docs in a clean docker on gitlab.
 # So specify which packages can be mocked
 
-autodoc_mock_imports = [
-    "ee",
-    "pytz",
-    "matplotlib",
-    "numpy",
-    "geopandas",
-    "pandas",
-    "pyproj",
-    "shapely",
-    "cartopy",
-    "branca",
-    "geemap",
-    "folium",
-    "mpl_toolkits",
-    "scipy",
-]
+# autodoc_mock_imports = [
+#     "ee",
+#     "pytz",
+#     "matplotlib",
+#     "numpy",
+#     "geopandas",
+#     "pandas",
+#     "pyproj",
+#     "shapely",
+#     "cartopy",
+#     "branca",
+#     "geemap",
+#     "folium",
+#     "mpl_toolkits",
+#     "scipy",
+# ]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
