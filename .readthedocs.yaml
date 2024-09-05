@@ -12,6 +12,7 @@ build:
       # Install poetry
       # https://python-poetry.org/docs/#installing-manually
       - pip install poetry
+      - sudo apt-get -y install pandoc
    # post_install:
       # Install dependencies with 'docs' dependency group
       # https://python-poetry.org/docs/managing-dependencies/#dependency-groups
@@ -21,21 +22,23 @@ build:
     pre_install:
       - pwd
       - ls
+      - poetry build
       #create a python environment
-      - poetry install --with documentation,dev
+     # - poetry install --all-extras
       # create a requirements file of the poetry env
-      - rm -f ./docs/rtd_requirements.txt
-      - poetry export --without-hashes --with=documentation --format=requirements.txt > ./docs/rtd_requirements.txt
+      #- rm -f ./docs/rtd_requirements.txt
+     # - poetry export --without-hashes --with=documentation --format=requirements.txt > ./docs/rtd_requirements.txt
       #run test?
       #- poetry run python rtdtest.py
       #build doc in sphinx env (this is not pre build !!)
-      - poetry run sphinx-build -a -E -v ./docs/ ./docs/_build/
+      #- poetry run sphinx-build -a -E -v ./docs/ ./docs/_build/
 
 
 
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
+  builder: html
   configuration: docs/conf.py
 
 # Optionally build your docs in additional formats such as PDF and ePub
@@ -46,6 +49,14 @@ sphinx:
 # Optional but recommended, declare the Python requirements required
 # to build your documentation
 # See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
+# python:
+#    install:
+#    - requirements: ./docs/rtd_requirements.txt
 python:
-   install:
-   - requirements: ./docs/rtd_requirements.txt
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - documentation
+        - titan
+        - dev
