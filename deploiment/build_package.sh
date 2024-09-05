@@ -36,6 +36,7 @@ poetry add shapely@latest
 # Toolkit DEV group
 poetry add poetry@latest --group dev
 poetry add pre-commit@latest --group dev
+poetry add poetry-plugin-export --group dev
 
 # Toolkit documentation group
 poetry add myst_parser@^3 --group documentation #4.0.x not comp with py3.9

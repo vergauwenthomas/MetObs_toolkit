@@ -25,7 +25,7 @@ build:
       - poetry install --with documentation
       # create a requirements file of the poetry env
       - rm -f ./docs/rtd_requirements.txt
-      - poetry export --without-hashes --format=requirements.txt > ./docs/rtd_requirements.txt
+      - poetry export --without-hashes --with=documentation --format=requirements.txt > ./docs/rtd_requirements.txt
       #run test?
       #- poetry run python rtdtest.py
       #build doc in sphinx env (this is not pre build !!)
