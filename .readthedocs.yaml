@@ -22,7 +22,7 @@ build:
       - pwd
       - ls
       #create a python environment
-      - poetry install --with documentation
+      - poetry install --with documentation,dev
       # create a requirements file of the poetry env
       - rm -f ./docs/rtd_requirements.txt
       - poetry export --without-hashes --with=documentation --format=requirements.txt > ./docs/rtd_requirements.txt
