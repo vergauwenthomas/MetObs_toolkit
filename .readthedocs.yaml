@@ -28,6 +28,7 @@ build:
       - rm -f ./docs/rtd_requirements.txt
       - poetry export --without-hashes --all-extras --format=requirements.txt > ./docs/rtd_requirements.txt
     pre_build:
+      - cat docs/rtd_requirements.txt
       - python -m pip list
       #create a python environment
 
@@ -52,15 +53,15 @@ sphinx:
 # Optional but recommended, declare the Python requirements required
 # to build your documentation
 # See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
-# python:
-#    install:
-#    - requirements: ./docs/rtd_requirements.txt
 python:
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - documentation
-        - titan
-        - dev
-    - requirements: ./docs/rtd_requirements.txt
+   install:
+   - requirements: ./docs/rtd_requirements.txt
+# python:
+#   install:
+#     - method: pip
+#       path: .
+#       extra_requirements:
+#         - documentation
+#         - titan
+#         - dev
+#     - requirements: ./docs/rtd_requirements.txt
