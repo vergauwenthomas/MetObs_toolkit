@@ -21,8 +21,14 @@ build:
     pre_build:
       - pwd
       - ls
+      #create a python environment
       - poetry install --with documentation
-      - poetry run python rtdtest.py
+      # create a requirements file of the poetry env
+      - rm -f ./docs/rtd_requirements.txt
+      - poetry export --without-hashes --format=requirements.txt > ./docs/rtd_requirements.txt
+      #run test?
+      #- poetry run python rtdtest.py
+      #build doc in sphinx env (this is not pre build !!)
       - poetry run sphinx-build -a -E -v ./docs/ ./docs/_build/
 
 
@@ -40,6 +46,6 @@ sphinx:
 # Optional but recommended, declare the Python requirements required
 # to build your documentation
 # See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
-#python:
-#    install:
-#    - requirements: docs/requirements.txt
+python:
+   install:
+   - requirements: ./docs/rtd_requirements.txt
