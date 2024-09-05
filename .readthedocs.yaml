@@ -23,6 +23,8 @@ build:
       - pwd
       - ls
       - poetry build
+    pre_build:
+      - python -m pip list
       #create a python environment
      # - poetry install --all-extras
       # create a requirements file of the poetry env
