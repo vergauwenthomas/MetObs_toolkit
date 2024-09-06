@@ -33,15 +33,15 @@ from metobs_toolkit import Dataset
 
 
 class Analysis(Dataset):
-    """The Analysis class contains methods for analysing observations."""
+    """The Analysis class contains methods for analyzing observations."""
 
     def __init__(self, orig_dataset, use_gapfilled_values=False):
         """Create an instance of Analysis.
 
         The Analysis is similar as a Dataset and contains observations,
-        that are concidered to be good. There are no outliers.
+        that are considered to be good. There are no outliers.
 
-        The methods of the Analysis class target on scienctific analysis, and
+        The methods of the Analysis class target on scientific analysis, and
         is a feature-futured class.
 
 
@@ -75,7 +75,7 @@ class Analysis(Dataset):
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+        Now we have a dataset containing records. We now create an Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
         >>> ana # doctest: +ELLIPSIS
@@ -118,7 +118,7 @@ class Analysis(Dataset):
         Returns
         -------
         widedf : pandas.DataFrame
-            The observation records presented in a wide-structure where each
+            The observation records are presented in a wide structure where each
             column represents an observationtype.
 
         Examples
@@ -136,7 +136,7 @@ class Analysis(Dataset):
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+        Now we have a dataset containing records.We now create an Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
         >>> ana # doctest: +ELLIPSIS
@@ -193,14 +193,14 @@ class Analysis(Dataset):
         Parameters
         ----------
         startdt : datetime.datetime
-            The start datetime to filter the observations to.
+            The start datetime to filter the observations.
         enddt : datetime.datetime
-            The end datetime to filter the observations to.
+            The end datetime to filter the observations.
 
         Returns
         -------
         Analysis()
-            A new Analysis is returned that is the subseted version of the one
+            A new Analysis is returned that is the subset version of the one
             the filter is applied on.
 
         See Also
@@ -230,7 +230,7 @@ class Analysis(Dataset):
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+        Now we have a dataset containing records. We now create an Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
         >>> ana # doctest: +ELLIPSIS
@@ -318,7 +318,7 @@ class Analysis(Dataset):
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+        Now we have a dataset containing records.We now create an Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
 
@@ -332,7 +332,7 @@ class Analysis(Dataset):
         the LCZ information in the metadata. If you do not have the LCZ's per
         station, you can use the `Dataset.get_lcz()` method to extract them. So
         make sure that you get the LCZ's info in the Dataset, and then create
-        a Analysis from it.
+        an Analysis from it.
 
         >>> #Create your Dataset and add LCZ to it
         >>> dataset_with_lcz = metobs_toolkit.Dataset() #empty Dataset
@@ -347,7 +347,7 @@ class Analysis(Dataset):
         >>> # create an analysis from it
         >>> ana_with_lcz = metobs_toolkit.Analysis(dataset_with_lcz)
 
-        Now the LCZ information is transferd to the ana_with_lcz.
+        Now the LCZ information is transferred to the ana_with_lcz.
 
         >>> ana_with_lcz.get_possible_filter_keywords()
         ['dataset_resolution', 'datetime', 'day_of_year', 'dt_end', 'dt_start', 'geometry', 'hour', 'humidity', 'lat', 'lcz', 'lon', 'minute', 'month', 'name', 'school', 'season', 'temp', 'week_of_year', 'wind_direction', 'wind_speed', 'year']
@@ -378,7 +378,7 @@ class Analysis(Dataset):
         return filter_keys
 
     def apply_filter(self, expression):
-        """Filter an Analysis by a user definde string expression.
+        """Filter an Analysis by a user defined string expression.
 
         This can be used to filter the observation to specific meteorological
         conditions (i.e. low windspeeds, high humidity, cold temperatures, ...)
@@ -399,7 +399,7 @@ class Analysis(Dataset):
             The following timestamp derivatives can be used as well: [minute, hour,
             month, year, day_of_year, week_of_year, season]. The quarry_str may
             contain number and expressions like <, >, ==, >=, \*, +, .... Multiple filters
-            can be combine to one expression by using & (AND) and | (OR).
+            can be combined to one expression by using & (AND) and | (OR).
 
         Returns
         -------
@@ -437,7 +437,7 @@ class Analysis(Dataset):
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
 
-            Now we have a dataset containing records. We now create a Analysis from it.
+            Now we have a dataset containing records.We now create an Analysis from it.
 
             >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
             >>> ana # doctest: +ELLIPSIS
@@ -562,7 +562,7 @@ class Analysis(Dataset):
         """Aggregate observations to a (list of) categories.
 
         The output will be a dataframe that is aggregated to one, or more
-        categories. A commen example is aggregating to LCZ's.
+        categories. A common example is aggregating to LCZ's.
 
 
         Parameters
@@ -588,11 +588,11 @@ class Analysis(Dataset):
         --------
         Analysis: The Analysis class.
         Analysis.get_diurnal_statistics: Aggregate to diurnal cycle.
-        Analysis.get_anual_statistics: Aggregate to anual cycle.
+        Analysis.get_annual_statistics: Aggregate to annual cycle.
 
         Note
         -------
-        Present columns that ar non-numeric and are not in the agg list, are
+        Present columns that are non-numeric and are not in the agg list, are
         not present in the return, since these values cannot be aggregated.
 
         Examples
@@ -612,13 +612,13 @@ class Analysis(Dataset):
         >>> # Get LCZ (so we can aggregate per LCZ)
         >>> lcz_series = dataset.get_lcz()
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+        Now we have a dataset containing records.We now create an Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
         >>> ana # doctest: +ELLIPSIS
         Instance of Analysis at ...
 
-        As an example we aggregate to LCZ and the day of the year.
+        As an example, we aggregate to LCZ and the day of the year.
 
         >>> aggdf = ana.aggregate_df(agg=['lcz', 'day_of_year'],
         ...                          method='median')
@@ -705,7 +705,7 @@ class Analysis(Dataset):
     # =============================================================================
     #   Analyse method
     # =============================================================================
-    def get_anual_statistics(
+    def get_annual_statistics(
         self,
         groupby=["name"],
         obstype="temp",
@@ -720,7 +720,7 @@ class Analysis(Dataset):
         _return_all_stats=False,
     ):
         """
-        Create an anual cycle for aggregated groups.
+        Create an annual cycle for aggregated groups.
 
         (In the plot, unique combination of groupby categories is presented
          as a line.)
@@ -743,7 +743,7 @@ class Analysis(Dataset):
         enddt : datetime.datetime, optional
             The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
         plot : bool, optional
-            If True, an anual plot is made. The default is True.
+            If True, an annual plot is made. The default is True.
         errorbands : bool, optional
              If True, the std is representd in the plot by colored bands. The default is False.
         title : string, optional
@@ -754,7 +754,7 @@ class Analysis(Dataset):
         Returns
         -------
         df : pandas.DataFrame()
-            The dataframe containing the aggregated values.
+            The dataframe contains the aggregated values.
 
         See Also
         --------
@@ -762,7 +762,7 @@ class Analysis(Dataset):
         Analysis: The Analysis class.
         Analysis.aggregate_df: Data method for aggregating Analysis data.
         Analysis.get_diurnal_statistics: Aggregate to diurnal cycle.
-        Analysis.get_anual_statistics: Aggregate to anual cycle.
+        Analysis.get_annual_statistics: Aggregate to annual cycle.
 
         Note
         --------
@@ -791,21 +791,21 @@ class Analysis(Dataset):
             >>> # Get LCZ (so we can aggregate per LCZ)
             >>> lcz_series = dataset.get_lcz()
 
-            Now we have a dataset containing records. We now create a Analysis from it.
+            Now we have a dataset containing records.We now create an Analysis from it.
 
             >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
             >>> ana # doctest: +ELLIPSIS
             Instance of Analysis at ...
 
-            We can create a anual cycle, and aggregate to the LCZ.
+            We can create a annual cycle, and aggregate to the LCZ.
 
-            >>> anual_aggdf = ana.get_anual_statistics(
+            >>> annual_aggdf = ana.get_annual_statistics(
             ...                     groupby=["lcz"],
             ...                     obstype="temp",
             ...                     agg_method="mean",
             ...                     plot=True,
             ...                     errorbands=False)
-            >>> anual_aggdf[7:]
+            >>> annual_aggdf[7:]
             lcz        Compact midrise  Dense Trees (LCZ A)  Large lowrise  Low plants (LCZ D)  ...  Open midrise  Scattered Trees (LCZ B)  Sparsely built  Water (LCZ G)
             month                                                                               ...
             August                 NaN                  NaN            NaN                 NaN  ...           NaN                      NaN             NaN            NaN
@@ -881,13 +881,13 @@ class Analysis(Dataset):
             enddt : datetime.datetime, optional
                 The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
             plot : bool, optional
-                If True, an diurnal plot is made. The default is True.
+                If True, a diurnal plot is made. The default is True.
             title : string, optional
                  Title of the figure, if None a default title is generated. The default is None.
             legend : bool, optional
                  I True, a legend is added to the plot. The default is True.
             errorbands : bool, optional
-                If True, the std is representd in the plot by colored bands. The default is False.
+                If True, the std is represented in the plot by colored bands. The default is False.
 
             Returns
             -------
@@ -900,7 +900,7 @@ class Analysis(Dataset):
             Analysis: The Analysis class
             Analysis.aggregate_df: Data method for aggregating Analysis data.
             Analysis.get_diurnal_statistics_with_reference: Diurnal difference to reference cycle.
-            Analysis.get_anual_statistics: Aggregate to anual cycle.
+            Analysis.get_annual_statistics: Aggregate to annual cycle.
 
             Note
             --------
@@ -928,7 +928,7 @@ class Analysis(Dataset):
                 >>> # Get LCZ (so we can aggregate per LCZ)
                 >>> lcz_series = dataset.get_lcz()
 
-                Now we have a dataset containing records. We now create a Analysis from it.
+                Now we have a dataset containing records.We now create an Analysis from it.
 
                 >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
                 >>> ana
@@ -1052,7 +1052,7 @@ class Analysis(Dataset):
         (in time) reference observation. No reference observation is found when
         the time difference is larger than the tolerance.
 
-        (In the plot, each station is represed by a line.)
+        (In the plot, each station is represented by a line.)
 
         Parameters
         ----------
@@ -1063,7 +1063,7 @@ class Analysis(Dataset):
         obstype : str, optional
             Element of the metobs_toolkit.observation_types The default is 'temp'.
         tolerance : Timedelta or str, optional
-            The tolerance string or object representing the maximum translation in time to find a reference
+            The tolerance string or object represents the maximum translation in time to find a reference
             observation for each observation. Ex: '5min' is 5 minutes, '1h', is one hour. The default is '30min'.
         stations : list, optional
             List of station names to use. If None, all present stations will be used. The default is None.
@@ -1078,7 +1078,7 @@ class Analysis(Dataset):
         legend : bool, optional
               I True, a legend is added to the plot. The default is True.
         errorbands : bool, optional
-            If True, the std is representd in the plot by colored bands. The upper bound represents +1 x std, the lower bound -1 x std. The default is False.
+            If True, the std is represented in the plot by colored bands. The upper bound represents +1 x std, the lower bound -1 x std. The default is False.
         show_zero_horizontal : bool, optional
             If True a horizontal line is drawn in the plot at zero. The default is True.
 
@@ -1093,7 +1093,7 @@ class Analysis(Dataset):
         Analysis: The Analysis class
         Analysis.aggregate_df: Data method for aggregating Analysis data.
         Analysis.get_diurnal_statistics: Aggregate to diurnal cycle.
-        Analysis.get_anual_statistics: Aggregate to anual cycle.
+        Analysis.get_annual_statistics: Aggregate to annual cycle.
 
         Note
         --------
@@ -1255,12 +1255,12 @@ class Analysis(Dataset):
         _obsdf=None,
         _show_zero_line=False,
     ):
-        """Create an average cycle for an aggregated categorie.
+        """Create an average cycle for an aggregated category.
 
         A commen example is to aggregate to the LCZ's, so to get the diurnal
         cycle per LCZ rather than per station.
 
-        (In the plot, each aggregated category different from datetime, is represed by a line.)
+        (In the plot, each aggregated category different from datetime, is represented by a line.)
 
         Parameters
         ----------
@@ -1292,7 +1292,7 @@ class Analysis(Dataset):
         legend : bool, optional
              I True, a legend is added to the plot. The default is True.
         errorbands : bool, optional
-            If True, the std is representd in the plot by colored bands. The default is False.
+            If True, the std is represented in the plot by colored bands. The default is False.
         verbose : True, optional
             If True, an additional dataframe with aggregation information is returned . The default is False.
 
@@ -1308,7 +1308,7 @@ class Analysis(Dataset):
         Analysis.aggregate_df: Data method for aggregating Analysis data.
         Analysis.get_diurnal_statistics: Aggregate to diurnal cycle.
         Analysis.get_diurnal_statistics_with_reference: Diurnal difference to reference cycle.
-        Analysis.get_anual_statistics: Aggregate to anual cycle.
+        Analysis.get_annual_statistics: Aggregate to annual cycle.
 
         Note
         -------
@@ -1336,13 +1336,13 @@ class Analysis(Dataset):
             >>> # Get LCZ (so we can aggregate per LCZ)
             >>> lcz_series = dataset.get_lcz()
 
-            Now we have a dataset containing records. We now create a Analysis from it.
+            Now we have a dataset containing records.We now create an Analysis from it.
 
             >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
             >>> ana
             Instance of Analysis at ...
 
-            If your are intereseted in the diurnal cycles of your stations grouped
+            If you are interested in the diurnal cycles of your stations grouped
             per LCZ and compare them per season, we can do so by:
 
             >>> custom_aggdf = ana.get_aggregated_cycle_statistics(
@@ -1383,7 +1383,7 @@ class Analysis(Dataset):
         if isinstance(obstype, str):
             if obstype not in self.obstypes.keys():
                 logger.error(
-                    f"{obstype} is not found in the knonw observation types: {list(self.obstypes.keys())}"
+                    f"{obstype} is not found in the known observation types: {list(self.obstypes.keys())}"
                 )
                 return None
             else:
@@ -1561,7 +1561,7 @@ class Analysis(Dataset):
     # =============================================================================
 
     def get_lc_correlation_matrices(self, obstype=["temp"], groupby_labels=["hour"]):
-        """Compute pearson correlation coeficients.
+        """Compute Pearson correlation coefficients.
 
         A method to compute the Pearson correlation between an obervation type
         and present landcover fractions in the metadf.
@@ -1575,7 +1575,7 @@ class Analysis(Dataset):
 
         * cor matrix: the Pearson correlation matrix
         * significance matrix: the significance (p-)values of the correlations.
-        * combined matrix: A human readable combination of the correlations and their p values. Indicate by \*, \*\* or \*\*\* representing p-values < 0.05, 0.01 and 0.001 respectively.
+        * combined matrix: A human-readable combination of the correlations and their p values. Indicate by \*, \*\* or \*\*\* representing p-values < 0.05, 0.01 and 0.001 respectively.
 
         This dictionary is also stored as a lc_cor_dict attribute.
 
@@ -1585,7 +1585,7 @@ class Analysis(Dataset):
             The observation type(s) to compute the correlations on. The default is ['temp'].
         groupby_labels : list, optional
             List of variables to form one group, resulting in one correlation.
-            These variables should either a categorical observation type, a categorical column in the metadf or
+            These variables should be either a categorical observation type, a categorical column in the metadf or
             a time aggregation. All possible time aggreagetions are: ['minute',
             'hour', 'month', 'year', 'day_of_year',
             'week_of_year', 'season']. The default is ['hour'].
@@ -1619,18 +1619,18 @@ class Analysis(Dataset):
         >>> # Get landcover fraction (to calculate correlations for)
         >>> landcover_df = dataset.get_landcover(buffers=[250, 500], aggregate=True)
 
-        Now we have a dataset containing records. We now create a Analysis from it.
+        Now we have a dataset containing records.We now create an Analysis from it.
 
         >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
         >>> ana
         Instance of Analysis at ...
 
         As a demo, we calculate landcover correlations with temperature, and we
-        do this for each hour (thus aggregated to the hour --> diurnal caracteristics).
+        do this for each hour (thus aggregated to the hour --> diurnal characteristics).
 
         >>> cordict = ana.get_lc_correlation_matrices(obstype=["temp"], groupby_labels=["hour"])
 
-        Inspect the cordit to found the correlation matrices (and the corresponding
+        Inspect the cordict to find the correlation matrices (and the corresponding
         significance matrices) for each group (the hours in this example).
 
         >>> # The tempeature correlation matrix at 4 UTC
@@ -1759,7 +1759,7 @@ class Analysis(Dataset):
     def plot_correlation_heatmap(
         self, groupby_value=None, title=None, _return_ax=False
     ):
-        """Make a heatmap plot af a correaltion matrix.
+        """Make a heatmap plot of a correlation matrix.
 
         To specify which correlation matrix to plot, specify the group value
         using the groupby_value argument.
@@ -1769,11 +1769,11 @@ class Analysis(Dataset):
         Parameters
         ----------
         groupby_value : str, num, None, optional
-            A groupby value to indicate which correlation matrix to visualise.
+            A groupby value to indicate which correlation matrix to visualize.
             If None is given, the first groupby value that is present is
-            chosen.The default is None.
+            chosen. The default is None.
         title : str, optional
-            Title of the figure. If None, a default title is constructed.The
+            Title of the figure. If None, a default title is constructed. The
             default is None.
 
         Returns
@@ -1812,14 +1812,14 @@ class Analysis(Dataset):
             >>> # Get landcover fraction (to calculate correlations for)
             >>> landcover_df = dataset.get_landcover(buffers=[250, 500], aggregate=True)
 
-            Now we have a dataset containing records. We now create a Analysis from it.
+            Now we have a dataset containing records.We now create an Analysis from it.
 
             >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
             >>> ana
             Instance of Analysis at ...
 
             As a demo, we calculate landcover correlations with temperature, and we
-            do this for each hour (thus aggregated to the hour --> diurnal caracteristics).
+            do this for each hour (thus aggregated to the hour --> diurnal characteristics).
 
             >>> cordict = ana.get_lc_correlation_matrices(obstype=["temp"], groupby_labels=["hour"])
 
@@ -1863,7 +1863,7 @@ class Analysis(Dataset):
     def plot_correlation_variation(self, title=None):
         """Create correlation scatter plot.
 
-        Make a scatter plot of the correlations to visualise differences between
+        Make a scatter plot of the correlations to visualize differences between
         multiple group values.
 
         Group values are represented by the horizontal axes, and correlations
@@ -1917,7 +1917,7 @@ class Analysis(Dataset):
             >>> # Get landcover fraction (to calculate correlations for)
             >>> landcover_df = dataset.get_landcover(buffers=[250, 500], aggregate=True)
 
-            Now we have a dataset containing records. We now create a Analysis from it.
+            Now we have a dataset containing records.We now create an Analysis from it.
 
             >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
             >>> ana
@@ -1963,7 +1963,7 @@ class Analysis(Dataset):
 
 
 def _make_time_derivatives(df, required, get_all=False):
-    """Construct time derivated columns if required.
+    """Construct time-derivated columns if required.
 
     datetime must be a column.
     """
@@ -2014,7 +2014,7 @@ def get_seasons(
     Returns
     -------
     output : dataframe
-        A obtained dataframe that has where a label for the seasons has been added.
+        An obtained dataframe where a label for the seasons has been added.
     """
     spring_startday = datetime.strptime(start_day_spring, "%d/%m")
     summer_startday = datetime.strptime(start_day_summer, "%d/%m")

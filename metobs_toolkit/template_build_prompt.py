@@ -56,7 +56,7 @@ def add_new_obstype():
         )
         print("  * Example: Kelvin (= new unit) to °C :  x - 273.15 ")
         print(
-            "  * Example: Farenheit to °C : x-32.0; x/1.8    (executed left to right)"
+            "  * Example: Fahrenheit to °C : x-32.0; x/1.8    (executed left to right)"
         )
 
         conv_str = str(input(" : "))
@@ -104,7 +104,7 @@ def get_unit(obstype):
         )
         print("  * Example: Kelvin (= new unit) to °C :  x - 273.15 ")
         print(
-            "  * Example: Farenheit to °C : x-32.0; x/1.8    (executed left to right)"
+            "  * Example: Fahrenheit to °C : x-32.0; x/1.8    (executed left to right)"
         )
 
         conv_str = str(input(" : "))

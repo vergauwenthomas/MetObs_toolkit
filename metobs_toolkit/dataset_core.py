@@ -648,7 +648,7 @@ class Dataset(
             temperature (with a standard unit in Celsius):
 
                 ["x - 273.15"] #if the new_unit is Kelvin
-                ["x-32.0", "x/1.8"] #if the new unit is Farenheit
+                ["x-32.0", "x/1.8"] #if the new unit is Fahrenheit
 
             The default is [].
 
@@ -694,7 +694,7 @@ class Dataset(
         To see all knonw units for an Obstype, use the `get_all_units()` on it.
 
         >>> dataset.obstypes['temp'].get_all_units()
-        ['Celsius', 'Farenheit', 'Kelvin']
+        ['Celsius', 'Fahrenheit', 'Kelvin']
 
         Now we add a new unit
 
@@ -706,9 +706,9 @@ class Dataset(
         temp observation with:
          * standard unit: Celsius
          * data column as Temperatuur in Celsius
-         * known units and aliases: {'Celsius': ['celsius', '°C', '°c', 'celcius', 'Celcius'], 'Kelvin': ['K', 'kelvin'], 'Farenheit': ['farenheit'], 'your_new_unit': []}
+         * known units and aliases: {'Celsius': ['celsius', '°C', '°c', 'celcius', 'Celcius'], 'Kelvin': ['K', 'kelvin'], 'Fahrenheit': ['fahrenheit'], 'your_new_unit': []}
          * description: 2mT passive
-         * conversions to known units: {'Kelvin': ['x - 273.15'], 'Farenheit': ['x-32.0', 'x/1.8'], 'your_new_unit': ['x+3', 'x * 2']}
+         * conversions to known units: {'Kelvin': ['x - 273.15'], 'Fahrenheit': ['x-32.0', 'x/1.8'], 'your_new_unit': ['x+3', 'x * 2']}
          * originates from data column: Temperatuur with Celsius as native unit.
         """
         # test if observation is present

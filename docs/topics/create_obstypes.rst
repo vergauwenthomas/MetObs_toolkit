@@ -44,11 +44,11 @@ As an example, here is the definition of the temperature observation type:
                             # Common units and a list of aliases for them.
                              'Celsius': ['celsius', '°C', '°c', 'celcius', 'Celcius'],
                              'Kelvin': ['K', 'kelvin'],
-                             'Farenheit': ['farenheit']},
+                             'Fahrenheit': ['fahrenheit']},
                             # Conversion schemes for common units to the standard unit.
                          unit_conversions={
                              'Kelvin': ["x - 273.15"], #result is in tlk_std_units (aka Celsius)
-                             'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8},
+                             'Fahrenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8},
                          )
 
 Similar as this example a user can create a new observation type and add it to a :py:meth:`Dataset<metobs_toolkit.dataset.Dataset>`,

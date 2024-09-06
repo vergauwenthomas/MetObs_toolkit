@@ -46,7 +46,7 @@ temp_aliases = {
         "Celcius",
     ],  # for the dyselectic developper..
     "Kelvin": ["K", "kelvin"],
-    "Farenheit": ["farenheit"],
+    "Fahrenheit": ["fahrenheit"],
 }
 pressure_aliases = {
     "pa": ["Pascal", "pascal", "Pa"],
@@ -55,7 +55,7 @@ pressure_aliases = {
     "bar": ["Bar"],
 }
 
-precip_aliases = {"mm/m²": ["mm", "liter", "liters", "l/m²", "milimeter"]}
+precip_aliases = {"mm/m²": ["mm", "liter", "liters", "l/m²", "millimeter"]}
 
 wind_aliases = {
     "m/s": ["meters/second", "m/sec"],
@@ -86,11 +86,11 @@ all_units_aliases = {
 all_conversion_table = {
     "temp": {
         "Kelvin": ["x - 273.15"],  # result is in tlk_std_units
-        "Farenheit": ["x-32.0", "x/1.8"],
+        "Fahrenheit": ["x-32.0", "x/1.8"],
     },  # -->execute from left to write  = (x-32)/1.8
     "radiation_temp": {
         "Kelvin": ["x - 273.15"],  # result is in tlk_std_units
-        "Farenheit": ["x-32.0", "x/1.8"],
+        "Fahrenheit": ["x-32.0", "x/1.8"],
     },
     "humidity": {},
     "pressure": {"hpa": ["x * 100"], "psi": ["x * 6894.7573"], "bar": ["x * 100000."]},
@@ -137,7 +137,7 @@ class Obstype:
             as standard unit):
 
                 {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
-                'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
+                'Fahrenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
 
                 The default is {}.
 

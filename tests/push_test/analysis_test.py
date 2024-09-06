@@ -100,10 +100,10 @@ test2 = an.get_diurnal_statistics_with_reference(
 test3 = an.get_aggregated_cycle_statistics(aggregation=["lcz"])
 
 # =============================================================================
-# test anual cycle
+# test annual cycle
 # =============================================================================
 
-# test4 = an.get_anual_statistics(groupby=['name'])
+# test4 = an.get_annual_statistics(groupby=['name'])
 
 
 diurnal_solution_df_file = "diurnal_demo_df_solution.pkl"

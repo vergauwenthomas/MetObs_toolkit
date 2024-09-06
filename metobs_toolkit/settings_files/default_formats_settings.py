@@ -207,7 +207,7 @@ plot_settings["diurnal"] = {
     "legend_n_columns": 5,
 }
 
-plot_settings["anual"] = {
+plot_settings["annual"] = {
     "figsize": (10, 10),
     "alpha_error_bands": 0.3,
     "cmap_continious": "viridis",  # if many stations are present, best to use continious rather than categorical

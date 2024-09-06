@@ -87,9 +87,8 @@ master_doc = "index"  # The master toctree document.
 
 
 # When building the doc, sphinx will try to import all the depending packages,
-# this is not needed and problematic when building the docs in a clean docker on gitlab.
-# So specify which packages can be mocked
-
+# This is needed because of the plot examples that are rendered in the docs!
+# THus do not mock any package
 # autodoc_mock_imports = [
 #     "ee",
 #     "pytz",

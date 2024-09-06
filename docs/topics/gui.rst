@@ -22,7 +22,7 @@ In addition to building a template, some basic functions are implemented as well
 How to launch the GUI
 ------------------------
 
-As explained above, the GUI can best be launched as a local python script or as a local JupyterNotebook.
+As explained above, the GUI can best be launched as a local Python script or as a local JupyterNotebook.
 To do that, make sure you have installed the **Metobs-toolkit** and the **Metobs-GUI** on your machine.
 
 .. code-block:: console

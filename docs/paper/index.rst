@@ -3,9 +3,10 @@ Referencing
 ###########################
 
 
-The Metobs-toolkit is published under the MIT licence, so you can use the software freely.
+The Metobs-toolkit is published under the MIT license, you can use the software freely.
 
-The Metobs-toolkit (v0.2.0) was published in JOSS: [publication](https://joss.theoj.org/papers/10.21105/joss.05916#).
+The Metobs-toolkit (v0.2.0) was published in JOSS: `Publication <https://joss.theoj.org/papers/10.21105/joss.05916#>`_
+[publication](https://joss.theoj.org/papers/10.21105/joss.05916#).
 
 
 
@@ -33,7 +34,7 @@ or using BiBTeX:
 
 ```
 
-When refering to the MetObs-Toolkit software, please mention the used version.
+When referring to the MetObs-Toolkit software, please mention the used version.
 
 .. code-block:: python
 
@@ -43,4 +44,4 @@ When refering to the MetObs-Toolkit software, please mention the used version.
 
 About JOSS
 -----------
-The `Journal of Open Source Software <https://joss.theoj.org/>`_ is a developer friendly, open access journal for research software packages.
+The `Journal of Open Source Software <https://joss.theoj.org/>`_ is a developer-friendly, open-access journal for research software packages.

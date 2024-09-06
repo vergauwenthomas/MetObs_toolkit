@@ -16,7 +16,7 @@ The MetObs-toolkit is a Python package developed to facilitate the use of non-tr
 The package provides automated quality control (QC) techniques to identify and
 flag erroneous observations, and includes methods to fill data gaps.
 Additionally, the package offers tools for analyzing the data, e.g. linkage
-with popular land-use datasets is included, trough the use of the Google Earth Engine, such
+with popular land-use datasets is included, through the use of the Google Earth Engine, such
 that microclimate effects can be investigated with the MetObs-toolkit.
 
 

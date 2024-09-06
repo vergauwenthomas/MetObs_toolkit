@@ -38,7 +38,7 @@ Aggregation methods
 
    Analysis.get_analysis_records
    Analysis.aggregate_df
-   Analysis.get_anual_statistics
+   Analysis.get_annual_statistics
    Analysis.get_diurnal_statistics
    Analysis.get_diurnal_statistics_with_reference
    Analysis.get_aggregated_cycle_statistics

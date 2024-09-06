@@ -152,7 +152,7 @@ def analysis_test(dataset, name):
 
     # Test plotting and functions
     temp_diurnal = an.get_diurnal_statistics(colorby="lcz", title=name)
-    an.get_anual_statistics(agg_method="median", plot=False)
+    an.get_annual_statistics(agg_method="median", plot=False)
     test3 = an.get_aggregated_cycle_statistics(aggregation=["lcz"], title=name)
 
     print(an)
