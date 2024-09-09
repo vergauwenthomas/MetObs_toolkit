@@ -71,9 +71,13 @@ outfile = "deletame"
 
 
 outfile = os.path.join(outfolder, outfile)
-dataset.make_interactive_plot(outputfile=outfile, obstype="humidity", radius=11)
+dataset.make_interactive_plot(
+    save=True, filename=outfile, outputfolder=outfolder, obstype="humidity", radius=11
+)
 
-assert os.path.exists(outfile + ".html"), "interactive html is not saved!"
+assert os.path.exists(
+    os.path.join(outfolder, outfile) + ".html"
+), "interactive html is not saved!"
 os.remove(outfile + ".html")
 
 # %% GEE plots

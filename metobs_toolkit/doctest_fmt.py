@@ -42,6 +42,9 @@ def setup_and_run_doctest():
     # Set display options
     _set_pandas_display_options()
 
+    # Get all files currently present in cwd
+    cur_files = os.listdir(os.getcwd())
+
     # Run doctest
     doctest.testmod(
         verbose=False,  # print only failures
@@ -49,5 +52,10 @@ def setup_and_run_doctest():
         optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE,
     )
 
-
-_set_path_to_toolkit()
+    # delete the files that are generated (and stored in cwd) by the doctest
+    files_after_check = os.listdir(os.getcwd())
+    created = list(set(files_after_check) - set(cur_files))
+    for f in created:
+        if not f.endswith(".py"):  # better be sure
+            print(f"Deleting doctest output artifact: {f}")
+            os.remove(f)

@@ -2781,7 +2781,7 @@ class GeeDynamicModelData(_GeeModelData):
         ...                            obstypes=['temp'],
         ...                            drive_filename="your_era5_temperature_data.csv",
         ...                             drive_folder="gee_timeseries_data")
-        THE DATA AMOUT IS TO LAREGE FOR INTERACTIVE SESSION, ...
+        THE DATA AMOUNT IS TOO LARGE FOR INTERACTIVE SESSION, ...
 
         If the data request is small, the timeseries are present. If the
         data request is larger, a CSV file is writen to your google drive.

@@ -240,8 +240,8 @@ class ModelObstype_Vectorfield(Obstype):
         We start by creating a (regular) `Obstype` that represents the components
         of the components.
 
-        >>> wind_10m_component = Obstype(
-        ...        "wind",
+        >>> wind_10m_component = metobs_toolkit.Obstype(
+        ...        "wind_10m",
         ...        std_unit='m/s',
         ...        description=' .. component of the 10m wind field ..',
         ...        unit_aliases= {
@@ -252,12 +252,13 @@ class ModelObstype_Vectorfield(Obstype):
         ...                    "km/h": ["x / 3.6"],
         ...                    "mph": ["x * 0.44704"]})
         >>> wind_10m_component
+        Obstype instance of wind_10m
 
         Now we can create a `ModeObstype_Vectorfield` based on the `wind_10m_component`
         definition.
 
 
-        >>> wind_10m_era5 = ModelObstype_Vectorfield(
+        >>> wind_10m_era5 = metobs_toolkit.ModelObstype_Vectorfield(
         ...                        obstype=wind_10m_component,
         ...                        model_unit="m/s", # see GEE dataset details
         ...                        model_band_u="u_component_of_wind_10m",  # see GEE dataset details
@@ -266,12 +267,53 @@ class ModelObstype_Vectorfield(Obstype):
         ...                        direction_obstype_name="wind_direction")
 
         >>> wind_10m_era5
+        ModelObstype_Vectorfield instance of wind_10m (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
 
         If you want to use it for extracting data, add it to your dataset's Modeldata first.
 
         >>> dataset.gee_datasets
+        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
 
         >>> dataset.gee_datasets['ERA5-land'].add_modelobstype(wind_10m_era5)
+        >>> dataset.gee_datasets['ERA5-land'].get_info()
+        Empty GeeDynamicModelData instance of ERA5-land
+        ------ Details ---------
+        <BLANKLINE>
+         * name: ERA5-land
+         * location: ECMWF/ERA5_LAND/HOURLY
+         * value_type: numeric
+         * scale: 2500
+         * is_static: False
+         * is_image: False
+         * is_mosaic: False
+         * credentials:
+         * time res: 1h
+        <BLANKLINE>
+         -- Known Modelobstypes --
+        <BLANKLINE>
+         * temp : ModelObstype instance of temp (linked to band: temperature_2m)
+            (conversion: Kelvin --> Celsius)
+         * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
+            (conversion: pa --> pa)
+         * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+            vectorfield that will be converted to:
+              * wind_speed
+              * wind_direction
+            (conversion: m/s --> m/s)
+         * wind_10m : ModelObstype_Vectorfield instance of wind_10m (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+            vectorfield that will be converted to:
+              * wind_speed
+              * wind_direction
+            (conversion: m/s --> m/s)
+        <BLANKLINE>
+         -- Metadata --
+        <BLANKLINE>
+        No metadf is set.
+        <BLANKLINE>
+         -- Modeldata --
+        <BLANKLINE>
+        No model data is set.
+
 
         """
 
@@ -487,3 +529,12 @@ class MetobsModelObstypeHandlingError(Exception):
     """Exception raised for errors in the ModelObstype"""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

@@ -231,7 +231,7 @@ class DatasetVisuals:
         self,
         obstype="temp",
         save=True,
-        outputfile="interactive_figure.html",
+        filename="interactive_figure.html",
         outputfolder=None,
         starttime=None,
         endtime=None,
@@ -259,14 +259,14 @@ class DatasetVisuals:
             The observation type to plot. The default is 'temp'.
         save : bool, optional
             If true, the figure will be saved as an HTML file. The default is True.
-        outputfile : str, optional
-            The path of the output html-file. The figure will be saved here if
-            save is True. If outputfile is not given, and save is True, then
-            the figure will be saved in the default outputfolder (if given).
+        filename : str, optional
+            The filename for the HTML file. This is only used when save is True. If
+            a filename is given, if it does not end with ".html", the postfix
+            is added. If None, the map will not be saved as an HTML file.
             The default is "interactive_figure.html".
         outputfolder : str, optional
-            The path of the folder where to save the HTML, if
-            save is True. If outputfile is not given, and save is True, the
+            The path of the folder where to save the HTML (given by `filename`), if
+            save is True. If outputfoler is None, and save is True, the
             default outputfolder (see `Dataset.settings.IO['output_folder']`)
             is used. The default is None.
         starttime : datetime.datetime, optional
@@ -351,10 +351,10 @@ class DatasetVisuals:
         we save it to the current working directory (`os.getcwd()`).
 
         >>> import os
-        >>> target_file = os.path.join(os.getcwd(), 'interactive_temp_plot.html')
         >>> dataset.make_interactive_plot(obstype="temp",
         ...                              save=True,
-        ...                              outputfile=target_file,
+        ...                              filename='interactive_temp_plot.html',
+        ...                              outputfolder=os.getcwd(),
         ...                              starttime=None,
         ...                              endtime=None)
         <folium.folium.Map object at ...
@@ -389,15 +389,13 @@ class DatasetVisuals:
                 else:
                     trg_outputdir = outputfolder
 
-            # Check outputfile
-            if outputfile is None:
-                # Check if outputfile has .html extension
-                if not outputfile.endswith(".html"):
-                    outputfile = outputfile + ".html"
-                    logger.warning(
-                        f"The .hmtl extension is added to the outputfile: {outputfile}"
-                    )
-            trg_path = os.path.join(trg_outputdir, outputfile)
+            # Check if outputfile has .html extension
+            if not filename.endswith(".html"):
+                filename = filename + ".html"
+                logger.warning(
+                    f"The .hmtl extension is added to the outputfile: {filename}"
+                )
+            trg_path = os.path.join(trg_outputdir, filename)
 
         # Check if the obstype is present in the data
         if obstype.name not in self._get_present_obstypes():

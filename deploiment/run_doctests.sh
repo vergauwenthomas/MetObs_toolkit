@@ -32,9 +32,10 @@ for t in $modules; do
 	python3 ${module_file} 2>&1 | tee -a ${LOGDIR}/DOCtest_output_${t:2:-3}_log ${BIGLOGFILE}
 done
 
-rm ${WORKDIR}/*.pkl #created by doctest
-rm ${WORKDIR}/*.csv #created by docstest
-rm ${WORKDIR}/*.html #created by doctest
+# the output artifacts are deleted by the doctest_fmt.setup_and_run_doctest()
+#rm ${WORKDIR}/*.pkl #created by doctest
+#rm ${WORKDIR}/*.csv #created by docstest
+#rm ${WORKDIR}/*.html #created by doctest
 
 
 
