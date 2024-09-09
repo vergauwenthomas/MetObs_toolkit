@@ -39,7 +39,7 @@ def make_outlier_df_for_check(
     datetimes. This will be returned by a quality control check and later added
     to the dastes.outlierdf.
 
-    Multiple commum inputstructures can be handles
+    Multiple common input structures can be handled.
 
     A multiindex dataframe with the relevant observationtypes i.e. the
     values_in_dict and a specific quality flag column (i.g. the labels) is
@@ -116,7 +116,7 @@ def make_outlier_df_for_check(
 def duplicate_timestamp_check(df, checks_settings):
     """Test for duplicate timestamps in the observations.
 
-    Looking for duplcate timestaps per station. Duplicated records are removed by the method specified in the qc_settings.
+    Looking for duplcate timestamps per station. Duplicated records are removed by the method specified in the qc_settings.
 
     Parameters
     ------------
@@ -228,7 +228,7 @@ def gross_value_check(obsdf, obstype, checks_settings):
     return obsdf, outlier_df
 
 
-def persistance_check(station_frequencies, obsdf, obstype, checks_settings):
+def persistence_check(station_frequencies, obsdf, obstype, checks_settings):
     """Test observations to change over a specific period.
 
     Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
@@ -250,7 +250,7 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_settings):
     Parameters
     ------------
     station_frequencies : pandas.Series
-        The frecuencies of all the stations. This is a column in the metadf
+        The frequencies of all the stations. This is a column in the metadf
         attribute of the Dataset.
     obsdf : pandas.DataFrame
         The observations dataframe (Dataset.df) to check. Must have a triple
@@ -264,13 +264,13 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_settings):
     Returns
     ----------
     obsdf : pandas.DataFrame()
-        The observations dataframe updated for persistance outliers. These are
+        The observations dataframe updated for persistence outliers. These are
         represented by Nan values.
     outl_df : pandas.DataFrame
         The updated outliersdf.
 
     """
-    checkname = "persistance"
+    checkname = "persistence"
 
     try:
         specific_settings = checks_settings[checkname][obstype]
@@ -289,7 +289,7 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_settings):
     )
     if bool(invalid_stations):
         logger.warning(
-            f"The windows are too small for stations  {invalid_stations} to perform persistance check"
+            f"The windows are too small for stations  {invalid_stations} to perform persistence check"
         )
 
     to_check_series = (
@@ -308,7 +308,7 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_settings):
         )["value"]
         input_series = to_check_series.dropna()
 
-        # apply persistance
+        # apply persistence
         def is_unique(
             window,
         ):  # comp order of N (while using the 'unique' function is Nlog(N))
@@ -368,7 +368,7 @@ def persistance_check(station_frequencies, obsdf, obstype, checks_settings):
 
 
 def repetitions_check(obsdf, obstype, checks_settings):
-    """Test if observation change after a number of records.
+    """Test if observation changes after a number of records.
 
     Looking for values of an observation type that are repeated at least with
     the frequency specified in the qc_settings. These values are labeled.
@@ -431,9 +431,9 @@ def repetitions_check(obsdf, obstype, checks_settings):
     time_diff = input_series.index.get_level_values("datetime").to_series().diff()
     time_diff.index = input_series.index  # back to multiindex
 
-    persistance_filter = ((input_series.shift() != input_series)).cumsum()
+    persistence_filter = ((input_series.shift() != input_series)).cumsum()
 
-    grouped = input_series.groupby(["name", persistance_filter])
+    grouped = input_series.groupby(["name", persistence_filter])
     # the above line groups the observations which have the same value and consecutive datetimes.
     group_sizes = grouped.size()
     outlier_groups = group_sizes[
@@ -459,7 +459,7 @@ def repetitions_check(obsdf, obstype, checks_settings):
 
 
 def step_check(obsdf, obstype, checks_settings):
-    """Test if observations do not produces spikes in timeseries.
+    """Test if observations do not produce spikes in timeseries.
 
     Looking for jumps of the values of an observation type that are larger than
     the limit specified in the qc_settings. These values are removed from the
@@ -504,8 +504,8 @@ def step_check(obsdf, obstype, checks_settings):
 
     Note
     -----
-      In general, for temperatures,  the decrease threshold is set less stringent than the increase
-      threshold. This is because a temperature drop is meteorologycally more
+      In general, for temperatures, the decrease threshold is set less stringent than the increase
+      threshold. This is because a temperature drop is meteorologically more
       common than a sudden increase which is often the result of a radiation error.
 
     """
@@ -565,17 +565,17 @@ def step_check(obsdf, obstype, checks_settings):
 
 
 def window_variation_check(station_frequencies, obsdf, obstype, checks_settings):
-    """Test if the variation exeeds threshold in moving time windows.
+    """Test if the variation exceeds the threshold in moving time windows.
 
     Looking for jumps of the values of an observation type that are larger than
     the limit specified in the qc_settings. These values are removed from the
     input series and combined in the outlier df.
 
-    There is a increament threshold (that is if there is a max value difference
-    and the maximum value occured later than the minimum value occured.)
-    And vice versa is there a decreament threshold.
+    There is an increament threshold (that is if there is a max value difference
+    and the maximum value occurred later than the minimum value occurred.)
+    And vice versa is there a decrement threshold.
 
-    The check is only applied if there are at leas N observations in the time window.
+    The check is only applied if there are at least N observations in the time window.
 
     Schematically:
 
@@ -596,7 +596,7 @@ def window_variation_check(station_frequencies, obsdf, obstype, checks_settings)
     Parameters
     ------------
     station_frequencies : pandas.Series
-        The frecuencies of all the stations. This is a column in the metadf
+        The frequencies of all the stations. This is a column in the metadf
         attribute of the Dataset.
     obsdf : pandas.DataFrame
         The observations dataframe (Dataset.df) to check. Must have a triple
@@ -808,12 +808,12 @@ def toolkit_buddy_check(
 ):
     """Spatial buddy check.
 
-    The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
-    buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
-    (absolute value of the) difference between the observations and the average of the neighbours
+    The buddy check compares an observation against its neighbors (i.e. buddies). The check looks for
+    buddies in a neighborshood specified by a certain radius. The buddy check flags observations if the
+    (absolute value of the) difference between the observations and the average of the neighbors
     normalized by the standard deviation in the circle is greater than a predefined threshold.
 
-    A schematic step by step description on the buddy check:
+    A schematic step-by-step description of the buddy check:
 
       1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation, or by first converting the Coordinate Reference System (CRS) to a metric one, specified by an EPSG code.
       2. A set of all (spatial) buddies per station is created by filtering out all stations that are too far.
@@ -824,7 +824,7 @@ def toolkit_buddy_check(
         * For each reference record, the mean, standard deviation (std), and sample size of the corrected buddies’ observations are computed.
         * If the std is lower than the minimum std, it is replaced by the minimum std.
         * Chi values are calculated for all reference records.
-        * If the Chi value is larger than the std_threshold, the record is accepted, otherwise it is marked as an outlier.
+        * If the Chi value is larger than the std_threshold, the record is accepted, otherwise, it is marked as an outlier.
 
     Parameters
     ----------
@@ -835,26 +835,26 @@ def toolkit_buddy_check(
     obstype: String, optional
         The observation type that has to be checked. The default is 'temp'
     buddy_radius : numeric
-        The radius to define neighbours in meters.
+        The radius to define neighbors in meters.
     min_sample_size : int
         The minimum sample size to calculate statistics on.
     max_alt_diff : numeric
         The maximum altitude difference allowed for buddies.
     min_std : numeric
         The minimum standard deviation for sample statistics. This should
-        represent the accuracty of the observations.
+        represent the accuracy of the observations.
     std_threshold : numeric
-        The threshold (std units) for flaggging observations as outliers.
+        The threshold (std units) for flagging observations as outliers.
     haversine_approx : bool, optional
         Use the haversine approximation (earth is a sphere) to calculate
         distances between stations. The default is True.
     metric_epsg : str, optional
         EPSG code for the metric CRS to calculate distances in. Only used when
         haversine approximation is set to False. Thus becoming a better
-        distance approximation but not global applicable The default is '31370'
+        distance approximation but not globally applicable The default is '31370'
         (which is suitable for Belgium).
     lapserate : numeric, optional
-        Describes how the obstype changes with altitude (in meters). The default is -0.0065.
+        Describe how the obstype changes with altitude (in meters). The default is -0.0065.
 
     Returns
     -------
@@ -969,7 +969,7 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
     """Create a dictionary of titanlib-points.
 
     Titanlib uses point as dataformats. This method converts the dataframes to
-    a dictionnary of points.
+    a dictionary of points.
 
     Parameters
     ----------
@@ -1019,9 +1019,9 @@ def create_titanlib_points_dict(obsdf, metadf, obstype):
 def titan_buddy_check(obsdf, metadf, obstype, checks_settings, titan_specific_labeler):
     """Apply the Titanlib buddy check.
 
-    The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
-    buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
-    (absolute value of the) difference between the observations and the average of the neighbours
+    The buddy check compares an observation against its neighbors (i.e. buddies). The check looks for
+    buddies in a neighborhood specified by a certain radius. The buddy check flags observations if the
+    (absolute value of the) difference between the observations and the average of the neighbors
     normalized by the standard deviation in the circle is greater than a predefined threshold.
 
 
@@ -1071,7 +1071,7 @@ def titan_buddy_check(obsdf, metadf, obstype, checks_settings, titan_specific_la
             ),  # same radius for all stations
             np.asarray(
                 [checks_settings["num_min"]] * len(obs)
-            ),  # same min neighbours for all stations
+            ),  # same min neighbors for all stations
             checks_settings["threshold"],
             checks_settings["max_elev_diff"],
             checks_settings["elev_gradient"],
@@ -1107,7 +1107,7 @@ def titan_sct_resistant_check(
 ):
     """Apply the Titanlib (robust) Spatial-Consistency-Test (SCT).
 
-    The SCT resistant check is a spatial consistency check which compares each observations to what is expected given the other observations in the
+    The SCT resistant check is a spatial consistency check which compares each observation to what is expected given the other observations in the
     nearby area. If the deviation is large, the observation is removed. The SCT uses optimal interpolation
     (OI) to compute an expected value for each observation. The background for the OI is computed from
     a general vertical profile of observations in the area.

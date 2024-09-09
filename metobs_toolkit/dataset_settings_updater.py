@@ -40,7 +40,7 @@ class DatasetSettingsCore:
         input_data_file : string,
             Path to the input data file with observations (CSV).
         template_file : string
-            Path to the template file (json) to be used on the observations
+            Path to the template file (JSON) to be used on the observations
             and metadata. The default is None.
         input_metadata_file : string, optional
             Path to the input metadata file (CSV). The default is None.
@@ -55,7 +55,7 @@ class DatasetSettingsCore:
 
         Note
         -----
-        This methods is redundant if you specify the paths in the
+        This method is redundant if you specify the paths in the
         `metobs_toolkit.Dataset.import_data_from_file()` method.
 
         Note
@@ -64,8 +64,9 @@ class DatasetSettingsCore:
 
         Warning
         ---------
-        In pervious versions ( <= v0.2.1) the templatefile was a csv. Thus you have
-        to create the template again to be compatible with this version of the toolkit.
+        In previous versions ( <= v0.2.1) the templatefile was a CSV file. Thus
+        you have to create the template again to be compatible with this
+        version of the toolkit.
 
         Examples
         --------
@@ -79,7 +80,7 @@ class DatasetSettingsCore:
         >>> metobs_toolkit.build_template_prompt() # doctest: +SKIP
 
         You will be prompted some questions on your data file (and metadatafile if you have one).
-        In the end, the toolkit will write the templatefile (json format) to
+        In the end, the toolkit will write the templatefile (JSON format) to
         a location of your choice.
 
         Now you can create a Dataset (empty), update the paths on it, and import the data.
@@ -90,7 +91,7 @@ class DatasetSettingsCore:
         ...                             input_metadata_file=" ... ")  # doctest: +SKIP
         >>> dataset.import_data_from_file()  # doctest: +SKIP
 
-        For being more concise, your can avoid the `Dataset.update_file_paths()` method
+        To be more concise, you can avoid the `Dataset.update_file_paths()` method
         and pass the paths directly to the `Dataset.update_file_paths()` method:
 
         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
@@ -177,7 +178,7 @@ class DatasetSettingsCore:
     ):
         """Update the QC settings for the specified observation type.
 
-        If a argument value is None, the default settings will not be updated.
+        If an argument value is None, the default settings will not be updated.
 
         Parameters
         ----------
@@ -187,9 +188,9 @@ class DatasetSettingsCore:
         dupl_timestamp_keep : bool, optional
             Setting that determines to keep, or remove duplicated timestamps. The default is None.
         persis_time_win_to_check : Timedelta or str, optional
-            Time window for persistance check. The default is None.
+            Time window for persistence check. The default is None.
         persis_min_num_obs : int (> 0), optional
-            Minimal window members for persistance check. The default is None.
+            Minimal window members for persistence check. The default is None.
         rep_max_valid_repetitions : int (> 0), optional
             Maximal valid repetitions for repetitions check. The default is None.
         gross_value_min_value : numeric, optional
@@ -209,7 +210,7 @@ class DatasetSettingsCore:
         step_max_decrease_per_sec : numeric (< 0), optional
             Maximal decrease per second for step check. The default is None.
         buddy_radius : numeric (> 0), optional
-            The radius to define neighbours in meters. The default is None.
+            The radius to define neighbors in meters. The default is None.
         buddy_min_sample_size : int (> 2), optional
             The minimum sample size to calculate statistics on. The default is
             None.
@@ -218,12 +219,12 @@ class DatasetSettingsCore:
             None.
         buddy_min_std : numeric (> 0), optional
             The minimum standard deviation for sample statistics. This should
-            represent the accuracty of the observations. The default is None.
+            represent the accuracy of the observations. The default is None.
         buddy_threshold : numeric (> 0), optional
-            The threshold (std units) for flaggging observations as buddy
+            The threshold (std units) for flagging observations as buddy
             outliers. The default is None.
         buddy_elev_gradient : numeric, optional
-            Describes how the obstype changes with altitude (in meters). The
+            Describe how the obstype changes with altitude (in meters). The
             default is -0.0065. The default is None.
 
         Returns
@@ -263,9 +264,9 @@ class DatasetSettingsCore:
              *Coordinates are available for all stations.
 
 
-        For this example we reduce the data by coarsening the time resolution
+        For this example, we reduce the data by coarsening the time resolution
         to hourly. It is important to resample the time resolution in advance of
-        applying quality control since some checks depend on the records frequency!
+        applying quality control since some checks depend on the frequency of the records!
 
         >>> dataset.coarsen_time_resolution(freq='1h')
 
@@ -274,13 +275,13 @@ class DatasetSettingsCore:
         or by using the `Datatest.show_settings()` method.
 
         >>> dataset.settings.qc['qc_check_settings']
-        {'duplicated_timestamp': {'keep': False}, 'persistance': {'temp': {'time_window_to_check': '1h', 'min_num_obs': 5}}, 'repetitions': {'temp': {'max_valid_repetitions': 5}}, 'gross_value': {'temp': {'min_value': -15.0, 'max_value': 39.0}}, 'window_variation': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': 0.002777777777777778, 'time_window_to_check': '1h', 'min_window_members': 3}}, 'step': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': -0.002777777777777778}}, 'buddy_check': {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}}
+        {'duplicated_timestamp': {'keep': False}, 'persistence': {'temp': {'time_window_to_check': '1h', 'min_num_obs': 5}}, 'repetitions': {'temp': {'max_valid_repetitions': 5}}, 'gross_value': {'temp': {'min_value': -15.0, 'max_value': 39.0}}, 'window_variation': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': 0.002777777777777778, 'time_window_to_check': '1h', 'min_window_members': 3}}, 'step': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': -0.002777777777777778}}, 'buddy_check': {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}}
         >>> dataset.show_settings()
         All settings: ...
 
 
         We can change the (default) settings for QC using the `Dataset.update_qc_settings()`
-        method. These settings are observationtype dependant!
+        method. These settings are observationtype dependent!
 
         >>> dataset.update_qc_settings(
         ...                obstype='temp',
@@ -347,21 +348,21 @@ class DatasetSettingsCore:
                 bool(dupl_timestamp_keep)
             )
 
-        # Persistance check
+        # Persistence check
         if persis_time_win_to_check is not None:
             if is_timedelta(str(persis_time_win_to_check)):
                 (
-                    self.settings.qc["qc_check_settings"]["persistance"],
+                    self.settings.qc["qc_check_settings"]["persistence"],
                     updatestr,
                 ) = _updater(
-                    self.settings.qc["qc_check_settings"]["persistance"],
+                    self.settings.qc["qc_check_settings"]["persistence"],
                     obstype=obstype,
                     argname="time_window_to_check",
                     value=str(persis_time_win_to_check),
                 )
 
                 logger.info(
-                    f"Time window size for persistance check updated: {updatestr}"
+                    f"Time window size for persistence check updated: {updatestr}"
                 )
 
             else:
@@ -370,15 +371,15 @@ class DatasetSettingsCore:
                 )
 
         if persis_min_num_obs is not None:
-            self.settings.qc["qc_check_settings"]["persistance"], updatestr = _updater(
-                self.settings.qc["qc_check_settings"]["persistance"],
+            self.settings.qc["qc_check_settings"]["persistence"], updatestr = _updater(
+                self.settings.qc["qc_check_settings"]["persistence"],
                 obstype=obstype,
                 argname="min_num_obs",
                 value=abs(int(persis_min_num_obs)),
             )
 
             logger.info(
-                f"Minimal window members for persistance check updated: {updatestr}"
+                f"Minimal window members for persistence check updated: {updatestr}"
             )
 
         # Repetitions check
@@ -727,7 +728,7 @@ class DatasetSettingsCore:
     ):
         """Update the TITAN QC settings for the specified observation type.
 
-        If a argument value is None, the default settings will not be updated.
+        If an argument value is None, the default settings will not be updated.
 
         For a detailed explanation of the settings, we refer to the
         [TITAN documetation](https://github.com/metno/titanlib/wiki)
@@ -745,11 +746,12 @@ class DatasetSettingsCore:
         buddy_threshold : num (> 0), optional
             The variance threshold for flagging a station. The default is None.
         buddy_max_elev_diff : num, optional
-            The maximum difference in elevation for a buddy (if negative will not check for heigh difference). The default is None.
+            The maximum difference in elevation for a buddy (if negative will
+            not check for height difference). The default is None.
         buddy_elev_gradient : num, optional
             Linear elevation temperature gradient with height. The default is None.
         buddy_min_std : num (> 0), optional
-            If the standard deviation of values in a neighborhood are less than min_std, min_std will be used instead. The default is None.
+            If the standard deviation of values in a neighborhood is less than min_std, min_std will be used instead. The default is None.
         buddy_num_iterations : int (> 0), optional
             The number of iterations to perform. The default is None.
         buddy_debug : bool, optional
@@ -761,7 +763,7 @@ class DatasetSettingsCore:
 
         See Also
         -----------
-        Dataset.update_qc_settings: Update the settings for the defualt QC pipeline.
+        Dataset.update_qc_settings: Update the settings for the default QC pipeline.
         Dataset.apply_titan_buddy_check: Apply TITAN buddy check
 
         Examples
@@ -790,7 +792,7 @@ class DatasetSettingsCore:
              *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
              *Coordinates are available for all stations.
 
-        For this example we reduce the data by coarsening the time resolution
+        For this example, we reduce the data by coarsening the time resolution
         to hourly.
 
         >>> dataset.coarsen_time_resolution(freq='1h')
@@ -803,7 +805,7 @@ class DatasetSettingsCore:
         {'temp': {'radius': 50000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0, 'num_iterations': 1}}
 
         We can change the (default) settings using the `Dataset.update_titan_qc_settings()`
-        method. These settings are observationtype dependant!
+        method. These settings are observationtype dependent!
 
         >>> # The following settings are illustrative, do not copy blindly
         >>> dataset.update_titan_qc_settings(

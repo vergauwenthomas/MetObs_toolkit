@@ -48,7 +48,7 @@ class DatasetModelData:
         """Extract Timeseries data from a Gee dataset at your stations.
 
         The link with a Gee dataset is done by specifying a GeeDyanmicModelData.
-        The extracted data is return in the form of a DataFrame and is stored
+        The extracted data is returned in the form of a DataFrame and is stored
         in the Model.
 
 
@@ -68,25 +68,25 @@ class DatasetModelData:
             End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.
         get_all_bands : bool, optional
             If True, all values (over all bands) are extracted. If the band is
-            linked to a ModelObstye, than the name of the modelObstype is used
+            linked to a ModelObstye, then the name of the modelObstype is used
             instead of the bandname. If True, the obstypes argument is ignored.
             The default is False.
         drive_filename : str or None, optional
             If given, the data will be saved as this filename on your Google Drive.
-            This argument will only take effect when the data is writen to
+            This argument will only take effect when the data is written to
             Google Drive. If None, a custom filename is created. The default is
             None.
         drive_folder: str
             The name of the folder on your Google Drive to save the drive_filename
-            in. If the folder, does not exists it will be created instead. This
-            argument will only take effect when the data is writen to Google
+            in. If the folder, does not exist it will be created instead. This
+            argument will only take effect when the data is written to Google
             Drive.
         force_direct_transfer: bool, optional
-            If True, the data is demanded as a direct transfer (no file writen
-            to google drive). If the request is to large, an GEE error is raised.
+            If True, the data is demanded as a direct transfer (no file written
+            to Google Drive). If the request is tol large, a GEE error is raised.
             The default is False.
         force_to_drive: bool, optional
-            If True, The gee data is writen to a file on your drive. Direct
+            If True, The gee data is written to a file on your drive. Direct
             transfer of data is prohibited. The default is False.
 
 
@@ -104,7 +104,7 @@ class DatasetModelData:
         Note
         ------
         When extracting large amounts of data, the timeseries data will be
-        written to a file and saved on your google drive. In this case, you need
+        written to a file and saved on your Google Drive. In this case, you need
         to provide the Modeldata with the data using the .set_model_from_csv()
         method.
 
@@ -112,7 +112,7 @@ class DatasetModelData:
         See Also
         -----------
         GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
-        metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to band).
+        metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to a band).
         metobs_toolkit.ModelObstype_Vectorfield: A Vectorfield version of ModelObstype.
         Dataset.add_new_geemodeldata(): Add a new Gee Modeldata to your dataset.
 
@@ -131,11 +131,11 @@ class DatasetModelData:
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        We will now extract modeldata, directly trough the use of the GEE (
-        google earht engine) API. The Modeldata will extract timeseries,
+        We will now extract modeldata, directly through the use of the GEE (
+        Google Earht Engine) API. The Modeldata will extract the timeseries,
         of the stations present in the Dataset.
 
-        By default, each `Dataset` is equiped with Gee dataset.
+        By default, each `Dataset` is equipped with default Gee datasets.
 
         >>> dataset.gee_datasets
         {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
@@ -144,10 +144,10 @@ class DatasetModelData:
         use it for this example.
 
 
-        If the data transfer is to big, a file .csv file is writen in your
-        google Drive. You must download that file, and import it using the
+        If the data transfer is to big, a file .csv file is written in your
+        Google Drive. You must download that file, and import it using the
         ``Modeldata.set_model_from_csv()`. To limit the transfer of data,
-        we will dowload timeseries for a single station, and a specific timeperiod.
+        we will download timeseries for a single station, and a specific timeperiod.
 
         >>> import datetime
         >>>
@@ -287,7 +287,7 @@ class DatasetModelData:
         Function to extract the Local CLimate zones (LCZ) from the
         wudapt global LCZ map on the Google engine for all stations.
 
-        A 'LCZ' column will be added to the metadf, and series is returned.
+        A 'LCZ' column will be added to the metadf, and the series is returned.
 
         Returns
         -------
@@ -296,14 +296,14 @@ class DatasetModelData:
 
         Warning
         ---------
-        This methods makes use of GEE API. Make sure that you have acces and
+        This method makes use of GEE API. Make sure that you have accesss and
         user rights to use the GEE API.
 
         See Also
         --------
-        connect_to_gee: Setup a new connection/credentials to the GEE service.
+        connect_to_gee: Set up a new connection/credentials to the GEE service.
         get_altitude: Extract altitudes for all stations
-        get_landcover: Extract landcoverfractions for all stations
+        get_landcover: Extract landcover fractions for all stations
 
 
         Examples
@@ -320,7 +320,7 @@ class DatasetModelData:
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        At this point there is no LCZ information present in the metadata
+        At this point, there is no LCZ information present in the metadata
 
         >>> dataset.metadf.head()
                      lat   lon        school                  geometry dataset_resolution                  dt_start                    dt_end
@@ -398,7 +398,7 @@ class DatasetModelData:
         Function to extract the Altitude from the SRTM Digital Elevation Data
         global map on the Google engine for all stations.
 
-        A 'altitude' column will be added to the metadf, and series is returned.
+        An 'altitude' column will be added to the metadf, and the series is returned.
 
         Returns
         -------
@@ -407,14 +407,14 @@ class DatasetModelData:
 
         Warning
         ---------
-        This methods makes use of GEE API. Make sure that you have acces and
+        This method makes use of GEE API. Make sure that you have access and
         user rights to use the GEE API.
 
         See Also
         --------
-        connect_to_gee: Setup a new connection/credentials to the GEE service.
+        connect_to_gee: Set up a new connection/credentials to the GEE service.
         get_lcz: Extract LCZ for all stations
-        get_landcover: Extract landcoverfractions for all stations
+        get_landcover: Extract landcover fractions for all stations
 
         Examples
         --------
@@ -430,7 +430,7 @@ class DatasetModelData:
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        At this point there is no altitude information present in the metadata
+        At this point, there is no altitude information present in the metadata
 
         >>> dataset.metadf.head()
                      lat   lon        school                  geometry dataset_resolution                  dt_start                    dt_end
@@ -511,11 +511,11 @@ class DatasetModelData:
         """Extract landcover for all stations.
 
         Extract the landcover fractions in a buffer with a specific radius for
-        all stations. If an aggregation scheme is define, one can choose to
-        aggregate the landcoverclasses.
+        all stations. If an aggregation scheme is defined, one can choose to
+        aggregate the landcover classes.
 
         The landcover fractions will be added to the Dataset.metadf if overwrite
-        is True. Presented as seperate columns where each column represent the
+        is True. Presented as separate columns where each column represents the
         landcovertype and corresponding buffer.
 
         Parameters
@@ -541,7 +541,7 @@ class DatasetModelData:
 
         Warning
         ---------
-        This methods makes use of GEE API. Make sure that you have acces and
+        This method makes use of GEE API. Make sure that you have access and
         user rights to use the GEE API.
 
         Warning
@@ -551,7 +551,7 @@ class DatasetModelData:
 
         See Also
         --------
-        connect_to_gee: Setup a new connection/credentials to the GEE service.
+        connect_to_gee: Set up a new connection/credentials to the GEE service.
         get_altitude: Extract altitudes for all stations
         get_lcz: Extract lcz for all stations
         make_gee_plot: Make an interactive plot of a GEE dataset
@@ -570,7 +570,7 @@ class DatasetModelData:
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        At this point there is no landcover information present in the metadata.
+        At this point, there is no landcover information present in the metadata.
 
         >>> dataset.metadf.head()
                      lat   lon        school                  geometry dataset_resolution                  dt_start                    dt_end
@@ -704,7 +704,7 @@ class DatasetModelData:
 
         Examples
         ----------
-        As an example we will add a new Gee Modeldata (precipitation satelite
+        As an example, we will add a new Gee Modeldata (precipitation satellite
         product), to the Dataset.
 
         >>> import metobs_toolkit
@@ -719,7 +719,7 @@ class DatasetModelData:
         Now we will create a new GeeDynamicModelData linking to this GEE dataset:
         https://developers.google.com/earth-engine/datasets/catalog/JAXA_GPM_L3_GSMaP_v8_operational.
 
-        To do this, must make a ModelObstype reflecting the precipitation, and
+        We create a ModelObstype reflecting the precipitation, and
         linking it with the corresponding band of the GEE dataset.
 
         >>> dataset.obstypes #See which obstypes are already present
@@ -735,7 +735,7 @@ class DatasetModelData:
         ...               model_unit='mm', #See GEE
         ...               model_band="hourlyPrecipRateGC")
 
-        (Add a new unit to the regular Obstype if the model_unit is not knonw.)
+        (Add a new unit to the regular Obstype if the model_unit is not known.)
 
         Now we can create the Gee Modeldata.
 
@@ -755,11 +755,11 @@ class DatasetModelData:
         >>> dataset.gee_datasets
         {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land , 'precip_GSMaP': Empty GeeDynamicModelData instance of precip_GSMaP }
 
-        Now we can use the Gee Modeldata with our dataset (gapfilling, plotting,
-        extracting timeseries, ...). As an exmple we will download the timeseries
+        Now we can use the Gee Modeldata with our dataset (gap filling, plotting,
+        extracting timeseries, ...). As an example we will download the timeseries
         of precipitation (form the satelite product) at the locations of the stations.
 
-        First we need to import the metadata.
+        First, we need to import the metadata.
 
         >>> dataset.import_data_from_file(
         ...         input_data_file=metobs_toolkit.demo_datafile,

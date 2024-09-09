@@ -23,7 +23,7 @@ class ModelObstype(Obstype):
         A ModelObstype is specific to a GEE Dataset, and is therefore added
         to a `GeeDynamicModelData` (that facilitates the link with a GEE dataset).
 
-        All methods and attributes are inherited of the `Obstype` class.
+        All methods and attributes are inherited from the `Obstype` class.
 
         Parameters
         ----------
@@ -34,7 +34,7 @@ class ModelObstype(Obstype):
             the corresponding GEE dataset. This unit must be known by the obstype (
             add it if it is not known).
         model_band : str
-            The name of the band representing the obstype. This can be found in
+            The name of the band that represents the obstype. This can be found in
             the details of the GEE dataset.
 
         Returns
@@ -48,7 +48,7 @@ class ModelObstype(Obstype):
 
         Examples
         ---------
-        As example we create a `ModelObstype` for downward solar radiation at the
+        For example, we create a `ModelObstype` for downward solar radiation at the
         surface, to be used with the ERA5-land GEE dataset.
 
         >>> import metobs_toolkit
@@ -62,7 +62,7 @@ class ModelObstype(Obstype):
         >>> dataset.obstypes
         {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind_speed, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction}
 
-        We see that there is no default `Obstype` that we can use for the
+        We see that there is no default `Obstype` that we can use for
         solar radiation. Therefore we must create a new `Obstype`.
 
         >>> sol_rad_down_surf = metobs_toolkit.Obstype(
@@ -71,7 +71,7 @@ class ModelObstype(Obstype):
 
         By looking up the details of ERA5-land (https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY),
         we find that the corresponding band is *surface_solar_radiation_downwards* and
-        the units are in "J/m²" (no coinsidence).
+        the units are in "J/m²" (no coincidence).
 
         >>> sol_rad_down_for_ERA5 = metobs_toolkit.ModelObstype(
         ...                            obstype=sol_rad_down_surf,
@@ -80,7 +80,7 @@ class ModelObstype(Obstype):
         >>> sol_rad_down_for_ERA5
         ModelObstype instance of solar_rad_down_at_surface (linked to band: surface_solar_radiation_downwards)
 
-        In pracktice we add it to the knonw ModelObstypes of the ERA5 `GeeDynamicModelData`.
+        In practice we add it to the known ModelObstypes of the ERA5 `GeeDynamicModelData`.
 
         >>> era5_mod = dataset.gee_datasets['ERA5-land']
         >>> era5_mod.add_modelobstype(sol_rad_down_for_ERA5)
@@ -143,9 +143,11 @@ class ModelObstype(Obstype):
     # =============================================================================
 
     def get_modelunit(self):
+        """Get the (original) unit of the values on the GEE-side."""
         return self.model_unit
 
     def get_modelband(self):
+        """Get the name of the corresponding band."""
         return self.model_band
 
     def _get_plot_y_label(self):
@@ -163,6 +165,115 @@ class ModelObstype_Vectorfield(Obstype):
         amplitude_obstype_name,
         direction_obstype_name,
     ):
+        """Initiate an observation type, to link with GEE dataset bands as vector components.
+
+        A ModelObstype_Vectorfield represents an observationtype, which is not
+        directly present in a GEE dataset, but its components are. Wind speed, is
+        a common example that is measured by a station, but only the U and V
+        components are present in the GEE model.
+
+        When extracting the modeldata, there are two ModelObstypes that are formed:
+            * amplitude_field: This is the computed amplitude of the vectorfield
+            * direction_field: The orientation of the vectorfield, in degrees
+              with the North (if u-v components) as zero and counter-clock-wise
+              rotation.
+
+        All methods and attributes are inherited from the `Obstype` class.
+
+        Parameters
+        ----------
+        obstype : metobs_toolkit.Obstype
+            The Obstype that represents the band in the GEE dataset.
+        model_unit : str
+            The units of the GEE bands. This can be found in the details of
+            the corresponding GEE dataset. This unit must be known by the obstype (
+            add it if it is not known).
+        model_band_u : str
+            The name of the band that represents the (U) component. This can be found in
+            the details of the GEE dataset.
+        model_band_v : str
+            The name of the band that represents the (V) component. This can be found in
+            the details of the GEE dataset.
+        amplitude_obstype_name : str
+            The name for the ModelObstype that represents the amplitude of
+            the vectorfield.
+        dirction_obstype_name : str
+            The name for the ModelObstype that represents the direction of the
+            vectorfield vectors.
+
+        Returns
+        -------
+        None
+
+        See also
+        ----------
+        Obstype: A regular observation type
+        ModelObstype_Vectorfield: A vector representation of a ModelObstype.
+
+        Note
+        --------
+        The U and V component can be defined as any combination of orthogonal
+        vectors. There is however no effect on the amplitude of the computed
+        vectors, but the zero-position of the vector direction can vary!
+
+        Note
+        ----------
+        The units of both components of the field must be the same.
+
+        Examples
+        ---------
+
+        As example, we create a `ModelObstype_Vectorfield` for 10m wind.
+        The windspeed (and direction) is often measured directly, but is stored
+        as wind components in a model or GEE dataset.
+
+        >>> import metobs_toolkit
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.gee_datasets['ERA5-land'].modelobstypes
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+
+        Note that there is by default already a `ModelObstype_Vectorfield` for
+        the wind. This example is thus purely illustrative.
+
+
+        We start by creating a (regular) `Obstype` that represents the components
+        of the components.
+
+        >>> wind_10m_component = Obstype(
+        ...        "wind",
+        ...        std_unit='m/s',
+        ...        description=' .. component of the 10m wind field ..',
+        ...        unit_aliases= {
+        ...                    "m/s": ["meters/second", "m/sec"],
+        ...                    "km/h": ["kilometers/hour", "kph"],
+        ...                    "mph": ["miles/hour"]},
+        ...        unit_conversions={
+        ...                    "km/h": ["x / 3.6"],
+        ...                    "mph": ["x * 0.44704"]})
+        >>> wind_10m_component
+
+        Now we can create a `ModeObstype_Vectorfield` based on the `wind_10m_component`
+        definition.
+
+
+        >>> wind_10m_era5 = ModelObstype_Vectorfield(
+        ...                        obstype=wind_10m_component,
+        ...                        model_unit="m/s", # see GEE dataset details
+        ...                        model_band_u="u_component_of_wind_10m",  # see GEE dataset details
+        ...                        model_band_v="v_component_of_wind_10m",  # see GEE dataset details
+        ...                        amplitude_obstype_name="wind_speed",
+        ...                        direction_obstype_name="wind_direction")
+
+        >>> wind_10m_era5
+
+        If you want to use it for extracting data, add it to your dataset's Modeldata first.
+
+        >>> dataset.gee_datasets
+
+        >>> dataset.gee_datasets['ERA5-land'].add_modelobstype(wind_10m_era5)
+
+        """
 
         super().__init__(
             obsname=obstype.name,
@@ -214,13 +325,11 @@ class ModelObstype_Vectorfield(Obstype):
         """Compute vector direction of 2D vectorfield components.
 
         The direction column is added to the dataframe and a new ModelObstype,
-        representing the angle is returned. The values represents the angles in
-        degrees, from north in clock-wise rotation.
+        representing the angle is returned. The values represent the angles in
+        degrees, from north in clockwise rotation.
 
         Parameters
         ----------
-        modelobs_vectorfield : ModelObstype_Vectorfield
-            The vectorfield observation type to compute the vector directions for.
         df : pandas.DataFrame
             The dataframe with the vector components present as columns.
 
@@ -292,9 +401,7 @@ class ModelObstype_Vectorfield(Obstype):
         inherited from the ModelObstype_vectorfield.
 
         Parameters
-        ----------
-        modelobs_vectorfield : ModelObstype_Vectorfield
-            The vectorfield observation type to compute the vector amplitudes for.
+        ------------
         df : pandas.DataFrame
             The dataframe with the vector components present as columns.
 

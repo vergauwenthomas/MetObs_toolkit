@@ -94,12 +94,12 @@ class Dataset(
         other : metobs_toolkit.Dataset()
             The dataset to add.
         timestamp_tolerance : Timedelta or str, optional
-            The tolerance string or object representing the maximum translation
+            The tolerance string or object represents the maximum translation
             in time to apply on a timestamp for conversion to an ideal set of timestamps.
             Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
             simplification) can be set by '0min'. The default is '0min'.
         freq_simplify_tolerance : Timedelta or str, optional
-            The tolerance string or object representing the maximum translation
+            The tolerance string or object represents the maximum translation
             in time to form a simplified frequency estimation.
             Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
             simplification) can be set by '0min'. The default is '0min'.
@@ -107,7 +107,7 @@ class Dataset(
         Returns
         -------
         new : metobs_toolkit.Dataset()
-            The combine dataset.
+            The combined dataset.
 
         Warning
         ---------
@@ -121,8 +121,8 @@ class Dataset(
 
         Warning
         ----------
-        The order of QC applied checks, is dubious when differnet QC methods or
-        orders are used between self and other. The inpact of this is limited
+        The order of QC applied checks, is dubious when different QC methods or
+        orders are used between self and other. The impact of this is limited
         to a possible false representation of the individual QC check effectiveness
         when `Dataset.get_qc_stats()` is called.
 
@@ -238,7 +238,7 @@ class Dataset(
         )
 
         # Convert the records to clean equidistanced records for both the df and outliersdf
-        new.construct_equi_spaced_records(
+        new._construct_equi_spaced_records(
             timestamp_mapping_tolerance=timestamp_tolerance
         )
 
@@ -256,14 +256,15 @@ class Dataset(
     def show(self, show_all_settings=False, max_disp_n_gaps=5):
         """Show detailed information of the Dataset.
 
-        A function to print out a detailed overview information about the Dataset.
+        A function to print out a detailed overview of information about the
+        Dataset.
 
         Parameters
         ----------
         show_all_settings : bool, optional
             If True all the settings are printed out. The default is False.
         max_disp_n_gaps: int, optional
-            The maximum number of gaps to display detailed information of.
+            The maximum number of gaps to display detailed information.
 
         Returns
         -------
@@ -420,12 +421,12 @@ class Dataset(
         logger.info(f"Dataset saved in {full_path}")
 
     def get_full_status_df(self, return_as_wide=True):
-        """Combine all records, outliers and gaps in one Dataframe
+        """Combine all records, outliers, and gaps in one Dataframe
 
-        Records, outliers and gaps are seperatly stored in each Dataset. This
+        Records, outliers, and gaps are separately stored in each Dataset. This
         method will combine them into one pandas.DataFrame.
 
-        The full dataframe displays the obsevation values, a label, and how
+        The full dataframe displays the observation values, a label, and how
         the records is stored in the Dataset (as a good observation, an outlier or gap).
 
         Parameters
@@ -439,8 +440,8 @@ class Dataset(
         Returns
         ---------
         combdf : pandas.DataFrame()
-            A dataframe containing a continious time resolution of records, where each
-            record is labeld.
+            A dataframe containing a continuous time resolution of records, where each
+            record is labeled.
 
         Examples
         --------
@@ -456,7 +457,7 @@ class Dataset(
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        To get a dataframe with all records, outliers and gaps, use the
+        To get a dataframe with all records, outliers, and gaps, use the
         `get_full_status_df()` method.
 
         >>> # Combine all into one Dataframe
@@ -561,7 +562,7 @@ class Dataset(
         """Add a new observation type to the known observation types.
 
         The observation can only be added if it is not already present in the
-        knonw observation types. If that is the case that you probably need to
+        known observation types. If that is the case that you probably need to
         use use the Dataset.add_new_unit() method.
 
         Parameters
@@ -576,7 +577,7 @@ class Dataset(
         See Also
         --------
         Obstype: The Obstype class.
-        add_new_unit : Add a new unit to a knonw obstype.
+        add_new_unit : Add a new unit to a known obstype.
 
         Examples
         --------
@@ -628,7 +629,7 @@ class Dataset(
             return
 
         # Update the known obstypes
-        logger.info(f"Adding {Obstype} to the list of knonw observation types.")
+        logger.info(f"Adding {Obstype} to the list of known observation types.")
         self.obstypes[Obstype.name] = Obstype
 
     def add_new_unit(self, obstype, new_unit, conversion_expression=[]):
@@ -643,7 +644,7 @@ class Dataset(
         conversion_expression : list or str, optional
             The conversion expression to the standard unit of the observation
             type. The expression is a (list of) strings with simple algebraic
-            operations, where x represent the value in the new unit, and the
+            operations, where x represents the value in the new unit, and the
             result is the value in the standard unit. Two examples for
             temperature (with a standard unit in Celsius):
 
@@ -691,7 +692,7 @@ class Dataset(
         >>> dataset.obstypes['temp'].get_standard_unit()
         'Celsius'
 
-        To see all knonw units for an Obstype, use the `get_all_units()` on it.
+        To see all known units for an Obstype, use the `get_all_units()` on it.
 
         >>> dataset.obstypes['temp'].get_all_units()
         ['Celsius', 'Fahrenheit', 'Kelvin']
@@ -741,7 +742,7 @@ class Dataset(
         --------
         get_info: Print out basic info of the Dataset.
         Settings: Settings class
-        Datset.settings: The attribute holding the `Settings`
+        Dataset.settings: The attribute holding the `Settings`
 
         Examples
         --------
@@ -887,7 +888,7 @@ class Dataset(
         good records, outliers and gaps into one dataframe. An extra
         'label-column', for each observationtype is added.
 
-        The metadata can be written to a seperate file.
+        The metadata can be written to a separate file.
 
 
         Parameters
@@ -904,7 +905,7 @@ class Dataset(
             If True, the target files will be written even if they already exist.
             The default is False.
         all_outliers_as_nan : bool, optional
-            If True, all records flagged as outlier are represented by Nan.
+            If True, all records flagged as outliers are represented by Nan.
             The default is False.
         kwargs_to_csv : dict, optional
             Kwargs that are passed to the pandas.DataFrame.to_csv() method.
@@ -1064,9 +1065,9 @@ class Dataset(
         Parameters
         ----------
         origin : datetime.datetime, optional
-            Define the origin (first timestamp) for the obervations. The origin
-            is timezone naive, and is assumed to have the same timezone as the
-            obervations. If None, the earliest occuring timestamp is used as
+            Define the origin (first timestamp) for the observations. The origin
+            is timezone naive and is assumed to have the same timezone as the
+            obervations. If None, the earliest occurring timestamp is used as
             origin. The default is None.
         freq : DateOffset, Timedelta or str, optional
             The target frequency to coarsen all records to.
@@ -1091,13 +1092,13 @@ class Dataset(
 
         Warning
         ---------
-        Since the gaps depend on the records frequency and origin, all gaps are
+        Since the gaps depend on the record's frequency and origin, all gaps are
         removed and re-located. All progress in gap(filling) will be lost.
 
         Note
         -------
         It is technically possible to increase the time resolution. This will
-        will hower does not result in an information increase, more gaps are
+        however not result in an information increase, more gaps are
         created instead.
 
         See Also
@@ -1118,8 +1119,8 @@ class Dataset(
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        When importing a data from file, a frequency assumtion is made for
-        each station (seperatly) in the Dataset. This is stored in the `metadf`
+        When importing a data from file, a frequency assumption is made for
+        each station (separatly) in the Dataset. This is stored in the `metadf`
 
         >>> dataset.metadf['dataset_resolution']
         name
@@ -1179,33 +1180,33 @@ class Dataset(
     ):
         """Synchronize observation records in time.
 
-        Synchronisation is shifting timestamps by litle, so that the same
-        timestamps are found accros mulitple stations. The maximum allowd shift
+        Synchronization is shifting timestamps by litle so that the same
+        timestamps are found across multiple stations. The maximum allowed shift
         of a timestamp is set by timestamp_shift_tolerance.
 
-        Syncronized observations must have the same frequency. This method will
-        therefore try to alter the frequency a bit, so is in sync with other
+        Synchronized observations must have the same frequency. This method will
+        therefore try to alter the frequency a bit, so that it is in sync with other
         observations (from other stations).
 
-        The timestamp related columns in the Dataset.metadf are updated, and
+        The timestamp-related columns in the Dataset.metadf are updated, and
         gaps are reconstructed! All current info stored in the gaps will be lost.
 
-        In pracktice, the syncronisation is applied at the start your workflow
+        In practice, the synchronisation is applied at the start of your workflow
         on datasets with irregular or unsynchronized timestamps.
 
         Parameters
         ----------
         timestamp_shift_tolerance : str or Timedelta, optional
-            The tolerance string or object representing the maximum translation
+            The tolerance string or object represents the maximum translation
             in time for a timestamp. The default is "2min".
         freq_shift_tolerance : str or Timedelta, optional,
             The tolerance string or object representing the maximum translation
             in time for a frequency. The default is "1min".
         fixed_origin : datetime.datetime, optional
-            Define the origin (first timestamp) for the obervations. This is
+            Define the origin (first timestamp) for the observations. This is
             applied on all the stations. If the origin is timezone naive, it is
-            assumed to have the same timezone as the obervations. If None, the
-            (shifted) earliest occuring timestamp is used as origin with. The
+            assumed to have the same timezone as the observations. If None, the
+            (shifted) earliest occurring timestamp is used as the origin. The
             default is None.
         fixed_enddt : datetime.datetime, optional
             Define the latest timestamp for the obervations. This is
@@ -1214,8 +1215,8 @@ class Dataset(
             None, the (shifted) latest occuring timestamp is used as enddt
             The default is None.
         fixed_freq : str or Timedelta, optional,
-            The target frequency which is applied on all records. If None,
-            (a simplyfied version of the) present frequency is used. The default is None.
+            The target frequency applied on all records. If None,
+            (a simplified version of the) present frequency is used. The default is None.
         direction : 'backward', 'forward', or 'nearest'
             Whether to search for prior, subsequent, or closest matches for
             mapping to ideal timestamps. The default is 'nearest'.
@@ -1247,8 +1248,8 @@ class Dataset(
         ...                         template_file=metobs_toolkit.demo_template,
         ...                         )
 
-        When importing a data from file, a frequency, origin and enddt assumtion
-        is made for each station (seperatly) in the Dataset. This is stored in the `metadf`.
+        When importing a data from file, a frequency, origin and enddt assumption
+        is made for each station (separatly) in the Dataset. This is stored in the `metadf`.
 
         >>> dataset.metadf[['dataset_resolution', 'dt_start', 'dt_end']].head()
                   dataset_resolution                  dt_start                    dt_end
@@ -1329,7 +1330,7 @@ class Dataset(
 
         # Convert the records to clean equidistanced records for both the df and outliersdf
         # note: The outliers are taken care of as well
-        self.construct_equi_spaced_records(
+        self._construct_equi_spaced_records(
             timestamp_mapping_tolerance=timestamp_shift_tolerance, direction=direction
         )
 
@@ -1368,26 +1369,26 @@ class Dataset(
         The input data (and metadata) are interpreted by using a template
         (json file).
 
-        In order to locate gaps, an ideal set of timestamps is exptected. This
-        set of timestamps is computed for each station seperatly by:
+        In order to locate gaps, an ideal set of timestamps is expected. This
+        set of timestamps is computed for each station separatly by:
 
          * Assuming a constant frequency. This frequency is estimated by using
            a freq_estimation_method. If multiple observationtypes are present,
-           the assumed frequency is the highest of estimated frequency among
+           the assumed frequency is the highest estimated frequency among
            the differnt observationtypes. To simplify the estimated frequency a
            freq_estimation_simplify_error can be specified.
          * A start timestamp (origin) is found for each station. If multiple
            observationtypes are present,
            the start timestamp is the first timestamp among
            the different observationtypes. The start
-           timestamp can be simplified by specifying a origin_simplify_tolerance.
+           timestamp can be simplified by specifying an origin_simplify_tolerance.
          * The last timestamp is found for each station by taking the timestamp
-           which is closest and smaller then the latest timestamp found of a station,
+           which is closest and smaller than the latest timestamp found of a station,
            and is an element of the ideal set of timestamps.
 
         Each present observation record is linked to a timestamp of this ideal set,
-        by using a 'nearest' merge. If the timediffernce is smaller than the
-        timestamp_tolerance, the ideal timestamp is used. Else, the timestamp
+        by using a 'nearest' merge. If the timedifference is smaller than the
+        timestamp_tolerance, the ideal timestamp is used. Otherwise, the timestamp
         will be interpreted as a (part of a) gap.
 
 
@@ -1401,7 +1402,7 @@ class Dataset(
         ----------
         input_data_file : string, optional
             Path to the input data file with observations. If None, the input
-            data path in the settings is used. If an provided, the
+            data path in the settings is used. If provided, the
             template_file must be provided as well. The default is None.
         input_metadata_file : string, optional
             Path to the input metadata file. If None, the input metadata path
@@ -1412,11 +1413,11 @@ class Dataset(
             If provided, the input_data_file must be provided as well. The
             default is None.
         freq_estimation_method : 'highest' or 'median', optional
-            Select wich method to use for the frequency estimation. If
-            'highest', the highest apearing frequency is used. If 'median', the
-            median of the apearing frequencies is used. The default is 'highest'.
+            Select which method to use for the frequency estimation. If
+            'highest', the highest appearing frequency is used. If 'median', the
+            median of the appearing frequencies is used. The default is 'highest'.
         freq_estimation_simplify_tolerance : Timedelta or str, optional
-            The tolerance string or object representing the maximum translation
+            The tolerance string or object represents the maximum translation
             in time to form a simplified frequency estimation.
             Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
             simplification) can be set by '0min'. The default is '2min' (2 minutes).
@@ -1426,15 +1427,15 @@ class Dataset(
             Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
             simplification) can be set by '0min'. The default is '5min' (5 minutes).
         timestamp_tolerance : Timedelta or str, optional
-            The tolerance string or object representing the maximum translation
+            The tolerance string or object represents the maximum translation
             in time to apply on a timestamp for conversion to an ideal set of timestamps.
             Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
             simplification) can be set by '0min'. The default is '4min' (4 minutes).
         kwargs_data_read : dict, optional
-            Keyword arguments collected in a dictionary to pass to the
+            Keyword arguments are collected in a dictionary to pass to the
             pandas.read_csv() function on the data file. The default is {}.
         kwargs_metadata_read : dict, optional
-            Keyword arguments collected in a dictionary to pass to the
+            Keyword arguments are collected in a dictionary to pass to the
             pandas.read_csv() function on the metadata file. The default is {}.
         templatefile_is_url : bool, optional
             If the path to the template file, is a url to an online template file,
@@ -1443,7 +1444,7 @@ class Dataset(
 
         Note
         --------
-        In pracktice, the default arguments will be sufficient for most applications.
+        In practice, the default arguments will be sufficient for most applications.
 
         Note
         --------
@@ -1643,7 +1644,7 @@ def import_dataset(folder_path, filename="saved_dataset.pkl"):
     Examples
     --------
 
-    As an example we will import a Dataset that is stored as a pkl file in the
+    As an example, we will import a Dataset that is stored as a pkl file in the
     current working directory (`os.getcwd()`).
 
     >>> import os

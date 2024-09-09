@@ -28,7 +28,7 @@ def get_freq_statistics(comb_df, obstype, applied_qc_order):
     Parameters
     ----------
     comb_df : pandas.DataFrame
-        The dataframe containing all obsarvations, outliers and there labels.
+        The dataframe containing all observations, outliers and their labels.
     obstype : str
         The observation type to compute the frequencies of.
     applied_qc_order : pandas.DataFrame
@@ -37,11 +37,11 @@ def get_freq_statistics(comb_df, obstype, applied_qc_order):
     Returns
     -------
     agg_dict : dict
-        Dictionary containing occurence frequencies for all labels.
+        Dictionary containing occurrence frequencies for all labels.
     outl_dict : dict
         Dictionary with frequency statistics of outlier-labels.
     specific_counts : dict
-        Dictionary containing the effectiviness of quality control checks
+        Dictionary containing the effectiveness of quality control checks
         individually.
 
     """

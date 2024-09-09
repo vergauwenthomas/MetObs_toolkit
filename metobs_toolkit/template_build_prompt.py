@@ -32,7 +32,7 @@ def add_new_obstype():
         obsname = str(input("Give the name of your observation type: "))
         if obsname in tlk_obstypes.keys():
             print(
-                f"!! {obsname} is already a knonw observation type. This cannot be added."
+                f"!! {obsname} is already a known observation type. This cannot be added."
             )
         else:
             name_ok = True
@@ -225,7 +225,7 @@ def build_template_prompt():
 
     Warning
     ---------
-    In pervious versions (<=v0.2.1) the templatefile was a csv. Thus you have
+    In previous versions (<=v0.2.1) the templatefile was a csv. Thus you have
     to create the template again to be compatible with this version of the toolkit.
 
     Examples
@@ -424,7 +424,7 @@ def build_template_prompt():
         cont = yes_no_ques("")
         if cont is False:
             print(
-                "\n In a Wide-format, REMOVE THE COLUMNS that do not represent different satations, before proceding! \n"
+                "\n In a Wide-format, REMOVE THE COLUMNS that do not represent different stations, before proceeding! \n"
             )
         else:
             stationnames = columnnames
@@ -511,7 +511,7 @@ def build_template_prompt():
         # Which other (not used by the toolkit) to add.
         if len(metacolumnnames) > 0:
             add_cols = yes_no_ques(
-                f"\n Do you want to include/use remaining columns in the metadatafile? \n ({str(metacolumnnames)})"
+                f"\n Do you want to include/use the remaining columns in the metadatafile? \n ({str(metacolumnnames)})"
             )
             if add_cols:
                 for col in metacolumnnames:

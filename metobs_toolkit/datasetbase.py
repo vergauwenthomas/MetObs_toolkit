@@ -148,7 +148,11 @@ class DatasetBase(object):
         return dt
 
     def _datetime_arg_check(self, datetimearg, none_is_none=True):
-        """Formats a datetime given by a useser in an argument."""
+        """Formats a datetime given by a user in an argument.
+
+        Conversion to a pandas.Timestamp in the tz of the records.
+
+        """
 
         if (none_is_none) & (datetimearg is None):
             return None
@@ -250,9 +254,10 @@ class DatasetBase(object):
         self.gee_datasets = gee_dataset_dict
 
     def _append_to_applied_qc(self, obstypename, checkname):
-        """Add record to _applied_qc.
+        """Add an observationtype to the _applied_qc.
+
         The applied qc is mainly used to save the order of applied checks,
-        to validate the effectivenes of one check.
+        to validate the effectiveness of one check.
 
         Parameters
         ----------
@@ -297,7 +302,7 @@ class DatasetBase(object):
     def _get_present_obstypes(self):
         """Get all present obstypenames in the df.
 
-        (This does not guarantee that these obstypesnames are knonw obstypes!)
+        (This does not guarantee that these obstypesnames are known obstypes!)
 
         Returns
         -------
@@ -316,19 +321,19 @@ class DatasetBase(object):
         """Get details of the time resolution for each station.
 
         It is assumed that ideally, records are perfect periodically. In
-        pracktice this is not always the case. We can specify an ideal set
-        of timestamps by a start, end and frequency.
+        practice this is not always the case. We can specify an ideal set
+        of timestamps by a start, and end frequency.
 
-        This methods estimates, for each station:
+        This method estimates, for each station:
 
             - Frequency: the frequency of a station is the highest frequency
-            detected for all it's observationtypes. The frequency estimate
+            detected for all its observationtypes. The frequency estimate
             of an obsertype is done by a 'mean' or 'highest' approach on
-            consecutive records. One can specify a tolerance to simplyfy
+            consecutive records. One can specify a tolerance to simplify
             the frequency estimates.
 
-            - start timestamp: The first timestemp registerd by a station,
-            over all its observationtypes. One can specify a tolerance to
+            - start timestamp: The first timestamp registered by a station,
+            overall its observationtypes. One can specify a tolerance to
             simplify the origin.
 
             - end timestamp: The latest timestemp registerd by a station,
@@ -339,7 +344,7 @@ class DatasetBase(object):
 
         Note
         -----
-        The assumtion is made that all obstypes per station have the same start
+        The assumption is made that all obstypes per station have the same start
         and end timestamp.
 
         """
@@ -437,7 +442,7 @@ class DatasetBase(object):
         1. Set the dataframe and metadataframe attributes
         2. Drop stations that have Nan as name.
         2. Find the duplicates (remove them from observations +  add them to outliers)
-        3. Convert the values to standard units + update the observationtypes (some template specific attribute)
+        3. Convert the values to standard units + update the observationtypes (some template specific attributes)
         5. Find gaps in the records (duplicates are excluded from the gaps)
         6. Get a frequency estimate per station
         7. Initiate the gaps (find missing records)
@@ -449,18 +454,18 @@ class DatasetBase(object):
         df : pandas.dataframe
             The dataframe containing the input observations and metadata.
         freq_estimation_method : 'highest' or 'median'
-            Select wich method to use for the frequency estimation. If
-            'highest', the highest apearing frequency is used. If 'median', the
-            median of the apearing frequencies is used.
+            Select which method to use for the frequency estimation. If
+            'highest', the highest appearing frequency is used. If 'median', the
+            median of the appearing frequencies is used.
         freq_estimation_simplify : bool
-            If True, the likely frequency is converted to round hours, or round minutes.
-            The "freq_estimation_simplify_error' is used as a constrain. If the constrain is not met,
+            If True, the likely frequency is converted to round hours or round minutes.
+            The "freq_estimation_simplify_error' is used as a constraint. If the constraint is not met,
             the simplification is not performed.
         freq_estimation_simplify_error : Timedelta or str, optional
-            The tolerance string or object representing the maximum translation in time to form a simplified frequency estimation.
+            The tolerance string or object represents the maximum translation in time to form a simplified frequency estimation.
             Ex: '5min' is 5 minutes, '1H', is one hour.
-        fixed_freq_series : pandas.series or None, optional
-            If you do not want the frequencies to be recalculated, one can pass the
+        fixed_freq_series : pandas.Series or None, optional
+            If you do not want the frequencies to be recalculated, you can pass the
             frequency series to update the metadf["dataset_resolution"]. If None, the frequencies will be estimated. The default is None.
         update_full_metadf : bool, optional
             If True, the full Dataset.metadf will be updated. If False, only the frequency columns in the Dataset.metadf will be updated. The default is True.
@@ -511,7 +516,7 @@ class DatasetBase(object):
         )
 
         # Convert the records to clean equidistanced records for both the df and outliersdf
-        self.construct_equi_spaced_records(
+        self._construct_equi_spaced_records(
             timestamp_mapping_tolerance=timestamp_tolerance
         )
 
@@ -525,7 +530,7 @@ class DatasetBase(object):
         self._set_gaps(gaps)
 
     def _setup_of_obstypes_and_units(self):
-        """Function to setup all attributes related to observation types and
+        """Function to set up all attributes related to observation types and
         convert to standard units."""
         # Check if all present observation types are known.
         present_obstypes = self._get_present_obstypes()
@@ -599,7 +604,7 @@ class DatasetBase(object):
         return
 
     def _construct_df(self, dataframe):
-        """fill the df attribute
+        """Fill the df attribute
 
         The dataframe is wide with data and metadata combined. This method will
         subset and format it to a long structured df to be set as the df attribute.
@@ -635,7 +640,7 @@ class DatasetBase(object):
 
     def _remove_nan_names(self):
         """if the name is Nan, remove these records from df, and metadf (before)
-        # they end up in the gaps and missing obs"""
+        they end up in the gaps and missing observations."""
 
         if np.nan in self.df.index.get_level_values("name"):
             logger.warning(
@@ -650,7 +655,7 @@ class DatasetBase(object):
             self.metadf = self.metadf[~self.metadf.index.isna()]
 
     def _construct_metadf(self, dataframe, use_metadata):
-        """fill the metadf attribute
+        """Fill the metadf attribute.
 
         The dataframe is wide with data and metadata combined. This method will
         subset and format the data and set the metadf attribute.
@@ -690,7 +695,7 @@ class DatasetBase(object):
         self._set_metadf(metadf=metadf)
 
     def _setup_of_obstypes_and_units(self):
-        """Function to setup all attributes related to observation types and
+        """Function to set up all attributes related to observation types and
         convert to standard units."""
         # Check if all present observation types are known.
         present_obstypes = self._get_present_obstypes()
@@ -733,7 +738,7 @@ class DatasetBase(object):
         df = pd.concat(subdf_list).to_frame().sort_index()
         self._set_df(df)
 
-    def construct_equi_spaced_records(
+    def _construct_equi_spaced_records(
         self, timestamp_mapping_tolerance="4min", direction="nearest"
     ):
         """
@@ -778,10 +783,10 @@ class DatasetBase(object):
         Note
         -------
         It can happen that the same original timestamp is mapped to multiple
-        target timestamps, if the nearest and tolerance conditions are met! This is
+        target timestamps if the nearest and tolerance conditions are met! This is
         not perse problematic, but this could affect the performance of repetitions QC checks.
         By setting the tolerance substantially smaller than the frequency, this
-        phenomena can be avoided.
+        phenomenon can be avoided.
 
         """
 

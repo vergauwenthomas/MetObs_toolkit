@@ -12,7 +12,7 @@ check_settings = {
         "keep": False
     },  # No numeric settings (False: drop all duplicates)
     # "missing_timestamp": {},
-    "persistance": {
+    "persistence": {
         "temp": {
             "time_window_to_check": "1h",  # Use this format as example: "1h20min50s"
             "min_num_obs": 5,

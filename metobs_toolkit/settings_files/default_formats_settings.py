@@ -108,7 +108,7 @@ label_def = {
     },
     "invalid_input": {"label": "invalid input", "color": "#900357"},
     "gross_value": {"label": "gross value outlier", "color": "#f1ff2b"},
-    "persistance": {"label": "persistance outlier", "color": "#f0051c"},
+    "persistence": {"label": "persistence outlier", "color": "#f0051c"},
     "repetitions": {"label": "repetitions outlier", "color": "#056ff0"},
     "step": {"label": "in step outlier group", "color": "#05d4f0"},
     "window_variation": {
@@ -184,7 +184,7 @@ qc_label_group = [
     "duplicated_timestamp",
     "invalid_input",
     "gross_value",
-    "persistance",
+    "persistence",
     "repetitions",
     "step",
     "window_variation",

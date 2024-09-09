@@ -91,7 +91,7 @@ def make_cat_colormapper(catlist, cmapname):
     """Create a dictionary {cat : color} for a list of categorical values.
 
     If the colormap has more colors than the catlist, optimal color distance is
-    done. If a colormap has less colors than unique categories, the categories are grourped.
+    done. If a colormap has fewer colors than unique categories, the categories are grouped.
 
     Parameters
     ----------
@@ -304,7 +304,7 @@ def geospatial_plot(
         Name of the variable to plot.
     timeinstance : datetime.datetime
         The timeinstance to plot the variable for, if the variable is
-        timedependant.
+        time-dependant.
     title : str
         Title of the figure.
     legend : bool
@@ -319,12 +319,12 @@ def geospatial_plot(
         A list of variables that are interpreted to be categorical, so to use
         a categorical coloring scheme.
     static_fields : bool
-        If True the variable is assumed to be time independant.
+        If True the variable is assumed to be time independent.
     display_name_mapper : dict
         Must contain at least {varname: varname_str_rep}, where the
         varname_str_rep is the string representation of the variable to plot.
     boundbox : shapely.box
-        The boundbox to represent the spatial extend of the plot.
+        The boundbox to represent the spatial extent of the plot.
 
     Returns
     -------
@@ -491,7 +491,7 @@ def _sorting_function(label_vec, custom_handles, number_of_labels_types=4):
 
 
 def _format_datetime_axis(axes):
-    """Set the xaxes to autodateformat."""
+    """Set the x-axes to autodateformat."""
     xtick_locator = mdates.AutoDateLocator()
     xtick_formatter = mdates.AutoDateFormatter(xtick_locator)
 
@@ -587,7 +587,7 @@ def timeseries_plot(
     ax : matplotlib.pyplot.axes
         The plotted axes.
     colormapper : dict
-        The use colormap.
+        The used colormap.
 
     """
     plot_settings = settings.app["plot_settings"]
@@ -617,7 +617,7 @@ def timeseries_plot(
         # 'duplicated_timestamp', #NO value to display
         # 'invalid_input', #NO value to display
         "gross_value",
-        "persistance",
+        "persistence",
         "repetitions",
         "step",
         "window_variation",
@@ -907,7 +907,7 @@ def model_timeseries_plot(
     ylabel : str
         The label for the vertical axes.
     show_primary_legend : bool
-        If True, all stationnames with corresponding color are presented in a
+        If True, all stationnames with corresponding colors are presented in a
         legend.
     add_second_legend : bool, optional
         If True, a small legend is added indicating the solid lines are
@@ -928,7 +928,7 @@ def model_timeseries_plot(
         The number of columns in the legend if show_primary_legend is True. The
         default is 5.
     linewidth: int, optional.
-        The widht of the plotted lines. The default is 2.
+        The width of the plotted lines. The default is 2.
     linezorder: int, optional.
         The zorder of the lines in the plot. The default is 1.
 
@@ -939,7 +939,7 @@ def model_timeseries_plot(
     ax : matplotlib.pyplot.axes
         The plotted axes.
     colormapper : dict
-        The use colormap.
+        The used colormap.
     """
     # plot_settings = settings.app["plot_settings"]
 
@@ -1047,7 +1047,7 @@ def cycle_plot(
     legend,
     show_zero_horizontal=False,
 ):
-    """Plot a cycle as a lineplot.
+    """Plot a cycle as a line-plot.
 
 
     Parameters
@@ -1061,7 +1061,7 @@ def cycle_plot(
     plot_settings : dict
         The cycle-specific settings.
     aggregation : list
-        A list of strings to indicate the group defenition.
+        A list of strings to indicate the group definition.
     y_label : str
         The label for the vertical axes.
     legend : bool
@@ -1184,7 +1184,7 @@ def correlation_scatter(
 ):
     """Plot the correlation variation as a scatterplot.
 
-    The statistical significance is indicate by the scattertype.
+    The statistical significance is indicated by the scattertype.
 
     Parameters
     ----------
@@ -1192,7 +1192,7 @@ def correlation_scatter(
         A dictionary containing the 'cor matrix', and 'significance matrix'
         keys and corresponding matrices.
     groupby_labels : str or list
-        The groupdefenition that is used for the xaxes label.
+        The groupdefenition that is used for the x-axes label.
     obstypes : str
         The observation type to plot the correlations of.
     title : str
@@ -1380,11 +1380,11 @@ def qc_stats_pie(final_stats, outlier_stats, specific_stats, plot_settings, titl
     Parameters
     ----------
     final_stats : dict
-        Dictionary containing occurence frequencies for all labels.
+        Dictionary containing occurrence frequencies for all labels.
     outlier_stats : dict
         Dictionary with frequency statistics of outlier-labels.
     specific_stats : dict
-        Dictionary containing the effectiviness of quality control checks
+        Dictionary containing the effectiveness of quality control checks
         individually.
     plot_settings : dict
         The specific plot settings for the pie plots.

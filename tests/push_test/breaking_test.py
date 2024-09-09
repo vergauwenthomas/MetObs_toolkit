@@ -49,8 +49,8 @@ dataset_coarsened.update_file_paths(
 # Set settings for QC
 dupl_dropping = False  # method used to drop duplicated timestamps
 
-persistance_time_window_to_check = "1h"  # Use this format as example: "1h20min50s"
-min_num_obs = 3  # Minimum number of records in window to perform persistance check
+persistence_time_window_to_check = "1h"  # Use this format as example: "1h20min50s"
+min_num_obs = 3  # Minimum number of records in window to perform persistence check
 
 max_valid_repetitions = 5  # Maximal number of repetitions that is allowed
 
@@ -80,7 +80,7 @@ dataset.update_file_paths(input_data_file=testdata, template_file=template_file)
 dataset.update_qc_settings(
     obstype="temp",
     dupl_timestamp_keep=dupl_dropping,
-    persis_time_win_to_check=persistance_time_window_to_check,
+    persis_time_win_to_check=persistence_time_window_to_check,
     persis_min_num_obs=min_num_obs,
     rep_max_valid_repetitions=max_valid_repetitions,
     gross_value_min_value=min_value,

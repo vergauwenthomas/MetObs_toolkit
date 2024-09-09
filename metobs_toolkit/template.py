@@ -85,7 +85,6 @@ class Template:
     """Contains all info and methods to work with a template."""
 
     def __init__(self):
-        # to renmae the columns
 
         self.data_namemap = {"name": None}  # name --> name column in data
         self.metadata_namemap = {"name": None}  # name --> name column in metadata
@@ -133,7 +132,7 @@ class Template:
 
     def get_info(self):
         """
-        Prints out an overview of Template.
+        Prints out an overview of the Template.
 
         Returns
         -------
@@ -422,7 +421,7 @@ class Template:
         """Create a mapper for columns in the data or metadata file, which have
         a specific meaning by the toolkit and are thus present in the blacklists.
 
-        If a column, is found in the blacklist, but will also be mapped, than it
+        If a column, is found in the blacklist, but will also be mapped, then it
         it will not be included in the mapper.
 
         The mapper adds a "_original" postifix to the columnnames.
@@ -471,7 +470,7 @@ class Template:
     # =============================================================================
 
     def read_template_from_file(self, jsonpath, templatefile_is_url=False):
-        """Read the templatefile (json), and update the attributes of this Template."""
+        """Read the templatefile (JSON), and update the attributes of this Template."""
 
         if templatefile_is_url:
             logger.info(f"Reading the URL-template from {jsonpath}")

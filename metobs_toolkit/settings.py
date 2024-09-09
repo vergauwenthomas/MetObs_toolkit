@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class Settings:
-    """Class defenition to store all settings."""
+    """Class definition to store all settings."""
 
     # make settingsfiles path
     _settings_files_path = os.path.join(str(Path(__file__).parent), "settings_files")
@@ -47,7 +47,7 @@ class Settings:
 
     def _update_app_settings(self):
         """
-        Update prefered display, print, plot and staticinfo settings of self using the default settings templates.
+        Update preferred display, print, plot and static info settings.
 
         Returns
         -------
@@ -131,7 +131,7 @@ class Settings:
         input_metadata_file : str, optional
             Path to the input metadata file, defaults to None
         template_file : str, optional
-            Path to the mapper-template json file to be used on the observations
+            Path to the mapper-template JSON file to be used on the observations
             and metadata. If not given, the default template is used. The
             default is None.
 

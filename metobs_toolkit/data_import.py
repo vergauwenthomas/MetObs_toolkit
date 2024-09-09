@@ -141,7 +141,7 @@ def wide_to_long(df, obstypename):
     longdf : pandas.DataFrame
         Long dataframe.
     template : dict
-        Updateted template dictionary.
+        Updated template dictionary.
 
     """
     # the df is assumed to have one datetime column, and the others represent

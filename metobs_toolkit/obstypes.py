@@ -125,7 +125,7 @@ class Obstype:
             The name of the new observation type (i.g. 'sensible_heat_flux').
         std_unit : str
             The standard unit for the observation type (i.g. 'J/m²')
-        obstype_description : str, ptional
+        obstype_description : str, optional
             A more detailed description of the obstype (i.g. '2m SE inside
             canopy'). The default is None.
         unit_aliases : dict, optional
@@ -133,7 +133,7 @@ class Obstype:
             values are lists with aliases for the units at the keys. The default is {}.
         unit_conversions : dict, optional
             A dictionary containing the conversion information to map to the
-            standard units. Here an example of for temperatures (with Celcius
+            standard units. Here is an example of temperatures (with Celcius
             as standard unit):
 
                 {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
@@ -223,7 +223,7 @@ class Obstype:
             return str(self.description)
 
     def get_all_units(self):
-        """Return a list with all the known unit (in standard naming)."""
+        """Return a list with all the known units (in standard naming)."""
         units = list(self.units_aliases.keys())
         units.append(self.get_standard_unit())
         units = list(set(units))
@@ -274,7 +274,7 @@ class Obstype:
         )
 
     def convert_to_standard_units(self, input_data, input_unit):
-        """Convert data from a knonw unit to the standard unit.
+        """Convert data from a known unit to the standard unit.
 
         The data can be a collection of numeric values or a single numeric
         value.
@@ -357,7 +357,7 @@ class Obstype:
         self.units_aliases.update(add_to_aliases)
 
     def _get_std_unit_name(self, unit_name):
-        """Get standard name for a unit name by scanning trough the aliases."""
+        """Get the standard name for a unit by scanning through the aliases."""
         for std_unit_name, aliases in self.units_aliases.items():
             if unit_name == std_unit_name:
                 return unit_name

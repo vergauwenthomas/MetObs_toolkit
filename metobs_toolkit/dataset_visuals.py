@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 class DatasetVisuals:
-    """Extension on the metobs_toolkit.Dataset class with visualisation methods"""
+    """Extension on the metobs_toolkit.Dataset class with visualization methods."""
 
     def make_plot(
         self,
@@ -60,7 +60,7 @@ class DatasetVisuals:
         """Make a timeseries plot.
 
         This function creates a timeseries plot for the dataset. The variable observation type
-        is plotted for all stationnames from a starttime to an endtime.
+        is plotted for all station names from a starttime to an endtime.
 
         All styling attributes are extracted from the Settings.
 
@@ -68,24 +68,31 @@ class DatasetVisuals:
         ----------
 
         stationnames : list, optional
-            A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
+            A list with station names to include in the timeseries. If None is
+            given, all the stations are used. The default to None.
         obstype : string, optional
-             Fieldname to visualise. This can be an observation or station
+             Fieldname to visualize. This can be an observation or station
              attribute. The default is 'temp'.
         colorby : 'label' or 'name', optional
-             Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label. 'name' will color by each station, defaults to 'name'.
+             Indicate how colors should be assigned to the lines. 'label' will
+             color the lines by their quality control label. 'name' will color
+             by each station. The default to 'name'.
         starttime : datetime.datetime, optional
-             Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
+             Specify the start datetime for the plot. If None is given it will
+             use the start datetime of the dataset. The default to None.
         endtime : datetime.datetime, optional
-             Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
+             Specify the end datetime for the plot. If None is given it will
+             use the end datetime of the dataset. The default to None.
         title : string, optional
-             Title of the figure, if None a default title is generated. The default is None.
+             Title of the figure, if None a default title is generated. The
+             default is None.
         y_label : string, optional
-             y-axes label of the figure, if None a default label is generated. The default is None.
+             y-axes label of the figure, if None a default label is generated.
+             The default is None.
         legend : bool, optional
              If True, a legend is added to the plot. The default is True.
         show_outliers : bool, optional
-             If true the observations labeld as outliers will be included in
+             If true the observations labeled as outliers will be included in
              the plot. This is only true when colorby == 'name'. The default
              is True.
         show_filled : bool, optional
@@ -239,7 +246,7 @@ class DatasetVisuals:
         gap_col="orange",
         fill_col="yellow",
     ):
-        """Make interactive geospatial plot with time evolution.
+        """Make an interactive geospatial plot with time evolution.
 
         This function uses the folium package to make an interactive geospatial
         plot to illustrate the time evolution.
@@ -251,23 +258,23 @@ class DatasetVisuals:
         obstype : str or metobs_toolkit.Obstype, optional
             The observation type to plot. The default is 'temp'.
         save : bool, optional
-            If true, the figure will be saved as an html-file. The default is True.
+            If true, the figure will be saved as an HTML file. The default is True.
         outputfile : str, optional
-            The path of the output html-file. The figure will be saved here, if
-            save is True. If outputfile is not given, and save is True, than
+            The path of the output html-file. The figure will be saved here if
+            save is True. If outputfile is not given, and save is True, then
             the figure will be saved in the default outputfolder (if given).
             The default is "interactive_figure.html".
         outputfolder : str, optional
-            The path of the folder where to save the html-figure, if
+            The path of the folder where to save the HTML, if
             save is True. If outputfile is not given, and save is True, the
             default outputfolder (see `Dataset.settings.IO['output_folder']`)
             is used. The default is None.
         starttime : datetime.datetime, optional
-             Specifiy the start datetime for the plot. If None is given it will
-             use the start datetime of the dataset, defaults to None.
+             Specify the start datetime for the plot. If None is given it will
+             use the start datetime of the dataset. The default to None.
         endtime : datetime.datetime, optional
-             Specifiy the end datetime for the plot. If None is given it will
-             use the end datetime of the dataset, defaults to None.
+             Specify the end datetime for the plot. If None is given it will
+             use the end datetime of the dataset. The default to None.
         vmin : numeric, optional
             The value corresponding with the minimum color. If None, the
             minimum of the presented observations is used. The default is None.
@@ -281,17 +288,16 @@ class DatasetVisuals:
         fill_alpha : float ([0;1]), optional
             The alpha of the fill color for the scatters. The default is 0.6.
         max_fps : int (>0), optional
-            The maximum allowd frames per second for the time evolution. The
+            The maximum allowed frames per second for the time evolution. The
             default is 4.
         outlier_col : str, optional
             The edge color of the scatters to identify an outliers. The default is 'red'.
         ok_col : str, optional
             The edge color of the scatters to identify an ok observation. The default is 'black'.
         gap_col : str, optional
-            The edge color of the scatters to identify an missing/gap
-            observation. The default is 'orange'.
+            The edge color of the scatters to identify gaps. The default is 'orange'.
         fill_col : str, optional
-            The edge color of the scatters to identify a fillded observation.
+            The edge color of the scatters to identify a filled observation.
             The default is 'yellow'.
 
         Returns
@@ -307,8 +313,8 @@ class DatasetVisuals:
 
         Note
         -------
-        The figure will only appear when this is runned in notebooks. If you do
-        not run this in a notebook, make sure to save the html file, and open it
+        The figure will only appear when this is run in notebooks. If you do
+        not run this in a notebook, make sure to save the HTML file, and open it
         with a browser.
 
         Examples
@@ -341,7 +347,7 @@ class DatasetVisuals:
         >>> dataset.apply_quality_control(obstype='temp')
 
         To create an interactive plot, we use the `Dataset.make_interactive_plot()`
-        method. We must specify a target path for the html file, as an example
+        method. We must specify a target path for the HTML file, as an example
         we save it to the current working directory (`os.getcwd()`).
 
         >>> import os
@@ -353,7 +359,7 @@ class DatasetVisuals:
         ...                              endtime=None)
         <folium.folium.Map object at ...
 
-        (You can open an html file with a browser.)
+        (You can open an HTML file with a browser.)
 
         """
         # Check if obstype is known
@@ -489,27 +495,27 @@ class DatasetVisuals:
     ):
         """Make geospatial plot.
 
-        This functions creates a geospatial plot for a field
+        This function creates a geospatial plot for a field
         (observations or attributes) of all stations.
 
-        If the field is timedepending, than the timeinstance is used to plot
+        If the field is time-depending, than the timeinstance is used to plot
         the field status at that datetime.
 
-        If the field is categorical than the leged will have categorical
-        values, else a colorbar is used.
+        If the field is categorical then the legend will have categorical
+        values, or else a colorbar is used.
 
         All styling attributes are extracted from the Settings.
 
         Parameters
         ----------
         variable : string, optional
-            Fieldname to visualise. This can be an observation type or station
+            Fieldname to visualize. This can be an observation type or station
             or 'lcz'. The default is 'temp'.
         title : string, optional
             Title of the figure, if None a default title is generated. The default is None.
         timeinstance : datetime.datetime, optional
-            Datetime moment of the geospatial plot. If None, the first occuring
-            timestamp for wich most stations have a record of, is used. The default is None.
+            Datetime moment of the geospatial plot. If None, the first occurring
+            timestamp for which most stations have a record, is used. The default is None.
         legend : bool, optional
             I True, a legend is added to the plot. The default is True.
         vmin : numeric, optional
@@ -519,7 +525,7 @@ class DatasetVisuals:
         legend_title : string, optional
             Title of the legend, if None a default title is generated. The default is None.
         boundbox : [lon-west, lat-south, lon-east, lat-north], optional
-            The boundbox to indicate the domain to plot. The elemenst are numeric.
+            The bound box indicates the domain to plot. The elements are numeric.
             If the list is empty, a boundbox is created automatically. The default
             is [].
 
@@ -686,9 +692,9 @@ class DatasetVisuals:
         """Make an interactive spatial plot of the GEE dataset and the stations.
 
         This method will create an interactive plot of the GEE dataset. If
-        metadata is present, it will be diplayed as markers on the map.
+        metadata is present, it will be displayed as markers on the map.
 
-        The interactive map can be saved as an html file, by specifying the
+        The interactive map can be saved as an HTML file, by specifying the
         target path.
 
 
@@ -698,19 +704,19 @@ class DatasetVisuals:
             The GeeStaticModelData to plot. If a string is given, it is assumed
             to be the name of a known GeeStaticModelData. The default is 'lcz'.
         outputfolder : str or None, optional
-            Path to the folder to save the html file. If None, the map will
-            not be saved as an html file. The default is None.
+            Path to the folder to save the HTML file. If None, the map will
+            not be saved as an HTML file. The default is None.
         filename : str or None, optional
-            The filename for the html file. If a filename is given, if it does
+            The filename for the HTML file. If a filename is given, if it does
             not end with ".html", the prefix is added. If None, the map will not
-            be saved as an html file. The default is None.
+            be saved as an HTML file. The default is None.
         vmin : num or None, optional
-            If the dataset is not categorical, vmin is the minimum values
+            If the dataset is not categorical, vmin is the minimum value
             assigned to the colormap. If None, vmin is computed by extracting
             the values at the locations of the stations. If no metadata is
             available, and vmin is None then vmin is set to 0. The default is None.
         vmax : num or None, optional
-            If the dataset is not categorical, vmax is the minimum values
+            If the dataset is not categorical, vmax is the minimum value
             assigned to the colormap. If None, vmax is computed by extracting
             the values at the locations of the stations. If no metadata is
             available, and vmax is None then vmax is set to 1. The default is None.
@@ -732,16 +738,16 @@ class DatasetVisuals:
         Warning
         ---------
         To display the interactive map a graphical interactive backend is
-        required, which could be missing. You can recognice this when no
-        map is displayed, but the python console prints out a message similar
+        required, which could be missing. You can recognise this when no
+        map is displayed, but the Python console prints out a message similar
         to `<geemap.foliumap.Map at 0x7ff7586b8d90>`.
 
-        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a html file, and
-        open in with a browser.
+        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a HTML file, and
+        open it with a browser.
 
         Examples
         -----------
-        As an example we will make a plot of the LCZ map, which is a default `GeeStaticModelData`
+        As an example, we will make a plot of the LCZ map, which is a default `GeeStaticModelData`
         present in a `metobs_toolkit.Dataset()`
 
         >>> import metobs_toolkit
@@ -759,8 +765,8 @@ class DatasetVisuals:
         ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
         ...                template_file=metobs_toolkit.demo_template)
 
-        We will save the map as a (html) file. You can specify where so save it,
-        for this example we will store it in the current working direcotry
+        We will save the map as an (HTML) file. You can specify where to save it,
+        for this example we will store it in the current working directory
         (`os.getcwd()`)
 
         >>> import os
@@ -815,7 +821,7 @@ class DatasetVisuals:
         instance in time. If metadata is present, it will be diplayed as
         markers on the map.
 
-        The interactive map can be saved as an html file, by specifying the
+        The interactive map can be saved as an HTML file, by specifying the
         target path.
 
 
@@ -833,12 +839,12 @@ class DatasetVisuals:
             The name of the ModelObstype to plot. The modelobstype name must be
             known (--> not the same as an Obstype!). The default is "temp".
         outputfolder : str or None, optional
-            Path to the folder to save the html file. If None, the map will
-            not be saved as an html file. The default is None.
+            Path to the folder to save the HTML file. If None, the map will
+            not be saved as an HTML file. The default is None.
         filename : str or None, optional
-            The filename for the html file. If a filename is given, if it does
+            The filename for the HTML file. If a filename is given, if it does
             not end with ".html", the prefix is added. If None, the map will not
-            be saved as an html file. The default is None.
+            be saved as an HTML file. The default is None.
         vmin : num or None, optional
             vmin is the minimum value assigned to the colormap. If None, and
             metadata is set, vmin is computed by computing the minimum
@@ -873,7 +879,7 @@ class DatasetVisuals:
         map is displayed, but the python console prints out a message similar
         to `<geemap.foliumap.Map at 0x7ff7586b8d90>`.
 
-        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a html file, and
+        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a HTML file, and
         open in with a browser.
 
         Examples
@@ -937,7 +943,7 @@ class DatasetVisuals:
         We can no use the `Dataset.make_gee_dynamic_spatialplot()` method to make
         an interactive spatial plot of the era5 Modeldata.
 
-        We will save the output as a (html) file and store it in the
+        We will save the output as a (HTML) file and store it in the
         current working directory (`os.getcwd`) as illustration.
 
         We specify a timeinstance, which is rounded-down, respecting

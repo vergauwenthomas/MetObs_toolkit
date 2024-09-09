@@ -41,10 +41,10 @@ def _create_anchor_df_for_leading_trailing_periods_by_size(
     """Helper for constructing an anchorsdf (used by interpolation)
 
     The anchordf is constructed per gap, and is done by locating non-nan N records (record space),
-    adjacent to the gap. Where N is speciefied for the leading and trailing period.
+    adjacent to the gap. Where N is specified for the leading and trailing period.
 
     An extra filter to maximum lead/trail duration is applied to limit the
-    duration (time space) of the learning periods.
+    duration (time-space) of the learning periods.
 
     This method is similar to _create_anchor_df_for_leading_trailing_periods(),
     and the record-space arguments are converted to time-space arguments so that
@@ -225,18 +225,18 @@ def _create_anchor_df_for_leading_trailing_periods(
 
 def _combine_learning_and_gap_to_one_df(Modeldata, anchordf, gapdf, obsname):
     """
-    Helper method to combine the anchorsdf and the gapdf to one dataframe.
-    This combined dataframe is than used by the fill method.
+    Helper method to combine the anchorsdf and the gapdf into one dataframe.
+    This combined dataframe is then used by the fill method.
 
     Modeldata is extracted for all these records (and interpolated to the
     to match time resolution).
 
-    Each record is labeld by 'leading period', 'trailing period' or 'gap'
+    Each record is labeled by 'leading period', 'trailing period' or 'gap'
 
     Parameters
     ----------
     Modeldata : metobs_toolkit.Modeldata
-        The modeldata to use for the gapfilling
+        The modeldata to use for the gap filling
 
     Returns
     -------
@@ -273,9 +273,9 @@ def _combine_learning_and_gap_to_one_df(Modeldata, anchordf, gapdf, obsname):
 def _label_anchors_for_diurnal_gapfilling(
     anchordf, gapdf, obsname, min_anchors_per_diurnal_timestamp
 ):
-    """
-    Helper method to label (in the msg column) all records of the anchorsdf.
-    This methods is applied when filling uses diurnal timestamps, thus the
+    """Helper method to label (in the msg column) all records of the anchorsdf.
+
+    This method is applied when filling uses diurnal timestamps, thus the
     'training period' depends on similar timestamps. This method checks if
     all these periods have equal, or more records then set by min_anchors_per_diurnal_timestamp.
 
@@ -529,22 +529,6 @@ def _weighted_diurnal_debias_modeldata(filldf):
         lambda x: _msg_writer(x),
         axis=1,
     )
-
-    # msg = gapdf.apply(
-    #     lambda x: f"Modelvalue: {x['modelvalues']:.2f} corrected with ({x['lead_diff']:.2f} x {x['lead_weight']:.2f} + {x['trail_diff']:.2f} x {x['trail_weight']:.2f}) bias.",
-    #     axis=1,
-    # )
-    # # If the trailing/leading periods does not contain all diurnal categories
-    # # as the the gap, the corresponding diff cannot be merge and Nan's are added.
-    # # We specify this in the message
-    # missing_lead_cat = gapdf[~gapdf["lead_diff"].notnull()].index  # find the indices
-    # msg.loc[missing_lead_cat] = (
-    #     "This diurnal record is not represented in the leading period."
-    # )
-    # missing_trail_cat = gapdf[~gapdf["trail_diff"].notnull()].index  # find the indices
-    # msg.loc[missing_trail_cat] = (
-    #     "This diurnal record is not represented in the trailing period."
-    # )
 
     return fillvalues, msg
 

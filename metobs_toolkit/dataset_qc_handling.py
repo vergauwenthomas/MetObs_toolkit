@@ -19,7 +19,7 @@ from metobs_toolkit.settings_files.default_formats_settings import (
 
 from metobs_toolkit.qc_checks import (
     gross_value_check,
-    persistance_check,
+    persistence_check,
     repetitions_check,
     # duplicate_timestamp_check,
     step_check,
@@ -39,7 +39,7 @@ from metobs_toolkit.df_helpers import (
 
 
 class DatasetQCCore:
-    """Extension on the metobs_toolkit.Dataset class with QC related methods"""
+    """Extension on the metobs_toolkit.Dataset class with QC-related methods"""
 
     def _update_outliersdf(self, add_to_outliersdf):
         """Update the outliersdf attribute."""
@@ -65,26 +65,26 @@ class DatasetQCCore:
         Parameters
         -----------
         obstype : str, optional
-            Observation type to analyse the QC labels on. The default is
+            Observation type to analyze the QC labels. The default is
             'temp'.
         stationname : str, optional
             Stationname to subset the quality labels on. If None, all
             stations are used. The default is None.
-        make_plot : Bool, optional
+        make_plot : bool, optional
             If True, a plot with piecharts is generated. The default is True.
 
         Returns
         ---------
         tuple : (final_stats, outlier_freq, qc_effectivenes)
-            A tuple containing three dictionaries with occurence frequencies,
-            for aggregated qc-labels, for specific qc-labels and one for the
-            effectiviness.
+            A tuple containing three dictionaries with occurrence frequencies,
+            for aggregated qc-labels, one for specific qc-labels, and one for the
+            effectiveness.
 
         Note
         -----
         For the effectiveness estimation of a specific quality control check,
         the cumulated sum of outliers detected in advance of a specific check
-        is taken into account. (The order of applied check is used.)
+        is taken into account. (The order of applied checks is used.)
 
         See Also
         ----------
@@ -125,13 +125,13 @@ class DatasetQCCore:
 
 
 
-            For this example we reduce the data by coarsening the time resolution
+            For this example, we reduce the data by coarsening the time resolution
             to hourly. After the resampling, we apply quality control.
 
             >>> dataset.coarsen_time_resolution(freq='1h')
             >>> dataset.apply_quality_control(obstype='temp')
 
-            To inspect the effectivenes of the qualit control, we can plot the dataset
+            To inspect the effectiveness of the quality control, we can plot the dataset
             timeseries with `colorby='label'`.
 
             >>> dataset.make_plot(obstype='temp', colorby='label')
@@ -148,9 +148,9 @@ class DatasetQCCore:
         .. plot::
             :context: close-figs
 
-            If you want more details on the effectivenes of the applied quality
-            control, then we use the `Dataset.get_qc_stats()` method, to compute
-            effectiveness statistis and to plot them as a collection of pie-charts.
+            If you want more details on the effectiveness of the applied quality
+            control, then we use the `Dataset.get_qc_stats()` method,  to compute
+            effectiveness statistics and plot them as a collection of pie charts.
 
             >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
             >>> final_stats
@@ -206,7 +206,7 @@ class DatasetQCCore:
         self,
         obstype="temp",
         gross_value=True,
-        persistance=True,
+        persistence=True,
         repetitions=True,
         step=True,
         window_variation=True,
@@ -216,9 +216,12 @@ class DatasetQCCore:
         The default settings are used, and can be changed in the `Dataset.update_qc_settings()`
         method.
 
-        The checks are performed in a sequence: gross_vallue -->
-        persistance --> ..., Outliers by a previous check are ignored in the
-        following checks!
+        The checks are performed in a sequence:
+
+            repetitions check --> gross_value check --> persistence check -->
+            step check --> window_variation check.
+
+        Outliers by a previous check are ignored in the following checks!
 
         The dataset is updated inline.
 
@@ -227,18 +230,18 @@ class DatasetQCCore:
         obstype : String, optional
             Name of the observationtype you want to apply the checks on. The
             default is 'temp'.
-        gross_value : Bool, optional
+        gross_value : bool, optional
             If True the gross_value check is applied if False not. The default
             is True.
-        persistance : Bool, optional
-            If True the persistance check is applied if False not. The default
-            is True.. The default is True.
-        repetition : Bool, optional
-            If True the repetations check is applied if False not. The default
+        persistence : bool, optional
+            If True the persistence check is applied if False not. The default
+            is True. The default is True.
+        repetition : bool, optional
+            If True the repetitions check is applied if False not. The default
             is True.
-        step : Bool, optional
+        step : bool, optional
             If True the step check is applied if False not. The default is True.
-        window_variation : Bool, optional
+        window_variation : bool, optional
             If True the window_variation check is applied if False not. The
             default is True.
 
@@ -313,7 +316,7 @@ class DatasetQCCore:
         Note
         -----
           In general, for temperatures,  the decrease threshold is set less stringent than the increase
-          threshold. This is because a temperature drop is meteorologycally more
+          threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.
 
         Window Variation check
@@ -364,9 +367,9 @@ class DatasetQCCore:
                  *Coordinates are available for all stations.
 
 
-            For this example we reduce the data by coarsening the time resolution
+            For this example, we reduce the data by coarsening the time resolution
             to hourly. It is important to resample the time resolution in advance of
-            applying quality control since some checks depend on the records frequency!
+            applying quality control since some checks depend on the frequency of the records!
 
             >>> dataset.coarsen_time_resolution(freq='1h')
 
@@ -375,13 +378,13 @@ class DatasetQCCore:
             or by using the `Datatest.show_settings()` method.
 
             >>> dataset.settings.qc['qc_check_settings']
-            {'duplicated_timestamp': {'keep': False}, 'persistance': {'temp': {'time_window_to_check': '1h', 'min_num_obs': 5}}, 'repetitions': {'temp': {'max_valid_repetitions': 5}}, 'gross_value': {'temp': {'min_value': -15.0, 'max_value': 39.0}}, 'window_variation': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': 0.002777777777777778, 'time_window_to_check': '1h', 'min_window_members': 3}}, 'step': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': -0.002777777777777778}}, 'buddy_check': {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}}
+            {'duplicated_timestamp': {'keep': False}, 'persistence': {'temp': {'time_window_to_check': '1h', 'min_num_obs': 5}}, 'repetitions': {'temp': {'max_valid_repetitions': 5}}, 'gross_value': {'temp': {'min_value': -15.0, 'max_value': 39.0}}, 'window_variation': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': 0.002777777777777778, 'time_window_to_check': '1h', 'min_window_members': 3}}, 'step': {'temp': {'max_increase_per_second': 0.0022222222222222222, 'max_decrease_per_second': -0.002777777777777778}}, 'buddy_check': {'temp': {'radius': 15000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0}}}
             >>> dataset.show_settings()
             All settings: ...
 
 
             We can change the (default) settings for QC using the `Dataset.update_qc_settings()`
-            method. These settings are observationtype dependant!
+            method. These settings are observationtype dependent!
 
             >>> dataset.update_qc_settings(
             ...                obstype='temp',
@@ -401,7 +404,7 @@ class DatasetQCCore:
             >>> dataset.apply_quality_control(obstype='humidity')
 
 
-            To inspect the effectivenes of the qualit control, we can plot the dataset
+            To inspect the effectiveness of the quality control, we can plot the dataset
             timeseries with `colorby='label'`.
 
             >>> dataset.make_plot(obstype='temp', colorby='label')
@@ -418,9 +421,9 @@ class DatasetQCCore:
         .. plot::
             :context: close-figs
 
-            If you want more details on the effectivenes of the applied quality
+            If you want more details on the effectiveness of the applied quality
             control, then we use the `Dataset.get_qc_stats()` method, to compute
-            effectiveness statistis and to plot them as a collection of pie-charts.
+            effectiveness statistics and plot them as a collection of pie-charts.
 
             >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
 
@@ -466,13 +469,13 @@ class DatasetQCCore:
                 # add this check to the applied checks
                 self._append_to_applied_qc(obstype, checkname)
 
-        if persistance:
-            checkname = "persistance"
+        if persistence:
+            checkname = "persistence"
             apliable = _can_qc_be_applied(self, obstype, checkname)
 
             if apliable:
                 logger.info(f"Applying {checkname} check.")
-                obsdf, outl_df = persistance_check(
+                obsdf, outl_df = persistence_check(
                     station_frequencies=self.metadf["dataset_resolution"],
                     obsdf=self.df,
                     obstype=obstype,
@@ -538,11 +541,11 @@ class DatasetQCCore:
     ):
         """Apply spatial buddy check.
 
-        The buddy check compares an observation against its neighbours (i.e.
+        The buddy check compares an observation against its neighbors (i.e.
         buddies). The check looks for buddies in a neighbourhood specified by
         a certain radius. The buddy check flags observations if the
         (absolute value of the) difference between the observations and the
-        average of the neighbours normalized by the standard deviation in the
+        average of the neighbors normalized by the standard deviation in the
         circle is greater than a predefined threshold.
 
         This check is based on the buddy check from titanlib. Documentation on
@@ -564,8 +567,8 @@ class DatasetQCCore:
             distances between stations. The default is True.
         metric_epsg : str, optional
             EPSG code for the metric CRS to calculate distances in. Only used when
-            haversine approximation is set to False. Thus becoming a better
-            distance approximation but not global applicable The default is '31370'
+            the haversine approximation is set to False. Thus becoming a better
+            distance approximation but not globally applicable The default is '31370'
             (which is suitable for Belgium).
 
         Returns
@@ -584,7 +587,7 @@ class DatasetQCCore:
         -----
         A schematic step-by-step description of the buddy check:
 
-        1. A distance matrix is constructed for all inter distances between the stations. This is done using the haversine approximation, or by first converting the Coordinate Reference System (CRS) to a metric one, specified by an EPSG code.
+        1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation, or by first converting the Coordinate Reference System (CRS) to a metric one, specified by an EPSG code.
         2. A set of all (spatial) buddies per station is created by filtering out all stations that are too far.
         3. The buddies are further filtered based on altitude differences with respect to the reference station.
         4. For each station:
@@ -630,7 +633,7 @@ class DatasetQCCore:
                  *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
 
-            For this example we reduce the data by coarsening the time resolution
+            For this example, we reduce the data by coarsening the time resolution
             to hourly.
 
             >>> dataset.coarsen_time_resolution(freq='1h')
@@ -644,7 +647,7 @@ class DatasetQCCore:
 
 
             We can change the (default) settings using the `Dataset.update_qc_settings()`
-            method. These settings are observationtype dependant!
+            method. These settings are observationtype dependent!
 
             >>> # The following settings are illustrative, do not copy blindly
             >>> dataset.update_qc_settings(
@@ -654,11 +657,11 @@ class DatasetQCCore:
             ...                buddy_threshold=2.5,
             ...                buddy_min_std=1.)
 
-            If you want to correct your observations for altitude (recomanded for
+            If you want to correct your observations for altitude (recommended for
             temperature observations in orographic environments), you must
             specify the "altitude" column in the metadata. The altitude can be
-            extracted directly from the Google earth engine (and the metadata
-            will be updated aswell).
+            extracted directly from the Google Earth Engine (and the metadata
+            will be updated as well).
 
             >>> altitudes = dataset.get_altitude()
             >>> dataset.metadf['altitude'].head()
@@ -670,10 +673,10 @@ class DatasetQCCore:
             vlinder05     0
             Name: altitude, dtype: int64
 
-            The buddy check will compute interdistances between stations. To compute
+            The buddy check will compute inter-distances between stations. To compute
             the distances the haversine approximation (spherical earth), is often
-            sufficient. (However, if you want to compute distances very accuratly,
-            you can specify a metric coordinate refernce system (CRS) by passing
+            sufficient. (However, if you want to compute distances very accurately,
+            you can specify a metric coordinate reference system (CRS) by passing
             the EPSG code.)
 
 
@@ -682,7 +685,7 @@ class DatasetQCCore:
             ...            use_constant_altitude=False, #because we have the altitudes
             ...            haversine_approx=True)
 
-            To inspect the effectivenes of the qualit control, we can plot the dataset
+            To inspect the effectiveness of the quality control, we can plot the dataset
             timeseries with `colorby='label'`.
 
             >>> dataset.make_plot(obstype='temp', colorby='label')
@@ -693,7 +696,7 @@ class DatasetQCCore:
 
             If you want more details on the effectivenes of the applied quality
             control, then we use the `Dataset.get_qc_stats()` method, to compute
-            effectiveness statistis and to plot them as a collection of pie-charts.
+            effectiveness statistics and plot them as a collection of pie-charts.
 
             >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
 
@@ -787,13 +790,13 @@ class DatasetQCCore:
     def apply_titan_buddy_check(self, obstype="temp", use_constant_altitude=False):
         """Apply the TITAN buddy check on the observations.
 
-        The buddy check compares an observation against its neighbours (i.e. buddies). The check looks for
-        buddies in a neighbourhood specified by a certain radius. The buddy check flags observations if the
-        (absolute value of the) difference between the observations and the average of the neighbours
+        The buddy check compares an observation against its neighbors (i.e. buddies). The check looks for
+        buddies in a neighborhood specified by a certain radius. The buddy check flags observations if the
+        (absolute value of the) difference between the observations and the average of the neighbors
         normalized by the standard deviation in the circle is greater than a predefined threshold.
 
         See the `titanlib documentation on the buddy check <https://github.com/metno/titanlib/wiki/Buddy-check>`_
-        for futher details.
+        for more details.
 
         The observation and outliers attributes will be updated accordingly.
 
@@ -868,7 +871,7 @@ class DatasetQCCore:
             {'temp': {'radius': 50000, 'num_min': 2, 'threshold': 1.5, 'max_elev_diff': 200, 'elev_gradient': -0.0065, 'min_std': 1.0, 'num_iterations': 1}}
 
             We can change the (default) settings using the `Dataset.update_titan_qc_settings()`
-            method. These settings are observationtype dependant!
+            method. These settings are observationtype dependent!
 
             >>> # The following settings are illustrative, do not copy blindly
             >>> dataset.update_titan_qc_settings(
@@ -882,11 +885,11 @@ class DatasetQCCore:
             buddy threshold for the TITAN buddy check updated:  1.5--> 2.5
             buddy min std for the TITAN buddy check updated:  1.0--> 1.0
 
-            If you want to correct your observations for altitude (recomanded for
+            If you want to correct your observations for altitude (recommended for
             temperature observations in orographic environments), you must
             specify the "altitude" column in the metadata. The altitude can be
-            extracted directly from the Google earth engine (and the metadata
-            will be updated aswell).
+            extracted directly from the Google Earth Engine (and the metadata
+            will be updated as well).
 
             >>> altitudes = dataset.get_altitude()
             >>> dataset.metadf['altitude'].head()
@@ -903,7 +906,7 @@ class DatasetQCCore:
             >>> dataset.apply_titan_buddy_check(obstype="temp",
             ...                                 use_constant_altitude=False)
 
-            To inspect the effectivenes of the qualit control, we can plot the dataset
+            To inspect the effectiveness of the quality control, we can plot the dataset
             timeseries with `colorby='label'`.
 
             >>> dataset.make_plot(obstype='temp', colorby='label')
@@ -912,9 +915,9 @@ class DatasetQCCore:
         .. plot::
             :context: close-figs
 
-            If you want more details on the effectivenes of the applied quality
+            If you want more details on the effectiveness of the applied quality
             control, then we use the `Dataset.get_qc_stats()` method, to compute
-            effectiveness statistis and to plot them as a collection of pie-charts.
+            effectiveness statistics and plot them as a collection of pie-charts.
 
             >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
 

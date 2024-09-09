@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class DatasetGapCore:
-    """Extension on the metobs_toolkit.Dataset class with gap related methods"""
+    """Extension on the metobs_toolkit.Dataset class with gap-related methods"""
 
     # =============================================================================
     # Get info and details
@@ -158,7 +158,7 @@ class DatasetGapCore:
 
         Warning
         ------
-        Information of the value and QC flag of the outliers will be lost.
+        Information on the value and QC flag of the outliers will be lost.
 
         See Also
         -----------
@@ -254,44 +254,44 @@ class DatasetGapCore:
     ):
         """Fill all the gaps using interpolation.
 
-        The gaps of the Datasetinstance will be updated with fill values.
+        The gaps of the Dataset will be updated with fill values.
 
         Parameters
         ----------
         obstype : str, optional
-            The observationtype to fill the gaps of. The default is "temp".
+            The observationtype to fill the gaps. The default is "temp".
         overwrite_fill : bool, optional
             If a gap has already filled values, the interpolation of this gap
-            is skipped if overwrite_fill is False. If set to True, the gapfill
-            values will be overwitten. The default is False.
+            is skipped if overwrite_fill is False. If set to True, the gap fill
+            values will be overwritten. The default is False.
         method : str, optional
-            Intepolation technique to use. See pandas.DataFrame.interpolate
-            'method' argument for possible values. Make shure that
+            Interpolation technique to use. See pandas.DataFrame.interpolate
+            'method' argument for possible values. Make sure that
             `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
             set accordingly to the method. The default is "time".
         max_consec_fill : int, optional
             The maximum number of consecutive missing records to fill. The default is 10.
         n_leading_anchor : int, optional
-            The number of leading anchors to use for the interpolation. Higher
-            order polynomial interpolation techniques require multiple leading
+            The number of leading anchors to use for the interpolation.
+            Higher-order polynomial interpolation techniques require multiple leading
             anchors. The default is 1.
         n_trailing_anchor : int, optional
-            The number of trailing anchors to use for the interpolation. Higher
-            order polynomial interpolation techniques require multiple trailing
+            The number of trailing anchors to use for the interpolation.
+            Higher-order polynomial interpolation techniques require multiple trailing
             anchors. The default is 1.
         max_lead_to_gap_distance : str or pandas.Timedelta, optional
             The maximum time difference between the start of the gap and a
             suitable lead (= the good record to start the interpolation from).
-            If None, the first occuring good records before the start of the gap
+            If None, the first occurring good records before the start of the gap
             is used. The default is None.
         max_trail_to_gap_distance : str or pandas.Timedelta, optional
             The maximum time difference between the end of the gap and a
             suitable trail (= the good record to end the interpolation on).
-            If None, the first occuring good records after the gap
+            If None, the first occurring good records after the gap
             is used. The default is None.
         method_kwargs: dict, optional
             A dictionary of kwargs passed to pandas.Dataframe.interpolate(). In
-            pracktice, extra arguments for specific interpolation methods are
+            practice, extra arguments for specific interpolation methods are
             put in method_kwargs. The default is {}.
 
         Returns
@@ -310,16 +310,16 @@ class DatasetGapCore:
         -----
         A schematic description:
 
-        1. Iterate over all gaps.
+        1. Iterate over all the gaps.
         2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
         3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
-        4. Check if the leading and trailing records fulfill the critea of maximum timediffernece.
+        4. Check if the leading and trailing records fulfill the criteria of maximum timedifference.
         5. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
         6. The gap is updated with the interpolated values
 
         Note
         -------
-        The inpact of `max_consec_fill` is highly depending on the resolution
+        The impact of `max_consec_fill` is highly dependent on the resolution
         of your records.
 
         Note
@@ -499,14 +499,14 @@ class DatasetGapCore:
         ----------
         Model : metobs_toolkit.GeeDynamicModelData
             The model that is used to fill the gaps records. The modeldata
-            must be compatibel (same metadata and `ModelObstype` equivalent
+            must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
         obstype : str, optional
-            The observationtype to fill the gaps of. The default is "temp".
+            The observationtype to fill the gaps. The default is "temp".
         overwrite_fill : bool, optional
             If a gap has already filled values, the interpolation of this gap
             is skipped if overwrite_fill is False. If set to True, the gapfill
-            values will be overwitten. The default is False.
+            values will be overwritten. The default is False.
 
         Returns
         -------
@@ -514,19 +514,19 @@ class DatasetGapCore:
 
         See Also
         --------
-        get_gaps_fill_df: Get an overview dataframe of gapfilled records and info.
+        get_gaps_fill_df: Get an overview dataframe of gap filled records and info.
         metobs_toolkit.GeeDynamicModelData: The Gee Model data (timeseries).
         get_modeldata: Method for creating a modeldata from a dataset.
         interpolate_gaps: Fill gaps by interpolation.
-        fill_gaps_with_debiased_modeldata: Debiased modeldata gapfill method.
-        fill_gaps_with_diurnal_debiased_modeldata: Diurnal debiased modeldata gapfill method.
-        fill_gaps_with_weighted_diurnal_debiased_modeldata: Weighted diurnal debiased modeldata gapfill method.
+        fill_gaps_with_debiased_modeldata: Debiased modeldata gap fill method.
+        fill_gaps_with_diurnal_debiased_modeldata: Diurnal debiased modeldata gap fill method.
+        fill_gaps_with_weighted_diurnal_debiased_modeldata: Weighted diurnal debiased modeldata gap fill method.
 
         Notes
         -----
         A schematic description of the raw modeldata gap fill:
 
-        1. Iterate over all gaps.
+        1. Iterate over all the gaps.
         2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
         3. The modeldata is interpolated (in time) to the missing records.
         4. The gap is updated with the interpolated values from the modeldata.
@@ -595,7 +595,7 @@ class DatasetGapCore:
             <BLANKLINE>
             [280 rows x 3 columns]
 
-            Since we will use Modeldata for filling the gap, we first need to import
+            Since we will use Modeldata to fill the gap, we first need to import
             modeldata. We can do this by importing ERA5 (Land) data directly from
             the Google Earth Engine by using the `Dataset.get_modeldata()` method.
 
@@ -679,14 +679,14 @@ class DatasetGapCore:
         ----------
         Model : metobs_toolkit.GeeDynamicModelData
             The model that is used to fill the gaps records. The modeldata
-            must be compatibel (same metadata and `ModelObstype` equivalent
+            must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
         obstype : str, optional
-            The observationtype to fill the gaps of. The default is "temp".
+            The observationtype to fill the gaps. The default is "temp".
         overwrite_fill : bool, optional
             If a gap has already filled values, the interpolation of this gap
             is skipped if overwrite_fill is False. If set to True, the gapfill
-            values will be overwitten. The default is False.
+            values will be overwritten. The default is False.
         leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. The default is "24h".
         min_leading_records_total : int, optional
@@ -716,11 +716,11 @@ class DatasetGapCore:
         -----
         A schematic description of the debiased modeldata gap fill:
 
-        1. Iterate over all gaps.
+        1. Iterate over all the gaps.
         2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
-        3. The good obervations of the leading and trailing period are selected and checked if they fulfill the conditions.
-        4. The modeldata is interpolated (in time) to the missing records, the leading, and trailing period.
-        5. By combining the leading and trailing period both records and modeldata, a bias is calculated.
+        3. The good observations of the leading and trailing periods are selected and checked if they fulfill the conditions.
+        4. The modeldata is interpolated (in time) to the missing records, the leading, and the trailing period.
+        5. By combining the leading and trailing periods both records and modeldata, a bias is calculated.
         6. The gap is updated with the interpolated modeldata, corrected by the calculated bias.
 
         Examples
@@ -787,7 +787,7 @@ class DatasetGapCore:
             <BLANKLINE>
             [280 rows x 3 columns]
 
-            Since we will use Modeldata for filling the gap, we first need to import
+            Since we will use Modeldata to fill the gap, we first need to import
             modeldata. We can do this by importing ERA5 (Land) data directly from
             the Google Earth Engine by using the `Dataset.get_modeldata()` method.
 
@@ -885,14 +885,14 @@ class DatasetGapCore:
         ----------
         Model : metobs_toolkit.GeeDynamicModelData
             The model that is used to fill the gaps records. The modeldata
-            must be compatibel (same metadata and `ModelObstype` equivalent
+            must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
         obstype : str, optional
-            The observationtype to fill the gaps of. The default is "temp".
+            The observationtype to fill the gaps. The default is "temp".
         overwrite_fill : bool, optional
            If a gap has already filled values, the interpolation of this gap
            is skipped if overwrite_fill is False. If set to True, the gapfill
-           values will be overwitten. The default is False.
+           values will be overwritten. The default is False.
         leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. The default is "24h".
         min_debias_sample_size : int, optional
@@ -920,11 +920,11 @@ class DatasetGapCore:
         -----
         A schematic description of the linear gap fill:
 
-        1. Iterate over all gaps.
+        1. Iterate over all the gaps.
         2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
-        3. The good obervations of the leading and trailing period are selected and grouped per timestamp.
-        4. Each group (coresponding to a timestamp) is checked if they fulfill the conditions.
-        5. The modeldata is interpolated (in time) to the missing records, the leading, and trailing period.
+        3. The good observations of the leading and trailing periods are selected and grouped per timestamp.
+        4. Each group (corresponding to a timestamp) is checked if they fulfill the conditions.
+        5. The modeldata is interpolated (in time) to the missing records, the leading, and the trailing period.
         6. A bias for each group is computed by combining the corresponding leading and trailing groups.
         7. The gap is updated with the interpolated modeldata, corrected by the calculated bias corresponding to the specific timestamp.
 
@@ -1001,7 +1001,7 @@ class DatasetGapCore:
 
 
 
-            Since we will use Modeldata for filling the gap, we first need to import
+            Since we will use Modeldata to fill the gap, we first need to import
             modeldata. We can do this by importing ERA5 (Land) data directly from
             the Google Earth Engine by using the `Dataset.get_modeldata()` method.
 
@@ -1107,24 +1107,24 @@ class DatasetGapCore:
         ----------
         Model : metobs_toolkit.GeeDynamicModelData
             The model that is used to fill the gaps records. The modeldata
-            must be compatibel (same metadata and `ModelObstype` equivalent
+            must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
         obstype : str, optional
-            The observationtype to fill the gaps of. The default is "temp".
+            The observationtype to fill the gaps. The default is "temp".
         overwrite_fill : bool, optional
            If a gap has already filled values, the interpolation of this gap
            is skipped if overwrite_fill is False. If set to True, the gapfill
-           values will be overwitten. The default is False.
+           values will be overwritten. The default is False.
         leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. The default is "48h".
         min_lead_debias_sample_size : int, optional
             The minimum number of good records in the leading period, to
-            calculate a diurnal bias of. The default is 2.
+            calculate a diurnal bias. The default is 2.
         trailing_period_duration : str or pandas.Timedelta, optional
             The duration of the trailing period. The default is "48h".
         min_trail_debias_sample_size : int, optional
             The minimum number of good records in the trailing period, to
-            calculate a diurnal bias of. The default is 2.
+            calculate a diurnal bias. The default is 2.
 
 
         Returns
@@ -1146,13 +1146,13 @@ class DatasetGapCore:
         -----
         A schematic description of the linear gap fill:
 
-        1. Iterate over all gaps.
+        1. Iterate over all the gaps.
         2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
-        3. The good obervations of the leading and trailing period are selected and grouped per timestamp.
-        4. Each group (coresponding to a timestamp) is checked if they fulfill the conditions.
-        5. The modeldata is interpolated (in time) to the missing records, the leading, and trailing period.
+        3. The good observations of the leading and trailing periods are selected and grouped per timestamp.
+        4. Each group (corresponding to a timestamp) is checked if they fulfill the conditions.
+        5. The modeldata is interpolated (in time) to the missing records, the leading, and the trailing period.
         6. A bias for each group is computed for the leading and trailing groups seperatly.
-        7. Two weights are assigned to each missing record, that is the normalized distance to the leading an trailing period respectively.
+        7. Two weights are assigned to each missing record, that is the normalized distance to the leading and trailing period respectively.
         8. The gap is updated with the interpolated modeldata, corrected by the weighted sum of calculated bias corresponding to the specific timestamp.
 
         Notes
@@ -1321,7 +1321,7 @@ class DatasetGapCore:
             The obstypename of the gap.
         in_gap_timestamp : datetime.datetime or pandas.Timestamp
             A timestamp that is located in the gap. If a datetime naive timestamp
-            is given, it is assumed to be in the same timzone as the records.
+            is given, it is assumed to be in the same timezone as the records.
 
         Returns
         -------
@@ -1342,7 +1342,7 @@ class DatasetGapCore:
             :context: close-figs
 
             We start by creating a Dataset, and importing data. To create some gaps
-            in the Dataset, we apply quality control and converting the outliers to gaps.
+            in the Dataset, we apply quality control and convert the outliers to gaps.
 
 
             >>> import metobs_toolkit
@@ -1398,10 +1398,10 @@ class DatasetGapCore:
             [1676 rows x 3 columns]
 
 
-            If you want all details, or need to interact directly with a specific
+            If you want all details or need to interact directly with a specific
             Gap, you can find the Gap (from the .gaps attribute) by using the
-            `Dataset.find_gap()` method. In pracktice, one can make a timeseries
-            plot, identify where the gap-of-interest is, and than use this method.
+            `Dataset.find_gap()` method. In practice, one can make a timeseries
+            plot, identify where the gap-of-interest is, and then use this method.
 
             >>> dataset.make_plot(obstype='temp', colorby='label')
             <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
