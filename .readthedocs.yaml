@@ -32,6 +32,7 @@ build:
     pre_build:
     # Just print out the environment the documentation is build in
       - python -m pip list
+      - pip install ./docs/metobs_toolkit-*.tar.gz
 
 
 # Build documentation in the "docs/" directory with Sphinx

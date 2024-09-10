@@ -61,7 +61,7 @@ from metobs_toolkit.gee_api import connect_to_gee
 
 # DO not change this manually!
 
-__version__ = "0.2.3"
+__version__ = "0.3.0"
 
 
 # =============================================================================
