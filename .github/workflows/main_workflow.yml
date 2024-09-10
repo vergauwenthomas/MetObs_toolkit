@@ -227,37 +227,37 @@ jobs:
 
 
 #---- Documentation build -----#
-   docsbuild:
-      name: documentation-building
-      needs: packageing
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python39
-          uses: actions/setup-python@v4
-          with:
-            python-version: '3.10'
-            #cache: 'poetry'
-        # You can test your matrix by printing the current Python version
-        - name: Display Python version
-          run: python -c "import sys; print(sys.version)"
-        - name: remove previous builds
-          run: |
-              rm -f dist/metobs_toolkit-*.whl
-              rm -f dist/metobs_toolkit-*.tar.gz
-        - name: Install poetry
-          run: |
-              pip install poetry
-        - name: make build of the package
-          run: |
-              ./deploiment/build_package.sh
-        - name: install the package for doc building
-          run: |
-              poetry install --with=documentation,dev
-              poetry add .
-        - name: Build documentation
-          run: |
-              poetry run sphinx-build -a -E docs _build
+   # docsbuild:
+   #    name: documentation-building
+   #    needs: packageing
+   #    runs-on: ubuntu-latest
+   #    steps:
+   #      - uses: actions/checkout@v3
+   #      - name: Set up Python39
+   #        uses: actions/setup-python@v4
+   #        with:
+   #          python-version: '3.10'
+   #          #cache: 'poetry'
+   #      # You can test your matrix by printing the current Python version
+   #      - name: Display Python version
+   #        run: python -c "import sys; print(sys.version)"
+   #      - name: remove previous builds
+   #        run: |
+   #            rm -f dist/metobs_toolkit-*.whl
+   #            rm -f dist/metobs_toolkit-*.tar.gz
+   #      - name: Install poetry
+   #        run: |
+   #            pip install poetry
+   #      - name: make build of the package
+   #        run: |
+   #            ./deploiment/build_package.sh
+   #      - name: install the package for doc building
+   #        run: |
+   #            poetry install --with=documentation,dev
+   #            poetry add .
+   #      - name: Build documentation
+   #        run: |
+   #            poetry run sphinx-build -a -E docs _build
       # steps:
       #   - uses: actions/checkout@v3
       #   - name: Set up Python310
@@ -396,7 +396,7 @@ jobs:
 # ---- delete artifacts that are not for storage -----
    cleanup_artifacts:
      name: delete artifacts
-     needs: [docsbuild,run-tests,versiontest,mac_install_testing, windows_install_testing]
+     needs: [run-tests,versiontest,mac_install_testing, windows_install_testing]
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v3
