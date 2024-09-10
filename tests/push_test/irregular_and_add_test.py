@@ -36,13 +36,9 @@ data2 = os.path.join(
     lib_folder,
     "tests",
     "test_data",
-    "testdata_testday",
-    "Sara",
     "Outdoor_module_Netatmo_Sara_small.csv",
 )
-template2 = os.path.join(
-    lib_folder, "tests", "test_data", "testdata_testday", "Sara", "sara_template.json"
-)
+template2 = os.path.join(lib_folder, "tests", "test_data", "sara_template.json")
 
 irr_combdf_file = "irr_combdf.pkl"
 irr_metadf_file = "irr_metadf.pkl"
