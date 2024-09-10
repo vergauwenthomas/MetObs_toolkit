@@ -217,6 +217,27 @@ html_theme_options = {
 # html_css_files = [
 #     "custom.css",
 # ]
+
+# =============================================================================
+# nbsphinx settings
+# =============================================================================
+
+# isue is that some example notebooks require the GEE authentication,
+# which fails when documentation is build online !!
+
+# since the execution of the notebooks is part of the development pipeline,
+# we can skip (in general) this step and assume the notebooks have output.
+
+# but, since this package is under active development, it is handy that the
+# notbooks are executed only when building locally !!
+
+if "/runner/" in os.getcwd():
+    nbsphinx_execute = "never"  # never, always or auto
+else:
+    print("ASSUME LOCAL BUILD OF DOCUMENTATION")
+    nbsphinx_execute = "always"
+
+
 # =============================================================================
 # Matplotlib include settings
 # =============================================================================
