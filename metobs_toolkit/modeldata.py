@@ -1952,8 +1952,8 @@ class GeeDynamicModelData(_GeeModelData):
         Examples
         --------
 
-         .. plot::
-             :context: close-figs
+        .. plot::
+            :context: close-figs
 
             As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
             present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
@@ -2022,6 +2022,7 @@ class GeeDynamicModelData(_GeeModelData):
             ...     Dataset=dataset,
             ...     obstype_dataset='temp') #plot temperature observations
             <Axes: title={'center': 'ERA5-land and temp observations.'}, ylabel='temp ...
+
         """
         logger.info(f"Make {obstype_model}-timeseries plot of model data")
 

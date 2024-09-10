@@ -863,83 +863,83 @@ class Analysis(Dataset):
         _return_all_stats=False,
     ):
         """
-            Create an average diurnal cycle for the observations.
+        Create an average diurnal cycle for the observations.
 
-            (In the plot, each station is represed by a line.)
+        (In the plot, each station is represed by a line.)
 
 
-            Parameters
-            ----------
-            colorby : 'name' or 'lcz', optional
-                If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
-            obstype : str, optional
-                Element of the metobs_toolkit.observation_types The default is 'temp'.
-            stations : list, optional
-                List of station names to use. If None, all present stations will be used. The default is None.
-            startdt : datetime.datetime, optional
-                The start datetime of the observations to use. If None, all timestamps will be used. The default is None.
-            enddt : datetime.datetime, optional
-                The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
-            plot : bool, optional
-                If True, a diurnal plot is made. The default is True.
-            title : string, optional
-                 Title of the figure, if None a default title is generated. The default is None.
-            legend : bool, optional
-                 I True, a legend is added to the plot. The default is True.
-            errorbands : bool, optional
-                If True, the std is represented in the plot by colored bands. The default is False.
+        Parameters
+        ----------
+        colorby : 'name' or 'lcz', optional
+            If 'name' the plotted lines will be colored per station, if 'lcz' the colors represent the stations lcz. The default is 'name'.
+        obstype : str, optional
+            Element of the metobs_toolkit.observation_types The default is 'temp'.
+        stations : list, optional
+            List of station names to use. If None, all present stations will be used. The default is None.
+        startdt : datetime.datetime, optional
+            The start datetime of the observations to use. If None, all timestamps will be used. The default is None.
+        enddt : datetime.datetime, optional
+            The end datetime of the observations to use. If None, all timestamps will be used. The default is None.
+        plot : bool, optional
+            If True, a diurnal plot is made. The default is True.
+        title : string, optional
+             Title of the figure, if None a default title is generated. The default is None.
+        legend : bool, optional
+             I True, a legend is added to the plot. The default is True.
+        errorbands : bool, optional
+            If True, the std is represented in the plot by colored bands. The default is False.
 
-            Returns
-            -------
-            df : pandas.DataFrame()
-                The dataframe containing the aggregated values.
+        Returns
+        -------
+        df : pandas.DataFrame()
+            The dataframe containing the aggregated values.
 
-            See Also
-            --------
+        See Also
+        --------
 
-            Analysis: The Analysis class
-            Analysis.aggregate_df: Data method for aggregating Analysis data.
-            Analysis.get_diurnal_statistics_with_reference: Diurnal difference to reference cycle.
-            Analysis.get_annual_statistics: Aggregate to annual cycle.
+        Analysis: The Analysis class
+        Analysis.aggregate_df: Data method for aggregating Analysis data.
+        Analysis.get_diurnal_statistics_with_reference: Diurnal difference to reference cycle.
+        Analysis.get_annual_statistics: Aggregate to annual cycle.
 
-            Note
-            --------
-            If a timezone unaware datetime is given as an argument, it is interpreted
-            as if it has the same timezone as the observations.
+        Note
+        --------
+        If a timezone unaware datetime is given as an argument, it is interpreted
+        as if it has the same timezone as the observations.
 
-            Examples
-            --------
+        Examples
+        --------
 
-            .. plot::
-                :context: close-figs
+        .. plot::
+            :context: close-figs
 
-                An Analysis is always created from a Dataset, so we start by creating
-                a Dataset and importing data into it.
+            An Analysis is always created from a Dataset, so we start by creating
+            a Dataset and importing data into it.
 
-                >>> import metobs_toolkit
-                >>>
-                >>> #Create your Dataset
-                >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-                >>> dataset.import_data_from_file(
-                ...                         input_data_file=metobs_toolkit.demo_datafile,
-                ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-                ...                         template_file=metobs_toolkit.demo_template,
-                ...                         )
-                >>> # Get LCZ (so we can aggregate per LCZ)
-                >>> lcz_series = dataset.get_lcz()
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> # Get LCZ (so we can aggregate per LCZ)
+            >>> lcz_series = dataset.get_lcz()
 
-                Now we have a dataset containing records.We now create an Analysis from it.
+            Now we have a dataset containing records.We now create an Analysis from it.
 
-                >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
-                >>> ana
-                Instance of Analysis at ...
+            >>> ana = metobs_toolkit.Analysis(orig_dataset=dataset)
+            >>> ana
+            Instance of Analysis at ...
 
-                We can create a diurnal cycle for each station
+            We can create a diurnal cycle for each station
 
-                >>> diurnal_aggdf = ana.get_diurnal_statistics(
-                ...                      colorby="name",
-                ...                      obstype="temp",
-                ...                      plot=True)
+            >>> diurnal_aggdf = ana.get_diurnal_statistics(
+            ...                      colorby="name",
+            ...                      obstype="temp",
+            ...                      plot=True)
 
         .. plot::
             :context: close-figs

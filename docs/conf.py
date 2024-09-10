@@ -236,7 +236,7 @@ if ("/runner/" in os.getcwd()) | ("readthedocs.org" in os.getcwd()):
     nbsphinx_execute = "never"  # never, always or auto
 else:
     print("ASSUME LOCAL BUILD OF DOCUMENTATION")
-    nbsphinx_execute = "always"
+    nbsphinx_execute = "auto"
 
 
 # =============================================================================

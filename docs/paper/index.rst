@@ -5,8 +5,7 @@ Referencing
 
 The Metobs-toolkit is published under the MIT license, you can use the software freely.
 
-The Metobs-toolkit (v0.2.0) was published in JOSS: `Publication <https://joss.theoj.org/papers/10.21105/joss.05916#>`_
-[publication](https://joss.theoj.org/papers/10.21105/joss.05916#).
+The Metobs-toolkit (v0.2.0) was published in JOSS: `Publication <https://joss.theoj.org/papers/10.21105/joss.05916#>`_.
 
 
 
@@ -41,6 +40,19 @@ When referring to the MetObs-Toolkit software, please mention the used version.
    import metobs_toolkit
 
    print(metobs_toolkit.__version__)
+
+
+Publication code as an example
+----------------------------------
+
+You can find the notebook for creating the figures used in the JOSS publication as an example here:
+
+.. toctree::
+   :maxdepth: 1
+
+   paper_figures.ipynb
+
+
 
 About JOSS
 -----------
