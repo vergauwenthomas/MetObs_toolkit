@@ -230,8 +230,9 @@ html_theme_options = {
 
 # but, since this package is under active development, it is handy that the
 # notbooks are executed only when building locally !!
-print(os.getcwd())
-if "/runner/" in os.getcwd():
+
+if ("/runner/" in os.getcwd()) | ("readthedocs.org" in os.getcwd()):
+    print("ASSUME SERVER BUILD OF DOCUMENTATION")
     nbsphinx_execute = "never"  # never, always or auto
 else:
     print("ASSUME LOCAL BUILD OF DOCUMENTATION")

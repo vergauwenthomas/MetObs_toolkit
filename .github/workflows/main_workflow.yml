@@ -248,9 +248,11 @@ jobs:
         - name: Install poetry
           run: |
               pip install poetry
+        - name: make build of the package
+          run: |
+              ./deploiment/build_package.sh
         - name: install the package for doc building
           run: |
-              poetry update
               poetry install --with=documentation,dev
               poetry add .
         - name: Build documentation
