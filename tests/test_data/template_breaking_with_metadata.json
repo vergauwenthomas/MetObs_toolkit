@@ -1,0 +1,42 @@
+{
+    "data_related": {
+        "structure": "long",
+        "timestamp": {
+            "datetime_column": null,
+            "datetime_fmt": null,
+            "date_column": "date",
+            "date_fmt": "%Y-%m-%d",
+            "time_column": "time",
+            "time_fmt": "%H:%M:%S",
+            "timezone": "Europe/Berlin"
+        },
+        "name_column": "station",
+        "obstype_mapping": [
+            {
+                "tlk_obstype": "temp",
+                "columnname": "temperature",
+                "unit": "Celsius",
+                "description": "2m-temperature"
+            },
+            {
+                "tlk_obstype": "humidity",
+                "columnname": "humidity",
+                "unit": "%",
+                "description": ""
+            },
+            {
+                "tlk_obstype": "wind_speed",
+                "columnname": "windspeed",
+                "unit": "km/h",
+                "description": ""
+            }
+        ]
+    },
+    "metadata_related": {
+        "name_column": "namen",
+        "lat_column": "link",
+        "lon_column": "noord",
+        "columns_to_include": ["extra"]
+    },
+    "single_station_name": "dummy_station_name"
+}

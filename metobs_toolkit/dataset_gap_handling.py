@@ -7,40 +7,18 @@ Created on Tue Jul 16 12:33:07 2024
 """
 
 import logging
-import sys
+
 import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-from metobs_toolkit import Dataset
-
-from metobs_toolkit.missingobs import Missingob_collection
-
 from metobs_toolkit.gap import (
-    Gap,
-    remove_gaps_from_obs,
-    remove_gaps_from_outliers,
-    missing_timestamp_and_gap_check,
-    get_gaps_indx_in_obs_space,
-    get_station_gaps,
-    apply_interpolate_gaps,
-    make_gapfill_df,
-    apply_debias_era5_gapfill,
-    gaps_to_df,
+    find_gaps,
 )
 
-
 from metobs_toolkit.df_helpers import (
-    multiindexdf_datetime_subsetting,
-    fmt_datetime_argument,
-    init_multiindex,
-    init_multiindexdf,
-    init_triple_multiindexdf,
-    metadf_to_gdf,
-    conv_applied_qc_to_df,
-    get_freqency_series,
-    value_labeled_doubleidxdf_to_triple_idxdf,
+    empty_outliers_df,
     xs_save,
     concat_save,
 )
@@ -48,874 +26,1480 @@ from metobs_toolkit.df_helpers import (
 logger = logging.getLogger(__name__)
 
 
-class Dataset(Dataset):
-    """Extension on the metobs_toolkit.Dataset class with gap related methods"""
+class DatasetGapCore:
+    """Extension on the metobs_toolkit.Dataset class with gap-related methods"""
 
     # =============================================================================
     # Get info and details
     # =============================================================================
 
+    def _get_gaps_df_for_stacking(self):
+        """
+        Construct a long (name-obstype-datetime) df columns from Gap.gapdf.
+        This is used when stacking df's together in the update_to_one_df.
+
+        """
+
+        # TODO: docstring
+        if not bool(self.gaps):
+            return empty_outliers_df()  # empyt df, same structure as outliersdf
+
+        gapdflist = []
+        for gap in self.gaps:
+            # subset to relevant colunmns
+            longgapdf = gap.gapdf
+
+            # #rename
+            longgapdf = longgapdf.rename(columns={f"{gap.obstype.name}_fill": "value"})
+
+            # To long format
+            longgapdf["obstype"] = gap.obstype.name
+            longgapdf = (
+                longgapdf.reset_index()
+                .set_index(["name", "obstype", "datetime"])
+                .sort_index()
+            )
+
+            # Drop the obstype column (contains only Nan's) --> not extra information
+            # and ennoying when concatting multiple obstypes
+            longgapdf = longgapdf.drop(columns=[gap.obstype.name])
+
+            # add it to the list
+            gapdflist.append(longgapdf)
+
+        return pd.concat(gapdflist)
+
+    def get_gaps_fill_df(self):
+        """Construct a Dataframe with all gap-records and info
+
+        This method constructs a dataframe that contains all the present gaps,
+        exploited in records, and info. When the gaps are filled, the filled value
+
+
+        Returns
+        -------
+        gapsdf : pandas.DataFrame
+            A dataframe with ['name', 'obstype', 'datetime'] as index, and
+            [value, fill_method, msg] as columns. If a gap is not filled, the
+            default values are used.
+
+        See Also
+        -----------
+        Dataset.get_full_status_df : Combine all records, outliers and gaps in one Dataframe.
+
+        Examples
+        --------
+
+        We start by creating a Dataset, and importing data.
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
+
+
+        We can combine all the gaps in one dataframe:
+
+        >>> gapdf = dataset.get_gaps_fill_df()
+        >>> gapdf
+                                                            value fill_method   msg
+        name      obstype        datetime
+        vlinder02 humidity       2022-09-10 17:10:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:15:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:45:00+00:00    NaN  not filled  None
+                  temp           2022-09-10 17:10:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:15:00+00:00    NaN  not filled  None
+        ...                                                   ...         ...   ...
+                  wind_direction 2022-09-10 17:15:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:45:00+00:00    NaN  not filled  None
+                  wind_speed     2022-09-10 17:10:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:15:00+00:00    NaN  not filled  None
+                                 2022-09-10 17:45:00+00:00    NaN  not filled  None
+        <BLANKLINE>
+        [12 rows x 3 columns]
+
+        """
+
+        # TODO: docstring
+        gapsdf = self._get_gaps_df_for_stacking()
+        gapsdf = gapsdf.sort_index()
+        return gapsdf
+
     # =============================================================================
     # Update gaps
     # =============================================================================
 
-    def update_gaps_and_missing_from_outliers(self, obstype="temp", n_gapsize=None):
-        """Interpret the outliers as missing observations.
+    def convert_outliers_to_gaps(self):
+        """Convert all outliers to gaps.
 
-        If there is a sequence
-        of these outliers for a station, larger than n_gapsize than this will
-        be interpreted as a gap.
+        This method will convert all outliers to gaps, so that they can be filled.
 
-        The outliers are not removed.
-
-        Parameters
-        ----------
-        obstype : str, optional
-            Use the outliers on this observation type to update the gaps and
-            missing timestamps. The default is 'temp'.
-        n_gapsize : int, optional
-            The minimum number of consecutive missing observations to define
-            as a gap. If None, n_gapsize is taken from the settings defenition
-            of gaps. The default is None.
 
         Returns
         -------
         None.
 
-        Note
-        -------
-        Gaps and missing observations resulting from an outlier on a specific
-        obstype, are assumed to be gaps/missing observation for all obstypes.
-
-        Note
+        Warning
         ------
-        Be aware that n_gapsize is used for the current resolution of the Dataset,
-        this is different from the gap check applied on the inported data, if
-        the dataset is coarsend.
+        Information on the value and QC flag of the outliers will be lost.
+
+        See Also
+        -----------
+        Dataset.get_full_status_df : Combine all records, outliers and gaps in one Dataframe.
+        Dataset.get_gaps_fill_df: Construct a Dataframe with all gap-records and info
 
         Examples
         --------
-        .. code-block:: python
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>> dataset
-            Dataset instance containing:
-                  *28 stations
-                  *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                  *10080 observation records
-                  *1676 records labeled as outliers
-                  *0 gaps
-                  *3 missing observations
-                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                  *time zone of the records: UTC
-                  *Coordinates are available for all stations.
+        We start by creating a Dataset, and importing data.
 
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                  *28 stations
-                  *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                  *10080 observation records
-                  *0 records labeled as outliers
-                  *2 gaps
-                  *1473 missing observations
-                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                  *time zone of the records: UTC
-                  *Coordinates are available for all stations.
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+
+        We can now apply quality control on the records.
+
+        >>> dataset.apply_quality_control('temp')
+        >>> print(dataset)
+        Dataset instance containing:
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *447513 observation records (not Nan's)
+             *36315 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
+
+        Now we convert the outliers to gaps, so that they can be filled.
+
+        >>> dataset.convert_outliers_to_gaps()
+        >>> print(dataset)
+        Dataset instance containing:
+         *28 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *447513 observation records (not Nan's)
+         *0 records labeled as outliers
+         *1697 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+         *Coordinates are available for all stations.
+
 
         """
-        if n_gapsize is None:
-            n_gapsize = self.settings.gap["gaps_settings"]["gaps_finder"]["gapsize_n"]
-            if (
-                not self.metadf["assumed_import_frequency"]
-                .eq(self.metadf["dataset_resolution"])
-                .all()
-            ):
-                logger.info(
-                    f"The defenition of the gapsize (n_gapsize = {n_gapsize}) \
-                                will have another effect on the update of the gaps and missing \
-                                    timestamps because coarsening is applied and the defenition \
-                                    of the gapsize is not changed."
-                )
+        if self.outliersdf.empty:
+            logger.warning("No outliers are found to convert!")
+            return
 
-        # combine to one dataframe
-        mergedf = self.combine_all_to_obsspace()
-        mergedf = xs_save(mergedf, obstype, level="obstype")
+        if bool(self.gaps):
+            logger.warning("The current gaps will be removed and new gaps are formed!")
 
-        # ignore labels
-        possible_outlier_labels = [
-            vals["outlier_flag"] for vals in self.settings.qc["qc_checks_info"].values()
-        ]
+        outliersdf = empty_outliers_df()
 
-        # create groups when the final label changes
-        persistance_filter = ((mergedf["label"].shift() != mergedf["label"])).cumsum()
-        grouped = mergedf.groupby(["name", persistance_filter])
+        # Since the outliers are Nan values in the dataset.df, and the find_gaps() method
+        # looks for missing records AND invalid values (thus also nans), this method could be applied
 
-        # locate new gaps by size of consecutive the same final label per station
-        group_sizes = grouped.size()
-        large_groups = group_sizes[group_sizes > n_gapsize]
-
-        # find only groups with final label as an outlier
-        gaps = []
-        # new_gapsdf = pd.DataFrame()
-        new_gaps_idx = init_multiindex()
-        for group_idx in large_groups.index:
-            groupdf = grouped.get_group(group_idx)
-            group_final_label = groupdf["label"].iloc[0]
-            if group_final_label not in possible_outlier_labels:
-                # no gap candidates
-                continue
-            else:
-                gap = Gap(
-                    name=groupdf.index.get_level_values("name")[0],
-                    startdt=groupdf.index.get_level_values("datetime").min(),
-                    enddt=groupdf.index.get_level_values("datetime").max(),
-                )
-
-                gaps.append(gap)
-                new_gaps_idx = new_gaps_idx.union(groupdf.index, sort=False)
-
-        # add all the outliers, that are not in the new gaps to the new missing obs
-        new_missing_obs = mergedf[mergedf["label"].isin(possible_outlier_labels)].index
-        new_missing_obs = new_missing_obs.drop(new_gaps_idx.to_numpy(), errors="ignore")
-
-        # to series
-        missing_obs_series = (
-            new_missing_obs.to_frame()
-            .reset_index(drop=True)
-            .set_index("name")["datetime"]
-        )
-        # Create missing obs
-        new_missing_collection = Missingob_collection(missing_obs_series)
-
-        # update self
-        self.gaps.extend(gaps)
-        self.missing_obs = self.missing_obs + new_missing_collection
-
-        # remove outliers that are converted to gaps
-        self.outliersdf = remove_gaps_from_outliers(
-            gaplist=gaps, outldf=self.outliersdf
+        newgaps = find_gaps(
+            df=self.df,
+            metadf=self.metadf,
+            outliersdf=outliersdf,
+            obstypes=self.obstypes,
         )
 
-        # remove outliers that are converted to missing obs
-        self.outliersdf = self.missing_obs.remove_missing_from_outliers(self.outliersdf)
+        # update attributes
+        self.gaps = newgaps  # overwrite previous gaps !
+        self._set_outliersdf(outliersdf)
 
     # =============================================================================
     # Fill gaps
     # =============================================================================
 
-    def fill_gaps_era5(
-        self, modeldata, method="debias", obstype="temp", overwrite_fill=False
+    def interpolate_gaps(
+        self,
+        obstype="temp",
+        overwrite_fill=False,
+        method="time",
+        max_consec_fill=10,
+        n_leading_anchors=1,
+        n_trailing_anchors=1,
+        max_lead_to_gap_distance=None,
+        max_trail_to_gap_distance=None,
+        method_kwargs={},
     ):
-        """Fill the gaps using a diurnal debiased modeldata approach.
+        """Fill all the gaps using interpolation.
 
+        The gaps of the Dataset will be updated with fill values.
 
         Parameters
         ----------
-        modeldata : metobs_toolkit.Modeldata
-            The modeldata to use for the gapfill. This model data should the required
-            timeseries to fill all gaps present in the dataset.
-        method : 'debias', optional
-            Specify which method to use. The default is 'debias'.
-        obstype : String, optional
-            Name of the observationtype you want to apply gap filling on. The
-            modeldata must contain this observation type as well. The
-            default is 'temp'.
-        overwrite_fill: bool, optional
+        obstype : str, optional
+            The observationtype to fill the gaps. The default is "temp".
+        overwrite_fill : bool, optional
             If a gap has already filled values, the interpolation of this gap
-            is skipped if overwrite_fill is False. If set to True, the gapfill
-            values and info will be overwitten. The default is False.
+            is skipped if overwrite_fill is False. If set to True, the gap fill
+            values will be overwritten. The default is False.
+        method : str, optional
+            Interpolation technique to use. See pandas.DataFrame.interpolate
+            'method' argument for possible values. Make sure that
+            `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
+            set accordingly to the method. The default is "time".
+        max_consec_fill : int, optional
+            The maximum number of consecutive missing records to fill. The default is 10.
+        n_leading_anchor : int, optional
+            The number of leading anchors to use for the interpolation.
+            Higher-order polynomial interpolation techniques require multiple leading
+            anchors. The default is 1.
+        n_trailing_anchor : int, optional
+            The number of trailing anchors to use for the interpolation.
+            Higher-order polynomial interpolation techniques require multiple trailing
+            anchors. The default is 1.
+        max_lead_to_gap_distance : str or pandas.Timedelta, optional
+            The maximum time difference between the start of the gap and a
+            suitable lead (= the good record to start the interpolation from).
+            If None, the first occurring good records before the start of the gap
+            is used. The default is None.
+        max_trail_to_gap_distance : str or pandas.Timedelta, optional
+            The maximum time difference between the end of the gap and a
+            suitable trail (= the good record to end the interpolation on).
+            If None, the first occurring good records after the gap
+            is used. The default is None.
+        method_kwargs: dict, optional
+            A dictionary of kwargs passed to pandas.Dataframe.interpolate(). In
+            practice, extra arguments for specific interpolation methods are
+            put in method_kwargs. The default is {}.
 
         Returns
         -------
-        Gapfilldf : pandas.DataFrame
-            A dataframe containing all gap filled values and the use method.
+        None.
+
+        See Also
+        --------
+        get_gaps_fill_df: Get an overview dataframe of gapfilled records and info.
+        fill_gaps_with_raw_modeldata: Raw modeldata gapfill method.
+        fill_gaps_with_debiased_modeldata: Debiased modeldata gapfill method.
+        fill_gaps_with_diurnal_debiased_modeldata: Diurnal debiased modeldata gapfill method.
+        fill_gaps_with_weighted_diurnal_debiased_modeldata: Weighted diurnal debiased modeldata gapfill method.
 
         Notes
         -----
-        A schematic description of the fill_gaps_era5 method:
+        A schematic description:
 
-        1. Modeldata is converted to the timezone of the observations.
-        2. Iterate over all gaps.
-            * The gap is converted into a set of missing records (depending on the time resolution of the observations).
-            * Find a leading and trailing period. These periods are a subset
-              of observations respectively before and after the gap. The size
-              of these subsets is set by a target size (in records) and a minimum
-              size (in records). If the subset of observations is smaller than
-              the corresponding minimum size, the gap cannot be filled.
-            * Modeldata, for the corresponding station and observation type, is extracted for the leading and trailing period.
-            * By comparing the model data with the observations of the
-              leading and trailing period, and grouping all records to their
-              timestamp (i.g. diurnal categories), biasses are computed.
-            * Modeldata for the missing records is extracted.
-            * Weights ([0;1]) are computed for each gap record, representing
-              the normalized distance (in time), to the beginning and end of
-              the gap.
-            * The modeldata at the missing records is then corrected by
-              a weighted sum of the leading and trailing biases at the
-              corresponding timestamp. In general, this means that the diurnal
-              trend of the observations is restored as well as possible.
-        3. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
+        1. Iterate over all the gaps.
+        2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
+        3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
+        4. Check if the leading and trailing records fulfill the criteria of maximum timedifference.
+        5. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
+        6. The gap is updated with the interpolated values
 
         Note
         -------
-        A scientific publication on the performance of this technique is expected.
+        The impact of `max_consec_fill` is highly dependent on the resolution
+        of your records.
+
+        Note
+        ------
+        If you want to use a higher-order method of interpolation, make sure to
+        increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
+
 
         Examples
         --------
-        .. code-block:: python
 
-            import metobs_toolkit
+        .. plot::
+            :context: close-figs
 
-            your_dataset = metobs_toolkit.Dataset()
-            your_dataset.update_settings(
-                input_data_file=metobs_toolkit.demo_datafile, # path to the data file
-                input_metadata_file=metobs_toolkit.demo_metadatafile,
-                template_file=metobs_toolkit.demo_template,
-            )
-            # Specify the gap defenition
-            your_dataset.update_qc_settings(gapsize_in_records = 20)
+            We start by creating a Dataset, and importing data.
 
-            #Update the gapsize BEFORE importing the data
-            your_dataset.import_data_from_file()
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
 
-            #Update the settings (definition of the period to calculate biases for)
-            your_dataset.update_gap_and_missing_fill_settings(
-                                                              gap_debias_prefered_leading_period_hours=24,
-                                                              gap_debias_prefered_trailing_period_hours=24,
-                                                              gap_debias_minimum_leading_period_hours=6,
-                                                              gap_debias_minimum_trailing_period_hours=6,
-                                                              )
-            #(As a demonstration, we will fill the gaps of a single station. The following functions can also be
-            # directly applied to the dataset.)
-            your_station = your_dataset.get_station('vlinder05')
+            To reduce the data for this example, we coarsen the data to hourly records.
 
+            >>> dataset.coarsen_time_resolution(freq='1h')
 
-            #Get ERA5 modeldata at the location of your stations and period.
-            ERA5_modeldata = your_station.get_modeldata(modelname='ERA5_hourly',
-                                                        obstype='temp')
+            To create some gaps, we apply quality control first and then convert
+            the outliers to gaps.
 
-            #Use the debias method to fill the gaps
-            gapfill_df = your_station.fill_gaps_era5(modeldata=ERA5_modeldata,
-                                                      obstype='temp')
+            >>> dataset.apply_quality_control('temp')
+            >>> dataset.convert_outliers_to_gaps()
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *38644 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *89 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
 
-        """
-        # check if modeldata is available
-        if modeldata is None:
-            logger.warning(
-                "The dataset has no modeldate. Use the set_modeldata() function to add modeldata."
-            )
-            return None
-        # check if obstype is present in eramodel
-        assert (
-            obstype in modeldata.df.columns
-        ), f"{obstype} is not present in the modeldate: {modeldata}"
-        # check if all station are present in eramodeldata
-        # stations = self.gaps.to_df().index.unique().to_list()
-        stations = list(set([gap.name for gap in self.gaps]))
-        assert all(
-            [sta in modeldata.df.index.get_level_values("name") for sta in stations]
-        ), "Not all stations with gaps are in the modeldata!"
+            As we can see, we now have a dataset with gaps (for temperature). It is
+            often handy to combine all present gaps into one pandas Dataframe, for
+            inspection.
 
-        if method == "debias":
-            fill_settings_debias = self.settings.gap["gaps_fill_settings"][
-                "model_debias"
-            ]
-
-            apply_debias_era5_gapfill(
-                gapslist=self.gaps,
-                dataset=self,
-                eraModelData=modeldata,
-                obstype=obstype,
-                debias_settings=fill_settings_debias,
-                overwrite_fill=overwrite_fill,
-            )
-
-            # get fill df
-            filldf = make_gapfill_df(self.gaps)
-        else:
-            sys.exit(f"{method} not implemented yet")
-
-        # update attribute
-        self.gapfilldf = filldf
-
-        return filldf
-
-    def fill_gaps_automatic(
-        self,
-        modeldata,
-        obstype="temp",
-        max_interpolate_duration_str=None,
-        overwrite_fill=False,
-    ):
-        """Fill the gaps by using linear interpolation or debiased modeldata.
-
-        This method serves as a triage to select the gaps to be filled with
-        linear interpolation and those to be filled using a diurnal debias
-        gapfill. When the duration of a gap is smaller or equal than
-        max_interpolation_duration, the linear interpolation method is applied
-        else the debiased modeldata method.
-
-        For a detailed description of these methods, we refer to the
-        corresponding metobs_toolkit.Dataset.fill_gaps_linear() and
-        metobs_toolkit.Dataset.fill_gaps_era5().
-
-        Parameters
-        ----------
-        modeldata : metobs_toolkit.Modeldata
-            The modeldata to use for the gapfill. This model data should the required
-            timeseries to fill all gaps present in the dataset.
-        obstype : String, optional
-            Name of the observationtype you want to apply gap filling on. The
-            modeldata must contain this observation type as well. The
-            default is 'temp'.
-        max_interpolate_duration_str : Timedelta or str, optional
-            Maximum duration to apply interpolation for gapfill when using the
-            automatic gapfill method. Gaps with longer durations will be filled
-            using debiased modeldata. The default is None.
-        overwrite_fill: bool, optional
-            If a gap has already filled values, the interpolation of this gap
-            is skipped if overwrite_fill is False. If set to True, the gapfill
-            values and info will be overwitten. The default is False.
-
-        Returns
-        -------
-        comb_df : pandas.DataFrame
-            A dataframe containing all the filled records.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            import metobs_toolkit
-
-            your_dataset = metobs_toolkit.Dataset()
-            your_dataset.update_settings(
-                input_data_file=metobs_toolkit.demo_datafile, # path to the data file
-                input_metadata_file=metobs_toolkit.demo_metadatafile,
-                template_file=metobs_toolkit.demo_template,
-            )
-            # Specify the gap defenition
-            your_dataset.update_qc_settings(gapsize_in_records = 20)
-
-            #Update the gapsize BEFORE importing the data
-            your_dataset.import_data_from_file()
-
-            #Update the settings (definition of the period to calculate biases for)
-            your_dataset.update_gap_and_missing_fill_settings(
-                                                              gap_debias_prefered_leading_period_hours=24,
-                                                              gap_debias_prefered_trailing_period_hours=24,
-                                                              gap_debias_minimum_leading_period_hours=6,
-                                                              gap_debias_minimum_trailing_period_hours=6,
-                                                              )
-            #(As a demonstration, we will fill the gaps of a single station. The following functions can also be
-            # directly applied to the dataset.)
-            your_station = your_dataset.get_station('vlinder05')
+            >>> comb_gap_df = dataset.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                         value fill_method   msg
+            name      obstype datetime
+            vlinder01 temp    2022-09-02 16:00:00+00:00    NaN  not filled  None
+                              2022-09-02 17:00:00+00:00    NaN  not filled  None
+                              2022-09-02 18:00:00+00:00    NaN  not filled  None
+                              2022-09-02 19:00:00+00:00    NaN  not filled  None
+                              2022-09-02 20:00:00+00:00    NaN  not filled  None
+            ...                                            ...         ...   ...
+            vlinder28 temp    2022-09-15 04:00:00+00:00    NaN  not filled  None
+                              2022-09-15 05:00:00+00:00    NaN  not filled  None
+                              2022-09-15 06:00:00+00:00    NaN  not filled  None
+                              2022-09-15 07:00:00+00:00    NaN  not filled  None
+                              2022-09-15 08:00:00+00:00    NaN  not filled  None
+            <BLANKLINE>
+            [1676 rows x 3 columns]
 
 
-            #Get ERA5 modeldata at the location of your stations and period.
-            ERA5_modeldata = your_station.get_modeldata(modelname='ERA5_hourly',
-                                                        obstype='temp')
+            Now we are going to fill the gaps using interpolation.
 
-            #Use the debias method to fill the gaps
-            gapfill_df = your_station.fill_gaps_automatic(modeldata=ERA5_modeldata,
-                                                          max_interpolate_duration_str='6h', # <6 hours will be interpolated
-                                                          obstype='temp')
+            >>> dataset.interpolate_gaps(
+            ...                 obstype="temp",
+            ...                 overwrite_fill=False,
+            ...                 method="time", #prefered over linear
+            ...                 max_consec_fill=5) # thus interpolate maximum 5 hours (for hourly records)
+
+            We can inspect the filled gaps by plotting or by using `get_gaps_fill_df()` method.
+
+            >>> dataset.make_plot(obstype='temp', colorby='label', title='After interpolation of the gaps')
+            <Axes: title={'center': 'After interpolation of the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            >>> comb_gap_df = dataset.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                         value           fill_method                       msg
+            name      obstype datetime
+            vlinder01 temp    2022-09-02 16:00:00+00:00  25.92         interpolation         ok (method: time)
+                              2022-09-02 17:00:00+00:00  25.04         interpolation         ok (method: time)
+                              2022-09-02 18:00:00+00:00  24.15         interpolation         ok (method: time)
+                              2022-09-02 19:00:00+00:00  23.27         interpolation         ok (method: time)
+                              2022-09-02 20:00:00+00:00  22.39         interpolation         ok (method: time)
+            ...                                            ...                   ...                       ...
+            vlinder28 temp    2022-09-15 04:00:00+00:00  12.98         interpolation         ok (method: time)
+                              2022-09-15 05:00:00+00:00  13.80         interpolation         ok (method: time)
+                              2022-09-15 06:00:00+00:00  14.62         interpolation         ok (method: time)
+                              2022-09-15 07:00:00+00:00    NaN  failed interpolation  Permitted_by_max_cons...
+                              2022-09-15 08:00:00+00:00    NaN  failed interpolation  Permitted_by_max_cons...
+            <BLANKLINE>
+            [1676 rows x 3 columns]
+
+
+
+            More advanced interpolation methods can be used. As an example we use
+            spline interpolation on the gaps of a single station.
+
+            >>> dataset.get_station('vlinder02').interpolate_gaps(
+            ...             obstype="temp",
+            ...             overwrite_fill=True,
+            ...             method="cubicspline",
+            ...             max_consec_fill=7,
+            ...             n_leading_anchors=3,#depends on method requirements
+            ...             n_trailing_anchors=3, #depends on method requirements
+            ...             max_lead_to_gap_distance='4h',
+            ...             max_trail_to_gap_distance='4h',
+            ...             method_kwargs={'bc_type':'not-a-knot'})
+            >>> dataset.get_station('vlinder02').get_gaps_fill_df()
+                                                         value           fill_method                       msg
+            name      obstype datetime
+            vlinder02 temp    2022-09-02 16:00:00+00:00  27.76         interpolation  ok (method: cubicspli...
+                              2022-09-02 17:00:00+00:00  27.67         interpolation  ok (method: cubicspli...
+                              2022-09-02 18:00:00+00:00  27.11         interpolation  ok (method: cubicspli...
+                              2022-09-02 19:00:00+00:00  26.18         interpolation  ok (method: cubicspli...
+                              2022-09-02 20:00:00+00:00  24.99         interpolation  ok (method: cubicspli...
+            ...                                            ...                   ...                       ...
+                              2022-09-09 05:00:00+00:00  14.79         interpolation  ok (method: cubicspli...
+                              2022-09-09 06:00:00+00:00  15.11         interpolation  ok (method: cubicspli...
+                              2022-09-09 07:00:00+00:00  15.47         interpolation  ok (method: cubicspli...
+                              2022-09-09 08:00:00+00:00    NaN  failed interpolation  Permitted_by_max_cons...
+                              2022-09-09 09:00:00+00:00    NaN  failed interpolation  Permitted_by_max_cons...
+            <BLANKLINE>
+            [51 rows x 3 columns]
+
+            >>> dataset.get_station('vlinder02').make_plot(obstype='temp', colorby='label')
+            <Axes: title={'center': 'Temperatuur of vlinder02'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+
 
         """
-        #  ----------- Validate ----------------------------------------
+        max_lead_to_gap_distance = self._timedelta_arg_check(max_lead_to_gap_distance)
+        max_trail_to_gap_distance = self._timedelta_arg_check(max_trail_to_gap_distance)
 
-        # check if modeldata is available
-        if modeldata is None:
-            logger.warning(
-                "The dataset has no modeldate. Use the set_modeldata() function to add modeldata."
-            )
-            return None
-
-        # check if obstype is present in eramodel
-        assert (
-            obstype in modeldata.df.columns
-        ), f"{obstype} is not present in the modeldate: {modeldata}"
-
-        # check if all station are present in eramodeldata
-        # stations = self.gaps.to_df().index.unique().to_list()
-        stations = list(set([gap.name for gap in self.gaps]))
-        assert all(
-            [sta in modeldata.df.index.get_level_values("name") for sta in stations]
-        ), "Not all stations with gaps are in the modeldata!"
-
-        if max_interpolate_duration_str is None:
-            max_interpolate_duration_str = self.settings.gap["gaps_fill_settings"][
-                "automatic"
-            ]["max_interpolation_duration_str"]
-
-        #  ------------select the method to apply gapfill per gap ----------
-        interpolate_gaps = []
-        debias_gaps = []
-
+        # TODO logging
         for gap in self.gaps:
-            if gap.duration <= pd.to_timedelta(max_interpolate_duration_str):
-                interpolate_gaps.append(gap)
-            else:
-                debias_gaps.append(gap)
+            # filter the gaps to those of target obstype
+            if gap.obstype.name == str(obstype):
+                # check if gap is filled
+                if not gap._can_be_filled(overwrite_fill):
+                    logger.warning(
+                        f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                    )
+                    continue
+                else:
+                    logger.debug(f"filling {gap} with {method} interpolation.")
+                    gap.interpolate(
+                        Dataset=self,
+                        method=method,
+                        max_consec_fill=max_consec_fill,
+                        n_leading_anchors=n_leading_anchors,
+                        n_trailing_anchors=n_trailing_anchors,
+                        max_lead_to_gap_distance=max_lead_to_gap_distance,
+                        max_trail_to_gap_distance=max_trail_to_gap_distance,
+                        method_kwargs=method_kwargs,
+                    )
 
-        # 1   ---------------Fill by interpolation ---------------------
+    def fill_gaps_with_raw_modeldata(self, Model, obstype="temp", overwrite_fill=False):
+        """Fill all the gaps using raw modeldata.
 
-        fill_settings_interp = self.settings.gap["gaps_fill_settings"]["linear"]
+        The gaps of the Datasetinstance will be updated with fill values by
+        directly interpolating Modeldata to the missing records.
 
-        apply_interpolate_gaps(
-            gapslist=interpolate_gaps,
-            obsdf=self.df,
-            outliersdf=self.outliersdf,
-            dataset_res=self.metadf["dataset_resolution"],
-            gapfill_settings=self.settings.gap["gaps_fill_info"],
-            obstype=obstype,
-            method=fill_settings_interp["method"],
-            max_consec_fill=fill_settings_interp["max_consec_fill"],
-            overwrite_fill=overwrite_fill,
-        )
-
-        filldf_interp = make_gapfill_df(interpolate_gaps)
-
-        # 2  --------------  Fill by debias -----------------------------
-
-        fill_settings_debias = self.settings.gap["gaps_fill_settings"]["model_debias"]
-
-        apply_debias_era5_gapfill(
-            gapslist=debias_gaps,
-            dataset=self,
-            eraModelData=modeldata,
-            obstype=obstype,
-            debias_settings=fill_settings_debias,
-            overwrite_fill=overwrite_fill,
-        )
-
-        # add label column
-        filldf_debias = make_gapfill_df(debias_gaps)
-
-        # combine both fill df's
-        comb_df = concat_save([filldf_interp, filldf_debias])
-
-        # update attr
-        self.gapfilldf = comb_df
-
-        return comb_df
-
-    def fill_gaps_linear(self, obstype="temp", overwrite_fill=False):
-        """Fill the gaps using linear interpolation.
-
-        The gapsfilldf attribute of the Datasetinstance will be updated if
-        the gaps are not filled yet or if overwrite_fill is set to True.
 
         Parameters
         ----------
-        obstype : string, optional
-            Fieldname to visualise. This can be an observation or station
-            attribute. The default is 'temp'.
-        overwrite_fill: bool, optional
+        Model : metobs_toolkit.GeeDynamicModelData
+            The model that is used to fill the gaps records. The modeldata
+            must be compatible (same metadata and `ModelObstype` equivalent
+            of obstype) to fill the gaps.
+        obstype : str, optional
+            The observationtype to fill the gaps. The default is "temp".
+        overwrite_fill : bool, optional
             If a gap has already filled values, the interpolation of this gap
             is skipped if overwrite_fill is False. If set to True, the gapfill
-            values and info will be overwitten. The default is False.
+            values will be overwritten. The default is False.
 
         Returns
         -------
-        gapfilldf : pandas.DataFrame
-            A dataframe containing all the filled records.
+        None.
+
+        See Also
+        --------
+        get_gaps_fill_df: Get an overview dataframe of gap filled records and info.
+        metobs_toolkit.GeeDynamicModelData: The Gee Model data (timeseries).
+        get_modeldata: Method for creating a modeldata from a dataset.
+        interpolate_gaps: Fill gaps by interpolation.
+        fill_gaps_with_debiased_modeldata: Debiased modeldata gap fill method.
+        fill_gaps_with_diurnal_debiased_modeldata: Diurnal debiased modeldata gap fill method.
+        fill_gaps_with_weighted_diurnal_debiased_modeldata: Weighted diurnal debiased modeldata gap fill method.
+
+        Notes
+        -----
+        A schematic description of the raw modeldata gap fill:
+
+        1. Iterate over all the gaps.
+        2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
+        3. The modeldata is interpolated (in time) to the missing records.
+        4. The gap is updated with the interpolated values from the modeldata.
+
+        Examples
+        --------
+
+        .. plot::
+            :context: close-figs
+
+            We start by creating a Dataset, and importing data.
+
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+
+            To reduce the data for this example, we coarsen the data to hourly records
+            and focus on the records of a single station. This example is will also
+            work on a full Dataset with multiple stations.
+
+            >>> dataset.coarsen_time_resolution(freq='1h')
+            >>> sta = dataset.get_station('vlinder05')
+
+            To create some gaps, we apply quality control first and then convert
+            the outliers to gaps.
+
+            >>> sta.apply_quality_control('temp')
+            >>> sta.convert_outliers_to_gaps()
+            >>> print(sta)
+            Station instance containing:
+             *1 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *1160 observation records (not Nan's)
+             *0 records labeled as outliers
+             *7 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
+            As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
+            often handy to combine all present gaps into one pandas Dataframe, for
+            inspection.
+
+            >>> comb_gap_df = sta.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                         value fill_method   msg
+            name      obstype datetime
+            vlinder05 temp    2022-09-01 00:00:00+00:00    NaN  not filled  None
+                              2022-09-01 01:00:00+00:00    NaN  not filled  None
+                              2022-09-01 02:00:00+00:00    NaN  not filled  None
+                              2022-09-01 03:00:00+00:00    NaN  not filled  None
+                              2022-09-01 04:00:00+00:00    NaN  not filled  None
+            ...                                            ...         ...   ...
+                              2022-09-15 19:00:00+00:00    NaN  not filled  None
+                              2022-09-15 20:00:00+00:00    NaN  not filled  None
+                              2022-09-15 21:00:00+00:00    NaN  not filled  None
+                              2022-09-15 22:00:00+00:00    NaN  not filled  None
+                              2022-09-15 23:00:00+00:00    NaN  not filled  None
+            <BLANKLINE>
+            [280 rows x 3 columns]
+
+            Since we will use Modeldata to fill the gap, we first need to import
+            modeldata. We can do this by importing ERA5 (Land) data directly from
+            the Google Earth Engine by using the `Dataset.get_modeldata()` method.
+
+            >>> era5_data = sta.get_modeldata(Model=sta.gee_datasets['ERA5-land'],
+            ...                               obstypes=['temp'])
+
+            (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
+            >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
+            >>> print(era5_data)
+            GeeDynamicModelData instance of ERA5-land with modeldata
+
+            Now we are going to fill the gaps with this raw modeldata.
+
+            >>> sta.fill_gaps_with_raw_modeldata(
+            ...                    Model=era5_data,
+            ...                    obstype="temp")
+
+            We can inspect the filled gaps by plotting or by using `get_gaps_fill_df()` method.
+
+            >>> sta.make_plot(obstype='temp', colorby='label', title='After filling the gaps')
+            <Axes: title={'center': 'After filling the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            >>> comb_gap_df = sta.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                         value         fill_method                       msg
+            name      obstype datetime
+            vlinder05 temp    2022-09-01 00:00:00+00:00  18.22  raw modeldata fill  Modelvalue: 18.22, wi...
+                              2022-09-01 01:00:00+00:00  17.68  raw modeldata fill  Modelvalue: 17.68, wi...
+                              2022-09-01 02:00:00+00:00  17.31  raw modeldata fill  Modelvalue: 17.31, wi...
+                              2022-09-01 03:00:00+00:00  16.74  raw modeldata fill  Modelvalue: 16.74, wi...
+                              2022-09-01 04:00:00+00:00  16.42  raw modeldata fill  Modelvalue: 16.42, wi...
+            ...                                            ...                 ...                       ...
+                              2022-09-15 19:00:00+00:00  15.20  raw modeldata fill  Modelvalue: 15.20, wi...
+                              2022-09-15 20:00:00+00:00  14.58  raw modeldata fill  Modelvalue: 14.58, wi...
+                              2022-09-15 21:00:00+00:00  14.02  raw modeldata fill  Modelvalue: 14.02, wi...
+                              2022-09-15 22:00:00+00:00  13.48  raw modeldata fill  Modelvalue: 13.48, wi...
+                              2022-09-15 23:00:00+00:00  13.26  raw modeldata fill  Modelvalue: 13.26, wi...
+            <BLANKLINE>
+            [280 rows x 3 columns]
+
+        """
+        # Check if the Model has the compatible data
+        _check_if_model_can_be_used(trg_obstypename=obstype, Model=Model)
+
+        # TODO logging
+        for gap in self.gaps:
+            # filter the gaps to those of target obstype
+            if gap.obstype.name == str(obstype):
+                # check if gap is filled
+                if not gap._can_be_filled(overwrite_fill):
+                    logger.warning(
+                        f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                    )
+                    continue
+                else:
+                    logger.debug(f"filling {gap} with Raw modeldata")
+                    gap.raw_model_gapfill(Dataset=self, Model=Model)
+
+    def fill_gaps_with_debiased_modeldata(
+        self,
+        Model,
+        obstype="temp",
+        overwrite_fill=False,
+        leading_period_duration="24h",
+        min_leading_records_total=60,
+        trailing_period_duration="24h",
+        min_trailing_records_total=60,
+    ):
+        """Fill all the gaps using debiased modeldata.
+
+
+        The gaps of the Datasetinstance will be updated with fill values using
+        Modeldata. The Modeldata is interpolated (in time) to the missing records,
+        and corrected with a bias-correction. The bias is estimated by making use
+        of a leading (before the gap) and trailing (after the gap) period.
+
+        Parameters
+        ----------
+        Model : metobs_toolkit.GeeDynamicModelData
+            The model that is used to fill the gaps records. The modeldata
+            must be compatible (same metadata and `ModelObstype` equivalent
+            of obstype) to fill the gaps.
+        obstype : str, optional
+            The observationtype to fill the gaps. The default is "temp".
+        overwrite_fill : bool, optional
+            If a gap has already filled values, the interpolation of this gap
+            is skipped if overwrite_fill is False. If set to True, the gapfill
+            values will be overwritten. The default is False.
+        leading_period_duration : str or pandas.Timedelta, optional
+            The duration of the leading period. The default is "24h".
+        min_leading_records_total : int, optional
+            The minimum number of good records in the leading period. The default
+            is 60.
+        trailing_period_duration : str or pandas.Timedelta, optional
+            The duration of the trailing period. The default is "24h".
+        min_trailing_records_total : int, optional
+            The minimum number of good records in the trailing period. The
+            default is 60.
+
+        Returns
+        -------
+        None.
+
+        See Also
+        --------
+        get_gaps_fill_df: Get an overview dataframe of gapfilled records and info.
+        metobs_toolkit.Modeldata: Modeldata class.
+        get_modeldata: Method for creating a modeldata from a dataset.
+        interpolate_gaps: Fill gaps by interpolation.
+        fill_gaps_with_raw_modeldata: Raw modeldata gapfill method.
+        fill_gaps_with_diurnal_debiased_modeldata: Diurnal debiased modeldata gapfill method.
+        fill_gaps_with_weighted_diurnal_debiased_modeldata: Weighted diurnal debiased modeldata gapfill method.
+
+        Notes
+        -----
+        A schematic description of the debiased modeldata gap fill:
+
+        1. Iterate over all the gaps.
+        2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
+        3. The good observations of the leading and trailing periods are selected and checked if they fulfill the conditions.
+        4. The modeldata is interpolated (in time) to the missing records, the leading, and the trailing period.
+        5. By combining the leading and trailing periods both records and modeldata, a bias is calculated.
+        6. The gap is updated with the interpolated modeldata, corrected by the calculated bias.
+
+        Examples
+        --------
+
+        .. plot::
+            :context: close-figs
+
+            We start by creating a Dataset, and importing data.
+
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+
+            To reduce the data for this example, we coarsen the data to hourly records
+            and focus on the records of a single station. This example is will also
+            work on a full Dataset with multiple stations.
+
+            >>> dataset.coarsen_time_resolution(freq='1h')
+            >>> sta = dataset.get_station('vlinder05')
+
+            To create some gaps, we apply quality control first and then convert
+            the outliers to gaps.
+
+            >>> sta.apply_quality_control('temp')
+            >>> sta.convert_outliers_to_gaps()
+            >>> print(sta)
+            Station instance containing:
+                 *1 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *1160 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *7 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
+
+            As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
+            often handy to combine all present gaps into one pandas Dataframe, for
+            inspection.
+
+            >>> comb_gap_df = sta.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                         value fill_method   msg
+            name      obstype datetime
+            vlinder05 temp    2022-09-01 00:00:00+00:00    NaN  not filled  None
+                              2022-09-01 01:00:00+00:00    NaN  not filled  None
+                              2022-09-01 02:00:00+00:00    NaN  not filled  None
+                              2022-09-01 03:00:00+00:00    NaN  not filled  None
+                              2022-09-01 04:00:00+00:00    NaN  not filled  None
+            ...                                            ...         ...   ...
+                              2022-09-15 19:00:00+00:00    NaN  not filled  None
+                              2022-09-15 20:00:00+00:00    NaN  not filled  None
+                              2022-09-15 21:00:00+00:00    NaN  not filled  None
+                              2022-09-15 22:00:00+00:00    NaN  not filled  None
+                              2022-09-15 23:00:00+00:00    NaN  not filled  None
+            <BLANKLINE>
+            [280 rows x 3 columns]
+
+            Since we will use Modeldata to fill the gap, we first need to import
+            modeldata. We can do this by importing ERA5 (Land) data directly from
+            the Google Earth Engine by using the `Dataset.get_modeldata()` method.
+
+            >>> era5_data = sta.get_modeldata(Model=sta.gee_datasets['ERA5-land'],
+            ...                               obstypes=['temp'])
+
+            (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
+            >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
+            >>> print(era5_data)
+            GeeDynamicModelData instance of ERA5-land with modeldata
+
+            Now we are going to fill the gaps with this debiased modeldata. Do this
+            by specifying a leading and trailing period (by duration and the minimum
+            number of records), and using the `Dataset.fill_gaps_with_debiased_modeldata()` method.
+
+            >>> sta.fill_gaps_with_debiased_modeldata(
+            ...                Model=era5_data,
+            ...                obstype="temp",
+            ...                overwrite_fill=False,
+            ...                leading_period_duration="24h",
+            ...                min_leading_records_total=10, #higly depending on resolution
+            ...                trailing_period_duration="24h",
+            ...                min_trailing_records_total=10) #higly depending on resolution
+
+            We can inspect the filled gaps by plotting or by using `get_gaps_fill_df()` method.
+
+            >>> sta.make_plot(obstype='temp', colorby='label', title='After filling the gaps')
+            <Axes: title={'center': 'After filling the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            >>> comb_gap_df = sta.get_gaps_fill_df()
+            >>> comb_gap_df[:10]
+                                                             value               fill_method                       msg
+            name      obstype datetime
+            vlinder05 temp    2022-09-01 00:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                              2022-09-01 01:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                              2022-09-01 02:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                              2022-09-01 03:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                              2022-09-01 04:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                              2022-09-01 05:00:00+00:00    NaN  failed debiased model...  minimum records (10) ...
+                              2022-09-01 20:00:00+00:00  19.60   debiased modeldata fill  Modelvalue: 20.20 cor...
+                              2022-09-01 21:00:00+00:00  18.87   debiased modeldata fill  Modelvalue: 19.47 cor...
+                              2022-09-01 22:00:00+00:00  18.17   debiased modeldata fill  Modelvalue: 18.78 cor...
+                              2022-09-01 23:00:00+00:00  17.63   debiased modeldata fill  Modelvalue: 18.23 cor...
+
+        """
+
+        # Check if the Model has the compatible data
+        _check_if_model_can_be_used(trg_obstypename=obstype, Model=Model)
+
+        # TODO logging
+        for gap in self.gaps:
+            # filter the gaps to those of target obstype
+            if gap.obstype.name == str(obstype):
+                # check if gap is filled
+                if not gap._can_be_filled(overwrite_fill):
+                    logger.warning(
+                        f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                    )
+                    continue
+                else:
+                    logger.debug(f"filling {gap} with Debiased modeldata")
+                    gap.debias_model_gapfill(
+                        Dataset=self,
+                        Model=Model,
+                        leading_period_duration=leading_period_duration,
+                        min_leading_records_total=min_leading_records_total,
+                        trailing_period_duration=trailing_period_duration,
+                        min_trailing_records_total=min_trailing_records_total,
+                    )
+
+    def fill_gaps_with_diurnal_debiased_modeldata(
+        self,
+        Model,
+        obstype="temp",
+        overwrite_fill=False,
+        leading_period_duration="24h",
+        min_debias_sample_size=6,
+        trailing_period_duration="24h",
+    ):
+        """Fill all the gaps using diurnal debiased modeldata.
+
+
+        The gaps in the Dataset will be updated with fill values using
+        Modeldata. The Modeldata is interpolated (in time) to the missing records,
+        and corrected with a bias-correction. Multiple biasses are computed, one
+        for each timestamp present in the missing records, by using a leading
+        (before the gap) and trailing (after the gap) period. Each bias is
+        computed at each timestamp, thus computing a diurnal-bias-cycle.
+
+
+        Parameters
+        ----------
+        Model : metobs_toolkit.GeeDynamicModelData
+            The model that is used to fill the gaps records. The modeldata
+            must be compatible (same metadata and `ModelObstype` equivalent
+            of obstype) to fill the gaps.
+        obstype : str, optional
+            The observationtype to fill the gaps. The default is "temp".
+        overwrite_fill : bool, optional
+           If a gap has already filled values, the interpolation of this gap
+           is skipped if overwrite_fill is False. If set to True, the gapfill
+           values will be overwritten. The default is False.
+        leading_period_duration : str or pandas.Timedelta, optional
+            The duration of the leading period. The default is "24h".
+        min_debias_sample_size : int, optional
+            The minimum number of good records to
+            calculate a diurnal bias of. The default is 6.
+        trailing_period_duration : str or pandas.Timedelta, optional
+            The duration of the trailing period. The default is "24h".
+
+
+        Returns
+        -------
+        None.
+
+        See Also
+        --------
+        get_gaps_fill_df: Get an overview dataframe of gapfilled records and info.
+        metobs_toolkit.Modeldata: Modeldata class.
+        get_modeldata: Method for creating a modeldata from a dataset.
+        interpolate_gaps: Fill gaps by interpolation.
+        fill_gaps_with_raw_modeldata: Raw modeldata gapfill method.
+        fill_gaps_with_debiased_modeldata: Debiased modeldata gapfill method.
+        fill_gaps_with_weighted_diurnal_debiased_modeldata: Weighted diurnal debiased modeldata gapfill method.
 
         Notes
         -----
         A schematic description of the linear gap fill:
 
-        1. Iterate over all gaps.
+        1. Iterate over all the gaps.
         2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
-        3. Find a leading (the last observations before the gap) record and a trailing record (the last observation after the gap).
-        4. By using the leading and trailing record an interpolation is applied to fill the missing records. A maximum consecutive fill threshold is applied, if exceeded the fill values are Nan's.
-        5. The gap is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df)
+        3. The good observations of the leading and trailing periods are selected and grouped per timestamp.
+        4. Each group (corresponding to a timestamp) is checked if they fulfill the conditions.
+        5. The modeldata is interpolated (in time) to the missing records, the leading, and the trailing period.
+        6. A bias for each group is computed by combining the corresponding leading and trailing groups.
+        7. The gap is updated with the interpolated modeldata, corrected by the calculated bias corresponding to the specific timestamp.
+
+        Notes
+        -------
+        This method requires inter-day records. The timestamps for which the
+        biases are computed, are the same timestamps as found in the records.
 
         Examples
         --------
-        .. code-block:: python
+
+        .. plot::
+            :context: close-figs
+
+            We start by creating a Dataset, and importing data.
 
             >>> import metobs_toolkit
             >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
             ...                         input_data_file=metobs_toolkit.demo_datafile,
             ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
-            >>> dataset.import_data_from_file()
+
+            To reduce the data for this example, we coarsen the data to hourly records
+            and focus on the records of a single station. This example is will also
+            work on a full Dataset with multiple stations.
+
             >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                  *28 stations
-                  *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                  *10080 observation records
-                  *0 records labeled as outliers
-                  *2 gaps
-                  *1473 missing observations
-                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                  *time zone of the records: UTC
-                  *Coordinates are available for all stations.
-            >>>
-            >>> #Update the gapfill settings (else the defaults are used)
-            >>> dataset.update_gap_and_missing_fill_settings(gap_interpolation_max_consec_fill=35)
-            >>>
-            >>> # Fill the gaps
-            >>> dataset.fill_gaps_linear(obstype='temp')
-                                                      temp   temp_final_label
-            name      datetime
-            vlinder05 2022-09-06 21:00:00+00:00  21.378710  gap_interpolation
-                      2022-09-06 22:00:00+00:00  21.357419  gap_interpolation
-                      2022-09-06 23:00:00+00:00  21.336129  gap_interpolation
-                      2022-09-07 00:00:00+00:00  21.314839  gap_interpolation
-                      2022-09-07 01:00:00+00:00  21.293548  gap_interpolation
-                      2022-09-07 02:00:00+00:00  21.272258  gap_interpolation
-                      2022-09-07 03:00:00+00:00  21.250968  gap_interpolation
-                      2022-09-07 04:00:00+00:00  21.229677  gap_interpolation
-                      2022-09-07 05:00:00+00:00  21.208387  gap_interpolation
-                      2022-09-07 06:00:00+00:00  21.187097  gap_interpolation
-                      2022-09-07 07:00:00+00:00  21.165806  gap_interpolation
-                      2022-09-07 08:00:00+00:00  21.144516  gap_interpolation
-                      2022-09-07 09:00:00+00:00  21.123226  gap_interpolation
-                      2022-09-07 10:00:00+00:00  21.101935  gap_interpolation
-                      2022-09-07 11:00:00+00:00  21.080645  gap_interpolation
-                      2022-09-07 12:00:00+00:00  21.059355  gap_interpolation
-                      2022-09-07 13:00:00+00:00  21.038065  gap_interpolation
-                      2022-09-07 14:00:00+00:00  21.016774  gap_interpolation
-                      2022-09-07 15:00:00+00:00  20.995484  gap_interpolation
-                      2022-09-07 16:00:00+00:00  20.974194  gap_interpolation
-                      2022-09-07 17:00:00+00:00  20.952903  gap_interpolation
-                      2022-09-07 18:00:00+00:00  20.931613  gap_interpolation
-                      2022-09-07 19:00:00+00:00  20.910323  gap_interpolation
-                      2022-09-07 20:00:00+00:00  20.889032  gap_interpolation
-                      2022-09-07 21:00:00+00:00  20.867742  gap_interpolation
-                      2022-09-07 22:00:00+00:00  20.846452  gap_interpolation
-                      2022-09-07 23:00:00+00:00  20.825161  gap_interpolation
-                      2022-09-08 00:00:00+00:00  20.803871  gap_interpolation
-                      2022-09-08 01:00:00+00:00  20.782581  gap_interpolation
-                      2022-09-08 02:00:00+00:00  20.761290  gap_interpolation
-                      2022-09-08 03:00:00+00:00  20.740000  gap_interpolation
-                      2022-09-08 04:00:00+00:00  20.718710  gap_interpolation
-                      2022-09-08 05:00:00+00:00  20.697419  gap_interpolation
-                      2022-09-08 06:00:00+00:00  20.676129  gap_interpolation
-                      2022-09-08 07:00:00+00:00  20.654839  gap_interpolation
-            >>> dataset.get_gaps_info()
-            Gap for vlinder05 with:...
+            >>> sta = dataset.get_station('vlinder02')
+
+            To create some gaps, we apply quality control first and then convert
+            the outliers to gaps.
+
+            >>> sta.apply_quality_control('temp')
+            >>> sta.convert_outliers_to_gaps()
+            >>> print(sta)
+            Station instance containing:
+             *1 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *1389 observation records (not Nan's)
+             *0 records labeled as outliers
+             *3 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
+
+
+            As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
+            often handy to combine all present gaps into one pandas Dataframe, for
+            inspection.
+
+            >>> comb_gap_df = sta.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                         value fill_method   msg
+            name      obstype datetime
+            vlinder02 temp    2022-09-02 16:00:00+00:00    NaN  not filled  None
+                              2022-09-02 17:00:00+00:00    NaN  not filled  None
+                              2022-09-02 18:00:00+00:00    NaN  not filled  None
+                              2022-09-02 19:00:00+00:00    NaN  not filled  None
+                              2022-09-02 20:00:00+00:00    NaN  not filled  None
+            ...                                            ...         ...   ...
+                              2022-09-09 05:00:00+00:00    NaN  not filled  None
+                              2022-09-09 06:00:00+00:00    NaN  not filled  None
+                              2022-09-09 07:00:00+00:00    NaN  not filled  None
+                              2022-09-09 08:00:00+00:00    NaN  not filled  None
+                              2022-09-09 09:00:00+00:00    NaN  not filled  None
+            <BLANKLINE>
+            [51 rows x 3 columns]
+
+
+
+            Since we will use Modeldata to fill the gap, we first need to import
+            modeldata. We can do this by importing ERA5 (Land) data directly from
+            the Google Earth Engine by using the `Dataset.get_modeldata()` method.
+
+            >>> era5_data = sta.get_modeldata(Model=sta.gee_datasets['ERA5-land'],
+            ...                               obstypes=['temp'])
+
+            (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
+            >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
+            >>> print(era5_data)
+            GeeDynamicModelData instance of ERA5-land with modeldata
+
+            Now we are going to fill the gaps with this diurnal debiased modeldata.
+            Do this by specifying a leading and trailing period (by duration and
+            the minimum number of records), and using the
+            `Dataset.fill_gaps_with_diurnal_debiased_modeldata()` method.
+
+            >>> sta.fill_gaps_with_diurnal_debiased_modeldata(
+            ...                Model=era5_data,
+            ...                obstype="temp",
+            ...                overwrite_fill=False,
+            ...                leading_period_duration="24h",
+            ...                min_debias_sample_size=2,
+            ...                trailing_period_duration="24h")
+
+            We can inspect the filled gaps by plotting or by using `get_gaps_fill_df()` method.
+
+            >>> sta.make_plot(obstype='temp', colorby='label', title='After filling the gaps')
+            <Axes: title={'center': 'After filling the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            >>> comb_gap_df = sta.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                         value               fill_method                       msg
+            name      obstype datetime
+            vlinder02 temp    2022-09-02 16:00:00+00:00  25.65  diurnal debiased mode...  Modelvalue: 25.65 cor...
+                              2022-09-02 17:00:00+00:00  25.11  diurnal debiased mode...  Modelvalue: 25.17 cor...
+                              2022-09-02 18:00:00+00:00  24.03  diurnal debiased mode...  Modelvalue: 23.93 cor...
+                              2022-09-02 19:00:00+00:00  21.49  diurnal debiased mode...  Modelvalue: 21.87 cor...
+                              2022-09-02 20:00:00+00:00  21.84  diurnal debiased mode...  Modelvalue: 21.23 cor...
+            ...                                            ...                       ...                       ...
+                              2022-09-09 05:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 15.52 can...
+                              2022-09-09 06:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 15.73 can...
+                              2022-09-09 07:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 15.74 can...
+                              2022-09-09 08:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 16.12 can...
+                              2022-09-09 09:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 16.84 can...
+            <BLANKLINE>
+            [51 rows x 3 columns]
 
         """
+
+        # Check if the Model has the compatible data
+        _check_if_model_can_be_used(trg_obstypename=obstype, Model=Model)
+
         # TODO logging
-        fill_settings = self.settings.gap["gaps_fill_settings"]["linear"]
+        for gap in self.gaps:
+            # filter the gaps to those of target obstype
+            if gap.obstype.name == str(obstype):
+                # check if gap is filled
+                if not gap._can_be_filled(overwrite_fill):
+                    logger.warning(
+                        f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                    )
+                    continue
+                else:
+                    logger.debug(f"filling {gap} with Diurnal debiased modeldata")
+                    gap.diurnal_debias_model_gapfill(
+                        Dataset=self,
+                        Model=Model,
+                        leading_period_duration=leading_period_duration,
+                        min_debias_sample_size=min_debias_sample_size,
+                        trailing_period_duration=trailing_period_duration,
+                    )
 
-        # fill gaps
-        apply_interpolate_gaps(
-            gapslist=self.gaps,
-            obsdf=self.df,
-            outliersdf=self.outliersdf,
-            dataset_res=self.metadf["dataset_resolution"],
-            gapfill_settings=self.settings.gap["gaps_fill_info"],
-            obstype=obstype,
-            method=fill_settings["method"],
-            max_consec_fill=fill_settings["max_consec_fill"],
-            overwrite_fill=overwrite_fill,
-        )
+    def fill_gaps_with_weighted_diurnal_debias_modeldata(
+        self,
+        Model,
+        obstype="temp",
+        overwrite_fill=False,
+        leading_period_duration="48h",
+        min_lead_debias_sample_size=2,
+        trailing_period_duration="48h",
+        min_trail_debias_sample_size=2,
+    ):
+        """Fill all the gaps using weighted-diurnal-debiased modeldata.
 
-        # get gapfilldf
-        gapfilldf = make_gapfill_df(self.gaps)
 
-        # update attr
-        self.gapfilldf = gapfilldf
+        The gaps of the Datasetinstance will be updated with fill values using
+        Modeldata. The Modeldata is interpolated (in time) to the missing records,
+        and corrected with a bias-correction. Multiple biasses are computed, one
+        for each timestamp present in the missing records, by using a leading
+        (before the gap) and trailing (after the gap) period. Each bias is
+        computed at each timestamp, thus computing a diurnal-bias-cycle.
 
-        return gapfilldf
+        The modeldata values, used for filling the gaps are corrected by a
+        weighted sum of the diurnal biases as they are computed for the leading
+        and trailing period. The weights represent the normalized distance (in
+        time) to the leading and trailing period.
 
-    def fill_missing_obs_linear(self, obstype="temp"):
-        """Interpolate missing observations.
-
-        Fill in the missing observation rectords using interpolation. The
-        missing_fill_df attribute of the Dataset will be updated.
 
         Parameters
         ----------
-        obstype : string, optional
-            Fieldname to visualise. This can be an observation or station
-            attribute. The default is 'temp'.
+        Model : metobs_toolkit.GeeDynamicModelData
+            The model that is used to fill the gaps records. The modeldata
+            must be compatible (same metadata and `ModelObstype` equivalent
+            of obstype) to fill the gaps.
+        obstype : str, optional
+            The observationtype to fill the gaps. The default is "temp".
+        overwrite_fill : bool, optional
+           If a gap has already filled values, the interpolation of this gap
+           is skipped if overwrite_fill is False. If set to True, the gapfill
+           values will be overwritten. The default is False.
+        leading_period_duration : str or pandas.Timedelta, optional
+            The duration of the leading period. The default is "48h".
+        min_lead_debias_sample_size : int, optional
+            The minimum number of good records in the leading period, to
+            calculate a diurnal bias. The default is 2.
+        trailing_period_duration : str or pandas.Timedelta, optional
+            The duration of the trailing period. The default is "48h".
+        min_trail_debias_sample_size : int, optional
+            The minimum number of good records in the trailing period, to
+            calculate a diurnal bias. The default is 2.
+
 
         Returns
         -------
         None.
+
+        See Also
+        --------
+        get_gaps_fill_df: Get an overview dataframe of gapfilled records and info.
+        metobs_toolkit.Modeldata: Modeldata class.
+        get_modeldata: Method for creating a modeldata from a dataset.
+        interpolate_gaps: Fill gaps by interpolation.
+        fill_gaps_with_raw_modeldata: Raw modeldata gapfill method.
+        fill_gaps_with_debiased_modeldata: Debiased modeldata gapfill method.
+        fill_gaps_with_diurnal_debiased_modeldata: Diurnal debiased modeldata gapfill method.
+
 
         Notes
         -----
-        A schematic description of the linear fill of missing observations:
+        A schematic description of the linear gap fill:
 
-        1. Iterate over all missing observations.
-        2. The missing observations are converted into a set of missing records (depending on the time resolution of the observations).
-        3. Find a leading (the last observations before the missing observation) record and a trailing record (the last observation after the missing observation).
-        4. By using the leading and trailing records, interpolation is applied to fill the missing records.
-        5. The missing record is updated with the interpolated values (metobs_toolkit.Gap.gapfill_df).
+        1. Iterate over all the gaps.
+        2. The gap is converted into a set of missing records (depending on the time resolution of the observations).
+        3. The good observations of the leading and trailing periods are selected and grouped per timestamp.
+        4. Each group (corresponding to a timestamp) is checked if they fulfill the conditions.
+        5. The modeldata is interpolated (in time) to the missing records, the leading, and the trailing period.
+        6. A bias for each group is computed for the leading and trailing groups seperatly.
+        7. Two weights are assigned to each missing record, that is the normalized distance to the leading and trailing period respectively.
+        8. The gap is updated with the interpolated modeldata, corrected by the weighted sum of calculated bias corresponding to the specific timestamp.
+
+        Notes
+        -------
+        This method requires inter-day records. The timestamps for which the
+        biases are computed, are the same timestamps as found in the records.
 
         Examples
         --------
-        .. code-block:: python
+
+        .. plot::
+            :context: close-figs
+
+            We start by creating a Dataset, and importing data.
 
             >>> import metobs_toolkit
             >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
             ...                         input_data_file=metobs_toolkit.demo_datafile,
             ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
-            >>> dataset.import_data_from_file()
+
+            To reduce the data for this example, we coarsen the data to hourly records
+            and focus on the records of a single station. This example is will also
+            work on a full Dataset with multiple stations.
+
             >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                  *28 stations
-                  *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                  *10080 observation records
-                  *0 records labeled as outliers
-                  *2 gaps
-                  *1473 missing observations
-                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                  *time zone of the records: UTC
-                  *Coordinates are available for all stations.
-            >>>
-            >>> # Fill the missing observations
-            >>> dataset.fill_missing_obs_linear(obstype='temp')
-            >>> dataset.missing_obs.get_info()
-            -------- Missing observations info --------
-            (Note: missing observations are defined on the frequency estimation of the native dataset.)
-              * 1473 missing observations
-              * For 28 stations
-              * Missing observations are filled with interpolate for:
-                temp:
-                                                        temp
-            name      datetime
-            vlinder01 2022-09-08 08:00:00+00:00  18.630303
-                      2022-09-07 23:00:00+00:00  17.512121
-                      2022-09-08 00:00:00+00:00  17.636364
-                      2022-09-08 02:00:00+00:00  17.884848
-                      2022-09-08 03:00:00+00:00  18.009091
-            ...
+            >>> sta = dataset.get_station('vlinder02')
+
+            To create some gaps, we apply quality control first and then convert
+            the outliers to gaps.
+
+            >>> sta.apply_quality_control('temp')
+            >>> sta.convert_outliers_to_gaps()
+            >>> print(sta)
+            Station instance containing:
+                 *1 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *1389 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *3 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
+
+            As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
+            often handy to combine all present gaps into one pandas Dataframe, for
+            inspection.
+
+            >>> comb_gap_df = sta.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                         value fill_method   msg
+            name      obstype datetime
+            vlinder02 temp    2022-09-02 16:00:00+00:00    NaN  not filled  None
+                              2022-09-02 17:00:00+00:00    NaN  not filled  None
+                              2022-09-02 18:00:00+00:00    NaN  not filled  None
+                              2022-09-02 19:00:00+00:00    NaN  not filled  None
+                              2022-09-02 20:00:00+00:00    NaN  not filled  None
+            ...                                            ...         ...   ...
+                              2022-09-09 05:00:00+00:00    NaN  not filled  None
+                              2022-09-09 06:00:00+00:00    NaN  not filled  None
+                              2022-09-09 07:00:00+00:00    NaN  not filled  None
+                              2022-09-09 08:00:00+00:00    NaN  not filled  None
+                              2022-09-09 09:00:00+00:00    NaN  not filled  None
+            <BLANKLINE>
+            [51 rows x 3 columns]
+
+
+
+            Since we will use Modeldata for filling the gap, we first need to import
+            modeldata. We can do this by importing ERA5 (Land) data directly from
+            the Google Earth Engine by using the `Dataset.get_modeldata()` method.
+
+            >>> era5_data = sta.get_modeldata(Model=sta.gee_datasets['ERA5-land'],
+            ...                               obstypes=['temp'])
+
+
+            (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
+            >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
+            >>> print(era5_data)
+            GeeDynamicModelData instance of ERA5-land with modeldata
+
+
+            Now we are going to fill the gaps with weighted diurnal debiased modeldata.
+            Do this by specifying a leading and trailing period (by duration and
+            the minimum number of records), and using the
+            `Dataset.fill_gaps_with_diurnal_debiased_modeldata()` method.
+
+            >>> sta.fill_gaps_with_weighted_diurnal_debias_modeldata(
+            ...                    Model=era5_data,
+            ...                    obstype="temp",
+            ...                    overwrite_fill=False,
+            ...                    leading_period_duration="48h",
+            ...                    min_lead_debias_sample_size=1,
+            ...                    trailing_period_duration="48h",
+            ...                    min_trail_debias_sample_size=1)
+
+            We can inspect the filled gaps by plotting or by using `get_gaps_fill_df()` method.
+
+            >>> sta.make_plot(obstype='temp', colorby='label', title='After filling the gaps')
+            <Axes: title={'center': 'After filling the gaps'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            >>> comb_gap_df = sta.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                        value               fill_method                       msg
+            name      obstype datetime
+            vlinder02 temp    2022-09-02 16:00:00+00:00  25.92  Weighted diurnal debi...  Modelvalue: 25.65 cor...
+                              2022-09-02 17:00:00+00:00  25.13  Weighted diurnal debi...  Modelvalue: 25.17 cor...
+                              2022-09-02 18:00:00+00:00  24.10  Weighted diurnal debi...  Modelvalue: 23.93 cor...
+                              2022-09-02 19:00:00+00:00  21.69  Weighted diurnal debi...  Modelvalue: 21.87 cor...
+                              2022-09-02 20:00:00+00:00  21.32  Weighted diurnal debi...  Modelvalue: 21.23 cor...
+            ...                                            ...                       ...                       ...
+                              2022-09-09 05:00:00+00:00  16.04  Weighted diurnal debi...  Modelvalue: 15.52 cor...
+                              2022-09-09 06:00:00+00:00  15.85  Weighted diurnal debi...  Modelvalue: 15.73 cor...
+                              2022-09-09 07:00:00+00:00    NaN  failed Weighted diurn...  Modelvalue: 15.74 can...
+                              2022-09-09 08:00:00+00:00    NaN  failed Weighted diurn...  Modelvalue: 16.12 can...
+                              2022-09-09 09:00:00+00:00    NaN  failed Weighted diurn...  Modelvalue: 16.84 can...
+            <BLANKLINE>
+            [51 rows x 3 columns]
 
         """
+
+        # Check if the Model has the compatible data
+        _check_if_model_can_be_used(trg_obstypename=obstype, Model=Model)
+
         # TODO logging
-        fill_settings = self.settings.missing_obs["missing_obs_fill_settings"]["linear"]
-        fill_info = self.settings.missing_obs["missing_obs_fill_info"]
+        for gap in self.gaps:
+            # filter the gaps to those of target obstype
+            if gap.obstype.name == str(obstype):
+                # check if gap is filled
+                if not gap._can_be_filled(overwrite_fill):
+                    logger.warning(
+                        f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                    )
+                    continue
+                else:
+                    logger.debug(
+                        f"filling {gap} with Weighted diurnal debiased modeldata"
+                    )
+                    gap.weighted_diurnal_debias_model_gapfill(
+                        Dataset=self,
+                        Model=Model,
+                        leading_period_duration=leading_period_duration,
+                        min_lead_debias_sample_size=min_lead_debias_sample_size,
+                        trailing_period_duration=trailing_period_duration,
+                        min_trail_debias_sample_size=min_trail_debias_sample_size,
+                    )
 
-        # fill missing obs
-        self.missing_obs.interpolate_missing(
-            obsdf=self.df,
-            resolutionseries=self.metadf["dataset_resolution"],
-            obstype=obstype,
-            method=fill_settings["method"],
+    def find_gap(self, stationname, obstype, in_gap_timestamp):
+        """Find a specific gap
+
+        This method helps to find a specific gap in your Dataset.
+
+        Parameters
+        ----------
+        stationname : str
+            The name of the station to look for a gap.
+        obstype : str
+            The obstypename of the gap.
+        in_gap_timestamp : datetime.datetime or pandas.Timestamp
+            A timestamp that is located in the gap. If a datetime naive timestamp
+            is given, it is assumed to be in the same timezone as the records.
+
+        Returns
+        -------
+        gap : metobs_toolkit.Gap or None
+            The specific gap. If no gap was found that matches the arguments,
+            None is returned
+
+        See Also
+        ---------
+        metobs_toolkit.Gap: The gap class.
+        Gap.get_info: Print out details of the gap.
+        convert_outliers_to_gaps: Convert outliers to gaps.
+
+        Examples
+        --------
+
+        .. plot::
+            :context: close-figs
+
+            We start by creating a Dataset, and importing data. To create some gaps
+            in the Dataset, we apply quality control and convert the outliers to gaps.
+
+
+            >>> import metobs_toolkit
+            >>>
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
+            ...                         input_data_file=metobs_toolkit.demo_datafile,
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.coarsen_time_resolution(freq='1h') #to reduce data amount in this example
+            >>> dataset.apply_quality_control(obstype='temp')
+            >>> dataset.convert_outliers_to_gaps()
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *38644 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *89 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
+
+
+            As we can see, we now have a Dataset with gaps (for temperature). The
+            gaps are stored as a list of Gap's
+
+            >>> dataset.gaps[:5] # print only the first 5 gaps
+            [temp-gap of vlinder01 for 2022-09-02 16:00:00+00:00 --> 2022-09-03 01:00:00+00:00, duration: 0 days 09:00:00 or 10 records., temp-gap of vlinder01 for 2022-09-07 07:00:00+00:00 --> 2022-09-08 14:00:00+00:00, duration: 1 days 07:00:00 or 32 records., temp-gap of vlinder01 for 2022-09-09 01:00:00+00:00 --> 2022-09-09 09:00:00+00:00, duration: 0 days 08:00:00 or 9 records., temp-gap of vlinder02 for 2022-09-02 16:00:00+00:00 --> 2022-09-03 01:00:00+00:00, duration: 0 days 09:00:00 or 10 records., temp-gap of vlinder02 for 2022-09-07 07:00:00+00:00 --> 2022-09-08 14:00:00+00:00, duration: 1 days 07:00:00 or 32 records.]
+
+            It is often handy to combine all present gaps into one pandas Dataframe, for
+            inspection.
+
+            >>> comb_gap_df = dataset.get_gaps_fill_df()
+            >>> comb_gap_df
+                                                          value fill_method   msg
+            name      obstype datetime
+            vlinder01 temp    2022-09-02 16:00:00+00:00    NaN  not filled  None
+                              2022-09-02 17:00:00+00:00    NaN  not filled  None
+                              2022-09-02 18:00:00+00:00    NaN  not filled  None
+                              2022-09-02 19:00:00+00:00    NaN  not filled  None
+                              2022-09-02 20:00:00+00:00    NaN  not filled  None
+            ...                                            ...         ...   ...
+            vlinder28 temp    2022-09-15 04:00:00+00:00    NaN  not filled  None
+                              2022-09-15 05:00:00+00:00    NaN  not filled  None
+                              2022-09-15 06:00:00+00:00    NaN  not filled  None
+                              2022-09-15 07:00:00+00:00    NaN  not filled  None
+                              2022-09-15 08:00:00+00:00    NaN  not filled  None
+            <BLANKLINE>
+            [1676 rows x 3 columns]
+
+
+            If you want all details or need to interact directly with a specific
+            Gap, you can find the Gap (from the .gaps attribute) by using the
+            `Dataset.find_gap()` method. In practice, one can make a timeseries
+            plot, identify where the gap-of-interest is, and then use this method.
+
+            >>> dataset.make_plot(obstype='temp', colorby='label')
+            <Axes: title={'center': 'Temperatuur for all stations. '}, xlabel='datetime', ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            ... Localize the gap-of-interest ...
+
+            >>> import datetime
+            >>> your_favorite_gap = dataset.find_gap(
+            ...                         stationname='vlinder02',
+            ...                         obstype='temp',
+            ...                         in_gap_timestamp=datetime.datetime(2022, 9, 9, 4)) #2022-09-9 4:00 UTC
+            >>> print(your_favorite_gap)
+            temp-gap of vlinder02 for 2022-09-09 01:00:00+00:00 --> 2022-09-09 09:00:00+00:00, duration: 0 days 08:00:00 or 9 records.
+
+            If you want more info on the gap:
+
+            >>> your_favorite_gap.get_info()
+            ---- Gap info -----
+            (Note: gaps start and end are defined on the frequency estimation of the native dataset.)
+              * Gap for station: vlinder02
+              * Start gap: 2022-09-09 01:00:00+00:00
+              * End gap: 2022-09-09 09:00:00+00:00
+              * Duration gap: 0 days 08:00:00
+              * For temp
+              * Gapfill status >>>> Unfilled gap
+            ---- Gap Data Frame -----
+                                                 temp  temp_fill fill_method   msg
+            name      datetime
+            vlinder02 2022-09-09 01:00:00+00:00   NaN        NaN  not filled  None
+                      2022-09-09 02:00:00+00:00   NaN        NaN  not filled  None
+                      2022-09-09 03:00:00+00:00   NaN        NaN  not filled  None
+                      2022-09-09 04:00:00+00:00   NaN        NaN  not filled  None
+                      2022-09-09 05:00:00+00:00   NaN        NaN  not filled  None
+                      2022-09-09 06:00:00+00:00   NaN        NaN  not filled  None
+                      2022-09-09 07:00:00+00:00   NaN        NaN  not filled  None
+                      2022-09-09 08:00:00+00:00   NaN        NaN  not filled  None
+                      2022-09-09 09:00:00+00:00   NaN        NaN  not filled  None
+
+
+        """
+
+        in_gap_timestamp = self._datetime_arg_check(in_gap_timestamp)
+
+        for gap in self.gaps:
+            if gap.name != str(stationname):
+                continue
+            if gap.obstype.name != str(obstype):
+                continue
+            if not (gap.startdt <= in_gap_timestamp):
+                continue
+
+            if not (gap.enddt >= in_gap_timestamp):
+                continue
+
+            return gap
+
+        logger.warning(
+            f"No gap is found with: ({stationname}) - ({obstype}) - ({in_gap_timestamp})"
         )
-
-        missing_fill_df = self.missing_obs.fill_df
-
-        missing_fill_df[obstype + "_" + fill_info["label_columnname"]] = fill_info[
-            "label"
-        ]["linear"]
-
-        # Update attribute
-
-        self.missing_fill_df = missing_fill_df
-
-    def get_gaps_df(self):
-        """
-        List all gaps into an overview dataframe.
-
-        Returns
-        -------
-        pandas.DataFrame
-            A DataFrame with stationnames as index, and the start, end and duretion
-            of the gaps as columns.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                  *28 stations
-                  *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                  *10080 observation records
-                  *0 records labeled as outliers
-                  *2 gaps
-                  *1473 missing observations
-                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                  *time zone of the records: UTC
-                  *Coordinates are available for all stations.
-            >>> dataset.get_gaps_df()
-                                      start_gap                   end_gap        duration
-            name
-            vlinder05 2022-09-06 21:00:00+00:00 2022-09-13 06:00:00+00:00 6 days 09:00:00
-            vlinder05 2022-09-13 20:00:00+00:00 2022-09-15 23:00:00+00:00 2 days 03:00:00
+        return None
 
 
-        """
-        return gaps_to_df(self.gaps)
+def _check_if_model_can_be_used(trg_obstypename, Model):
+    """Raise error if Model cannot be used to fill for target obstype."""
+    # check if modeldata has the obstype
+    if trg_obstypename not in Model.modelobstypes.keys():
+        raise MetobsDatasetGapHandlingError(
+            f"{Model} does not have a known ModelObstype equivalent of {trg_obstypename}."
+        )
+    # Check if modeldata has timeseries
+    if Model.modeldf.empty:
+        raise MetobsDatasetGapHandlingError(f"{Model} does not have any modeldata.")
+    # Check if obstype is present in the modeldata
+    if trg_obstypename not in Model.modeldf.columns:
+        raise MetobsDatasetGapHandlingError(
+            f"{Model} does not have modeldata for {trg_obstypename}"
+        )
+    return
 
-    def get_gaps_info(self):
-        """Print out detailed information of the gaps.
 
-        Returns
-        -------
-        None.
+# =============================================================================
+# Errors
+# =============================================================================
 
-        Examples
-        --------
 
-        .. code-block:: python
+class MetobsDatasetGapHandlingError(Exception):
+    """Exception raised for errors in the datasetgaphandling."""
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                  *28 stations
-                  *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                  *10080 observation records
-                  *0 records labeled as outliers
-                  *2 gaps
-                  *1473 missing observations
-                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                  *time zone of the records: UTC
-                  *Coordinates are available for all stations.
-            >>> dataset.get_gaps_info()
-            Gap for vlinder05 with:
-            ---- Gap info -----
-            (Note: gaps are defined on the frequency estimation of the native dataset.)
-              * Start gap: 2022-09-06 21:00:00+00:00
-              * End gap: 2022-09-13 06:00:00+00:00
-              * Duration gap: 6 days 09:00:00
-            ---- Gap fill info -----
-            (No gapfill applied)
-            Gap for vlinder05 with:
-            ---- Gap info -----
-            (Note: gaps are defined on the frequency estimation of the native dataset.)
-              * Start gap: 2022-09-13 20:00:00+00:00
-              * End gap: 2022-09-15 23:00:00+00:00
-              * Duration gap: 2 days 03:00:00
-            ---- Gap fill info -----
-            (No gapfill applied)
+    pass
 
-        """
-        if bool(self.gaps):
-            # there are gaps
-            for gap in self.gaps:
-                gap.get_info()
-        else:
-            # no gaps
-            print("There are no gaps.")
 
-    def get_missing_obs_info(self):
-        """Print out detailed information of the missing observations.
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
 
-        Returns
-        -------
-        None.
-
-        Examples
-        --------
-
-        .. code-block:: python
-
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>> dataset.coarsen_time_resolution(freq='1h')
-            >>>
-            >>> # Apply quality control on the temperature observations
-            >>> dataset.apply_quality_control(obstype='temp') #Using the default QC settings
-            >>>
-            >>> # Interpret the outliers as missing/gaps
-            >>> dataset.update_gaps_and_missing_from_outliers(obstype='temp')
-            >>> dataset
-            Dataset instance containing:
-                  *28 stations
-                  *['temp', 'humidity', 'wind_speed', 'wind_direction'] observation types
-                  *10080 observation records
-                  *0 records labeled as outliers
-                  *2 gaps
-                  *1473 missing observations
-                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-                  *time zone of the records: UTC
-                  *Coordinates are available for all stations.
-            >>> dataset.get_missing_obs_info()
-            -------- Missing observations info --------
-            (Note: missing observations are defined on the frequency estimation of the native dataset.)
-              * 1473 missing observations
-              * For 28 stations
-              * The missing observations are not filled.
-            (More details on the missing observation can be found in the .series and .fill_df attributes.)
-
-        """
-        # empty obs protector in the .get_info method.
-        self.missing_obs.get_info()
+    setup_and_run_doctest()

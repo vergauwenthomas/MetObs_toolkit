@@ -15,82 +15,77 @@ from metobs_toolkit.obstypes import temperature, pressure, wind_speed, direction
 
 logger = logging.getLogger(__name__)
 
-# =============================================================================
-# Standard modeldata equivalents
-# =============================================================================
-tlk_std_modeldata_obstypes = {
-    "temp": {
-        "ERA5_hourly": {
-            "name": "temperature_2m",
-            "units": "Kelvin",
-            "band_desc": "Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth's surface, taking account of the atmospheric conditions.",
-        }
-    },
-    "pressure": {
-        "ERA5_hourly": {
-            "name": "surface_pressure",
-            "units": "pa",
-            "band_desc": "Pressure (force per unit area) of the atmosphere on the surface of land, sea and in-land water. It is a measure of the weight of all the air in a column vertically above the area of the Earth's surface represented at a fixed point. Surface pressure is often used in combination with temperature to calculate air density. The strong variation of pressure with altitude makes it difficult to see the low and high pressure systems over mountainous areas, so mean sea level pressure, rather than surface pressure, is normally used for this purpose. The units of this variable are Pascals (Pa). Surface pressure is often measured in hPa and sometimes is presented in the old units of millibars, mb (1 hPa = 1 mb = 100 Pa).",
-        }
-    },
-    "u_wind": {
-        "ERA5_hourly": {
-            "name": "u_component_of_wind_10m",
-            "units": "m/s",
-            "band_desc": "Eastward component of the 10m wind. It is the horizontal speed of air moving towards the east, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the V component of 10m wind to give the speed and direction of the horizontal 10m wind.",
-        }
-    },
-    "v_wind": {
-        "ERA5_hourly": {
-            "name": "v_component_of_wind_10m",
-            "units": "m/s",
-            "band_desc": "Northward component of the 10m wind. It is the horizontal speed of air moving towards the north, at a height of ten meters above the surface of the Earth, in meters per second. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System. This variable can be combined with the U component of 10m wind to give the speed and direction of the horizontal 10m wind.",
-        }
-    },
-}
-
 
 class ModelObstype(Obstype):
-    """Extension of the Obstype class specific for the obstypes of Modeldata."""
+    def __init__(self, obstype, model_unit, model_band):
+        """Initiate an observation type, to link with a GEE dataset band.
 
-    def __init__(self, obstype, model_equivalent_dict={}):
-        """Initiate an Modelobservation type.
+        A ModelObstype is specific to a GEE Dataset, and is therefore added
+        to a `GeeDynamicModelData` (that facilitates the link with a GEE dataset).
 
-        A ModelObstype has the same properties as an Obstype but with some
-        extra attributes and methods.
+        All methods and attributes are inherited from the `Obstype` class.
 
         Parameters
         ----------
-        obsname : str
-            The name of the new observation type (i.g. 'sensible_heat_flux').
-        std_unit : str
-            The standard unit for the observation type (i.g. 'J/m²')
-        obstype_description : str, ptional
-            A more detailed description of the obstype (i.g. '2m SE inside
-            canopy'). The default is None.
-        unit_aliases : dict, optional
-            A dictionary containing unit alias names. Keys represent a unit and
-            values are lists with aliases for the units at the keys. The default is {}.
-        unit_conversions : dict, optional
-            A dictionary containing the conversion information to map to the
-            standard units. Here an example of for temperatures (with Celsius
-            as standard unit):
-
-                {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
-                'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
-
-                The default is {}.
-
-        model_equiv_dict : dict
-            A dictionary with information of how the observation type is found in
-            modeldata. A example for pressure is:
-
-                {'ERA5_hourly': {'name': 'surface_pressure', 'units': 'pa',
-                                             'band_desc': "Pressure (force per ....
+        obstype : metobs_toolkit.Obstype
+            The Obstype that represents the band in the GEE dataset.
+        model_unit : str
+            The units of the GEE band. This can be found in the details of
+            the corresponding GEE dataset. This unit must be known by the obstype (
+            add it if it is not known).
+        model_band : str
+            The name of the band that represents the obstype. This can be found in
+            the details of the GEE dataset.
 
         Returns
         -------
-        None.
+        None
+
+        See also
+        ----------
+        Obstype: A regular observation type
+        ModelObstype_Vectorfield: A vector representation of a ModelObstype.
+
+        Examples
+        ---------
+        For example, we create a `ModelObstype` for downward solar radiation at the
+        surface, to be used with the ERA5-land GEE dataset.
+
+        >>> import metobs_toolkit
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.gee_datasets['ERA5-land'].modelobstypes
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+        There is no default solar radiation modeldata `ModelObstype` present for the
+        ERA5 `GeeDynamicModelData`. Thus we must create one.
+
+        >>> dataset.obstypes
+        {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind_speed, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction}
+
+        We see that there is no default `Obstype` that we can use for
+        solar radiation. Therefore we must create a new `Obstype`.
+
+        >>> sol_rad_down_surf = metobs_toolkit.Obstype(
+        ...                         obsname="solar_rad_down_at_surface",
+        ...                         std_unit='J/m²')
+
+        By looking up the details of ERA5-land (https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY),
+        we find that the corresponding band is *surface_solar_radiation_downwards* and
+        the units are in "J/m²" (no coincidence).
+
+        >>> sol_rad_down_for_ERA5 = metobs_toolkit.ModelObstype(
+        ...                            obstype=sol_rad_down_surf,
+        ...                            model_unit="J/m²",
+        ...                            model_band="surface_solar_radiation_downwards")
+        >>> sol_rad_down_for_ERA5
+        ModelObstype instance of solar_rad_down_at_surface (linked to band: surface_solar_radiation_downwards)
+
+        In practice we add it to the known ModelObstypes of the ERA5 `GeeDynamicModelData`.
+
+        >>> era5_mod = dataset.gee_datasets['ERA5-land']
+        >>> era5_mod.add_modelobstype(sol_rad_down_for_ERA5)
+        >>> era5_mod.modelobstypes
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'solar_rad_down_at_surface': ModelObstype instance of solar_rad_down_at_surface (linked to band: surface_solar_radiation_downwards)}
 
         """
         super().__init__(
@@ -101,136 +96,226 @@ class ModelObstype(Obstype):
             unit_conversions=obstype.conv_table,
         )
 
-        self.modl_equi_dict = model_equivalent_dict
-        self.current_data_unit = (
-            None  # represents at any time the unit of the data stored
-        )
-        self._is_valid()
+        self.model_unit = str(model_unit)
+        self.model_band = str(model_band)
 
-    def __repr__(self):
-        """Instance representation."""
-        return f"ModelObstype instance of {self.name}"
+        self._check_validity()
+
+        # to make link with Obstype class
+        self.set_original_name(model_band)
+        self.set_original_unit(model_unit)
+
+        # link with vectorfield
+        # The amplitude and direction fields, created by a vectorfield, are
+        # Modelobstpes. But the model_band does not realy exist, so special
+        # care is needed for them
+        self._originates_from_vectorfield = False  #
+
+    def __eq__(self, other):
+        is_eq = (
+            (self.name == other.name)
+            & (self.std_unit == other.std_unit)
+            & (self.description == other.description)
+            & (self.units_aliases == other.units_aliases)
+            & (self.conv_table == other.conv_table)
+            & (self.model_unit == other.model_unit)
+            & (self.model_band == other.model_band)
+            & (self._originates_from_vectorfield == other._originates_from_vectorfield)
+        )
+        return is_eq
+
+    def _check_validity(self):
+        if not self.test_if_unit_is_known(unit_name=self.model_unit):
+            raise MetobsModelObstypeHandlingError(
+                f"{self.model_unit} is not a known unit of {self}."
+            )
+        # convert to standard -naming
+        self.model_unit = self._get_std_unit_name(self.model_unit)
 
     def __str__(self):
-        """Text representation."""
-        return f"ModelObstype instance of {self.name}"
+        return f"{type(self).__name__} instance of {self.name} (linked to band: {self.model_band})"
 
-    def get_info(self):
-        """Print out detailed information of the observation type.
+    def __repr__(self):
+        return str(self)
 
-        Returns
-        -------
-        None.
+    # =============================================================================
+    # Getters
+    # =============================================================================
 
-        """
-        databands = {key: item["name"] for key, item in self.modl_equi_dict.items()}
-        info_str = f"{self.name} observation with: \n \
-    * Known datasetsbands: {databands} \n \
-    * standard unit: {self.std_unit} \n \
-    * description: {self.description} \n \
-    * conversions to known units: {self.conv_table} \n"
-        print(info_str)
+    def get_modelunit(self):
+        """Get the (original) unit of the values on the GEE-side."""
+        return self.model_unit
 
-    def get_mapped_datasets(self):
-        """Return all gee datasets with a representing band for this obstype."""
-        return list(self.modl_equi_dict.keys())
+    def get_modelband(self):
+        """Get the name of the corresponding band."""
+        return self.model_band
 
-    def get_bandname(self, mapname):
-        """Return the representing bandname of the obstype from a given gee dataset."""
-        return str(self.modl_equi_dict[mapname]["name"])
-
-    def get_bandname_mapper(self, mapname):
-        """Return the representing bandname with tlk standard name as a dict."""
-        return {str(self.modl_equi_dict[mapname]["name"]): self.name}
-
-    def get_plot_y_label(self, mapname):
+    def _get_plot_y_label(self):
         """Return a string to represent the vertical axes of a plot."""
-        return f'{self.name} ({self.std_unit}) \n {mapname}: {self.modl_equi_dict[mapname]["name"]}'
-
-    def get_modelunit(self, mapname):
-        """Return the units of the representing bandname of the obstype from a given gee dataset."""
-        return str(self.modl_equi_dict[mapname]["units"])
-
-    def has_mapped_band(self, mapname):
-        """Test is a gee dataset has a representing band."""
-        try:
-            self.get_bandname(mapname)
-            return True
-        except KeyError:
-            return False
-
-    def get_current_data_unit(self):
-        """Get the current unit of the corresponding data."""
-        return self.current_data_unit
-
-    def setup_current_data_unit(self, mapname):
-        """Set the current data unit to the one define by the corresponding band."""
-        self.current_data_unit = self.get_modelunit(mapname=mapname)
-        return
-
-    def set_current_data_unit(self, current_data_unit):
-        """Set the current data unit."""
-        assert (
-            str(current_data_unit) in self.get_all_units()
-        ), f"{current_data_unit} is not a known unit for {self}."
-        self.current_data_unit = str(current_data_unit)
-        return
-
-    def add_new_band(self, mapname, bandname, bandunit, band_desc=None):
-        """Add a new representing dataset/bandname to the obstype.
-
-        Parameters
-        ----------
-        mapname : str
-            name of the known gee dataset.
-        bandname : str
-            the name of the representing band.
-        bandunit : str
-            the unit of the representing band.
-        band_desc : str, optional
-            A detailed description of the band.
-
-        Returns
-        -------
-        None.
-
-        """
-        # test if banunit is valid
-        if not self.test_if_unit_is_known(bandunit):
-            sys.exit(f"{bandunit} is an unknown unit for the {self.name} obstype.")
-
-        if mapname in self.modl_equi_dict.keys():
-            # check if band is already knonw
-            logger.debug(f"Update {bandname} of (known) map: {mapname}")
-        else:
-            logger.debug(f"Add new map: {mapname} with band: {bandname}.")
-        self.modl_equi_dict[mapname] = {
-            "name": str(bandname),
-            "units": str(bandunit),
-            "band_desc": str(band_desc),
-        }
-
-    def _is_valid(self):
-        """Test if all attributes are valid among each other."""
-        for datasetname in self.modl_equi_dict.keys():
-            # Check if unit is available
-            if "units" not in self.modl_equi_dict[datasetname].keys():
-                sys.exit(
-                    f"No units information is provided for {self.name} for modeldata: {datasetname}"
-                )
-            # check if the unit is known
-            if not self.test_if_unit_is_known(
-                unit_name=self.modl_equi_dict[datasetname]["units"]
-            ):
-                sys.exit(
-                    f'Cannot create {self.name} ModelObstype because {self.modl_equi_dict[datasetname]["units"]} is a unknown unit.'
-                )
+        return f"{self.name} ({self.std_unit})\n originates from {self.original_name}"
 
 
 class ModelObstype_Vectorfield(Obstype):
     def __init__(
-        self, obstype, u_comp_model_equivalent_dict={}, v_comp_model_equivalent_dict={}
+        self,
+        obstype,
+        model_unit,
+        model_band_u,
+        model_band_v,
+        amplitude_obstype_name,
+        direction_obstype_name,
     ):
+        """Initiate an observation type, to link with GEE dataset bands as vector components.
+
+        A ModelObstype_Vectorfield represents an observationtype, which is not
+        directly present in a GEE dataset, but its components are. Wind speed, is
+        a common example that is measured by a station, but only the U and V
+        components are present in the GEE model.
+
+        When extracting the modeldata, there are two ModelObstypes that are formed:
+            * amplitude_field: This is the computed amplitude of the vectorfield
+            * direction_field: The orientation of the vectorfield, in degrees
+              with the North (if u-v components) as zero and counter-clock-wise
+              rotation.
+
+        All methods and attributes are inherited from the `Obstype` class.
+
+        Parameters
+        ----------
+        obstype : metobs_toolkit.Obstype
+            The Obstype that represents the band in the GEE dataset.
+        model_unit : str
+            The units of the GEE bands. This can be found in the details of
+            the corresponding GEE dataset. This unit must be known by the obstype (
+            add it if it is not known).
+        model_band_u : str
+            The name of the band that represents the (U) component. This can be found in
+            the details of the GEE dataset.
+        model_band_v : str
+            The name of the band that represents the (V) component. This can be found in
+            the details of the GEE dataset.
+        amplitude_obstype_name : str
+            The name for the ModelObstype that represents the amplitude of
+            the vectorfield.
+        dirction_obstype_name : str
+            The name for the ModelObstype that represents the direction of the
+            vectorfield vectors.
+
+        Returns
+        -------
+        None
+
+        See also
+        ----------
+        Obstype: A regular observation type
+        ModelObstype_Vectorfield: A vector representation of a ModelObstype.
+
+        Note
+        --------
+        The U and V component can be defined as any combination of orthogonal
+        vectors. There is however no effect on the amplitude of the computed
+        vectors, but the zero-position of the vector direction can vary!
+
+        Note
+        ----------
+        The units of both components of the field must be the same.
+
+        Examples
+        ---------
+
+        As example, we create a `ModelObstype_Vectorfield` for 10m wind.
+        The windspeed (and direction) is often measured directly, but is stored
+        as wind components in a model or GEE dataset.
+
+        >>> import metobs_toolkit
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.gee_datasets['ERA5-land'].modelobstypes
+        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+
+
+        Note that there is by default already a `ModelObstype_Vectorfield` for
+        the wind. This example is thus purely illustrative.
+
+
+        We start by creating a (regular) `Obstype` that represents the components
+        of the components.
+
+        >>> wind_10m_component = metobs_toolkit.Obstype(
+        ...        "wind_10m",
+        ...        std_unit='m/s',
+        ...        description=' .. component of the 10m wind field ..',
+        ...        unit_aliases= {
+        ...                    "m/s": ["meters/second", "m/sec"],
+        ...                    "km/h": ["kilometers/hour", "kph"],
+        ...                    "mph": ["miles/hour"]},
+        ...        unit_conversions={
+        ...                    "km/h": ["x / 3.6"],
+        ...                    "mph": ["x * 0.44704"]})
+        >>> wind_10m_component
+        Obstype instance of wind_10m
+
+        Now we can create a `ModeObstype_Vectorfield` based on the `wind_10m_component`
+        definition.
+
+
+        >>> wind_10m_era5 = metobs_toolkit.ModelObstype_Vectorfield(
+        ...                        obstype=wind_10m_component,
+        ...                        model_unit="m/s", # see GEE dataset details
+        ...                        model_band_u="u_component_of_wind_10m",  # see GEE dataset details
+        ...                        model_band_v="v_component_of_wind_10m",  # see GEE dataset details
+        ...                        amplitude_obstype_name="wind_speed",
+        ...                        direction_obstype_name="wind_direction")
+
+        >>> wind_10m_era5
+        ModelObstype_Vectorfield instance of wind_10m (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+
+        If you want to use it for extracting data, add it to your dataset's Modeldata first.
+
+        >>> dataset.gee_datasets
+        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
+
+        >>> dataset.gee_datasets['ERA5-land'].add_modelobstype(wind_10m_era5)
+        >>> dataset.gee_datasets['ERA5-land'].get_info()
+        Empty GeeDynamicModelData instance of ERA5-land
+        ------ Details ---------
+        <BLANKLINE>
+         * name: ERA5-land
+         * location: ECMWF/ERA5_LAND/HOURLY
+         * value_type: numeric
+         * scale: 2500
+         * is_static: False
+         * is_image: False
+         * is_mosaic: False
+         * credentials:
+         * time res: 1h
+        <BLANKLINE>
+         -- Known Modelobstypes --
+        <BLANKLINE>
+         * temp : ModelObstype instance of temp (linked to band: temperature_2m)
+            (conversion: Kelvin --> Celsius)
+         * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
+            (conversion: pa --> pa)
+         * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+            vectorfield that will be converted to:
+              * wind_speed
+              * wind_direction
+            (conversion: m/s --> m/s)
+         * wind_10m : ModelObstype_Vectorfield instance of wind_10m (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+            vectorfield that will be converted to:
+              * wind_speed
+              * wind_direction
+            (conversion: m/s --> m/s)
+        <BLANKLINE>
+         -- Metadata --
+        <BLANKLINE>
+        No metadf is set.
+        <BLANKLINE>
+         -- Modeldata --
+        <BLANKLINE>
+        No model data is set.
+
+
+        """
 
         super().__init__(
             obsname=obstype.name,
@@ -240,396 +325,216 @@ class ModelObstype_Vectorfield(Obstype):
             unit_conversions=obstype.conv_table,
         )
 
-        if set(u_comp_model_equivalent_dict.keys()) != set(
-            v_comp_model_equivalent_dict.keys()
-        ):
-            sys.exit(
-                f"The mapped gee dataset are not equal for the vector components of {obstype.name}."
+        self.model_unit = str(model_unit)
+        self.model_band_u = str(model_band_u)
+        self.model_band_v = str(model_band_v)
+
+        self._amp_obs_name = str(amplitude_obstype_name)
+        self._dir_obs_name = str(direction_obstype_name)
+
+        self._check_validity()
+
+        # to make link with Obstype class
+        self.set_original_name(f"{model_band_u} and {model_band_v}")
+        self.set_original_unit(model_unit)
+
+    def _check_validity(self):
+        if self.model_unit not in self.get_all_units():
+            raise MetobsModelObstypeHandlingError(
+                f"{self.model_unit} is not a known unit of {self}."
             )
-
-        mod_comp_dict = {}
-        for geedataset in u_comp_model_equivalent_dict.keys():
-            mod_comp_dict[geedataset] = {
-                "u_comp": u_comp_model_equivalent_dict[geedataset],
-                "v_comp": v_comp_model_equivalent_dict[geedataset],
-            }
-
-        self.modl_comp_dict = mod_comp_dict
-        self.current_data_unit = None
-        self._is_valid()
-
-    def __repr__(self):
-        """Instance representation."""
-        return f"ModelObstype_Vectorfield instance of {self.name}"
 
     def __str__(self):
-        """Text representation."""
-        return f"ModelObstype_Vectorfield instance of {self.name}"
+        return f"{type(self).__name__} instance of {self.name} (linked to bands: {self.get_modelband_u()} and {self.get_modelband_v()})"
 
-    def get_info(self):
-        """Print out detailed information of the observation type.
+    def __repr__(self):
+        return str(self)
 
-        Returns
-        -------
-        None.
+    def get_modelunit(self):
+        return self.model_unit
 
-        """
-        u_databands = {
-            key: item["u_comp"]["name"] for key, item in self.modl_comp_dict.items()
-        }
-        v_databands = {
-            key: item["v_comp"]["name"] for key, item in self.modl_comp_dict.items()
-        }
-        info_str = f"{self.name} observation with: \n \
-    * Known Vector-East-component datasetsbands: {u_databands} \n \
-    * Known Vector-North-component datasetsbands: {v_databands} \n \
-    * standard unit: {self.std_unit} \n \
-    * description: {self.description} \n \
-    * conversions to known units: {self.conv_table} \n"
-        print(info_str)
+    def get_modelband_u(self):
+        return self.model_band_u
 
-    def get_mapped_datasets(self):
-        """Return all gee datasets with a representing band for this obstype."""
-        return list(self.modl_comp_dict.keys())
+    def get_modelband_v(self):
+        return self.model_band_v
 
-    # def get_bandname(self, mapname):
-    #     """Return the representing bandname of the obstype from a given gee dataset."""
-    #     return str(self.modl_equi_dict[mapname]['name'])
-
-    def get_bandname_mapper(self, mapname):
-        """Return the representing bandname with tlk standard name as a dict."""
-        mapper = {
-            str(self.modl_comp_dict[mapname]["u_comp"]["name"]): f"u_comp_{self.name}",
-            str(self.modl_comp_dict[mapname]["v_comp"]["name"]): f"v_comp_{self.name}",
-        }
-
-        return mapper
-
-    def get_modelunit(self, mapname):
-        """Return the units of the representing bandname of the obstype from a given gee dataset."""
-        # u and v comp must have the same units, this is tested in the _is_valid()
-        return str(self.modl_comp_dict[mapname]["u_comp"]["units"])
-
-    def get_current_data_unit(self):
-        """Get the current unit of the corresponding data."""
-        return self.current_data_unit
-
-    def setup_current_data_unit(self, mapname):
-        """Set the current data unit to the one define by the corresponding band."""
-        self.current_data_unit = self.get_modelunit(mapname=mapname)
-        return
-
-    def set_current_data_unit(self, current_data_unit):
-        """Set the current data unit."""
-        assert (
-            str(current_data_unit) in self.get_all_units()
-        ), f"{current_data_unit} is not a known unit for {self}."
-        self.current_data_unit = str(current_data_unit)
-        return
-
-    def has_mapped_band(self, mapname):
-        """Test is a gee dataset has a representing band."""
-        if mapname in self.modl_comp_dict.keys():
-            return True
-        else:
-            return False
-
-    def get_plot_y_label(self, mapname):
+    def _get_plot_y_label(self):
         """Return a string to represent the vertical axes of a plot."""
-        return f'{self.name} ({self.std_unit}) \n {mapname}: {self.modl_equi_dict[mapname]["u_comp"]["name"]} and {self.modl_equi_dict[mapname]["v_comp"]["name"]}'
+        return f"{self.name} ({self.std_unit})\n originates from {self.original_name}"
 
-    def get_u_column(self):
-        return f"u_comp_{self.name}"
+    def _compute_angle(self, df):
+        """Compute vector direction of 2D vectorfield components.
 
-    def get_v_column(self):
-        return f"v_comp_{self.name}"
-
-    def add_new_band(
-        self,
-        mapname,
-        bandname_u_comp,
-        bandname_v_comp,
-        bandunit,
-        band_desc_u_comp=None,
-        band_desc_v_comp=None,
-    ):
-        """Add a new representing dataset/bandname to the obstype.
+        The direction column is added to the dataframe and a new ModelObstype,
+        representing the angle is returned. The values represent the angles in
+        degrees, from north in clockwise rotation.
 
         Parameters
         ----------
-        mapname : str
-            name of the known gee dataset.
-        bandname_u_comp : str
-            the name of the representing the Eastwards component band.
-        bandname_v_comp : str
-            the name of the representing the Northwards component band.
-        bandunit : str
-            the unit of the representing bands.
-        band_desc_u_comp : str, optional
-            A detailed description of the Eastwards component of the band.
-        band_desc_v_comp : str, optional
-            A detailed description of the Northwards component of the band.
+        df : pandas.DataFrame
+            The dataframe with the vector components present as columns.
 
         Returns
         -------
-        None.
+        data : pandas.DataFrame
+            The df with an extra column representing the directions.
+        amplitude_obstype : ModelObstype
+            The (scalar) Modelobstype representation of the angles.
 
         """
-        # test if banunit is valid
-        if not self.test_if_unit_is_known(bandunit):
-            sys.exit(f"{bandunit} is an unknown unit for the {self.name} obstype.")
 
-        if mapname in self.modl_comp_dict.keys():
-            # check if band is already knonw
-            logger.debug(f"Update {bandname_u_comp} of (known) map: {mapname}")
-        else:
-            logger.debug(f"Add new map: {mapname} with band: {bandname_u_comp }.")
+        def unit_vector(vector):
+            """Returns the unit vector of the vector."""
+            return vector / np.linalg.norm(vector)
 
-        self.modl_comp_dict[mapname] = {}
-        self.modl_comp_dict[mapname]["u_comp"] = {
-            "name": str(bandname_u_comp),
-            "units": str(bandunit),
-            "band_desc": str(band_desc_u_comp),
-        }
-        self.modl_comp_dict[mapname]["v_comp"] = {
-            "name": str(bandname_v_comp),
-            "units": str(bandunit),
-            "band_desc": str(band_desc_v_comp),
-        }
+        def angle_between(u_comp, v_comp):
+            """Returns the angle in ° from North (CW) from 2D Vector components."""
 
-    def _is_valid(self):
-        """Test if all attributes are valid among each other."""
-        for datasetname in self.modl_comp_dict.keys():
-            for comp_str, comp in self.modl_comp_dict[datasetname].items():
-                # Check if unit is available
-                if "units" not in comp.keys():
-                    sys.exit(
-                        f"No units information is provided for {self.name} for {comp_str} modeldata_vectorfield: {datasetname}"
-                    )
-                # check if the unit is known
-                if not self.test_if_unit_is_known(unit_name=comp["units"]):
-                    sys.exit(
-                        f'Cannot create {self.name} ModelObstype_Vectorfield because {comp["units"]} is a unknown unit in the {comp_str}.'
-                    )
+            v2 = (u_comp, v_comp)
+            v1_u = unit_vector((0, 1))  # North unit arrow
+            v2_u = unit_vector(v2)
 
-            # check if the units of the u and v comp are equal
-            if (
-                len(
-                    set(
-                        [
-                            comp["units"]
-                            for comp in self.modl_comp_dict[datasetname].values()
-                        ]
-                    )
-                )
-                > 1
-            ):
-                sys.exit(
-                    f"The units of the u and v component for {self.name} in the {datasetname} dataset are not equal."
-                )
+            angle_rad = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+            angle_degrees = angle_rad * ((180.0 / math.pi))
+            # return angle_degrees
+            # fix the quadrants
+            if (v2[0] >= 0) & (v2[1] >= 0):
+                # N-E quadrant
+                return angle_degrees
+            if (v2[0] >= 0) & (v2[1] < 0):
+                # S-E quadrant
+                return angle_degrees
+            if (v2[0] < 0) & (v2[1] < 0):
+                # S-W quadrant
+                return 180.0 + (180.0 - angle_degrees)
+            if (v2[0] < 0) & (v2[1] >= 0):
+                # N-W quadrant
+                return 360.0 - angle_degrees
 
-    def convert_to_standard_units(self, input_df, input_unit):
-        """Convert data from a known unit to the standard unit.
+        u_column = self.get_modelband_u()
+        v_column = self.get_modelband_v()
 
-        The data must be a pandas dataframe with both the u and v component
-        prensent as columns.
+        data = df.apply(lambda x: angle_between(x[u_column], x[v_column]), axis=1)
+
+        # Create a new obstype for the direction
+        direction_obstype = Obstype(
+            obsname=self._dir_obs_name,
+            std_unit="° from north (CW)",
+            description=f"Direction of 2D-vector of {self.name} components.",
+            unit_aliases=direction_aliases,
+            unit_conversions={},
+        )
+        # convert to model obstype
+        direction_modelobstype = ModelObstype(
+            obstype=direction_obstype,
+            model_unit="° from north (CW)",  # indep of units
+            model_band=self._dir_obs_name,  # NOTE: this band does not exist, but column is created with this name by the toolkit
+        )
+        direction_modelobstype._originates_from_vectorfield = True
+
+        return data, direction_modelobstype
+
+    def compute_amplitude(self, df):
+        """Compute amplitude of 2D vectorfield components.
+
+        The amplitude column is added to the dataframe and a new ModelObstype,
+        representing the amplitude is returned. All attributes wrt the units are
+        inherited from the ModelObstype_vectorfield.
 
         Parameters
-        ----------
-        input_data : (collection of) numeric
-            The data to convert to the standard unit.
-        input_unit : str
-            The known unit the inputdata is in.
+        ------------
+        df : pandas.DataFrame
+            The dataframe with the vector components present as columns.
 
         Returns
         -------
-        data_u_component :  numeric/numpy.array
-            The u component of the data in standard units.
-        data_v_component :
-            The v component of the data in standard units.
+        data : pandas.DataFrame
+            The df with an extra column representing the amplitudes.
+        amplitude_obstype : ModelObstype
+            The (scalar) Modelobstype representation of the amplitudes.
 
         """
-        # check if input unit is known
-        known = self.test_if_unit_is_known(input_unit)
+        # Compute the data
+        data = (
+            (df[self.get_modelband_u()].pow(2)) + (df[self.get_modelband_v()].pow(2))
+        ).pow(1.0 / 2)
 
-        # error when unit is not know
-        if not known:
-            sys.exit(
-                f"{input_unit} is an unknown unit for {self.name}. No coversion possible!"
-            )
+        # Create a new Obstype for the amplitude
+        amplitude_obstype = Obstype(
+            obsname=self._amp_obs_name,
+            std_unit=self.std_unit,
+            description=f"2D-vector amplitde of {self.name} components.",
+            unit_aliases=self.units_aliases,
+            unit_conversions=self.conv_table,
+        )
 
-        # Get conversion
-        std_unit_name = self._get_std_unit_name(input_unit)
-        if std_unit_name == self.std_unit:
-            # No conversion needed because already the standard unit
-            return input_df[self.get_u_column()], input_df[self.get_v_column()]
+        # convert to model obstype
+        amplitude_modelobstype = ModelObstype(
+            obstype=amplitude_obstype,
+            model_unit=self.get_modelunit(),
+            model_band=self._amp_obs_name,
+        )  # NOTE: this band does not exist, but column is created with this name by the toolkit
+        amplitude_modelobstype._originates_from_vectorfield = True
 
-        conv_expr_list = self.conv_table[std_unit_name]
-
-        # covert data u component
-        data_u = input_df[self.get_u_column()]
-        data_v = input_df[self.get_v_column()]
-        for conv in conv_expr_list:
-            data_u = expression_calculator(conv, data_u)
-            data_v = expression_calculator(conv, data_v)
-
-        return data_u, data_v
-
-
-# %% New obs creator functions
-def compute_amplitude(modelobs_vectorfield, df):
-    """Compute amplitude of 2D vectorfield components.
-
-    The amplitude column is added to the dataframe and a new ModelObstype,
-    representing the amplitude is returned. All attributes wrt the units are
-    inherited from the ModelObstype_vectorfield.
-
-    Parameters
-    ----------
-    modelobs_vectorfield : ModelObstype_Vectorfield
-        The vectorfield observation type to compute the vector amplitudes for.
-    df : pandas.DataFrame
-        The dataframe with the vector components present as columns.
-
-    Returns
-    -------
-    data : pandas.DataFrame
-        The df with an extra column representing the amplitudes.
-    amplitude_obstype : ModelObstype
-        The (scalar) Modelobstype representation of the amplitudes.
-
-    """
-    # Compute the data
-    data = (
-        (df[modelobs_vectorfield.get_u_column()].pow(2))
-        + (df[modelobs_vectorfield.get_v_column()].pow(2))
-    ).pow(1.0 / 2)
-    # Create a new obstype for the amplitude
-    amplitude_obstype = Obstype(
-        obsname=f"{modelobs_vectorfield.name}_amplitude",
-        std_unit=modelobs_vectorfield.std_unit,
-        description=f"2D-vector amplitde of {modelobs_vectorfield.name} components.",
-        unit_aliases=modelobs_vectorfield.units_aliases,
-        unit_conversions=modelobs_vectorfield.conv_table,
-    )
-    # convert to model obstype
-    new_mod_equi = {}
-    for key, val in modelobs_vectorfield.modl_comp_dict.items():
-        new_mod_equi[key] = val["u_comp"]
-        new_mod_equi[key][
-            "name"
-        ] = f"{val['u_comp']['name']} and {val['v_comp']['name']}"
-
-    amplitude_obstype = ModelObstype(
-        amplitude_obstype, model_equivalent_dict=new_mod_equi
-    )
-
-    return data, amplitude_obstype
-
-
-def compute_angle(modelobs_vectorfield, df):
-    """Compute vector direction of 2D vectorfield components.
-
-    The direction column is added to the dataframe and a new ModelObstype,
-    representing the angle is returned. The values represents the angles in
-    degrees, from north in clock-wise rotation.
-
-    Parameters
-    ----------
-    modelobs_vectorfield : ModelObstype_Vectorfield
-        The vectorfield observation type to compute the vector directions for.
-    df : pandas.DataFrame
-        The dataframe with the vector components present as columns.
-
-    Returns
-    -------
-    data : pandas.DataFrame
-        The df with an extra column representing the directions.
-    amplitude_obstype : ModelObstype
-        The (scalar) Modelobstype representation of the angles.
-
-    """
-
-    def unit_vector(vector):
-        """Returns the unit vector of the vector."""
-        return vector / np.linalg.norm(vector)
-
-    def angle_between(u_comp, v_comp):
-        """Returns the angle in ° from North (CW) from 2D Vector components."""
-
-        v2 = (u_comp, v_comp)
-        v1_u = unit_vector((0, 1))  # North unit arrow
-        v2_u = unit_vector(v2)
-
-        angle_rad = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
-        angle_degrees = angle_rad * ((180.0 / math.pi))
-        # return angle_degrees
-        # fix the quadrants
-        if (v2[0] >= 0) & (v2[1] >= 0):
-            # N-E quadrant
-            return angle_degrees
-        if (v2[0] >= 0) & (v2[1] < 0):
-            # S-E quadrant
-            return angle_degrees
-        if (v2[0] < 0) & (v2[1] < 0):
-            # S-W quadrant
-            return 180.0 + (180.0 - angle_degrees)
-        if (v2[0] < 0) & (v2[1] >= 0):
-            # N-W quadrant
-            return 360.0 - angle_degrees
-
-    u_column = modelobs_vectorfield.get_u_column()
-    v_column = modelobs_vectorfield.get_v_column()
-
-    data = df.apply(lambda x: angle_between(x[u_column], x[v_column]), axis=1)
-    # Create a new obstype for the amplitude
-    direction_obstype = Obstype(
-        obsname=f"{modelobs_vectorfield.name}_direction",
-        std_unit="° from north (CW)",
-        description=f"Direction of 2D-vector of {modelobs_vectorfield.name} components.",
-        unit_aliases=direction_aliases,
-        unit_conversions={},
-    )
-    # convert to model obstype
-    new_mod_equi = {}
-    for key, val in modelobs_vectorfield.modl_comp_dict.items():
-        new_mod_equi[key] = val["u_comp"]
-        new_mod_equi[key][
-            "name"
-        ] = f"{val['u_comp']['name']} and {val['v_comp']['name']}"
-        new_mod_equi[key]["units"] = "° from north (CW)"
-
-    direction_obstype = ModelObstype(
-        direction_obstype, model_equivalent_dict=new_mod_equi
-    )
-    return data, direction_obstype
+        return data, amplitude_modelobstype
 
 
 # =============================================================================
-# Define obstypes
+# Define era5 default obstypes
 # =============================================================================
 
-temp_model = ModelObstype(
-    temperature, model_equivalent_dict=tlk_std_modeldata_obstypes["temp"]
+temp_era5 = ModelObstype(
+    obstype=temperature, model_unit="Kelvin", model_band="temperature_2m"
 )
-pressure_model = ModelObstype(
-    pressure, model_equivalent_dict=tlk_std_modeldata_obstypes["pressure"]
-)
-
-# Special obstypes
-wind_speed.name = "wind_speed"
-wind_model = ModelObstype_Vectorfield(
-    wind_speed,
-    u_comp_model_equivalent_dict=tlk_std_modeldata_obstypes["u_wind"],
-    v_comp_model_equivalent_dict=tlk_std_modeldata_obstypes["v_wind"],
+temp_era5.set_description(
+    "Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth's surface, taking account of the atmospheric conditions."
 )
 
 
+pressure_era5 = ModelObstype(
+    obstype=pressure, model_unit="pa", model_band="surface_pressure"
+)
+pressure_era5.set_description(
+    "Pressure (force per unit area) of the atmosphere on the surface of land, sea and in-land water. It is a measure of the weight of all the air in a column vertically above the area of the Earth's surface represented at a fixed point. Surface pressure is often used in combination with temperature to calculate air density. The strong variation of pressure with altitude makes it difficult to see the low and high pressure systems over mountainous areas, so mean sea level pressure, rather than surface pressure, is normally used for this purpose. The units of this variable are Pascals (Pa). Surface pressure is often measured in hPa and sometimes is presented in the old units of millibars, mb (1 hPa = 1 mb = 100 Pa).",
+)
+
+
+# create a new obstype that represent the vectorfield of wind
+wind_components = Obstype(
+    "wind",
+    std_unit=wind_speed.get_standard_unit(),
+    description=None,
+    unit_aliases=wind_speed.units_aliases,
+    unit_conversions=wind_speed.conv_table,
+)
+
+wind_era5 = ModelObstype_Vectorfield(
+    obstype=wind_components,
+    model_unit="m/s",
+    model_band_u="u_component_of_wind_10m",
+    model_band_v="v_component_of_wind_10m",
+    amplitude_obstype_name="wind_speed",
+    direction_obstype_name="wind_direction",
+)
+wind_era5.set_description(
+    "2D-vector combined 10m windspeed. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System."
+)
+
+
+default_era5_obstypes = [temp_era5, pressure_era5, wind_era5]
+
+
+class MetobsModelObstypeHandlingError(Exception):
+    """Exception raised for errors in the ModelObstype"""
+
+    pass
+
+
 # =============================================================================
-# Create obstype dict
+# Docstring test
 # =============================================================================
-model_obstypes = {
-    "temp": temp_model,
-    "pressure": pressure_model,
-    "wind_speed": wind_model,
-}
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

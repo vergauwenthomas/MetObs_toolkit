@@ -33,7 +33,7 @@ def read_in_the_dataset(dataname, testdatadict):
     # kwargsdict = testdatadict[dataname]["kwargs"]
 
     dataset = metobs_toolkit.Dataset()
-    dataset.update_settings(
+    dataset.update_file_paths(
         input_data_file=datafile,
         input_metadata_file=metafile,
         template_file=template,
@@ -54,7 +54,7 @@ def IO_test(dataset, name):
             print(f"{file_path} not found.")
 
     # Sycnronize data
-    test = dataset.sync_observations(tolerance="5min")
+    test = dataset.sync_records(timestamp_shift_tolerance="5min")
 
     # pickel test
     outfolder = os.path.join(str(lib_folder), "tests", "test_data")
@@ -70,8 +70,7 @@ def IO_test(dataset, name):
     del dataset  # remove from kernel
 
     # read dataset
-    new_dataset = metobs_toolkit.Dataset()
-    new_dataset = new_dataset.import_dataset(
+    new_dataset = metobs_toolkit.import_dataset(
         folder_path=outfolder, filename=file + ".pkl"
     )
 
@@ -153,7 +152,7 @@ def analysis_test(dataset, name):
 
     # Test plotting and functions
     temp_diurnal = an.get_diurnal_statistics(colorby="lcz", title=name)
-    an.get_anual_statistics(agg_method="median", plot=False)
+    an.get_annual_statistics(agg_method="median", plot=False)
     test3 = an.get_aggregated_cycle_statistics(aggregation=["lcz"], title=name)
 
     print(an)

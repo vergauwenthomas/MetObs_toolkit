@@ -15,7 +15,7 @@
             {
                 "tlk_obstype": "temp",
                 "columnname": "temperature air",
-                "unit": "Kelvin",
+                "unit": "Celcius",
                 "description": "1"
             },
             {

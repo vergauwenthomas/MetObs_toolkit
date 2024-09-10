@@ -21,43 +21,6 @@ logger = logging.getLogger(__name__)
 pd.options.mode.copy_on_write = True
 
 
-def fmt_datetime_argument(dt, target_tz_str):
-    """Convert naive datetime to tz-aware.
-
-    Helper function to format the datetime, a user enters as argument, to the
-    correct timezone.
-
-    If the datetime is timezone unaware, the toolkit ASSUMES the dt is in the
-    same timezone as target_tz_str (the timezone of the dataset).
-
-    if dt is None, None is returned
-    Parameters
-    ----------
-    dt : datetime.datetime
-        A datetime to convert to the timezone of tz_str_data.
-    target_tz_str : str
-        a pytz timezone string, to convert/assign the dt to.
-
-    Returns
-    -------
-    dt : datetime.datetime
-        Timezone-Aware datetime in tzone=tz_str_data.
-
-    """
-    if dt is None:
-        return None
-
-    # check if datime is timezone aware
-    if dt.tzinfo is not None and dt.tzinfo.utcoffset(dt) is not None:
-        # timezone aware
-        dt = dt.astimezone(pytz.timezone(target_tz_str))
-
-    else:  # timezon unaware
-        # assume timezone is the timezone of the data!
-        dt = pytz.timezone(target_tz_str).localize(dt)
-    return pd.to_datetime(dt)
-
-
 def xs_save(df, key, level, drop_level=True):
     """Similar as pandas xs, but returns an empty df when key is not found."""
     try:
@@ -80,12 +43,15 @@ def xs_save(df, key, level, drop_level=True):
     return pd.DataFrame(index=idx, columns=columns)
 
 
-def concat_save(df_list, **kwargs):
+def concat_save(df_list, keep_all_nan_cols=False, **kwargs):
     """Concat dataframes row-wise without triggering the Futurwarning of concating empyt df's."""
 
     if all([isinstance(df, pd.DataFrame) for df in df_list]):
-        # This line will filter columns with all NAN values (so empty dfs + all NA entries are filtered out)
-        return pd.concat([df.dropna(axis=1, how="all") for df in df_list], **kwargs)
+        if keep_all_nan_cols:
+            return pd.concat(df_list, **kwargs)
+        else:
+            # This line will filter columns with all NAN values (so empty dfs + all NA entries are filtered out)
+            return pd.concat([df.dropna(axis=1, how="all") for df in df_list], **kwargs)
     if all([isinstance(df, pd.Series) for df in df_list]):
         # This line will filter out empty series
         return pd.concat([ser for ser in df_list if not ser.empty], **kwargs)
@@ -104,122 +70,16 @@ def init_multiindexdf():
     return pd.DataFrame(index=init_multiindex())
 
 
-def init_triple_multiindex():
-    """Construct a name-datetime-obstype pandas multiindex."""
+def empty_outliers_df():
+    """Construct an empty outliersdf."""
     my_index = pd.MultiIndex(
-        levels=[["name"], ["datetime"], ["obstype"]],
+        levels=[["name"], ["obstype"], ["datetime"]],
         codes=[[], [], []],
-        names=["name", "datetime", "obstype"],
-    )
-    return my_index
-
-
-def init_triple_multiindexdf():
-    """Construct a name-datetime-obstype pandas multiindexdataframe."""
-    return pd.DataFrame(index=init_triple_multiindex())
-
-
-def format_outliersdf_to_doubleidx(outliersdf):
-    """Convert outliersdf to multiindex dataframe if needed.
-
-    This is applied when the obstype level in the index is not relevant.
-
-
-    Parameters
-    ----------
-    ouliersdf : Dataset.outliersdf
-        The outliers dataframe to format to name - datetime index.
-
-    Returns
-    -------
-    pandas.DataFrame
-        The outliersdfdataframe where the 'obstype' level is dropped, if it was present.
-
-    """
-    if "obstype" in outliersdf.index.names:
-        return outliersdf.droplevel("obstype")
-    else:
-        return outliersdf
-
-
-def value_labeled_doubleidxdf_to_triple_idxdf(
-    df, known_obstypes, value_col_name="value", label_col_name="label"
-):
-    """Convert double to triple index based on obstype column.
-
-    This function converts a double index dataframe with an 'obstype' column,
-    and a 'obstype_final_label' column to a triple index dataframe where the
-    obstype values are added to the index.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataframe with ['name', 'datetime'] as index and two columns: [obstype, obstype_final_label].
-        Where obstype is an observation type.
-    known_obstypes : list
-        A list of known observation types. These consist of the default
-        obstypes and the ones added by the user.
-    value_col_name : str, optional
-        Name of the column for the values. The default is 'value'.
-    label_col_name : str, optional
-        Name of the column for the labels. The default is 'label'.
-
-    Returns
-    -------
-    values : pd.DataFrame()
-        Dataframe with a ['name', 'datetime', obstype] index and two columnd:
-            [value_col_name, label_col_name]
-
-    """
-    if df.empty:
-        return df
-
-    present_obstypes = [col for col in df.columns if col in known_obstypes]
-
-    # get all values in triple index form
-    values = (
-        df[present_obstypes]
-        .stack(future_stack=True)
-        .reset_index()
-        .rename(columns={"level_2": "obstype", 0: value_col_name})
-        .set_index(["name", "datetime", "obstype"])
+        names=["name", "obstype", "datetime"],
     )
 
-    # make a triple label dataframe
-    labelsdf = pd.DataFrame()
-    for obstype in present_obstypes:
-        subdf = df.loc[:, [obstype + "_final_label"]]
-        subdf["obstype"] = obstype
-        subdf = subdf.reset_index()
-        subdf = subdf.set_index(["name", "datetime", "obstype"])
-        subdf = subdf.rename(columns={obstype + "_final_label": label_col_name})
-
-        labelsdf = concat_save([labelsdf, subdf])
-
-    values[label_col_name] = labelsdf[label_col_name]
-
-    return values
-
-
-def _find_closes_occuring_date(refdt, series_of_dt, where="before"):
-    if where == "before":
-        diff = refdt - (series_of_dt[series_of_dt < refdt])
-    elif where == "after":
-        diff = (series_of_dt[series_of_dt > refdt]) - refdt
-
-    if diff.empty:
-        # no occurences before of after
-
-        return np.nan
-    else:
-        return min(diff).total_seconds()
-
-
-def remove_outliers_from_obs(obsdf, outliersdf):
-    """Remove outlier records from observation records."""
-    # TODO this function can only be used with care!!!
-    # because all timestamps will be removed that have an oulier in one specific obstype !!!!
-    return obsdf.loc[~obsdf.index.isin(outliersdf.index)]
+    outliersdf = pd.DataFrame(index=my_index, columns=["value", "label"])
+    return outliersdf
 
 
 def conv_tz_multiidxdf(df, timezone):
@@ -353,32 +213,77 @@ def datetime_subsetting(df, starttime, endtime):
     return subset
 
 
-def conv_applied_qc_to_df(obstypes, ordered_checknames):
-    """Construct dataframe with applied QC info."""
-    if isinstance(obstypes, str):
-        obstypes = [obstypes]
-    if isinstance(ordered_checknames, str):
-        ordered_checknames = [ordered_checknames]
-
-    obslist = list(
-        itertools.chain.from_iterable(
-            itertools.repeat(item, len(ordered_checknames)) for item in obstypes
-        )
-    )
-
-    checknamelist = list(
-        itertools.chain.from_iterable(
-            itertools.repeat(ordered_checknames, len(obstypes))
-        )
-    )
-
-    df = pd.DataFrame({"obstype": obslist, "checkname": checknamelist})
-    return df
-
-
 # =============================================================================
 # Records frequencies
 # =============================================================================
+
+
+def _simplify_time(time, max_simplyfi_error, zero_protection=False):
+    """Simplifies a time (or timedelta) to a rounded value, within a tolerance.
+
+    time can be a timestamp of a timedelta.
+
+    zero_protections make shure that the returned simplified time is not zero.
+    This is in practice used when applied to frequencies.
+    """
+    # 1 try simplyfy to round hours
+    hourly_candidate = time.round("h")
+    if zero_protection:
+        if hourly_candidate == pd.Timedelta(0):
+            hourly_candidate = time.ceil(
+                "h"
+            )  # try the ceil as candidate (is never zero)
+
+    if abs(time - hourly_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return hourly_candidate
+
+    # 2  half_hourly_candidate
+    halfhourly_candidate = time.round("30min")
+    if zero_protection:
+        if halfhourly_candidate == pd.Timedelta(0):
+            halfhourly_candidate = time.ceil(
+                "30min"
+            )  # try the ceil as candidate (is never zero)
+    if abs(time - halfhourly_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return halfhourly_candidate
+
+    # 3. 10min fold
+    tenmin_candidate = time.round("10min")
+    if zero_protection:
+        if tenmin_candidate == pd.Timedelta(0):
+            tenmin_candidate = time.ceil(
+                "10min"
+            )  # try the ceil as candidate (is never zero)
+    if abs(time - tenmin_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return tenmin_candidate
+
+    # 4. 5min fold
+    fivemin_candidate = time.round("5min")
+    if zero_protection:
+        if fivemin_candidate == pd.Timedelta(0):
+            fivemin_candidate = time.ceil(
+                "5min"
+            )  # try the ceil as candidate (is never zero)
+    if abs(time - fivemin_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return fivemin_candidate
+
+    # 5. min fold
+    min_candidate = time.round("min")
+    if zero_protection:
+        if min_candidate == pd.Timedelta(0):
+            min_candidate = time.ceil(
+                "1min"
+            )  # try the ceil as candidate (is never zero)
+    if abs(time - min_candidate) < pd.to_timedelta(max_simplyfi_error):
+        return min_candidate
+
+    # 6. No simplyfication posible
+    if zero_protection:
+        if time == pd.Timedelta(0):
+            raise MetobsDfHelpersError()
+    return time
+
+
 def get_likely_frequency(
     timestamps, method="highest", simplify=True, max_simplify_error="2min"
 ):
@@ -534,3 +439,11 @@ def get_freqency_series(df, method="highest", simplify=True, max_simplify_error=
             freqs[prob_station] = assign_med_freq
 
     return pd.Series(data=freqs)
+
+
+class MetobsDfHelpersError(Exception):
+    """Exception raised for errors in the datasetgaphandling."""
+
+    def __init__(self):
+        message = f"This error is likely due to a Bug. Please report this as an issue on the GitHub repository."
+        super().__init__(message)

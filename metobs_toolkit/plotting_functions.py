@@ -20,12 +20,15 @@ from matplotlib.lines import Line2D
 import matplotlib.dates as mdates
 from matplotlib.collections import LineCollection
 
+
 import branca
 import branca.colormap as brcm
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
+
+import geemap
 import geemap.foliumap as foliumap
 import folium
 from folium import plugins as folium_plugins
@@ -33,40 +36,31 @@ from folium import plugins as folium_plugins
 from metobs_toolkit.geometry_functions import find_plot_extent
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from metobs_toolkit.landcover_functions import get_ee_obj
+# from metobs_toolkit.landcover_functions import get_ee_obj
 from metobs_toolkit.df_helpers import xs_save
+from metobs_toolkit.settings_files.default_formats_settings import (
+    label_def,
+    gapfill_label_group,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def folium_plot(
-    mapinfo,
-    band,
-    vis_params,
-    labelnames,
-    layername,
-    basemap="SATELLITE",
-    legendname=None,
-    legendpos="bottomleft",
-):
-    """Make an interactive folium plot of an Image."""
-    # get the ee.Image
-    im = get_ee_obj(mapinfo, band)
+def folium_map():
+    Map = geemap.foliumap.Map(add_google_map=False)
+    return Map
 
-    # make plot
-    MAP = foliumap.Map()
-    if basemap:
-        MAP.add_basemap(basemap)
-    MAP.add_layer(im, vis_params, layername)
-    if legendname:
-        MAP.add_legend(
-            title=legendname,
-            labels=labelnames,
-            colors=vis_params.get("palette"),
-            position=legendpos,
-        )
 
-    return MAP
+def add_title_to_folium_map(title, Map):
+    loc = "Corpus Christi"
+    title_html = """
+                 <h3 align="center" style="font-size:20px"><b>{}</b></h3>
+                 """.format(
+        title
+    )
+
+    Map.get_root().html.add_child(folium.Element(title_html))
+    return Map
 
 
 def add_stations_to_folium_map(Map, metadf):
@@ -97,7 +91,7 @@ def make_cat_colormapper(catlist, cmapname):
     """Create a dictionary {cat : color} for a list of categorical values.
 
     If the colormap has more colors than the catlist, optimal color distance is
-    done. If a colormap has less colors than unique categories, the categories are grourped.
+    done. If a colormap has fewer colors than unique categories, the categories are grouped.
 
     Parameters
     ----------
@@ -310,7 +304,7 @@ def geospatial_plot(
         Name of the variable to plot.
     timeinstance : datetime.datetime
         The timeinstance to plot the variable for, if the variable is
-        timedependant.
+        time-dependant.
     title : str
         Title of the figure.
     legend : bool
@@ -325,12 +319,12 @@ def geospatial_plot(
         A list of variables that are interpreted to be categorical, so to use
         a categorical coloring scheme.
     static_fields : bool
-        If True the variable is assumed to be time independant.
+        If True the variable is assumed to be time independent.
     display_name_mapper : dict
         Must contain at least {varname: varname_str_rep}, where the
         varname_str_rep is the string representation of the variable to plot.
     boundbox : shapely.box
-        The boundbox to represent the spatial extend of the plot.
+        The boundbox to represent the spatial extent of the plot.
 
     Returns
     -------
@@ -342,7 +336,7 @@ def geospatial_plot(
     default_settings = plotsettings["spatial_geo"]
 
     # subset to obstype
-    plotdf = plotdf[[variable, "geometry"]]
+    plotdf = plotdf[["plot_value", "geometry"]]
 
     # Subset to the stations that have coordinates
     ignored_stations = plotdf[plotdf["geometry"].isnull()]
@@ -426,8 +420,8 @@ def _spatial_plot(
     else:
         scheme = None
         if isinstance(vmin, type(None)) | isinstance(vmax, type(None)):
-            vmin = gdf[variable].min()
-            vmax = gdf[variable].max()
+            vmin = gdf["plot_value"].min()
+            vmax = gdf["plot_value"].max()
 
     if is_categorical:
         # categorical legend
@@ -446,7 +440,7 @@ def _spatial_plot(
 
     # add observations as scatters
     gdf.plot(
-        column=variable,
+        column="plot_value",
         scheme=scheme,
         cmap=cmap,
         vmin=vmin,
@@ -497,7 +491,7 @@ def _sorting_function(label_vec, custom_handles, number_of_labels_types=4):
 
 
 def _format_datetime_axis(axes):
-    """Set the xaxes to autodateformat."""
+    """Set the x-axes to autodateformat."""
     xtick_locator = mdates.AutoDateLocator()
     xtick_formatter = mdates.AutoDateFormatter(xtick_locator)
 
@@ -510,7 +504,8 @@ def _create_linecollection(
     linedf,
     colormapper,
     linestylemapper,
-    plotsettings,
+    linewidth=2,
+    linezorder=1,
     const_color=None,
     value_col_name="value",
     label_col_name="label",
@@ -533,8 +528,8 @@ def _create_linecollection(
         color = linedf[label_col_name].map(colormapper).to_list()
     else:
         color = [const_color] * linedf.shape[0]
-    linewidth = [plotsettings["time_series"]["linewidth"]] * linedf.shape[0]
-    zorder = plotsettings["time_series"]["linezorder"]
+    linewidth = [linewidth] * linedf.shape[0]
+    zorder = linezorder
     linestyle = linedf[label_col_name].map(linestylemapper).fillna("-").to_list()
 
     # 4. Make line collection
@@ -592,7 +587,7 @@ def timeseries_plot(
     ax : matplotlib.pyplot.axes
         The plotted axes.
     colormapper : dict
-        The use colormap.
+        The used colormap.
 
     """
     plot_settings = settings.app["plot_settings"]
@@ -612,40 +607,45 @@ def timeseries_plot(
 
     # define different groups (different plotting styles)
     # ok group
-    ok_labels = ["ok"]
+    ok_labels = [label_def["goodrecord"]["label"]]
 
     # filled value groups
-    fill_labels = [val for val in settings.gap["gaps_fill_info"]["label"].values()]
-    missing_fill_labels = [
-        val for val in settings.missing_obs["missing_obs_fill_info"]["label"].values()
-    ]
-    fill_labels.extend(missing_fill_labels)
+    fill_labels = [label_def[group]["label"] for group in gapfill_label_group]
 
     # qc outlier labels
-    qc_labels = [
-        val["outlier_flag"] for key, val in settings.qc["qc_checks_info"].items()
+    outliergroups = [
+        # 'duplicated_timestamp', #NO value to display
+        # 'invalid_input', #NO value to display
+        "gross_value",
+        "persistence",
+        "repetitions",
+        "step",
+        "window_variation",
+        "buddy_check",
+        "titan_buddy_check",
+        "titan_sct_resistant_check",
     ]
+    qc_labels = [label_def[qc_group]["label"] for qc_group in outliergroups]
 
     # no value group
     no_vals_labels = [
-        settings.gap["gaps_info"]["gap"]["outlier_flag"],
-        settings.gap["gaps_info"]["missing_timestamp"]["outlier_flag"],
+        label_def["regular_gap"]["label"],
+        # duplicated timestamp and invalid input outliers do not have a known value, so add them to this group
+        label_def["invalid_input"]["label"],
+        label_def["duplicated_timestamp"]["label"],
+        # all failed gapfill labels
+        label_def["failed_interpolation_gap"]["label"],
+        label_def["failed_raw_modeldata_fill"]["label"],
+        label_def["failed_debias_modeldata_fill"]["label"],
+        label_def["failed_diurnal_debias_modeldata_fill"]["label"],
+        label_def["failed_weighted_diurnal_debias_modeldata_fill"]["label"],
     ]
-    # duplicated timestamp and invalid input outliers do not have a known value, so add them to this group
-    no_vals_labels.append(
-        settings.qc["qc_checks_info"]["duplicated_timestamp"]["outlier_flag"]
-    )
-    no_vals_labels.append(
-        settings.qc["qc_checks_info"]["invalid_input"]["outlier_flag"]
-    )
-
-    # no_vals_df = mergedf[mergedf['label'].isin(no_vals_labels)]
 
     if colorby == "label":
 
         # aggregate groups and make styling mappers
 
-        col_mapper = _all_possible_labels_colormapper(settings)  # get color mapper
+        col_mapper = _all_possible_labels_colormapper()  # get color mapper
 
         # linestyle mapper
         line_mapper = {
@@ -656,11 +656,15 @@ def timeseries_plot(
         )
 
         # set hight of the vertical lines for no vals
-        vlin_min = mergedf[mergedf["label"] == "ok"]["value"].min()
-        vlin_max = mergedf[mergedf["label"] == "ok"]["value"].max()
+        vlin_min = mergedf[mergedf["label"] == label_def["goodrecord"]["label"]][
+            "value"
+        ].min()
+        vlin_max = mergedf[mergedf["label"] == label_def["goodrecord"]["label"]][
+            "value"
+        ].max()
 
         # line labels
-        line_labels = ["ok"]
+        line_labels = [label_def["goodrecord"]["label"]]
         line_labels.extend(fill_labels)
 
         # ------ missing obs ------ (vertical lines)
@@ -710,7 +714,7 @@ def timeseries_plot(
                 linedf=stadf,
                 colormapper=col_mapper,
                 linestylemapper=line_mapper,
-                plotsettings=plot_settings,
+                # plotsettings=plot_settings,
             )
             ax.add_collection(sta_line_lc)
 
@@ -724,7 +728,13 @@ def timeseries_plot(
 
                 if label in ok_labels:
                     custom_handles.append(
-                        Line2D([0], [0], color=outl_color, label="ok", lw=4)
+                        Line2D(
+                            [0],
+                            [0],
+                            color=outl_color,
+                            label=label_def["goodrecord"]["label"],
+                            lw=4,
+                        )
                     )
                     label_vec.append(1)
 
@@ -786,7 +796,7 @@ def timeseries_plot(
 
     elif colorby == "name":
         # subset obs to plot
-        line_labels = ["ok"]
+        line_labels = [label_def["goodrecord"]["label"]]
         if show_outliers:
             line_labels.extend(qc_labels)
         if show_filled:
@@ -821,7 +831,7 @@ def timeseries_plot(
                 colormapper=None,
                 const_color=col_mapper[sta],
                 linestylemapper=line_style_mapper,
-                plotsettings=plot_settings,
+                # plotsettings=plot_settings,
             )
             ax.add_collection(sta_line_lc)
 
@@ -871,11 +881,16 @@ def model_timeseries_plot(
     obstype,
     title,
     ylabel,
-    settings,
+    # settings,
     show_primary_legend,
     add_second_legend=True,
     _ax=None,  # needed for GUI, not recommended use
     colorby_name_colordict=None,
+    figsize=(15, 5),
+    colormap="tab20",
+    legend_n_columns=5,
+    linewidth=2,
+    linezorder=1,
 ):
     """Make a timeseries plot for modeldata.
 
@@ -891,10 +906,8 @@ def model_timeseries_plot(
         Title of the figure.
     ylabel : str
         The label for the vertical axes.
-    settings : dict, optional
-        The default plotting settings.
     show_primary_legend : bool
-        If True, all stationnames with corresponding color are presented in a
+        If True, all stationnames with corresponding colors are presented in a
         legend.
     add_second_legend : bool, optional
         If True, a small legend is added indicating the solid lines are
@@ -905,19 +918,34 @@ def model_timeseries_plot(
     colorby_name_colorscheme : dict
         A colormapper for the station names. If None, a new colormapper will
         be created. The default is None.
+    figsize: tuple, optional
+        Passed to matplotlib.pyplot.subplots method when _ax is None. The
+        default is (15,5).
+    colormap : str, optional
+        The name of the colormap to use when colorby_name_colorscheme is None.
+        The default is "tab20".
+    legend_n_columns: int, optional
+        The number of columns in the legend if show_primary_legend is True. The
+        default is 5.
+    linewidth: int, optional.
+        The width of the plotted lines. The default is 2.
+    linezorder: int, optional.
+        The zorder of the lines in the plot. The default is 1.
+
+
 
     Returns
     -------
     ax : matplotlib.pyplot.axes
         The plotted axes.
     colormapper : dict
-        The use colormap.
+        The used colormap.
     """
-    plot_settings = settings.app["plot_settings"]
+    # plot_settings = settings.app["plot_settings"]
 
     if isinstance(_ax, type(None)):
         # init figure
-        fig, ax = plt.subplots(figsize=plot_settings["time_series"]["figsize"])
+        fig, ax = plt.subplots(figsize=figsize)
     else:
         ax = _ax
 
@@ -935,7 +963,7 @@ def model_timeseries_plot(
     if colorby_name_colordict is None:
         col_mapper = make_cat_colormapper(
             df.index.get_level_values("name").unique(),
-            plot_settings["time_series"]["colormap"],
+            colormap,
         )
     else:
         col_mapper = colorby_name_colordict
@@ -950,7 +978,8 @@ def model_timeseries_plot(
             colormapper=None,
             const_color=col_mapper[sta],
             linestylemapper=line_style_mapper,
-            plotsettings=plot_settings,
+            linewidth=linewidth,
+            linezorder=linezorder,
         )
         ax.add_collection(sta_line_lc)
 
@@ -977,7 +1006,7 @@ def model_timeseries_plot(
             bbox_to_anchor=(0.5, -0.2),
             fancybox=True,
             shadow=True,
-            ncol=plot_settings["time_series"]["legend_n_columns"],
+            ncol=legend_n_columns,
         )
         ax.add_artist(primary_legend)
 
@@ -1014,12 +1043,11 @@ def cycle_plot(
     title,
     plot_settings,
     aggregation,
-    obstype,
     y_label,
     legend,
     show_zero_horizontal=False,
 ):
-    """Plot a cycle as a lineplot.
+    """Plot a cycle as a line-plot.
 
 
     Parameters
@@ -1033,9 +1061,7 @@ def cycle_plot(
     plot_settings : dict
         The cycle-specific settings.
     aggregation : list
-        A list of strings to indicate the group defenition.
-    obstype : str
-        The observation type to plot.
+        A list of strings to indicate the group definition.
     y_label : str
         The label for the vertical axes.
     legend : bool
@@ -1058,7 +1084,7 @@ def cycle_plot(
     else:
         cmap = plot_settings["cmap_continious"]
 
-    cycledf.plot(ax=ax, title=title, legend=False, cmap=cmap)
+    cycledf.plot(ax=ax, title=title, ylabel=y_label, legend=False, cmap=cmap)
     if legend:
         box = ax.get_position()
         ax.set_position(
@@ -1158,7 +1184,7 @@ def correlation_scatter(
 ):
     """Plot the correlation variation as a scatterplot.
 
-    The statistical significance is indicate by the scattertype.
+    The statistical significance is indicated by the scattertype.
 
     Parameters
     ----------
@@ -1166,7 +1192,7 @@ def correlation_scatter(
         A dictionary containing the 'cor matrix', and 'significance matrix'
         keys and corresponding matrices.
     groupby_labels : str or list
-        The groupdefenition that is used for the xaxes label.
+        The groupdefenition that is used for the x-axes label.
     obstypes : str
         The observation type to plot the correlations of.
     title : str
@@ -1250,7 +1276,7 @@ def correlation_scatter(
         to_scatter = to_scatter.reset_index()
 
         # plot per scatter group
-        scatter_groups = to_scatter.groupby("markers")
+        scatter_groups = to_scatter.groupby("markers", observed=True)
         for marker, markergroup in scatter_groups:
             markergroup.plot(
                 x="group",
@@ -1320,7 +1346,7 @@ def _make_pie_from_freqs(
         # add a 100% no occurences to it, so it can be plotted
         no_oc_df = pd.DataFrame(
             index=["No occurences"],
-            data={"freq": [100.0], "color": [plot_settings["color_mapper"]["ok"]]},
+            data={"freq": [100.0], "color": [label_def["goodrecord"]["color"]]},
         )
         stats = pd.concat([stats, no_oc_df])
 
@@ -1341,74 +1367,27 @@ def _make_pie_from_freqs(
     return ax
 
 
-def _outl_value_to_colormapper(plot_settings, qc_check_info):
-    """Make color mapper for the outlier LABELVALUES to colors."""
-    color_defenitions = plot_settings["color_mapper"]
-    outl_name_mapper = {val["outlier_flag"]: key for key, val in qc_check_info.items()}
-    outl_col_mapper = {
-        outl_type: color_defenitions[outl_name_mapper[outl_type]]
-        for outl_type in outl_name_mapper.keys()
-    }
-    return outl_col_mapper
-
-
-def _all_possible_labels_colormapper(settings):
+def _all_possible_labels_colormapper():
     """Make color mapper for all LABELVALUES to colors."""
-    plot_settings = settings.app["plot_settings"]
-    gap_settings = settings.gap
-    qc_info_settings = settings.qc["qc_checks_info"]
-    missing_obs_settings = settings.missing_obs["missing_obs_fill_info"]
 
-    color_defenitions = plot_settings["color_mapper"]
-
-    mapper = dict()
-
-    # get QC outlier labels
-
-    outl_col_mapper = _outl_value_to_colormapper(
-        plot_settings=plot_settings, qc_check_info=qc_info_settings
-    )
-    mapper.update(outl_col_mapper)
-
-    # get 'ok' and 'not checked'
-    mapper["ok"] = color_defenitions["ok"]
-    mapper["not checked"] = color_defenitions["not checked"]
-
-    # update gap and missing timestamp labels
-    mapper[gap_settings["gaps_info"]["gap"]["outlier_flag"]] = color_defenitions["gap"]
-    mapper[gap_settings["gaps_info"]["missing_timestamp"]["outlier_flag"]] = (
-        color_defenitions["missing_timestamp"]
-    )
-
-    # add fill for gaps
-    for method, label in gap_settings["gaps_fill_info"]["label"].items():
-        mapper[label] = color_defenitions[method]
-
-    # add fill for missing
-    for method, label in missing_obs_settings["label"].items():
-        mapper[label] = color_defenitions[method]
-
+    mapper = {group["label"]: group["color"] for group in label_def.values()}
     return mapper
 
 
-def qc_stats_pie(
-    final_stats, outlier_stats, specific_stats, plot_settings, qc_check_info, title
-):
+def qc_stats_pie(final_stats, outlier_stats, specific_stats, plot_settings, title):
     """Make overview Pie-plots for the frequency statistics of labels.
 
     Parameters
     ----------
     final_stats : dict
-        Dictionary containing occurence frequencies for all labels.
+        Dictionary containing occurrence frequencies for all labels.
     outlier_stats : dict
         Dictionary with frequency statistics of outlier-labels.
     specific_stats : dict
-        Dictionary containing the effectiviness of quality control checks
+        Dictionary containing the effectiveness of quality control checks
         individually.
     plot_settings : dict
         The specific plot settings for the pie plots.
-    qc_check_info : dict
-        The qc info for all checks (includes the color scheme)..
     title : str
         Title of the figure.
 
@@ -1432,7 +1411,7 @@ def qc_stats_pie(
     textsize_big_pies = 10
     textsize_small_pies = 7
 
-    color_defenitions = plot_settings["color_mapper"]
+    # color_defenitions = plot_settings["color_mapper"]
     # Define layout
 
     fig = plt.figure(figsize=plot_settings["pie_charts"]["figsize"])
@@ -1445,10 +1424,9 @@ def qc_stats_pie(
     # 1. Make the finale label pieplot
     # make color mapper
     final_col_mapper = {
-        "ok": color_defenitions["ok"],
-        "QC outliers": color_defenitions["outlier"],
-        "missing (gaps)": color_defenitions["gap"],
-        "missing (individual)": color_defenitions["missing_timestamp"],
+        label_def["goodrecord"]["label"]: label_def["goodrecord"]["color"],
+        "QC outliers": label_def["outlier"]["color"],
+        "gaps (filled/unfilled)": label_def["regular_gap"]["color"],
     }
 
     _make_pie_from_freqs(
@@ -1468,11 +1446,11 @@ def qc_stats_pie(
 
     # 2. Make QC overview pie
     # make color mapper
-    outl_col_mapper = _outl_value_to_colormapper(plot_settings, qc_check_info)
+    # outl_col_mapper = _outl_value_to_colormapper(plot_settings, qc_check_info)
 
     _make_pie_from_freqs(
         freq_dict=outlier_stats,
-        colormapper=outl_col_mapper,
+        colormapper=_all_possible_labels_colormapper(),
         ax=ax_thr,
         plot_settings=plot_settings,
         radius=plot_settings["pie_charts"]["radius_big"],
@@ -1488,13 +1466,14 @@ def qc_stats_pie(
     # 3. Make a specific pie for each indvidual QC + gap + missing
     plt.rcParams["axes.titley"] = plot_settings["pie_charts"]["radius_small"] / 2
     # make color mapper
-    spec_col_mapper = {
-        "ok": color_defenitions["ok"],
-        "not checked": color_defenitions["not checked"],
-        "outlier": color_defenitions["outlier"],
-        "gap": color_defenitions["gap"],
-        "missing timestamp": color_defenitions["missing_timestamp"],
-    }
+
+    # spec_col_mapper = {
+    #     "ok": color_defenitions["ok"],
+    #     "not checked": color_defenitions["not checked"],
+    #     "outlier": color_defenitions["outlier"],
+    #     "gap": color_defenitions["gap"],
+    #     # "missing timestamp": color_defenitions["missing_timestamp"],
+    # }
 
     specific_df = pd.DataFrame(specific_stats)
 
@@ -1533,7 +1512,10 @@ def qc_stats_pie(
         radius=plot_settings["pie_charts"]["radius_small"],
         textprops={"fontsize": textsize_small_pies},
         ax=axlist,
-        colors=[spec_col_mapper[col] for col in specific_df.index],
+        colors=[
+            plot_settings["pie_charts"]["effectiveness_colormap"][col]
+            for col in specific_df.index
+        ],
     )
 
     # Specific styling setings per pie
@@ -1549,3 +1531,12 @@ def qc_stats_pie(
     plt.show()
 
     return
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

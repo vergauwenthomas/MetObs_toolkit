@@ -8,7 +8,7 @@
             "date_fmt": "%Y-%m-%d",
             "time_column": "time",
             "time_fmt": "%H:%M:%S",
-            "timezone": "UTC"
+            "timezone": "Europe/Berlin"
         },
         "name_column": "station",
         "obstype_mapping": [

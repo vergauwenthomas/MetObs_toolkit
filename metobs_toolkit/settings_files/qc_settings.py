@@ -12,7 +12,7 @@ check_settings = {
         "keep": False
     },  # No numeric settings (False: drop all duplicates)
     # "missing_timestamp": {},
-    "persistance": {
+    "persistence": {
         "temp": {
             "time_window_to_check": "1h",  # Use this format as example: "1h20min50s"
             "min_num_obs": 5,
@@ -98,70 +98,5 @@ titan_specific_labeler = {
     "titan_sct_resistant_check": {
         "ok": [0, -999, 11, 12],  # if obs not checked, or cannot be checked assume ok
         "outl": [1],
-    },
-}
-
-# Information on the sequence of checks and if they are applied on all observations seperatly.
-
-# Labels are converted to numeric to compute a final quality label.
-# Numeric values are arbitrary for outliers (not for ok and not checked), but
-# should be invertible.
-# This is done for speeding up
-checks_info = {
-    # 1. --> on data import
-    "duplicated_timestamp": {
-        "outlier_flag": "duplicated timestamp outlier",
-        "numeric_flag": 1,
-        "apply_on": "record",
-    },
-    # 2. --> on data import
-    "invalid_input": {
-        "outlier_flag": "invalid input",
-        "numeric_flag": 2,
-        "apply_on": "obstype",
-    },
-    # 3. --> on observed values
-    "gross_value": {
-        "outlier_flag": "gross value outlier",
-        "numeric_flag": 4,
-        "apply_on": "obstype",
-    },
-    # 4(A). --> on observed values
-    "persistance": {
-        "outlier_flag": "persistance outlier",
-        "numeric_flag": 5,
-        "apply_on": "obstype",
-    },
-    # 4(B). --> on observed values
-    "repetitions": {
-        "outlier_flag": "repetitions outlier",
-        "numeric_flag": 6,
-        "apply_on": "obstype",
-    },
-    # 5. --> on observed values
-    "step": {
-        "outlier_flag": "in step outlier group",
-        "numeric_flag": 7,
-        "apply_on": "obstype",
-    },
-    "window_variation": {
-        "outlier_flag": "in window variation outlier group",
-        "numeric_flag": 8,
-        "apply_on": "obstype",
-    },
-    "buddy_check": {
-        "outlier_flag": "buddy check outlier",
-        "numeric_flag": 11,
-        "apply_on": "obstype",
-    },
-    "titan_buddy_check": {
-        "outlier_flag": "titan buddy check outlier",
-        "numeric_flag": 9,
-        "apply_on": "obstype",
-    },
-    "titan_sct_resistant_check": {
-        "outlier_flag": "sct resistant check outlier",
-        "numeric_flag": 10,
-        "apply_on": "obstype",
     },
 }

@@ -12,64 +12,37 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def write_dataset_to_csv(df, metadf, filename, outputfolder, seperate_metadata_file):
-    """Write a dataset to a csv files.
-
-    Write the dataset to a file where the observations, metadata and (if available)
-    the quality labels per observation type are merged together.
-
-    A final qualty controll label for each quality-controlled-observation type
-    can be added in the outputfile.
-
-    The file will be written to the Settings.outputfolder.
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        The merged dataframe containing observations, gaps, outliers and missing timestamps.
-    metadf: pandas.DataFrame
-        The Dataset.metadf attribute.
-    filename : string, optional
-        The name of the output csv file. If none, a standard-filename is generated
-        based on the period of data. The default is None.
+# =============================================================================
+# IO simple helpers
+# =============================================================================
+def _does_trg_file_exist(trg):
+    """Check if a target file/folder already exists. Return bool."""
+    return os.path.isfile(trg)
 
 
-    Returns
-    -------
-    None
+def _remove_file(trg):
+    logger.info(f"Removing {trg}")
+    os.remove(trg)
+    return
 
-    """
-    df = df.reset_index()
 
-    # find metadata that are not present
-    ignore_metadat = [col for col in metadf.columns if metadf[col].isnull().all()]
-
-    if not seperate_metadata_file:
-        # merge metadata
-        df = df.merge(metadf, how="left", left_on="name", right_index=True)
-        df = df.drop(columns=ignore_metadat)
-    else:
-        metadf = metadf.reset_index()
-        metadf = metadf.drop(columns=ignore_metadat)
-        metadatafile = os.path.join(outputfolder, "metadata_file.csv")
-        logger.info(f"write metadata to file: {metadatafile}")
-        print(f"write metadata to file: {metadatafile}")
-        metadf.to_csv(path_or_buf=metadatafile, sep=";", na_rep="NaN", index=False)
-
-    df = df.sort_values(["name", "datetime"])
-
-    # make filename
-    if isinstance(filename, type(None)):
-        startstr = df["datetime"].min().strftime("%Y%m%d")
-        endstr = df["datetime"].max().strftime("%Y%m%d")
-        filename = "dataset_" + startstr + "_" + endstr
-    else:
-        if filename.endswith(".csv"):
-            filename = filename[:-4]  # to avoid two times .csv.csv
-
-    filepath = os.path.join(outputfolder, filename + ".csv")
-
+def write_df_to_csv(df, trgfile, to_csv_kwargs={}):
     # write to csv in output folder
-    logger.info(f"write dataset to file: {filepath}")
-    print(f"write dataset to file: {filepath}")
-    df.to_csv(path_or_buf=filepath, sep=";", na_rep="NaN", index=False)
+    logger.info(f"write to file: {trgfile}")
+    print(f"write to file: {trgfile}")
+    df.to_csv(path_or_buf=trgfile, **to_csv_kwargs)
+
+
+class MetobsWritingError(Exception):
+    """Exception raised for errors in the template."""
+
+    pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

@@ -20,7 +20,7 @@ The `Template` is stored as an attribute of a `Dataset`, and it can be reached a
 
    import metobs_toolkit
    your_dataset = metobs_toolkit.Dataset()
-   your_dataset.update_settings(
+   your_dataset.update_file_paths(
     input_data_file=" ... ",
     input_metadata_file=" ... ",
     template_file=" ... ", # path to your template file (json)

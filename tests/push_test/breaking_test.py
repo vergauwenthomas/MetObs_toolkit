@@ -10,16 +10,26 @@ Created on Tue Nov 29 12:19:03 2022
 """
 
 import sys, os
-
+import pandas as pd
 from pathlib import Path
 
+
+# add the solutions
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+print(sys.path)
+import solutions.solutions_creator as solution
+
+# point to current version of the toolkit
+lib_folder = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(lib_folder))
 import metobs_toolkit
+
+# %%
+
 
 lib_folder = Path(__file__).resolve().parents[2]
 # sys.path.append(str(lib_folder))
 print(str(lib_folder))
-
-
 testdata = os.path.join(str(lib_folder), "tests", "test_data", "testdata_breaking.csv")
 
 
@@ -30,16 +40,17 @@ template_file = os.path.join(
 )
 
 dataset_coarsened = metobs_toolkit.Dataset()
-dataset_coarsened.update_settings(input_data_file=testdata, template_file=template_file)
+dataset_coarsened.update_file_paths(
+    input_data_file=testdata, template_file=template_file
+)
 
 
 #####################################################################
 # Set settings for QC
-minimal_gapsize = 10  # gaps defined as n times the highest frequency on IO.
 dupl_dropping = False  # method used to drop duplicated timestamps
 
-persistance_time_window_to_check = "1h"  # Use this format as example: "1h20min50s"
-min_num_obs = 3  # Minimum number of records in window to perform persistance check
+persistence_time_window_to_check = "1h"  # Use this format as example: "1h20min50s"
+min_num_obs = 3  # Minimum number of records in window to perform persistence check
 
 max_valid_repetitions = 5  # Maximal number of repetitions that is allowed
 
@@ -62,85 +73,14 @@ max_decrease_per_second_step = (
     -10.0 / 3600.0
 )  # Maximal allowed increase per second (for step check)
 
-dataset_coarsened.update_qc_settings(
-    obstype="temp",
-    gapsize_in_records=minimal_gapsize,
-    dupl_timestamp_keep=dupl_dropping,
-    persis_time_win_to_check=persistance_time_window_to_check,
-    persis_min_num_obs=min_num_obs,
-    rep_max_valid_repetitions=max_valid_repetitions,
-    gross_value_min_value=min_value,
-    gross_value_max_value=max_value,
-    win_var_max_increase_per_sec=max_increase_per_second,
-    win_var_max_decrease_per_sec=max_decrease_per_second,
-    win_var_time_win_to_check=time_window_to_check,
-    win_var_min_num_obs=min_window_members,
-    step_max_increase_per_sec=max_increase_per_second_step,
-    step_max_decrease_per_sec=max_decrease_per_second_step,
-)
 
-
-# dataset_coarsened.settings.gap["gaps_settings"]["gaps_finder"][
-#    "gapsize_n"
-# ] = minimal_gapsize
-#
-# dataset_coarsened.settings.qc["qc_check_settings"]["duplicated_timestamp"][
-#    "keep"
-# ] = dupl_dropping#
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["persistance"]["temp"][
-#    "time_window_to_check"
-# ] = persistance_time_window_to_check
-# dataset_coarsened.settings.qc["qc_check_settings"]["persistance"]["temp"][
-#    "min_num_obs"
-# ] = min_num_obs
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["repetitions"]["temp"][
-#    "max_valid_repetitions"
-# ] = max_valid_repetitions
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["gross_value"]["temp"][
-#    "min_value"
-# ] = min_value
-# dataset_coarsened.settings.qc["qc_check_settings"]["gross_value"]["temp"][
-#    "max_value"
-# ] = max_value
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-#    "max_increase_per_second"
-# ] = max_increase_per_second
-# dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-#    "max_decrease_per_second"
-# ] = max_decrease_per_second
-# dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-#    "time_window_to_check"
-# ] = time_window_to_check
-# dataset_coarsened.settings.qc["qc_check_settings"]["window_variation"]["temp"][
-#    "min_window_members"
-# ] = min_window_members
-
-# dataset_coarsened.settings.qc["qc_check_settings"]["step"]["temp"][
-#    "max_increase_per_second"
-# ] = max_increase_per_second_step
-# dataset_coarsened.settings.qc["qc_check_settings"]["step"]["temp"][
-#    "max_decrease_per_second"
-# ] = max_decrease_per_second_step
-#####################################################################
-
-
-dataset_coarsened.import_data_from_file()
-dataset_coarsened.coarsen_time_resolution()
-dataset_coarsened.apply_quality_control()
-
-# _ = dataset_coarsened.get_qc_stats()
 # %%
 dataset = metobs_toolkit.Dataset()
-dataset.update_settings(input_data_file=testdata, template_file=template_file)
+dataset.update_file_paths(input_data_file=testdata, template_file=template_file)
 dataset.update_qc_settings(
     obstype="temp",
-    gapsize_in_records=minimal_gapsize,
     dupl_timestamp_keep=dupl_dropping,
-    persis_time_win_to_check=persistance_time_window_to_check,
+    persis_time_win_to_check=persistence_time_window_to_check,
     persis_min_num_obs=min_num_obs,
     rep_max_valid_repetitions=max_valid_repetitions,
     gross_value_min_value=min_value,
@@ -152,7 +92,7 @@ dataset.update_qc_settings(
     step_max_decrease_per_sec=max_decrease_per_second_step,
 )
 
-dataset.import_data_from_file()
+dataset.import_data_from_file(origin_simplify_tolerance="1min")
 dataset.apply_quality_control()
 
 
@@ -160,242 +100,99 @@ _ = dataset.get_qc_stats()
 
 dataset.make_plot(stationnames=["Fictional"], colorby="label", show_outliers=True)
 
+# %% Debug
 
-# %% Compare manual and toolkit labeling
-import pandas as pd
+combdf = dataset.get_full_status_df()
+tlk_temp_df = dataset.get_full_status_df()["temp"]
 
+# %% Copare with manual labels
 
 man_df = pd.read_csv(testdata)
+# create datetime coumn
+man_df["datetime"] = man_df["date"] + " " + man_df["time"]
+man_df["datetime"] = pd.to_datetime(man_df["datetime"])
+man_df["datetime"] = man_df["datetime"].dt.tz_localize(dataset._get_tz())
 
-# create datetime axes
-man_df["datetime"] = pd.to_datetime(
-    man_df["date"] + " " + man_df["time"], format="%Y-%m-%d %H:%M:%S", utc=True
-)
+# create double index
+man_df["name"] = man_df["station"]
+man_df = man_df.set_index(["name", "datetime"]).sort_index()
 
-man_df = (
-    man_df.rename(
-        columns={
-            "station": "name",
-            "temperature": "temp",
-            "humidity": "humidity",
-            "wind_speed": "windspeed",
-            "qc_flags": "flags",
-        }
+# format the label column
+man_df = man_df.rename(columns={"qc_flags": "label_manual"})
+
+# check if labels are the same
+
+compare = man_df[["label_manual"]]
+
+compare = man_df.merge(tlk_temp_df, how="left", left_index=True, right_index=True)
+
+compare["correct_labeled"] = compare["label_manual"].eq(compare["label"])
+
+
+diff = compare.loc[compare["correct_labeled"] == False, :]
+assert diff.empty, f"Incorrect labels compared to the manual labels: \n {diff}"
+
+
+# %% test if dataframes are equal to the solution
+
+
+breaking_df_csv = "breaking_df.pkl"
+breaking_outliers_csv = "breaking_outliersdf.pkl"
+breaking_combined_df_csv = "breaking_combined_df.pkl"
+breaking_gapsfill_df = "breaking_gapsfill_df.pkl"
+
+
+def _create_qc_solutions():
+    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+    dataset.df.to_pickle(os.path.join(solution.solutions_dir, breaking_df_csv))
+    dataset.outliersdf.to_pickle(
+        os.path.join(solution.solutions_dir, breaking_outliers_csv)
     )
-    .set_index(["name", "datetime"])
-    .sort_index()
-    .drop(columns=["date", "time"])
-)
-
-
-tlk_df = dataset.combine_all_to_obsspace()
-
-
-# %%
-all_manual_labels = list(man_df["flags"].unique())
-manual_to_tlkit_label_map = {
-    "ok": "ok",
-    "in step outlier group": dataset_coarsened.settings.qc["qc_checks_info"]["step"][
-        "outlier_flag"
-    ],
-    "repetitions outlier": dataset_coarsened.settings.qc["qc_checks_info"][
-        "repetitions"
-    ]["outlier_flag"],
-    "duplicated timestamp outlier": dataset_coarsened.settings.qc["qc_checks_info"][
-        "duplicated_timestamp"
-    ]["outlier_flag"],
-    "gross value outlier": dataset_coarsened.settings.qc["qc_checks_info"][
-        "gross_value"
-    ]["outlier_flag"],
-    "in window variation outlier group": dataset_coarsened.settings.qc[
-        "qc_checks_info"
-    ]["window_variation"]["outlier_flag"],
-    "persistance outlier": dataset_coarsened.settings.qc["qc_checks_info"][
-        "persistance"
-    ]["outlier_flag"],
-}
-
-# check if the mapper is still up to date
-assert all(
-    [True for label in all_manual_labels if label in manual_to_tlkit_label_map.keys()]
-), "Update the manual to toolkit mapper"
-
-
-# =============================================================================
-# iterate over all labels and validate if the indices are equal between manual and toolkit
-# =============================================================================
-
-to_check = [
-    "ok",
-    "in step outlier group",
-    "repetitions outlier",
-    # 'duplicated timestamp outlier',
-    "gross value outlier",
-    "in window variation outlier group",
-    "persistance outlier",
-]
-for man_label, tlk_label in manual_to_tlkit_label_map.items():
-    if not man_label in to_check:
-        continue
-
-    print(
-        f" Testing equality of the {tlk_label} with the manual labeling ({man_label})."
+    dataset.get_full_status_df().to_pickle(
+        os.path.join(solution.solutions_dir, breaking_combined_df_csv)
     )
 
-    man_idx = man_df[man_df["flags"] == man_label].index.sort_values()
-    tlk_idx = (
-        tlk_df[tlk_df["label"] == tlk_label]
-        .xs("temp", level="obstype")
-        .index.sort_values()
+    dataset.get_gaps_fill_df().to_pickle(
+        os.path.join(solution.solutions_dir, breaking_gapsfill_df)
     )
 
-    if not tlk_idx.equals(man_idx):
-        print(f"ERROR: wrong labels for {tlk_label}")
 
-        print(f"differences tlkit --> manual: { tlk_idx.difference(man_idx)}")
-        print(f"differences manual --> tlkit: {man_idx.difference(tlk_idx)}")
-        sys.exit(1)
-
-    else:
-        print("OK!")
+# _create_qc_solutions()
 
 
-# =============================================================================
-# test duplicates
-# =============================================================================
-# tested seperatly because duplicates are in tlk stored as one record, to avoid
-# duplicate index errors. So we have to do the same for the manual labeling
-man_label = "duplicated timestamp outlier"
-tlk_label = manual_to_tlkit_label_map[man_label]
-
-print(f" Testing equality of the {tlk_label} with the manual labeling ({man_label}).")
-
-man_df_no_duplic = man_df[~man_df.index.duplicated(keep="first")]
-
-man_idx = man_df_no_duplic[man_df_no_duplic["flags"] == man_label].index.sort_values()
-tlk_idx = (
-    tlk_df[tlk_df["label"] == tlk_label].xs("temp", level="obstype").index.sort_values()
-)
-
-if not tlk_idx.equals(man_idx):
-    print(f"ERROR: wrong labels for {tlk_label}")
-
-    print(f"differences tlkit --> manual: { tlk_idx.difference(man_idx)}")
-    print(f"differences manual --> tlkit: {man_idx.difference(tlk_idx)}")
-    sys.exit(1)
-
-else:
-    print("OK!")
-# =============================================================================
-# test missing Gaps
-# =============================================================================
-
-
-from datetime import datetime
-import pandas as pd
-
-
-manual_missing_gaps = [
-    {
-        "name": "Fictional",
-        "start_gap": datetime(2020, 9, 14, 22, 30),
-        "end_gap": datetime(2020, 9, 14, 23, 55),
-    }
-]  # UPDATE MANUALLY !!!!!!!!!!
-
-print("Testing the gaps")
-
-man_gapsdf = pd.DataFrame().from_records(manual_missing_gaps)
-man_gapsdf = man_gapsdf.set_index("name")
-
-# Set timezone
-man_gapsdf["start_gap"] = pd.to_datetime(man_gapsdf["start_gap"]).dt.tz_localize(
-    tz="UTC"
-)
-man_gapsdf["end_gap"] = pd.to_datetime(man_gapsdf["end_gap"]).dt.tz_localize(tz="UTC")
-
-
-# %%
-
-tlk_gapsdf = dataset.get_gaps_df()
-tlk_gapsdf = tlk_gapsdf[list(man_gapsdf.columns)]
-
-
-if not tlk_gapsdf.equals(man_gapsdf):
-    print(f"ERROR: wrong gaps detection")
-
-    print(
-        f"differences tlkit --> manual: {tlk_gapsdf[~tlk_gapsdf.apply(tuple,1).isin(man_gapsdf.apply(tuple,1))]}"
+def get_solutions():
+    sol_df = pd.read_pickle(os.path.join(solution.solutions_dir, breaking_df_csv))
+    sol_outliersdf = pd.read_pickle(
+        os.path.join(solution.solutions_dir, breaking_outliers_csv)
     )
-    print(
-        f"differences manual --> tlkit: {man_gapsdf[~man_gapsdf.apply(tuple,1).isin(tlk_gapsdf.apply(tuple,1))]}"
+    sol_combdf = pd.read_pickle(
+        os.path.join(solution.solutions_dir, breaking_combined_df_csv)
     )
-    sys.exit(1)
-
-else:
-    print("OK!")
-
-
-# =============================================================================
-# test missing missing timestamps
-# =============================================================================
-
-
-# This has to be done properly, there are too much missing timestamps for manual labelling.
-# as a dirty fix, now only count the number of missing timestamps and see it that is oke
-
-number_missing_timestamps = {"1": 1, "Fictional": 307}
-
-
-print("Testing the missing obs")
-
-man_missing_timestamps_df = pd.DataFrame(
-    [
-        ("Fictional", datetime(2020, 9, 15, 2, 50)),
-        ("Fictional", datetime(2020, 9, 15, 3, 00)),
-        ("Fictional", datetime(2020, 9, 15, 3, 5)),
-        ("Fictional", datetime(2020, 9, 15, 3, 10)),
-        ("Fictional", datetime(2020, 9, 15, 3, 15)),
-        ("Fictional", datetime(2020, 9, 15, 3, 20)),
-        ("Fictional", datetime(2020, 9, 15, 5, 10)),
-        ("Fictional", datetime(2020, 9, 15, 6, 45)),
-        ("Fictional", datetime(2020, 9, 15, 7, 40)),
-        ("Fictional", datetime(2020, 9, 15, 12, 40)),
-        ("Fictional", datetime(2020, 9, 15, 17, 35)),
-        ("Fictional", datetime(2020, 9, 15, 20, 40)),
-        ("Fictional", datetime(2020, 9, 15, 23, 50)),
-        ("1", datetime(2020, 9, 16, 21, 30)),
-    ],
-    columns=["name", "datetime"],
-)
-
-# set timezone
-man_missing_timestamps_df["datetime"] = pd.to_datetime(
-    man_missing_timestamps_df["datetime"]
-).dt.tz_localize(tz="UTC")
-
-# get index
-man_missing_timestamps_idx = pd.MultiIndex.from_frame(
-    man_missing_timestamps_df
-).sort_values()
-
-tlk_missing_series = dataset.missing_obs.series
-tlk_missing_series = tlk_missing_series.reset_index().rename(
-    columns={"index": "name", 0: "datetime"}
-)
-tlk_missing_timestamps_idx = pd.MultiIndex.from_frame(tlk_missing_series).sort_values()
-
-
-if not tlk_missing_timestamps_idx.equals(man_missing_timestamps_idx):
-    print(f"ERROR: wrong missing timestamps detection")
-
-    print(
-        f"differences tlkit --> manual: { tlk_missing_timestamps_idx.difference(man_missing_timestamps_idx)}"
+    sol_gapsfilldf = pd.read_pickle(
+        os.path.join(solution.solutions_dir, breaking_gapsfill_df)
     )
-    print(
-        f"differences manual --> tlkit: {man_missing_timestamps_idx.difference(tlk_missing_timestamps_idx)}"
-    )
-    sys.exit(1)
+    return sol_df, sol_outliersdf, sol_combdf, sol_gapsfilldf
 
-else:
-    print("OK!")
+
+sol_df, sol_outliersdf, sol_combdf, sol_gapsfilldf = get_solutions()
+
+
+# 1 Test the df attribute
+
+solution.test_df_are_equal(testdf=dataset.df, solutiondf=sol_df)
+
+
+# 2 Test the outliersdf attribute
+
+solution.test_df_are_equal(testdf=dataset.outliersdf, solutiondf=sol_outliersdf)
+
+
+# 3 Test the combined df
+solution.test_df_are_equal(testdf=dataset.get_full_status_df(), solutiondf=sol_combdf)
+
+
+# 4 Test the gapsfilldf
+solution.test_df_are_equal(testdf=dataset.get_gaps_fill_df(), solutiondf=sol_gapsfilldf)
+
+
+print("Done")

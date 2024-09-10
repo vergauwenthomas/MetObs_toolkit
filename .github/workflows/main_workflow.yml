@@ -48,12 +48,12 @@ jobs:
               poetry install --all-extras
         - name: export documentation requirement group
           run: |
-              poetry export -f requirements.txt --without-hashes --only documentation -o only_doc_req.txt
+              poetry export -f requirements.txt --without-hashes --with=documentation,dev,titan --format=requirements.txt -o doc_build_req.txt
         - name: convert doc requirments to artifact
           uses: actions/upload-artifact@v3
           with:
             name: documentation_requirements
-            path: only_doc_req.txt
+            path: doc_build_req.txt
         - name: export titan requirement group
           run: |
               poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
@@ -109,6 +109,7 @@ jobs:
              python tests/push_test/breaking_test.py
              #python tests/push_test/gui_launch_test.py
              python tests/push_test/analysis_test.py
+             python tests/push_test/irregular_and_add_test.py
 
 #--- Package os installation ---
    mac_install_testing:
@@ -138,11 +139,11 @@ jobs:
      needs: packageing
      runs-on: windows-latest
      steps:
-       - uses: actions/checkout@v3
+       - uses: actions/checkout@v4
        - name: Set up Python39
-         uses: actions/setup-python@v4
+         uses: actions/setup-python@v5
          with:
-           python-version: "3.9"
+           python-version: "3.11"
        - name: Download the package build
          uses: actions/download-artifact@v3
          with:
@@ -177,143 +178,217 @@ jobs:
            echo "version tags are not aligned!"
            exit 1
 
+# #---- Documentation build -----#
+#    docsbuild:
+#       name: documentation-test
+#       needs: packageing
+#       runs-on: ubuntu-latest
+#       steps:
+#         - uses: actions/checkout@v3
+#         - name: Set up Python310
+#           uses: actions/setup-python@v4
+#           with:
+#             python-version: '3.10'
+#             #cache: 'poetry'
+#         # You can test your matrix by printing the current Python version
+#         - name: Display Python version
+#           run: python -c "import sys; print(sys.version)"
+#         # - name: install pandoc (system wide)
+#         #   run: |
+#         #       sudo apt-get -y install pandoc
+#         - name: Download the package build
+#           uses: actions/download-artifact@v3
+#           with:
+#             name: package_build
+#         - name: Install the package
+#           run: |
+#               python -m pip install ./metobs_toolkit-*.tar.gz
+#         - name: get documentation requirements
+#           uses: actions/download-artifact@v3
+#           with:
+#             name: documentation_requirements
+#         - name: install doc depending packages
+#           run: |
+#               pip install -r doc_build_req.txt
+#         - name: Build documentation
+#           run: |
+#               sphinx-build -a -E docs _build
+#         - name: deploy documentation on dev
+#           if: |
+#             github.ref == 'refs/heads/dev' ||
+#             github.ref == 'refs/head/main' ||
+#             contains(github.event.head_commit.message, 'build doc')
+#           uses: peaceiris/actions-gh-pages@v3
+#           with:
+#             publish_branch: gh-pages-dev
+#             github_token: ${{ secrets.GITHUB_TOKEN }}
+#             publish_dir: _build/
+#             force_orphan: true
+
+
 #---- Documentation build -----#
-   doctests:
-      name: documentation-test
-      needs: packageing
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python39
-          uses: actions/setup-python@v4
-          with:
-            python-version: '3.9'
-            #cache: 'poetry'
-        # You can test your matrix by printing the current Python version
-        - name: Display Python version
-          run: python -c "import sys; print(sys.version)"
-        - name: install pandoc (system wide)
-          run: |
-              sudo apt-get -y install pandoc
-        - name: Download the package build
-          uses: actions/download-artifact@v3
-          with:
-            name: package_build
-        - name: Install the package
-          run: |
-              python3 -m pip install ./metobs_toolkit-*.tar.gz
-        - name: get documentation requirements
-          uses: actions/download-artifact@v3
-          with:
-            name: documentation_requirements
-        - name: install doc depending packages
-          run: |
-              pip install -r only_doc_req.txt
-        - name: Build documentation
-          run: |
-              sphinx-build -a -E docs _build
-        - name: deploy documentation on dev
-          if: |
-            github.ref == 'refs/heads/dev' ||
-            github.ref == 'refs/head/main' ||
-            contains(github.event.head_commit.message, 'build doc')
-          uses: peaceiris/actions-gh-pages@v3
-          with:
-            publish_branch: gh-pages-dev
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            publish_dir: _build/
-            force_orphan: true
+   # docsbuild:
+   #    name: documentation-building
+   #    needs: packageing
+   #    runs-on: ubuntu-latest
+   #    steps:
+   #      - uses: actions/checkout@v3
+   #      - name: Set up Python39
+   #        uses: actions/setup-python@v4
+   #        with:
+   #          python-version: '3.10'
+   #          #cache: 'poetry'
+   #      # You can test your matrix by printing the current Python version
+   #      - name: Display Python version
+   #        run: python -c "import sys; print(sys.version)"
+   #      - name: remove previous builds
+   #        run: |
+   #            rm -f dist/metobs_toolkit-*.whl
+   #            rm -f dist/metobs_toolkit-*.tar.gz
+   #      - name: Install poetry
+   #        run: |
+   #            pip install poetry
+   #      - name: make build of the package
+   #        run: |
+   #            ./deploiment/build_package.sh
+   #      - name: install the package for doc building
+   #        run: |
+   #            poetry install --with=documentation,dev
+   #            poetry add .
+   #      - name: Build documentation
+   #        run: |
+   #            poetry run sphinx-build -a -E docs _build
+      # steps:
+      #   - uses: actions/checkout@v3
+      #   - name: Set up Python310
+      #     uses: actions/setup-python@v4
+      #     with:
+      #       python-version: '3.10'
+      #       #cache: 'poetry'
+      #   # You can test your matrix by printing the current Python version
+      #   - name: Display Python version
+      #     run: python -c "import sys; print(sys.version)"
+      #   # - name: install pandoc (system wide)
+      #   #   run: |
+      #   #       sudo apt-get -y install pandoc
+      #   - name: Download the package build
+      #     uses: actions/download-artifact@v3
+      #     with:
+      #       name: package_build
+      #   - name: Install the package
+      #     run: |
+      #         python -m pip install ./metobs_toolkit-*.tar.gz
+      #   - name: get documentation requirements
+      #     uses: actions/download-artifact@v3
+      #     with:
+      #       name: documentation_requirements
+      #   - name: install doc depending packages
+      #     run: |
+      #         pip install -r doc_build_req.txt
+      #   - name: Build documentation
+      #     run: |
+      #         sphinx-build -a -E docs _build
+      #   - name: deploy documentation on dev
+      #     if: |
+      #       github.ref == 'refs/heads/dev' ||
+      #       github.ref == 'refs/head/main' ||
+      #       contains(github.event.head_commit.message, 'build doc')
+      #     uses: peaceiris/actions-gh-pages@v3
+      #     with:
+      #       publish_branch: gh-pages-dev
+      #       github_token: ${{ secrets.GITHUB_TOKEN }}
+      #       publish_dir: _build/
+      #       force_orphan: true
 
-
-#---- Deploy documentation MAIN-----#
-   deploy_doc_main:
-    name: Deploy main documentation
-    needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
-    runs-on: ubuntu-latest
-    if: |
-        github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python39
-          uses: actions/setup-python@v4
-          with:
-            python-version: '3.9'
-            #cache: 'poetry'
-        # You can test your matrix by printing the current Python version
-        - name: Display Python version
-          run: python -c "import sys; print(sys.version)"
-        - name: install pandoc (system wide)
-          run: |
-              sudo apt-get -y install pandoc
-        - name: Download the package build
-          uses: actions/download-artifact@v3
-          with:
-            name: package_build
-        - name: Install the package
-          run: |
-              python3 -m pip install ./metobs_toolkit-*.tar.gz
-        - name: get documentation requirements
-          uses: actions/download-artifact@v3
-          with:
-            name: documentation_requirements
-        - name: install doc depending packages
-          run: |
-              pip install -r only_doc_req.txt
-        - name: Build documentation
-          run: |
-              sphinx-build -a -E docs _build
-        - name: deploy documentation
-          uses: peaceiris/actions-gh-pages@v3
-          with:
-            publish_branch: gh-pages
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            publish_dir: _build/
-            force_orphan: true
+# #---- Deploy documentation MAIN-----#
+#    deploy_doc_main:
+#     name: Deploy main documentation
+#     needs: [docsbuild,run-tests,versiontest,mac_install_testing, windows_install_testing]
+#     runs-on: ubuntu-latest
+#     if: |
+#         github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+#     steps:
+#         - uses: actions/checkout@v3
+#         - name: Set up Python39
+#           uses: actions/setup-python@v4
+#           with:
+#             python-version: '3.9'
+#             #cache: 'poetry'
+#         # You can test your matrix by printing the current Python version
+#         - name: Display Python version
+#           run: python -c "import sys; print(sys.version)"
+#         - name: install pandoc (system wide)
+#           run: |
+#               sudo apt-get -y install pandoc
+#         - name: Download the package build
+#           uses: actions/download-artifact@v3
+#           with:
+#             name: package_build
+#         - name: Install the package
+#           run: |
+#               python3 -m pip install ./metobs_toolkit-*.tar.gz
+#         - name: get documentation requirements
+#           uses: actions/download-artifact@v3
+#           with:
+#             name: documentation_requirements
+#         - name: install doc depending packages
+#           run: |
+#               pip install -r doc_build_req.txt
+#         - name: Build documentation
+#           run: |
+#               sphinx-build -a -E docs _build
+#         - name: deploy documentation
+#           uses: peaceiris/actions-gh-pages@v3
+#           with:
+#             publish_branch: gh-pages
+#             github_token: ${{ secrets.GITHUB_TOKEN }}
+#             publish_dir: _build/
+#             force_orphan: true
 
 #---- Deploy documentation dev -----#
-   deploy_doc_dev:
-    name: Deploy Dev documentation
-    needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing]
-    runs-on: ubuntu-latest
-    if: |
-        github.ref == 'refs/heads/dev'
-    steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python39
-          uses: actions/setup-python@v4
-          with:
-            python-version: '3.9'
-            #cache: 'poetry'
-        # You can test your matrix by printing the current Python version
-        - name: Display Python version
-          run: python -c "import sys; print(sys.version)"
-        - name: install pandoc (system wide)
-          run: |
-              sudo apt-get -y install pandoc
-        - name: Download the package build
-          uses: actions/download-artifact@v3
-          with:
-            name: package_build
-        - name: Install the package
-          run: |
-              python3 -m pip install ./metobs_toolkit-*.tar.gz
-        - name: get documentation requirements
-          uses: actions/download-artifact@v3
-          with:
-            name: documentation_requirements
-        - name: install doc depending packages
-          run: |
-              pip install -r only_doc_req.txt
-        - name: Build documentation
-          run: |
-              sphinx-build -a -E docs _build
-        - name: deploy documentation
-          uses: peaceiris/actions-gh-pages@v3
-          with:
-            publish_branch: gh-pages-dev
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            publish_dir: _build/
-            force_orphan: true
+   # deploy_doc_dev:
+   #  name: Deploy Dev documentation
+   #  needs: [docsbuild,run-tests,versiontest,mac_install_testing, windows_install_testing]
+   #  runs-on: ubuntu-latest
+   #  if: |
+   #      github.ref == 'refs/heads/dev'
+   #  steps:
+   #      - uses: actions/checkout@v3
+   #      - name: Set up Python39
+   #        uses: actions/setup-python@v4
+   #        with:
+   #          python-version: '3.9'
+   #          #cache: 'poetry'
+   #      # You can test your matrix by printing the current Python version
+   #      - name: Display Python version
+   #        run: python -c "import sys; print(sys.version)"
+   #      - name: install pandoc (system wide)
+   #        run: |
+   #            sudo apt-get -y install pandoc
+   #      - name: Download the package build
+   #        uses: actions/download-artifact@v3
+   #        with:
+   #          name: package_build
+   #      - name: Install the package
+   #        run: |
+   #            python3 -m pip install ./metobs_toolkit-*.tar.gz
+   #      - name: get documentation requirements
+   #        uses: actions/download-artifact@v3
+   #        with:
+   #          name: documentation_requirements
+   #      - name: install doc depending packages
+   #        run: |
+   #            pip install -r doc_build_req.txt
+   #      - name: Build documentation
+   #        run: |
+   #            sphinx-build -a -E docs _build
+   #      - name: deploy documentation
+   #        uses: peaceiris/actions-gh-pages@v3
+   #        with:
+   #          publish_branch: gh-pages-dev
+   #          github_token: ${{ secrets.GITHUB_TOKEN }}
+   #          publish_dir: _build/
+   #          force_orphan: true
 
 
 
@@ -321,7 +396,7 @@ jobs:
 # ---- delete artifacts that are not for storage -----
    cleanup_artifacts:
      name: delete artifacts
-     needs: [doctests,run-tests,versiontest,mac_install_testing, windows_install_testing, deploy_doc_main]
+     needs: [run-tests,versiontest,mac_install_testing, windows_install_testing]
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v3

@@ -32,7 +32,7 @@ def add_new_obstype():
         obsname = str(input("Give the name of your observation type: "))
         if obsname in tlk_obstypes.keys():
             print(
-                f"!! {obsname} is already a knonw observation type. This cannot be added."
+                f"!! {obsname} is already a known observation type. This cannot be added."
             )
         else:
             name_ok = True
@@ -56,7 +56,7 @@ def add_new_obstype():
         )
         print("  * Example: Kelvin (= new unit) to °C :  x - 273.15 ")
         print(
-            "  * Example: Farenheit to °C : x-32.0; x/1.8    (executed left to right)"
+            "  * Example: Fahrenheit to °C : x-32.0; x/1.8    (executed left to right)"
         )
 
         conv_str = str(input(" : "))
@@ -104,7 +104,7 @@ def get_unit(obstype):
         )
         print("  * Example: Kelvin (= new unit) to °C :  x - 273.15 ")
         print(
-            "  * Example: Farenheit to °C : x-32.0; x/1.8    (executed left to right)"
+            "  * Example: Fahrenheit to °C : x-32.0; x/1.8    (executed left to right)"
         )
 
         conv_str = str(input(" : "))
@@ -210,6 +210,10 @@ def build_template_prompt():
     Enter to continue. At the end of the prompt, you can specify a location where
     to save the template.json file.
 
+    Returns
+    -------
+    None.
+
     Note
     ------
     It is a good practice to rename the template.json file to specify the corresponding datafile(s).
@@ -219,9 +223,10 @@ def build_template_prompt():
     At the end, the prompt asks if you need further assistance. If you do, the prompt
     will print out code that you can copy and run to create a `Dataset()`.
 
-    Returns
-    -------
-    None.
+    Warning
+    ---------
+    In previous versions (<=v0.2.1) the templatefile was a csv. Thus you have
+    to create the template again to be compatible with this version of the toolkit.
 
     Examples
     --------
@@ -419,7 +424,7 @@ def build_template_prompt():
         cont = yes_no_ques("")
         if cont is False:
             print(
-                "\n In a Wide-format, REMOVE THE COLUMNS that do not represent different satations, before proceding! \n"
+                "\n In a Wide-format, REMOVE THE COLUMNS that do not represent different stations, before proceeding! \n"
             )
         else:
             stationnames = columnnames
@@ -506,7 +511,7 @@ def build_template_prompt():
         # Which other (not used by the toolkit) to add.
         if len(metacolumnnames) > 0:
             add_cols = yes_no_ques(
-                f"\n Do you want to include/use remaining columns in the metadatafile? \n ({str(metacolumnnames)})"
+                f"\n Do you want to include/use the remaining columns in the metadatafile? \n ({str(metacolumnnames)})"
             )
             if add_cols:
                 for col in metacolumnnames:
@@ -548,26 +553,6 @@ def build_template_prompt():
     apply_tips = yes_no_ques("Do you want some help creating your Dataset?")
     if apply_tips is True:
 
-        print("\n ------ How to use the template ----- ")
-
-        print("(Some questions will be asked that are case-specific) \n")
-
-        output_change = yes_no_ques("Do you plan to save images to a direcory?")
-        output_update = False
-        if output_change is True:
-            output_folder = input(" Give the path of your output direcory : ")
-            output_update = True
-
-        gaps_change = yes_no_ques("Do you want to use the default gaps defenition?")
-        gaps_update = False
-        if gaps_change is False:
-            gapsize = int(
-                input(
-                    " What is the minimum number of consecutive missing records to define as a gap? (default=40) : "
-                )
-            )
-            gaps_update = True
-
         print("\n\n ========= RUN THIS CODE ========= \n\n")
 
         print("\n#1. Define the paths to your files: \n")
@@ -581,21 +566,12 @@ def build_template_prompt():
         print("your_dataset = metobs_toolkit.Dataset()")
 
         print("\n#3. Update the paths to your files: \n")
-        print("your_dataset.update_settings(")
+        print("your_dataset.update_file_paths(")
         print("    input_data_file = data_file,")
         if meta_avail:
             print("    input_metadata_file = meta_data_file,")
         print("    template_file = template,")
-        if output_update:
-            print(f'    output_folder = "{output_folder}",')
         print("    )")
-
-        # extra case specific options
-        if gaps_update:
-            print("\n#3B. Update specific settings (optional): \n")
-
-        if gaps_update:
-            print(f"your_dataset.update_qc_settings(gapsize_in_records = {gapsize})")
 
         # add new obstypes if needed
         to_add_obstypes = [
@@ -642,3 +618,12 @@ def build_template_prompt():
         print("your_dataset.import_data_from_file()")
 
     return
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

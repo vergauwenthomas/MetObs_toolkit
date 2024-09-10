@@ -13,13 +13,15 @@ the MetObs toolkit to be used by a user and developer.
   Station <reference/station>
   Obstype <reference/obstype>
   Analysis <reference/analysis>
-  Modeldata <reference/modeldata>
+  Gee modeldata <reference/geemodeldata>
   Template <reference/template>
+  Gap <reference/gap>
+  Special functions <reference/special_functions>
 
 ********************************************
 Modules for MetObs toolkit Developers
 ********************************************
-A lot of the funtions and methods of the MetObs toolkit are not meant to be called
-by the users. For developers these functions and methods are important building blocks.
+A lot of the functions and methods of the MetObs toolkit are not meant to be called
+by the users, typically they start with _ (underscore). For developers these functions and methods are important building blocks.
 
 The :ref:`modindex` contains all functions and methods present in the MetObs toolkit.

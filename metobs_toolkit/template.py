@@ -10,13 +10,13 @@ import os
 import sys
 import logging
 import json
-
+import urllib.request
 
 import pandas as pd
 from pytz import all_timezones
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__file__)
 
 
 # blacklists are created for column names, which are also used as a specific
@@ -31,6 +31,9 @@ column_meta_blacklist = [
     "dataset_resolution",
     "lcz",
     "altitude",
+    "dataset_resolution",
+    "dt_start",
+    "dt_end",
 ]
 
 
@@ -46,7 +49,7 @@ def _get_empty_templ_dict():
                 "date_fmt": None,
                 "time_column": None,
                 "time_fmt": None,
-                "timezone": None,
+                "timezone": "UTC",
             },
             "name_column": None,
             "obstype_mapping": [
@@ -82,7 +85,6 @@ class Template:
     """Contains all info and methods to work with a template."""
 
     def __init__(self):
-        # to renmae the columns
 
         self.data_namemap = {"name": None}  # name --> name column in data
         self.metadata_namemap = {"name": None}  # name --> name column in metadata
@@ -130,7 +132,7 @@ class Template:
 
     def get_info(self):
         """
-        Prints out an overview of Template.
+        Prints out an overview of the Template.
 
         Returns
         -------
@@ -146,7 +148,7 @@ class Template:
             >>> dataset = metobs_toolkit.Dataset() #empty Dataset
             >>>
             >>> #Add observations to the Dataset
-            >>> dataset.update_settings(
+            >>> dataset.update_file_paths(
             ...                         input_data_file=metobs_toolkit.demo_datafile,
             ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
             ...                         template_file=metobs_toolkit.demo_template,
@@ -303,6 +305,11 @@ class Template:
         Test if the required template details are present to construct a timestamp column.
         """
         ts_info = self.timestampinfo
+
+        # Check if timezone is known
+        if self._get_tz() not in all_timezones:
+            raise MetobsTemplateError(f"{self._get_tz()} is not a known timezone.")
+
         # situation 1:  datetime column is present
         if ts_info["datetimecolumn"] is not None:
             assert (
@@ -414,7 +421,7 @@ class Template:
         """Create a mapper for columns in the data or metadata file, which have
         a specific meaning by the toolkit and are thus present in the blacklists.
 
-        If a column, is found in the blacklist, but will also be mapped, than it
+        If a column, is found in the blacklist, but will also be mapped, then it
         it will not be included in the mapper.
 
         The mapper adds a "_original" postifix to the columnnames.
@@ -462,14 +469,21 @@ class Template:
     # Other methods
     # =============================================================================
 
-    def read_template_from_file(self, jsonpath):
-        """Read the templatefile (json), and update the attributes of this Template."""
+    def read_template_from_file(self, jsonpath, templatefile_is_url=False):
+        """Read the templatefile (JSON), and update the attributes of this Template."""
 
-        if not str(jsonpath).endswith(".json"):
-            raise MetobsTemplateError(f"{jsonpath}, is not a json file.")
+        if templatefile_is_url:
+            logger.info(f"Reading the URL-template from {jsonpath}")
+            with urllib.request.urlopen(jsonpath) as url:
+                tml_dict = json.load(url)
 
-        with open(jsonpath, "r") as f:
-            tml_dict = json.load(f)
+        else:
+            logger.info(f"Reading the template from {jsonpath}")
+            if not str(jsonpath).endswith(".json"):
+                raise MetobsTemplateError(f"{jsonpath}, is not a json file.")
+
+            with open(jsonpath, "r") as f:
+                tml_dict = json.load(f)
 
         # set attributes
         self.data_namemap = {"name": tml_dict["data_related"]["name_column"]}
@@ -488,6 +502,8 @@ class Template:
             "date_column": tml_dict["data_related"]["timestamp"]["date_column"],
             "fmt": dt_fmt,
         }
+
+        self.tz = str(tml_dict["data_related"]["timestamp"]["timezone"])
 
         for obsdict in tml_dict["data_related"]["obstype_mapping"]:
             self.obscolumnmap[obsdict["tlk_obstype"]] = obsdict["columnname"]
@@ -555,6 +571,7 @@ def _create_datetime_column(df, template):
             # raise Exception('The timestamps could not be converted to datetimes, check the timestamp format(s) in your template. \n').with_traceback(e.__traceback__)
 
         df = df.drop(columns=["_date", "_time"])
+
     return df
 
 
@@ -567,3 +584,12 @@ class MetobsTemplateError(Exception):
     """Exception raised for errors in the template."""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

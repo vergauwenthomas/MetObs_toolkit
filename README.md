@@ -18,6 +18,11 @@ This repo contains all the software for the [metobs_toolkit](https://test.pypi.o
 
 Documentation can be found [here](https://metobs-toolkit.readthedocs.io/en/latest/index.html).
 
+The Documentation contains examples, explanations, and the API documentation of
+the toolkit. Make sure that the documentation version matches your version
+of the toolkit.
+
+
 ## Installing the package
 Install the package using pip:
 
@@ -61,6 +66,10 @@ In the context of a [FAIRNESS (COST action)](https://www.fairness-ca20108.eu/) s
 | [Filling gaps](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Gap_filling_excercise_03.ipynb) | Introduction to gap filling methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Gap_filling_excercise_03.ipynb)|
 | [Analysis](https://github.com/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Urban_analysis_excercise_04.ipynb) | Introduction analysis methods | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vergauwenthomas/MetObs_toolkit/blob/master/fairness_demo_exercises/Urban_analysis_excercise_04.ipynb)|
 
+*NOTE: * these exercises are built on an early version of the toolkit! We recommend using the examples in the [documentation](https://metobs-toolkit.readthedocs.io/en/latest/index.html).
+
+
 
 ## Related
 * A graphical user interface for the MetObs-Toolkit: [MetObs_GUI](https://github.com/vergauwenthomas/MetObs_GUI)
+* A JOSS (Journal of Open Source Software) [publication on the MetObs-Toolkit](https://joss.theoj.org/papers/10.21105/joss.05916#)

@@ -9,28 +9,29 @@ Created on Tue Jul 16 15:13:17 2024
 
 import logging
 import os
-from metobs_toolkit import Dataset
 
 from metobs_toolkit.plotting_functions import (
     geospatial_plot,
     timeseries_plot,
-    folium_plot,
+    # folium_map,
     add_stations_to_folium_map,
     make_folium_html_plot,
 )
 
-from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
+from metobs_toolkit.settings_files.default_formats_settings import (
+    gapfill_label_group,
+    failed_gapfill_label_group,
+    qc_label_group,
+    label_def,
+)
 
+from metobs_toolkit.gee_api import _validate_metadf
+
+# from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
+from metobs_toolkit.modeldata import GeeStaticModelData, GeeDynamicModelData
 from metobs_toolkit.df_helpers import (
     multiindexdf_datetime_subsetting,
-    fmt_datetime_argument,
-    init_multiindex,
-    init_multiindexdf,
-    init_triple_multiindexdf,
     metadf_to_gdf,
-    conv_applied_qc_to_df,
-    get_freqency_series,
-    value_labeled_doubleidxdf_to_triple_idxdf,
     xs_save,
     concat_save,
 )
@@ -39,8 +40,8 @@ from metobs_toolkit.df_helpers import (
 logger = logging.getLogger(__name__)
 
 
-class Dataset(Dataset):
-    """Extension on the metobs_toolkit.Dataset class with visualisation methods"""
+class DatasetVisuals:
+    """Extension on the metobs_toolkit.Dataset class with visualization methods."""
 
     def make_plot(
         self,
@@ -56,9 +57,10 @@ class Dataset(Dataset):
         show_filled=True,
         _ax=None,  # needed for GUI, not recommended use
     ):
-        """
+        """Make a timeseries plot.
+
         This function creates a timeseries plot for the dataset. The variable observation type
-        is plotted for all stationnames from a starttime to an endtime.
+        is plotted for all station names from a starttime to an endtime.
 
         All styling attributes are extracted from the Settings.
 
@@ -66,24 +68,31 @@ class Dataset(Dataset):
         ----------
 
         stationnames : list, optional
-            A list with stationnames to include in the timeseries. If None is given, all the stations are used, defaults to None.
+            A list with station names to include in the timeseries. If None is
+            given, all the stations are used. The default to None.
         obstype : string, optional
-             Fieldname to visualise. This can be an observation or station
+             Fieldname to visualize. This can be an observation or station
              attribute. The default is 'temp'.
         colorby : 'label' or 'name', optional
-             Indicate how colors should be assigned to the lines. 'label' will color the lines by their quality control label. 'name' will color by each station, defaults to 'name'.
+             Indicate how colors should be assigned to the lines. 'label' will
+             color the lines by their quality control label. 'name' will color
+             by each station. The default to 'name'.
         starttime : datetime.datetime, optional
-             Specifiy the start datetime for the plot. If None is given it will use the start datetime of the dataset, defaults to None.
+             Specify the start datetime for the plot. If None is given it will
+             use the start datetime of the dataset. The default to None.
         endtime : datetime.datetime, optional
-             Specifiy the end datetime for the plot. If None is given it will use the end datetime of the dataset, defaults to None.
+             Specify the end datetime for the plot. If None is given it will
+             use the end datetime of the dataset. The default to None.
         title : string, optional
-             Title of the figure, if None a default title is generated. The default is None.
+             Title of the figure, if None a default title is generated. The
+             default is None.
         y_label : string, optional
-             y-axes label of the figure, if None a default label is generated. The default is None.
+             y-axes label of the figure, if None a default label is generated.
+             The default is None.
         legend : bool, optional
              If True, a legend is added to the plot. The default is True.
         show_outliers : bool, optional
-             If true the observations labeld as outliers will be included in
+             If true the observations labeled as outliers will be included in
              the plot. This is only true when colorby == 'name'. The default
              is True.
         show_filled : bool, optional
@@ -97,6 +106,12 @@ class Dataset(Dataset):
         axis : matplotlib.pyplot.axes
              The timeseries axes of the plot is returned.
 
+        See Also
+        -----------
+        Dataset.make_geo_plot: geospatial plot.
+        Dataset.make_gee_plot: geospatial plot of a GEE dataset.
+        Dataset.make_interactive_plot: Interactive geospatial plot.
+
         Note
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
@@ -104,24 +119,55 @@ class Dataset(Dataset):
 
         Examples
         --------
-        .. code-block:: python
+
+        .. plot::
+            :context: close-figs
+
+            We start by creating a Dataset, and importing data.
 
             >>> import metobs_toolkit
             >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
             ...                         input_data_file=metobs_toolkit.demo_datafile,
             ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Make plot
-            >>> dataset.make_plot(stationnames=['vlinder02', 'vlinder16'],
-            ...                   obstype='temp',
-            ...                   colorby='label')
-            <Axes: ...
+            >>> dataset.coarsen_time_resolution(freq='15min')
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *161272 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *8 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:45:00+00:00 (total duration:  14 days 23:45:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
+
+
+
+            We can now make a timeseries plot of the full dataset. By specifying
+            `colorby='name'`, the colors indicate the stations.
+
+            >>> dataset.make_plot(obstype='temp', colorby='name')
+            <Axes: title={'center': 'Temperatuur for all stations. '}, ylabel='temp (Celsius)'>
+
+        .. plot::
+            :context: close-figs
+
+            By specifying `colorby='label'` the colors indicate the different labels.
+            Labels are assigned by quality control and the status of gaps. As an
+            example, we apply default quality control to create some labels.
+
+            We then plot the timeseries of a single station.
+
+            >>> dataset.apply_quality_control(obstype='temp')
+            >>> dataset.get_station('vlinder05').make_plot(colorby='label')
+            <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
+
 
         """
 
@@ -131,7 +177,7 @@ class Dataset(Dataset):
             logger.info(f"Make {obstype}-timeseries plot for {stationnames}")
 
         # combine all dataframes
-        mergedf = self.combine_all_to_obsspace()
+        mergedf = self.get_full_status_df(return_as_wide=False)
 
         # subset to obstype
         mergedf = xs_save(mergedf, obstype, level="obstype")
@@ -141,12 +187,9 @@ class Dataset(Dataset):
             mergedf = mergedf[mergedf.index.get_level_values("name").isin(stationnames)]
 
         # Subset on start and endtime
-        starttime = fmt_datetime_argument(
-            starttime, self.settings.time_settings["timezone"]
-        )
-        endtime = fmt_datetime_argument(
-            endtime, self.settings.time_settings["timezone"]
-        )
+
+        starttime = self._datetime_arg_check(starttime)
+        endtime = self._datetime_arg_check(endtime)
 
         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
@@ -168,7 +211,7 @@ class Dataset(Dataset):
                 )
         # create y label
         if y_label is None:
-            y_label = self.obstypes[obstype].get_plot_y_label()
+            y_label = self.obstypes[obstype]._get_plot_y_label()
         # Make plot
         ax, _colmap = timeseries_plot(
             mergedf=mergedf,
@@ -188,7 +231,8 @@ class Dataset(Dataset):
         self,
         obstype="temp",
         save=True,
-        outputfile=None,
+        filename="interactive_figure.html",
+        outputfolder=None,
         starttime=None,
         endtime=None,
         vmin=None,
@@ -202,7 +246,7 @@ class Dataset(Dataset):
         gap_col="orange",
         fill_col="yellow",
     ):
-        """Make interactive geospatial plot with time evolution.
+        """Make an interactive geospatial plot with time evolution.
 
         This function uses the folium package to make an interactive geospatial
         plot to illustrate the time evolution.
@@ -214,18 +258,23 @@ class Dataset(Dataset):
         obstype : str or metobs_toolkit.Obstype, optional
             The observation type to plot. The default is 'temp'.
         save : bool, optional
-            If true, the figure will be saved as an html-file. The default is True.
-        outputfile : str, optional
-            The path of the output html-file. The figure will be saved here, if
-            save is True. If outputfile is not given, and save is True, than
-            the figure will be saved in the default outputfolder (if given).
-            The default is None.
+            If true, the figure will be saved as an HTML file. The default is True.
+        filename : str, optional
+            The filename for the HTML file. This is only used when save is True. If
+            a filename is given, if it does not end with ".html", the postfix
+            is added. If None, the map will not be saved as an HTML file.
+            The default is "interactive_figure.html".
+        outputfolder : str, optional
+            The path of the folder where to save the HTML (given by `filename`), if
+            save is True. If outputfoler is None, and save is True, the
+            default outputfolder (see `Dataset.settings.IO['output_folder']`)
+            is used. The default is None.
         starttime : datetime.datetime, optional
-             Specifiy the start datetime for the plot. If None is given it will
-             use the start datetime of the dataset, defaults to None.
+             Specify the start datetime for the plot. If None is given it will
+             use the start datetime of the dataset. The default to None.
         endtime : datetime.datetime, optional
-             Specifiy the end datetime for the plot. If None is given it will
-             use the end datetime of the dataset, defaults to None.
+             Specify the end datetime for the plot. If None is given it will
+             use the end datetime of the dataset. The default to None.
         vmin : numeric, optional
             The value corresponding with the minimum color. If None, the
             minimum of the presented observations is used. The default is None.
@@ -239,17 +288,16 @@ class Dataset(Dataset):
         fill_alpha : float ([0;1]), optional
             The alpha of the fill color for the scatters. The default is 0.6.
         max_fps : int (>0), optional
-            The maximum allowd frames per second for the time evolution. The
+            The maximum allowed frames per second for the time evolution. The
             default is 4.
         outlier_col : str, optional
             The edge color of the scatters to identify an outliers. The default is 'red'.
         ok_col : str, optional
             The edge color of the scatters to identify an ok observation. The default is 'black'.
         gap_col : str, optional
-            The edge color of the scatters to identify an missing/gap
-            observation. The default is 'orange'.
+            The edge color of the scatters to identify gaps. The default is 'orange'.
         fill_col : str, optional
-            The edge color of the scatters to identify a fillded observation.
+            The edge color of the scatters to identify a filled observation.
             The default is 'yellow'.
 
         Returns
@@ -257,90 +305,129 @@ class Dataset(Dataset):
         m : folium.folium.map
             The interactive folium map.
 
+        See Also
+        -----------
+        Dataset.make_plot: plot timeseries.
+        Dataset.make_geo_plot: geospatial plot.
+        Dataset.make_gee_plot: geospatial plot of a GEE dataset.
+
         Note
         -------
-        The figure will only appear when this is runned in notebooks. If you do
-        not run this in a notebook, make sure to save the html file, and open it
+        The figure will only appear when this is run in notebooks. If you do
+        not run this in a notebook, make sure to save the HTML file, and open it
         with a browser.
 
         Examples
         --------
-        .. code-block:: python
+        We start by creating a Dataset, and importing data.
 
-            >>> import metobs_toolkit
-            >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
-            ...                         input_data_file=metobs_toolkit.demo_datafile,
-            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                         template_file=metobs_toolkit.demo_template,
-            ...                         )
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Make default interactive geospatial plot
-            >>> dataset.make_interactive_plot()
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> dataset.import_data_from_file(
+        ...                         input_data_file=metobs_toolkit.demo_datafile,
+        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                         template_file=metobs_toolkit.demo_template,
+        ...                         )
+        >>> print(dataset)
+        Dataset instance containing:
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *483828 observation records (not Nan's)
+             *0 records labeled as outliers
+             *8 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+             *Coordinates are available for all stations.
+
+        We apply (default) quality control.
+
+        >>> dataset.apply_quality_control(obstype='temp')
+
+        To create an interactive plot, we use the `Dataset.make_interactive_plot()`
+        method. We must specify a target path for the HTML file, as an example
+        we save it to the current working directory (`os.getcwd()`).
+
+        >>> import os
+        >>> dataset.make_interactive_plot(obstype="temp",
+        ...                              save=True,
+        ...                              filename='interactive_temp_plot.html',
+        ...                              outputfolder=os.getcwd(),
+        ...                              starttime=None,
+        ...                              endtime=None)
+        <folium.folium.Map object at ...
+
+        (You can open an HTML file with a browser.)
 
         """
         # Check if obstype is known
         if isinstance(obstype, str):
             if obstype not in self.obstypes.keys():
-                logger.error(
-                    f"{obstype} is not found in the knonw observation types: {list(self.obstypes.keys())}"
+                raise MetobsDatasetVisualisationError(
+                    f"{obstype} is not found in the known observation types: {list(self.obstypes.keys())}"
                 )
-                return None
             else:
                 obstype = self.obstypes[obstype]
 
         if save:
-            if outputfile is None:
+            # Checkout outputfolder
+            if outputfolder is None:
                 if self.settings.IO["output_folder"] is None:
-                    logger.error(
-                        "No outputfile is given, and there is no default outputfolder specified."
+                    # no argument, no defualt
+                    raise MetobsDatasetVisualisationError(
+                        "No outputfolder is specified (as argment or as default)."
                     )
-                    return None
+                else:  # use default
+                    trg_outputdir = self.settings.IO["output_folder"]
+            else:  # outputfolder argumen
+                if not os.path.isdir(outputfolder):
+                    raise MetobsDatasetVisualisationError(
+                        f"{outputfolder} is not an existing directory."
+                    )
                 else:
-                    outputfile = os.path.join(
-                        self.output_folder, "interactive_figure.html"
-                    )
-            else:
-                # Check if outputfile has .html extension
-                if not outputfile.endswith(".html"):
-                    outputfile = outputfile + ".html"
-                    logger.warning(
-                        f"The .hmtl extension is added to the outputfile: {outputfile}"
-                    )
+                    trg_outputdir = outputfolder
+
+            # Check if outputfile has .html extension
+            if not filename.endswith(".html"):
+                filename = filename + ".html"
+                logger.warning(
+                    f"The .hmtl extension is added to the outputfile: {filename}"
+                )
+            trg_path = os.path.join(trg_outputdir, filename)
 
         # Check if the obstype is present in the data
-        if obstype.name not in self.df.columns:
-            logger.error(f"{obstype.name} is not found in your the Dataset.")
-            return None
+        if obstype.name not in self._get_present_obstypes():
+            raise MetobsDatasetVisualisationError(
+                f"{obstype.name} is not found in your the Dataset."
+            )
 
         # Check if geospatial data is available
         if self.metadf["lat"].isnull().any():
             _sta = self.metadf[self.metadf["lat"].isnull()]["lat"]
-            logger.error(f"Stations without coordinates detected: {_sta}")
-            return None
+            raise MetobsDatasetVisualisationError(
+                f"Stations without coordinates detected: {_sta}"
+            )
+
         if self.metadf["lon"].isnull().any():
             _sta = self.metadf[self.metadf["lon"].isnull()]["lon"]
-            logger.error(f"Stations without coordinates detected: {_sta}")
-            return None
+            raise MetobsDatasetVisualisationError(
+                f"Stations without coordinates detected: {_sta}"
+            )
+
+        starttime = self._datetime_arg_check(starttime)
+        endtime = self._datetime_arg_check(endtime)
 
         # Construct dataframe
-        combdf = self.combine_all_to_obsspace()
-        combdf = xs_save(combdf, obstype.name, level="obstype")
+        combdf = self.get_full_status_df()[obstype.name].reset_index()
         # Merge geospatial info
+        # TODO: Are all columns of metadf usable?? if not, do not merge them
         combgdf = combdf.merge(
             self.metadf, how="left", left_on="name", right_index=True
         )
 
         # Subset on start and endtime
-        starttime = fmt_datetime_argument(
-            starttime, self.settings.time_settings["timezone"]
-        )
-        endtime = fmt_datetime_argument(
-            endtime, self.settings.time_settings["timezone"]
-        )
         combgdf = multiindexdf_datetime_subsetting(combgdf, starttime, endtime)
         combgdf = combgdf.reset_index()
 
@@ -350,20 +437,22 @@ class Dataset(Dataset):
         # Make label color mapper
         label_col_map = {}
         # Ok label
-        label_col_map["ok"] = ok_col
-        # outlier labels
-        for val in self.settings.qc["qc_checks_info"].values():
-            label_col_map[val["outlier_flag"]] = outlier_col
+        label_col_map[label_def["goodrecord"]["label"]] = ok_col
 
-        # missing labels (gaps and missing values)
-        for val in self.settings.gap["gaps_info"].values():
-            label_col_map[val["outlier_flag"]] = gap_col
+        # outlier labels
+        for qclab in [label_def[check]["label"] for check in qc_label_group]:
+            label_col_map[qclab] = outlier_col
+
+        # gaps and failed gapfill
+        label_col_map[label_def["regular_gap"]["label"]] = gap_col
+        for gaplab in [
+            label_def[check]["label"] for check in failed_gapfill_label_group
+        ]:
+            label_col_map[gaplab] = gap_col
 
         # fill labels
-        for val in self.settings.missing_obs["missing_obs_fill_info"]["label"].values():
-            label_col_map[val] = fill_col
-        for val in self.settings.gap["gaps_fill_info"]["label"].values():
-            label_col_map[val] = fill_col
+        for gaplab in [label_def[check]["label"] for check in gapfill_label_group]:
+            label_col_map[gaplab] = fill_col
 
         # make time estimation
         est_seconds = combgdf.shape[0] / 2411.5  # normal laptop
@@ -387,8 +476,8 @@ class Dataset(Dataset):
             max_fps=int(max_fps),
         )
         if save:
-            logger.info(f"Saving the htlm figure at {outputfile}")
-            m.save(outputfile)
+            logger.info(f"Saving the htlm figure at {trg_path}")
+            m.save(trg_path)
         return m
 
     def make_geo_plot(
@@ -404,26 +493,27 @@ class Dataset(Dataset):
     ):
         """Make geospatial plot.
 
-        This functions creates a geospatial plot for a field
+        This function creates a geospatial plot for a field
         (observations or attributes) of all stations.
 
-        If the field is timedepending, than the timeinstance is used to plot
+        If the field is time-depending, than the timeinstance is used to plot
         the field status at that datetime.
 
-        If the field is categorical than the leged will have categorical
-        values, else a colorbar is used.
+        If the field is categorical then the legend will have categorical
+        values, or else a colorbar is used.
 
         All styling attributes are extracted from the Settings.
 
         Parameters
         ----------
         variable : string, optional
-            Fieldname to visualise. This can be an observation type or station
+            Fieldname to visualize. This can be an observation type or station
             or 'lcz'. The default is 'temp'.
         title : string, optional
             Title of the figure, if None a default title is generated. The default is None.
         timeinstance : datetime.datetime, optional
-            Datetime moment of the geospatial plot. If None, the first occuring (not Nan) record is used. The default is None.
+            Datetime moment of the geospatial plot. If None, the first occurring
+            timestamp for which most stations have a record, is used. The default is None.
         legend : bool, optional
             I True, a legend is added to the plot. The default is True.
         vmin : numeric, optional
@@ -433,13 +523,20 @@ class Dataset(Dataset):
         legend_title : string, optional
             Title of the legend, if None a default title is generated. The default is None.
         boundbox : [lon-west, lat-south, lon-east, lat-north], optional
-            The boundbox to indicate the domain to plot. The elemenst are numeric.
+            The bound box indicates the domain to plot. The elements are numeric.
             If the list is empty, a boundbox is created automatically. The default
             is [].
+
         Returns
         -------
         axis : matplotlib.pyplot.geoaxes
             The geoaxes of the plot is returned.
+
+        See Also
+        -----------
+        Dataset.make_plot: plot timeseries.
+        Dataset.make_gee_plot: geospatial plot of a GEE dataset.
+        Dataset.make_interactive_plot: Interactive geospatial plot.
 
         Note
         --------
@@ -448,45 +545,83 @@ class Dataset(Dataset):
 
         Examples
         --------
-        .. code-block:: python
+
+        .. plot::
+            :context: close-figs
+
+            We start by creating a Dataset, and importing data.
 
             >>> import metobs_toolkit
             >>>
-            >>> # Import data into a Dataset
-            >>> dataset = metobs_toolkit.Dataset()
-            >>> dataset.update_settings(
+            >>> #Create your Dataset
+            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+            >>> dataset.import_data_from_file(
             ...                         input_data_file=metobs_toolkit.demo_datafile,
             ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
             ...                         template_file=metobs_toolkit.demo_template,
             ...                         )
-            >>> dataset.import_data_from_file()
-            >>>
-            >>> # Make default geospatial plot
-            >>> dataset.make_geo_plot()
-            <GeoAxes:...
+            >>> print(dataset)
+            Dataset instance containing:
+                 *28 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *483828 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *8 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+                 *time zone of the records: UTC
+                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+                 *Coordinates are available for all stations.
+
+            To create a spatial plot, we use the `Dataset.make_geo_plot()`
+            method.
+
+            >>> dataset.make_geo_plot(variable="temp")
+            <GeoAxes: title={'center': 'Temperatuur at 2022-09-01 00:00:00+00:00.'}>
+
+        .. plot::
+            :context: close-figs
+
+            If you want a different extend, timeinstance of colorscale, you can do
+            that like so
+
+            >>> import datetime
+            >>> dataset.make_geo_plot(variable="temp",
+            ...                       title=None,
+            ...                       timeinstance=datetime.datetime(2022,9,4,16),
+            ...                       legend=True,
+            ...                       vmin=18,
+            ...                       vmax=32,
+            ...                       legend_title=None,
+            ...                       boundbox=[2.17, 50.67,
+            ...                                5.89, 51.42])
+            <GeoAxes: title={'center': 'Temperatuur at 2022-09-04 16:00:00+00:00.'}>
+
+        .. plot::
+            :context: close-figs
 
         """
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
 
-        # get first (Not Nan) timeinstance of the dataset if not given
-        timeinstance = fmt_datetime_argument(
-            timeinstance, self.settings.time_settings["timezone"]
-        )
+        # Get timeinstance to present data of
+        timeinstance = self._datetime_arg_check(timeinstance)
         if timeinstance is None:
-            timeinstance = self.df.dropna(subset=["temp"]).index[0][1]
+            # If not specified, use the earlyest timestamp, for which most stations
+            # are assumed to have a record of
+            timeinstance = (
+                self.df.dropna()
+                .index.get_level_values(level="datetime")
+                .value_counts()
+                .idxmax()
+            )
 
         logger.info(f"Make {variable}-geo plot at {timeinstance}")
 
         # check coordinates if available
-        if self.metadf["lat"].isnull().any():
-            _sta = self.metadf[self.metadf["lat"].isnull()]["lat"]
-            logger.error(f"Stations without coordinates detected: {_sta}")
-            return None
-        if self.metadf["lon"].isnull().any():
-            _sta = self.metadf[self.metadf["lon"].isnull()]["lon"]
-            logger.error(f"Stations without coordinates detected: {_sta}")
-            return None
+        if not _validate_metadf(self.metadf):
+            raise MetobsDatasetVisualisationError(
+                "The coordinates of all stations could not be found in the meta data."
+            )
 
         if bool(boundbox):
             if len(boundbox) != 4:
@@ -494,34 +629,36 @@ class Dataset(Dataset):
                     f"The boundbox ({boundbox}) does not contain 4 elements! The default boundbox is used!"
                 )
                 boundbox = []
+        # create a plotdf with 'names' as index, 'plot_value' and 'geometry' as columns
 
-        # Check if LCZ if available
-        if variable == "lcz":
-            if self.metadf["lcz"].isnull().any():
-                _sta = self.metadf[self.metadf["lcz"].isnull()]["lcz"]
-                logger.warning(f"Stations without lcz detected: {_sta}")
-                return None
-            title = f"Local climate zones at {timeinstance}."
-            legend_title = ""
-
-        # subset to timeinstance
-        plotdf = xs_save(self.df, timeinstance, level="datetime")
-
-        # merge metadata
-        plotdf = plotdf.merge(
-            self.metadf, how="left", left_index=True, right_index=True
-        )
-
-        # titles
-        if title is None:
-            try:
+        # situation 1: variable is an observationtype
+        if variable in self._get_present_obstypes():
+            plotdf = xs_save(self.df, variable, "obstype")
+            plotdf = xs_save(plotdf, timeinstance, "datetime")
+            plotdf = plotdf.merge(
+                self.metadf[["geometry"]], how="left", left_index=True, right_index=True
+            )
+            plotdf = plotdf.rename(columns={"value": "plot_value"})
+            if title is None:
                 title = f"{self.obstypes[variable].get_orig_name()} at {timeinstance}."
-            except KeyError:
-                title = f"{variable} at {timeinstance}."
-
-        if legend:
-            if legend_title is None:
+            if (legend) & (legend_title is None):
                 legend_title = f"{self.obstypes[variable].get_standard_unit()}"
+
+        # situation 2: variable is an observationtype
+        elif variable in self.metadf.columns:
+            if self.metadf[variable].isna().all():
+                raise MetobsDatasetVisualisationError(
+                    f"There is no data availabel for {variable} in the metadf: \n {self.metadf[variable]}"
+                )
+            plotdf = self.metadf[[variable, "geometry"]]
+            plotdf = plotdf.rename(columns={variable: "plot_value"})
+            if title is None:
+                title = f"{variable}"
+                legend_title = ""
+        else:
+            raise MetobsDatasetVisualisationError(
+                f"{variable} is not a found in the records an not found in the meta data."
+            )
 
         axis = geospatial_plot(
             plotdf=plotdf,
@@ -541,104 +678,334 @@ class Dataset(Dataset):
 
         return axis
 
-    def make_gee_plot(self, gee_map, show_stations=True, save=False, outputfile=None):
-        """Make an interactive plot of a google earth dataset.
+    def make_gee_static_spatialplot(
+        self,
+        Model="lcz",
+        outputfolder=None,
+        filename=None,
+        vmin=None,
+        vmax=None,
+        overwrite=False,
+    ):
+        """Make an interactive spatial plot of the GEE dataset and the stations.
 
-        The location of the stations can be plotted on top of it.
+        This method will create an interactive plot of the GEE dataset. If
+        metadata is present, it will be displayed as markers on the map.
+
+        The interactive map can be saved as an HTML file, by specifying the
+        target path.
+
 
         Parameters
         ----------
-        gee_map : str, optional
-            The name of the dataset to use. This name should be present in the
-            settings.gee['gee_dataset_info']. If aggregat is True, an aggregation
-            scheme should included as well. The default is 'worldcover'
-        show_stations : bool, optional
-            If True, the stations will be plotted as markers. The default is True.
-        save : bool, optional
-            If True, the map will be saved as an html file in the output_folder
-            as defined in the settings if the outputfile is not set. The
-            default is False.
-        outputfile : str, optional
-            Specify the path of the html file if save is True. If None, and save
-            is true, the html file will be saved in the output_folder. The
-            default is None.
+        Model : str or metobs_toolkit.GeeStaticModelData, optional
+            The GeeStaticModelData to plot. If a string is given, it is assumed
+            to be the name of a known GeeStaticModelData. The default is 'lcz'.
+        outputfolder : str or None, optional
+            Path to the folder to save the HTML file. If None, the map will
+            not be saved as an HTML file. The default is None.
+        filename : str or None, optional
+            The filename for the HTML file. If a filename is given, if it does
+            not end with ".html", the prefix is added. If None, the map will not
+            be saved as an HTML file. The default is None.
+        vmin : num or None, optional
+            If the dataset is not categorical, vmin is the minimum value
+            assigned to the colormap. If None, vmin is computed by extracting
+            the values at the locations of the stations. If no metadata is
+            available, and vmin is None then vmin is set to 0. The default is None.
+        vmax : num or None, optional
+            If the dataset is not categorical, vmax is the minimum value
+            assigned to the colormap. If None, vmax is computed by extracting
+            the values at the locations of the stations. If no metadata is
+            available, and vmax is None then vmax is set to 1. The default is None.
+        overwrite : bool, optional
+            If True, and if the target file exists, then it will be overwritten.
+            Else, an error will be raised when the target file already exists.
+            The default is False.
 
-        Returns
-        -------
-        Map : geemap.foliumap.Map
-            The folium Map instance.
+         Returns
+         -------
+         MAP : geemap.foliummap.Map
+             The interactive map of the GeeStaticModelData.
 
+        See Also
+        -----------
+        GeeStaticModelData : Gee Modeldata dataset without time dimension.
+        Dataset.make_gee_dynamic_spatialplot: Gee interactive spatial plot of GeeDynamicModelData.
 
         Warning
         ---------
-        To display the interactive map a graphical backend is required, which
-        is often missing on (free) cloud platforms. Therefore it is better to
-        set save=True, and open the .html in your browser
+        To display the interactive map a graphical interactive backend is
+        required, which could be missing. You can recognise this when no
+        map is displayed, but the Python console prints out a message similar
+        to `<geemap.foliumap.Map at 0x7ff7586b8d90>`.
+
+        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a HTML file, and
+        open it with a browser.
+
+        Examples
+        -----------
+        As an example, we will make a plot of the LCZ map, which is a default `GeeStaticModelData`
+        present in a `metobs_toolkit.Dataset()`
+
+        >>> import metobs_toolkit
+        >>>
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> lcz_model = dataset.gee_datasets['lcz']
+
+        If you want your stations present in the map, then you must add the
+        metadf to the Modeldata. This step is not required.
+
+        >>> #we will use the demo metadata
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+
+        We will save the map as an (HTML) file. You can specify where to save it,
+        for this example we will store it in the current working directory
+        (`os.getcwd()`)
+
+        >>> import os
+        >>> map = dataset.make_gee_static_spatialplot(
+        ...                   Model=lcz_model,
+        ...                  outputfolder = os.getcwd(),
+        ...                  filename = 'LCZ_map.html',
+        ...                  overwrite=True)
 
         """
-        # Connect to GEE
-        connect_to_gee()
 
-        # get the mapinfo
-        mapinfo = self.settings.gee["gee_dataset_info"][gee_map]
+        if isinstance(Model, str):
+            if Model in self.gee_datasets.keys():
+                Model = self.gee_datasets[Model]
+            else:
+                raise MetobsDatasetVisualisationError(
+                    f"{Model} is not a known Model (name), these are the knonw Gee Modeldata: {self.gee_datasets}."
+                )
 
-        # Read in covers, numbers and labels
-        covernum = list(mapinfo["colorscheme"].keys())
-        colors = list(mapinfo["colorscheme"].values())
-        covername = [mapinfo["categorical_mapper"][covnum] for covnum in covernum]
-
-        # create visparams
-        vis_params = {
-            "min": min(covernum),
-            "max": max(covernum),
-            "palette": colors,  # hex colors!
-        }
-
-        if "band_of_use" in mapinfo:
-            band = mapinfo["band_of_use"]
+        if isinstance(Model, GeeStaticModelData):
+            pass
         else:
-            band = None
+            raise MetobsDatasetVisualisationError(
+                f"{Model} is not a GeeStaticModelData, but a {type(Model)}."
+            )
 
-        Map = folium_plot(
-            mapinfo=mapinfo,
-            band=band,
-            vis_params=vis_params,
-            labelnames=covername,
-            layername=gee_map,
-            legendname=f"{gee_map} covers",
-            # showmap = show,
+        # Set metadata
+        Model.set_metadf(self.metadf)
+
+        return Model.make_gee_plot(
+            outputfolder=outputfolder,
+            filename=filename,
+            vmin=vmin,
+            vmax=vmax,
+            overwrite=overwrite,
         )
 
-        if show_stations:
-            if not _validate_metadf(self.metadf):
-                logger.warning(
-                    "Not enough coordinates information is provided to plot the stations."
+    def make_gee_dynamic_spatialplot(
+        self,
+        timeinstance,
+        Model="ERA5-land",
+        modelobstype="temp",
+        outputfolder=None,
+        filename=None,
+        vmin=None,
+        vmax=None,
+        overwrite=False,
+    ):
+        """Make an interactive spatial plot of the GEE dataset and the stations.
+
+        This method will create an interactive plot of the GEE dataset at an
+        instance in time. If metadata is present, it will be diplayed as
+        markers on the map.
+
+        The interactive map can be saved as an HTML file, by specifying the
+        target path.
+
+
+        Parameters
+        ----------
+        timeinstance : datetime.datetime or pandas.Timestamp
+            The timeinstance to plot the GEE dataset of. If a timezone naive
+            timeinstance is given, it is asumed to be in UTC. This timestamp is
+            rounded down with the time resolution (.time_res). The timeinstance,
+            is interpreted as UTC.
+        Model : str of GeeDynamicModelData, optional
+            The GeeDynamicModelData to plot. If a string is given, it is assumed
+            to be the name of a known GeeDynamicModelData. The default is 'ERA5-land'.
+        modelobstype : str, optional
+            The name of the ModelObstype to plot. The modelobstype name must be
+            known (--> not the same as an Obstype!). The default is "temp".
+        outputfolder : str or None, optional
+            Path to the folder to save the HTML file. If None, the map will
+            not be saved as an HTML file. The default is None.
+        filename : str or None, optional
+            The filename for the HTML file. If a filename is given, if it does
+            not end with ".html", the prefix is added. If None, the map will not
+            be saved as an HTML file. The default is None.
+        vmin : num or None, optional
+            vmin is the minimum value assigned to the colormap. If None, and
+            metadata is set, vmin is computed by computing the minimum
+            modelvalue in a boundbox defined by the locations of the stations.
+            If no metadata is available, and vmin is None then vmin is set to
+            0. The default is None.
+        vmax : num or None, optional
+            vmax is the minimum value assigned to the colormap. If None, and
+            metadata is set, vmax is computed by computing the minimum
+            modelvalue in a boundbox defined by the locations of the stations.
+            If no metadata is available, and vmax is None then vmax is set to
+            1. The default is None.
+        overwrite : bool, optional
+            If True, and if the target file exists, then it will be overwritten.
+            Else, an error will be raised when the target file already exists.
+            The default is False.
+
+        Returns
+        -------
+        MAP : geemap.foliummap.Map
+            The interactive map of the GeeStaticModelData.
+
+        See Also
+        -----------
+        GeeDynamicModelData : Gee Modeldata dataset with a time dimension.
+        Dataset.make_gee_static_spatialplot: Gee interactive spatial plot of GeeStaticModelData.
+
+        Warning
+        ---------
+        To display the interactive map a graphical interactive backend is
+        required, which could be missing. You can recognice this when no
+        map is displayed, but the python console prints out a message similar
+        to `<geemap.foliumap.Map at 0x7ff7586b8d90>`.
+
+        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a HTML file, and
+        open in with a browser.
+
+        Examples
+        -----------
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        present in a `metobs_toolkit.Dataset()` and we will plot the 2m-temperature field.
+
+        >>> import metobs_toolkit
+        >>> #Create your Dataset
+        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+        >>> era5 = dataset.gee_datasets['ERA5-land']
+        >>> era5
+        Empty GeeDynamicModelData instance of ERA5-land
+
+        For more details (i.g. see which modelobstypes are knonw), use the
+        `GeeDynamicModelData.get_info()` method.
+
+        >>> era5.get_info()
+        Empty GeeDynamicModelData instance of ERA5-land
+        ------ Details ---------
+        <BLANKLINE>
+         * name: ERA5-land
+         * location: ECMWF/ERA5_LAND/HOURLY
+         * value_type: numeric
+         * scale: 2500
+         * is_static: False
+         * is_image: False
+         * is_mosaic: False
+         * credentials:
+         * time res: 1h
+        <BLANKLINE>
+         -- Known Modelobstypes --
+        <BLANKLINE>
+         * temp : ModelObstype instance of temp (linked to band: temperature_2m)
+            (conversion: Kelvin --> Celsius)
+         * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
+            (conversion: pa --> pa)
+         * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
+            vectorfield that will be converted to:
+              * wind_speed
+              * wind_direction
+            (conversion: m/s --> m/s)
+        <BLANKLINE>
+         -- Metadata --
+        <BLANKLINE>
+        No metadf is set.
+        <BLANKLINE>
+         -- Modeldata --
+        <BLANKLINE>
+        No model data is set.
+
+
+        We will add metadata (station locations) in the Dataset, so that the locations appear on the map. We use the demo
+        dataset's metadata for this.
+
+        >>> dataset.import_data_from_file(
+        ...                input_data_file=metobs_toolkit.demo_datafile,
+        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+        ...                template_file=metobs_toolkit.demo_template)
+
+        We can no use the `Dataset.make_gee_dynamic_spatialplot()` method to make
+        an interactive spatial plot of the era5 Modeldata.
+
+        We will save the output as a (HTML) file and store it in the
+        current working directory (`os.getcwd`) as illustration.
+
+        We specify a timeinstance, which is rounded-down, respecting
+        the time resolution of the Gee dataset.
+
+        >>> import os
+        >>> import datetime
+        >>> dt = datetime.datetime(2006,11,18, 20, 15)
+        >>> str(dt)
+        '2006-11-18 20:15:00'
+
+        >>> dataset.make_gee_dynamic_spatialplot(
+        ...     timeinstance=dt, #will be rounded down to 18/11/2006 20:00:00
+        ...     Model=era5,
+        ...     modelobstype="temp", #which modelobstype to plot
+        ...     outputfolder=os.getcwd(),
+        ...     filename=f'era5_temp_at_{dt}.html',
+        ...     overwrite=True)
+        <geemap.foliumap.Map object at ...
+        """
+        dt = self._datetime_arg_check(timeinstance)
+
+        if isinstance(Model, str):
+            if Model in self.gee_datasets.keys():
+                Model = self.gee_datasets[Model]
+            else:
+                raise MetobsDatasetVisualisationError(
+                    f"{Model} is not a known Model (name), these are the knonw Gee Modeldata: {self.gee_datasets}."
                 )
-            else:
-                Map = add_stations_to_folium_map(Map=Map, metadf=self.metadf)
 
-        # Save if needed
-        if save:
-            if outputfile is None:
-                # Try to save in the output folder
-                if self.settings.IO["output_folder"] is None:
-                    logger.warning(
-                        "The outputfolder is not set up, use the update_settings to specify the output_folder."
-                    )
+        if isinstance(Model, GeeDynamicModelData):
+            pass
+        else:
+            raise MetobsDatasetVisualisationError(
+                f"{Model} is not a GeeDynamicModelData, but a {type(Model)}."
+            )
 
-                else:
-                    filename = f"gee_{gee_map}_figure.html"
-                    filepath = os.path.join(self.settings.IO["output_folder"], filename)
-            else:
-                # outputfile is specified
-                # 1. check extension
-                if not outputfile.endswith(".html"):
-                    outputfile = outputfile + ".html"
+        # Set metadata
+        Model.set_metadf(self.metadf)
 
-                filepath = outputfile
+        return Model.make_gee_plot(
+            timeinstance=dt,
+            modelobstype=modelobstype,
+            outputfolder=outputfolder,
+            filename=filename,
+            vmin=vmin,
+            vmax=vmax,
+            overwrite=overwrite,
+        )
 
-            print(f"Gee Map will be save at {filepath}")
-            logger.info(f"Gee Map will be save at {filepath}")
-            Map.save(filepath)
 
-        return Map
+# =============================================================================
+# Errors
+# =============================================================================
+class MetobsDatasetVisualisationError(Exception):
+    """Exception raised for errors in the template."""
+
+    pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

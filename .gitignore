@@ -17,6 +17,10 @@ dist/*
 
 #exclude the python versions of the doc example notebooks
 docs/examples/*.py
+docs/notebook_references/*.py
+docs/topics/*.py
+
+docs/paper/*.py
 
 # ------------ Documentation ------------------
 #Exclude local documentation builds

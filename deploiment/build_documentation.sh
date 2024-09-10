@@ -13,7 +13,7 @@ WORKDIR=$(pwd)
 
 
 #1. Setup environment
-poetry install --all-extras
+poetry install --all-extras #if sphinx build is not run withing poetry (poetry run), then this does nothing?
 
 #2. Cleanup builds
 DOCDIR=${WORKDIR}/docs

@@ -65,6 +65,7 @@ extensions = [
     "myst_parser",  # for including md files (readme)
     "sphinx.ext.autosectionlabel",  # for cross linking
     "nbsphinx",  # to render the notebook examples in the doc
+    "matplotlib.sphinxext.plot_directive",  # embedding figures in the docstrings examples
 ]
 
 # -- General configuration ------------------------------------------------------------
@@ -86,25 +87,24 @@ master_doc = "index"  # The master toctree document.
 
 
 # When building the doc, sphinx will try to import all the depending packages,
-# this is not needed and problematic when building the docs in a clean docker on gitlab.
-# So specify which packages can be mocked
-
-autodoc_mock_imports = [
-    "ee",
-    "pytz",
-    "matplotlib",
-    "numpy",
-    "geopandas",
-    "pandas",
-    "pyproj",
-    "shapely",
-    "cartopy",
-    "branca",
-    "geemap",
-    "folium",
-    "mpl_toolkits",
-    "scipy",
-]
+# This is needed because of the plot examples that are rendered in the docs!
+# THus do not mock any package
+# autodoc_mock_imports = [
+#     "ee",
+#     "pytz",
+#     "matplotlib",
+#     "numpy",
+#     "geopandas",
+#     "pandas",
+#     "pyproj",
+#     "shapely",
+#     "cartopy",
+#     "branca",
+#     "geemap",
+#     "folium",
+#     "mpl_toolkits",
+#     "scipy",
+# ]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -217,3 +217,36 @@ html_theme_options = {
 # html_css_files = [
 #     "custom.css",
 # ]
+
+# =============================================================================
+# nbsphinx settings
+# =============================================================================
+
+# isue is that some example notebooks require the GEE authentication,
+# which fails when documentation is build online !!
+
+# since the execution of the notebooks is part of the development pipeline,
+# we can skip (in general) this step and assume the notebooks have output.
+
+# but, since this package is under active development, it is handy that the
+# notbooks are executed only when building locally !!
+
+if ("/runner/" in os.getcwd()) | ("readthedocs.org" in os.getcwd()):
+    print("ASSUME SERVER BUILD OF DOCUMENTATION")
+    nbsphinx_execute = "never"  # never, always or auto
+else:
+    print("ASSUME LOCAL BUILD OF DOCUMENTATION")
+    nbsphinx_execute = "auto"
+
+
+# =============================================================================
+# Matplotlib include settings
+# =============================================================================
+
+# See: https://matplotlib.org/stable/api/sphinxext_plot_directive_api.html
+
+plot_include_source = True
+plot_html_show_source_link = False
+plot_formats = ["png"]  # no need for highres and pdf versions
+
+plot_pre_code = "import numpy as np \nfrom matplotlib import pyplot as plt\nplt.rcParams['figure.autolayout'] = True"

@@ -10,6 +10,7 @@ import logging
 from collections.abc import Iterable
 
 import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ temp_aliases = {
         "Celcius",
     ],  # for the dyselectic developper..
     "Kelvin": ["K", "kelvin"],
-    "Farenheit": ["farenheit"],
+    "Fahrenheit": ["fahrenheit"],
 }
 pressure_aliases = {
     "pa": ["Pascal", "pascal", "Pa"],
@@ -54,7 +55,7 @@ pressure_aliases = {
     "bar": ["Bar"],
 }
 
-precip_aliases = {"mm/m²": ["mm", "liter", "liters", "l/m²", "milimeter"]}
+precip_aliases = {"mm/m²": ["mm", "liter", "liters", "l/m²", "millimeter"]}
 
 wind_aliases = {
     "m/s": ["meters/second", "m/sec"],
@@ -85,11 +86,11 @@ all_units_aliases = {
 all_conversion_table = {
     "temp": {
         "Kelvin": ["x - 273.15"],  # result is in tlk_std_units
-        "Farenheit": ["x-32.0", "x/1.8"],
+        "Fahrenheit": ["x-32.0", "x/1.8"],
     },  # -->execute from left to write  = (x-32)/1.8
     "radiation_temp": {
         "Kelvin": ["x - 273.15"],  # result is in tlk_std_units
-        "Farenheit": ["x-32.0", "x/1.8"],
+        "Fahrenheit": ["x-32.0", "x/1.8"],
     },
     "humidity": {},
     "pressure": {"hpa": ["x * 100"], "psi": ["x * 6894.7573"], "bar": ["x * 100000."]},
@@ -124,7 +125,7 @@ class Obstype:
             The name of the new observation type (i.g. 'sensible_heat_flux').
         std_unit : str
             The standard unit for the observation type (i.g. 'J/m²')
-        obstype_description : str, ptional
+        obstype_description : str, optional
             A more detailed description of the obstype (i.g. '2m SE inside
             canopy'). The default is None.
         unit_aliases : dict, optional
@@ -132,11 +133,11 @@ class Obstype:
             values are lists with aliases for the units at the keys. The default is {}.
         unit_conversions : dict, optional
             A dictionary containing the conversion information to map to the
-            standard units. Here an example of for temperatures (with Celcius
+            standard units. Here is an example of temperatures (with Celcius
             as standard unit):
 
                 {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
-                'Farenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
+                'Fahrenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
 
                 The default is {}.
 
@@ -161,11 +162,21 @@ class Obstype:
 
     def __repr__(self):
         """Instance representation."""
-        return f"Obstype instance of {self.name}"
+        return f"{type(self).__name__} instance of {self.name}"
 
     def __str__(self):
         """Text representation."""
-        return f"Obstype instance of {self.name}"
+        return f"{type(self).__name__} instance of {self.name}"
+
+    def __eq__(self, other):
+        is_eq = (
+            (self.name == other.name)
+            & (self.std_unit == other.std_unit)
+            & (self.description == other.description)
+            & (self.units_aliases == other.units_aliases)
+            & (self.conv_table == other.conv_table)
+        )
+        return is_eq
 
     # -----  Setters -------
 
@@ -212,16 +223,18 @@ class Obstype:
             return str(self.description)
 
     def get_all_units(self):
-        """Return a list with all the known unit (in standard naming)."""
+        """Return a list with all the known units (in standard naming)."""
         units = list(self.units_aliases.keys())
         units.append(self.get_standard_unit())
-        return list(set(units))
+        units = list(set(units))
+        units.sort()
+        return units
 
     def get_standard_unit(self):
         """Return the standard unit of the observation type."""
         return self.std_unit
 
-    def get_plot_y_label(self, mapname=None):
+    def _get_plot_y_label(self, mapname=None):
         """Return a string to represent the vertical axes of a plot."""
         return f"{self.name} ({self.std_unit})"
 
@@ -261,7 +274,7 @@ class Obstype:
         )
 
     def convert_to_standard_units(self, input_data, input_unit):
-        """Convert data from a knonw unit to the standard unit.
+        """Convert data from a known unit to the standard unit.
 
         The data can be a collection of numeric values or a single numeric
         value.
@@ -275,8 +288,9 @@ class Obstype:
 
         Returns
         -------
-        data  numeric/numpy.array
-            The data in standard units.
+        data  numeric / numpy.array / pd.Series
+            The data in standard units. (Returned in the same structure and
+            format as the input_data.)
 
         """
         # check if input unit is known
@@ -301,7 +315,24 @@ class Obstype:
         for conv in conv_expr_list:
             data = expression_calculator(conv, data)
 
-        return data
+        # convert output to same type as input
+        if (isinstance(input_data, int)) | (isinstance(input_data, float)):
+            return float(
+                data
+            )  # always float because int can be converted to fload due to conversiontable
+
+        elif isinstance(input_data, pd.core.series.Series):
+            data = pd.Series(index=input_data.index, data=data, name=input_data.name)
+            return data
+
+        elif isinstance(input_data, np.ndarray):
+            return np.asarray(data)
+
+        else:
+            logger.warning(
+                f"The dtype ({type(input_data)}), of input data for unit conversion is not a default."
+            )
+            return data
 
     # ------------- Helpers ----------------------------------
 
@@ -326,7 +357,7 @@ class Obstype:
         self.units_aliases.update(add_to_aliases)
 
     def _get_std_unit_name(self, unit_name):
-        """Get standard name for a unit name by scanning trough the aliases."""
+        """Get the standard name for a unit by scanning through the aliases."""
         for std_unit_name, aliases in self.units_aliases.items():
             if unit_name == std_unit_name:
                 return unit_name
@@ -475,3 +506,12 @@ tlk_obstypes = {
     "wind_gust": windgust,
     "wind_direction": wind_direction,
 }
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

@@ -19,14 +19,11 @@ class Station(Dataset):
         df,
         outliersdf,
         gaps,
-        missing_obs,
-        gapfilldf,
-        missing_fill_df,
         metadf,
+        gee_datasets,
         obstypes,
         template,
         settings,
-        _qc_checked_obstypes,
         _applied_qc,
     ):
         """Initiate the Station object."""
@@ -37,14 +34,10 @@ class Station(Dataset):
         self._set_metadf(metadf)
         self._set_obstypes(obstypes)
         self._set_settings(settings)
+        self._set_gaps(gaps)
+        self._set_gee_dataset(gee_datasets)
+        self._set_outliersdf(outliersdf)
 
-        # Set data attribute
-        self.gaps = gaps
-        self.missing_obs = missing_obs
-        self.gapfilldf = gapfilldf
-        self.missing_fill_df = missing_fill_df
-        self.template = template
-        self._qc_checked_obstypes = _qc_checked_obstypes
         self._applied_qc = _applied_qc
 
         # Station specific
@@ -66,3 +59,12 @@ class Station(Dataset):
         for col in timedelta_columns:
             if col in self.metadf.columns:
                 self.metadf[col] = pd.to_timedelta(self.metadf[col])
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()

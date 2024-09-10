@@ -9,9 +9,6 @@ import sys
 import warnings
 import logging
 import pandas as pd
-
-# import mysql.connector
-# from mysql.connector import errorcode
 from pytz import all_timezones
 from metobs_toolkit.template import _create_datetime_column
 
@@ -45,7 +42,6 @@ def _read_csv_to_df(filepath, kwargsdict):
 
                 if len(df.columns) > 1:
                     break
-
     assert (
         len(df.columns) > 1
     ), f"Only one column detected from import using these seperators: {common_seperators}. See if csv template is correct."
@@ -145,7 +141,7 @@ def wide_to_long(df, obstypename):
     longdf : pandas.DataFrame
         Long dataframe.
     template : dict
-        Updateted template dictionary.
+        Updated template dictionary.
 
     """
     # the df is assumed to have one datetime column, and the others represent
@@ -194,6 +190,9 @@ def import_data_from_csv(
     """
 
     # 1. Read data into df
+    logger.debug(
+        f"Reading the data records from {input_file}, with kwargs: {kwargs_data_read}"
+    )
     df = _read_csv_to_df(filepath=input_file, kwargsdict=kwargs_data_read)
 
     # Test blacklist columns and apply compatibility check of template and data
@@ -236,11 +235,9 @@ def import_data_from_csv(
     # 6.. Set index
     df.set_index("datetime", inplace=True)
 
-    # 8. map to numeric dtypes
-    for col in df.columns:
-        if col != "name":  # all other columns are observations
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-
+    # 7. create timezone-aware datetime index
+    df.index = df.index.tz_localize(tz=template._get_tz())
+    logger.debug(f"df head: \n {df.head()}")
     return df
 
 
@@ -253,3 +250,12 @@ class MetobsDataImportError(Exception):
     """Exception raised for errors on importing Data."""
 
     pass
+
+
+# =============================================================================
+# Docstring test
+# =============================================================================
+if __name__ == "__main__":
+    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+
+    setup_and_run_doctest()
