@@ -30,7 +30,7 @@ version = "0.2.3"
 [tool.poetry.dependencies]
 cartopy = "^0.23.0"
 # cartopy = '^0.21.1'
-earthengine-api = "^0.1.419"
+earthengine-api = "^1.0.0"
 geemap = "^0.34.1"
 geopandas = "^1.0.1"
 geos = "^0.2.3"
@@ -49,6 +49,7 @@ shapely = "^2.0.6"
 jedi = "^0.19"
 # To run poetry tests
 poetry = "^1.8.3"
+poetry-plugin-export = "^1.8.0"
 pre-commit = "^3.8.0"
 
 [tool.poetry.group.documentation.dependencies]

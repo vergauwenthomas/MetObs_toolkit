@@ -165,6 +165,10 @@ class Settings:
     # =============================================================================
 
     def show(self):
+        """Alias of get_info()."""
+        self.get_info()
+
+    def get_info(self):
         """Print out an overview of the settings.
 
         Returns
