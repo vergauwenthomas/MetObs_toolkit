@@ -394,7 +394,7 @@ jobs:
 # ---- delete artifacts that are not for storage -----
    cleanup_artifacts:
      name: delete artifacts
-     needs: [docsbuild,run-tests,versiontest,mac_install_testing, windows_install_testing, deploy_doc_main]
+     needs: [docsbuild,run-tests,versiontest,mac_install_testing, windows_install_testing]
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v3
