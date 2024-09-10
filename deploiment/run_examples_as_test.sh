@@ -20,42 +20,23 @@ PAPER_NOTEBOOKS=${WORKDIR}/docs/paper
 #make logfile for each test and stream  prompt output for the test
 make_test_log () {
         testfile="$1"
-        specificlogfile="${LOGDIR}/${testfile::-3}_log"
+        specificlogfile="${LOGDIR}/${testfile::-6}_log"
         rm -f ${specificlogfile}
         touch ${specificlogfile}
         echo "$specificlogfile"
 }
 
 
-#1. Remove all .py files
-#delete all .py versions of the examples (rebuild them from the notebooks)
-rm ${DOCEXAMPLEDIR}/*.py
-rm ${OTHER_NOTEBOOKS}/*.py
-rm ${TOPIC_NOTEBOOKS}/*.py
-
-#2. Convert the notebooks back to .py files
-#convert nb to python files
-cd ${DOCEXAMPLEDIR}
-jupyter nbconvert --to python *.ipynb
-
-cd ${OTHER_NOTEBOOKS}
-jupyter nbconvert --to python *.ipynb
-
-cd ${TOPIC_NOTEBOOKS}
-jupyter nbconvert --to python *.ipynb
-
-cd ${PAPER_NOTEBOOKS}
-jupyter nbconvert --to python *.ipynb
-
-
 #3. Run examples
 cd ${DOCEXAMPLEDIR}
-filenames=`ls ./*.py`
+filenames=`ls ./*.ipynb`
 for t in $filenames; do
         example_file=${DOCEXAMPLEDIR}/${t}
         logfile="$(make_test_log ${t})"
         echo Running ${t} as a test
-        poetry run python ${example_file} >> ${logfile} 2>&1
+        #poetry run python ${example_file} >> ${logfile} 2>&1
+        #Execute the notebooks, and save the new output (== update them)
+        poetry run jupyter nbconvert --execute --to notebook --inplace ${example_file} >> ${logfile} 2>&1
         if [ $? -eq 0 ]; then
                 echo "succeeded !!"
         else
@@ -66,12 +47,12 @@ done
 
 #3. Run other notebooks used in the documentation
 cd ${OTHER_NOTEBOOKS}
-filenames=`ls ./*.py`
+filenames=`ls ./*.ipynb`
 for t in $filenames; do
         example_file=${OTHER_NOTEBOOKS}/${t}
         logfile="$(make_test_log ${t})"
         echo Running ${t} as a test
-        poetry run python ${example_file} >> ${logfile} 2>&1
+        poetry run jupyter nbconvert --execute --to notebook --inplace ${example_file} >> ${logfile} 2>&1
         if [ $? -eq 0 ]; then
                 echo "succeeded !!"
         else
@@ -83,12 +64,12 @@ done
 
 #3. Run other notebooks of topics used in the documentation
 cd ${TOPIC_NOTEBOOKS}
-filenames=`ls ./*.py`
+filenames=`ls ./*.ipynb`
 for t in $filenames; do
         example_file=${TOPIC_NOTEBOOKS}/${t}
         logfile="$(make_test_log ${t})"
         echo Running ${t} as a test
-        poetry run python ${example_file} >> ${logfile} 2>&1
+        poetry run jupyter nbconvert --execute --to notebook --inplace ${example_file} >> ${logfile} 2>&1
         if [ $? -eq 0 ]; then
                 echo "succeeded !!"
         else
@@ -101,12 +82,12 @@ done
 #Run the paper notebook (for figures creation) again with new version
 cd ${PAPER_NOTEBOOKS}
 
-filenames=`ls ./*.py`
+filenames=`ls ./*.ipynb`
 for t in $filenames; do
         example_file=${PAPER_NOTEBOOKS}/${t}
         logfile="$(make_test_log ${t})"
         echo Running ${t} as a test
-        poetry run python ${example_file} >> ${logfile} 2>&1
+        poetry run jupyter nbconvert --execute --to notebook --inplace ${example_file} >> ${logfile} 2>&1
         if [ $? -eq 0 ]; then
                 echo "succeeded !!"
         else
