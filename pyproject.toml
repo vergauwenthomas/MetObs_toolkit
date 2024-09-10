@@ -53,6 +53,7 @@ poetry-plugin-export = "^1.8.0"
 pre-commit = "^3.8.0"
 
 [tool.poetry.group.documentation.dependencies]
+ipykernel = "^6.29.5"
 myst_parser = "^3"
 nbsphinx = "^0.9.5"
 pandoc = "^2.4"  # Check on PyPi (not in local conda env) + with system wide install

@@ -46,6 +46,7 @@ poetry add pydata-sphinx-theme@latest --group documentation
 poetry add "sphinx@>=7" --group documentation #v8.x.x not comp with py3.9
 poetry add sphinx-copybutton@latest --group documentation
 poetry add sphinx-rtd-theme@latest --group documentation
+poetry add ipykernel --group documentation #else there is a error when building doc: No such kernel named python3
 
 # Toolkit titan group
 poetry add titanlib@latest --group titan
