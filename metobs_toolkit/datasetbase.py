@@ -409,6 +409,19 @@ class DatasetBase(object):
     # Checks
     # =============================================================================
 
+    def _data_is_required_check(self):
+        """Raise an error when there is no observational data found."""
+        if self.df.empty:
+            if self.metadf.empty:
+                raise MetobsDatasetBaseError(
+                    f"There is no observational data stored in {self}"
+                )
+            else:
+                raise MetobsDatasetBaseError(
+                    f'There is no observational data stored in {self} \n(This method is not a "metadata-only" method.)'
+                )
+        return
+
     def _are_all_present_obstypes_knonw(self):
         """Raise an error if there are unknown obstypes in the df."""
         present_obstypes = self._get_present_obstypes()

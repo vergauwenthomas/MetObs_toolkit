@@ -170,6 +170,8 @@ class DatasetVisuals:
 
 
         """
+        # check if there is data
+        self._data_is_required_check()
 
         if stationnames is None:
             logger.info(f"Make {obstype}-timeseries plot for all stations")
@@ -362,6 +364,9 @@ class DatasetVisuals:
         (You can open an HTML file with a browser.)
 
         """
+        # check if there is data
+        self._data_is_required_check()
+
         # Check if obstype is known
         if isinstance(obstype, str):
             if obstype not in self.obstypes.keys():
@@ -600,6 +605,10 @@ class DatasetVisuals:
             :context: close-figs
 
         """
+
+        # check if there is data
+        self._data_is_required_check()  # not strickly a data-only method
+
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
 

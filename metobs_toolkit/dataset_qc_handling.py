@@ -157,6 +157,9 @@ class DatasetQCCore:
             {'ok': 83.37301587301587, 'QC outliers': 16.626984126984127, 'gaps (filled/unfilled)': 0.0}
 
         """
+        # check if there is data
+        self._data_is_required_check()
+
         # cobmine all and get final label
         comb_df = self.get_full_status_df(return_as_wide=False)
 
@@ -428,6 +431,9 @@ class DatasetQCCore:
             >>> final_stats, outlier_freq, qc_effectivenes = dataset.get_qc_stats(obstype='temp', make_plot=True)
 
         """
+        # check if there is data
+        self._data_is_required_check()
+
         if repetitions:
             checkname = "repetitions"
             apliable = _can_qc_be_applied(self, obstype, checkname)
@@ -705,6 +711,9 @@ class DatasetQCCore:
 
         logger.info("Applying the toolkit buddy check")
 
+        # check if there is data
+        self._data_is_required_check()
+
         checkname = "buddy_check"
 
         # 1. coordinates are available?
@@ -925,6 +934,9 @@ class DatasetQCCore:
         """
         logger.info("Applying the titan buddy check")
 
+        # check if there is data
+        self._data_is_required_check()
+
         try:
             import titanlib
 
@@ -1099,7 +1111,8 @@ class DatasetQCCore:
     #             "Titanlib is not installed, install it manually if you want to use this functionallity."
     #         )
     #         return
-
+    # check if there is data
+    # self._data_is_required_check()
     #     checkname = "titan_sct_resistant_check"
     #     # check if required metadata is available:
 

@@ -133,6 +133,9 @@ class Dataset(
         >>> Combined = dataset_A + dataset_B # doctest: +SKIP
 
         """
+        # check if there is data
+        self._data_is_required_check()
+        other._data_is_required_check()
 
         logger.info(f"adding {str(other)} to {str(self)}")
 
@@ -484,6 +487,8 @@ class Dataset(
                            2022-09-01 00:15:00+00:00   65.0    ok            observation
                            2022-09-01 00:20:00+00:00   65.0    ok            observation
         """
+        # check if there is data
+        self._data_is_required_check()
 
         # =============================================================================
         # Stack observations and outliers
@@ -832,7 +837,10 @@ class Dataset(
              *Coordinates are available for all stations.
 
         """
-        from metobs_toolkit.station import Station
+        from metobs_toolkit.station import Station  # isn't this tricky !!??
+
+        # check if there is data
+        self._data_is_required_check()
 
         logger.info(f"Extract {stationname} from dataset.")
 
@@ -949,6 +957,9 @@ class Dataset(
         """
 
         logger.info("Writing the dataset to a csv file")
+
+        # check if there is data
+        self._data_is_required_check()
 
         # check path to target files
         if data_file is None:
@@ -1158,7 +1169,8 @@ class Dataset(
         Name: dataset_resolution, Length: 28, dtype: timedelta64[ns]
 
         """
-
+        # check if there is data
+        self._data_is_required_check()
         # coarsening/resamplin is the same as sync with a fixed frequency.
         self.sync_records(
             timestamp_shift_tolerance=timestamp_shift_tolerance,
@@ -1267,6 +1279,8 @@ class Dataset(
         ...     freq_shift_tolerance="4min")
 
         """
+        # check if there is data
+        self._data_is_required_check()
 
         # checking arguments
         timestamp_shift_tolerance = self._timedelta_arg_check(timestamp_shift_tolerance)
@@ -1349,6 +1363,99 @@ class Dataset(
             obstypes=self.obstypes,
         )
         self._set_gaps(gaps)
+
+    def import_only_metadata_from_file(
+        self,
+        input_metadata_file=None,
+        template_file=None,
+        kwargs_data_read={},
+        kwargs_metadata_read={},
+        templatefile_is_url=False,
+    ):
+        """
+        TODO
+
+        Parameters
+        ----------
+        input_metadata_file : TYPE, optional
+            DESCRIPTION. The default is None.
+        template_file : TYPE, optional
+            DESCRIPTION. The default is None.
+        kwargs_data_read : TYPE, optional
+            DESCRIPTION. The default is {}.
+        kwargs_metadata_read : TYPE, optional
+            DESCRIPTION. The default is {}.
+        templatefile_is_url : TYPE, optional
+            DESCRIPTION. The default is False.
+         : TYPE
+            DESCRIPTION.
+
+        Raises
+        ------
+        MetobsDatasetError
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # get template file
+        if template_file is not None:
+            trg_templ_file = str(template_file)
+        elif self.settings.templatefile is not None:
+            trg_templ_file = str(self.settings.templatefile)
+        else:
+            raise MetobsDatasetError(f"No templatefile is specified.")
+
+        # get metadatafile
+        if input_metadata_file is not None:
+            trg_meta_file = str(template_file)
+        elif self.settings.IO["input_metadata_file"] is not None:
+            trg_meta_file = str(self.settings.IO["input_metadata_file"])
+        else:
+            raise MetobsDatasetError(f"No metadata file is specified.")
+
+        # Read template
+        logger.info(f"Reading the templatefile at {trg_templ_file}")
+        self.template.read_template_from_file(
+            jsonpath=trg_templ_file, templatefile_is_url=templatefile_is_url
+        )
+
+        meta_df = import_metadata_from_csv(
+            input_file=trg_meta_file,
+            template=self.template,
+            kwargs_metadata_read=kwargs_metadata_read,
+        )
+
+        # handle the name
+
+        if "name" in meta_df.columns:
+            pass  # normal case
+        elif meta_df.shape[0] > 1:
+            # no names and multiple stations (= rows) are found --> create dummies
+            logger.warning(
+                "No column specified that represents the name of the stations, dummy names are created."
+            )
+            meta_df["name"] = [f"dummy_{i}" for i in range(meta_df.shape[0])]
+        else:
+            # No name found, and only one station found --> use the single station name
+            meta_df["name"] = self.template._get_single_station_default_name()
+
+        meta_df = meta_df.set_index("name")
+
+        # Construct columns that are required
+        if "lat" not in meta_df.columns:
+            meta_df["lat"] = np.nan
+        if "lon" not in meta_df.columns:
+            meta_df["lon"] = np.nan
+
+        # Convert to geopandas dataframe
+        meta_df = metadf_to_gdf(meta_df)
+
+        # set the attribute
+        self._set_metadf(metadf=meta_df)
 
     def import_data_from_file(
         self,
