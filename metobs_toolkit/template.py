@@ -27,6 +27,8 @@ column_data_blacklist = (
 )  # When this column is found, a 'underscar' is added to the name,
 column_meta_blacklist = [
     "geometry",
+    "lon",
+    "lat",
     "assumed_import_frequency",
     "dataset_resolution",
     "lcz",
@@ -432,7 +434,7 @@ class Template:
         else:
             blacklist = column_meta_blacklist
 
-        to_rename = [col for col in columns if col in column_data_blacklist]
+        to_rename = [col for col in columns if col in blacklist]
 
         if on_data:
             # if the columns is mapped by the template, remove it from the to_rename
@@ -444,12 +446,12 @@ class Template:
                     self.timestampinfo["time_column"],
                 ]
             )
-            mapped_set.union(set(self._get_obs_column_map().keys()))
+            mapped_set = mapped_set.union(set(self._get_obs_column_map().keys()))
 
         else:
             # on metadata
             mapped_set = set([self.metadata_namemap["name"]])
-            mapped_set.union(set(self._get_metadata_column_map().keys()))
+            mapped_set = mapped_set.union(set(self._get_metadata_column_map().keys()))
 
         mapped_set = mapped_set - set([None])
 

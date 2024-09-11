@@ -2315,6 +2315,14 @@ class GeeDynamicModelData(_GeeModelData):
         # convert to model obstypes
         obstypes = [self.modelobstypes[obs] for obs in obstypes]
 
+        # convert timestamps to pd.Timestamps with utc as timezone if unaware
+        startdt_utc = pd.Timestamp(startdt_utc)
+        if startdt_utc.tz is None:
+            startdt_utc = startdt_utc.tz_localize(tz="UTC")
+        enddt_utc = pd.Timestamp(enddt_utc)
+        if enddt_utc.tz is None:
+            enddt_utc = enddt_utc.tz_localize(tz="UTC")
+
         # ====================================================================
         # GEE api extraction
         # ====================================================================
