@@ -1450,7 +1450,7 @@ class Dataset(
             >>> print(dataset)
             Instance of a Dataset (metadata-only).
                  *28 stations in the metadata
-                 *The following columns are present in the metadf: ['lon', 'lat', 'school', 'geometry']
+                 *The following columns are present in the metadf: ['geometry', 'lat', 'lon', 'school']
                  *Coordinates are available for all stations.
                  *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 

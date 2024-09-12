@@ -120,10 +120,8 @@ class DatasetQCCore:
                  *8 gaps
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
                  *time zone of the records: UTC
-                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
-
-
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             For this example, we reduce the data by coarsening the time resolution
             to hourly. After the resampling, we apply quality control.

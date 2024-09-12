@@ -47,7 +47,7 @@ def dataset_string_repr(Dataset):
 
         detailstr = f"\
 \n     *{n_stations} stations in the metadata\
-\n     *The following columns are present in the metadf: {present_cols}"
+\n     *The following columns are present in the metadf: {sorted(present_cols)}"
 
         if (not Dataset_without_data.metadf["lat"].isnull().all()) & (
             not Dataset_without_data.metadf["lon"].isnull().all()
