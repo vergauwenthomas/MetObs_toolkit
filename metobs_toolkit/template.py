@@ -415,7 +415,7 @@ class Template:
         unmapped = (
             set(metadatacolumns) - set(self.metacolmapname.values()) - set(["name"])
         )
-        if not bool(unmapped):
+        if bool(unmapped):
             msg = f"The following columns are found in the metadata, but not in the template and are therefore ignored: \n{list(unmapped)}"
             logger.warning(msg)
 
@@ -458,7 +458,7 @@ class Template:
         to_rename = set(to_rename) - mapped_set
         blacklist_mapper = {col: f"{col}_original" for col in to_rename}
 
-        if not bool(blacklist_mapper):
+        if bool(blacklist_mapper):
             if on_data:
                 msg = f"The following data columns are renamed because of special meaning by the toolkit: {blacklist_mapper}"
             else:
