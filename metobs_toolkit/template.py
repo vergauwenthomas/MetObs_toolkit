@@ -228,7 +228,9 @@ class Template:
             # Data format is long, but indicate that data represents a single station
             self.dataformat = "long"
             self.data_is_single_station = True
-
+        elif datafmt is None:
+            # no dataformat has been set --> this is valid in a metadata-only case
+            self.dataformat = None
         else:
             sys.exit(f"{datafmt} is not a known dataformat.")
 
@@ -456,7 +458,7 @@ class Template:
         to_rename = set(to_rename) - mapped_set
         blacklist_mapper = {col: f"{col}_original" for col in to_rename}
 
-        if not bool(blacklist_mapper):
+        if bool(blacklist_mapper):
             if on_data:
                 msg = f"The following data columns are renamed because of special meaning by the toolkit: {blacklist_mapper}"
             else:

@@ -826,15 +826,15 @@ class Dataset(
         >>> favorite_station = dataset.get_station('vlinder05')
         >>> print(favorite_station)
         Station instance containing:
-             *1 stations
-             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-             *17280 observation records (not Nan's)
-             *0 records labeled as outliers
-             *0 gaps
-             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-             *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-             *Coordinates are available for all stations.
+         *1 stations
+         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+         *17280 observation records (not Nan's)
+         *0 records labeled as outliers
+         *0 gaps
+         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+         *time zone of the records: UTC
+         *Coordinates are available for all stations.
+         *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
         """
         from metobs_toolkit.station import Station  # isn't this tricky !!??
@@ -1368,36 +1368,137 @@ class Dataset(
         self,
         input_metadata_file=None,
         template_file=None,
-        kwargs_data_read={},
         kwargs_metadata_read={},
         templatefile_is_url=False,
     ):
-        """
-        TODO
+        """Import metadata from a CSV file.
+
+        This method will read in metadata (typical station coordinates), from
+        a CSV file. The Dataset is updated with this metadata.
+
+        This method is used when you have no observational data but want to
+        work with the metadata.
+
 
         Parameters
         ----------
-        input_metadata_file : TYPE, optional
-            DESCRIPTION. The default is None.
-        template_file : TYPE, optional
-            DESCRIPTION. The default is None.
-        kwargs_data_read : TYPE, optional
-            DESCRIPTION. The default is {}.
-        kwargs_metadata_read : TYPE, optional
-            DESCRIPTION. The default is {}.
-        templatefile_is_url : TYPE, optional
-            DESCRIPTION. The default is False.
-         : TYPE
-            DESCRIPTION.
-
-        Raises
-        ------
-        MetobsDatasetError
-            DESCRIPTION.
+        input_metadata_file : string, optional
+            Path to the input metadata file. If None, the input metadata path
+            in the settings is used. The default is None
+        template_file : string, optional
+            Path to the template (JSON) file to be used on the observations
+            and metadata. If None, the template path in the settings is used.
+            If provided, the input_data_file must be provided as well. The
+            default is None.
+         kwargs_metadata_read : dict, optional
+             Keyword arguments are collected in a dictionary to pass to the
+             pandas.read_csv() function on the metadata file. The default is {}.
+         templatefile_is_url : bool, optional
+             If the path to the template file, is a url to an online template file,
+             set templatefile_is_url to True. If False, the template_file is
+             interpreted as a path.
 
         Returns
         -------
         None.
+
+        Warning
+        ----------
+        Since no observation data is set, a lot of `Dataset` methods will not
+        be applicable to a "metadata-only" `Dataset`. If you call one of these
+        methods, an Exception will be raised.
+
+
+        Warning
+        ---------
+        All CSV data files must be in *UTF-8 encoding*. For most CSV files,
+        this condition has already been met. To make sure, in Microsoft Excel (or
+        similar), you can specify to export as **`CSV UTF-8`**. If you
+        encounter an error, mentioning a `"/ueff..."` tag in a CSV file, it is
+        often solved by converting the CSV to UTF-8.
+
+        Note
+        -----
+        If a template file is provided the mapping information of
+        observational data is ignored. Thus you can use the same template
+        for "metadata-only" analysis.
+
+        See Also
+        --------
+        update_settings: Update the (file paths) settings of a Dataset.
+        import_data_from_file: Import observational data from a CSV file.
+        import_dataset: Import a dataset from a pkl file.
+
+        Examples
+        --------
+
+        .. plot::
+            :context: close-figs
+
+            >>> import metobs_toolkit
+            >>>
+            >>> # Import data into a Dataset
+            >>> dataset = metobs_toolkit.Dataset()
+            >>> dataset.update_file_paths(
+            ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
+            ...                         template_file=metobs_toolkit.demo_template,
+            ...                         )
+            >>> dataset.import_only_metadata_from_file()
+
+            Now you have imported only the metadata of the demo dataset.
+
+            >>> print(dataset)
+            Instance of a Dataset (metadata-only).
+                 *28 stations in the metadata
+                 *The following columns are present in the metadf: ['lon', 'lat', 'school', 'geometry']
+                 *Coordinates are available for all stations.
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+
+            With no observational data, outliers or gaps.
+
+            >>> dataset.df.empty
+            True
+            >>> dataset.outliersdf.empty
+            True
+            >>> dataset.gaps
+
+            Although not all `Dataset` methods are applicable on a "metadata-only",
+            dataset, extracting (timeseries) data from GEE is possible (if coordinates
+            are provided).
+
+            For example, we extract the LCZ at the stations and ERA5 temperatures.
+
+            >>> lcz_at_stations = dataset.get_lcz()
+            >>> lcz_at_stations
+                                       lcz
+            name
+            vlinder01   Low plants (LCZ D)
+            vlinder02        Large lowrise
+            vlinder03         Open midrise
+            vlinder04       Sparsely built
+            vlinder05        Water (LCZ G)
+            ...                        ...
+            vlinder24  Dense Trees (LCZ A)
+            vlinder25        Water (LCZ G)
+            vlinder26         Open midrise
+            vlinder27      Compact midrise
+            vlinder28         Open lowrise
+            <BLANKLINE>
+            [28 rows x 1 columns]
+
+            For extracting ERA5 timeseries we must specify a start and end timestamp.
+
+            >>> import pandas as pd
+            >>> start = pd.Timestamp('2017-01-01T12')
+            >>> end = pd.Timestamp('2017-01-02T16')
+            >>>
+            >>> era5 = dataset.get_modeldata(Model=dataset.gee_datasets['ERA5-land'],
+            ...                              obstypes=['temp'],
+            ...                              startdt=start,
+            ...                              enddt=end)
+
+            >>> era5.make_plot()
+            <Axes: title={'center': 'ERA5-land'}, ylabel='temp (Celsius)...
 
         """
 
@@ -1474,7 +1575,7 @@ class Dataset(
 
 
         The input data (and metadata) are interpreted by using a template
-        (json file).
+        (JSON file).
 
         In order to locate gaps, an ideal set of timestamps is expected. This
         set of timestamps is computed for each station separatly by:
@@ -1515,7 +1616,7 @@ class Dataset(
             Path to the input metadata file. If None, the input metadata path
             in the settings is used. The default is None
         template_file : string, optional
-            Path to the template (json) file to be used on the observations
+            Path to the template (JSON) file to be used on the observations
             and metadata. If None, the template path in the settings is used.
             If provided, the input_data_file must be provided as well. The
             default is None.
@@ -1547,7 +1648,11 @@ class Dataset(
         templatefile_is_url : bool, optional
             If the path to the template file, is a url to an online template file,
             set templatefile_is_url to True. If False, the template_file is
-            interpreted as a path
+            interpreted as a path.
+
+        Returns
+        -------
+        None.
 
         Note
         --------
@@ -1560,20 +1665,16 @@ class Dataset(
         Warning
         ---------
         All CSV data files must be in *UTF-8 encoding*. For most CSV files,
-        this condition is already met. To make sure, in Microsoft Excel (or
+        this condition has already been met. To make sure, in Microsoft Excel (or
         similar), you can specify to export as **`CSV UTF-8`**. If you
         encounter an error, mentioning a `"/ueff..."` tag in a CSV file, it is
         often solved by converting the CSV to UTF-8.
 
-
-        Returns
-        -------
-        None.
-
         See Also
         --------
         update_settings: Update the (file paths) settings of a Dataset.
-
+        import_only_metadata_from_file: Import metadata without observational data.
+        import_dataset: Import a dataset from a pkl file.
 
         Examples
         --------
