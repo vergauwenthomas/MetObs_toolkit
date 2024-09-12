@@ -2061,6 +2061,8 @@ class GeeDynamicModelData(_GeeModelData):
 
         #  -------- Filter dataset (if available) -----------
         if Dataset is not None:
+            # check if there is data
+            Dataset._data_is_required_check()
             # combine all dataframes
             mergedf = Dataset.get_full_status_df(return_as_wide=False)
 

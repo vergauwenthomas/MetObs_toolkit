@@ -7,6 +7,79 @@ Printing Functions
 """
 
 
+def dataset_string_repr(Dataset):
+
+    return_str = ""
+
+    def _data_details_as_str(Dataset_with_data):
+        """Info on the dataset attributes"""
+        n_stations = (
+            Dataset_with_data.df.index.get_level_values("name").unique().shape[0]
+        )
+        obstypes = (
+            Dataset_with_data.df.index.get_level_values("obstype").unique().to_list()
+        )
+        n_obs_tot = Dataset_with_data.df["value"].count()
+        n_outl = Dataset_with_data.outliersdf.shape[0]
+        startdt = Dataset_with_data.df.index.get_level_values("datetime").min()
+        enddt = Dataset_with_data.df.index.get_level_values("datetime").max()
+
+        detailstr = f"\
+\n     *{n_stations} stations\
+\n     *{obstypes} observation types present\
+\n     *{n_obs_tot} observation records (not Nan's)\
+\n     *{n_outl} records labeled as outliers\
+\n     *{len(Dataset_with_data.gaps)} gaps\
+\n     *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt})\
+\n     *time zone of the records: {str(Dataset_with_data._get_tz())}"
+
+        if (not Dataset_with_data.metadf["lat"].isnull().all()) & (
+            not Dataset_with_data.metadf["lon"].isnull().all()
+        ):
+            detailstr += "\n     *Coordinates are available for all stations."
+
+        return detailstr
+
+    def _metadata_details_as_str(Dataset_without_data):
+        """Info on the metadata attributes."""
+        n_stations = Dataset_without_data.metadf.shape[0]
+        present_cols = Dataset_without_data.metadf.columns.to_list()
+
+        detailstr = f"\
+\n     *{n_stations} stations in the metadata\
+\n     *The following columns are present in the metadf: {sorted(present_cols)}"
+
+        if (not Dataset_without_data.metadf["lat"].isnull().all()) & (
+            not Dataset_without_data.metadf["lon"].isnull().all()
+        ):
+            detailstr += "\n     *Coordinates are available for all stations."
+
+        return detailstr
+
+    def _geedata_details_as_str(Dataset_with_Gee):
+        return f"\n     *Known GEE datasets for: {list(Dataset_with_Gee.gee_datasets.keys())}"
+
+    if Dataset.df.empty:
+        if Dataset.metadf.empty:
+            # no data and no metadata
+            return_str += f"Empty instance of {type(Dataset).__name__}"
+            return return_str
+
+        else:
+            # no data but with metadata
+            return_str += f"Instance of a {type(Dataset).__name__} (metadata-only)."
+            return_str += _metadata_details_as_str(Dataset)
+    else:
+        # with data and metadata
+        return_str += f"{type(Dataset).__name__} instance containing:"
+        return_str += _data_details_as_str(Dataset)
+
+    if (type(Dataset).__name__ == "Dataset") | (type(Dataset).__name__ == "Station"):
+        return_str += _geedata_details_as_str(Dataset)
+
+    return return_str
+
+
 def print_dataset_info(dataset, show_all_settings=False, max_disp_n_gaps=5):
     """Print out settings of a dataset.
 

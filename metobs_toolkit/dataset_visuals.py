@@ -144,10 +144,8 @@ class DatasetVisuals:
                  *8 gaps
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:45:00+00:00 (total duration:  14 days 23:45:00)
                  *time zone of the records: UTC
-                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
-
-
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             We can now make a timeseries plot of the full dataset. By specifying
             `colorby='name'`, the colors indicate the stations.
@@ -170,6 +168,8 @@ class DatasetVisuals:
 
 
         """
+        # check if there is data
+        self._data_is_required_check()
 
         if stationnames is None:
             logger.info(f"Make {obstype}-timeseries plot for all stations")
@@ -339,8 +339,8 @@ class DatasetVisuals:
              *8 gaps
              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
              *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
              *Coordinates are available for all stations.
+             *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
         We apply (default) quality control.
 
@@ -362,6 +362,9 @@ class DatasetVisuals:
         (You can open an HTML file with a browser.)
 
         """
+        # check if there is data
+        self._data_is_required_check()
+
         # Check if obstype is known
         if isinstance(obstype, str):
             if obstype not in self.obstypes.keys():
@@ -569,8 +572,8 @@ class DatasetVisuals:
                  *8 gaps
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
                  *time zone of the records: UTC
-                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             To create a spatial plot, we use the `Dataset.make_geo_plot()`
             method.
@@ -600,6 +603,10 @@ class DatasetVisuals:
             :context: close-figs
 
         """
+
+        # check if there is data
+        self._data_is_required_check()  # not strickly a data-only method
+
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
 

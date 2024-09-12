@@ -17,17 +17,17 @@ class DatasetSettingsCore:
 
     def update_file_paths(
         self,
-        input_data_file,
-        template_file,
+        input_data_file=None,
         input_metadata_file=None,
+        template_file=None,
     ):
         """Update the paths to the input files.
 
-        This method will set the path to your data file, (metadata file) and
-        template file.
+        This method will set the path to your data file, metadata file and
+        template file if provided.
 
          * input_data_file:  The path to your raw observations (CSV)
-         * input_metadata_file: (Optional) The path to your metadata file (CSV)
+         * input_metadata_file: The path to your metadata file (CSV)
          * template_file: The path to the template file (JSON). (Use the
            `metobs_toolkit.build_template_prompt()` method to create this file.)
 
@@ -37,13 +37,15 @@ class DatasetSettingsCore:
         Parameters
         ----------
 
-        input_data_file : string,
-            Path to the input data file with observations (CSV).
-        template_file : string
+        input_data_file : string, optional
+            Path to the input data file with observations (CSV). If None, the
+            path is not updated. The default is None.
+        input_metadata_file : string, optional
+            Path to the input metadata file (CSV). If None, the
+            path is not updated. The default is None.
+        template_file : string, optional
             Path to the template file (JSON) to be used on the observations
             and metadata. The default is None.
-        input_metadata_file : string, optional
-            Path to the input metadata file (CSV). The default is None.
 
         Returns
         -------
@@ -56,7 +58,8 @@ class DatasetSettingsCore:
         Note
         -----
         This method is redundant if you specify the paths in the
-        `metobs_toolkit.Dataset.import_data_from_file()` method.
+        `metobs_toolkit.Dataset.import_data_from_file()` or
+        `metobs_toolkit.Dataset.import_only_metadata_from_file()` methods.
 
         Note
         -------
@@ -260,8 +263,9 @@ class DatasetSettingsCore:
              *8 gaps
              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
              *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
              *Coordinates are available for all stations.
+             *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
+
 
 
         For this example, we reduce the data by coarsening the time resolution
@@ -789,8 +793,8 @@ class DatasetSettingsCore:
              *8 gaps
              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
              *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
              *Coordinates are available for all stations.
+             *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
         For this example, we reduce the data by coarsening the time resolution
         to hourly.

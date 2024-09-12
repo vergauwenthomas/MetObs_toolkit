@@ -25,6 +25,7 @@ General methods and attributes
    Dataset.show
    Dataset.get_info
    Dataset.import_data_from_file
+   Dataset.import_only_metadata_from_file
    Dataset.save_dataset
    import_dataset
    Dataset.get_full_status_df
