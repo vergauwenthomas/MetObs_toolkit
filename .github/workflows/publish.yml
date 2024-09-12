@@ -13,5 +13,6 @@ jobs:
         uses: JRubics/poetry-publish@v2.0
         with:
           pypi_token: ${{ secrets.PYPI_TOKEN }}
+          poetry_install_options: "--without titan"
           allow_poetry_pre_release: "yes"
           package_directory: "metobs_toolkit"
