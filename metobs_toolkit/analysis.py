@@ -89,6 +89,9 @@ class Analysis(Dataset):
         self._lc_groupby_labels = None
         self.use_gapfilled_values = use_gapfilled_values
 
+        # check if there is data
+        orig_dataset._data_is_required_check()
+
         # overload attributes
         self._set_df(orig_dataset.df)
         self._set_outliersdf(empty_outliers_df())  # NO OUTLIERS

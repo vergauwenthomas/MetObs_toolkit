@@ -230,7 +230,9 @@ class Template:
             # Data format is long, but indicate that data represents a single station
             self.dataformat = "long"
             self.data_is_single_station = True
-
+        elif datafmt is None:
+            # no dataformat has been set --> this is valid in a metadata-only case
+            self.dataformat = None
         else:
             sys.exit(f"{datafmt} is not a known dataformat.")
 
