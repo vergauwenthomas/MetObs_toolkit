@@ -176,7 +176,32 @@ class DatasetBase(object):
         self.df = df
 
     def _set_metadf(self, metadf):
-        # TODO: run simple checks
+        if not metadf.index.name == "name":
+            raise MetobsDatasetBaseError(
+                f"A dataframe is being set as Dataset.metadf with wrong df.index.name: {metadf.index.name}"
+            )
+
+        if "lat" in metadf.columns:
+            if (
+                metadf["lat"]
+                .dropna()
+                .apply(lambda x: ((x < -90.0) | ((x > 90.0))))
+                .any()
+            ):
+                raise MetobsDatasetBaseError(
+                    f"The latitude coordinates in the metadata are not all in [-90; 90] range: {metadf['lat']}"
+                )
+        if "lon" in metadf.columns:
+            if (
+                metadf["lon"]
+                .dropna()
+                .apply(lambda x: ((x < 0.0) | ((x > 180.0))))
+                .any()
+            ):
+                raise MetobsDatasetBaseError(
+                    f"The longitude coordinates in the metadata are not all in [0; 180] range: {metadf['lon']}"
+                )
+
         self.metadf = metadf
 
     def _set_outliersdf(

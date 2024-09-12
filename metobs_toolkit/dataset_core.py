@@ -1809,10 +1809,12 @@ class Dataset(
         # Remove stations whith only one observation (no freq estimation)
         station_counts = df["name"].value_counts()
         issue_station = station_counts[station_counts < 2].index.to_list()
-        logger.warning(
-            f"These stations will be removed because of only having one record: {issue_station}"
-        )
-        df = df[~df["name"].isin(issue_station)]
+        if bool(issue_station):
+
+            logger.warning(
+                f"These stations will be removed because of only having one record: {issue_station}"
+            )
+            df = df[~df["name"].isin(issue_station)]
 
         # convert dataframe to multiindex (datetime - name)
         df = df.set_index(["name", df.index])
