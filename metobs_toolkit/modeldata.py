@@ -1483,6 +1483,13 @@ class GeeDynamicModelData(_GeeModelData):
                 )
         return trg_bands
 
+    def _get_all_stationnames(self):
+        """Returns a list of all present names in the modeldata."""
+        if self.modeldf.empty:
+            return []
+        else:
+            return self.modeldf.index.get_level_values("name").unique().to_list()
+
     def _get_time_res(self):
         return str(self.time_res)
 

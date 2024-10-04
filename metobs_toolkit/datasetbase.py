@@ -281,6 +281,13 @@ class DatasetBase(object):
     # =============================================================================
     # Getters
     # =============================================================================
+    def _get_all_stationnames(self):
+        """Returns a list of all present names in the data."""
+        if self.df.empty:
+            return []
+        else:
+            return self.df.index.get_level_values("name").unique().to_list()
+
     def _get_tz(self):
         # IF no data --> tz is UTC (to work without data for gee fun)
         if self.df.empty:
