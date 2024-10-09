@@ -87,13 +87,12 @@ def map_obstype(obstype, template):
     return template[obstype].to_dict()
 
 
-def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
+def make_cat_colormapper(catlist, cmapname):
     """Create a dictionary {cat : color} for a list of categorical values.
 
     If the colormap has more colors than the catlist, optimal color distance is
     done. If a colormap has fewer colors than unique categories, the categories are grouped.
 
-    Color defenitions can be forced if they are specified in the force_col_def_dict.
 
 
     Parameters
@@ -102,9 +101,6 @@ def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
         List of categorical values.
     cmapname : str
         Matplotlib.colormaps name.
-    force_col_def_dict : dict
-        A dictionary with a category as key and the color as value. This dict will
-        be used to update the coldict that would normally be returned.
 
     Returns
     -------
@@ -113,10 +109,6 @@ def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
 
     """
     catlist = list(set(catlist))  # get unique categories
-
-    # convert colors to rgba form
-    for _key, val in force_col_def_dict.items():
-        force_col_def_dict[_key] = matplotlib.colors.to_rgba(val)
 
     cmap = matplotlib.colormaps[cmapname]
 
@@ -136,8 +128,6 @@ def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
                 col_idx += 1
             colordict[cat] = cmap(int(col_idx))
             _cat_index += 1
-
-        colordict.update(force_col_def_dict)  # update with forced color defenitions
         return colordict
 
     # check if the colormap can be decreased (and thus increasing the colordistance)
@@ -149,7 +139,6 @@ def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
         colordict[cat] = cmap(int(i))
         i = i + num_increase
 
-    colordict.update(force_col_def_dict)  # update with forced color defenitions
     return colordict
 
 
@@ -610,6 +599,11 @@ def timeseries_plot(
     name_col_def: dict, optional
         A dictionary to force colors for a station. The keys are the names and
         the values are the colors to use for them.
+    sta_plot_kwargs_dict : {}, optional.
+        Station-specific styling kwargs for the line plot if colorby=name. A nested dict with
+        stationnames as keys and kwarg-dict as values. The kwarg-dict can have
+        keys that are elements of ['color', 'linewidth', 'zorder', 'linestyle'].
+        The default is {}
     _ax : matplotlib.pyplot.axes
         An axes to plot on. If None, a new axes will be made. The
         default is None.
@@ -978,6 +972,11 @@ def model_timeseries_plot(
         The width of the plotted lines. The default is 2.
     linezorder: int, optional.
         The zorder of the lines in the plot. The default is 1.
+    sta_plot_kwargs_dict : {}, optional.
+        Station-specific styling kwargs for the line plot. A nested dict with
+        stationnames as keys and kwarg-dict as values. The kwarg-dict can have
+        keys that are elements of ['color', 'linewidth', 'zorder', 'linestyle'].
+        The default is {}
 
 
 

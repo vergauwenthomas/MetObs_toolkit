@@ -209,13 +209,17 @@ class DatasetVisuals:
             >>> dataset.settings.app['plot_settings']['time_series']['figsize'] = (20,5)
             >>> dataset.settings.app['plot_settings']['time_series']['colormap'] = 'Accent'
 
-            You can also force a color for a specifi station (if you use `colorby=name`),
+            You can also force a color for a specific station (if you use `colorby=name`),
             and use methods of `matplotlib.axes` to change the looks to your liking.
 
             >>> import matplotlib.pyplot as plt
             >>> ax = dataset.make_plot(obstype='temp', colorby='name',
-            ...                        name_color_def={'vlinder02':'#ed11e6',
-            ...                                        'vlinder05': 'black'})
+            ...                        sta_plot_kwargs_dict={'vlinder02': {'color': '#ed11e6',
+            ...                                                            'linewidth': 6,
+            ...                                                            'zorder': 5,
+            ...                                                            'linestyle': '--'},
+            ...                                              'vlinder05': {'color': 'black',
+                                                                           'zorder': 6}})
             >>> ax.grid(True)
 
         """
