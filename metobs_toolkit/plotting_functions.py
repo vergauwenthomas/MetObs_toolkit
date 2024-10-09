@@ -94,13 +94,15 @@ def make_cat_colormapper(catlist, cmapname):
     done. If a colormap has fewer colors than unique categories, the categories are grouped.
 
 
-
     Parameters
     ----------
     catlist : list
         List of categorical values.
     cmapname : str
         Matplotlib.colormaps name.
+    force_col_def_dict : dict
+        A dictionary with a category as key and the color as value. This dict will
+        be used to update the coldict that would normally be returned.
 
     Returns
     -------
@@ -109,6 +111,10 @@ def make_cat_colormapper(catlist, cmapname):
 
     """
     catlist = list(set(catlist))  # get unique categories
+
+    # convert colors to rgba form
+    for _key, val in force_col_def_dict.items():
+        force_col_def_dict[_key] = matplotlib.colors.to_rgba(val)
 
     cmap = matplotlib.colormaps[cmapname]
 
@@ -128,6 +134,8 @@ def make_cat_colormapper(catlist, cmapname):
                 col_idx += 1
             colordict[cat] = cmap(int(col_idx))
             _cat_index += 1
+
+        colordict.update(force_col_def_dict)  # update with forced color defenitions
         return colordict
 
     # check if the colormap can be decreased (and thus increasing the colordistance)
@@ -830,9 +838,8 @@ def timeseries_plot(
 
         # all lines are solid lines
         line_style_mapper = {lab: "-" for lab in line_labels}
-
+        
         # create color mapper
-
         col_mapper = make_cat_colormapper(
             mergedf.index.get_level_values("name").unique(),
             plot_settings["time_series"]["colormap"],

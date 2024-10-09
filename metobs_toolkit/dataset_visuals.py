@@ -109,7 +109,6 @@ class DatasetVisuals:
              possible types. The default is {}.
 
 
-
         Returns
         -------
         axes : matplotlib.pyplot.axes
