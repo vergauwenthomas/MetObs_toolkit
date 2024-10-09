@@ -55,7 +55,7 @@ class DatasetVisuals:
         legend=True,
         show_outliers=True,
         show_filled=True,
-        name_color_def={},
+        sta_plot_kwargs_dict={},
         _ax=None,  # needed for GUI, not recommended use
     ):
         """Make a timeseries plot.
@@ -100,12 +100,14 @@ class DatasetVisuals:
              If true the filled values for gaps and missing observations will
              be included in the plot. This is only true when colorby == 'name'.
              The default is True.
-        name_color_def : dict, optional
-             If colorby is 'name', a colormap is used as color defenitions for
-             the name. If a name_color_def dictionary is given, then the color
-             defenition (value) for a station name (key) is used as defined by
-             the user. Colors are strings that can be represent by matplotlib
-             name, or in hex-form. The default is {}.
+        sta_plot_kwargs_dict : dict, optional
+             sta_plot_kwargs_dict is a nested dictionary that can contain extra
+             styling arguments that is used for a specific station, if colorby=name.
+             The keys are the station names, and the values are a dict with the
+             keys elements of ['color', 'linewidth', 'zorder', 'linestyle']. Refer
+             to the corresponding keyword in matplotlib for their meaning and
+             possible types. The default is {}.
+
 
 
         Returns
@@ -271,7 +273,7 @@ class DatasetVisuals:
             show_outliers=show_outliers,
             show_filled=show_filled,
             settings=self.settings,
-            name_col_def=name_color_def,
+            sta_plot_kwargs_dict=sta_plot_kwargs_dict,
             _ax=_ax,
         )
 
