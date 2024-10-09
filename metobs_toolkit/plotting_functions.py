@@ -832,7 +832,6 @@ def timeseries_plot(
             )
         else:
             # col_mapper = colorby_name_colordict
-            # TODO test this
             col_mapper = make_cat_colormapper(
                 mergedf.index.get_level_values("name").unique(),
                 plot_settings["time_series"]["colormap"],
