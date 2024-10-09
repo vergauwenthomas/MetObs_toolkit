@@ -1896,6 +1896,7 @@ class GeeDynamicModelData(_GeeModelData):
         show_outliers=True,
         show_filled=True,
         legend=True,
+        name_color_def={},
         _ax=None,  # needed for GUI, not recommended use
     ):
         """Plot timeseries of the modeldata.
@@ -1941,7 +1942,12 @@ class GeeDynamicModelData(_GeeModelData):
              The default is True.
         legend : bool, optional
              If True, a legend is added to the plot. The default is True.
-
+        name_color_def : dict, optional
+             If colorby is 'name', a colormap is used as color defenitions for
+             the name. If a name_color_def dictionary is given, then the color
+             defenition (value) for a station name (key) is used as defined by
+             the user. Colors are strings that can be represent by matplotlib
+             name, or in hex-form. The default is {}.
 
         Returns
         -------
@@ -2107,6 +2113,7 @@ class GeeDynamicModelData(_GeeModelData):
                 show_outliers=show_outliers,
                 show_filled=show_filled,
                 settings=Dataset.settings,
+                name_col_def=name_color_def,
                 _ax=_ax,
             )
 
@@ -2131,6 +2138,7 @@ class GeeDynamicModelData(_GeeModelData):
                 ylabel=y_label,
                 show_primary_legend=legend,
                 add_second_legend=False,
+                name_col_def=name_color_def,
                 _ax=_ax,
             )
 

@@ -55,6 +55,7 @@ class DatasetVisuals:
         legend=True,
         show_outliers=True,
         show_filled=True,
+        name_color_def={},
         _ax=None,  # needed for GUI, not recommended use
     ):
         """Make a timeseries plot.
@@ -99,11 +100,17 @@ class DatasetVisuals:
              If true the filled values for gaps and missing observations will
              be included in the plot. This is only true when colorby == 'name'.
              The default is True.
+        name_color_def : dict, optional
+             If colorby is 'name', a colormap is used as color defenitions for
+             the name. If a name_color_def dictionary is given, then the color
+             defenition (value) for a station name (key) is used as defined by
+             the user. Colors are strings that can be represent by matplotlib
+             name, or in hex-form. The default is {}.
 
 
         Returns
         -------
-        axis : matplotlib.pyplot.axes
+        axes : matplotlib.pyplot.axes
              The timeseries axes of the plot is returned.
 
         See Also
@@ -116,6 +123,13 @@ class DatasetVisuals:
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
+
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['time_series']`,
+        and can be changed (before calling the plot method). Other design settings
+        can be altered by using `matplotlib.axes` methods (on the axes that is returned).
+
 
         Examples
         --------
@@ -166,6 +180,41 @@ class DatasetVisuals:
             >>> dataset.get_station('vlinder05').make_plot(colorby='label')
             <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
 
+        Changing the look
+        -----------------------
+
+        .. plot::
+            :context: close-figs
+
+            If you want to change the look of the plot you can do is by specifying
+            a new colorscheme, figure size, etc.
+
+            The settings that are used by default for the `dataset.make_plot()`:
+
+            >>> dataset.settings.app['plot_settings']['time_series']
+            {'figsize': (15, 5),
+             'colormap': 'tab20',
+             'linewidth': 2,
+             'linestyle_ok': '-',
+             'linestyle_fill': '--',
+             'scattersize': 4,
+             'scatterzorder': 3,
+             'dashedzorder': 2,
+             'legend_n_columns': 5}
+
+            We can change them:
+
+            >>> dataset.settings.app['plot_settings']['time_series']['figsize'] = (20,5)
+            >>> dataset.settings.app['plot_settings']['time_series']['colormap'] = 'Accent'
+
+            You can also force a color for a specifi station (if you use `colorby=name`),
+            and use methods of `matplotlib.axes` to change the looks to your liking.
+
+            >>> import matplotlib.pyplot as plt
+            >>> ax = dataset.make_plot(obstype='temp', colorby='name',
+            ...                        name_color_def={'vlinder02':'#ed11e6',
+            ...                                        'vlinder05': 'black'})
+            >>> ax.grid(True)
 
         """
         # check if there is data
@@ -222,6 +271,7 @@ class DatasetVisuals:
             show_outliers=show_outliers,
             show_filled=show_filled,
             settings=self.settings,
+            name_col_def=name_color_def,
             _ax=_ax,
         )
 

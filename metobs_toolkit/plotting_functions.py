@@ -87,11 +87,14 @@ def map_obstype(obstype, template):
     return template[obstype].to_dict()
 
 
-def make_cat_colormapper(catlist, cmapname):
+def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
     """Create a dictionary {cat : color} for a list of categorical values.
 
     If the colormap has more colors than the catlist, optimal color distance is
     done. If a colormap has fewer colors than unique categories, the categories are grouped.
+
+    Color defenitions can be forced if they are specified in the force_col_def_dict.
+
 
     Parameters
     ----------
@@ -99,6 +102,9 @@ def make_cat_colormapper(catlist, cmapname):
         List of categorical values.
     cmapname : str
         Matplotlib.colormaps name.
+    force_col_def_dict : dict
+        A dictionary with a category as key and the color as value. This dict will
+        be used to update the coldict that would normally be returned.
 
     Returns
     -------
@@ -107,6 +113,10 @@ def make_cat_colormapper(catlist, cmapname):
 
     """
     catlist = list(set(catlist))  # get unique categories
+
+    # convert colors to rgba form
+    for _key, val in force_col_def_dict.items():
+        force_col_def_dict[_key] = matplotlib.colors.to_rgba(val)
 
     cmap = matplotlib.colormaps[cmapname]
 
@@ -126,6 +136,8 @@ def make_cat_colormapper(catlist, cmapname):
                 col_idx += 1
             colordict[cat] = cmap(int(col_idx))
             _cat_index += 1
+
+        colordict.update(force_col_def_dict)  # update with forced color defenitions
         return colordict
 
     # check if the colormap can be decreased (and thus increasing the colordistance)
@@ -136,6 +148,8 @@ def make_cat_colormapper(catlist, cmapname):
     for cat in catlist:
         colordict[cat] = cmap(int(i))
         i = i + num_increase
+
+    colordict.update(force_col_def_dict)  # update with forced color defenitions
     return colordict
 
 
@@ -552,6 +566,7 @@ def timeseries_plot(
     show_outliers,
     show_filled,
     settings,
+    name_col_def={},
     _ax=None,  # needed for GUI, not recommended use
     colorby_name_colordict=None,
 ):  # when colorscheme will be reused
@@ -575,6 +590,9 @@ def timeseries_plot(
         If True, the filled values will be plotted.
     settings : dict, optional
         The default plotting settings.
+    name_col_def: dict, optional
+        A dictionary to force colors for a station. The keys are the names and
+        the values are the colors to use for them.
     _ax : matplotlib.pyplot.axes
         An axes to plot on. If None, a new axes will be made. The
         default is None.
@@ -810,11 +828,20 @@ def timeseries_plot(
             col_mapper = make_cat_colormapper(
                 mergedf.index.get_level_values("name").unique(),
                 plot_settings["time_series"]["colormap"],
+                name_col_def,
             )
         else:
-            col_mapper = colorby_name_colordict
+            # col_mapper = colorby_name_colordict
+            col_mapper = make_cat_colormapper(
+                mergedf.index.get_level_values("name").unique(),
+                plot_settings["time_series"]["colormap"],
+                colorby_name_colordict,
+            )
 
         # iterate over station and make line collection to avoid interpolation
+        # sort mergedf by station name so the same colors are used for the same stations
+        mergedf = mergedf.sort_index()
+
         for sta in mergedf.index.get_level_values("name").unique():
             stadf = xs_save(mergedf, sta, "name")  # subset to one station
             linedf = stadf[
@@ -885,12 +912,13 @@ def model_timeseries_plot(
     show_primary_legend,
     add_second_legend=True,
     _ax=None,  # needed for GUI, not recommended use
-    colorby_name_colordict=None,
+    colorby_name_colordict=None,  # automatic --> not by user
     figsize=(15, 5),
     colormap="tab20",
     legend_n_columns=5,
     linewidth=2,
     linezorder=1,
+    name_col_def={},  # Defined by user
 ):
     """Make a timeseries plot for modeldata.
 
@@ -931,6 +959,9 @@ def model_timeseries_plot(
         The width of the plotted lines. The default is 2.
     linezorder: int, optional.
         The zorder of the lines in the plot. The default is 1.
+    name_col_def: dict, optional
+        A dictionary to force colors for a station. The keys are the names and
+        the values are the colors to use for them.
 
 
 
@@ -964,6 +995,7 @@ def model_timeseries_plot(
         col_mapper = make_cat_colormapper(
             df.index.get_level_values("name").unique(),
             colormap,
+            name_col_def,
         )
     else:
         col_mapper = colorby_name_colordict
