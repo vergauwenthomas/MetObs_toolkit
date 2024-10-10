@@ -63,9 +63,11 @@ class DatasetModelData:
         stations : string or list of strings, optional
             Stationnames to subset the modeldata to. If None, all stations will be used. The default is None.
         startdt : datetime.datetime, optional
-            Start datetime of the model timeseries. If None, the start datetime of the dataset is used. The default is None.
+            Start datetime of the model timeseries. If None, the start datetime of the dataset is used.
+            A startdt must be specified when the dataset does not have data records (metadata-only). The default is None.
         enddt : datetime.datetime, optional
-            End datetime of the model timeseries. If None, the last datetime of the dataset is used. The default is None.
+            End datetime of the model timeseries. If None, the last datetime of the dataset is used.
+            A enddt must be specified when the dataset does not have data records (metadata-only). The default is None.
         get_all_bands : bool, optional
             If True, all values (over all bands) are extracted. If the band is
             linked to a ModelObstye, then the name of the modelObstype is used
@@ -245,11 +247,19 @@ class DatasetModelData:
 
         # Filters
         if startdt is None:
+            if self.df.empty:
+                raise MetobsDatasetGeeModelDataHandlingError(
+                    'Specifying a startdt is required for a "metadata-only" dataset.'
+                )
             startdt = self.df.index.get_level_values("datetime").min()
         else:
             startdt = self._datetime_arg_check(startdt)
 
         if enddt is None:
+            if self.df.empty:
+                raise MetobsDatasetGeeModelDataHandlingError(
+                    'Specifying a enddt is required for a "metadata-only" dataset.'
+                )
             enddt = self.df.index.get_level_values("datetime").max()
         else:
             enddt = self._datetime_arg_check(enddt)

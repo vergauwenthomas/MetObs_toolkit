@@ -55,6 +55,7 @@ class DatasetVisuals:
         legend=True,
         show_outliers=True,
         show_filled=True,
+        sta_plot_kwargs_dict={},
         _ax=None,  # needed for GUI, not recommended use
     ):
         """Make a timeseries plot.
@@ -99,11 +100,18 @@ class DatasetVisuals:
              If true the filled values for gaps and missing observations will
              be included in the plot. This is only true when colorby == 'name'.
              The default is True.
+        sta_plot_kwargs_dict : dict, optional
+             sta_plot_kwargs_dict is a nested dictionary that can contain extra
+             styling arguments that is used for a specific station, if colorby=name.
+             The keys are the station names, and the values are a dict with the
+             keys elements of ['color', 'linewidth', 'zorder', 'linestyle']. Refer
+             to the corresponding keyword in matplotlib for their meaning and
+             possible types. The default is {}.
 
 
         Returns
         -------
-        axis : matplotlib.pyplot.axes
+        axes : matplotlib.pyplot.axes
              The timeseries axes of the plot is returned.
 
         See Also
@@ -116,6 +124,13 @@ class DatasetVisuals:
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
+
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['time_series']`,
+        and can be changed (before calling the plot method). Other design settings
+        can be altered by using `matplotlib.axes` methods (on the axes that is returned).
+
 
         Examples
         --------
@@ -144,10 +159,8 @@ class DatasetVisuals:
                  *8 gaps
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:45:00+00:00 (total duration:  14 days 23:45:00)
                  *time zone of the records: UTC
-                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
-
-
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             We can now make a timeseries plot of the full dataset. By specifying
             `colorby='name'`, the colors indicate the stations.
@@ -168,8 +181,49 @@ class DatasetVisuals:
             >>> dataset.get_station('vlinder05').make_plot(colorby='label')
             <Axes: title={'center': 'Temperatuur of vlinder05'}, xlabel='datetime', ylabel='temp (Celsius)'>
 
+        Changing the look
+        -----------------------
+
+        .. plot::
+            :context: close-figs
+
+            If you want to change the look of the plot you can do is by specifying
+            a new colorscheme, figure size, etc.
+
+            The settings that are used by default for the `dataset.make_plot()`:
+
+            >>> dataset.settings.app['plot_settings']['time_series']
+            {'figsize': (15, 5),
+             'colormap': 'tab20',
+             'linewidth': 2,
+             'linestyle_ok': '-',
+             'linestyle_fill': '--',
+             'scattersize': 4,
+             'scatterzorder': 3,
+             'dashedzorder': 2,
+             'legend_n_columns': 5}
+
+            We can change them:
+
+            >>> dataset.settings.app['plot_settings']['time_series']['figsize'] = (20,5)
+            >>> dataset.settings.app['plot_settings']['time_series']['colormap'] = 'Accent'
+
+            You can also force a color for a specific station (if you use `colorby=name`),
+            and use methods of `matplotlib.axes` to change the looks to your liking.
+
+            >>> import matplotlib.pyplot as plt
+            >>> ax = dataset.make_plot(obstype='temp', colorby='name',
+            ...                        sta_plot_kwargs_dict={'vlinder02': {'color': '#ed11e6',
+            ...                                                            'linewidth': 6,
+            ...                                                            'zorder': 5,
+            ...                                                            'linestyle': '--'},
+            ...                                              'vlinder05': {'color': 'black',
+            ...                                                            'zorder': 6}})
+            >>> ax.grid(True)
 
         """
+        # check if there is data
+        self._data_is_required_check()
 
         if stationnames is None:
             logger.info(f"Make {obstype}-timeseries plot for all stations")
@@ -222,6 +276,7 @@ class DatasetVisuals:
             show_outliers=show_outliers,
             show_filled=show_filled,
             settings=self.settings,
+            sta_plot_kwargs_dict=sta_plot_kwargs_dict,
             _ax=_ax,
         )
 
@@ -339,8 +394,8 @@ class DatasetVisuals:
              *8 gaps
              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
              *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
              *Coordinates are available for all stations.
+             *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
         We apply (default) quality control.
 
@@ -362,6 +417,9 @@ class DatasetVisuals:
         (You can open an HTML file with a browser.)
 
         """
+        # check if there is data
+        self._data_is_required_check()
+
         # Check if obstype is known
         if isinstance(obstype, str):
             if obstype not in self.obstypes.keys():
@@ -543,6 +601,12 @@ class DatasetVisuals:
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
 
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['spatial_geo']`,
+        and can be changed (before calling the plot method). Other design settings
+        can be altered by using `matplotlib.axes` methods (on the axes that is returned).
+
         Examples
         --------
 
@@ -569,8 +633,8 @@ class DatasetVisuals:
                  *8 gaps
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
                  *time zone of the records: UTC
-                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             To create a spatial plot, we use the `Dataset.make_geo_plot()`
             method.
@@ -600,6 +664,10 @@ class DatasetVisuals:
             :context: close-figs
 
         """
+
+        # check if there is data
+        self._data_is_required_check()  # not strickly a data-only method
+
         # Load default plot settings
         # default_settings=Settings.plot_settings['spatial_geo']
 
@@ -672,7 +740,6 @@ class DatasetVisuals:
             plotsettings=self.settings.app["plot_settings"],
             categorical_fields=self.settings.app["categorical_fields"],
             static_fields=self.settings.app["static_fields"],
-            display_name_mapper=self.settings.app["display_name_mapper"],
             boundbox=boundbox,
         )
 

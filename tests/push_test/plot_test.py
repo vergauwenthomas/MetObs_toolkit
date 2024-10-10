@@ -50,7 +50,19 @@ dataset.make_plot(
 from datetime import datetime
 
 dataset.make_plot(
-    starttime=datetime(2022, 9, 4), endtime=datetime(2022, 9, 6), title="test"
+    starttime=datetime(2022, 9, 4),
+    endtime=datetime(2022, 9, 6),
+    title="test",
+    sta_plot_kwargs_dict={
+        "vlinder02": {
+            "color": "#ed11e6",
+            "linewidth": 4,
+            "zorder": 5.2,
+            "linestyle": "--",
+        },
+        "vlinder05": {"color": "black"},
+        "fake": {"color": "black"},
+    },
 )
 
 # %% timeseries plot of station

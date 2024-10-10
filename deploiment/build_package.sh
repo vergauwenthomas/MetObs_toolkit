@@ -22,7 +22,7 @@ poetry update
 
 # Toolkit dependencies
 poetry add numpy@^1 #v2.x.x conflicting with titanlib
-poetry add cartopy@latest
+poetry add cartopy@^0.23 #from <= v0.24 requires python >= 3.10 so not valid for py3.9
 poetry add earthengine-api@latest
 poetry add geemap@latest
 poetry add geopandas@latest

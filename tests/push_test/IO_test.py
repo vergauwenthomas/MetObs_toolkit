@@ -313,3 +313,36 @@ assert (
 assert (
     dataset.df.xs("temp", level="obstype").mean().value > 100.0
 ), "THe units of the temperature observations are not converted to std units"
+
+
+# %% Testing importing a "metadata-only" dataset with
+
+testmetadata = os.path.join(
+    str(lib_folder), "tests", "test_data", "single_station_metadata.csv"
+)
+
+testtemplate = os.path.join(
+    str(lib_folder), "tests", "test_data", "single_station_new_obstype_template.json"
+)
+
+dataset = metobs_toolkit.Dataset()
+dataset.update_file_paths(input_metadata_file=testmetadata, template_file=testtemplate)
+dataset.import_only_metadata_from_file()
+
+assert dataset.df.empty, "metadata only dataset has data"
+assert dataset.metadf.shape == (1, 3), "metadata not correct in metadata only dataset"
+
+
+dataset = metobs_toolkit.Dataset()
+dataset.update_file_paths(
+    input_data_file=metobs_toolkit.demo_datafile,
+    input_metadata_file=metobs_toolkit.demo_metadatafile,
+    template_file=metobs_toolkit.demo_template,
+)
+
+dataset.import_only_metadata_from_file()
+dataset.get_info()
+
+
+assert dataset.df.empty, "metadata only dataset has data"
+assert dataset.metadf.shape == (28, 4), "metadata not correct in metadata only dataset"

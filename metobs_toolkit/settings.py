@@ -57,7 +57,6 @@ class Settings:
         from .settings_files.default_formats_settings import (
             plot_settings,
             print_settings,
-            vars_display,
             default_name,
             label_def,
         )
@@ -72,9 +71,6 @@ class Settings:
         self.app["print_max_n"] = int(print_settings["max_print_per_line"])
         # 2. Plot settings
         self.app["plot_settings"] = plot_settings
-
-        # 3. display name mappers
-        self.app["display_name_mapper"] = vars_display
 
         # 4 Fields settings
         # fields without timeevolution

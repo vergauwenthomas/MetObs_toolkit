@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 import datetime as datetimemodule
-
+from metobs_toolkit.printing import dataset_string_repr
 from metobs_toolkit.settings_files.default_formats_settings import label_def
 from metobs_toolkit.qc_checks import duplicate_timestamp_check
 from metobs_toolkit.df_helpers import (
@@ -79,44 +79,8 @@ class DatasetBase(object):
     # =============================================================================
     def __str__(self):
         """Represent as text."""
-        if self.df.empty:
-            if type(self).__name__ == "Dataset":
-                return "Empty instance of a Dataset."
-            elif type(self).__name__ == "Station":
-                return "Empty instance of a Station."
-            elif type(self).__name__ == "Analysis":
-                return "Empty instance of a Analysis."
-            else:
-                raise MetobsDatasetBaseError(f"unknown type of {self}")
 
-        add_info = ""
-        n_stations = self.df.index.get_level_values("name").unique().shape[0]
-        n_obs_tot = self.df["value"].count()
-        n_outl = self.outliersdf.shape[0]
-        startdt = self.df.index.get_level_values("datetime").min()
-        enddt = self.df.index.get_level_values("datetime").max()
-
-        if (type(self).__name__ == "Dataset") | (type(self).__name__ == "Station"):
-            add_info += (
-                f"     *Known GEE datasets for:  {list(self.gee_datasets.keys())} \n "
-            )
-
-        if (not self.metadf["lat"].isnull().all()) & (
-            not self.metadf["lon"].isnull().all()
-        ):
-            add_info += "    *Coordinates are available for all stations."
-
-        return (
-            f"{self._istype} instance containing: \n \
-    *{n_stations} stations \n \
-    *{self.df.index.get_level_values('obstype').unique().to_list()} observation types present\n \
-    *{n_obs_tot} observation records (not Nan's) \n \
-    *{n_outl} records labeled as outliers \n \
-    *{len(self.gaps)} gaps \n \
-    *records range: {startdt} --> {enddt} (total duration:  {enddt - startdt}) \n \
-    *time zone of the records: {str(self._get_tz())} \n"
-            + add_info
-        )
+        return dataset_string_repr(self)
 
     def __repr__(self):
         """Info representation."""
@@ -212,7 +176,32 @@ class DatasetBase(object):
         self.df = df
 
     def _set_metadf(self, metadf):
-        # TODO: run simple checks
+        if not metadf.index.name == "name":
+            raise MetobsDatasetBaseError(
+                f"A dataframe is being set as Dataset.metadf with wrong df.index.name: {metadf.index.name}"
+            )
+
+        if "lat" in metadf.columns:
+            if (
+                metadf["lat"]
+                .dropna()
+                .apply(lambda x: ((x < -90.0) | ((x > 90.0))))
+                .any()
+            ):
+                raise MetobsDatasetBaseError(
+                    f"The latitude coordinates in the metadata are not all in [-90; 90] range: {metadf['lat']}"
+                )
+        if "lon" in metadf.columns:
+            if (
+                metadf["lon"]
+                .dropna()
+                .apply(lambda x: ((x < 0.0) | ((x > 180.0))))
+                .any()
+            ):
+                raise MetobsDatasetBaseError(
+                    f"The longitude coordinates in the metadata are not all in [0; 180] range: {metadf['lon']}"
+                )
+
         self.metadf = metadf
 
     def _set_outliersdf(
@@ -292,6 +281,13 @@ class DatasetBase(object):
     # =============================================================================
     # Getters
     # =============================================================================
+    def _get_all_stationnames(self):
+        """Returns a list of all present names in the data."""
+        if self.df.empty:
+            return []
+        else:
+            return self.df.index.get_level_values("name").unique().to_list()
+
     def _get_tz(self):
         # IF no data --> tz is UTC (to work without data for gee fun)
         if self.df.empty:
@@ -408,6 +404,19 @@ class DatasetBase(object):
     # =============================================================================
     # Checks
     # =============================================================================
+
+    def _data_is_required_check(self):
+        """Raise an error when there is no observational data found."""
+        if self.df.empty:
+            if self.metadf.empty:
+                raise MetobsDatasetBaseError(
+                    f"There is no observational data stored in {self}"
+                )
+            else:
+                raise MetobsDatasetBaseError(
+                    f'There is no observational data stored in {self} \n(This method is not a "metadata-only" method.)'
+                )
+        return
 
     def _are_all_present_obstypes_knonw(self):
         """Raise an error if there are unknown obstypes in the df."""

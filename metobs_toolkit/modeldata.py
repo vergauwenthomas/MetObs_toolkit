@@ -1483,6 +1483,13 @@ class GeeDynamicModelData(_GeeModelData):
                 )
         return trg_bands
 
+    def _get_all_stationnames(self):
+        """Returns a list of all present names in the modeldata."""
+        if self.modeldf.empty:
+            return []
+        else:
+            return self.modeldf.index.get_level_values("name").unique().to_list()
+
     def _get_time_res(self):
         return str(self.time_res)
 
@@ -1889,6 +1896,7 @@ class GeeDynamicModelData(_GeeModelData):
         show_outliers=True,
         show_filled=True,
         legend=True,
+        sta_plot_kwargs_dict={},
         _ax=None,  # needed for GUI, not recommended use
     ):
         """Plot timeseries of the modeldata.
@@ -1934,7 +1942,13 @@ class GeeDynamicModelData(_GeeModelData):
              The default is True.
         legend : bool, optional
              If True, a legend is added to the plot. The default is True.
-
+        sta_plot_kwargs_dict : dict, optional
+             sta_plot_kwargs_dict is a nested dictionary that can contain extra
+             styling arguments that is used for a specific station.
+             The keys are the station names, and the values are a dict with the
+             keys elements of ['color', 'linewidth', 'zorder', 'linestyle']. Refer
+             to the corresponding keyword in matplotlib for their meaning and
+             possible types. The default is {}.
 
         Returns
         -------
@@ -2061,6 +2075,8 @@ class GeeDynamicModelData(_GeeModelData):
 
         #  -------- Filter dataset (if available) -----------
         if Dataset is not None:
+            # check if there is data
+            Dataset._data_is_required_check()
             # combine all dataframes
             mergedf = Dataset.get_full_status_df(return_as_wide=False)
 
@@ -2098,8 +2114,27 @@ class GeeDynamicModelData(_GeeModelData):
                 show_outliers=show_outliers,
                 show_filled=show_filled,
                 settings=Dataset.settings,
+                sta_plot_kwargs_dict=sta_plot_kwargs_dict,
                 _ax=_ax,
             )
+
+            # use the col_map to update the sta_plot_kwargs_dict,
+            # so that the same colors are use for modeldata
+
+            # Note: a simplile dict update will not work since all other-than-color
+            # elements are removed
+            for staname, col in col_map.items():
+                if staname in sta_plot_kwargs_dict.keys():
+                    if (
+                        "color" in sta_plot_kwargs_dict[staname].keys()
+                    ):  # loop for readability
+                        # update color
+                        sta_plot_kwargs_dict[staname]["color"] = col
+                    else:
+                        # add color-pair
+                        sta_plot_kwargs_dict[staname]["color"] = col
+                else:
+                    sta_plot_kwargs_dict[staname] = {"color": col}
 
             # Make plot of the model on the previous axes
             ax, col_map = model_timeseries_plot(
@@ -2110,7 +2145,7 @@ class GeeDynamicModelData(_GeeModelData):
                 show_primary_legend=False,
                 add_second_legend=True,
                 _ax=_ax,
-                colorby_name_colordict=col_map,
+                sta_plot_kwargs_dict=sta_plot_kwargs_dict,
             )
 
         else:
@@ -2122,6 +2157,7 @@ class GeeDynamicModelData(_GeeModelData):
                 ylabel=y_label,
                 show_primary_legend=legend,
                 add_second_legend=False,
+                sta_plot_kwargs_dict=sta_plot_kwargs_dict,
                 _ax=_ax,
             )
 
@@ -2314,6 +2350,14 @@ class GeeDynamicModelData(_GeeModelData):
                 )
         # convert to model obstypes
         obstypes = [self.modelobstypes[obs] for obs in obstypes]
+
+        # convert timestamps to pd.Timestamps with utc as timezone if unaware
+        startdt_utc = pd.Timestamp(startdt_utc)
+        if startdt_utc.tz is None:
+            startdt_utc = startdt_utc.tz_localize(tz="UTC")
+        enddt_utc = pd.Timestamp(enddt_utc)
+        if enddt_utc.tz is None:
+            enddt_utc = enddt_utc.tz_localize(tz="UTC")
 
         # ====================================================================
         # GEE api extraction

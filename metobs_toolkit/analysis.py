@@ -89,6 +89,9 @@ class Analysis(Dataset):
         self._lc_groupby_labels = None
         self.use_gapfilled_values = use_gapfilled_values
 
+        # check if there is data
+        orig_dataset._data_is_required_check()
+
         # overload attributes
         self._set_df(orig_dataset.df)
         self._set_outliersdf(empty_outliers_df())  # NO OUTLIERS
@@ -770,6 +773,11 @@ class Analysis(Dataset):
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
 
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['cycle_plot']`,
+        and can be changed (before calling the plot method).
+
         Examples
         --------
 
@@ -906,6 +914,11 @@ class Analysis(Dataset):
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
+
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['cycle_plot']`,
+        and can be changed (before calling the plot method).
 
         Examples
         --------
@@ -1099,6 +1112,11 @@ class Analysis(Dataset):
         --------
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
+
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['cycle_plot']`,
+        and can be changed (before calling the plot method).
 
         Examples
         --------
@@ -1314,6 +1332,11 @@ class Analysis(Dataset):
         -------
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
+
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['cycle_plot']`,
+        and can be changed (before calling the plot method).
 
         Examples
         --------
@@ -1535,7 +1558,7 @@ class Analysis(Dataset):
                 cycledf=values_df,
                 errorbandsdf=stddf,
                 title=title,
-                plot_settings=self.settings.app["plot_settings"]["diurnal"],
+                plot_settings=self.settings.app["plot_settings"]["cycle_plot"],
                 aggregation=aggregation,
                 y_label=y_label,
                 legend=legend,
@@ -1791,6 +1814,11 @@ class Analysis(Dataset):
         To list all possible groupby_values, one can use
         ` print(Analysis_instance.lc_cor_dict.keys())`
 
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['correlation_heatmap']`,
+        and can be changed (before calling the plot method).
+
         Examples
         --------
 
@@ -1895,6 +1923,12 @@ class Analysis(Dataset):
         If to many possible group values exist, one can use the
         get_full_dataframe(), filter the dataframe and set_data() method to
         reduce the group values.
+
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['correlation_scatter']`,
+        and can be changed (before calling the plot method).
+
 
         Examples
         --------

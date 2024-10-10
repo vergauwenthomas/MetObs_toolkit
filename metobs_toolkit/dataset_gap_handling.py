@@ -110,10 +110,8 @@ class DatasetGapCore:
              *8 gaps
              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
              *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
              *Coordinates are available for all stations.
-
-
+             *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
         We can combine all the gaps in one dataframe:
 
@@ -192,24 +190,23 @@ class DatasetGapCore:
              *8 gaps
              *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
              *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
              *Coordinates are available for all stations.
-
+             *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
         Now we convert the outliers to gaps, so that they can be filled.
 
         >>> dataset.convert_outliers_to_gaps()
         >>> print(dataset)
         Dataset instance containing:
-         *28 stations
-         *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-         *447513 observation records (not Nan's)
-         *0 records labeled as outliers
-         *1697 gaps
-         *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
-         *time zone of the records: UTC
-         *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-         *Coordinates are available for all stations.
+             *28 stations
+             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+             *447513 observation records (not Nan's)
+             *0 records labeled as outliers
+             *1697 gaps
+             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:55:00+00:00 (total duration:  14 days 23:55:00)
+             *time zone of the records: UTC
+             *Coordinates are available for all stations.
+             *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
 
         """
@@ -364,8 +361,8 @@ class DatasetGapCore:
                  *89 gaps
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
                  *time zone of the records: UTC
-                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             As we can see, we now have a dataset with gaps (for temperature). It is
             often handy to combine all present gaps into one pandas Dataframe, for
@@ -563,15 +560,15 @@ class DatasetGapCore:
             >>> sta.convert_outliers_to_gaps()
             >>> print(sta)
             Station instance containing:
-             *1 stations
-             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-             *1160 observation records (not Nan's)
-             *0 records labeled as outliers
-             *7 gaps
-             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-             *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-             *Coordinates are available for all stations.
+                 *1 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *1160 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *7 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
             often handy to combine all present gaps into one pandas Dataframe, for
@@ -762,8 +759,8 @@ class DatasetGapCore:
                  *7 gaps
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
                  *time zone of the records: UTC
-                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
             often handy to combine all present gaps into one pandas Dataframe, for
@@ -965,17 +962,15 @@ class DatasetGapCore:
             >>> sta.convert_outliers_to_gaps()
             >>> print(sta)
             Station instance containing:
-             *1 stations
-             *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
-             *1389 observation records (not Nan's)
-             *0 records labeled as outliers
-             *3 gaps
-             *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
-             *time zone of the records: UTC
-             *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
-             *Coordinates are available for all stations.
-
-
+                 *1 stations
+                 *['humidity', 'temp', 'wind_direction', 'wind_speed'] observation types present
+                 *1389 observation records (not Nan's)
+                 *0 records labeled as outliers
+                 *3 gaps
+                 *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
+                 *time zone of the records: UTC
+                 *Coordinates are available for all stations.
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
             often handy to combine all present gaps into one pandas Dataframe, for
@@ -1199,8 +1194,8 @@ class DatasetGapCore:
                  *3 gaps
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
                  *time zone of the records: UTC
-                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
             As we can see, we now have a Station (or Dataset) with gaps (for temperature). It is
             often handy to combine all present gaps into one pandas Dataframe, for
@@ -1366,8 +1361,8 @@ class DatasetGapCore:
                  *89 gaps
                  *records range: 2022-09-01 00:00:00+00:00 --> 2022-09-15 23:00:00+00:00 (total duration:  14 days 23:00:00)
                  *time zone of the records: UTC
-                 *Known GEE datasets for:  ['lcz', 'altitude', 'worldcover', 'ERA5-land']
                  *Coordinates are available for all stations.
+                 *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
 
             As we can see, we now have a Dataset with gaps (for temperature). The

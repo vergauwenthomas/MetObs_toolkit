@@ -27,6 +27,8 @@ column_data_blacklist = (
 )  # When this column is found, a 'underscar' is added to the name,
 column_meta_blacklist = [
     "geometry",
+    "lon",
+    "lat",
     "assumed_import_frequency",
     "dataset_resolution",
     "lcz",
@@ -228,7 +230,9 @@ class Template:
             # Data format is long, but indicate that data represents a single station
             self.dataformat = "long"
             self.data_is_single_station = True
-
+        elif datafmt is None:
+            # no dataformat has been set --> this is valid in a metadata-only case
+            self.dataformat = None
         else:
             sys.exit(f"{datafmt} is not a known dataformat.")
 
@@ -413,7 +417,7 @@ class Template:
         unmapped = (
             set(metadatacolumns) - set(self.metacolmapname.values()) - set(["name"])
         )
-        if not bool(unmapped):
+        if bool(unmapped):
             msg = f"The following columns are found in the metadata, but not in the template and are therefore ignored: \n{list(unmapped)}"
             logger.warning(msg)
 
@@ -432,7 +436,7 @@ class Template:
         else:
             blacklist = column_meta_blacklist
 
-        to_rename = [col for col in columns if col in column_data_blacklist]
+        to_rename = [col for col in columns if col in blacklist]
 
         if on_data:
             # if the columns is mapped by the template, remove it from the to_rename
@@ -444,19 +448,19 @@ class Template:
                     self.timestampinfo["time_column"],
                 ]
             )
-            mapped_set.union(set(self._get_obs_column_map().keys()))
+            mapped_set = mapped_set.union(set(self._get_obs_column_map().keys()))
 
         else:
             # on metadata
             mapped_set = set([self.metadata_namemap["name"]])
-            mapped_set.union(set(self._get_metadata_column_map().keys()))
+            mapped_set = mapped_set.union(set(self._get_metadata_column_map().keys()))
 
         mapped_set = mapped_set - set([None])
 
         to_rename = set(to_rename) - mapped_set
         blacklist_mapper = {col: f"{col}_original" for col in to_rename}
 
-        if not bool(blacklist_mapper):
+        if bool(blacklist_mapper):
             if on_data:
                 msg = f"The following data columns are renamed because of special meaning by the toolkit: {blacklist_mapper}"
             else:
