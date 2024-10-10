@@ -218,7 +218,7 @@ class DatasetVisuals:
             ...                                                            'zorder': 5,
             ...                                                            'linestyle': '--'},
             ...                                              'vlinder05': {'color': 'black',
-                                                                           'zorder': 6}})
+            ...                                                            'zorder': 6}})
             >>> ax.grid(True)
 
         """
